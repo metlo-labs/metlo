@@ -7,6 +7,9 @@ export class ApiTrace extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
 
+  @Column({ nullable: false })
+  path: string
+
   @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date
 

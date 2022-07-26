@@ -1,9 +1,12 @@
+import { RestMethod } from "./enums"
+
 export interface Meta {
   incoming: boolean
   source: string
   sourcePort: string
   destination: string
   destinationPort: string
+  environment: string
 }
 
 export interface Parameter {
@@ -17,7 +20,8 @@ export interface Header {
 }
 
 export interface Url {
-  baseUrl: string
+  host: string
+  path: string
   parameters: Parameter[]
 }
 
@@ -25,6 +29,7 @@ export interface Request {
   url: Url
   headers: Header[]
   body: string
+  method: RestMethod
 }
 
 export interface Response {
