@@ -1,6 +1,6 @@
 import { Entity, BaseEntity, Column, ManyToOne, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { DataClass } from "../src/enums";
-import { ApiTrace } from "./api-trace";
+import { ApiEndpoint } from "./api-endpoint";
 
 @Entity()
 export class MatchedDataClass extends BaseEntity {
@@ -16,6 +16,12 @@ export class MatchedDataClass extends BaseEntity {
   @UpdateDateColumn({ type: "timestamptz"})
   updatedAt: Date
 
-  @ManyToOne(() => ApiTrace, apiTrace => apiTrace.sensitiveDataClasses)
-  apiTrace: ApiTrace
+  @Column()
+  dataPath: string
+
+  @Column({ type: "bool" })
+  isRisk: boolean
+
+  @ManyToOne(() => ApiEndpoint, apiTrace => apiTrace.sensitiveDataClasses)
+  apiEndpoint: ApiEndpoint
 }

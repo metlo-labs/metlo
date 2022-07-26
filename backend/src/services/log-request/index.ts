@@ -14,23 +14,29 @@ export class LogRequestService {
 
   static async logRequest(traceParams: TraceParams) {
     try {
+      /** Log Request in ApiTrace table */
       const apiTraceRepository = this.getApiTraceRepository();
       const path = traceParams.request.url.path;
       const method = traceParams.request.method;
       const environment = traceParams.meta.environment;
       const host = traceParams.request.url.host;
-      let apiTraceObj = await apiTraceRepository.findOne({where: {path, method, environment, host }, relations: {sensitiveDataClasses: true }});
-      if (!apiTraceObj) {
-        apiTraceObj = new ApiTrace();
-        apiTraceObj.path = path;
-        apiTraceObj.method = method;
-        apiTraceObj.environment = environment;
-        apiTraceObj.host = host;
-        apiTraceObj.totalCalls = 0;
-      }
-      apiTraceObj.totalCalls += 1;
-      //TODO: Find sensitive data in request and response and add data classes and data paths to tables
+      const apiTraceObj = new ApiTrace();
+      apiTraceObj.path = path;
+      apiTraceObj.method = method;
+      apiTraceObj.environment = environment;
+      apiTraceObj.host = host;
+      apiTraceObj.requestParameters = traceParams.request.url.parameters;
+      apiTraceObj.requestHeaders = traceParams.request.headers;
+      apiTraceObj.requestBody = traceParams.request.body;
+      apiTraceObj.responseStatus = traceParams.response.status;
+      apiTraceObj.responseParameters = traceParams.response.url.parameters;
+      apiTraceObj.responseHeaders = traceParams.response.headers;
+      apiTraceObj.responseBody = traceParams.response.body;
+      apiTraceObj.meta = traceParams.meta;
       await apiTraceRepository.save(apiTraceObj)
+
+      //TODO: Log Request in ApiEndpoint table
+      //TODO: Find sensitive data in request and response and add data classes and data paths to tables
     } catch (err) {
       console.error(`Error in Log Request service: ${err}`)
     }
