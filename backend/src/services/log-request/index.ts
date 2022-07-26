@@ -35,4 +35,10 @@ export class LogRequestService {
       console.error(`Error in Log Request service: ${err}`)
     }
   }
+
+  static async logRequestBatch(traceParamsBatch: TraceParams[]) {
+    for (let i = 0; i < traceParamsBatch.length; i++) {
+      this.logRequest(traceParamsBatch[i])
+    }
+  }
 }
