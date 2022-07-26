@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { LogRequestService } from "services/log-request";
+import { LogRequestService } from "../../services/log-request";
 import { TraceParams } from "types";
 
 export const logRequestSingleHandler = async (req: Request, res: Response) => {
