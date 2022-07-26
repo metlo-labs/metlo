@@ -3,6 +3,12 @@ from typing import List
 from uuid import uuid4
 import json
 from random import choice
+from faker import Faker
+from faker.providers import internet
+
+fake = Faker()
+fake.add_provider(internet)
+
 
 from producers.base import BaseProducer
 
@@ -35,9 +41,8 @@ class EcommerceAddProductToCartProducer(BaseProducer):
 
     avg_emit_delta = timedelta(seconds=10)
 
-    def get_data_points(self, time: datetime) -> List[dict]:
+    def get_data_points_helper(self, cart_uuid: str) -> dict:
         product_uuid = choice(PRODUCT_UUIDS)
-        cart_uuid = uuid4()
         req_body = {
             "product_uuid": product_uuid,
         }
@@ -45,19 +50,37 @@ class EcommerceAddProductToCartProducer(BaseProducer):
             "ok": True,
             "msg": "Added to cart..."
         }
-        return [
-            {
-                "request": {
-                    "url": {
-                        "base_url": f"/cart/{cart_uuid}/add-product",
-                        "parameters": []
+        return {
+            "request": {
+                "url": {
+                    "host": "test-ecommerce.metlo.com",
+                    "path": f"/cart/{cart_uuid}/add-product",
+                    "parameters": []
+                },
+                "method": "POST",
+                "body": json.dumps(req_body),
+            },
+            "response": {
+                "status": 200,
+                "headers": [
+                    {
+                        "name": "content-type",
+                        "value": "application/json; charset=utf-8",
                     },
-                    "method": "POST",
-                    "body": json.dumps(req_body),
-                },
-                "response": {
-                    "status": 200,
-                    "body": json.dumps(resp_body),
-                },
-            }
-        ]
+                ],
+                "body": json.dumps(resp_body),
+            },
+            "meta": {
+                "environment": "production",
+                "incoming": True,
+                "source": fake.ipv4(),
+                "source_port": choice(range(10000, 20000)),
+                "destination": "76.47.25.189",
+                "destination_port": 443,
+            },
+        }
+
+    def get_data_points(self, time: datetime) -> List[dict]:
+        cart_uuid = str(uuid4())
+        num_data_points = choice(list(range(8)))
+        return [self.get_data_points_helper(cart_uuid) for _ in range(num_data_points)]
