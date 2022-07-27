@@ -1,11 +1,9 @@
-import { FaFolder } from "@react-icons/all-files/fa/FaFolder";
 import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch";
 import { FaHome } from "@react-icons/all-files/fa/FaHome";
 import { FaCog } from "@react-icons/all-files/fa/FaCog";
 import { FaShareAlt } from "@react-icons/all-files/fa/FaShareAlt";
-import { FaBookOpen } from "@react-icons/all-files/fa/FaBookOpen";
+import { FaBell } from "@react-icons/all-files/fa/FaBell";
 import { HiChartBar } from "@react-icons/all-files/hi/HiChartBar";
-import { FaCheckSquare } from "@react-icons/all-files/fa/FaCheckSquare";
 import { IconType } from "@react-icons/all-files/lib";
 
 export enum SideNavLinkDestination {
@@ -13,6 +11,8 @@ export enum SideNavLinkDestination {
   Endpoints,
   Tests,
   Issues,
+  Settings,
+  Connections,
 }
 
 export const sideNavDestinationToLabel: (
@@ -27,6 +27,10 @@ export const sideNavDestinationToLabel: (
       return "Tests";
     case SideNavLinkDestination.Issues:
       return "Issues";
+    case SideNavLinkDestination.Settings:
+      return "Settings";
+    case SideNavLinkDestination.Connections:
+      return "Connections";
     default:
       throw Error(`No value mapped for ${dest}`);
   }
@@ -43,7 +47,11 @@ export const sideNavDestinationToIcon: (
     case SideNavLinkDestination.Tests:
       return HiChartBar;
     case SideNavLinkDestination.Issues:
-      return FaFolder;
+      return FaBell;
+    case SideNavLinkDestination.Settings:
+      return FaCog;
+    case SideNavLinkDestination.Connections:
+      return FaShareAlt;
     default:
       throw Error(`No value mapped for ${dest}`);
   }
@@ -61,6 +69,10 @@ export const sideNavDestinationToHref: (
       return "/tests";
     case SideNavLinkDestination.Issues:
       return "/issues";
+    case SideNavLinkDestination.Settings:
+      return "/settings";
+    case SideNavLinkDestination.Connections:
+      return "/connections";
     default:
       throw Error(`No value mapped for ${dest}`);
   }

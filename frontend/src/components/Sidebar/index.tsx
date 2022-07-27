@@ -51,6 +51,15 @@ const SideNavBar: React.FC<SideNavBarProps> = React.memo(({ currentTab }) => (
         destination={SideNavLinkDestination.Issues}
         isActive={currentTab === SideNavLinkDestination.Issues}
       />
+      <Divider borderColor="blackAlpha.400" my={4} mx={0} />
+      <SideNavLink
+        destination={SideNavLinkDestination.Connections}
+        isActive={currentTab === SideNavLinkDestination.Connections}
+      />
+      <SideNavLink
+        destination={SideNavLinkDestination.Settings}
+        isActive={currentTab === SideNavLinkDestination.Settings}
+      />
     </Stack>
     <Spacer />
   </Flex>
