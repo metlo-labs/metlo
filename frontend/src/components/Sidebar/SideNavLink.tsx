@@ -6,6 +6,7 @@ import {
   LinkProps,
   Text,
   Tooltip,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import React from "react";
 import {
@@ -22,6 +23,9 @@ interface SideNavLinkProps extends LinkProps {
 
 const SideNavLink: React.FC<SideNavLinkProps> = React.memo(
   ({ isActive, destination, ...rest }) => {
+    const iconColor = isActive
+      ? "rgb(101, 138, 216)"
+      : useColorModeValue("rgb(163, 165, 170)", "rgb(98, 100, 116)");
     return (
       <Link
         display="block"
@@ -32,14 +36,11 @@ const SideNavLink: React.FC<SideNavLinkProps> = React.memo(
         fontWeight="medium"
         lineHeight="1.5rem"
         aria-current={isActive ? "page" : undefined}
-        color="blackAlpha.600"
         _hover={{
-          bg: "blackAlpha.50",
-          color: "blackAlpha.900",
+          bg: useColorModeValue("rgb(240, 240, 242)", "rgb(25, 28, 35)"),
         }}
         _activeLink={{
-          bg: "blackAlpha.100",
-          color: "blackAlpha.900",
+          color: useColorModeValue("black", "white"),
         }}
         {...rest}
         href={sideNavDestinationToHref(destination)}
@@ -49,7 +50,7 @@ const SideNavLink: React.FC<SideNavLinkProps> = React.memo(
             <Icon
               as={sideNavDestinationToIcon(destination)}
               boxSize="20px"
-              color="inherit"
+              color={iconColor}
             />
             <Text>{sideNavDestinationToLabel(destination)}</Text>
           </HStack>
@@ -64,7 +65,7 @@ const SideNavLink: React.FC<SideNavLinkProps> = React.memo(
               <Icon
                 as={sideNavDestinationToIcon(destination)}
                 boxSize="20px"
-                color="inherit"
+                color={iconColor}
               />
             </span>
           </Tooltip>

@@ -1,11 +1,16 @@
 import React from "react";
 
-import { HTMLChakraProps, useToken, chakra } from "@chakra-ui/react";
+import {
+  HTMLChakraProps,
+  useToken,
+  chakra,
+  useColorModeValue,
+} from "@chakra-ui/react";
 
 export const Logo = React.memo(
   (props: HTMLChakraProps<"svg"> & { iconColor?: string }) => {
-    const { iconColor = "currentColor", ...rest } = props;
-    const color = useToken("colors", iconColor);
+    const { iconColor, ...rest } = props;
+    const color = iconColor || useColorModeValue("black", "white");
     return (
       <chakra.svg
         height="24"
