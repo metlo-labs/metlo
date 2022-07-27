@@ -13,16 +13,16 @@ export class ApiTrace extends BaseEntity {
   @CreateDateColumn({ type: "timestamptz"})
   createdAt: Date
 
-  @Column()
+  @Column({ nullable: false })
   host: string
 
-  @Column()
+  @Column({ nullable: false })
   environment: string
 
   @Column({ type: "enum", enum: RestMethod })
   method: RestMethod
 
-  @Column()
+  @Column({ nullable: true })
   owner: string
 
   @Column({ type: "jsonb", nullable: true})
@@ -31,19 +31,16 @@ export class ApiTrace extends BaseEntity {
   @Column({ type: "jsonb", nullable: true})
   requestHeaders: Header[]
 
-  @Column()
+  @Column({ nullable: true })
   requestBody: string
 
   @Column({type: "integer"})
   responseStatus: number
 
   @Column({ type: "jsonb", nullable: true})
-  responseParameters: Parameter[]
-
-  @Column({ type: "jsonb", nullable: true})
   responseHeaders: Header[]
 
-  @Column()
+  @Column({ nullable: true })
   responseBody: string
 
   @Column({ type: "jsonb", nullable: true})

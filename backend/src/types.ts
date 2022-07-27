@@ -34,7 +34,6 @@ export interface Request {
 
 export interface Response {
   status: number
-  url: Url
   headers: Header[]
   body: string
 }

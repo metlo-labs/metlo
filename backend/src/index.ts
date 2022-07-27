@@ -1,7 +1,7 @@
 import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
-import { logRequestSingleHandler } from "./api/log-request"
+import { logRequestBatchHandler, logRequestSingleHandler } from "./api/log-request"
 import { AppDataSource } from './data-source';
 
 dotenv.config();
@@ -12,10 +12,11 @@ const port = process.env.PORT || 8080;
 app.use(bodyParser.json())
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('Express + TypeScript Server');
+  res.send('OK');
 });
 
 app.post('/log-request/single', logRequestSingleHandler)
+app.post('/log-request/batch', logRequestBatchHandler)
 
 const main = async () => {
   try {

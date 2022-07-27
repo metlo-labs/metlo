@@ -2,8 +2,10 @@ import { Repository } from "typeorm";
 import { TraceParams } from "../../types";
 import { ApiTrace } from "../../../models";
 import { AppDataSource } from "../../data-source";
+import { ScannerService } from "../scanner/scan";
 
 let API_TRACE_REPOSITORY = AppDataSource.getRepository(ApiTrace);
+
 export class LogRequestService {
   static getApiTraceRepository(): Repository<ApiTrace> {
     if (!API_TRACE_REPOSITORY) {
@@ -16,23 +18,22 @@ export class LogRequestService {
     try {
       /** Log Request in ApiTrace table */
       const apiTraceRepository = this.getApiTraceRepository();
-      const path = traceParams.request.url.path;
-      const method = traceParams.request.method;
-      const environment = traceParams.meta.environment;
-      const host = traceParams.request.url.host;
+      const path = traceParams?.request?.url?.path;
+      const method = traceParams?.request?.method;
+      const environment = traceParams?.meta?.environment;
+      const host = traceParams?.request?.url?.host;
       const apiTraceObj = new ApiTrace();
       apiTraceObj.path = path;
       apiTraceObj.method = method;
       apiTraceObj.environment = environment;
       apiTraceObj.host = host;
-      apiTraceObj.requestParameters = traceParams.request.url.parameters;
-      apiTraceObj.requestHeaders = traceParams.request.headers;
-      apiTraceObj.requestBody = traceParams.request.body;
-      apiTraceObj.responseStatus = traceParams.response.status;
-      apiTraceObj.responseParameters = traceParams.response.url.parameters;
-      apiTraceObj.responseHeaders = traceParams.response.headers;
-      apiTraceObj.responseBody = traceParams.response.body;
-      apiTraceObj.meta = traceParams.meta;
+      apiTraceObj.requestParameters = traceParams?.request?.url?.parameters;
+      apiTraceObj.requestHeaders = traceParams?.request?.headers;
+      apiTraceObj.requestBody = traceParams?.request?.body;
+      apiTraceObj.responseStatus = traceParams?.response?.status;
+      apiTraceObj.responseHeaders = traceParams?.response?.headers;
+      apiTraceObj.responseBody = traceParams?.response?.body;
+      apiTraceObj.meta = traceParams?.meta;
       await apiTraceRepository.save(apiTraceObj)
 
       //TODO: Log Request in ApiEndpoint table
