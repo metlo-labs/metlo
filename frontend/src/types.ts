@@ -4,6 +4,13 @@ export enum RiskScore {
   HIGH = "high",
 }
 
+export interface PIIField {
+  dataType: string;
+  dataPath: string;
+  risk: RiskScore;
+  dateIdentified: string;
+}
+
 export interface Endpoint {
   uuid: string;
   environment: string;
@@ -11,6 +18,7 @@ export interface Endpoint {
   path: string;
   method: string;
   riskScore: RiskScore;
-  firstDetected: Date;
-  lastActive: Date;
+  firstDetected: string;
+  lastActive: string;
+  piiData: PIIField[];
 }

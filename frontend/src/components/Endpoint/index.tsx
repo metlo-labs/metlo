@@ -5,15 +5,11 @@ import { FaBell } from "@react-icons/all-files/fa/FaBell";
 import { Badge, Code, GridItem, HStack, VStack } from "@chakra-ui/react";
 import { Endpoint } from "../../types";
 import { CardWithHeader } from "../utils/Card";
+import { METHOD_TO_COLOR } from "../../constants";
 
 interface EndpointPageProps {
   endpoint: Endpoint;
 }
-
-const METHOD_TO_COLOR = {
-  GET: "green",
-  POST: "orange",
-};
 
 const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
   return (
