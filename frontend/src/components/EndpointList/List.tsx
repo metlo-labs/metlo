@@ -6,6 +6,7 @@ import {
   Skeleton,
   useColorMode,
   ColorMode,
+  HStack,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import EmptyView from "../utils/EmptyView";
@@ -17,6 +18,7 @@ import DataTable, {
   TableStyles,
 } from "react-data-table-component";
 import { Endpoint, RiskScore } from "../../types";
+import { METHOD_TO_COLOR } from "../../constants";
 
 const PAGE_SIZE = 10;
 
@@ -204,41 +206,68 @@ const List: React.FC<EndpointTablesProps> = React.memo(
 
     const columns: TableColumn<Endpoint>[] = [
       {
+        name: "Risk Score",
+        sortable: true,
+        selector: (row: Endpoint) => row.riskScore || "",
+        cell: (row: Endpoint) => (
+          <Badge
+            p="1"
+            fontSize="sm"
+            colorScheme={riskToColor[row.riskScore]}
+            pointerEvents="none"
+          >
+            {row.riskScore}
+          </Badge>
+        ),
+        id: "riskScore",
+        grow: 1,
+      },
+      {
+        name: "Path",
+        sortable: true,
+        selector: (row: Endpoint) => row.method + row.path,
+        cell: (row: Endpoint) => (
+          <HStack pointerEvents="none">
+            <Badge
+              p="1"
+              colorScheme={METHOD_TO_COLOR[row.method] || "gray"}
+              fontSize="sm"
+            >
+              {row.method}
+            </Badge>
+            <Code p="1">{row.path}</Code>
+          </HStack>
+        ),
+        id: "method",
+        grow: 3,
+      },
+      {
         name: "Environment",
         sortable: true,
         selector: (row: Endpoint) => row.environment || "",
         id: "environment",
+        grow: 1,
       },
       {
         name: "Host",
         sortable: true,
         selector: (row: Endpoint) => row.host || "",
         id: "host",
+        grow: 1,
       },
       {
-        name: "Path",
+        name: "First Detected",
         sortable: true,
-        selector: (row: Endpoint) => row.path || "",
-        cell: (row: Endpoint) => <Code p="1">{row.path}</Code>,
-        id: "path",
+        selector: (row: Endpoint) => row.firstDetected || "",
+        id: "firstDetected",
+        grow: 2,
       },
       {
-        name: "Method",
+        name: "Last Active",
         sortable: true,
-        selector: (row: Endpoint) => row.method || "",
-        cell: (row: Endpoint) => <Badge>{row.method}</Badge>,
-        id: "method",
-      },
-      {
-        name: "Risk Score",
-        sortable: true,
-        selector: (row: Endpoint) => row.riskScore || "",
-        cell: (row: Endpoint) => (
-          <Badge colorScheme={riskToColor[row.riskScore]}>
-            {row.riskScore}
-          </Badge>
-        ),
-        id: "riskScore",
+        selector: (row: Endpoint) => row.lastActive || "",
+        id: "lastActive",
+        grow: 2,
       },
     ];
 
