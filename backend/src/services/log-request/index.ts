@@ -1,23 +1,13 @@
-import { Repository } from "typeorm";
 import { TraceParams } from "../../types";
 import { ApiTrace } from "../../../models";
 import { AppDataSource } from "../../data-source";
 import { ScannerService } from "../scanner/scan";
 
-let API_TRACE_REPOSITORY = AppDataSource.getRepository(ApiTrace);
-
 export class LogRequestService {
-  static getApiTraceRepository(): Repository<ApiTrace> {
-    if (!API_TRACE_REPOSITORY) {
-      API_TRACE_REPOSITORY = AppDataSource.getRepository(ApiTrace);
-    }
-    return API_TRACE_REPOSITORY;
-  }
-
   static async logRequest(traceParams: TraceParams) {
     try {
       /** Log Request in ApiTrace table */
-      const apiTraceRepository = this.getApiTraceRepository();
+      const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
       const path = traceParams?.request?.url?.path;
       const method = traceParams?.request?.method;
       const environment = traceParams?.meta?.environment;

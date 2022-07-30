@@ -43,3 +43,11 @@ export interface TraceParams {
   response: Response
   meta: Meta
 }
+
+export interface GetEndpointParams {
+  environment?: string
+  host?: string
+  riskScore?: string
+  offset?: number
+  limit?: number
+}
