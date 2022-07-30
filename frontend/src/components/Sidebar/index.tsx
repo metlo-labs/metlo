@@ -8,6 +8,7 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import { Logo, SmLogo } from "../Logo";
+import { DarkModeSwitch } from "../utils/DarkModeSwitch";
 import { SideNavLinkDestination } from "./NavLinkUtils";
 import SideNavLink from "./SideNavLink";
 
@@ -29,7 +30,7 @@ const SideNavBar: React.FC<SideNavBarProps> = React.memo(({ currentTab }) => {
   return (
     <Flex
       height="100vh"
-      width={{ xl: "300px", base: "100px" }}
+      width={{ xl: "250px", base: "100px" }}
       direction="column"
       bg={bg}
       color={textColor}
@@ -37,7 +38,7 @@ const SideNavBar: React.FC<SideNavBarProps> = React.memo(({ currentTab }) => {
       py={6}
     >
       <Box
-        mb={4}
+        mb="6"
         display="flex"
         justifyContent={{ xl: "flex-start", base: "center" }}
       >

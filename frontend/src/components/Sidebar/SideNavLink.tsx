@@ -1,11 +1,11 @@
 import {
   Box,
   HStack,
+  Flex,
   Icon,
   Link,
   LinkProps,
   Text,
-  Tooltip,
   useColorModeValue,
 } from "@chakra-ui/react";
 import NextLink from "next/link";
@@ -25,7 +25,7 @@ interface SideNavLinkProps extends LinkProps {
 const SideNavLink: React.FC<SideNavLinkProps> = React.memo(
   ({ isActive, destination, ...rest }) => {
     const iconColor = isActive
-      ? "rgb(101, 138, 216)"
+      ? "primary"
       : useColorModeValue("rgb(163, 165, 170)", "rgb(98, 100, 116)");
     return (
       <NextLink href={sideNavDestinationToHref(destination)}>
@@ -56,21 +56,18 @@ const SideNavLink: React.FC<SideNavLinkProps> = React.memo(
               <Text>{sideNavDestinationToLabel(destination)}</Text>
             </HStack>
           </Box>
-          <Box display={{ xl: "none", base: "unset" }}>
-            <Tooltip
-              hasArrow
-              placement="left"
-              label={sideNavDestinationToLabel(destination)}
-            >
-              <span>
-                <Icon
-                  as={sideNavDestinationToIcon(destination)}
-                  boxSize="20px"
-                  color={iconColor}
-                />
-              </span>
-            </Tooltip>
-          </Box>
+          <Flex
+            w="full"
+            h="full"
+            display={{ xl: "none", base: "flex" }}
+            justifyContent="center"
+          >
+            <Icon
+              as={sideNavDestinationToIcon(destination)}
+              boxSize="22px"
+              color={iconColor}
+            />
+          </Flex>
         </Link>
       </NextLink>
     );

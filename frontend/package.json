@@ -12,10 +12,13 @@
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.9.0",
     "@react-icons/all-files": "^4.1.0",
+    "chakra-react-select": "^4.1.4",
     "framer-motion": "^6.3.0",
     "next": "latest",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-data-table-component": "^7.5.2",
+    "react-dom": "^18.2.0",
+    "styled-components": "^5.3.5"
   },
   "devDependencies": {
     "@types/node": "^18.0.0",
