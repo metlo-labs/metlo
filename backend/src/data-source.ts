@@ -1,6 +1,6 @@
-import "dotenv/config"
+import "dotenv/config";
 import { DataSource } from "typeorm";
-import { ApiEndpoint, MatchedDataClass, ApiTrace } from "../models"
+import { ApiEndpoint, MatchedDataClass, ApiTrace } from "../models";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -9,4 +9,4 @@ export const AppDataSource = new DataSource({
   entities: [ApiEndpoint, MatchedDataClass, ApiTrace],
   migrations: [],
   logging: false,
-})
+});

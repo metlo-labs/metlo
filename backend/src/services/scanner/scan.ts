@@ -1,5 +1,16 @@
-import { DataClass } from "../../enums"
-import { ADDRESS_REGEXP, COORDINATE_REGEXP, CREDIT_CARD_REGEXP, DOB_REGEXP, DRIVER_LICENSE_REGEXP, EMAIL_REGEXP, IP_ADDRESS_REGEXP, PHONE_NUMBER_REGEXP, SSN_REGEXP, VIN_REGEXP } from "./regexp"
+import { DataClass } from "../../enums";
+import {
+  ADDRESS_REGEXP,
+  COORDINATE_REGEXP,
+  CREDIT_CARD_REGEXP,
+  DOB_REGEXP,
+  DRIVER_LICENSE_REGEXP,
+  EMAIL_REGEXP,
+  IP_ADDRESS_REGEXP,
+  PHONE_NUMBER_REGEXP,
+  SSN_REGEXP,
+  VIN_REGEXP,
+} from "./regexp";
 
 const DATA_CLASS_REGEX_MAP = new Map<DataClass, RegExp>([
   [DataClass.ADDRESS, ADDRESS_REGEXP],
@@ -12,7 +23,7 @@ const DATA_CLASS_REGEX_MAP = new Map<DataClass, RegExp>([
   [DataClass.PHONE_NUMBER, PHONE_NUMBER_REGEXP],
   [DataClass.SSN, SSN_REGEXP],
   [DataClass.VIN, VIN_REGEXP],
-])
+]);
 
 export class ScannerService {
   static scan = (text: string) => {
@@ -22,7 +33,7 @@ export class ScannerService {
       if (matches?.length > 0) {
         res[dataClass] = matches;
       }
-    })
+    });
     return res;
-  }
+  };
 }

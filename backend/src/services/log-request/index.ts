@@ -32,28 +32,27 @@ export class LogRequestService {
 
       // Check for sensitive data in request parameters
 
-      const startTime = performance.now()
+      const startTime = performance.now();
       if (requestParameters) {
         for (const param of requestParameters) {
           const field = param.name;
           const matches = ScannerService.scan(param.value);
         }
       }
-      console.log(performance.now() - startTime)
+      console.log(performance.now() - startTime);
 
-      await apiTraceRepository.save(apiTraceObj)
-
+      await apiTraceRepository.save(apiTraceObj);
 
       //TODO: Log Request in ApiEndpoint table
       //TODO: Find sensitive data in request and response and add data classes and data paths to tables
     } catch (err) {
-      console.error(`Error in Log Request service: ${err}`)
+      console.error(`Error in Log Request service: ${err}`);
     }
   }
 
   static async logRequestBatch(traceParamsBatch: TraceParams[]) {
     for (let i = 0; i < traceParamsBatch.length; i++) {
-      this.logRequest(traceParamsBatch[i])
+      this.logRequest(traceParamsBatch[i]);
     }
   }
 }

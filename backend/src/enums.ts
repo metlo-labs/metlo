@@ -1,13 +1,13 @@
 export enum RestMethod {
   GET = "GET",
   HEAD = "HEAD",
-	POST = "POST",
-	PUT = "PUT",
-	PATCH = "PATCH",
-	DELETE = "DELETE",
-	CONNECT = "CONNECT",
-	OPTIONS = "OPTIONS",
-	TRACE = "TRACE"
+  POST = "POST",
+  PUT = "PUT",
+  PATCH = "PATCH",
+  DELETE = "DELETE",
+  CONNECT = "CONNECT",
+  OPTIONS = "OPTIONS",
+  TRACE = "TRACE",
 }
 
 export enum DataClass {
@@ -20,5 +20,5 @@ export enum DataClass {
   VIN = "Vehicle Identification Number",
   ADDRESS = "Address",
   DOB = "Date of Birth",
-  DL_NUMBER = "Driver License Number"
+  DL_NUMBER = "Driver License Number",
 }

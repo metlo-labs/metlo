@@ -6,11 +6,11 @@ export const logRequestSingleHandler = async (req: Request, res: Response) => {
   const traceParams: TraceParams = req.body;
   try {
     await LogRequestService.logRequest(traceParams);
-    res.sendStatus(200)
+    res.sendStatus(200);
   } catch {
-    res.sendStatus(500)
+    res.sendStatus(500);
   }
-}
+};
 
 export const logRequestBatchHandler = async (req: Request, res: Response) => {
   const traceParamsBatch: TraceParams[] = req.body;
@@ -20,4 +20,4 @@ export const logRequestBatchHandler = async (req: Request, res: Response) => {
   } catch {
     res.sendStatus(500);
   }
-}
+};
