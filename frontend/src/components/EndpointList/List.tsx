@@ -1,24 +1,11 @@
 import React from "react";
-import {
-  Badge,
-  Box,
-  Code,
-  Skeleton,
-  useColorMode,
-  ColorMode,
-  HStack,
-} from "@chakra-ui/react";
+import { Badge, Box, Code, useColorMode, HStack } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import EmptyView from "../utils/EmptyView";
-import _ from "lodash";
-import DataTable, {
-  Media,
-  SortOrder,
-  TableColumn,
-  TableStyles,
-} from "react-data-table-component";
-import { Endpoint, RiskScore } from "../../types";
-import { METHOD_TO_COLOR } from "../../constants";
+import DataTable, { SortOrder, TableColumn } from "react-data-table-component";
+import { Endpoint } from "../../types";
+import { METHOD_TO_COLOR, RISK_TO_COLOR } from "../../constants";
+import { getCustomStyles, rowStyles, SkeletonCell } from "../utils/TableUtils";
 
 const PAGE_SIZE = 10;
 
@@ -37,70 +24,6 @@ interface TableLoaderProps {
   totalCount: number;
 }
 
-const conditionalRowStyles = [
-  {
-    when: (row: TableColumn<Endpoint>) => row.name !== null,
-    style: {
-      backgroundColor: "rgba(63, 195, 128, 0.9)",
-      color: "white",
-      "&:hover": {
-        cursor: "pointer",
-      },
-    },
-  },
-];
-
-const getCustomStyles = (colorMode: ColorMode): TableStyles => {
-  const headerBg =
-    colorMode == "light" ? "rgb(252, 252, 252)" : "rgb(17, 19, 23)";
-  const headerTextColor =
-    colorMode == "light" ? "rgb(163, 165, 170)" : "rgb(98, 100, 116)";
-  const textColor = colorMode == "light" ? "black" : "white";
-  const rowColor = colorMode == "light" ? "white" : "rgb(21, 23, 27)";
-  const hoverRowColor =
-    colorMode == "light" ? "rgb(252, 252, 252)" : "rgb(24, 26, 30)";
-  return {
-    rows: {
-      style: {
-        background: rowColor,
-        color: textColor,
-        minHeight: "64px",
-        fontWeight: "500",
-        "&:hover": {
-          cursor: "pointer",
-          background: hoverRowColor,
-        },
-      },
-    },
-    headRow: {
-      style: {
-        background: headerBg,
-        color: headerTextColor,
-      },
-    },
-    pagination: {
-      style: {
-        background: headerBg,
-        color: textColor,
-      },
-      pageButtonsStyle: {
-        color: textColor,
-        fill: textColor,
-        "&:disabled": {
-          fill: textColor,
-          color: textColor,
-        },
-      },
-    },
-  } as TableStyles;
-};
-
-const riskToColor = {
-  [RiskScore.LOW]: "gray",
-  [RiskScore.MEDIUM]: "orange",
-  [RiskScore.HIGH]: "red",
-};
-
 const TableLoader: React.FC<TableLoaderProps> = ({
   currentPage,
   totalCount,
@@ -108,63 +31,45 @@ const TableLoader: React.FC<TableLoaderProps> = ({
   const colorMode = useColorMode();
   const loadingColumns: TableColumn<any>[] = [
     {
-      name: "Table",
-      selector: () => "",
-      cell: () => (
-        <Box w="100px" h="10px">
-          <Skeleton startColor="gray.50" endColor="gray.200" height="20px" />
-        </Box>
-      ),
-      id: "table_id",
+      name: "Risk Score",
+      id: "riskScore",
+      grow: 1,
     },
     {
-      name: "Dataset",
-      selector: () => "",
-      cell: () => (
-        <Box w="100px" h="10px">
-          <Skeleton startColor="gray.50" endColor="gray.200" height="20px" />
-        </Box>
-      ),
-      id: "table_dataset",
-      hide: Media.LG,
+      name: "Path",
+      id: "pathMethod",
+      grow: 3,
     },
     {
-      name: "Project",
-      selector: () => "",
-      cell: () => (
-        <Box w="100px" h="10px">
-          <Skeleton startColor="gray.50" endColor="gray.200" height="20px" />
-        </Box>
-      ),
-      id: "table_project",
-      hide: Media.MD,
+      name: "Environment",
+      id: "environment",
+      grow: 1,
     },
     {
-      name: "Owner",
-      selector: () => "",
-      cell: () => (
-        <Box w="100px" h="10px">
-          <Skeleton startColor="gray.50" endColor="gray.200" height="20px" />
-        </Box>
-      ),
-      id: "owner",
+      name: "Host",
+      id: "host",
+      grow: 1,
     },
     {
-      name: "Datasource",
-      selector: () => "",
-      cell: () => (
-        <Box w="full" h="20px">
-          <Skeleton startColor="gray.50" endColor="gray.200" height="20px" />
-        </Box>
-      ),
-      id: "datasource_name",
+      name: "First Detected",
+      id: "firstDetected",
+      grow: 2,
     },
-  ];
+    {
+      name: "Last Active",
+      id: "lastActive",
+      grow: 2,
+    },
+  ].map((e) => ({
+    ...e,
+    sortable: true,
+    cell: (row: Endpoint) => <SkeletonCell />,
+  }));
 
   return (
     <Box w="full" h="full">
       <DataTable
-        style={conditionalRowStyles}
+        style={rowStyles}
         paginationComponentOptions={{ noRowsPerPage: true }}
         paginationTotalRows={totalCount}
         paginationServer
@@ -213,7 +118,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
           <Badge
             p="1"
             fontSize="sm"
-            colorScheme={riskToColor[row.riskScore]}
+            colorScheme={RISK_TO_COLOR[row.riskScore]}
             pointerEvents="none"
           >
             {row.riskScore}
@@ -238,7 +143,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
             <Code p="1">{row.path}</Code>
           </HStack>
         ),
-        id: "method",
+        id: "pathMethod",
         grow: 3,
       },
       {
@@ -280,7 +185,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
 
     const getTable = () => (
       <DataTable
-        style={conditionalRowStyles}
+        style={rowStyles}
         paginationComponentOptions={{ noRowsPerPage: true }}
         paginationTotalRows={totalCount}
         paginationServer

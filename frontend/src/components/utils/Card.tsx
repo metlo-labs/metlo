@@ -1,16 +1,54 @@
 import React from "react";
 import { IconType } from "@react-icons/all-files/lib";
-import { Grid, Heading, HStack, VStack } from "@chakra-ui/react";
+import {
+  Grid,
+  Heading,
+  HStack,
+  Text,
+  TextProps,
+  useColorModeValue,
+  VStack,
+} from "@chakra-ui/react";
 
-export const SectionHeader: React.FC<{ text: string; sym: IconType }> =
-  React.memo(({ text, sym }) => (
-    <HStack>
+type DataHeadingProps = TextProps;
+
+export const DataHeading: React.FC<DataHeadingProps> = React.memo(
+  ({ children, ...props }) => {
+    const color = useColorModeValue("rgb(102, 105, 117)", "rgb(116, 120, 138)");
+    return (
+      <Text fontSize="md" fontWeight="medium" color={color} pb="2" {...props}>
+        {children}
+      </Text>
+    );
+  }
+);
+
+type DataAttributeProps = TextProps;
+
+export const DataAttribute: React.FC<DataAttributeProps> = React.memo(
+  ({ children, ...props }) => {
+    const color = useColorModeValue("black", "white");
+    return (
+      <Text fontWeight="bold" color={color} overflowWrap="anywhere" {...props}>
+        {children}
+      </Text>
+    );
+  }
+);
+
+export const SectionHeader: React.FC<{
+  text: string;
+  sym: IconType;
+}> = React.memo(({ text, sym }) => {
+  return (
+    <HStack justifyContent="center">
       {sym({})}
       <Heading size="sm" fontWeight="semibold">
         {text}
       </Heading>
     </HStack>
-  ));
+  );
+});
 
 export const Card: React.FC<{ children: React.ReactNode }> = React.memo(
   ({ children }) => {

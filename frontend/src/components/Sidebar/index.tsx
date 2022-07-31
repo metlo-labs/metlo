@@ -8,7 +8,6 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import { Logo, SmLogo } from "../Logo";
-import { DarkModeSwitch } from "../utils/DarkModeSwitch";
 import { SideNavLinkDestination } from "./NavLinkUtils";
 import SideNavLink from "./SideNavLink";
 

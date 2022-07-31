@@ -8,14 +8,13 @@ import EndpointPage from "../../components/Endpoint";
 const Endpoint = ({ endpoint }) => {
   return (
     <SidebarLayoutShell currentTab={SideNavLinkDestination.Endpoints}>
-      <ContentContainer>
+      <ContentContainer maxContentW="5xl">
         <EndpointPage endpoint={endpoint} />
       </ContentContainer>
     </SidebarLayoutShell>
   );
 };
 
-// This gets called on every request
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const endpoint = testEndpoints.find(
     (e) => e.uuid == context.query.endpointUUID
