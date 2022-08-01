@@ -16,10 +16,13 @@ export class MatchedDataClass extends BaseEntity {
   @UpdateDateColumn({ type: "timestamptz"})
   updatedAt: Date
 
-  @Column()
+  @Column({ nullable: false })
   dataPath: string
 
-  @Column({ type: "bool" })
+  @Column({type: "varchar", array: true, nullable: false })
+  matches: string[]
+
+  @Column({ type: "bool", default: true })
   isRisk: boolean
 
   @ManyToOne(() => ApiEndpoint, apiTrace => apiTrace.sensitiveDataClasses)

@@ -9,12 +9,7 @@ export interface Meta {
   environment: string;
 }
 
-export interface Parameter {
-  name: string;
-  value: string;
-}
-
-export interface Header {
+export interface PairObject {
   name: string;
   value: string;
 }
@@ -22,19 +17,19 @@ export interface Header {
 export interface Url {
   host: string;
   path: string;
-  parameters: Parameter[];
+  parameters: PairObject[];
 }
 
 export interface Request {
   url: Url;
-  headers: Header[];
+  headers: PairObject[];
   body: string;
   method: RestMethod;
 }
 
 export interface Response {
   status: number;
-  headers: Header[];
+  headers: PairObject[];
   body: string;
 }
 

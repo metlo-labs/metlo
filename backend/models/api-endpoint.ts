@@ -16,10 +16,10 @@ export class ApiEndpoint extends BaseEntity {
   @UpdateDateColumn({ type: "timestamptz" })
   updatedAt: Date
 
-  @Column()
+  @Column({ nullable: false })
   host: string
 
-  @Column()
+  @Column({ nullable: false })
   environment: string
 
   @Column({ type: "integer"})
@@ -28,7 +28,7 @@ export class ApiEndpoint extends BaseEntity {
   @Column({ type: "enum", enum: RestMethod})
   method: RestMethod
 
-  @Column()
+  @Column({ nullable: true })
   owner: string
 
   @OneToMany(() => MatchedDataClass, dataClass => dataClass.apiEndpoint)

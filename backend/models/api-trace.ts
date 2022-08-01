@@ -1,5 +1,5 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
-import { Header, Meta, Parameter } from "../src/types";
+import { Meta, PairObject } from "../src/types";
 import { RestMethod } from "../src/enums";
 
 @Entity()
@@ -26,10 +26,10 @@ export class ApiTrace extends BaseEntity {
   owner: string
 
   @Column({ type: "jsonb", nullable: true})
-  requestParameters: Parameter[]
+  requestParameters: PairObject[]
 
   @Column({ type: "jsonb", nullable: true})
-  requestHeaders: Header[]
+  requestHeaders: PairObject[]
 
   @Column({ nullable: true })
   requestBody: string
@@ -38,7 +38,7 @@ export class ApiTrace extends BaseEntity {
   responseStatus: number
 
   @Column({ type: "jsonb", nullable: true})
-  responseHeaders: Header[]
+  responseHeaders: PairObject[]
 
   @Column({ nullable: true })
   responseBody: string
