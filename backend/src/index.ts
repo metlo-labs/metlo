@@ -6,6 +6,7 @@ import {
   logRequestSingleHandler,
 } from "./api/log-request";
 import { AppDataSource } from "./data-source";
+import { getEndpointHandler, getEndpointsHandler } from "./api/get-endpoints";
 
 dotenv.config();
 
@@ -20,6 +21,8 @@ app.get("/", (req: Request, res: Response) => {
 
 app.post("/log-request/single", logRequestSingleHandler);
 app.post("/log-request/batch", logRequestBatchHandler);
+app.get("/endpoints", getEndpointsHandler);
+app.get("/endpoint/:endpointId", getEndpointHandler);
 
 const main = async () => {
   try {

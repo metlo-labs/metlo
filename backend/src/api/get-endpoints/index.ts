@@ -11,3 +11,13 @@ export const getEndpointsHandler = async (req: Request, res: Response) => {
     res.sendStatus(500);
   }
 };
+
+export const getEndpointHandler = async (req: Request, res: Response) => {
+  const { endpointId } = req.params;
+  try {
+    const endpoint = await GetEndpointsService.getEndpoint(endpointId);
+    res.status(200).send(endpoint);
+  } catch {
+    res.sendStatus(500);
+  }
+};

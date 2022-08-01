@@ -48,4 +48,16 @@ export class GetEndpointsService {
       console.error(`Error in Get Endpoints service: ${err}`);
     }
   }
+
+  static async getEndpoint(endpointId: string): Promise<ApiEndpoint> {
+    try {
+      const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
+      return await apiEndpointRepository.findOne({
+        where: { uuid: endpointId },
+        relations: { sensitiveDataClasses: true },
+      });
+    } catch (err) {
+      console.error(`Error in Get Endpoints service: ${err}`);
+    }
+  }
 }
