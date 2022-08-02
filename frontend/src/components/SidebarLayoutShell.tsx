@@ -14,7 +14,7 @@ export const SidebarLayoutShell: React.FC<SidebarLayoutShellProps> = React.memo(
     return (
       <HStack spacing={0}>
         <SideNavBar currentTab={currentTab} />
-        <Box h="100vh" flex="1">
+        <Box h="100vh" flex="1" overflowY="scroll">
           {children}
           <DarkModeSwitch />
         </Box>
