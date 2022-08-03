@@ -25,6 +25,14 @@ const theme = extendTheme({
         default: "#FF0080",
         _dark: "#fbec8f",
       },
+      secondaryBG: {
+        default: "rgb(248, 248, 249)",
+        _dark: "rgb(19, 22, 26)",
+      },
+      cellBG: {
+        default: "white",
+        _dark: "rgb(39, 40, 43)",
+      },
     },
     radii: {
       button: "12px",

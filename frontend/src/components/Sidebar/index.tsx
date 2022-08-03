@@ -16,7 +16,6 @@ interface SideNavBarProps {
 }
 
 const SideNavBar: React.FC<SideNavBarProps> = React.memo(({ currentTab }) => {
-  const bg = useColorModeValue("rgb(248, 248, 249)", "rgb(19, 22, 26)");
   const textColor = useColorModeValue(
     "rgb(102, 105, 117)",
     "rgb(104, 107, 124)"
@@ -31,7 +30,7 @@ const SideNavBar: React.FC<SideNavBarProps> = React.memo(({ currentTab }) => {
       height="100vh"
       width={{ xl: "250px", base: "100px" }}
       direction="column"
-      bg={bg}
+      bg="secondaryBG"
       color={textColor}
       px={3}
       py={6}
@@ -55,8 +54,8 @@ const SideNavBar: React.FC<SideNavBarProps> = React.memo(({ currentTab }) => {
       </Box>
       <Stack spacing={3}>
         <SideNavLink
-          destination={SideNavLinkDestination.Overview}
-          isActive={currentTab === SideNavLinkDestination.Overview}
+          destination={SideNavLinkDestination.Home}
+          isActive={currentTab === SideNavLinkDestination.Home}
         />
         <SideNavLink
           destination={SideNavLinkDestination.Endpoints}

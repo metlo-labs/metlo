@@ -7,7 +7,7 @@ import { HiChartBar } from "@react-icons/all-files/hi/HiChartBar";
 import { IconType } from "@react-icons/all-files/lib";
 
 export enum SideNavLinkDestination {
-  Overview,
+  Home,
   Endpoints,
   Tests,
   Issues,
@@ -19,8 +19,8 @@ export const sideNavDestinationToLabel: (
   dest: SideNavLinkDestination
 ) => string = (dest) => {
   switch (dest) {
-    case SideNavLinkDestination.Overview:
-      return "Overview";
+    case SideNavLinkDestination.Home:
+      return "Home";
     case SideNavLinkDestination.Endpoints:
       return "Endpoints";
     case SideNavLinkDestination.Tests:
@@ -40,7 +40,7 @@ export const sideNavDestinationToIcon: (
   dest: SideNavLinkDestination
 ) => IconType = (dest) => {
   switch (dest) {
-    case SideNavLinkDestination.Overview:
+    case SideNavLinkDestination.Home:
       return FaHome;
     case SideNavLinkDestination.Endpoints:
       return TiFlowSwitch;
@@ -61,7 +61,7 @@ export const sideNavDestinationToHref: (
   dest: SideNavLinkDestination
 ) => string = (dest) => {
   switch (dest) {
-    case SideNavLinkDestination.Overview:
+    case SideNavLinkDestination.Home:
       return "/";
     case SideNavLinkDestination.Endpoints:
       return "/endpoints";
