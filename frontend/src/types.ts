@@ -1,4 +1,4 @@
-import { TraceParams } from "../../common/dist/types";
+import { ApiTrace } from "../../common/dist/types";
 import { RiskScore } from "../../common/dist/enums";
 
 export interface PIIField {
@@ -18,5 +18,5 @@ export interface Endpoint {
   firstDetected: string;
   lastActive: string;
   piiData: PIIField[];
-  traces: TraceParams[];
+  traces: ApiTrace[];
 }

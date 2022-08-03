@@ -30,6 +30,7 @@ import {
 import { METHOD_TO_COLOR, RISK_TO_COLOR } from "../../constants";
 import PIIDataList from "./PIIDataList";
 import EndpointUsageChart from "./UsageChart";
+import TraceList from "./TraceList";
 
 interface EndpointPageProps {
   endpoint: Endpoint;
@@ -115,7 +116,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
             </TabPanel>
             <TabPanel p="0">
               <Box w="full" borderWidth="2px" borderTopWidth="0px">
-                <PIIDataList PIIFields={endpoint.piiData} />
+                <TraceList traces={endpoint.traces} />
               </Box>
             </TabPanel>
             <TabPanel p="0">

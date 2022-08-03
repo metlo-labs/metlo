@@ -6,7 +6,6 @@ export interface Meta {
   sourcePort: string;
   destination: string;
   destinationPort: string;
-  environment: string;
 }
 
 export interface PairObject {
@@ -14,27 +13,18 @@ export interface PairObject {
   value: string;
 }
 
-export interface Url {
-  host: string;
+export interface ApiTrace {
+  uuid: string;
   path: string;
-  parameters: PairObject[];
-}
-
-export interface Request {
-  url: Url;
-  headers: PairObject[];
-  body: string;
+  createdAt: Date;
+  host: string;
   method: RestMethod;
-}
-
-export interface Response {
-  status: number;
-  headers: PairObject[];
-  body: string;
-}
-
-export interface TraceParams {
-  request: Request;
-  response: Response;
+  requestParameters: PairObject[];
+  requestHeaders: PairObject[];
+  requestBody: string;
+  responseStatus: number;
+  responseHeaders: PairObject[];
+  responseBody: string;
   meta: Meta;
+  apiEndpointUuid: string;
 }
