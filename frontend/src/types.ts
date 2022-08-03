@@ -1,8 +1,5 @@
-export enum RiskScore {
-  LOW = "low",
-  MEDIUM = "medium",
-  HIGH = "high",
-}
+import { TraceParams } from "../../common/dist/types";
+import { RiskScore } from "../../common/dist/enums";
 
 export interface PIIField {
   dataType: string;
@@ -21,4 +18,5 @@ export interface Endpoint {
   firstDetected: string;
   lastActive: string;
   piiData: PIIField[];
+  traces: TraceParams[];
 }
