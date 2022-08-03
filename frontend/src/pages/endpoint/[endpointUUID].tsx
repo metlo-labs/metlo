@@ -8,7 +8,7 @@ import EndpointPage from "../../components/Endpoint";
 const Endpoint = ({ endpoint }) => {
   return (
     <SidebarLayoutShell currentTab={SideNavLinkDestination.Endpoints}>
-      <ContentContainer maxContentW="5xl">
+      <ContentContainer maxContentW="7xl">
         <EndpointPage endpoint={endpoint} />
       </ContentContainer>
     </SidebarLayoutShell>

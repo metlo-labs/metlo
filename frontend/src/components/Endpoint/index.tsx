@@ -101,7 +101,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
               <SectionHeader text="PII Fields" sym={BsFillLockFill} />
             </Tab>
             <Tab>
-              <SectionHeader text="Logs" sym={GrStackOverflow} />
+              <SectionHeader text="Traces" sym={GrStackOverflow} />
             </Tab>
             <Tab>
               <SectionHeader text="Alerts" sym={FaBell} />
