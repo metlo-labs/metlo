@@ -55,7 +55,6 @@ export class EndpointsService {
           }
         }
       }
-      console.log(regexToTracesMap);
       Object.entries(regexToTracesMap).map(async ([regex, value], idx) => {
         const apiEndpoint = new ApiEndpoint();
         apiEndpoint.path =  value.parameterizedPath;
