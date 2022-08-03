@@ -1,6 +1,7 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Meta, PairObject } from "../src/types";
 import { RestMethod } from "../src/enums";
+import { ApiEndpoint } from "./api-endpoint";
 
 @Entity()
 export class ApiTrace extends BaseEntity {
@@ -45,4 +46,11 @@ export class ApiTrace extends BaseEntity {
 
   @Column({ type: "jsonb", nullable: true})
   meta: Meta
+
+  @Column({ nullable: true })
+  apiEndpointUuid: string
+
+  @ManyToOne(() => ApiEndpoint)
+  @JoinColumn()
+  apiEndpoint: ApiEndpoint
 }
