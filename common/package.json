@@ -1,0 +1,9 @@
+{
+  "name": "@metlo/common",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w"
+  }
+}
