@@ -3,6 +3,7 @@ import { ApiEndpoint, ApiTrace, MatchedDataClass } from "../../../models";
 import { AppDataSource } from "../../data-source";
 import { ScannerService } from "../scanner/scan";
 import { DataClass } from "../../enums";
+import Error500InternalServer from "../../errors/error-500-internal-server";
 
 export class LogRequestService {
   static matchExists(
@@ -52,6 +53,7 @@ export class LogRequestService {
       }
     } catch (err) {
       console.error(`Error while finding matched data classes: ${err}`);
+      throw new Error500InternalServer(err);
     }
   }
 
@@ -124,6 +126,7 @@ export class LogRequestService {
       await apiEndpointRepository.save(apiEndpoint);
     } catch (err) {
       console.error(`Error in Log Request service: ${err}`);
+      throw new Error500InternalServer(err);
     }
   }
 

@@ -8,4 +8,4 @@ export const isSuspectedParamater = (value: string) => {
     return true;
   }
   return false;
-}
+};

@@ -46,3 +46,10 @@ export interface GetEndpointParams {
   offset?: number;
   limit?: number;
 }
+
+export type JSONValue =
+  | string
+  | number
+  | boolean
+  | { [x: string]: JSONValue }
+  | Array<JSONValue>;

@@ -6,7 +6,9 @@ import {
   logRequestSingleHandler,
 } from "./api/log-request";
 import { AppDataSource } from "./data-source";
+import { MulterSource } from "./multer-source";
 import { getEndpointHandler, getEndpointsHandler } from "./api/get-endpoints";
+import { uploadNewSpecHandler } from "./api/spec";
 
 dotenv.config();
 
@@ -23,6 +25,7 @@ app.post("/log-request/single", logRequestSingleHandler);
 app.post("/log-request/batch", logRequestBatchHandler);
 app.get("/endpoints", getEndpointsHandler);
 app.get("/endpoint/:endpointId", getEndpointHandler);
+app.post("/spec/upload/new", MulterSource.single("file"), uploadNewSpecHandler);
 
 const main = async () => {
   try {

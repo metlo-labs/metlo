@@ -16,7 +16,9 @@ export class EndpointsService {
     const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
     const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
     const regexToTracesMap: Record<string, GenerateEndpoint> = {};
-    const traces = await apiTraceRepository.findBy({ apiEndpointUuid: IsNull() });
+    const traces = await apiTraceRepository.findBy({
+      apiEndpointUuid: IsNull(),
+    });
     if (traces?.length > 0) {
       for (let i = 0; i < traces.length; i++) {
         const trace = traces[i];
@@ -25,9 +27,16 @@ export class EndpointsService {
         for (let x = 0; x < regexes.length && !found; x++) {
           const regex = regexes[x];
           const curr = regexToTracesMap[regex];
-          if (RegExp(regex).test(trace.path) && trace.host === curr.host && trace.method === curr.method) {
+          if (
+            RegExp(regex).test(trace.path) &&
+            trace.host === curr.host &&
+            trace.method === curr.method
+          ) {
             found = true;
-            regexToTracesMap[regex] = { ...regexToTracesMap[regex], traces: [...regexToTracesMap[regex].traces, trace]};
+            regexToTracesMap[regex] = {
+              ...regexToTracesMap[regex],
+              traces: [...regexToTracesMap[regex].traces, trace],
+            };
           }
         }
         if (!found) {
@@ -48,16 +57,24 @@ export class EndpointsService {
           }
           if (pathRegex.length > 0) {
             if (regexToTracesMap[pathRegex]) {
-              regexToTracesMap[pathRegex] = { ...regexToTracesMap[pathRegex], traces: [...regexToTracesMap[pathRegex].traces, trace]};
+              regexToTracesMap[pathRegex] = {
+                ...regexToTracesMap[pathRegex],
+                traces: [...regexToTracesMap[pathRegex].traces, trace],
+              };
             } else {
-              regexToTracesMap[pathRegex] = { parameterizedPath, host: trace.host, method: trace.method, traces: [trace]};
+              regexToTracesMap[pathRegex] = {
+                parameterizedPath,
+                host: trace.host,
+                method: trace.method,
+                traces: [trace],
+              };
             }
           }
         }
       }
       Object.entries(regexToTracesMap).map(async ([regex, value], idx) => {
         const apiEndpoint = new ApiEndpoint();
-        apiEndpoint.path =  value.parameterizedPath;
+        apiEndpoint.path = value.parameterizedPath;
         apiEndpoint.host = value.traces[0].host;
         apiEndpoint.environment = value.traces[0].environment;
         apiEndpoint.totalCalls = value.traces.length;
@@ -70,7 +87,7 @@ export class EndpointsService {
           trace.apiEndpoint = apiEndpoint;
           await apiTraceRepository.save(trace);
         }
-      })
+      });
     }
   }
 }

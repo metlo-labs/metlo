@@ -2,6 +2,7 @@ import { FindManyOptions, FindOptionsWhere } from "typeorm";
 import { GetEndpointParams } from "../../types";
 import { AppDataSource } from "../../data-source";
 import { ApiEndpoint } from "../../../models";
+import Error500InternalServer from "../../errors/error-500-internal-server";
 
 export class GetEndpointsService {
   static async getEndpoints(
@@ -46,6 +47,7 @@ export class GetEndpointsService {
       return endpoints;
     } catch (err) {
       console.error(`Error in Get Endpoints service: ${err}`);
+      throw new Error500InternalServer(err);
     }
   }
 
@@ -58,6 +60,7 @@ export class GetEndpointsService {
       });
     } catch (err) {
       console.error(`Error in Get Endpoints service: ${err}`);
+      throw new Error500InternalServer(err);
     }
   }
 }
