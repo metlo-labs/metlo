@@ -13,7 +13,7 @@ export class SpecService {
     if (!servers || servers?.length === 0) {
       throw new Error400BadRequest("No servers found in spec file.");
     }
-    
+
     const pathKeys = Object.keys(paths);
     pathKeys.forEach((path) => {
       const methods = Object.keys(paths[path]);
@@ -27,8 +27,8 @@ export class SpecService {
             apiEndpoint.host = server["url"];
           }
         });
-      })
-    })
+      });
+    });
     console.log(hosts);
   }
 }
