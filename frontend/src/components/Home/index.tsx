@@ -5,6 +5,7 @@ import AlertList from "components/Endpoint/AlertList";
 import { Alert } from "@common/types";
 
 interface HomePageProps {
+  numHighRiskAlerts: number;
   numAlerts: number;
   numEndpoints: number;
   numPIIDataDetected: number;
@@ -12,10 +13,17 @@ interface HomePageProps {
 }
 
 const HomePage: React.FC<HomePageProps> = React.memo(
-  ({ numAlerts, numEndpoints, numPIIDataDetected, alerts }) => {
+  ({
+    numHighRiskAlerts,
+    numAlerts,
+    numEndpoints,
+    numPIIDataDetected,
+    alerts,
+  }) => {
     return (
       <VStack w="full" alignItems="flex-start" spacing="10">
         <SummaryStats
+          numHighRiskAlerts={numHighRiskAlerts}
           numAlerts={numAlerts}
           numEndpoints={numEndpoints}
           numPIIDataDetected={numPIIDataDetected}

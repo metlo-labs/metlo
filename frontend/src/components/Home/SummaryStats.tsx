@@ -2,6 +2,7 @@ import React from "react";
 import { HStack, VStack, Text } from "@chakra-ui/react";
 
 interface SummaryStatsProps {
+  numHighRiskAlerts: number;
   numAlerts: number;
   numEndpoints: number;
   numPIIDataDetected: number;
@@ -28,9 +29,10 @@ const SummaryStatValue: React.FC<{ value: number; title: string }> = React.memo(
 );
 
 const SummaryStats: React.FC<SummaryStatsProps> = React.memo(
-  ({ numAlerts, numEndpoints, numPIIDataDetected }) => {
+  ({ numHighRiskAlerts, numAlerts, numEndpoints, numPIIDataDetected }) => {
     return (
       <HStack spacing="5">
+        <SummaryStatValue value={numHighRiskAlerts} title="High Risk Alerts" />
         <SummaryStatValue value={numAlerts} title="New Alerts" />
         <SummaryStatValue value={numEndpoints} title="Endpoints Tracked" />
         <SummaryStatValue value={numPIIDataDetected} title="PII Data Fields" />

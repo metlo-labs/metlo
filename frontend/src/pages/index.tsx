@@ -13,6 +13,7 @@ const Index = () => (
           Home
         </Heading>
         <HomePage
+          numHighRiskAlerts={2}
           numAlerts={10}
           numEndpoints={84}
           numPIIDataDetected={20}
