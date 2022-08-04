@@ -1,4 +1,4 @@
-import { AlertType, RestMethod, RiskScore } from "./enums";
+import { AlertType, ConnectionType, RestMethod, RiskScore } from "./enums";
 
 export interface Meta {
   incoming: boolean;
@@ -56,4 +56,10 @@ export interface Endpoint {
   piiData: PIIField[];
   traces: ApiTrace[];
   alerts: Alert[];
+}
+
+export interface Connection {
+  uuid: string;
+  name: string;
+  type: ConnectionType;
 }

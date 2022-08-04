@@ -1,5 +1,10 @@
-import { Endpoint } from "@common/types";
-import { RestMethod, RiskScore, AlertType } from "@common/enums";
+import { Connection, Endpoint } from "@common/types";
+import {
+  RestMethod,
+  RiskScore,
+  AlertType,
+  ConnectionType,
+} from "@common/enums";
 
 export const testEndpoints: Endpoint[] = [
   {
@@ -86,5 +91,20 @@ export const testEndpoints: Endpoint[] = [
     piiData: [],
     traces: [],
     alerts: [],
+  },
+];
+
+export const testConnections: Connection[] = [
+  {
+    createdAt: new Date("2021-12-17T03:24:00"),
+    uuid: "72b29da8-8e15-4e5a-a152-05e886ee8eb4",
+    name: "Metlo Test AWS",
+    type: ConnectionType.AWS,
+  },
+  {
+    createdAt: new Date("2021-12-17T03:24:00"),
+    uuid: "c63048c4-98a5-44b0-a0b6-cffc1f630a31",
+    name: "Metlo Test GCP",
+    type: ConnectionType.GCP,
   },
 ];

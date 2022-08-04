@@ -34,3 +34,8 @@ export enum AlertType {
   OPEN_API_SPEC_DIFF = "Open API Spec Diff",
   UNDOCUMENTED_ENDPOINT = "Undocumented Endpoint",
 }
+
+export enum ConnectionType {
+  AWS = "AWS",
+  GCP = "GCP",
+}
