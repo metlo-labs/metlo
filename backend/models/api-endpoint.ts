@@ -1,6 +1,7 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { MatchedDataClass } from "./matched-data-class";
 import { RestMethod } from "../src/enums";
+import { OpenApiSpec } from "./openapi-spec";
 
 @Entity()
 export class ApiEndpoint extends BaseEntity {
@@ -19,7 +20,7 @@ export class ApiEndpoint extends BaseEntity {
   @Column({ nullable: false })
   host: string
 
-  @Column({ type: "integer"})
+  @Column({ type: "integer", default: 0})
   totalCalls: number
 
   @Column({ type: "enum", enum: RestMethod})
@@ -30,4 +31,11 @@ export class ApiEndpoint extends BaseEntity {
 
   @OneToMany(() => MatchedDataClass, dataClass => dataClass.apiEndpoint)
   sensitiveDataClasses: MatchedDataClass[]
+
+  @Column({ nullable: true })
+  openapiSpecName: string
+
+  @ManyToOne(() => OpenApiSpec)
+  @JoinColumn()
+  openapiSpec: OpenApiSpec
 }
