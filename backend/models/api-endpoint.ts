@@ -1,6 +1,6 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { MatchedDataClass } from "./matched-data-class";
-import { RestMethod } from "../src/enums";
+import { RestMethod } from "@common/enums";
 
 @Entity()
 export class ApiEndpoint extends BaseEntity {
@@ -18,9 +18,6 @@ export class ApiEndpoint extends BaseEntity {
 
   @Column({ nullable: false })
   host: string
-
-  @Column({ nullable: false })
-  environment: string
 
   @Column({ type: "integer"})
   totalCalls: number

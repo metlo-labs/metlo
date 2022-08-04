@@ -1,8 +1,8 @@
-import { PairObject, TraceParams } from "../../types";
+import { PairObject, TraceParams } from "@common/types";
 import { ApiEndpoint, ApiTrace, MatchedDataClass } from "../../../models";
 import { AppDataSource } from "../../data-source";
 import { ScannerService } from "../scanner/scan";
-import { DataClass } from "../../enums";
+import { DataClass } from "@common/enums";
 import Error500InternalServer from "../../errors/error-500-internal-server";
 
 export class LogRequestService {
@@ -63,7 +63,6 @@ export class LogRequestService {
       const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
       const path = traceParams?.request?.url?.path;
       const method = traceParams?.request?.method;
-      const environment = traceParams?.meta?.environment;
       const host = traceParams?.request?.url?.host;
       const requestParameters = traceParams?.request?.url?.parameters;
       const requestHeaders = traceParams?.request?.headers;
@@ -73,7 +72,6 @@ export class LogRequestService {
       const apiTraceObj = new ApiTrace();
       apiTraceObj.path = path;
       apiTraceObj.method = method;
-      apiTraceObj.environment = environment;
       apiTraceObj.host = host;
       apiTraceObj.requestParameters = requestParameters;
       apiTraceObj.requestHeaders = requestHeaders;
@@ -86,14 +84,13 @@ export class LogRequestService {
       /** Create new Api Endpoint record or update existing */
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
       let apiEndpoint = await apiEndpointRepository.findOne({
-        where: { path, method, environment, host },
+        where: { path, method, host },
         relations: { sensitiveDataClasses: true },
       });
       if (!apiEndpoint) {
         apiEndpoint = new ApiEndpoint();
         apiEndpoint.path = path;
         apiEndpoint.method = method;
-        apiEndpoint.environment = environment;
         apiEndpoint.host = host;
         apiEndpoint.totalCalls = 0;
         apiEndpoint.sensitiveDataClasses = [];

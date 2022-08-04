@@ -2,7 +2,7 @@ import { IsNull } from "typeorm";
 import { isSuspectedParamater } from "../../utils";
 import { ApiEndpoint, ApiTrace } from "../../../models";
 import { AppDataSource } from "../../data-source";
-import { RestMethod } from "../../enums";
+import { RestMethod } from "@common/enums";
 
 interface GenerateEndpoint {
   parameterizedPath: string;
@@ -76,7 +76,6 @@ export class EndpointsService {
         const apiEndpoint = new ApiEndpoint();
         apiEndpoint.path = value.parameterizedPath;
         apiEndpoint.host = value.traces[0].host;
-        apiEndpoint.environment = value.traces[0].environment;
         apiEndpoint.totalCalls = value.traces.length;
         apiEndpoint.method = value.traces[0].method;
         apiEndpoint.owner = value.traces[0].owner;

@@ -1,6 +1,6 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Meta, PairObject } from "../src/types";
-import { RestMethod } from "../src/enums";
+import { Meta, PairObject } from "@common/types";
+import { RestMethod } from "@common/enums";
 import { ApiEndpoint } from "./api-endpoint";
 
 @Entity()
@@ -16,9 +16,6 @@ export class ApiTrace extends BaseEntity {
 
   @Column({ nullable: false })
   host: string
-
-  @Column({ nullable: false })
-  environment: string
 
   @Column({ type: "enum", enum: RestMethod })
   method: RestMethod

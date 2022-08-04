@@ -1,5 +1,5 @@
 import { FindManyOptions, FindOptionsWhere } from "typeorm";
-import { GetEndpointParams } from "../../types";
+import { GetEndpointParams } from "@common/types";
 import { AppDataSource } from "../../data-source";
 import { ApiEndpoint } from "../../../models";
 import Error500InternalServer from "../../errors/error-500-internal-server";
@@ -12,12 +12,6 @@ export class GetEndpointsService {
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
       let whereConditions: FindOptionsWhere<ApiEndpoint> = {};
       let paginationParams: FindManyOptions<ApiEndpoint> = {};
-      if (getEndpointParams?.environment) {
-        whereConditions = {
-          ...whereConditions,
-          environment: getEndpointParams.environment,
-        };
-      }
       if (getEndpointParams?.host) {
         whereConditions = {
           ...whereConditions,

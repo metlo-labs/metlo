@@ -13,6 +13,45 @@ export interface PairObject {
   value: string;
 }
 
+export interface Url {
+  host: string;
+  path: string;
+  parameters: PairObject[];
+}
+
+export interface Request {
+  url: Url;
+  headers: PairObject[];
+  body: string;
+  method: RestMethod;
+}
+
+export interface Response {
+  status: number;
+  headers: PairObject[];
+  body: string;
+}
+
+export interface TraceParams {
+  request: Request;
+  response: Response;
+  meta: Meta;
+}
+
+export interface GetEndpointParams {
+  host?: string;
+  riskScore?: RiskScore;
+  offset?: number;
+  limit?: number;
+}
+
+export type JSONValue =
+  | string
+  | number
+  | boolean
+  | { [x: string]: JSONValue }
+  | Array<JSONValue>;
+
 export interface ApiTrace {
   uuid: string;
   path: string;
@@ -46,7 +85,6 @@ export interface PIIField {
 
 export interface Endpoint {
   uuid: string;
-  environment: string;
   host: string;
   path: string;
   method: string;
