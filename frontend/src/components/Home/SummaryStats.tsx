@@ -11,8 +11,8 @@ const SummaryStatValue: React.FC<{ value: number; title: string }> = React.memo(
   ({ value, title }) => (
     <VStack
       bg="cellBG"
-      w="60"
-      py="8"
+      w="56"
+      py="6"
       rounded="md"
       spacing="2"
       borderWidth="1px"

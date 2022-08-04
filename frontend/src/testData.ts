@@ -112,6 +112,19 @@ export const testConnections: Connection[] = [
 export const testAlerts: Alert[] = [
   {
     apiEndpointUuid: "5239bcfe-bf24-40e6-b952-b9811210108e",
+    endpoint: {
+      uuid: "5239bcfe-bf24-40e6-b952-b9811210108e",
+      environment: "production",
+      host: "AWS Gateway 1",
+      path: "/foo/bar/{test}",
+      method: RestMethod.POST,
+      riskScore: RiskScore.HIGH,
+      firstDetected: "2022-07-31T00:52:10.586",
+      lastActive: "2022-07-31T00:52:10.586Z",
+      piiData: [],
+      traces: [],
+      alerts: [],
+    },
     createdAt: new Date("2021-12-17T03:24:00"),
     type: AlertType.OPEN_API_SPEC_DIFF,
     risk: RiskScore.LOW,
