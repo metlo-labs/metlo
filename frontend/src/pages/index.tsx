@@ -1,4 +1,5 @@
 import { Heading, VStack } from "@chakra-ui/react";
+import { testAlerts } from "testData";
 import HomePage from "../components/Home";
 import { SideNavLinkDestination } from "../components/Sidebar/NavLinkUtils";
 import { SidebarLayoutShell } from "../components/SidebarLayoutShell";
@@ -11,7 +12,12 @@ const Index = () => (
         <Heading fontWeight="medium" size="xl" mb="8">
           Home
         </Heading>
-        <HomePage numAlerts={10} numEndpoints={84} numPIIDataDetected={20} />
+        <HomePage
+          numAlerts={10}
+          numEndpoints={84}
+          numPIIDataDetected={20}
+          alerts={testAlerts}
+        />
       </VStack>
     </ContentContainer>
   </SidebarLayoutShell>

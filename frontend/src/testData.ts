@@ -1,4 +1,4 @@
-import { Connection, Endpoint } from "@common/types";
+import { Alert, Connection, Endpoint } from "@common/types";
 import {
   RestMethod,
   RiskScore,
@@ -106,5 +106,15 @@ export const testConnections: Connection[] = [
     uuid: "c63048c4-98a5-44b0-a0b6-cffc1f630a31",
     name: "Metlo Test GCP",
     type: ConnectionType.GCP,
+  },
+];
+
+export const testAlerts: Alert[] = [
+  {
+    apiEndpointUuid: "5239bcfe-bf24-40e6-b952-b9811210108e",
+    createdAt: new Date("2021-12-17T03:24:00"),
+    type: AlertType.OPEN_API_SPEC_DIFF,
+    risk: RiskScore.LOW,
+    description: "Field differs from Open API Spec.",
   },
 ];
