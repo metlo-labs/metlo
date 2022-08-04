@@ -53,6 +53,11 @@ const ConnectionList: React.FC<ConnectionListProps> = React.memo(
         name: "Created",
         sortable: true,
         selector: (row: Connection) => row.createdAt.toISOString() || "",
+        cell: (row: Connection) => (
+          <Text fontSize="sm" fontWeight="semibold">
+            {row.createdAt.toISOString()}
+          </Text>
+        ),
         id: "created",
         grow: 1,
       },
