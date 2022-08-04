@@ -1,6 +1,6 @@
 import { Box, VStack } from "@chakra-ui/react";
 import React from "react";
-import { Endpoint } from "../../types";
+import { Endpoint } from "@common/types";
 import EndpointFilters from "./Filters";
 import List from "./List";
 

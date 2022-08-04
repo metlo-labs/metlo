@@ -1,11 +1,11 @@
 import { Heading, VStack } from "@chakra-ui/react";
+import { Endpoint } from "@common/types";
 import { useEffect, useState } from "react";
 import EndpointList from "../components/EndpointList";
 import { SideNavLinkDestination } from "../components/Sidebar/NavLinkUtils";
 import { SidebarLayoutShell } from "../components/SidebarLayoutShell";
 import { ContentContainer } from "../components/utils/ContentContainer";
 import { testEndpoints } from "../testData";
-import { Endpoint } from "../types";
 
 const Endpoints = () => {
   const [fetching, setFetching] = useState<boolean>(true);

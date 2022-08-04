@@ -3,9 +3,9 @@ import { Badge, Box, Code, useColorMode, HStack } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import EmptyView from "../utils/EmptyView";
 import DataTable, { SortOrder, TableColumn } from "react-data-table-component";
-import { Endpoint } from "../../types";
 import { METHOD_TO_COLOR, RISK_TO_COLOR } from "../../constants";
 import { getCustomStyles, rowStyles, SkeletonCell } from "../utils/TableUtils";
+import { Endpoint } from "@common/types";
 
 const PAGE_SIZE = 10;
 

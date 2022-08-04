@@ -1,4 +1,4 @@
-import { RiskScore } from "../../common/dist/enums";
+import { RiskScore } from "@common/enums";
 
 export const METHOD_TO_COLOR = {
   GET: "green",

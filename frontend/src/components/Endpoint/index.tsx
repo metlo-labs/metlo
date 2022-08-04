@@ -20,17 +20,18 @@ import {
   TabPanels,
   TabPanel,
 } from "@chakra-ui/react";
-import { Endpoint } from "../../types";
 import {
   CardWithHeader,
   DataAttribute,
   DataHeading,
   SectionHeader,
 } from "../utils/Card";
+import { Endpoint } from "@common/types";
 import { METHOD_TO_COLOR, RISK_TO_COLOR } from "../../constants";
 import PIIDataList from "./PIIDataList";
 import EndpointUsageChart from "./UsageChart";
 import TraceList from "./TraceList";
+import AlertList from "./AlertList";
 
 interface EndpointPageProps {
   endpoint: Endpoint;
@@ -121,7 +122,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
             </TabPanel>
             <TabPanel p="0">
               <Box w="full" borderWidth="2px" borderTopWidth="0px">
-                <PIIDataList PIIFields={endpoint.piiData} />
+                <AlertList alerts={endpoint.alerts} />
               </Box>
             </TabPanel>
           </TabPanels>

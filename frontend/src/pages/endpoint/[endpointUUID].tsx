@@ -5,7 +5,7 @@ import { SidebarLayoutShell } from "../../components/SidebarLayoutShell";
 import { ContentContainer } from "../../components/utils/ContentContainer";
 import { testEndpoints } from "../../testData";
 import EndpointPage from "../../components/Endpoint";
-import { Endpoint } from "../../types";
+import { Endpoint } from "@common/types";
 
 const Endpoint = ({ endpoint }) => {
   return (

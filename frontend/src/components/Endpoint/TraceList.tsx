@@ -1,8 +1,8 @@
 import React from "react";
-import { useColorMode, Code, HStack, Badge } from "@chakra-ui/react";
+import { useColorMode, Code, HStack, Badge, Text } from "@chakra-ui/react";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { getCustomStyles, rowStyles } from "../utils/TableUtils";
-import { ApiTrace } from "../../../../common/dist/types";
+import { ApiTrace } from "@common/types";
 import { METHOD_TO_COLOR } from "../../constants";
 import { statusCodeToColor } from "../utils/StatusCode";
 
@@ -56,6 +56,12 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces }) => {
       name: "Source",
       sortable: true,
       selector: (row: ApiTrace) => `${row.meta.source}:${row.meta.sourcePort}`,
+      cell: (row: ApiTrace) => (
+        <Text
+          fontFamily="mono"
+          fontSize="sm"
+        >{`${row.meta.source}:${row.meta.sourcePort}`}</Text>
+      ),
       id: "source",
       grow: 1,
     },
@@ -64,6 +70,12 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces }) => {
       sortable: true,
       selector: (row: ApiTrace) =>
         `${row.meta.destination}:${row.meta.destinationPort}`,
+      cell: (row: ApiTrace) => (
+        <Text
+          fontFamily="mono"
+          fontSize="sm"
+        >{`${row.meta.destination}:${row.meta.destinationPort}`}</Text>
+      ),
       id: "destinaition",
       grow: 1,
     },

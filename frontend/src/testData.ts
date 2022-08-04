@@ -1,5 +1,5 @@
-import { Endpoint } from "./types";
-import { RestMethod, RiskScore } from "../../common/dist/enums";
+import { Endpoint } from "@common/types";
+import { RestMethod, RiskScore, AlertType } from "@common/enums";
 
 export const testEndpoints: Endpoint[] = [
   {
@@ -57,11 +57,20 @@ export const testEndpoints: Endpoint[] = [
         meta: {
           incoming: true,
           source: "73.162.113.176",
-          sourcePort: 7123,
+          sourcePort: "7123",
           destination: "73.162.113.200",
-          destinationPort: 80,
+          destinationPort: "80",
         },
         apiEndpointUuid: "5239bcfe-bf24-40e6-b952-b9811210108e",
+      },
+    ],
+    alerts: [
+      {
+        apiEndpointUuid: "5239bcfe-bf24-40e6-b952-b9811210108e",
+        createdAt: new Date("2021-12-17T03:24:00"),
+        type: AlertType.OPEN_API_SPEC_DIFF,
+        risk: RiskScore.LOW,
+        description: "Field differs from Open API Spec.",
       },
     ],
   },
@@ -76,5 +85,6 @@ export const testEndpoints: Endpoint[] = [
     lastActive: "2022-07-31T00:52:10.586Z",
     piiData: [],
     traces: [],
+    alerts: [],
   },
 ];

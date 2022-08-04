@@ -1,6 +1,6 @@
 import React from "react";
 import { useColorMode, Code, Badge } from "@chakra-ui/react";
-import { PIIField } from "../../types";
+import { PIIField } from "@common/types";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { getCustomStyles, rowStyles } from "../utils/TableUtils";
 import { RISK_TO_COLOR } from "../../constants";

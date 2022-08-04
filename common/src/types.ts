@@ -1,4 +1,4 @@
-import { RestMethod } from "./enums";
+import { AlertType, RestMethod, RiskScore } from "./enums";
 
 export interface Meta {
   incoming: boolean;
@@ -27,4 +27,33 @@ export interface ApiTrace {
   responseBody: string;
   meta: Meta;
   apiEndpointUuid: string;
+}
+
+export interface Alert {
+  apiEndpointUuid?: string;
+  createdAt: Date;
+  type: AlertType;
+  risk: RiskScore;
+  description: string;
+}
+
+export interface PIIField {
+  dataType: string;
+  dataPath: string;
+  risk: RiskScore;
+  dateIdentified: string;
+}
+
+export interface Endpoint {
+  uuid: string;
+  environment: string;
+  host: string;
+  path: string;
+  method: string;
+  riskScore: RiskScore;
+  firstDetected: string;
+  lastActive: string;
+  piiData: PIIField[];
+  traces: ApiTrace[];
+  alerts: Alert[];
 }
