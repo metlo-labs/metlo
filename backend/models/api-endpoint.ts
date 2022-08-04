@@ -1,6 +1,6 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { MatchedDataClass } from "./matched-data-class";
-import { RestMethod } from "@common/enums";
+import { RestMethod } from "../src/enums";
 
 @Entity()
 export class ApiEndpoint extends BaseEntity {

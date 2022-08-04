@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import yaml from "js-yaml";
-import { JSONValue } from "@common/types";
+import { JSONValue } from "../../types";
 import { SpecService } from "../../services/spec";
 import ApiResponseHandler from "../../api-response-handler";
 import Error400BadRequest from "../../errors/error-400-bad-request";

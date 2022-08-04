@@ -1,7 +1,7 @@
-import { RestMethod } from "@common/enums";
+import { RestMethod } from "../../enums";
 import { ApiEndpoint } from "../../../models";
 import Error400BadRequest from "../../errors/error-400-bad-request";
-import { JSONValue } from "@common/types";
+import { JSONValue } from "../../types";
 
 export class SpecService {
   static async uploadNewSpec(specObject: JSONValue) {

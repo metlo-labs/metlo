@@ -1,5 +1,5 @@
 import { FindManyOptions, FindOptionsWhere } from "typeorm";
-import { GetEndpointParams } from "@common/types";
+import { GetEndpointParams } from "../../types";
 import { AppDataSource } from "../../data-source";
 import { ApiEndpoint } from "../../../models";
 import Error500InternalServer from "../../errors/error-500-internal-server";

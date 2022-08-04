@@ -1,6 +1,6 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Meta, PairObject } from "@common/types";
-import { RestMethod } from "@common/enums";
+import { Meta, PairObject } from "../src/types";
+import { RestMethod } from "../src/enums";
 import { ApiEndpoint } from "./api-endpoint";
 
 @Entity()

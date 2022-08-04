@@ -1,8 +1,8 @@
-import { PairObject, TraceParams } from "@common/types";
+import { PairObject, TraceParams } from "../../types";
 import { ApiEndpoint, ApiTrace, MatchedDataClass } from "../../../models";
 import { AppDataSource } from "../../data-source";
 import { ScannerService } from "../scanner/scan";
-import { DataClass } from "@common/enums";
+import { DataClass } from "../../enums";
 import Error500InternalServer from "../../errors/error-500-internal-server";
 
 export class LogRequestService {

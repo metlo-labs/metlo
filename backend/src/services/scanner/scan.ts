@@ -1,4 +1,4 @@
-import { DataClass } from "@common/enums";
+import { DataClass } from "../../enums";
 import {
   ADDRESS_REGEXP,
   COORDINATE_REGEXP,

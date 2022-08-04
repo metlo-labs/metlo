@@ -2,7 +2,7 @@ import { IsNull } from "typeorm";
 import { isSuspectedParamater } from "../../utils";
 import { ApiEndpoint, ApiTrace } from "../../../models";
 import { AppDataSource } from "../../data-source";
-import { RestMethod } from "@common/enums";
+import { RestMethod } from "../../enums";
 
 interface GenerateEndpoint {
   parameterizedPath: string;
