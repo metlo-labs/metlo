@@ -1,16 +1,17 @@
 import net from "net";
 import fs from "fs";
 import process from "process";
-import { conns, EVENTS, HOST, ALERT, RESPONSE } from "./interface";
+import { conns, EVENTS, ALERT } from "./interface";
+import { program } from "commander";
+import { prepareResponse, compileHost, pushAlert } from "./utils";
 
 var server: net.Server;
 var connections: Record<number, net.Socket> = {};
 var http_meta: Record<string, conns> = {};
 
+var url = "";
 // Our socket
-const SOCKETFILE = process.argv[process.argv.length - 1];
-
-console.info("Socket: %s \n  Process: %s", SOCKETFILE, process.pid);
+var SOCKETFILE = "";
 
 function createServer(socket: string) {
   console.log("Creating server.");
@@ -37,88 +38,18 @@ function createServer(socket: string) {
             try {
               const jsonmsg = JSON.parse(_msg);
               if (EVENTS.HTTP === (jsonmsg["event_type"] as string)) {
-                const resp_headers = jsonmsg.http.response_headers;
-                const req_headers = jsonmsg.http.request_headers;
-                const host: HOST = {
-                  ...jsonmsg,
-                  request_headers: req_headers,
-                  response_headers: resp_headers,
-                };
-                if (host.flow_id in http_meta) {
-                  http_meta[host.flow_id].metas.push({
-                    timestamp: host.timestamp,
-                    metadata: host,
-                  });
-                } else {
-                  http_meta[host.flow_id] = {
-                    flowId: host.flow_id,
-                    metas: [
-                      {
-                        timestamp: host.timestamp,
-                        metadata: host,
-                      },
-                    ],
-                  };
-                }
+                compileHost(jsonmsg, http_meta);
               }
               if (EVENTS.ALERT === (jsonmsg["event_type"] as string)) {
-                const alert: ALERT = { ...jsonmsg };
+                // compileAlert(jsonmsg);
+                const alert: ALERT = jsonmsg;
+                // Get first metadata for the given connection.
                 let meta = http_meta[alert.flow_id].metas.shift();
-                let remote_complete_url = new URL(
-                  alert.app_proto + "://" + alert.http.hostname + alert.http.url
-                );
-                let src_complete_url = new URL(
-                  alert.app_proto + "://" + alert.src_ip
-                );
-                const resp: RESPONSE = {
-                  request: {
-                    src: {
-                      base_url: src_complete_url.href,
-                    },
-                    dst: {
-                      base_url: remote_complete_url.href.replace(
-                        remote_complete_url.search,
-                        ""
-                      ),
-                      parameters: Array.from(
-                        remote_complete_url.searchParams.entries()
-                      ).map((v) => ({ name: v[0], value: v[1] })),
-                    },
-                    method: alert.http.http_method,
-                    headers: meta?.metadata.request_headers || [],
-                    body: {
-                      decoded: !alert.http.http_request_body_printable,
-                      value: alert.http.http_request_body_printable,
-                    },
-                  },
-                  response: {
-                    status: alert.http.status,
-                    src: {
-                      base_url: remote_complete_url.href.replace(
-                        remote_complete_url.search,
-                        ""
-                      ),
-                    },
-                    dst: {
-                      base_url: src_complete_url.href,
-                    },
-                    headers: meta?.metadata.response_headers || [],
-                    body: {
-                      decoded: !alert.http.http_response_body_printable,
-                      value: alert.http.http_request_body_printable,
-                    },
-                  },
-                  meta: {
-                    incoming: true,
-                    source: alert.src_ip,
-                    source_port: alert.src_port,
-                    destination: alert.dest_ip,
-                    destination_port: alert.dest_port,
-                  },
-                };
-                // TODO : Get URL to send responses to.
-                // Maybe use minimist or something similar to configure cli stuff
-                console.log(JSON.stringify(resp));
+                if (meta) {
+                  let resp = prepareResponse(alert, meta);
+                  pushAlert(resp, url);
+                  console.log(resp);
+                }
               }
             } catch (err) {
               console.log(
@@ -142,6 +73,21 @@ function createServer(socket: string) {
 
 // check for failed cleanup
 function main() {
+  // Set cli options
+  program
+    .name("AWS-Suricata Ingestor")
+    .description("Basic CLI app to ingest data from suricata on AWS");
+  program
+    .requiredOption("-u, --url <url>", "URL for the webhook destination")
+    .requiredOption("-s, --socket <socket_path>", "Socket file path");
+  program.parse(process.argv);
+  let options = program.opts();
+  if (new URL(options.url)) {
+    url = options.url;
+    SOCKETFILE = options.socket;
+  }
+
+  console.info("Socket: %s \n  Process: %s", SOCKETFILE, process.pid);
   console.log("Checking for leftover socket.");
   fs.stat(SOCKETFILE, function (err, stats) {
     if (err) {
