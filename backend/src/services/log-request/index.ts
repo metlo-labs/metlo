@@ -1,10 +1,10 @@
+import { Raw } from "typeorm";
 import { PairObject, TraceParams } from "../../types";
 import { ApiEndpoint, ApiTrace, MatchedDataClass } from "../../../models";
 import { AppDataSource } from "../../data-source";
 import { ScannerService } from "../scanner/scan";
 import { DataClass } from "../../enums";
 import Error500InternalServer from "../../errors/error-500-internal-server";
-import { getPathRegex } from "../../utils";
 
 export class LogRequestService {
   static matchExists(
@@ -23,8 +23,8 @@ export class LogRequestService {
 
   static findMatchedDataClasses(
     dataPathPrefix: string,
-    matchedDataClasses: MatchedDataClass[],
-    data: PairObject[]
+    data: PairObject[],
+    apiEndpoint: ApiEndpoint
   ) {
     try {
       if (data) {
@@ -35,7 +35,7 @@ export class LogRequestService {
             const matchDataClass = match as DataClass;
             const matchDataPath = `${dataPathPrefix}.${field}`;
             const exsistingMatch = this.matchExists(
-              matchedDataClasses,
+              apiEndpoint.sensitiveDataClasses,
               matchDataPath,
               matchDataClass
             );
@@ -44,10 +44,10 @@ export class LogRequestService {
               dataClass.dataClass = matchDataClass;
               dataClass.dataPath = `${dataPathPrefix}.${field}`;
               dataClass.matches = matches[match];
+              dataClass.apiEndpoint = apiEndpoint;
               await AppDataSource.getRepository(MatchedDataClass).save(
                 dataClass
               );
-              matchedDataClasses.push(dataClass);
             }
           });
         }
@@ -84,34 +84,29 @@ export class LogRequestService {
 
       /** Update existing endpoint record if exists */
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
-      const pathRegex = getPathRegex(path);
       const apiEndpoint = await apiEndpointRepository.findOne({
-        where: { pathRegex, method, host },
+        where: {
+          pathRegex: Raw((alias) => `:path ~ ${alias}`, { path }),
+          method,
+          host,
+        },
         relations: { sensitiveDataClasses: true },
       });
       if (apiEndpoint) {
         apiEndpoint.totalCalls += 1;
-
         // Check for sensitive data
-        let matchedDataClasses: MatchedDataClass[] =
-          apiEndpoint.sensitiveDataClasses;
         this.findMatchedDataClasses(
           "req.params",
-          matchedDataClasses,
-          requestParameters
+          requestParameters,
+          apiEndpoint
         );
-        this.findMatchedDataClasses(
-          "req.headers",
-          matchedDataClasses,
-          requestHeaders
-        );
+        this.findMatchedDataClasses("req.headers", requestHeaders, apiEndpoint);
         this.findMatchedDataClasses(
           "res.headers",
-          matchedDataClasses,
-          responseHeaders
+          responseHeaders,
+          apiEndpoint
         );
         //TODO: Check in request body and response body, might need to unmarshall the string into json to do data path properly
-        apiEndpoint.sensitiveDataClasses = matchedDataClasses;
         apiTraceObj.apiEndpointUuid = apiEndpoint.uuid;
         await apiEndpointRepository.save(apiEndpoint);
       }

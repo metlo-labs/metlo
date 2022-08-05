@@ -43,7 +43,7 @@ const main = async () => {
     app.listen(port, () => {
       console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
     });
-    await EndpointsService.generateEndpointsFromTraces();
+    //await EndpointsService.generateEndpointsFromTraces();
   } catch (err) {
     console.error(`CatchBlockInsideMain: ${err}`);
   }
