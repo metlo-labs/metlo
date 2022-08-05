@@ -1,10 +1,19 @@
 import React from "react";
 import { Endpoint } from "@common/types";
-import { Box, Badge, Grid, GridItem, Stack } from "@chakra-ui/react";
+import {
+  Box,
+  Badge,
+  Grid,
+  GridItem,
+  Stack,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import { DataAttribute, DataHeading } from "components/utils/Card";
 import EndpointUsageChart from "./UsageChart";
 import { RISK_TO_COLOR } from "../../constants";
 import Highlight, { defaultProps } from "prism-react-renderer";
+import darkTheme from "prism-react-renderer/themes/duotoneDark";
+import lightTheme from "prism-react-renderer/themes/github";
 import { openAPISpec } from "testData";
 import EndpointPIIChart from "./PIIChart";
 
@@ -14,6 +23,7 @@ interface EndpointOverviewProps {
 
 const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
   ({ endpoint }) => {
+    const theme = useColorModeValue(lightTheme, darkTheme);
     return (
       <Stack direction={{ base: "column", lg: "row" }} spacing="0" h="full">
         <Box
@@ -74,7 +84,7 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
           overflowY={{ base: "unset", lg: "scroll" }}
           h={{ base: "unset", lg: "full" }}
         >
-          <Highlight {...defaultProps} code={openAPISpec} language="yaml">
+          <Highlight {...defaultProps} theme={theme} code={openAPISpec} language="yaml">
             {({ className, style, tokens, getLineProps, getTokenProps }) => (
               <pre
                 className={className}
