@@ -16,7 +16,7 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
     return (
       <Stack direction={{ base: "column", lg: "row" }} spacing="0" h="full">
         <Box w={{ base: "full", lg: "50%" }}>
-          <Grid templateColumns="repeat(3, 1fr)" gap={4} p="4">
+          <Grid templateColumns="repeat(2, 1fr)" gap={4} p="4">
             <GridItem>
               <DataHeading>Host</DataHeading>
               <DataAttribute>{endpoint.host}</DataAttribute>
@@ -48,19 +48,26 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
               <DataHeading>Last Active</DataHeading>
               <DataAttribute>{endpoint.lastActive}</DataAttribute>
             </GridItem>
-            <GridItem w="100%" colSpan={3}>
+            <GridItem w="100%" colSpan={2}>
               <DataHeading>Usage</DataHeading>
-              <EndpointUsageChart />
+              <Box maxW="lg">
+                <EndpointUsageChart />
+              </Box>
             </GridItem>
           </Grid>
         </Box>
-        <Box w={{ base: "full", lg: "50%" }} overflowY="scroll" h="full">
+        <Box
+          w={{ base: "full", lg: "50%" }}
+          overflowY={{ base: "unset", lg: "scroll" }}
+          h={{ base: "unset", lg: "full" }}
+        >
           <Highlight {...defaultProps} code={openAPISpec} language="yaml">
             {({ className, style, tokens, getLineProps, getTokenProps }) => (
               <pre
                 className={className}
                 style={{
                   ...style,
+                  fontSize: "14px",
                   padding: "8px",
                   overflowX: "scroll",
                   minHeight: "100%",

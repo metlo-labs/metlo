@@ -47,7 +47,7 @@ interface EndpointUsageChartProps {}
 
 const EndpointUsageChart: React.FC<EndpointUsageChartProps> = React.memo(
   ({}) => {
-    return <Line height="60" options={options} data={data} />;
+    return <Line height="100" options={options} data={data} />;
   }
 );
 
