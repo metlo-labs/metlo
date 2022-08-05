@@ -3,11 +3,11 @@ import { DarkModeSwitch } from "../components/utils/DarkModeSwitch";
 import SideNavBar from "../components/Sidebar";
 import { SideNavLinkDestination } from "../components/Sidebar/NavLinkUtils";
 
-const Issues = () => (
+const Alerts = () => (
   <HStack spacing={0}>
     <DarkModeSwitch />
-    <SideNavBar currentTab={SideNavLinkDestination.Issues} />
+    <SideNavBar currentTab={SideNavLinkDestination.Alerts} />
   </HStack>
 );
 
-export default Issues;
+export default Alerts;

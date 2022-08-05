@@ -29,7 +29,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(
           numPIIDataDetected={numPIIDataDetected}
         />
         <VStack w="full" alignItems="flex-start" spacing="4">
-          <Heading fontSize="xl">Alerts</Heading>
+          <Heading fontSize="xl">Top Alerts</Heading>
           <Box w="full" borderWidth="1px">
             <AlertList alerts={alerts} showEndpoint />
           </Box>

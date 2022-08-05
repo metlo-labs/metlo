@@ -10,7 +10,7 @@ export enum SideNavLinkDestination {
   Home,
   Endpoints,
   Tests,
-  Issues,
+  Alerts,
   Settings,
   Connections,
 }
@@ -25,8 +25,8 @@ export const sideNavDestinationToLabel: (
       return "Endpoints";
     case SideNavLinkDestination.Tests:
       return "Tests";
-    case SideNavLinkDestination.Issues:
-      return "Issues";
+    case SideNavLinkDestination.Alerts:
+      return "Alerts";
     case SideNavLinkDestination.Settings:
       return "Settings";
     case SideNavLinkDestination.Connections:
@@ -46,7 +46,7 @@ export const sideNavDestinationToIcon: (
       return TiFlowSwitch;
     case SideNavLinkDestination.Tests:
       return HiChartBar;
-    case SideNavLinkDestination.Issues:
+    case SideNavLinkDestination.Alerts:
       return FaBell;
     case SideNavLinkDestination.Settings:
       return FaCog;
@@ -67,8 +67,8 @@ export const sideNavDestinationToHref: (
       return "/endpoints";
     case SideNavLinkDestination.Tests:
       return "/tests";
-    case SideNavLinkDestination.Issues:
-      return "/issues";
+    case SideNavLinkDestination.Alerts:
+      return "/alerts";
     case SideNavLinkDestination.Settings:
       return "/settings";
     case SideNavLinkDestination.Connections:

@@ -66,8 +66,8 @@ const SideNavBar: React.FC<SideNavBarProps> = React.memo(({ currentTab }) => {
           isActive={currentTab === SideNavLinkDestination.Tests}
         />
         <SideNavLink
-          destination={SideNavLinkDestination.Issues}
-          isActive={currentTab === SideNavLinkDestination.Issues}
+          destination={SideNavLinkDestination.Alerts}
+          isActive={currentTab === SideNavLinkDestination.Alerts}
         />
         <Divider borderColor={dividerColor} my={4} mx={0} />
         <SideNavLink
