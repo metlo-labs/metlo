@@ -8,6 +8,12 @@ import { AppDataSource } from "../../data-source";
 import { getPathRegex } from "../../utils";
 
 export class SpecService {
+  static async getSpecs(): Promise<OpenApiSpec[]> {
+    const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec);
+    const specList = await openApiSpecRepository.find({});
+    return specList;
+  }
+
   static async updateSpec(specObject: JSONValue, fileName: string) {
     await this.deleteSpec(fileName);
     await this.uploadNewSpec(specObject, fileName);

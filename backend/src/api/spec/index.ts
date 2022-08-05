@@ -7,6 +7,15 @@ import Error400BadRequest from "../../errors/error-400-bad-request";
 import { AppDataSource } from "../../data-source";
 import { OpenApiSpec } from "../../../models";
 
+export const getSpecListHandler = async (req: Request, res: Response) => {
+  try {
+    const specList = await SpecService.getSpecs();
+    await ApiResponseHandler.success(res, specList);
+  } catch (err) {
+    await ApiResponseHandler.error(res, err);
+  }
+}
+
 export const uploadNewSpecHandler = async (req: Request, res: Response) => {
   try {
     if (!req.file) {

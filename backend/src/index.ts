@@ -10,6 +10,7 @@ import { MulterSource } from "./multer-source";
 import { getEndpointHandler, getEndpointsHandler } from "./api/get-endpoints";
 import {
   deleteSpecHandler,
+  getSpecListHandler,
   updateSpecHandler,
   uploadNewSpecHandler,
 } from "./api/spec";
@@ -33,6 +34,7 @@ app.get("/endpoint/:endpointId", getEndpointHandler);
 app.post("/spec/new", MulterSource.single("file"), uploadNewSpecHandler);
 app.delete("/spec/delete/:specFileName", deleteSpecHandler);
 app.post("/spec/update", MulterSource.single("file"), updateSpecHandler);
+app.get("/spec/list", getSpecListHandler);
 
 const main = async () => {
   try {
