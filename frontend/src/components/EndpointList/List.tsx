@@ -147,13 +147,6 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         grow: 3,
       },
       {
-        name: "Environment",
-        sortable: true,
-        selector: (row: Endpoint) => row.environment || "",
-        id: "environment",
-        grow: 1,
-      },
-      {
         name: "Host",
         sortable: true,
         selector: (row: Endpoint) => row.host || "",

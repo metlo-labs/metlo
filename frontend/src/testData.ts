@@ -9,7 +9,6 @@ import {
 export const testEndpoints: Endpoint[] = [
   {
     uuid: "5239bcfe-bf24-40e6-b952-b9811210108e",
-    environment: "production",
     host: "AWS Gateway 1",
     path: "/foo/bar/{test}",
     method: RestMethod.POST,
@@ -81,7 +80,6 @@ export const testEndpoints: Endpoint[] = [
   },
   {
     uuid: "3425c51f-179b-45b6-9c1c-938f7f678f17",
-    environment: "production",
     host: "AWS Gateway 1",
     path: "/foo/blam/{test}",
     method: "GET",
@@ -114,7 +112,6 @@ export const testAlerts: Alert[] = [
     apiEndpointUuid: "5239bcfe-bf24-40e6-b952-b9811210108e",
     endpoint: {
       uuid: "5239bcfe-bf24-40e6-b952-b9811210108e",
-      environment: "production",
       host: "AWS Gateway 1",
       path: "/foo/bar/{test}",
       method: RestMethod.POST,
