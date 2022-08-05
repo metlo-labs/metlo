@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, HStack, useColorModeValue } from "@chakra-ui/react";
+import { Box, HStack } from "@chakra-ui/react";
 import SideNavBar from "./Sidebar";
 import { SideNavLinkDestination } from "./Sidebar/NavLinkUtils";
 import { DarkModeSwitch } from "./utils/DarkModeSwitch";

@@ -16,6 +16,7 @@
     "chart.js": "^3.8.2",
     "framer-motion": "^6.3.0",
     "next": "latest",
+    "prism-react-renderer": "^1.3.5",
     "react": "^18.2.0",
     "react-chartjs-2": "^4.3.1",
     "react-data-table-component": "^7.5.2",

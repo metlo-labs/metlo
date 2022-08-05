@@ -9,7 +9,6 @@ import {
   Box,
   Badge,
   Code,
-  GridItem,
   HStack,
   VStack,
   Text,
@@ -20,18 +19,13 @@ import {
   TabPanels,
   TabPanel,
 } from "@chakra-ui/react";
-import {
-  CardWithHeader,
-  DataAttribute,
-  DataHeading,
-  SectionHeader,
-} from "../utils/Card";
+import { SectionHeader } from "../utils/Card";
 import { Endpoint } from "@common/types";
-import { METHOD_TO_COLOR, RISK_TO_COLOR } from "../../constants";
+import { METHOD_TO_COLOR } from "../../constants";
 import PIIDataList from "./PIIDataList";
-import EndpointUsageChart from "./UsageChart";
 import TraceList from "./TraceList";
 import AlertList from "./AlertList";
+import EndpointOverview from "./Overview";
 
 interface EndpointPageProps {
   endpoint: Endpoint;
@@ -43,91 +37,70 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
     "rgb(91, 94, 109)"
   );
   return (
-    <VStack w="full" alignItems="flex-start" spacing="2">
-      <NextLink href="/endpoints">
-        <HStack color={headerColor} spacing="1" cursor="pointer">
-          <TiFlowSwitch />
-          <Text fontWeight="semibold">Endpoints</Text>
+    <VStack
+      w="full"
+      alignItems="flex-start"
+      spacing="0"
+      h="100vh"
+      overflow="hidden"
+    >
+      <VStack alignItems="flex-start" pt="6" px="6">
+        <NextLink href="/endpoints">
+          <HStack color={headerColor} spacing="1" cursor="pointer">
+            <TiFlowSwitch />
+            <Text fontWeight="semibold">Endpoints</Text>
+          </HStack>
+        </NextLink>
+        <HStack spacing="4" pb="6">
+          <Badge
+            fontSize="xl"
+            px="2"
+            py="1"
+            colorScheme={METHOD_TO_COLOR[endpoint.method] || "gray"}
+          >
+            {endpoint.method.toUpperCase()}
+          </Badge>
+          <Code fontSize="xl" fontWeight="semibold" p="1">
+            {endpoint.path}
+          </Code>
         </HStack>
-      </NextLink>
-      <HStack spacing="4" pb="8">
-        <Badge
-          fontSize="xl"
-          px="2"
-          py="1"
-          colorScheme={METHOD_TO_COLOR[endpoint.method] || "gray"}
-        >
-          {endpoint.method.toUpperCase()}
-        </Badge>
-        <Code fontSize="xl" fontWeight="semibold" p="1">
-          {endpoint.path}
-        </Code>
-      </HStack>
-      <VStack w="full" alignItems="flex-start" spacing="8">
-        <CardWithHeader title="Metadata" sym={BiInfoCircle}>
-          <GridItem>
-            <DataHeading>Host</DataHeading>
-            <DataAttribute>{endpoint.host}</DataAttribute>
-          </GridItem>
-          <GridItem>
-            <DataHeading>Environment</DataHeading>
-            <DataAttribute>{endpoint.environment}</DataAttribute>
-          </GridItem>
-          <GridItem>
-            <DataHeading>Risk Score</DataHeading>
-            <Badge
-              p="1"
-              fontSize="sm"
-              colorScheme={RISK_TO_COLOR[endpoint.riskScore]}
-              pointerEvents="none"
-            >
-              {endpoint.riskScore}
-            </Badge>
-          </GridItem>
-          <GridItem>
-            <DataHeading>First Detected</DataHeading>
-            <DataAttribute>{endpoint.firstDetected}</DataAttribute>
-          </GridItem>
-          <GridItem>
-            <DataHeading>Last Active</DataHeading>
-            <DataAttribute>{endpoint.lastActive}</DataAttribute>
-          </GridItem>
-          <GridItem w="100%" colSpan={2}>
-            <DataHeading>Usage</DataHeading>
-            <EndpointUsageChart />
-          </GridItem>
-        </CardWithHeader>
-        <Tabs w="full">
-          <TabList>
-            <Tab>
-              <SectionHeader text="PII Fields" sym={BsFillLockFill} />
-            </Tab>
-            <Tab>
-              <SectionHeader text="Traces" sym={GrStackOverflow} />
-            </Tab>
-            <Tab>
-              <SectionHeader text="Alerts" sym={FaBell} />
-            </Tab>
-          </TabList>
-          <TabPanels>
-            <TabPanel p="0">
-              <Box w="full" borderWidth="2px" borderTopWidth="0px">
-                <PIIDataList PIIFields={endpoint.piiData} />
-              </Box>
-            </TabPanel>
-            <TabPanel p="0">
-              <Box w="full" borderWidth="2px" borderTopWidth="0px">
-                <TraceList traces={endpoint.traces} />
-              </Box>
-            </TabPanel>
-            <TabPanel p="0">
-              <Box w="full" borderWidth="2px" borderTopWidth="0px">
-                <AlertList alerts={endpoint.alerts} />
-              </Box>
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
       </VStack>
+      <Tabs
+        w="full"
+        display="flex"
+        flexDir="column"
+        flexGrow="1"
+        overflow="hidden"
+      >
+        <TabList>
+          <Tab>
+            <SectionHeader text="Overview" sym={BiInfoCircle} />
+          </Tab>
+          <Tab>
+            <SectionHeader text="PII Fields" sym={BsFillLockFill} />
+          </Tab>
+          <Tab>
+            <SectionHeader text="Traces" sym={GrStackOverflow} />
+          </Tab>
+          <Tab>
+            <SectionHeader text="Alerts" sym={FaBell} />
+          </Tab>
+        </TabList>
+        <TabPanels flexGrow="1" overflow="hidden">
+          <TabPanel p="0" h="full">
+            <EndpointOverview endpoint={endpoint} />
+          </TabPanel>
+          <TabPanel p="0">
+            <PIIDataList PIIFields={endpoint.piiData} />
+          </TabPanel>
+          <TabPanel p="0">
+            <TraceList traces={endpoint.traces} />
+          </TabPanel>
+          <TabPanel p="0">
+            <AlertList alerts={endpoint.alerts} />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
     </VStack>
   );
 });

@@ -54,7 +54,7 @@ export const Card: React.FC<{ children: React.ReactNode }> = React.memo(
   ({ children }) => {
     return (
       <Grid
-        templateColumns="repeat(2, 1fr)"
+        templateColumns="repeat(3, 1fr)"
         gap={4}
         w="full"
         borderWidth="2px"
