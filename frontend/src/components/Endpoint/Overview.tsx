@@ -1,11 +1,12 @@
 import React from "react";
 import { Endpoint } from "@common/types";
-import { Box, Badge, Code, Grid, GridItem, Stack } from "@chakra-ui/react";
+import { Box, Badge, Grid, GridItem, Stack } from "@chakra-ui/react";
 import { DataAttribute, DataHeading } from "components/utils/Card";
 import EndpointUsageChart from "./UsageChart";
 import { RISK_TO_COLOR } from "../../constants";
 import Highlight, { defaultProps } from "prism-react-renderer";
 import { openAPISpec } from "testData";
+import EndpointPIIChart from "./PIIChart";
 
 interface EndpointOverviewProps {
   endpoint: Endpoint;
@@ -15,7 +16,11 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
   ({ endpoint }) => {
     return (
       <Stack direction={{ base: "column", lg: "row" }} spacing="0" h="full">
-        <Box w={{ base: "full", lg: "50%" }}>
+        <Box
+          w={{ base: "full", lg: "50%" }}
+          overflowY={{ base: "unset", lg: "scroll" }}
+          h={{ base: "unset", lg: "full" }}
+        >
           <Grid templateColumns="repeat(2, 1fr)" gap={4} p="4">
             <GridItem>
               <DataHeading>Host</DataHeading>
@@ -54,6 +59,14 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
                 <EndpointUsageChart />
               </Box>
             </GridItem>
+            {endpoint.piiData.length > 0 ? (
+              <GridItem w="100%" colSpan={2}>
+                <DataHeading>PII Data</DataHeading>
+                <Box maxW="xs">
+                  <EndpointPIIChart piiFields={endpoint.piiData} />
+                </Box>
+              </GridItem>
+            ) : null}
           </Grid>
         </Box>
         <Box

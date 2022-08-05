@@ -4,6 +4,7 @@ import {
   RiskScore,
   AlertType,
   ConnectionType,
+  DataClass,
 } from "@common/enums";
 
 export const testEndpoints: Endpoint[] = [
@@ -17,19 +18,19 @@ export const testEndpoints: Endpoint[] = [
     lastActive: "2022-07-31T00:52:10.586Z",
     piiData: [
       {
-        dataType: "asdf",
+        dataType: DataClass.SSN,
         dataPath: "result.asdf",
         risk: RiskScore.HIGH,
         dateIdentified: "2022-07-31T00:52:10.586Z",
       },
       {
-        dataType: "foo",
+        dataType: DataClass.CREDIT_CARD,
         dataPath: "result.asdf.asdf",
         risk: RiskScore.MEDIUM,
         dateIdentified: "2022-07-31T00:52:10.586Z",
       },
       {
-        dataType: "bar",
+        dataType: DataClass.IP_ADDRESS,
         dataPath: "result.asdf.bar",
         risk: RiskScore.LOW,
         dateIdentified: "2022-07-31T00:52:10.586Z",
