@@ -8,14 +8,25 @@ import { AppDataSource } from "../../data-source";
 import { getPathRegex } from "../../utils";
 
 export class SpecService {
+  static async updateSpec(specObject: JSONValue, fileName: string) {
+    await this.deleteSpec(fileName);
+    await this.uploadNewSpec(specObject, fileName);
+  }
+
   static async deleteSpec(fileName: string) {
     const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
     const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec);
 
-    const specEndpoints = await apiEndpointRepository.findBy({ openapiSpecName: fileName });
-    const openApiSpec = await openApiSpecRepository.findOneBy({ name: fileName });
+    const specEndpoints = await apiEndpointRepository.findBy({
+      openapiSpecName: fileName,
+    });
+    const openApiSpec = await openApiSpecRepository.findOneBy({
+      name: fileName,
+    });
     if (!openApiSpec) {
-      throw new Error400BadRequest("No spec file with the provided name exists.");
+      throw new Error400BadRequest(
+        "No spec file with the provided name exists."
+      );
     }
     for (let i = 0; i < specEndpoints.length; i++) {
       const endpoint = specEndpoints[i];
@@ -36,7 +47,9 @@ export class SpecService {
     const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
     const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec);
     const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
-    let existingSpec = await openApiSpecRepository.findOneBy({ name: fileName });
+    let existingSpec = await openApiSpecRepository.findOneBy({
+      name: fileName,
+    });
     if (!existingSpec) {
       existingSpec = new OpenApiSpec();
       existingSpec.name = fileName;
@@ -54,7 +67,11 @@ export class SpecService {
             // For exact endpoint match
             let updated = false;
             const methodEnum = method.toUpperCase() as RestMethod;
-            let apiEndpoint = await apiEndpointRepository.findOneBy({ path, method: methodEnum, host});
+            let apiEndpoint = await apiEndpointRepository.findOneBy({
+              path,
+              method: methodEnum,
+              host,
+            });
             if (!apiEndpoint) {
               apiEndpoint = new ApiEndpoint();
               apiEndpoint.uuid = uuidv4();
@@ -72,14 +89,21 @@ export class SpecService {
             }
             //TODO: For endpoints where path regex matches, update traces to point to new Spec defined endpoint
             if (updated) {
-              const similarEndpoints = await apiEndpointRepository.findBy({ path: Not(path), pathRegex, method: methodEnum, host });
+              const similarEndpoints = await apiEndpointRepository.findBy({
+                path: Not(path),
+                pathRegex,
+                method: methodEnum,
+                host,
+              });
               similarEndpoints.forEach(async (endpoint) => {
-                const traces = await apiTraceRepository.findBy({ apiEndpointUuid: endpoint.uuid });
+                const traces = await apiTraceRepository.findBy({
+                  apiEndpointUuid: endpoint.uuid,
+                });
                 traces.forEach((trace) => {
                   trace.apiEndpointUuid = apiEndpoint.uuid;
-                })
+                });
                 await apiTraceRepository.save(traces);
-              })
+              });
               await apiEndpointRepository.remove(similarEndpoints);
             }
           }

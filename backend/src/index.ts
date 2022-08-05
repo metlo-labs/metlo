@@ -8,7 +8,11 @@ import {
 import { AppDataSource } from "./data-source";
 import { MulterSource } from "./multer-source";
 import { getEndpointHandler, getEndpointsHandler } from "./api/get-endpoints";
-import { deleteSpecHandler, uploadNewSpecHandler } from "./api/spec";
+import {
+  deleteSpecHandler,
+  updateSpecHandler,
+  uploadNewSpecHandler,
+} from "./api/spec";
 import { EndpointsService } from "./services/endpoints";
 
 dotenv.config();
@@ -28,6 +32,7 @@ app.get("/endpoints", getEndpointsHandler);
 app.get("/endpoint/:endpointId", getEndpointHandler);
 app.post("/spec/new", MulterSource.single("file"), uploadNewSpecHandler);
 app.delete("/spec/delete/:specFileName", deleteSpecHandler);
+app.post("/spec/update", MulterSource.single("file"), updateSpecHandler);
 
 const main = async () => {
   try {

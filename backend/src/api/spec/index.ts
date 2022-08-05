@@ -15,10 +15,12 @@ export const uploadNewSpecHandler = async (req: Request, res: Response) => {
     const specFile = req.file;
     const fileName = req.file.filename || req.file.fieldname;
     if (!fileName) {
-      throw new Error400BadRequest("No filename provided.")
+      throw new Error400BadRequest("No filename provided.");
     }
     const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec);
-    const exisitingSpec = await openApiSpecRepository.findOneBy({ name: fileName });
+    const exisitingSpec = await openApiSpecRepository.findOneBy({
+      name: fileName,
+    });
     if (exisitingSpec) {
       throw new Error400BadRequest("Spec file already exists.");
     }
@@ -26,7 +28,7 @@ export const uploadNewSpecHandler = async (req: Request, res: Response) => {
       specFile.buffer.toString()
     ) as JSONValue;
     await SpecService.uploadNewSpec(specObject, fileName);
-    await ApiResponseHandler.success(res, null)
+    await ApiResponseHandler.success(res, null);
   } catch (err) {
     await ApiResponseHandler.error(res, err);
   }
@@ -40,4 +42,21 @@ export const deleteSpecHandler = async (req: Request, res: Response) => {
   } catch (err) {
     await ApiResponseHandler.error(res, err);
   }
-}
+};
+
+export const updateSpecHandler = async (req: Request, res: Response) => {
+  try {
+    const specFile = req.file;
+    const fileName = req.file.filename || req.file.fieldname;
+    if (!fileName) {
+      throw new Error400BadRequest("No filename provided.");
+    }
+    const specObject: JSONValue = yaml.load(
+      specFile.buffer.toString()
+    ) as JSONValue;
+    await SpecService.updateSpec(specObject, fileName);
+    await ApiResponseHandler.success(res, null);
+  } catch (err) {
+    await ApiResponseHandler.error(res, err);
+  }
+};

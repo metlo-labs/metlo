@@ -13,4 +13,4 @@ export const isSuspectedParamater = (value: string) => {
 
 export const getPathRegex = (path: string) => {
   return path.replace(pathParameterRegex, String.raw`/[^/]+`);
-}
+};

@@ -1,6 +1,11 @@
 import "dotenv/config";
 import { DataSource } from "typeorm";
-import { ApiEndpoint, MatchedDataClass, ApiTrace, OpenApiSpec } from "../models";
+import {
+  ApiEndpoint,
+  MatchedDataClass,
+  ApiTrace,
+  OpenApiSpec,
+} from "../models";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
