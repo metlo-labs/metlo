@@ -75,6 +75,7 @@ export class EndpointsService {
       Object.entries(regexToTracesMap).map(async ([regex, value], idx) => {
         const apiEndpoint = new ApiEndpoint();
         apiEndpoint.path = value.parameterizedPath;
+        apiEndpoint.pathRegex = regex;
         apiEndpoint.host = value.traces[0].host;
         apiEndpoint.totalCalls = value.traces.length;
         apiEndpoint.method = value.traces[0].method;

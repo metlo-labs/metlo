@@ -8,7 +8,8 @@ import {
 import { AppDataSource } from "./data-source";
 import { MulterSource } from "./multer-source";
 import { getEndpointHandler, getEndpointsHandler } from "./api/get-endpoints";
-import { uploadNewSpecHandler } from "./api/spec";
+import { deleteSpecHandler, uploadNewSpecHandler } from "./api/spec";
+import { EndpointsService } from "./services/endpoints";
 
 dotenv.config();
 
@@ -25,7 +26,8 @@ app.post("/log-request/single", logRequestSingleHandler);
 app.post("/log-request/batch", logRequestBatchHandler);
 app.get("/endpoints", getEndpointsHandler);
 app.get("/endpoint/:endpointId", getEndpointHandler);
-app.post("/spec/upload/new", MulterSource.single("file"), uploadNewSpecHandler);
+app.post("/spec/new", MulterSource.single("file"), uploadNewSpecHandler);
+app.delete("/spec/delete/:specFileName", deleteSpecHandler);
 
 const main = async () => {
   try {
@@ -36,6 +38,7 @@ const main = async () => {
     app.listen(port, () => {
       console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
     });
+    await EndpointsService.generateEndpointsFromTraces();
   } catch (err) {
     console.error(`CatchBlockInsideMain: ${err}`);
   }

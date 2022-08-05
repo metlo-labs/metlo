@@ -11,6 +11,9 @@ export class ApiEndpoint extends BaseEntity {
   @Column({ nullable: false })
   path: string
 
+  @Column({ nullable: false })
+  pathRegex: string
+
   @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date
 

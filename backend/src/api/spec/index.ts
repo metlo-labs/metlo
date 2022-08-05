@@ -31,3 +31,13 @@ export const uploadNewSpecHandler = async (req: Request, res: Response) => {
     await ApiResponseHandler.error(res, err);
   }
 };
+
+export const deleteSpecHandler = async (req: Request, res: Response) => {
+  try {
+    const { specFileName } = req.params;
+    await SpecService.deleteSpec(specFileName);
+    await ApiResponseHandler.success(res, null);
+  } catch (err) {
+    await ApiResponseHandler.error(res, err);
+  }
+}
