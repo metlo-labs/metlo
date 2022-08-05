@@ -107,7 +107,7 @@ export interface RESPONSE {
     headers: Array<HEADERS>;
     body: {
       decoded: boolean;
-      value: string;
+      value: string | null;
     };
     method: string;
   };
@@ -122,7 +122,7 @@ export interface RESPONSE {
     headers: Array<HEADERS>;
     body: {
       decoded: boolean;
-      value: string;
+      value: string | null;
     };
   };
   meta: {

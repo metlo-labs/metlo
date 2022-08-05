@@ -36,16 +36,11 @@ export function pushAlert(resp: RESPONSE, url: string) {
       data: resp,
     })
     .then((res) => {
-      console.log(`statusCode: ${res.status}`);
-      console.log(res);
+      console.log("Pushed up a request");
     })
     .catch((error) => {
       console.error(error);
     });
-
-  // TODO : Get URL to send responses to.
-  // Maybe use minimist or something similar to configure cli stuff
-  console.log(JSON.stringify(resp));
 }
 
 export function prepareResponse(
@@ -81,8 +76,8 @@ export function prepareResponse(
       method: alert.http.http_method,
       headers: meta?.metadata.request_headers || [],
       body: {
-        decoded: !alert.http.http_request_body_printable,
-        value: alert.http.http_request_body_printable,
+        decoded: Boolean(alert.http.http_request_body_printable),
+        value: alert.http.http_request_body_printable || null,
       },
     },
     response: {
@@ -98,7 +93,7 @@ export function prepareResponse(
       },
       headers: meta?.metadata.response_headers || [],
       body: {
-        decoded: !alert.http.http_response_body_printable,
+        decoded: Boolean(alert.http.http_response_body_printable),
         value: alert.http.http_request_body_printable,
       },
     },

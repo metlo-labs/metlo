@@ -48,7 +48,6 @@ function createServer(socket: string) {
                 if (meta) {
                   let resp = prepareResponse(alert, meta);
                   pushAlert(resp, url);
-                  console.log(resp);
                 }
               }
             } catch (err) {
