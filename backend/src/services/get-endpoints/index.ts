@@ -50,7 +50,7 @@ export class GetEndpointsService {
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
       return await apiEndpointRepository.findOne({
         where: { uuid: endpointId },
-        relations: { sensitiveDataClasses: true },
+        relations: { sensitiveDataClasses: true, openapiSpec: true },
       });
     } catch (err) {
       console.error(`Error in Get Endpoints service: ${err}`);
