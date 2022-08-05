@@ -4,6 +4,7 @@ import { AppDataSource } from "../../data-source";
 import { ScannerService } from "../scanner/scan";
 import { DataClass } from "../../enums";
 import Error500InternalServer from "../../errors/error-500-internal-server";
+import { getPathRegex } from "../../utils";
 
 export class LogRequestService {
   static matchExists(
@@ -81,46 +82,40 @@ export class LogRequestService {
       apiTraceObj.responseBody = responseBody;
       apiTraceObj.meta = traceParams?.meta;
 
-      /** Create new Api Endpoint record or update existing */
+      /** Update existing endpoint record if exists */
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
-      let apiEndpoint = await apiEndpointRepository.findOne({
-        where: { path, method, host },
+      const pathRegex = getPathRegex(path);
+      const apiEndpoint = await apiEndpointRepository.findOne({
+        where: { pathRegex, method, host },
         relations: { sensitiveDataClasses: true },
       });
-      if (!apiEndpoint) {
-        apiEndpoint = new ApiEndpoint();
-        apiEndpoint.path = path;
-        apiEndpoint.method = method;
-        apiEndpoint.host = host;
-        apiEndpoint.totalCalls = 0;
-        apiEndpoint.sensitiveDataClasses = [];
+      if (apiEndpoint) {
+        apiEndpoint.totalCalls += 1;
+
+        // Check for sensitive data
+        let matchedDataClasses: MatchedDataClass[] =
+          apiEndpoint.sensitiveDataClasses;
+        this.findMatchedDataClasses(
+          "req.params",
+          matchedDataClasses,
+          requestParameters
+        );
+        this.findMatchedDataClasses(
+          "req.headers",
+          matchedDataClasses,
+          requestHeaders
+        );
+        this.findMatchedDataClasses(
+          "res.headers",
+          matchedDataClasses,
+          responseHeaders
+        );
+        //TODO: Check in request body and response body, might need to unmarshall the string into json to do data path properly
+        apiEndpoint.sensitiveDataClasses = matchedDataClasses;
+        apiTraceObj.apiEndpointUuid = apiEndpoint.uuid;
+        await apiEndpointRepository.save(apiEndpoint);
       }
-      apiEndpoint.totalCalls += 1;
-
-      // Check for sensitive data
-      let matchedDataClasses: MatchedDataClass[] =
-        apiEndpoint.sensitiveDataClasses;
-      this.findMatchedDataClasses(
-        "req.params",
-        matchedDataClasses,
-        requestParameters
-      );
-      this.findMatchedDataClasses(
-        "req.headers",
-        matchedDataClasses,
-        requestHeaders
-      );
-      this.findMatchedDataClasses(
-        "res.headers",
-        matchedDataClasses,
-        responseHeaders
-      );
-
-      //TODO: Check in request body and response body, might need to unmarshall the string into json to do data path properly
-
-      apiEndpoint.sensitiveDataClasses = matchedDataClasses;
       await apiTraceRepository.save(apiTraceObj);
-      await apiEndpointRepository.save(apiEndpoint);
     } catch (err) {
       console.error(`Error in Log Request service: ${err}`);
       throw new Error500InternalServer(err);

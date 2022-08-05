@@ -1,4 +1,5 @@
 import validator from "validator";
+import { pathParameterRegex } from "../constants";
 
 export const isSuspectedParamater = (value: string) => {
   if (!isNaN(Number(value))) {
@@ -9,3 +10,7 @@ export const isSuspectedParamater = (value: string) => {
   }
   return false;
 };
+
+export const getPathRegex = (path: string) => {
+  return path.replace(pathParameterRegex, String.raw`/[^/]+`);
+}
