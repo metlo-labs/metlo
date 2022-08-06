@@ -12,10 +12,18 @@ import {
   GetInstanceTypesFromInstanceRequirementsCommand,
   GetInstanceTypesFromInstanceRequirementsCommandInput,
   InstanceTypeInfoFromInstanceRequirements,
+  CreateKeyPairCommand,
+  CreateKeyPairCommandInput,
   Image,
+  KeyType,
 } from "@aws-sdk/client-ec2";
-import { Config } from "aws-sdk";
-import { response } from "express";
+// For pricing approximation
+// import {
+//   PricingClient,
+//   PricingClientConfig,
+//   GetProductsCommand,
+// } from "@aws-sdk/client-pricing";
+import { generate_random_string } from "./utils";
 
 interface MachineSpecifications {
   minCpu: number;
@@ -85,11 +93,47 @@ async function get_valid_types(
   return resp.InstanceTypes;
 }
 
-async function describe_type(config: EC2ClientConfig, InstanceType: string) {
+async function describe_type(config: EC2ClientConfig, Instance_type: string) {
   let client = new EC2Client(config);
   let command = new DescribeInstanceTypesCommand({
-    InstanceTypes: [InstanceType],
+    InstanceTypes: [Instance_type],
   } as DescribeInstanceTypesCommandInput);
   let resp = await client.send(command);
   return resp.InstanceTypes[0];
+}
+
+// TODO : Pricing API gives somewhat random results.
+// As in, systems with linux come out to $0.00 per hour
+// async function get_pricing(
+//   config: PricingClientConfig,
+//   instance_type: string,
+//   location: string
+// ) {
+//   let client = new PricingClient(config);
+//   let command = new GetProductsCommand({
+//     Filters: [
+//       { Field: "instanceType", Type: "TERM_MATCH", Value: instance_type },
+//       { Field: "location", Type: "TERM_MATCH", Value: location },
+//     ],
+//     FormatVersion: "aws_v1",
+//     ServiceCode: "AmazonEC2",
+//   });
+//   let resp = await client.send(command);
+//   return resp;
+// }
+
+async function create_new_keypair(config: EC2ClientConfig, name: string) {
+  let client = new EC2Client(config);
+  let command = new CreateKeyPairCommand({
+    KeyName: name,
+    KeyType: KeyType.ed25519,
+    TagSpecifications: [
+      {
+        ResourceType: "Keypair",
+        Tags: [{ Key: "Created By", Value: "Metlo" }],
+      },
+    ],
+  } as CreateKeyPairCommandInput);
+  let resp = await client.send(command);
+  return resp;
 }
