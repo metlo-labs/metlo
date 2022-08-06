@@ -13,7 +13,6 @@ const main = async () => {
   schedule.scheduleJob("0 * * * *", () => {
     console.log("Generating Endpoints...");
     EndpointsService.generateEndpointsFromTraces();
-    EndpointsService.generateOpenApiSpec();
   });
 
   process.on("SIGINT", () => {
