@@ -68,7 +68,6 @@ export class LogRequestService {
           responseBody,
           apiEndpoint
         );
-        //TODO: Check in request body and response body, might need to unmarshall the string into json to do data path properly
         apiTraceObj.apiEndpointUuid = apiEndpoint.uuid;
         await apiEndpointRepository.save(apiEndpoint);
       }

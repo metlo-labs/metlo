@@ -3,6 +3,7 @@ import { isSuspectedParamater } from "../../utils";
 import { ApiEndpoint, ApiTrace, OpenApiSpec } from "../../../models";
 import { AppDataSource } from "../../data-source";
 import { RestMethod } from "../../enums";
+import { ScannerService } from "../scanner/scan";
 
 interface GenerateEndpoint {
   parameterizedPath: string;
@@ -80,13 +81,38 @@ export class EndpointsService {
         apiEndpoint.method = value.traces[0].method;
         apiEndpoint.owner = value.traces[0].owner;
 
-        await apiEndpointRepository.save(apiEndpoint);
         // TODO: Do something with setting sensitive data classes during iteration of traces and add auto generated open api spec for inferred endpoints
         for (let i = 0; i < value.traces.length; i++) {
           const trace = value.traces[i];
+          ScannerService.findMatchedDataClasses(
+            "req.params",
+            trace.requestParameters,
+            apiEndpoint
+          );
+          ScannerService.findMatchedDataClasses(
+            "req.headers",
+            trace.requestHeaders,
+            apiEndpoint
+          );
+          ScannerService.findMatchedDataClasses(
+            "res.headers",
+            trace.responseHeaders,
+            apiEndpoint
+          );
+          ScannerService.findMatchedDataClassesBody(
+            "req.body",
+            trace.requestBody,
+            apiEndpoint
+          );
+          ScannerService.findMatchedDataClassesBody(
+            "res.body",
+            trace.responseBody,
+            apiEndpoint
+          );
           trace.apiEndpoint = apiEndpoint;
-          await apiTraceRepository.save(trace);
         }
+        await apiEndpointRepository.save(apiEndpoint);
+        await apiTraceRepository.save(value.traces);
       });
     }
     setTimeout(async () => await this.generateOpenApiSpec(), 1000);

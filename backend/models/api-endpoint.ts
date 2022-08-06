@@ -32,7 +32,7 @@ export class ApiEndpoint extends BaseEntity {
   @Column({ nullable: true })
   owner: string
 
-  @OneToMany(() => MatchedDataClass, dataClass => dataClass.apiEndpoint)
+  @OneToMany(() => MatchedDataClass, dataClass => dataClass.apiEndpoint, { cascade: true })
   sensitiveDataClasses: MatchedDataClass[]
 
   @Column({ nullable: true })
@@ -41,4 +41,11 @@ export class ApiEndpoint extends BaseEntity {
   @ManyToOne(() => OpenApiSpec)
   @JoinColumn()
   openapiSpec: OpenApiSpec
+
+  addDataClass(dataClass: MatchedDataClass) {
+    if (this.sensitiveDataClasses == null) {
+      this.sensitiveDataClasses = Array<MatchedDataClass>();
+    }
+    this.sensitiveDataClasses.push(dataClass);
+  }
 }

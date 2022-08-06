@@ -13,7 +13,6 @@ import {
 } from "./regexp";
 import { PairObject } from "../../types";
 import { ApiEndpoint, MatchedDataClass } from "../../../models";
-import { AppDataSource } from "../../data-source";
 
 const DATA_CLASS_REGEX_MAP = new Map<DataClass, RegExp>([
   [DataClass.ADDRESS, ADDRESS_REGEXP],
@@ -34,7 +33,7 @@ export class ScannerService {
     dataPath: string,
     dataClass: DataClass
   ): boolean {
-    for (let i = 0; i < matchedDataClasses.length; i++) {
+    for (let i = 0; i < matchedDataClasses?.length; i++) {
       const curr = matchedDataClasses[i];
       if (curr.dataClass === dataClass && curr.dataPath === dataPath) {
         return true;
@@ -59,8 +58,7 @@ export class ScannerService {
       dataClass.dataClass = matchDataClass;
       dataClass.dataPath = matchDataPath;
       dataClass.matches = matches[matchDataClass];
-      dataClass.apiEndpoint = apiEndpoint;
-      await AppDataSource.getRepository(MatchedDataClass).save(dataClass);
+      apiEndpoint.addDataClass(dataClass);
     }
   }
 
