@@ -194,4 +194,3 @@ async function create_new_instance(
   const response = await client.send(command);
   return response;
 }
-}
