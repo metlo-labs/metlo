@@ -14,7 +14,6 @@ import {
   updateSpecHandler,
   uploadNewSpecHandler,
 } from "./api/spec";
-import { EndpointsService } from "./services/endpoints";
 
 dotenv.config();
 
