@@ -19,6 +19,7 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-ec2": "^3.142.0",
+    "@aws-sdk/client-pricing": "^3.142.0",
     "aws-sdk": "^2.1189.0",
     "body-parser": "^1.20.0",
     "dotenv": "^16.0.1",
