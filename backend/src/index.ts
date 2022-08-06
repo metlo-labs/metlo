@@ -14,6 +14,7 @@ import {
   updateSpecHandler,
   uploadNewSpecHandler,
 } from "./api/spec";
+import { isRiskHandler } from "./api/data-class";
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.post("/api/v1/spec/new", MulterSource.single("file"), uploadNewSpecHandler);
 app.delete("/api/v1/spec/delete/:specFileName", deleteSpecHandler);
 app.post("/api/v1/spec/update", MulterSource.single("file"), updateSpecHandler);
 app.get("/api/v1/spec/list", getSpecListHandler);
+app.put("/api/v1/data-class/isRisk/:dataClassId", isRiskHandler);
 
 const main = async () => {
   try {

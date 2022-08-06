@@ -45,6 +45,10 @@ export interface GetEndpointParams {
   limit?: number;
 }
 
+export interface IsRiskParams {
+  isRisk: boolean;
+}
+
 export type JSONValue =
   | string
   | number
