@@ -115,7 +115,9 @@ export class EndpointsService {
       }
     }
     Object.keys(hostMap).forEach(async (host) => {
-      let spec = await openApiSpecRepository.findOneBy({ name: `${host}-generated` });
+      let spec = await openApiSpecRepository.findOneBy({
+        name: `${host}-generated`,
+      });
       let openApiSpec = {};
       if (spec) {
         openApiSpec = JSON.parse(spec.spec);

@@ -1,63 +1,11 @@
 import { Raw } from "typeorm";
-import { PairObject, TraceParams } from "../../types";
-import { ApiEndpoint, ApiTrace, MatchedDataClass } from "../../../models";
+import { TraceParams } from "../../types";
+import { ApiEndpoint, ApiTrace } from "../../../models";
 import { AppDataSource } from "../../data-source";
 import { ScannerService } from "../scanner/scan";
-import { DataClass } from "../../enums";
 import Error500InternalServer from "../../errors/error-500-internal-server";
 
 export class LogRequestService {
-  static matchExists(
-    matchedDataClasses: MatchedDataClass[],
-    dataPath: string,
-    dataClass: DataClass
-  ): boolean {
-    for (let i = 0; i < matchedDataClasses.length; i++) {
-      const curr = matchedDataClasses[i];
-      if (curr.dataClass === dataClass && curr.dataPath === dataPath) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  static findMatchedDataClasses(
-    dataPathPrefix: string,
-    data: PairObject[],
-    apiEndpoint: ApiEndpoint
-  ) {
-    try {
-      if (data) {
-        for (const item of data) {
-          const field = item.name;
-          const matches = ScannerService.scan(item.value);
-          Object.keys(matches).forEach(async (match) => {
-            const matchDataClass = match as DataClass;
-            const matchDataPath = `${dataPathPrefix}.${field}`;
-            const exsistingMatch = this.matchExists(
-              apiEndpoint.sensitiveDataClasses,
-              matchDataPath,
-              matchDataClass
-            );
-            if (!exsistingMatch) {
-              const dataClass = new MatchedDataClass();
-              dataClass.dataClass = matchDataClass;
-              dataClass.dataPath = `${dataPathPrefix}.${field}`;
-              dataClass.matches = matches[match];
-              dataClass.apiEndpoint = apiEndpoint;
-              await AppDataSource.getRepository(MatchedDataClass).save(
-                dataClass
-              );
-            }
-          });
-        }
-      }
-    } catch (err) {
-      console.error(`Error while finding matched data classes: ${err}`);
-      throw new Error500InternalServer(err);
-    }
-  }
-
   static async logRequest(traceParams: TraceParams) {
     try {
       /** Log Request in ApiTrace table */
@@ -95,15 +43,29 @@ export class LogRequestService {
       if (apiEndpoint) {
         apiEndpoint.totalCalls += 1;
         // Check for sensitive data
-        this.findMatchedDataClasses(
+        ScannerService.findMatchedDataClasses(
           "req.params",
           requestParameters,
           apiEndpoint
         );
-        this.findMatchedDataClasses("req.headers", requestHeaders, apiEndpoint);
-        this.findMatchedDataClasses(
+        ScannerService.findMatchedDataClasses(
+          "req.headers",
+          requestHeaders,
+          apiEndpoint
+        );
+        ScannerService.findMatchedDataClasses(
           "res.headers",
           responseHeaders,
+          apiEndpoint
+        );
+        ScannerService.findMatchedDataClassesBody(
+          "req.body",
+          requestBody,
+          apiEndpoint
+        );
+        ScannerService.findMatchedDataClassesBody(
+          "res.body",
+          responseBody,
           apiEndpoint
         );
         //TODO: Check in request body and response body, might need to unmarshall the string into json to do data path properly
