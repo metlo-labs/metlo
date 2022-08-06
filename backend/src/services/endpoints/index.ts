@@ -1,4 +1,4 @@
-import { IsNull } from "typeorm";
+import { IsNull, Raw } from "typeorm";
 import { isSuspectedParamater } from "../../utils";
 import { ApiEndpoint, ApiTrace, OpenApiSpec } from "../../../models";
 import { AppDataSource } from "../../data-source";
@@ -24,47 +24,88 @@ export class EndpointsService {
     if (traces?.length > 0) {
       for (let i = 0; i < traces.length; i++) {
         const trace = traces[i];
-        let found = false;
-        const regexes = Object.keys(regexToTracesMap);
-        for (let x = 0; x < regexes.length && !found; x++) {
-          const regex = regexes[x];
-          if (
-            RegExp(regex).test(`${trace.host}-${trace.method}-${trace.path}`)
-          ) {
-            found = true;
-            regexToTracesMap[regex].traces.push(trace);
-          }
-        }
-        if (!found) {
-          const pathTokens = trace.path.split("/");
-          let paramNum = 1;
-          let parameterizedPath = "";
-          let pathRegex = String.raw``;
-          for (let j = 0; j < pathTokens.length; j++) {
-            const tokenString = pathTokens[j];
-            if (tokenString.length > 0) {
-              if (isSuspectedParamater(tokenString)) {
-                parameterizedPath += `/{param${paramNum}}`;
-                pathRegex += String.raw`/[^/]+`;
-                paramNum += 1;
-              } else {
-                parameterizedPath += `/${tokenString}`;
-                pathRegex += String.raw`/${tokenString}`;
-              }
+        const apiEndpoint = await apiEndpointRepository.findOne({
+          where: {
+            pathRegex: Raw((alias) => `:path ~ ${alias}`, { path: trace.path }),
+            method: trace.method,
+            host: trace.host,
+          },
+          relations: { sensitiveDataClasses: true },
+        });
+        if (apiEndpoint) {
+          apiEndpoint.totalCalls += 1;
+          // Check for sensitive data
+          ScannerService.findMatchedDataClasses(
+            "req.params",
+            trace.requestParameters,
+            apiEndpoint
+          );
+          ScannerService.findMatchedDataClasses(
+            "req.headers",
+            trace.requestHeaders,
+            apiEndpoint
+          );
+          ScannerService.findMatchedDataClasses(
+            "res.headers",
+            trace.responseHeaders,
+            apiEndpoint
+          );
+          ScannerService.findMatchedDataClassesBody(
+            "req.body",
+            trace.requestBody,
+            apiEndpoint
+          );
+          ScannerService.findMatchedDataClassesBody(
+            "res.body",
+            trace.responseBody,
+            apiEndpoint
+          );
+          trace.apiEndpointUuid = apiEndpoint.uuid;
+          await apiEndpointRepository.save(apiEndpoint);
+          await apiTraceRepository.save(trace);
+        } else {
+          let found = false;
+          const regexes = Object.keys(regexToTracesMap);
+          for (let x = 0; x < regexes.length && !found; x++) {
+            const regex = regexes[x];
+            if (
+              RegExp(regex).test(`${trace.host}-${trace.method}-${trace.path}`)
+            ) {
+              found = true;
+              regexToTracesMap[regex].traces.push(trace);
             }
           }
-          if (pathRegex.length > 0) {
-            const regexKey = `${trace.host}-${trace.method}-${pathRegex}`;
-            if (regexToTracesMap[regexKey]) {
-              regexToTracesMap[regexKey].traces.push(trace);
-            } else {
-              regexToTracesMap[regexKey] = {
-                parameterizedPath,
-                host: trace.host,
-                regex: pathRegex,
-                method: trace.method,
-                traces: [trace],
-              };
+          if (!found) {
+            const pathTokens = trace.path.split("/");
+            let paramNum = 1;
+            let parameterizedPath = "";
+            let pathRegex = String.raw``;
+            for (let j = 0; j < pathTokens.length; j++) {
+              const tokenString = pathTokens[j];
+              if (tokenString.length > 0) {
+                if (isSuspectedParamater(tokenString)) {
+                  parameterizedPath += `/{param${paramNum}}`;
+                  pathRegex += String.raw`/[^/]+`;
+                  paramNum += 1;
+                } else {
+                  parameterizedPath += `/${tokenString}`;
+                  pathRegex += String.raw`/${tokenString}`;
+                }
+              }
+            }
+            if (pathRegex.length > 0) {
+              const regexKey = `${trace.host}-${trace.method}-${pathRegex}`;
+              if (regexToTracesMap[regexKey]) {
+                regexToTracesMap[regexKey].traces.push(trace);
+              } else {
+                regexToTracesMap[regexKey] = {
+                  parameterizedPath,
+                  host: trace.host,
+                  regex: pathRegex,
+                  method: trace.method,
+                  traces: [trace],
+                };
+              }
             }
           }
         }
