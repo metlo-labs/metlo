@@ -46,6 +46,7 @@ const main = async () => {
       console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
     });
     //await EndpointsService.generateEndpointsFromTraces();
+    //await EndpointsService.generateOpenApiSpec();
   } catch (err) {
     console.error(`CatchBlockInsideMain: ${err}`);
   }

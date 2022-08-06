@@ -14,7 +14,7 @@ export const getSpecListHandler = async (req: Request, res: Response) => {
   } catch (err) {
     await ApiResponseHandler.error(res, err);
   }
-}
+};
 
 export const uploadNewSpecHandler = async (req: Request, res: Response) => {
   try {
@@ -22,7 +22,10 @@ export const uploadNewSpecHandler = async (req: Request, res: Response) => {
       throw new Error400BadRequest("No spec file found.");
     }
     const specFile = req.file;
-    const fileName = req.file.filename || req.file.fieldname;
+    const fileName = specFile.originalname
+      ?.split(".json")[0]
+      ?.split(".yaml")[0]
+      ?.split(".yml")[0];
     if (!fileName) {
       throw new Error400BadRequest("No filename provided.");
     }
