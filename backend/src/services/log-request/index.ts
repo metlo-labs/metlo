@@ -31,7 +31,7 @@ export class LogRequestService {
         for (const item of data) {
           const field = item.name;
           const matches = ScannerService.scan(item.value);
-          Object.keys(matches).map(async (match) => {
+          Object.keys(matches).forEach(async (match) => {
             const matchDataClass = match as DataClass;
             const matchDataPath = `${dataPathPrefix}.${field}`;
             const exsistingMatch = this.matchExists(

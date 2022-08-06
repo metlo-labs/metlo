@@ -68,7 +68,7 @@ export class EndpointsService {
           }
         }
       }
-      Object.entries(regexToTracesMap).map(async ([regex, value], idx) => {
+      Object.entries(regexToTracesMap).forEach(async ([regex, value]) => {
         /** Check if endpoint already exists for the trace */
         //const existingEndpoint = await apiEndpointRepository.findOneBy({ pathRegex: value.regex, method: value.method, host: value.host })
 
@@ -114,7 +114,7 @@ export class EndpointsService {
         hostMap[endpoint.host] = [endpoint];
       }
     }
-    Object.keys(hostMap).map(async (host) => {
+    Object.keys(hostMap).forEach(async (host) => {
       let spec = await openApiSpecRepository.findOneBy({ name: `${host}-generated` });
       let openApiSpec = {};
       if (spec) {
