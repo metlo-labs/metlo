@@ -26,14 +26,14 @@ app.get("/", (req: Request, res: Response) => {
   res.send("OK");
 });
 
-app.post("/log-request/single", logRequestSingleHandler);
-app.post("/log-request/batch", logRequestBatchHandler);
-app.get("/endpoints", getEndpointsHandler);
-app.get("/endpoint/:endpointId", getEndpointHandler);
-app.post("/spec/new", MulterSource.single("file"), uploadNewSpecHandler);
-app.delete("/spec/delete/:specFileName", deleteSpecHandler);
-app.post("/spec/update", MulterSource.single("file"), updateSpecHandler);
-app.get("/spec/list", getSpecListHandler);
+app.post("/api/v1/log-request/single", logRequestSingleHandler);
+app.post("/api/v1/log-request/batch", logRequestBatchHandler);
+app.get("/api/v1/endpoints", getEndpointsHandler);
+app.get("/api/v1/endpoint/:endpointId", getEndpointHandler);
+app.post("/api/v1/spec/new", MulterSource.single("file"), uploadNewSpecHandler);
+app.delete("/api/v1/spec/delete/:specFileName", deleteSpecHandler);
+app.post("/api/v1/spec/update", MulterSource.single("file"), updateSpecHandler);
+app.get("/api/v1/spec/list", getSpecListHandler);
 
 const main = async () => {
   try {
