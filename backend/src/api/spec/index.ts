@@ -59,7 +59,10 @@ export const deleteSpecHandler = async (req: Request, res: Response) => {
 export const updateSpecHandler = async (req: Request, res: Response) => {
   try {
     const specFile = req.file;
-    const fileName = req.file.filename || req.file.fieldname;
+    const fileName = specFile.originalname
+      ?.split(".json")[0]
+      ?.split(".yaml")[0]
+      ?.split(".yml")[0];
     if (!fileName) {
       throw new Error400BadRequest("No filename provided.");
     }
