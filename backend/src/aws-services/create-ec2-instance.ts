@@ -14,6 +14,8 @@ import {
   InstanceTypeInfoFromInstanceRequirements,
   CreateKeyPairCommand,
   CreateKeyPairCommandInput,
+  DescribeKeyPairsCommand,
+  DescribeKeyPairsCommandInput,
   Image,
   KeyType,
 } from "@aws-sdk/client-ec2";
@@ -34,10 +36,10 @@ interface MachineSpecifications {
 
 async function get_all_images(
   img_names: Array<string>,
-  config: EC2ClientConfig
+  client: EC2Client
 ): Promise<Array<Image>> {
   // Create anAmazon EC2 service client object.
-  const ec2Client = new EC2Client(config);
+  const ec2Client = client;
   const input: DescribeImagesCommandInput = {
     Filters: [
       { Name: "architecture", Values: ["x86_64"] },
@@ -61,22 +63,21 @@ async function get_all_images(
 }
 
 async function get_latest_image(
-  config: EC2ClientConfig,
+  client: EC2Client,
   img_names: Array<string> = [
     "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-????????",
   ]
 ) {
-  let resp = (await get_all_images(img_names, config)).pop();
+  let resp = (await get_all_images(img_names, client)).pop();
   console.log(resp);
   return resp;
 }
 
 async function get_valid_types(
-  config: EC2ClientConfig,
+  client: EC2Client,
   image: Image,
   specs: MachineSpecifications
 ): Promise<Array<InstanceTypeInfoFromInstanceRequirements>> {
-  let client = new EC2Client(config);
   let command = new GetInstanceTypesFromInstanceRequirementsCommand({
     ArchitectureTypes: ["x86_64"],
     VirtualizationTypes: [image.VirtualizationType],
@@ -93,8 +94,7 @@ async function get_valid_types(
   return resp.InstanceTypes;
 }
 
-async function describe_type(config: EC2ClientConfig, Instance_type: string) {
-  let client = new EC2Client(config);
+async function describe_type(client: EC2Client, Instance_type: string) {
   let command = new DescribeInstanceTypesCommand({
     InstanceTypes: [Instance_type],
   } as DescribeInstanceTypesCommandInput);
@@ -122,18 +122,76 @@ async function describe_type(config: EC2ClientConfig, Instance_type: string) {
 //   return resp;
 // }
 
-async function create_new_keypair(config: EC2ClientConfig, name: string) {
-  let client = new EC2Client(config);
+async function create_new_keypair(client: EC2Client, name: string) {
   let command = new CreateKeyPairCommand({
     KeyName: name,
     KeyType: KeyType.ed25519,
-    TagSpecifications: [
-      {
-        ResourceType: "Keypair",
-        Tags: [{ Key: "Created By", Value: "Metlo" }],
-      },
-    ],
+    // TagSpecifications: [
+    //   {
+    //     ResourceType: "instance",
+    //     Tags: [{ Key: "Created By", Value: "Metlo" }],
+    //   },
+    // ],
   } as CreateKeyPairCommandInput);
   let resp = await client.send(command);
   return resp;
+}
+
+async function list_keypairs(client: EC2Client) {
+  let command = new DescribeKeyPairsCommand({} as DescribeKeyPairsCommandInput);
+  let resp = await client.send(command);
+  return resp;
+}
+
+async function create_new_instance(
+  client: EC2Client,
+  instance_ami: string,
+  instance_type: string
+) {
+  const id = generate_random_string(12);
+  const key = await create_new_keypair(client, `METLO-Instance-${id}-Key`);
+  console.log(key);
+  const command = new RunInstancesCommand({
+    MaxCount: 1,
+    MinCount: 1,
+    ImageId: instance_ami,
+    InstanceType: instance_type,
+    KeyName: key.KeyName,
+    TagSpecifications: [
+      {
+        ResourceType: "instance",
+        Tags: [
+          {
+            Key: "Name",
+            Value: `METLO-Mirror-instance-${id}`,
+          },
+          { Key: "Created By", Value: "Metlo" },
+        ],
+      },
+      {
+        ResourceType: "volume",
+        Tags: [
+          {
+            Key: "Name",
+            Value: `METLO-Mirror-volume-${id}`,
+          },
+          { Key: "Created By", Value: "Metlo" },
+        ],
+      },
+    ],
+    BlockDeviceMappings: [
+      {
+        DeviceName: "/dev/sda1",
+        Ebs: {
+          DeleteOnTermination: true,
+          VolumeSize: 8,
+          VolumeType: "gp2",
+          Encrypted: true,
+        },
+      },
+    ],
+  } as RunInstancesCommandInput);
+  const response = await client.send(command);
+  return response;
+}
 }
