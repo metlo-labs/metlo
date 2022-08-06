@@ -22,7 +22,7 @@ const port = process.env.PORT || 8080;
 
 app.use(bodyParser.json());
 
-app.get("/", (req: Request, res: Response) => {
+app.get("/api/v1", (req: Request, res: Response) => {
   res.send("OK");
 });
 
