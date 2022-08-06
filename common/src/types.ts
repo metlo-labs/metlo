@@ -70,6 +70,7 @@ export interface ApiTrace {
 
 export interface Alert {
   apiEndpointUuid?: string;
+  endpoint?: Endpoint;
   createdAt: Date;
   type: AlertType;
   risk: RiskScore;
@@ -97,6 +98,7 @@ export interface Endpoint {
 }
 
 export interface Connection {
+  createdAt: Date;
   uuid: string;
   name: string;
   type: ConnectionType;
