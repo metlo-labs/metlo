@@ -11,12 +11,15 @@
     "dev-jobs": "nodemon src/jobs.ts",
     "start": "node dist/src/index.js",
     "start-jobs": "node dist/src/jobs.js",
-    "format": "prettier --write './src/**/*.{ts,tsx}'"
+    "format": "prettier --write './src/**/*.{ts,tsx}'",
+    "rnd": "nodemon src/aws-services/create-ec2-instance.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-ec2": "^3.142.0",
+    "aws-sdk": "^2.1189.0",
     "body-parser": "^1.20.0",
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
