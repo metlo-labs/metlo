@@ -39,7 +39,7 @@ PRODUCT_UUIDS = [
 
 class EcommerceAddProductToCartProducer(BaseProducer):
 
-    avg_emit_delta = timedelta(seconds=10)
+    avg_emit_delta = timedelta(seconds=1)
 
     def get_data_points_helper(self, cart_uuid: str) -> dict:
         product_uuid = choice(PRODUCT_UUIDS)
