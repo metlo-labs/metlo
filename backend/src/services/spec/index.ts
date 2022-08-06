@@ -1,7 +1,12 @@
 import { v4 as uuidv4 } from "uuid";
 import { Not } from "typeorm";
 import { RestMethod } from "../../enums";
-import { ApiEndpoint, ApiTrace, OpenApiSpec } from "../../../models";
+import {
+  ApiEndpoint,
+  ApiTrace,
+  MatchedDataClass,
+  OpenApiSpec,
+} from "../../../models";
 import Error400BadRequest from "../../errors/error-400-bad-request";
 import { JSONValue } from "../../types";
 import { AppDataSource } from "../../data-source";
@@ -54,6 +59,8 @@ export class SpecService {
     const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
     const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec);
     const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
+    const matchedDataClassRepository =
+      AppDataSource.getRepository(MatchedDataClass);
     let existingSpec = await openApiSpecRepository.findOneBy({
       name: fileName,
     });
@@ -67,10 +74,12 @@ export class SpecService {
       similarEndpoints: ApiEndpoint[];
       apiEndpoints: ApiEndpoint[];
       traces: ApiTrace[];
+      matchedDataClasses: MatchedDataClass[];
     } = {
       similarEndpoints: [],
       apiEndpoints: [],
       traces: [],
+      matchedDataClasses: [],
     };
     pathKeys.forEach((path) => {
       const pathRegex = getPathRegex(path);
@@ -97,6 +106,7 @@ export class SpecService {
               apiEndpoint.pathRegex = pathRegex;
               apiEndpoint.method = methodEnum;
               apiEndpoint.host = host;
+              apiEndpoint.totalCalls = 0;
               apiEndpoint.openapiSpec = existingSpec;
               //await apiEndpointRepository.save(apiEndpoint);
               updated = true;
@@ -116,21 +126,33 @@ export class SpecService {
             endpoints.apiEndpoints.push(apiEndpoint);
             //TODO: For endpoints where path regex matches, update traces to point to new Spec defined endpoint
             if (updated) {
-              const similarEndpoints = await apiEndpointRepository.findBy({
-                path: Not(path),
-                pathRegex,
-                method: methodEnum,
-                host,
+              const similarEndpoints = await apiEndpointRepository.find({
+                where: {
+                  path: Not(path),
+                  pathRegex,
+                  method: methodEnum,
+                  host,
+                },
+                relations: {
+                  sensitiveDataClasses: true,
+                },
               });
               similarEndpoints.forEach(async (endpoint) => {
+                apiEndpoint.totalCalls += endpoint.totalCalls;
                 const traces = await apiTraceRepository.findBy({
                   apiEndpointUuid: endpoint.uuid,
+                });
+                endpoint.sensitiveDataClasses.forEach((matchedDataClass) => {
+                  matchedDataClass.apiEndpoint = apiEndpoint;
                 });
                 traces.forEach((trace) => {
                   trace.apiEndpointUuid = apiEndpoint.uuid;
                 });
                 //await apiTraceRepository.save(traces);
                 endpoints.traces.push(...traces);
+                endpoints.matchedDataClasses.push(
+                  ...endpoint.sensitiveDataClasses
+                );
               });
               endpoints.similarEndpoints.push(...similarEndpoints);
               //await apiEndpointRepository.remove(similarEndpoints);
@@ -143,6 +165,7 @@ export class SpecService {
     await openApiSpecRepository.save(existingSpec);
     await apiEndpointRepository.save(endpoints.apiEndpoints);
     await apiTraceRepository.save(endpoints.traces);
+    await matchedDataClassRepository.save(endpoints.matchedDataClasses);
     await apiEndpointRepository.remove(endpoints.similarEndpoints);
   }
 }
