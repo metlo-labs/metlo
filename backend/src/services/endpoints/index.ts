@@ -89,6 +89,7 @@ export class EndpointsService {
         }
       });
     }
+    setTimeout(async () => await this.generateOpenApiSpec(), 1000);
   }
 
   static async generateOpenApiSpec() {
