@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  backend:
+    image: metlo/backend
+    container_name: metlo-backend
+    restart: unless-stopped
+    environment:
+      - DB_URL=${DB_URL}
+  frontend: 
+    image: metlo/frontend
+    container_name: metlo-frontend
+    restart: unless-stopped
+    ports:
+      - 80:3000
