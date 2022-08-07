@@ -10,6 +10,7 @@ RUN yarn
 RUN yarn build
 
 WORKDIR /usr/src/app/frontend
+RUN echo 'BACKEND_URL=http://backend:8080' > .env
 RUN yarn
 RUN yarn build
 
