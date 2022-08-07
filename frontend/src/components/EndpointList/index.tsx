@@ -1,12 +1,12 @@
 import { Box, VStack } from "@chakra-ui/react";
 import React from "react";
-import { Endpoint } from "@common/types";
+import { ApiEndpoint, Endpoint } from "@common/types";
 import EndpointFilters from "./Filters";
 import List from "./List";
 
 interface EndpointListProps {
   fetching: boolean;
-  endpoints: Endpoint[];
+  endpoints: ApiEndpoint[];
 }
 
 const EndpointList: React.FC<EndpointListProps> = React.memo(

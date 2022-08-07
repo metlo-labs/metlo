@@ -1,5 +1,5 @@
 import React from "react";
-import { Endpoint } from "@common/types";
+import { ApiEndpointDetailed, Endpoint } from "@common/types";
 import {
   Box,
   Badge,
@@ -18,7 +18,7 @@ import { openAPISpec } from "testData";
 import EndpointPIIChart from "./PIIChart";
 
 interface EndpointOverviewProps {
-  endpoint: Endpoint;
+  endpoint: ApiEndpointDetailed;
 }
 
 const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
@@ -49,7 +49,7 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
             </GridItem>
             <GridItem>
               <DataHeading>PII Fields</DataHeading>
-              <DataAttribute>{endpoint.piiData.length}</DataAttribute>
+              <DataAttribute>{endpoint.sensitiveDataClasses.length}</DataAttribute>
             </GridItem>
             <GridItem>
               <DataHeading>Alerts</DataHeading>
@@ -57,11 +57,11 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
             </GridItem>
             <GridItem>
               <DataHeading>First Detected</DataHeading>
-              <DataAttribute>{endpoint.firstDetected}</DataAttribute>
+              <DataAttribute>{endpoint.firstDetected?.toString()}</DataAttribute>
             </GridItem>
             <GridItem>
               <DataHeading>Last Active</DataHeading>
-              <DataAttribute>{endpoint.lastActive}</DataAttribute>
+              <DataAttribute>{endpoint.lastActive?.toString()}</DataAttribute>
             </GridItem>
             <GridItem w="100%" colSpan={2}>
               <DataHeading>Usage</DataHeading>
@@ -69,11 +69,11 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
                 <EndpointUsageChart />
               </Box>
             </GridItem>
-            {endpoint.piiData.length > 0 ? (
+            {endpoint.sensitiveDataClasses.length > 0 ? (
               <GridItem w="100%" colSpan={2}>
                 <DataHeading>PII Data</DataHeading>
                 <Box maxW="xs">
-                  <EndpointPIIChart piiFields={endpoint.piiData} />
+                  <EndpointPIIChart piiFields={endpoint.sensitiveDataClasses} />
                 </Box>
               </GridItem>
             ) : null}

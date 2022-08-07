@@ -32,7 +32,7 @@ const PIIDataList: React.FC<PIIDataListProps> = React.memo(({ PIIFields }) => {
     {
       name: "Data Type",
       sortable: true,
-      selector: (row: PIIField) => row.dataType || "",
+      selector: (row: PIIField) => row.dataClass || "",
       id: "dataType",
       grow: 1,
     },
@@ -51,7 +51,7 @@ const PIIDataList: React.FC<PIIDataListProps> = React.memo(({ PIIFields }) => {
     {
       name: "Date Identified",
       sortable: true,
-      selector: (row: PIIField) => row.dateIdentified || "",
+      selector: (row: PIIField) => row.createdAt || "",
       id: "dateIdentified",
       grow: 2,
     },

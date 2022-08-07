@@ -20,22 +20,27 @@ import {
   TabPanel,
 } from "@chakra-ui/react";
 import { SectionHeader } from "../utils/Card";
-import { Endpoint } from "@common/types";
+import { ApiEndpointDetailed } from "@common/types";
 import { METHOD_TO_COLOR } from "../../constants";
 import PIIDataList from "./PIIDataList";
 import TraceList from "./TraceList";
 import AlertList from "./AlertList";
 import EndpointOverview from "./Overview";
+import EmptyView from "components/utils/EmptyView";
 
 interface EndpointPageProps {
-  endpoint: Endpoint;
+  endpoint: ApiEndpointDetailed;
+  fetching: boolean;
 }
 
-const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
+const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint, fetching }) => {
   const headerColor = useColorModeValue(
     "rgb(179, 181, 185)",
     "rgb(91, 94, 109)"
   );
+  if (fetching) {
+    return <EmptyView />
+  }
   return (
     <VStack
       w="full"
@@ -56,9 +61,9 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
             fontSize="xl"
             px="2"
             py="1"
-            colorScheme={METHOD_TO_COLOR[endpoint.method] || "gray"}
+            colorScheme={METHOD_TO_COLOR[endpoint?.method] || "gray"}
           >
-            {endpoint.method.toUpperCase()}
+            {endpoint?.method.toUpperCase()}
           </Badge>
           <Code fontSize="xl" fontWeight="semibold" p="1">
             {endpoint.path}
@@ -91,7 +96,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
             <EndpointOverview endpoint={endpoint} />
           </TabPanel>
           <TabPanel p="0">
-            <PIIDataList PIIFields={endpoint.piiData} />
+            <PIIDataList PIIFields={endpoint.sensitiveDataClasses} />
           </TabPanel>
           <TabPanel p="0">
             <TraceList traces={endpoint.traces} />

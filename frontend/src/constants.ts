@@ -10,3 +10,5 @@ export const RISK_TO_COLOR = {
   [RiskScore.MEDIUM]: "orange",
   [RiskScore.HIGH]: "red",
 };
+
+export const API_URL = "http://localhost:8080/api/v1";

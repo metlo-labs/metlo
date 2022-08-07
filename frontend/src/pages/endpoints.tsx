@@ -1,18 +1,23 @@
 import { Heading, VStack } from "@chakra-ui/react";
-import { Endpoint } from "@common/types";
+import { Endpoint, ApiEndpoint } from "@common/types";
 import { useEffect, useState } from "react";
 import EndpointList from "../components/EndpointList";
 import { SideNavLinkDestination } from "../components/Sidebar/NavLinkUtils";
 import { SidebarLayoutShell } from "../components/SidebarLayoutShell";
 import { ContentContainer } from "../components/utils/ContentContainer";
 import { testEndpoints } from "../testData";
+import { getEndpoints } from "../api/endpoints";
 
 const Endpoints = () => {
   const [fetching, setFetching] = useState<boolean>(true);
-  const [endpoints, setEndpoints] = useState<Endpoint[]>([]);
+  const [endpoints, setEndpoints] = useState<ApiEndpoint[]>([]);
   useEffect(() => {
-    setEndpoints(testEndpoints);
-    setFetching(false);
+    const fetchEndpoints = async () => {
+      const res = await getEndpoints();
+      setEndpoints(res);
+      setFetching(false);
+    }
+    fetchEndpoints();
   }, []);
   return (
     <SidebarLayoutShell currentTab={SideNavLinkDestination.Endpoints}>

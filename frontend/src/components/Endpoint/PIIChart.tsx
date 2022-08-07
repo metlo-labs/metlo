@@ -23,7 +23,7 @@ const EndpointPIIChart: React.FC<EndpointPIIChartProps> = React.memo(
   ({ piiFields }) => {
     let dataClassToCount = {};
     piiFields
-      .map((e) => e.dataType)
+      .map((e) => e.dataClass)
       .forEach((e) => (dataClassToCount[e] = (dataClassToCount[e] || 0) + 1));
     const data = {
       labels: Object.keys(dataClassToCount),

@@ -1,7 +1,7 @@
 import { FindManyOptions, FindOptionsWhere } from "typeorm";
 import { GetEndpointParams } from "../../types";
 import { AppDataSource } from "../../data-source";
-import { ApiEndpoint } from "../../../models";
+import { ApiEndpoint, ApiTrace } from "../../../models";
 import Error500InternalServer from "../../errors/error-500-internal-server";
 
 export class GetEndpointsService {
@@ -45,13 +45,24 @@ export class GetEndpointsService {
     }
   }
 
-  static async getEndpoint(endpointId: string): Promise<ApiEndpoint> {
+  static async getEndpoint(endpointId: string): Promise<any> {
     try {
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
-      return await apiEndpointRepository.findOne({
+      const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
+      const endpoint = await apiEndpointRepository.findOne({
         where: { uuid: endpointId },
         relations: { sensitiveDataClasses: true, openapiSpec: true },
       });
+      const traces = await apiTraceRepository.find({
+        where: { apiEndpointUuid: endpoint.uuid },
+        order: { createdAt: "DESC" },
+        take: 10,
+      });
+      return {
+        ...endpoint,
+        alerts: [],
+        traces: [...traces],
+      };
     } catch (err) {
       console.error(`Error in Get Endpoints service: ${err}`);
       throw new Error500InternalServer(err);

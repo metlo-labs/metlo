@@ -5,12 +5,12 @@ import EmptyView from "../utils/EmptyView";
 import DataTable, { SortOrder, TableColumn } from "react-data-table-component";
 import { METHOD_TO_COLOR, RISK_TO_COLOR } from "../../constants";
 import { getCustomStyles, rowStyles, SkeletonCell } from "../utils/TableUtils";
-import { Endpoint } from "@common/types";
+import { ApiEndpoint, Endpoint } from "@common/types";
 
 const PAGE_SIZE = 10;
 
 interface EndpointTablesProps {
-  endpoints: Endpoint[];
+  endpoints: ApiEndpoint[];
   totalCount: number;
   currentPage: number;
   setCurrentPage: (e: number) => void;
@@ -63,7 +63,7 @@ const TableLoader: React.FC<TableLoaderProps> = ({
   ].map((e) => ({
     ...e,
     sortable: true,
-    cell: (row: Endpoint) => <SkeletonCell />,
+    cell: (row: ApiEndpoint) => <SkeletonCell />,
   }));
 
   return (
@@ -102,19 +102,19 @@ const List: React.FC<EndpointTablesProps> = React.memo(
     };
 
     const handleSort = (
-      column: TableColumn<Endpoint>,
+      column: TableColumn<ApiEndpoint>,
       sortDirection: SortOrder
     ) => {
       setOrdering(sortDirection.toUpperCase() as "ASC" | "DESC");
       setOrderBy(column.id?.toString());
     };
 
-    const columns: TableColumn<Endpoint>[] = [
+    const columns: TableColumn<ApiEndpoint>[] = [
       {
         name: "Risk Score",
         sortable: true,
-        selector: (row: Endpoint) => row.riskScore || "",
-        cell: (row: Endpoint) => (
+        selector: (row: ApiEndpoint) => row.riskScore || "",
+        cell: (row: ApiEndpoint) => (
           <Badge
             p="1"
             fontSize="sm"
@@ -130,8 +130,8 @@ const List: React.FC<EndpointTablesProps> = React.memo(
       {
         name: "Path",
         sortable: true,
-        selector: (row: Endpoint) => row.method + row.path,
-        cell: (row: Endpoint) => (
+        selector: (row: ApiEndpoint) => row.method + row.path,
+        cell: (row: ApiEndpoint) => (
           <HStack pointerEvents="none">
             <Badge
               p="1"
@@ -149,28 +149,28 @@ const List: React.FC<EndpointTablesProps> = React.memo(
       {
         name: "Host",
         sortable: true,
-        selector: (row: Endpoint) => row.host || "",
+        selector: (row: ApiEndpoint) => row.host || "",
         id: "host",
         grow: 1,
       },
       {
         name: "First Detected",
         sortable: true,
-        selector: (row: Endpoint) => row.firstDetected || "",
+        selector: (row: ApiEndpoint) => row.firstDetected?.toString() || "",
         id: "firstDetected",
         grow: 2,
       },
       {
         name: "Last Active",
         sortable: true,
-        selector: (row: Endpoint) => row.lastActive || "",
+        selector: (row: ApiEndpoint) => row.lastActive?.toString() || "",
         id: "lastActive",
         grow: 2,
       },
     ];
 
     const onRowClicked = (
-      row: Endpoint,
+      row: ApiEndpoint,
       e: React.MouseEvent<Element, MouseEvent>
     ) => {
       router.push(`/endpoint/${row.uuid}`);
