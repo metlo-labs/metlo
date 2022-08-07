@@ -5,7 +5,7 @@ import EmptyView from "../utils/EmptyView";
 import DataTable, { SortOrder, TableColumn } from "react-data-table-component";
 import { METHOD_TO_COLOR, RISK_TO_COLOR } from "../../constants";
 import { getCustomStyles, rowStyles, SkeletonCell } from "../utils/TableUtils";
-import { ApiEndpoint, Endpoint } from "@common/types";
+import { ApiEndpoint } from "@common/types";
 
 const PAGE_SIZE = 10;
 

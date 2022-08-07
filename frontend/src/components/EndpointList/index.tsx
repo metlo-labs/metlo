@@ -1,16 +1,24 @@
 import { Box, VStack } from "@chakra-ui/react";
-import React from "react";
-import { ApiEndpoint, Endpoint } from "@common/types";
+import React, { useState } from "react";
+import { ApiEndpoint, GetEndpointParams } from "@common/types";
 import EndpointFilters from "./Filters";
 import List from "./List";
+import { ENDPOINT_PAGE_LIMIT } from "../../constants";
 
 interface EndpointListProps {
   fetching: boolean;
   endpoints: ApiEndpoint[];
+  totalCount: number;
+  setParams: React.Dispatch<React.SetStateAction<GetEndpointParams>>;
+  params: GetEndpointParams;
 }
 
 const EndpointList: React.FC<EndpointListProps> = React.memo(
-  ({ endpoints, fetching }) => {
+  ({ endpoints, fetching, totalCount, params, setParams }) => {
+    const setCurrentPage = (page: number) => {
+      const offset = (page - 1) * ENDPOINT_PAGE_LIMIT;
+      setParams({...params, offset });
+    }
     return (
       <VStack
         w="full"
@@ -30,9 +38,9 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
         <Box w="full">
           <List
             endpoints={endpoints}
-            totalCount={endpoints.length}
+            totalCount={totalCount}
             currentPage={1}
-            setCurrentPage={(e: number) => {}}
+            setCurrentPage={setCurrentPage}
             fetching={fetching}
             setOrdering={(e: "ASC" | "DESC") => {}}
             setOrderBy={(e: string | undefined) => {}}

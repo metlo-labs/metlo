@@ -7,7 +7,7 @@ import Error500InternalServer from "../../errors/error-500-internal-server";
 export class GetEndpointsService {
   static async getEndpoints(
     getEndpointParams: GetEndpointParams
-  ): Promise<ApiEndpoint[]> {
+  ): Promise<[ApiEndpoint[], number]> {
     try {
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
       let whereConditions: FindOptionsWhere<ApiEndpoint> = {};
@@ -31,7 +31,7 @@ export class GetEndpointsService {
         };
       }
 
-      const endpoints = await apiEndpointRepository.find({
+      const endpoints = await apiEndpointRepository.findAndCount({
         where: whereConditions,
         ...paginationParams,
       });

@@ -12,3 +12,5 @@ export const RISK_TO_COLOR = {
 };
 
 export const API_URL = "http://localhost:3000/api/v1";
+
+export const ENDPOINT_PAGE_LIMIT = 10;

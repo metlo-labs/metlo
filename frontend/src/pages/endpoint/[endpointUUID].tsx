@@ -1,10 +1,7 @@
-import superjson from "superjson";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { GetServerSideProps } from "next";
 import { SideNavLinkDestination } from "../../components/Sidebar/NavLinkUtils";
 import { SidebarLayoutShell } from "../../components/SidebarLayoutShell";
-import { testEndpoints } from "../../testData";
 import EndpointPage from "../../components/Endpoint";
 import { ApiEndpointDetailed } from "@common/types";
 import { getEndpoint } from "../../api/endpoints";

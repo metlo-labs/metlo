@@ -135,3 +135,10 @@ export interface Connection {
   name: string;
   type: ConnectionType;
 }
+
+export interface GetEndpointParams {
+  host?: string;
+  riskScore?: RiskScore;
+  offset?: number;
+  limit?: number;
+}

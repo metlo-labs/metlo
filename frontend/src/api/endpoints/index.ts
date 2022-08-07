@@ -1,10 +1,13 @@
 import axios from "axios"
-import { ApiEndpoint, ApiEndpointDetailed } from "@common/types"
+import { ApiEndpoint, ApiEndpointDetailed, GetEndpointParams } from "@common/types"
 import { API_URL } from "../../constants"
 
-export const getEndpoints = async () => {
+export const getEndpoints = async (params: GetEndpointParams) => {
   try {
-    const resp = await axios.get<ApiEndpoint[]>(`${API_URL}/endpoints`);
+    const resp = await axios.get<[ApiEndpoint[], number]>(
+      `${API_URL}/endpoints`,
+      { params }
+    );
     if (resp.status === 200 && resp.data) {
       return resp.data;
     }
