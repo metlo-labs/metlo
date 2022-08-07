@@ -12,4 +12,4 @@ services:
     container_name: metlo-frontend
     restart: unless-stopped
     ports:
-      - 80:3000
+      - 8000:3000
