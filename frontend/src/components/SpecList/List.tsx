@@ -1,8 +1,8 @@
 import React from "react";
-import { Text, Image, useColorMode } from "@chakra-ui/react";
+import { useColorMode } from "@chakra-ui/react";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { getCustomStyles, rowStyles } from "../utils/TableUtils";
-import { Connection, OpenApiSpec } from "@common/types";
+import { OpenApiSpec } from "@common/types";
 
 interface SpecListProps {
   apiSpecs: OpenApiSpec[];
