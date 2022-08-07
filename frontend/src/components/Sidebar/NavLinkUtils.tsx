@@ -1,9 +1,9 @@
 import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch";
 import { FaHome } from "@react-icons/all-files/fa/FaHome";
-import { FaCog } from "@react-icons/all-files/fa/FaCog";
 import { FaShareAlt } from "@react-icons/all-files/fa/FaShareAlt";
 import { FaBell } from "@react-icons/all-files/fa/FaBell";
 import { HiChartBar } from "@react-icons/all-files/hi/HiChartBar";
+import { AiFillApi } from "@react-icons/all-files/ai/AiFillApi";
 import { IconType } from "@react-icons/all-files/lib";
 
 export enum SideNavLinkDestination {
@@ -11,7 +11,7 @@ export enum SideNavLinkDestination {
   Endpoints,
   Tests,
   Alerts,
-  Settings,
+  Specs,
   Connections,
 }
 
@@ -27,8 +27,8 @@ export const sideNavDestinationToLabel: (
       return "Tests";
     case SideNavLinkDestination.Alerts:
       return "Alerts";
-    case SideNavLinkDestination.Settings:
-      return "Settings";
+    case SideNavLinkDestination.Specs:
+      return "API Specs";
     case SideNavLinkDestination.Connections:
       return "Connections";
     default:
@@ -48,8 +48,8 @@ export const sideNavDestinationToIcon: (
       return HiChartBar;
     case SideNavLinkDestination.Alerts:
       return FaBell;
-    case SideNavLinkDestination.Settings:
-      return FaCog;
+    case SideNavLinkDestination.Specs:
+      return AiFillApi;
     case SideNavLinkDestination.Connections:
       return FaShareAlt;
     default:
@@ -69,8 +69,8 @@ export const sideNavDestinationToHref: (
       return "/tests";
     case SideNavLinkDestination.Alerts:
       return "/alerts";
-    case SideNavLinkDestination.Settings:
-      return "/settings";
+    case SideNavLinkDestination.Specs:
+      return "/specs";
     case SideNavLinkDestination.Connections:
       return "/connections";
     default:
