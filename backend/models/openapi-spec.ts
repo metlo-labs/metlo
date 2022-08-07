@@ -1,4 +1,4 @@
-import { BaseEntity, Entity, PrimaryColumn, Column } from "typeorm";
+import { BaseEntity, Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { SpecExtension } from "../src/enums";
 
 @Entity()
@@ -8,6 +8,12 @@ export class OpenApiSpec extends BaseEntity {
 
   @Column()
   spec: string
+
+  @CreateDateColumn({ type: "timestamptz" })
+  createdAt: Date
+
+  @UpdateDateColumn({ type: "timestamptz" })
+  updatedAt: Date
 
   @Column({ type: "enum", enum: SpecExtension, default: SpecExtension.JSON})
   extension: SpecExtension
