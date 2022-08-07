@@ -92,11 +92,11 @@ export class SpecService {
       traces: [],
       matchedDataClasses: [],
     };
-    pathKeys.forEach((path) => {
+    for (const path of pathKeys) {
       const pathRegex = getPathRegex(path);
       const methods = Object.keys(paths[path]);
-      methods.forEach((method) => {
-        servers.forEach(async (server) => {
+      for (const method of methods) {
+        for (const server of servers) {
           const host = server["url"];
           if (host) {
             // For exact endpoint match
@@ -170,9 +170,9 @@ export class SpecService {
               //await openApiSpecRepository.save(existingSpec);
             }
           }
-        });
-      });
-    });
+        }
+      }
+    }
     await openApiSpecRepository.save(existingSpec);
     await apiEndpointRepository.save(endpoints.apiEndpoints);
     await apiTraceRepository.save(endpoints.traces);
