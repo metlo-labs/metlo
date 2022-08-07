@@ -2,6 +2,7 @@ import React from "react";
 import { Stack, Box, Text } from "@chakra-ui/react";
 import { Select } from "chakra-react-select";
 import { GetEndpointParams } from "@common/types";
+import { RiskScore } from "@common/enums";
 
 interface EndpointFilterProps {
   environment?: string;
@@ -84,6 +85,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
             }))}
             placeholder="Filter by risk..."
             instanceId="endpoint-tbl-env-risk"
+            onChange={(e) => setParams({...params, riskScores: e.map((riskScore) => riskScore.label as RiskScore)})}
           />
         </Box>
       </Stack>

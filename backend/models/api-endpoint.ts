@@ -1,6 +1,6 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { MatchedDataClass } from "./matched-data-class";
-import { RestMethod } from "../src/enums";
+import { RestMethod, RiskScore } from "../src/enums";
 import { OpenApiSpec } from "./openapi-spec";
 
 @Entity()
@@ -28,6 +28,9 @@ export class ApiEndpoint extends BaseEntity {
 
   @Column({ type: "enum", enum: RestMethod})
   method: RestMethod
+
+  @Column({ type: "enum", enum: RiskScore, default: RiskScore.NONE })
+  riskScore: RiskScore
 
   @Column({ nullable: true })
   owner: string

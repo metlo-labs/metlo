@@ -25,6 +25,9 @@ export class MatchedDataClass extends BaseEntity {
   @Column({ type: "bool", default: true })
   isRisk: boolean
 
+  @Column({ nullable: false })
+  apiEndpointUuid: string
+
   @ManyToOne(() => ApiEndpoint, apiTrace => apiTrace.sensitiveDataClasses)
   apiEndpoint: ApiEndpoint
 }

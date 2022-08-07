@@ -12,7 +12,8 @@ import {
   VIN_REGEXP,
 } from "./regexp";
 import { PairObject } from "../../types";
-import { ApiEndpoint, MatchedDataClass } from "../../../models";
+import { ApiEndpoint, ApiTrace, MatchedDataClass } from "../../../models";
+import { getRiskScore } from "../../utils";
 
 const DATA_CLASS_REGEX_MAP = new Map<DataClass, RegExp>([
   [DataClass.ADDRESS, ADDRESS_REGEXP],
@@ -58,6 +59,7 @@ export class ScannerService {
       dataClass.dataClass = matchDataClass;
       dataClass.dataPath = matchDataPath;
       dataClass.matches = matches[matchDataClass];
+      dataClass.isRisk = true;
       apiEndpoint.addDataClass(dataClass);
     }
   }
@@ -70,7 +72,7 @@ export class ScannerService {
     }
   }
 
-  static recursiveParseJson(
+  static async recursiveParseJson(
     dataPathPrefix: string,
     jsonBody: any,
     apiEndpoint: ApiEndpoint
@@ -85,7 +87,7 @@ export class ScannerService {
       }
     } else {
       const matches = this.scan(jsonBody);
-      Object.keys(matches).forEach(async (match) => {
+      for (const match of Object.keys(matches)) {
         const matchDataClass = match as DataClass;
         await this.saveMatch(
           matchDataClass,
@@ -93,11 +95,11 @@ export class ScannerService {
           apiEndpoint,
           matches
         );
-      });
+      }
     }
   }
 
-  static findMatchedDataClassesBody(
+  static async findMatchedDataClassesBody(
     dataPathPrefix: string,
     body: string,
     apiEndpoint: ApiEndpoint
@@ -116,15 +118,15 @@ export class ScannerService {
       } else {
         const dataPath = `${dataPathPrefix}.text`;
         const matches = this.scan(body);
-        Object.keys(matches).forEach(async (match) => {
+        for (const match of Object.keys(matches)) {
           const matchDataClass = match as DataClass;
           await this.saveMatch(matchDataClass, dataPath, apiEndpoint, matches);
-        });
+        }
       }
     }
   }
 
-  static findMatchedDataClasses(
+  static async findMatchedDataClasses(
     dataPathPrefix: string,
     data: PairObject[],
     apiEndpoint: ApiEndpoint
@@ -133,7 +135,7 @@ export class ScannerService {
       for (const item of data) {
         const field = item.name;
         const matches = this.scan(item.value);
-        Object.keys(matches).forEach(async (match) => {
+        for (const match of Object.keys(matches)) {
           const matchDataClass = match as DataClass;
           const matchDataPath = `${dataPathPrefix}.${field}`;
           await this.saveMatch(
@@ -142,9 +144,41 @@ export class ScannerService {
             apiEndpoint,
             matches
           );
-        });
+        }
       }
     }
+  }
+
+  static async findAllMatchedDataClasses(
+    apiTrace: ApiTrace,
+    apiEndpoint: ApiEndpoint
+  ) {
+    await this.findMatchedDataClasses(
+      "req.params",
+      apiTrace.requestParameters,
+      apiEndpoint
+    );
+    await this.findMatchedDataClasses(
+      "req.headers",
+      apiTrace.requestHeaders,
+      apiEndpoint
+    );
+    await this.findMatchedDataClasses(
+      "res.headers",
+      apiTrace.responseHeaders,
+      apiEndpoint
+    );
+    await this.findMatchedDataClassesBody(
+      "req.body",
+      apiTrace.requestBody,
+      apiEndpoint
+    );
+    await this.findMatchedDataClassesBody(
+      "res.body",
+      apiTrace.responseBody,
+      apiEndpoint
+    );
+    apiEndpoint.riskScore = getRiskScore(apiEndpoint);
   }
 
   static scan = (text: string) => {

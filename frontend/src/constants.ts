@@ -6,6 +6,7 @@ export const METHOD_TO_COLOR = {
 };
 
 export const RISK_TO_COLOR = {
+  [RiskScore.NONE]: "green",
   [RiskScore.LOW]: "gray",
   [RiskScore.MEDIUM]: "orange",
   [RiskScore.HIGH]: "red",

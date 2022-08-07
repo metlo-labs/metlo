@@ -4,6 +4,7 @@ import { ApiEndpoint, GetEndpointParams } from "@common/types";
 import EndpointFilters from "./Filters";
 import List from "./List";
 import { ENDPOINT_PAGE_LIMIT } from "../../constants";
+import { RiskScore } from "@common/enums";
 
 interface EndpointListProps {
   fetching: boolean;
@@ -33,7 +34,7 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
           <EndpointFilters
             environmentList={["production", "staging", "develpment"]}
             hostList={hosts}
-            riskList={["Low", "Medium", "High"]}
+            riskList={[RiskScore.NONE, RiskScore.LOW, RiskScore.MEDIUM, RiskScore.HIGH]}
             setParams={setParams}
             params={params}
           />

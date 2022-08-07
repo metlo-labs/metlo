@@ -43,29 +43,8 @@ export class LogRequestService {
       if (apiEndpoint) {
         apiEndpoint.totalCalls += 1;
         // Check for sensitive data
-        ScannerService.findMatchedDataClasses(
-          "req.params",
-          requestParameters,
-          apiEndpoint
-        );
-        ScannerService.findMatchedDataClasses(
-          "req.headers",
-          requestHeaders,
-          apiEndpoint
-        );
-        ScannerService.findMatchedDataClasses(
-          "res.headers",
-          responseHeaders,
-          apiEndpoint
-        );
-        ScannerService.findMatchedDataClassesBody(
-          "req.body",
-          requestBody,
-          apiEndpoint
-        );
-        ScannerService.findMatchedDataClassesBody(
-          "res.body",
-          responseBody,
+        await ScannerService.findAllMatchedDataClasses(
+          apiTraceObj,
           apiEndpoint
         );
         apiTraceObj.apiEndpointUuid = apiEndpoint.uuid;

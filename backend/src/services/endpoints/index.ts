@@ -35,31 +35,7 @@ export class EndpointsService {
         if (apiEndpoint) {
           apiEndpoint.totalCalls += 1;
           // Check for sensitive data
-          ScannerService.findMatchedDataClasses(
-            "req.params",
-            trace.requestParameters,
-            apiEndpoint
-          );
-          ScannerService.findMatchedDataClasses(
-            "req.headers",
-            trace.requestHeaders,
-            apiEndpoint
-          );
-          ScannerService.findMatchedDataClasses(
-            "res.headers",
-            trace.responseHeaders,
-            apiEndpoint
-          );
-          ScannerService.findMatchedDataClassesBody(
-            "req.body",
-            trace.requestBody,
-            apiEndpoint
-          );
-          ScannerService.findMatchedDataClassesBody(
-            "res.body",
-            trace.responseBody,
-            apiEndpoint
-          );
+          await ScannerService.findAllMatchedDataClasses(trace, apiEndpoint);
           trace.apiEndpointUuid = apiEndpoint.uuid;
           await apiEndpointRepository.save(apiEndpoint);
           await apiTraceRepository.save(trace);
@@ -94,6 +70,7 @@ export class EndpointsService {
               }
             }
             if (pathRegex.length > 0) {
+              pathRegex = String.raw`^${pathRegex}$`;
               const regexKey = `${trace.host}-${trace.method}-${pathRegex}`;
               if (regexToTracesMap[regexKey]) {
                 regexToTracesMap[regexKey].traces.push(trace);
@@ -125,31 +102,7 @@ export class EndpointsService {
         // TODO: Do something with setting sensitive data classes during iteration of traces and add auto generated open api spec for inferred endpoints
         for (let i = 0; i < value.traces.length; i++) {
           const trace = value.traces[i];
-          ScannerService.findMatchedDataClasses(
-            "req.params",
-            trace.requestParameters,
-            apiEndpoint
-          );
-          ScannerService.findMatchedDataClasses(
-            "req.headers",
-            trace.requestHeaders,
-            apiEndpoint
-          );
-          ScannerService.findMatchedDataClasses(
-            "res.headers",
-            trace.responseHeaders,
-            apiEndpoint
-          );
-          ScannerService.findMatchedDataClassesBody(
-            "req.body",
-            trace.requestBody,
-            apiEndpoint
-          );
-          ScannerService.findMatchedDataClassesBody(
-            "res.body",
-            trace.responseBody,
-            apiEndpoint
-          );
+          await ScannerService.findAllMatchedDataClasses(trace, apiEndpoint);
           trace.apiEndpoint = apiEndpoint;
         }
         await apiEndpointRepository.save(apiEndpoint);

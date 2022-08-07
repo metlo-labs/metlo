@@ -19,6 +19,12 @@ export class GetEndpointsService {
           host: In(getEndpointParams.hosts),
         };
       }
+      if (getEndpointParams?.riskScores) {
+        whereConditions = {
+          ...whereConditions,
+          riskScore: In(getEndpointParams.riskScores),
+        };
+      }
       if (getEndpointParams?.offset) {
         paginationParams = {
           ...paginationParams,

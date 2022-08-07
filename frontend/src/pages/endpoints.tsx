@@ -16,7 +16,7 @@ const Endpoints = () => {
   const [hosts, setHosts] = useState<string[]>([]);
   const [params, setParams] = useState<GetEndpointParams>({
     hosts: [],
-    riskScore: null,
+    riskScores: [],
     offset: 0,
     limit: ENDPOINT_PAGE_LIMIT,
   });
