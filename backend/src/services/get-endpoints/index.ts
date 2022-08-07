@@ -7,9 +7,10 @@ import Error500InternalServer from "../../errors/error-500-internal-server";
 export class GetEndpointsService {
   static async getEndpoints(
     getEndpointParams: GetEndpointParams
-  ): Promise<[ApiEndpoint[], number]> {
+  ): Promise<[any[], number]> {
     try {
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
+      const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
       let whereConditions: FindOptionsWhere<ApiEndpoint> = {};
       let paginationParams: FindManyOptions<ApiEndpoint> = {};
       if (getEndpointParams?.hosts) {
@@ -38,7 +39,32 @@ export class GetEndpointsService {
 
       // TODO: Calculate risk score for endpoints and if risk score param present, only return those that meet
 
-      return endpoints;
+      const res: any[] = await Promise.all(
+        endpoints[0].map(async (endpoint) => {
+          const firstDetected = await apiTraceRepository.findOne({
+            where: {
+              apiEndpointUuid: endpoint.uuid,
+            },
+            order: {
+              createdAt: "ASC",
+            },
+          });
+          const lastActive = await apiTraceRepository.findOne({
+            where: {
+              apiEndpointUuid: endpoint.uuid,
+            },
+            order: {
+              createdAt: "DESC",
+            },
+          });
+          return {
+            ...endpoint,
+            firstDetected: firstDetected?.createdAt,
+            lastActive: lastActive?.createdAt,
+          };
+        })
+      );
+      return [res, endpoints[1]];
     } catch (err) {
       console.error(`Error in Get Endpoints service: ${err}`);
       throw new Error500InternalServer(err);
@@ -58,10 +84,28 @@ export class GetEndpointsService {
         order: { createdAt: "DESC" },
         take: 10,
       });
+      const firstDetected = await apiTraceRepository.findOne({
+        where: {
+          apiEndpointUuid: endpoint.uuid,
+        },
+        order: {
+          createdAt: "ASC",
+        },
+      });
+      const lastActive = await apiTraceRepository.findOne({
+        where: {
+          apiEndpointUuid: endpoint.uuid,
+        },
+        order: {
+          createdAt: "DESC",
+        },
+      });
       return {
         ...endpoint,
         alerts: [],
         traces: [...traces],
+        firstDetected: firstDetected?.createdAt,
+        lastActive: lastActive?.createdAt,
       };
     } catch (err) {
       console.error(`Error in Get Endpoints service: ${err}`);
