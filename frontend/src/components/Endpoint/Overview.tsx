@@ -84,7 +84,7 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
           overflowY={{ base: "unset", lg: "scroll" }}
           h={{ base: "unset", lg: "full" }}
         >
-          <Highlight {...defaultProps} theme={theme} code={openAPISpec} language="yaml">
+          <Highlight {...defaultProps} theme={theme} code={endpoint?.openapiSpec?.spec || "No spec."} language={endpoint?.openapiSpec?.extension || "yaml"}>
             {({ className, style, tokens, getLineProps, getTokenProps }) => (
               <pre
                 className={className}

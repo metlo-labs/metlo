@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import ErrorPage from "next/error";
 import { SideNavLinkDestination } from "../../components/Sidebar/NavLinkUtils";
 import { SidebarLayoutShell } from "../../components/SidebarLayoutShell";
 import EndpointPage from "../../components/Endpoint";
@@ -11,9 +12,13 @@ const Endpoint = () => {
   const { endpointUUID } = router.query;
   const [fetching, setFetching] = useState<boolean>(true);
   const [endpoint, setEndpoint] = useState<ApiEndpointDetailed>();
+  const [notFound, setNotFound] = useState<boolean>(false);
   useEffect(() => {
     const fetchEndpoint = async () => {
       const res = await getEndpoint(endpointUUID?.toString());
+      if (!res) {
+        setNotFound(true);
+      }
       setEndpoint(res);
       setFetching(false);
     }
@@ -21,6 +26,9 @@ const Endpoint = () => {
       fetchEndpoint();
     }
   }, [endpointUUID])
+  if (notFound) {
+    return <ErrorPage statusCode={404} />
+  }
   return (
     <SidebarLayoutShell currentTab={SideNavLinkDestination.Endpoints}>
       <EndpointPage endpoint={endpoint} fetching={fetching} />

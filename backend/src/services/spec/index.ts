@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { Not } from "typeorm";
-import { RestMethod } from "../../enums";
+import { RestMethod, SpecExtension } from "../../enums";
 import {
   ApiEndpoint,
   ApiTrace,
@@ -20,9 +20,14 @@ export class SpecService {
     return specList;
   }
 
-  static async updateSpec(specObject: JSONValue, fileName: string) {
+  static async updateSpec(
+    specObject: JSONValue,
+    fileName: string,
+    extension: SpecExtension,
+    specString: string
+  ) {
     await this.deleteSpec(fileName);
-    await this.uploadNewSpec(specObject, fileName);
+    await this.uploadNewSpec(specObject, fileName, extension, specString);
   }
 
   static async deleteSpec(fileName: string) {
@@ -48,7 +53,12 @@ export class SpecService {
     await openApiSpecRepository.remove(openApiSpec);
   }
 
-  static async uploadNewSpec(specObject: JSONValue, fileName: string) {
+  static async uploadNewSpec(
+    specObject: JSONValue,
+    fileName: string,
+    extension: SpecExtension,
+    specString: string
+  ) {
     const servers: any[] = specObject["servers"];
     const paths: JSONValue = specObject["paths"];
 
@@ -67,8 +77,9 @@ export class SpecService {
     if (!existingSpec) {
       existingSpec = new OpenApiSpec();
       existingSpec.name = fileName;
+      existingSpec.extension = extension;
     }
-    existingSpec.spec = JSON.stringify(specObject);
+    existingSpec.spec = specString;
     const pathKeys = Object.keys(paths);
     const endpoints: {
       similarEndpoints: ApiEndpoint[];

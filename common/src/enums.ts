@@ -39,3 +39,8 @@ export enum ConnectionType {
   AWS = "AWS",
   GCP = "GCP",
 }
+
+export enum SpecExtension {
+  JSON = "json",
+  YAML = "yaml",
+}

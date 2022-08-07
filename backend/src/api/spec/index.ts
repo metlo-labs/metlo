@@ -6,6 +6,7 @@ import ApiResponseHandler from "../../api-response-handler";
 import Error400BadRequest from "../../errors/error-400-bad-request";
 import { AppDataSource } from "../../data-source";
 import { OpenApiSpec } from "../../../models";
+import { SpecExtension } from "../../enums";
 
 export const getSpecListHandler = async (req: Request, res: Response) => {
   try {
@@ -26,6 +27,16 @@ export const uploadNewSpecHandler = async (req: Request, res: Response) => {
       ?.split(".json")[0]
       ?.split(".yaml")[0]
       ?.split(".yml")[0];
+    let extension = undefined;
+    if (specFile.mimetype === "application/json") {
+      extension = SpecExtension.JSON;
+    } else if (specFile.mimetype === "text/yaml") {
+      extension = SpecExtension.YAML;
+    } else {
+      throw new Error400BadRequest(
+        "Only .json, .yaml, and .yml format allowed."
+      );
+    }
     if (!fileName) {
       throw new Error400BadRequest("No filename provided.");
     }
@@ -39,7 +50,12 @@ export const uploadNewSpecHandler = async (req: Request, res: Response) => {
     const specObject: JSONValue = yaml.load(
       specFile.buffer.toString()
     ) as JSONValue;
-    await SpecService.uploadNewSpec(specObject, fileName);
+    await SpecService.uploadNewSpec(
+      specObject,
+      fileName,
+      extension,
+      specFile.buffer.toString()
+    );
     await ApiResponseHandler.success(res, null);
   } catch (err) {
     await ApiResponseHandler.error(res, err);
@@ -63,13 +79,35 @@ export const updateSpecHandler = async (req: Request, res: Response) => {
       ?.split(".json")[0]
       ?.split(".yaml")[0]
       ?.split(".yml")[0];
+    let extension = undefined;
+    if (specFile.mimetype === "application/json") {
+      extension = SpecExtension.JSON;
+    } else if (specFile.mimetype === "text/yaml") {
+      extension = SpecExtension.YAML;
+    } else {
+      throw new Error400BadRequest(
+        "Only .json, .yaml, and .yml format allowed."
+      );
+    }
     if (!fileName) {
       throw new Error400BadRequest("No filename provided.");
+    }
+    const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec);
+    const exisitingSpec = await openApiSpecRepository.findOneBy({
+      name: fileName,
+    });
+    if (!exisitingSpec) {
+      throw new Error400BadRequest("Spec file does not exist, cannot update.");
     }
     const specObject: JSONValue = yaml.load(
       specFile.buffer.toString()
     ) as JSONValue;
-    await SpecService.updateSpec(specObject, fileName);
+    await SpecService.updateSpec(
+      specObject,
+      fileName,
+      extension,
+      specFile.buffer.toString()
+    );
     await ApiResponseHandler.success(res, null);
   } catch (err) {
     await ApiResponseHandler.error(res, err);

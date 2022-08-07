@@ -2,7 +2,7 @@ import { IsNull, Raw } from "typeorm";
 import { isSuspectedParamater } from "../../utils";
 import { ApiEndpoint, ApiTrace, OpenApiSpec } from "../../../models";
 import { AppDataSource } from "../../data-source";
-import { RestMethod } from "../../enums";
+import { RestMethod, SpecExtension } from "../../enums";
 import { ScannerService } from "../scanner/scan";
 
 interface GenerateEndpoint {
@@ -218,6 +218,7 @@ export class EndpointsService {
         endpoint.openapiSpec = spec;
       }
       spec.spec = JSON.stringify(openApiSpec, null, 2);
+      spec.extension = SpecExtension.JSON;
       await openApiSpecRepository.save(spec);
       await apiEndpointRepository.save(endpoints);
     });
