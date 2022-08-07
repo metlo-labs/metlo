@@ -30,3 +30,16 @@ export const getEndpoint = async (endpointId: string) => {
     return null
   }
 }
+
+export const getHosts = async () => {
+  try {
+    const resp = await axios.get<string[]>(`${API_URL}/endpoints/hosts`)
+    if (resp.status === 200 && resp.data) {
+      return resp.data;
+    }
+    return [];
+  } catch (err) {
+    console.error(`Error fetching hosts: ${err}`);
+    return [];
+  }
+}

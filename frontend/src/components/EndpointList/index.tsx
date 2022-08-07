@@ -11,10 +11,11 @@ interface EndpointListProps {
   totalCount: number;
   setParams: React.Dispatch<React.SetStateAction<GetEndpointParams>>;
   params: GetEndpointParams;
+  hosts: string[];
 }
 
 const EndpointList: React.FC<EndpointListProps> = React.memo(
-  ({ endpoints, fetching, totalCount, params, setParams }) => {
+  ({ endpoints, fetching, totalCount, params, setParams, hosts }) => {
     const setCurrentPage = (page: number) => {
       const offset = (page - 1) * ENDPOINT_PAGE_LIMIT;
       setParams({...params, offset });
@@ -31,8 +32,10 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
         <Box p="4" borderBottom="1px" borderColor="inherit" w="full">
           <EndpointFilters
             environmentList={["production", "staging", "develpment"]}
-            hostList={["AWS Gateway 1", "GCP Gateway Staging"]}
+            hostList={hosts}
             riskList={["Low", "Medium", "High"]}
+            setParams={setParams}
+            params={params}
           />
         </Box>
         <Box w="full">

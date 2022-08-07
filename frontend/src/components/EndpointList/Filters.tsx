@@ -1,6 +1,7 @@
 import React from "react";
 import { Stack, Box, Text } from "@chakra-ui/react";
 import { Select } from "chakra-react-select";
+import { GetEndpointParams } from "@common/types";
 
 interface EndpointFilterProps {
   environment?: string;
@@ -9,6 +10,8 @@ interface EndpointFilterProps {
   environmentList: string[];
   hostList: string[];
   riskList: string[];
+  setParams: React.Dispatch<React.SetStateAction<GetEndpointParams>>;
+  params: GetEndpointParams;
 }
 
 const FilterHeader: React.FC<{ title: string }> = React.memo(({ title }) => (
@@ -18,7 +21,7 @@ const FilterHeader: React.FC<{ title: string }> = React.memo(({ title }) => (
 ));
 
 const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
-  ({ environment, environmentList, host, hostList, riskScore, riskList }) => {
+  ({ environment, environmentList, host, hostList, riskScore, riskList, setParams, params }) => {
     return (
       <Stack
         direction={{ base: "column", lg: "row" }}
@@ -61,6 +64,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
             }))}
             placeholder="Filter by host..."
             instanceId="endpoint-tbl-env-host"
+            onChange={(e) => setParams({...params, hosts: e.map((host) => host.label)})}
           />
         </Box>
         <Box w="xs">

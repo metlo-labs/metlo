@@ -39,7 +39,7 @@ export interface TraceParams {
 }
 
 export interface GetEndpointParams {
-  host?: string;
+  hosts?: string[];
   riskScore?: RiskScore;
   offset?: number;
   limit?: number;
@@ -134,11 +134,4 @@ export interface Connection {
   uuid: string;
   name: string;
   type: ConnectionType;
-}
-
-export interface GetEndpointParams {
-  host?: string;
-  riskScore?: RiskScore;
-  offset?: number;
-  limit?: number;
 }

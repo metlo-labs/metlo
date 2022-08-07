@@ -7,7 +7,11 @@ import {
 } from "./api/log-request";
 import { AppDataSource } from "./data-source";
 import { MulterSource } from "./multer-source";
-import { getEndpointHandler, getEndpointsHandler } from "./api/get-endpoints";
+import {
+  getEndpointHandler,
+  getEndpointsHandler,
+  getHostsHandler,
+} from "./api/get-endpoints";
 import {
   deleteSpecHandler,
   getSpecListHandler,
@@ -29,6 +33,7 @@ app.get("/api/v1", (req: Request, res: Response) => {
 
 app.post("/api/v1/log-request/single", logRequestSingleHandler);
 app.post("/api/v1/log-request/batch", logRequestBatchHandler);
+app.get("/api/v1/endpoints/hosts", getHostsHandler);
 app.get("/api/v1/endpoints", getEndpointsHandler);
 app.get("/api/v1/endpoint/:endpointId", getEndpointHandler);
 app.post("/api/v1/spec/new", MulterSource.single("file"), uploadNewSpecHandler);

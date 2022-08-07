@@ -1,4 +1,4 @@
-import { FindManyOptions, FindOptionsWhere } from "typeorm";
+import { FindManyOptions, FindOptionsWhere, In } from "typeorm";
 import { GetEndpointParams } from "../../types";
 import { AppDataSource } from "../../data-source";
 import { ApiEndpoint, ApiTrace } from "../../../models";
@@ -12,10 +12,10 @@ export class GetEndpointsService {
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
       let whereConditions: FindOptionsWhere<ApiEndpoint> = {};
       let paginationParams: FindManyOptions<ApiEndpoint> = {};
-      if (getEndpointParams?.host) {
+      if (getEndpointParams?.hosts) {
         whereConditions = {
           ...whereConditions,
-          host: getEndpointParams.host,
+          host: In(getEndpointParams.hosts),
         };
       }
       if (getEndpointParams?.offset) {
@@ -63,6 +63,21 @@ export class GetEndpointsService {
         alerts: [],
         traces: [...traces],
       };
+    } catch (err) {
+      console.error(`Error in Get Endpoints service: ${err}`);
+      throw new Error500InternalServer(err);
+    }
+  }
+
+  static async getHosts() {
+    try {
+      const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
+      const hosts: { [host: string]: string }[] = await apiEndpointRepository
+        .createQueryBuilder("apiEndpoint")
+        .select(["host"])
+        .distinct(true)
+        .getRawMany();
+      return hosts.map((host) => host["host"]);
     } catch (err) {
       console.error(`Error in Get Endpoints service: ${err}`);
       throw new Error500InternalServer(err);

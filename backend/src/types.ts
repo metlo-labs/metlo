@@ -39,7 +39,7 @@ export interface TraceParams {
 }
 
 export interface GetEndpointParams {
-  host?: string;
+  hosts?: string[];
   riskScore?: RiskScore;
   offset?: number;
   limit?: number;

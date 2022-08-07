@@ -22,3 +22,12 @@ export const getEndpointHandler = async (req: Request, res: Response) => {
     await ApiResponseHandler.error(res, err);
   }
 };
+
+export const getHostsHandler = async (req: Request, res: Response) => {
+  try {
+    const hosts = await GetEndpointsService.getHosts();
+    await ApiResponseHandler.success(res, hosts);
+  } catch (err) {
+    await ApiResponseHandler.error(res, err);
+  }
+};
