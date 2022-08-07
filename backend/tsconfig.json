@@ -20,10 +20,7 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "importHelpers": true,
-    "baseUrl": "./src",
-    "paths": {
-      "@common/*": ["../../common/dist/*"]
-    }
+    "baseUrl": "src"
   },
   "include": [
     "src/**/*.ts",

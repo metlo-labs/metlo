@@ -1,5 +1,5 @@
 import { BaseEntity, Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
-import { SpecExtension } from "@common/enums";
+import { SpecExtension } from "../src/enums";
 
 @Entity()
 export class OpenApiSpec extends BaseEntity {

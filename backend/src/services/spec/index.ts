@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { Not } from "typeorm";
-import { RestMethod, SpecExtension } from "@common/enums";
+import { RestMethod, SpecExtension } from "../../enums";
 import {
   ApiEndpoint,
   ApiTrace,
