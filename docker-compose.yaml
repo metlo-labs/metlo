@@ -1,15 +1,28 @@
 version: "3.9"
 
 services:
+  db:
+    image: postgres:14.4-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - db:/var/lib/postgresql/data
+      - ./deploy/db/init.sql:/docker-entrypoint-initdb.d/init_db.sql
   backend:
     image: metlo/backend
     container_name: metlo-backend
     restart: unless-stopped
     environment:
-      - DB_URL=${DB_URL}
+      - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
   frontend: 
     image: metlo/frontend
     container_name: metlo-frontend
     restart: unless-stopped
     ports:
       - 8000:3000
+
+volumes:
+  db:
+    driver: local
