@@ -1,3 +1,10 @@
+import {
+  DescribeNetworkInterfacesCommand,
+  DescribeNetworkInterfacesCommandInput,
+  EC2Client,
+  NetworkInterface,
+} from "@aws-sdk/client-ec2";
+
 const characters =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
@@ -9,4 +16,27 @@ export function generate_random_string(length) {
   }
 
   return result;
+}
+
+export async function get_network_interface_from_vpc_id(
+  client: EC2Client,
+  vpc_id: string
+): Promise<Array<NetworkInterface>> {
+  let command = new DescribeNetworkInterfacesCommand({
+    Filters: [{ Name: "vpc_id", Values: [vpc_id] }],
+  } as DescribeNetworkInterfacesCommandInput);
+  return await (
+    await client.send(command)
+  ).NetworkInterfaces;
+}
+
+export async function list_all_network_interfaces(
+  client: EC2Client
+): Promise<Array<NetworkInterface>> {
+  let command = new DescribeNetworkInterfacesCommand(
+    {} as DescribeNetworkInterfacesCommandInput
+  );
+  return await (
+    await client.send(command)
+  ).NetworkInterfaces;
 }
