@@ -6,7 +6,6 @@ import { GrStackOverflow } from "@react-icons/all-files/gr/GrStackOverflow";
 import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch";
 import { FaBell } from "@react-icons/all-files/fa/FaBell";
 import {
-  Box,
   Badge,
   Code,
   HStack,
@@ -26,21 +25,16 @@ import PIIDataList from "./PIIDataList";
 import TraceList from "./TraceList";
 import AlertList from "./AlertList";
 import EndpointOverview from "./Overview";
-import EmptyView from "components/utils/EmptyView";
 
 interface EndpointPageProps {
   endpoint: ApiEndpointDetailed;
-  fetching: boolean;
 }
 
-const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint, fetching }) => {
+const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
   const headerColor = useColorModeValue(
     "rgb(179, 181, 185)",
     "rgb(91, 94, 109)"
   );
-  if (fetching) {
-    return <EmptyView />
-  }
   return (
     <VStack
       w="full"
