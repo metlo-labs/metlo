@@ -2,7 +2,7 @@ import { IsNull, Raw } from "typeorm";
 import { isSuspectedParamater } from "../../utils";
 import { ApiEndpoint, ApiTrace, OpenApiSpec } from "../../../models";
 import { AppDataSource } from "../../data-source";
-import { RestMethod, SpecExtension } from "../../enums";
+import { RestMethod, SpecExtension } from "@common/enums";
 import { ScannerService } from "../scanner/scan";
 
 interface GenerateEndpoint {

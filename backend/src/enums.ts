@@ -28,8 +28,3 @@ export enum RiskScore {
   MEDIUM = "medium",
   HIGH = "high",
 }
-
-export enum SpecExtension {
-  JSON = "json",
-  YAML = "yaml",
-}
