@@ -217,7 +217,7 @@ export class EndpointsService {
         }
         endpoint.openapiSpec = spec;
       }
-      spec.spec = JSON.stringify(openApiSpec);
+      spec.spec = JSON.stringify(openApiSpec, null, 2);
       await openApiSpecRepository.save(spec);
       await apiEndpointRepository.save(endpoints);
     });
