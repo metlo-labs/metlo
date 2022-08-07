@@ -32,7 +32,6 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
       >
         <Box p="4" borderBottom="1px" borderColor="inherit" w="full">
           <EndpointFilters
-            environmentList={["production", "staging", "develpment"]}
             hostList={hosts}
             riskList={[RiskScore.NONE, RiskScore.LOW, RiskScore.MEDIUM, RiskScore.HIGH]}
             setParams={setParams}

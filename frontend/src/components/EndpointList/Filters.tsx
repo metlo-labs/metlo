@@ -5,10 +5,8 @@ import { GetEndpointParams } from "@common/types";
 import { RiskScore } from "@common/enums";
 
 interface EndpointFilterProps {
-  environment?: string;
   host?: string;
   riskScore?: string;
-  environmentList: string[];
   hostList: string[];
   riskList: string[];
   setParams: React.Dispatch<React.SetStateAction<GetEndpointParams>>;
@@ -22,32 +20,13 @@ const FilterHeader: React.FC<{ title: string }> = React.memo(({ title }) => (
 ));
 
 const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
-  ({ environment, environmentList, host, hostList, riskScore, riskList, setParams, params }) => {
+  ({ host, hostList, riskScore, riskList, setParams, params }) => {
     return (
       <Stack
         direction={{ base: "column", lg: "row" }}
         spacing="4"
         w="full"
       >
-        <Box w="xs">
-          <FilterHeader title="Environment" />
-          <Select
-            value={
-              environment && {
-                label: environment,
-                value: environment,
-              }
-            }
-            isMulti={true}
-            size="sm"
-            options={environmentList.map((e) => ({
-              label: e,
-              value: e,
-            }))}
-            placeholder="Filter by environment..."
-            instanceId="endpoint-tbl-env-select"
-          />
-        </Box>
         <Box w="xs">
           <FilterHeader title="Host" />
           <Select
