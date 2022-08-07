@@ -88,7 +88,7 @@ export class GetEndpointsService {
       const traces = await apiTraceRepository.find({
         where: { apiEndpointUuid: endpoint.uuid },
         order: { createdAt: "DESC" },
-        take: 10,
+        take: 20,
       });
       const firstDetected = await apiTraceRepository.findOne({
         where: {
