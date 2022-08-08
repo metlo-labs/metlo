@@ -181,16 +181,17 @@ export class ScannerService {
     apiEndpoint.riskScore = getRiskScore(apiEndpoint);
   }
 
-  static scan = (text: string) => {
+  static scan = (text: any) => {
     const res: Record<DataClass, string[]> = {} as Record<DataClass, string[]>;
-    if (text) {
-      DATA_CLASS_REGEX_MAP.forEach((exp, dataClass) => {
-        const matches = text.match(exp);
-        if (matches?.length > 0) {
-          res[dataClass] = matches;
-        }
-      });
+    if (typeof text !== "string") {
+      return res;
     }
+    DATA_CLASS_REGEX_MAP.forEach((exp, dataClass) => {
+      const matches = text.match(exp);
+      if (matches?.length > 0) {
+        res[dataClass] = matches;
+      }
+    });
     return res;
   };
 }
