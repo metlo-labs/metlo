@@ -16,7 +16,7 @@
 
 ---
 
-## Metlo is an open-source API secuirty platform
+## Metlo is an open-source API security platform
 * Create an Inventory of all your API Endpoints.
 * Proactively test your APIs before they go into production.
 * Detect API attacks in real time.
