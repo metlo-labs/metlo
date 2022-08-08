@@ -74,9 +74,9 @@ class EcommerceAddProductToCartProducer(BaseProducer):
                 "environment": "production",
                 "incoming": True,
                 "source": fake.ipv4(),
-                "source_port": choice(range(10000, 20000)),
+                "sourcePort": choice(range(10000, 20000)),
                 "destination": "76.47.25.189",
-                "destination_port": 443,
+                "destinationPort": 443,
             },
         }
 
