@@ -20,8 +20,8 @@ import {
   uploadNewSpecHandler,
 } from "./api/spec";
 import { isRiskHandler } from "./api/data-class";
-//import { EndpointsService } from "./services/endpoints";
 import { getAlertsHandler, resolveAlertHandler } from "./api/alert";
+import { getSummaryHandler } from "./api/summary";
 
 dotenv.config();
 
@@ -36,7 +36,7 @@ app.get("/api/v1", (req: Request, res: Response) => {
 
 app.post("/api/v1/log-request/single", logRequestSingleHandler);
 app.post("/api/v1/log-request/batch", logRequestBatchHandler);
-
+app.get("/api/v1/summary", getSummaryHandler);
 app.get("/api/v1/endpoints/hosts", getHostsHandler);
 app.get("/api/v1/endpoints", getEndpointsHandler);
 app.get("/api/v1/endpoint/:endpointId", getEndpointHandler);
