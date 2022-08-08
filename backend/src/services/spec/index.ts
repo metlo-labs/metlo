@@ -150,6 +150,7 @@ export class SpecService {
               });
               similarEndpoints.forEach(async (endpoint) => {
                 apiEndpoint.totalCalls += endpoint.totalCalls;
+                apiEndpoint.riskScore = endpoint.riskScore;
                 const traces = await apiTraceRepository.findBy({
                   apiEndpointUuid: endpoint.uuid,
                 });
