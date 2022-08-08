@@ -85,10 +85,7 @@ export const deleteSpecHandler = async (req: Request, res: Response) => {
 export const updateSpecHandler = async (req: Request, res: Response) => {
   try {
     const specFile = req.file;
-    const fileName = specFile.originalname
-      ?.split(".json")[0]
-      ?.split(".yaml")[0]
-      ?.split(".yml")[0];
+    const { specFileName } = req.params;
     let extension = undefined;
     if (specFile.mimetype === "application/json") {
       extension = SpecExtension.JSON;
@@ -99,12 +96,12 @@ export const updateSpecHandler = async (req: Request, res: Response) => {
         "Only .json, .yaml, and .yml format allowed."
       );
     }
-    if (!fileName) {
+    if (!specFileName) {
       throw new Error400BadRequest("No filename provided.");
     }
     const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec);
     const exisitingSpec = await openApiSpecRepository.findOneBy({
-      name: fileName,
+      name: specFileName,
     });
     if (!exisitingSpec) {
       throw new Error400BadRequest("Spec file does not exist, cannot update.");
@@ -114,7 +111,7 @@ export const updateSpecHandler = async (req: Request, res: Response) => {
     ) as JSONValue;
     await SpecService.updateSpec(
       specObject,
-      fileName,
+      specFileName,
       extension,
       specFile.buffer.toString()
     );
