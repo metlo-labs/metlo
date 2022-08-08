@@ -7,6 +7,7 @@
 ---
 <div align="center">
 
+[![License](https://img.shields.io/badge/license-MIT-brightgreen)](/LICENSE)
 [![Join Slack Community](https://img.shields.io/badge/slack%20community-join-blue)](https://metlo.com/slack)
 [![Prs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields)](http://makeapullrequest.com)
 
