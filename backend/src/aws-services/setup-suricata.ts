@@ -35,12 +35,14 @@ export interface STEP_RESPONSE {
     source_instance_id?: string;
     region?: string;
     ami?: string;
+    os_types?: string[];
     instance_types?: string[];
     machine_specs?: MachineSpecifications;
     selected_instance_type?: string;
     mirror_instance_id?: string;
     keypair?: string;
     destination_eni_id?: string;
+    virtualization_type?: string;
   };
 }
 
@@ -104,6 +106,7 @@ async function STEP_2({
   secret_access_key,
   source_instance_id,
 }): Promise<STEP_RESPONSE> {
+  console.log(access_id, secret_access_key, source_instance_id);
   try {
     let client = new EC2Client({
       credentials: {
@@ -113,7 +116,6 @@ async function STEP_2({
     });
     let command = new DescribeInstancesCommand({
       InstanceIds: [source_instance_id],
-      MaxResults: 1,
     } as DescribeInstancesCommandInput);
     let resp = await client.send(command);
     client.destroy();
@@ -164,6 +166,7 @@ async function STEP_3({
         access_id: access_id,
         ...rest,
         ami: resp.ImageId,
+        virtualization_type: resp.VirtualizationType,
       },
     };
   } catch (err) {
@@ -185,7 +188,7 @@ async function STEP_3({
 async function STEP_4({
   access_id,
   secret_access_key,
-  ami,
+  virtualization_type,
   machine_specs,
   ...rest
 }): Promise<STEP_RESPONSE> {
@@ -196,16 +199,22 @@ async function STEP_4({
         accessKeyId: access_id,
       },
     });
-    let resp = await get_valid_types(client, ami, machine_specs);
+    let resp = await get_valid_types(
+      client,
+      virtualization_type,
+      machine_specs
+    );
     client.destroy();
+    console.log(resp);
+    console.log(resp.map((v) => v.InstanceType));
     return {
       success: "OK",
       error: null,
       keep: {
-        secret_access_key: secret_access_key,
-        access_id: access_id,
+        secret_access_key,
+        access_id,
         instance_types: resp.map((v) => v.InstanceType),
-        ami,
+        virtualization_type,
         machine_specs,
         ...rest,
       },
@@ -218,8 +227,10 @@ async function STEP_4({
         err: err,
       },
       keep: {
-        secret_access_key: secret_access_key,
-        access_id: access_id,
+        secret_access_key,
+        access_id,
+        virtualization_type,
+        machine_specs,
         ...rest,
       },
     };
@@ -268,6 +279,7 @@ async function STEP_5({
         secret_access_key,
         access_id,
         ami,
+        selected_instance_type,
         ...rest,
       },
     };

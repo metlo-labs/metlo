@@ -19,6 +19,7 @@ import {
   Image,
   KeyType,
   CreateKeyPairCommandOutput,
+  VirtualizationType,
 } from "@aws-sdk/client-ec2";
 // For pricing approximation
 // import {
@@ -75,11 +76,12 @@ export async function get_latest_image(
 
 export async function get_valid_types(
   client: EC2Client,
-  image: Image,
+  vtx_type: VirtualizationType,
   specs: MachineSpecifications
 ): Promise<Array<InstanceTypeInfoFromInstanceRequirements>> {
   let command = new GetInstanceTypesFromInstanceRequirementsCommand({
     ArchitectureTypes: ["x86_64"],
+    VirtualizationTypes: [vtx_type],
     InstanceRequirements: {
       VCpuCount: { Min: specs.minCpu, Max: specs.maxCpu },
       MemoryMiB: {
