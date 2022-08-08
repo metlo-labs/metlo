@@ -2,7 +2,7 @@ import axios from "axios"
 import { ApiEndpoint, ApiEndpointDetailed, GetEndpointParams } from "@common/types"
 import { API_URL } from "../../constants"
 
-export const getEndpoints = async (params: GetEndpointParams) => {
+export const getEndpoints = async (params: GetEndpointParams): Promise<[ApiEndpoint[], number]> => {
   try {
     const resp = await axios.get<[ApiEndpoint[], number]>(
       `${API_URL}/endpoints`,
@@ -11,14 +11,14 @@ export const getEndpoints = async (params: GetEndpointParams) => {
     if (resp.status === 200 && resp.data) {
       return resp.data;
     }
-    return [];
+    return [[], 0];
   } catch (err) {
     console.error(`Error fetching endpoints: ${err}`);
-    return []
+    return [[], 0]
   }
 }
 
-export const getEndpoint = async (endpointId: string) => {
+export const getEndpoint = async (endpointId: string): Promise<ApiEndpointDetailed> => {
   try {
     const resp = await axios.get<ApiEndpointDetailed>(`${API_URL}/endpoint/${endpointId}`)
     if (resp.status === 200 && resp.data) {
@@ -31,7 +31,7 @@ export const getEndpoint = async (endpointId: string) => {
   }
 }
 
-export const getHosts = async () => {
+export const getHosts = async (): Promise<string[]> => {
   try {
     const resp = await axios.get<string[]>(`${API_URL}/endpoints/hosts`)
     if (resp.status === 200 && resp.data) {

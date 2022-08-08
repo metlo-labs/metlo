@@ -17,4 +17,7 @@ export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass, RiskScore> = {
 
 export const ALERT_TYPE_TO_RISK_SCORE: Record<AlertType, RiskScore> = {
   [AlertType.NEW_ENDPOINT]: RiskScore.LOW,
+  [AlertType.OPEN_API_SPEC_DIFF]: RiskScore.LOW,
+  [AlertType.PII_DATA_DETECTED]: RiskScore.HIGH,
+  [AlertType.UNDOCUMENTED_ENDPOINT]: RiskScore.LOW,
 };

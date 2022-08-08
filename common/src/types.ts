@@ -51,6 +51,14 @@ export interface GetEndpointParams {
   limit?: number;
 }
 
+export interface GetAlertParams {
+  riskScores?: RiskScore[];
+  resolved?: boolean;
+  alertTypes?: AlertType[];
+  offset?: number;
+  limit?: number;
+}
+
 export type JSONValue =
   | string
   | number
@@ -75,12 +83,16 @@ export interface ApiTrace {
 }
 
 export interface Alert {
-  apiEndpointUuid?: string;
-  endpoint?: Endpoint;
-  createdAt: Date;
+  uuid: string;
   type: AlertType;
-  risk: RiskScore;
+  riskScore: RiskScore;
+  apiEndpointUuid: string;
+  apiEndpoint: ApiEndpoint;
   description: string;
+  createdAt: Date;
+  updatedAt: Date;
+  resolved: boolean;
+  resolutionMessage: string;
 }
 
 export interface PIIField {

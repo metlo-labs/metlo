@@ -4,6 +4,7 @@ import DataTable, { TableColumn } from "react-data-table-component";
 import { getCustomStyles, rowStyles } from "../utils/TableUtils";
 import { Alert } from "@common/types";
 import { METHOD_TO_COLOR, RISK_TO_COLOR } from "../../constants";
+import { getDateTimeString } from "../../utils";
 
 interface AlertListProps {
   alerts: Alert[];
@@ -17,15 +18,15 @@ const AlertList: React.FC<AlertListProps> = React.memo(
       {
         name: "Risk",
         sortable: true,
-        selector: (row: Alert) => row.risk || "",
+        selector: (row: Alert) => row.riskScore || "",
         cell: (row: Alert) => (
           <Badge
             p="1"
             fontSize="sm"
-            colorScheme={RISK_TO_COLOR[row.risk]}
+            colorScheme={RISK_TO_COLOR[row.riskScore]}
             pointerEvents="none"
           >
-            {row.risk}
+            {row.riskScore}
           </Badge>
         ),
         id: "risk",
@@ -36,19 +37,19 @@ const AlertList: React.FC<AlertListProps> = React.memo(
       columns.push({
         name: "Endpoint",
         sortable: true,
-        selector: (row: Alert) => `${row.endpoint.method}_${row.endpoint.path}`,
+        selector: (row: Alert) => `${row.apiEndpoint.method}_${row.apiEndpoint.path}`,
         cell: (row: Alert) => (
           <HStack>
             <Badge
               fontSize="sm"
               px="2"
               py="1"
-              colorScheme={METHOD_TO_COLOR[row.endpoint.method] || "gray"}
+              colorScheme={METHOD_TO_COLOR[row.apiEndpoint.method] || "gray"}
             >
-              {row.endpoint.method.toUpperCase()}
+              {row.apiEndpoint.method.toUpperCase()}
             </Badge>
             <Code p="1" pointerEvents="none">
-              {row.endpoint.path}
+              {row.apiEndpoint.path}
             </Code>
           </HStack>
         ),
@@ -87,7 +88,7 @@ const AlertList: React.FC<AlertListProps> = React.memo(
         selector: (row: Alert) => row.createdAt.toISOString(),
         cell: (row: Alert) => (
           <Text fontSize="sm" fontWeight="semibold">
-            {row.createdAt.toISOString()}
+            {getDateTimeString(row.createdAt)}
           </Text>
         ),
         id: "time",

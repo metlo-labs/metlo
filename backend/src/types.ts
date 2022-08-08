@@ -1,3 +1,4 @@
+import { ApiEndpoint } from "../models";
 import { AlertType, RestMethod, RiskScore } from "./enums";
 
 export interface Meta {
@@ -51,6 +52,19 @@ export interface GetAlertParams {
   alertTypes?: AlertType[];
   offset?: number;
   limit?: number;
+}
+
+export interface AlertResponse {
+  uuid: string;
+  type: AlertType;
+  riskScore: RiskScore;
+  apiEndpointUuid: string;
+  apiEndpoint: ApiEndpoint;
+  description: string;
+  createdAt: Date;
+  updatedAt: Date;
+  resolved: boolean;
+  resolutionMessage: string;
 }
 
 export interface SummaryResponse {

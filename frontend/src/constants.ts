@@ -28,3 +28,4 @@ export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass, RiskScore> = {
 export const API_URL = "http://localhost:3000/api/v1";
 
 export const ENDPOINT_PAGE_LIMIT = 10;
+export const ALERT_PAGE_LIMIT = 10;

@@ -3,10 +3,12 @@ import { AppDataSource } from "../../data-source";
 import { Alert, ApiEndpoint } from "../../../models";
 import { AlertType } from "../../enums";
 import { ALERT_TYPE_TO_RISK_SCORE } from "../../constants";
-import { GetAlertParams } from "../../types";
+import { GetAlertParams, AlertResponse } from "../../types";
 
 export class AlertService {
-  static async getAlerts(alertParams: GetAlertParams) {
+  static async getAlerts(
+    alertParams: GetAlertParams
+  ): Promise<[AlertResponse[], number]> {
     const alertRepository = AppDataSource.getRepository(Alert);
     let whereConditions: FindOptionsWhere<Alert> = {};
     let paginationParams: FindManyOptions<Alert> = {};
@@ -45,9 +47,17 @@ export class AlertService {
     const alerts = await alertRepository.findAndCount({
       where: whereConditions,
       ...paginationParams,
+      relations: {
+        apiEndpoint: true,
+      },
     });
 
     return alerts;
+  }
+
+  static async getAlert(alertId: string): Promise<AlertResponse> {
+    const alertRepository = AppDataSource.getRepository(Alert);
+    return await alertRepository.findOneBy({ uuid: alertId });
   }
 
   static async createAlert(alertType: AlertType, apiEndpoint: ApiEndpoint) {
