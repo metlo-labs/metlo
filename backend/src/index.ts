@@ -39,7 +39,7 @@ app.get("/api/v1/endpoints", getEndpointsHandler);
 app.get("/api/v1/endpoint/:endpointId", getEndpointHandler);
 app.post("/api/v1/spec/new", MulterSource.single("file"), uploadNewSpecHandler);
 app.delete("/api/v1/spec/:specFileName", deleteSpecHandler);
-app.put("/api/v1/spec", MulterSource.single("file"), updateSpecHandler);
+app.put("/api/v1/spec/:specFileName", MulterSource.single("file"), updateSpecHandler);
 app.get("/api/v1/specs", getSpecListHandler);
 app.get("/api/v1/spec/:specFileName", getSpecHandler);
 app.put("/api/v1/data-class/isRisk/:dataClassId", isRiskHandler);
