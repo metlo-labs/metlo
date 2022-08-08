@@ -26,16 +26,7 @@ export class AlertService {
     if (alertParams?.resolved) {
       whereConditions = {
         ...whereConditions,
-        resolved: true,
-      };
-    } else if (
-      alertParams?.resolved !== undefined &&
-      alertParams?.resolved !== null &&
-      alertParams?.resolved === false
-    ) {
-      whereConditions = {
-        ...whereConditions,
-        resolved: false,
+        resolved: alertParams.resolved,
       };
     }
     if (alertParams?.offset) {
@@ -68,6 +59,8 @@ export class AlertService {
     switch (alertType) {
       case AlertType.NEW_ENDPOINT:
         newAlert.description = `A new endpoint has been detected: ${apiEndpoint.path}`;
+      default:
+        newAlert.description = `A new alert.`;
     }
     await alertRepository.save(newAlert);
   }

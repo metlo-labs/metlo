@@ -13,4 +13,13 @@ export const getAlertsHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const resolveAlertHandler = async (req: Request, res: Response) => {};
+export const resolveAlertHandler = async (req: Request, res: Response) => {
+  try {
+    const { alertId } = req.params;
+    const { resolutionMessage } = req.body;
+    await AlertService.resolveAlert(alertId, resolutionMessage);
+    await ApiResponseHandler.success(res, null);
+  } catch (err) {
+    await ApiResponseHandler.error(res, err);
+  }
+};

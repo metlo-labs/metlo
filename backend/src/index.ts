@@ -21,7 +21,7 @@ import {
 } from "./api/spec";
 import { isRiskHandler } from "./api/data-class";
 //import { EndpointsService } from "./services/endpoints";
-import { getAlertsHandler } from "./api/alert";
+import { getAlertsHandler, resolveAlertHandler } from "./api/alert";
 
 dotenv.config();
 
@@ -54,6 +54,7 @@ app.get("/api/v1/spec/:specFileName", getSpecHandler);
 app.put("/api/v1/data-class/isRisk/:dataClassId", isRiskHandler);
 
 app.get("/api/v1/alerts", getAlertsHandler);
+app.put("/api/v1/alert/resolve/:alertId", resolveAlertHandler);
 
 const main = async () => {
   try {
