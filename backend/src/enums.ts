@@ -34,3 +34,7 @@ export enum SpecExtension {
   JSON = "json",
   YAML = "yaml",
 }
+
+export enum AlertType {
+  NEW_ENDPOINT = "New Endpoint Detected",
+}

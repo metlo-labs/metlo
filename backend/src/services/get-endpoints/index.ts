@@ -83,7 +83,11 @@ export class GetEndpointsService {
       const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
       const endpoint = await apiEndpointRepository.findOne({
         where: { uuid: endpointId },
-        relations: { sensitiveDataClasses: true, openapiSpec: true },
+        relations: {
+          sensitiveDataClasses: true,
+          openapiSpec: true,
+          alerts: true,
+        },
       });
       const traces = await apiTraceRepository.find({
         where: { apiEndpointUuid: endpoint.uuid },
@@ -108,7 +112,6 @@ export class GetEndpointsService {
       });
       return {
         ...endpoint,
-        alerts: [],
         traces: [...traces],
         firstDetected: firstDetected?.createdAt,
         lastActive: lastActive?.createdAt,

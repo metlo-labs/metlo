@@ -1,4 +1,4 @@
-import { RiskScore, DataClass } from "./enums";
+import { RiskScore, DataClass, AlertType } from "./enums";
 
 export const pathParameterRegex = new RegExp(String.raw`/{[^/]+}`, "g");
 
@@ -13,4 +13,8 @@ export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass, RiskScore> = {
   [DataClass.VIN]: RiskScore.LOW,
   [DataClass.COORDINATE]: RiskScore.MEDIUM,
   [DataClass.DL_NUMBER]: RiskScore.MEDIUM,
+};
+
+export const ALERT_TYPE_TO_RISK_SCORE: Record<AlertType, RiskScore> = {
+  [AlertType.NEW_ENDPOINT]: RiskScore.LOW,
 };

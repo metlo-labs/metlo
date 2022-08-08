@@ -2,6 +2,7 @@ import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, On
 import { MatchedDataClass } from "./matched-data-class";
 import { RestMethod, RiskScore } from "../src/enums";
 import { OpenApiSpec } from "./openapi-spec";
+import { Alert } from "./alert";
 
 @Entity()
 export class ApiEndpoint extends BaseEntity {
@@ -38,6 +39,9 @@ export class ApiEndpoint extends BaseEntity {
   @OneToMany(() => MatchedDataClass, dataClass => dataClass.apiEndpoint, { cascade: true })
   sensitiveDataClasses: MatchedDataClass[]
 
+  @OneToMany(() => Alert, alert => alert.apiEndpoint, { cascade: true })
+  alerts: Alert[]
+
   @Column({ nullable: true })
   openapiSpecName: string
 
@@ -50,5 +54,12 @@ export class ApiEndpoint extends BaseEntity {
       this.sensitiveDataClasses = Array<MatchedDataClass>();
     }
     this.sensitiveDataClasses.push(dataClass);
+  }
+
+  addAlert(alert: Alert) {
+    if (this.alerts == null) {
+      this.alerts = Array<Alert>();
+    }
+    this.alerts.push(alert);
   }
 }

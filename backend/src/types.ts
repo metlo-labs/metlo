@@ -1,4 +1,4 @@
-import { RestMethod, RiskScore } from "./enums";
+import { AlertType, RestMethod, RiskScore } from "./enums";
 
 export interface Meta {
   incoming: boolean;
@@ -41,6 +41,14 @@ export interface TraceParams {
 export interface GetEndpointParams {
   hosts?: string[];
   riskScores?: RiskScore[];
+  offset?: number;
+  limit?: number;
+}
+
+export interface GetAlertParams {
+  riskScores?: RiskScore[];
+  resolved?: boolean;
+  alertTypes?: AlertType[];
   offset?: number;
   limit?: number;
 }
