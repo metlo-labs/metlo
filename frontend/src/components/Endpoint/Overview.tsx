@@ -14,7 +14,6 @@ import { RISK_TO_COLOR } from "../../constants";
 import Highlight, { defaultProps } from "prism-react-renderer";
 import darkTheme from "prism-react-renderer/themes/duotoneDark";
 import lightTheme from "prism-react-renderer/themes/github";
-import { openAPISpec } from "testData";
 import EndpointPIIChart from "./PIIChart";
 import { getDateTimeString } from "../../utils";
 

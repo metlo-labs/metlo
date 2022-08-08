@@ -6,6 +6,7 @@ import { getSpec } from "../../api/apiSpecs";
 import SpecPage from "../../components/Spec";
 import superjson from "superjson";
 import { OpenApiSpec } from "@common/types";
+import { ContentContainer } from "components/utils/ContentContainer";
 
 const Spec = ({ spec }) => {
   const parsedSpec = superjson.parse(spec) as OpenApiSpec | null;
@@ -14,7 +15,9 @@ const Spec = ({ spec }) => {
   }
   return (
     <SidebarLayoutShell currentTab={SideNavLinkDestination.Specs}>
-      <SpecPage spec={parsedSpec} />
+      <ContentContainer maxContentW="5xl">
+        <SpecPage spec={parsedSpec} />
+      </ContentContainer>
     </SidebarLayoutShell>
   );
 };
