@@ -1,5 +1,5 @@
 import React from "react";
-import { ApiEndpointDetailed, Endpoint } from "@common/types";
+import { ApiEndpointDetailed } from "@common/types";
 import {
   Box,
   Badge,
@@ -16,6 +16,7 @@ import darkTheme from "prism-react-renderer/themes/duotoneDark";
 import lightTheme from "prism-react-renderer/themes/github";
 import { openAPISpec } from "testData";
 import EndpointPIIChart from "./PIIChart";
+import { getDateTimeString } from "../../utils";
 
 interface EndpointOverviewProps {
   endpoint: ApiEndpointDetailed;
@@ -57,11 +58,11 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
             </GridItem>
             <GridItem>
               <DataHeading>First Detected</DataHeading>
-              <DataAttribute>{endpoint.firstDetected?.toString()}</DataAttribute>
+              <DataAttribute>{getDateTimeString(endpoint.firstDetected) || "N/A"}</DataAttribute>
             </GridItem>
             <GridItem>
               <DataHeading>Last Active</DataHeading>
-              <DataAttribute>{endpoint.lastActive?.toString()}</DataAttribute>
+              <DataAttribute>{getDateTimeString(endpoint.lastActive) || "N/A"}</DataAttribute>
             </GridItem>
             <GridItem w="100%" colSpan={2}>
               <DataHeading>Usage</DataHeading>
