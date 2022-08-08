@@ -32,6 +32,7 @@ dotenv.config();
 const app: Express = express();
 const port = process.env.PORT || 8080;
 
+app.disable("x-powered-by");
 app.use(bodyParser.json());
 
 app.get("/api/v1", (req: Request, res: Response) => {
