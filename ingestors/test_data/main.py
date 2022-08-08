@@ -31,7 +31,7 @@ def run(backend):
                 print(f'Producer {k} emitted {len(data_points)} data points.')
             if not data_points:
                 continue
-            path = '/log-request/single' if len(data_points) == 1 else '/log-request/batch'
+            path = '/api/v1/log-request/single' if len(data_points) == 1 else '/api/v1/log-request/batch'
             body = data_points[0] if len(data_points) == 1 else data_points
             requests.post(urljoin(backend, path), json=body)
 
