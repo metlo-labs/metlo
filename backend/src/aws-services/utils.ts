@@ -61,3 +61,14 @@ export async function get_region_for_instance(client: EC2Client, instance_id) {
   return (await client.send(command)).Reservations[0].Instances[0].Placement
     .AvailabilityZone;
 }
+
+export async function get_region_for_network_interface(
+  client: EC2Client,
+  interface_id
+) {
+  let command = new DescribeNetworkInterfacesCommand({
+    MaxResults: 1,
+    NetworkInterfaceIds: [interface_id],
+  } as DescribeNetworkInterfacesCommandInput);
+  return (await client.send(command)).NetworkInterfaces[0].AvailabilityZone;
+}
