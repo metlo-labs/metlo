@@ -137,7 +137,7 @@ export class SpecService {
               updated = true;
             } else {
               throw new Error409Conflict(
-                `${apiEndpoint.path} defined in the given new spec file is already defined in another user defined spec file: ${apiEndpoint.openapiSpecName}`
+                `Path ${apiEndpoint.path} defined in the given new spec file is already defined in another user defined spec file: ${apiEndpoint.openapiSpecName}`
               );
             }
             endpoints.apiEndpoints.push(apiEndpoint);
