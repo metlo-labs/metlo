@@ -1,17 +1,27 @@
-import React from "react";
-import { useColorMode, Code, HStack, Badge, Text } from "@chakra-ui/react";
+import React, { useState } from "react";
+import { useColorMode, Code, HStack, Badge, Text, useDisclosure, Box } from "@chakra-ui/react";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { getCustomStyles, rowStyles } from "../utils/TableUtils";
 import { ApiTrace } from "@common/types";
 import { METHOD_TO_COLOR } from "../../constants";
 import { statusCodeToColor } from "../utils/StatusCode";
+import { getDateTimeString } from "../../utils";
+import TraceDetail from "./TraceDetail";
 
 interface TraceListProps {
   traces: ApiTrace[];
 }
 
 const TraceList: React.FC<TraceListProps> = React.memo(({ traces }) => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [ trace, setTrace ] = useState<ApiTrace | undefined>();
   const colorMode = useColorMode();
+
+  const openModal = (trace: ApiTrace) => {
+    setTrace(trace);
+    onOpen();
+  }
+
   const columns: TableColumn<ApiTrace>[] = [
     {
       name: "Code",
@@ -79,14 +89,30 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces }) => {
       id: "destinaition",
       grow: 1,
     },
+    {
+      name: "Time",
+      sortable: true,
+      selector: (row: ApiTrace) =>
+        `${row.createdAt}`,
+      cell: (row: ApiTrace) => (
+        <Text
+          fontFamily="mono"
+          fontSize="sm"
+        >{getDateTimeString(row.createdAt)}</Text>
+      )
+    }
   ];
   return (
-    <DataTable
-      style={rowStyles}
-      columns={columns}
-      data={traces}
-      customStyles={getCustomStyles(colorMode.colorMode)}
-    />
+    <Box>
+      <TraceDetail trace={trace} isOpen={isOpen} onClose={onClose} />
+      <DataTable
+        style={rowStyles}
+        columns={columns}
+        data={traces}
+        customStyles={getCustomStyles(colorMode.colorMode)}
+        onRowClicked={(row) => openModal(row)}
+      />
+    </Box>
   );
 });
 
