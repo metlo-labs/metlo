@@ -6,6 +6,7 @@ import DataTable, { TableColumn } from "react-data-table-component";
 import { getCustomStyles, rowStyles } from "../utils/TableUtils";
 import { OpenApiSpec } from "@common/types";
 import { SpecExtension } from "@common/enums";
+import { getDateTimeString } from "../../utils";
 
 interface SpecListProps {
   apiSpecs: OpenApiSpec[];
@@ -13,9 +14,9 @@ interface SpecListProps {
 
 const getHostsFromSpec = (spec: OpenApiSpec): string[] => {
   let parsedSpec = null;
-  if ((spec.extension = SpecExtension.JSON)) {
+  if (spec.extension === SpecExtension.JSON) {
     parsedSpec = JSON.parse(spec.spec);
-  } else if ((spec.extension = SpecExtension.YAML)) {
+  } else if (spec.extension === SpecExtension.YAML) {
     parsedSpec = yaml.load(spec.spec);
   }
   if (parsedSpec) {
@@ -42,13 +43,13 @@ const SpecList: React.FC<SpecListProps> = React.memo(({ apiSpecs }) => {
     {
       name: "Hosts",
       sortable: true,
-      selector: (row: OpenApiSpec) => getHostsFromSpec(row).join(", ") || "",
+      selector: (row: OpenApiSpec) => getHostsFromSpec(row)?.join(", ") || "",
       id: "hosts",
     },
     {
       name: "Last Updated",
       sortable: true,
-      selector: (row: OpenApiSpec) => row.updatedAt || "",
+      selector: (row: OpenApiSpec) => getDateTimeString(row.updatedAt) || "",
       id: "lastUpdated",
     },
   ];

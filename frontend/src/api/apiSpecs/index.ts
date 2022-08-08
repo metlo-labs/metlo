@@ -2,16 +2,16 @@ import axios from "axios";
 import { OpenApiSpec } from "@common/types";
 import { getAPIURL } from "../../constants";
 
-export const getSpecs = async () => {
+export const getSpecs = async (): Promise<[OpenApiSpec[], number]> => {
   try {
     const resp = await axios.get<[OpenApiSpec[], number]>(`${getAPIURL()}/specs`);
     if (resp.status === 200 && resp.data) {
       return resp.data;
     }
-    return [];
+    return [[], 0];
   } catch (err) {
     console.error(`Error fetching endpoints: ${err}`);
-    return [];
+    return [[], 0];
   }
 };
 
