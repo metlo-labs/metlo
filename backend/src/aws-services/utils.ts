@@ -43,6 +43,7 @@ export async function list_all_network_interfaces(
     await client.send(command)
   ).NetworkInterfaces;
 }
+
 export async function list_all_instances(
   client: EC2Client
 ): Promise<DescribeInstancesCommandOutput> {
@@ -50,4 +51,13 @@ export async function list_all_instances(
     MaxResults: 1000,
   } as DescribeInstancesCommandInput);
   return await client.send(command);
+}
+
+export async function get_region_for_instance(client: EC2Client, instance_id) {
+  let command = new DescribeInstancesCommand({
+    MaxResults: 1,
+    InstanceIds: [instance_id],
+  } as DescribeInstancesCommandInput);
+  return (await client.send(command)).Reservations[0].Instances[0].Placement
+    .AvailabilityZone;
 }
