@@ -22,4 +22,17 @@ Steps to configure a Host :
 6. Finally create a new instance
    - Use `create_new_instance` in [crate-ecs-instance.ts](./create-ec2-instance.ts)
 
-This should create a new machine in the same region as the users machine 
+This should create a new machine in the same region as the users machine
+
+Steps to configure a Traffic Mirror
+
+1. Get a network id for the packet source
+   - You can use
+     - `list_all_network_interfaces` to list network interfaces
+     - `list_all_instances` to list instances
+       in [utils.ts](./utils.ts) and then search within that
+   - Or Just ask the users to list the network interface id
+2. Create a new target for mirroring from `create_mirror_target` in [create-mirrors.ts](./create-mirror.ts).
+3. Create a new filter using `create_mirror_filter` in [create-mirrors.ts](./create-mirror.ts).
+4. Create a new mirror session using `create_mirror_session` in [create-mirrors.ts](./create-mirror.ts).
+   - This step could possibly fail. Each session requires a session number. If there's multiple sessions that accept the same packets, then it will only get mirrored to the highest session number.
