@@ -3,7 +3,7 @@ import { useColorMode, Code, Badge } from "@chakra-ui/react";
 import { PIIField } from "@common/types";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { getCustomStyles, rowStyles } from "../utils/TableUtils";
-import { RISK_TO_COLOR } from "../../constants";
+import { RISK_TO_COLOR, DATA_CLASS_TO_RISK_SCORE } from "../../constants";
 
 interface PIIDataListProps {
   PIIFields: PIIField[];
@@ -20,10 +20,10 @@ const PIIDataList: React.FC<PIIDataListProps> = React.memo(({ PIIFields }) => {
         <Badge
           p="1"
           fontSize="sm"
-          colorScheme={RISK_TO_COLOR[row.risk]}
+          colorScheme={RISK_TO_COLOR[DATA_CLASS_TO_RISK_SCORE[row.dataClass]]}
           pointerEvents="none"
         >
-          {row.risk}
+          {DATA_CLASS_TO_RISK_SCORE[row.dataClass]}
         </Badge>
       ),
       id: "riskScore",
