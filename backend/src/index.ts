@@ -14,6 +14,7 @@ import {
 } from "./api/get-endpoints";
 import {
   deleteSpecHandler,
+  getSpecHandler,
   getSpecListHandler,
   updateSpecHandler,
   uploadNewSpecHandler,
@@ -39,7 +40,8 @@ app.get("/api/v1/endpoint/:endpointId", getEndpointHandler);
 app.post("/api/v1/spec/new", MulterSource.single("file"), uploadNewSpecHandler);
 app.delete("/api/v1/spec/delete/:specFileName", deleteSpecHandler);
 app.post("/api/v1/spec/update", MulterSource.single("file"), updateSpecHandler);
-app.get("/api/v1/spec/list", getSpecListHandler);
+app.get("/api/v1/specs", getSpecListHandler);
+app.get("/api/v1/spec/:specFileName", getSpecHandler);
 app.put("/api/v1/data-class/isRisk/:dataClassId", isRiskHandler);
 
 const main = async () => {

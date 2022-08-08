@@ -14,6 +14,12 @@ import { getPathRegex } from "../../utils";
 import Error409Conflict from "../../errors/error-409-conflict";
 
 export class SpecService {
+  static async getSpec(specName: string): Promise<OpenApiSpec> {
+    const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec);
+    const spec = await openApiSpecRepository.findOneBy({ name: specName });
+    return spec;
+  }
+
   static async getSpecs(): Promise<OpenApiSpec[]> {
     const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec);
     const specList = await openApiSpecRepository.find({});

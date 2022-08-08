@@ -13,4 +13,4 @@ export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass, RiskScore> = {
   [DataClass.VIN]: RiskScore.LOW,
   [DataClass.COORDINATE]: RiskScore.MEDIUM,
   [DataClass.DL_NUMBER]: RiskScore.MEDIUM,
-}
+};
