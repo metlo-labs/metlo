@@ -1,10 +1,10 @@
 import axios from "axios";
 import { OpenApiSpec } from "@common/types";
-import { API_URL } from "../../constants";
+import { getAPIURL } from "../../constants";
 
 export const getSpecs = async () => {
   try {
-    const resp = await axios.get<[OpenApiSpec[], number]>(`${API_URL}/specs`);
+    const resp = await axios.get<[OpenApiSpec[], number]>(`${getAPIURL()}/specs`);
     if (resp.status === 200 && resp.data) {
       return resp.data;
     }
@@ -18,7 +18,7 @@ export const getSpecs = async () => {
 export const uploadSpec = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);
-  return await axios.post(`${API_URL}/spec/new`, formData, {
+  return await axios.post(`${getAPIURL()}/spec/new`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -28,7 +28,7 @@ export const uploadSpec = async (file: File) => {
 export const updateSpec = async (name: string, file: File) => {
   const formData = new FormData();
   formData.append("file", file);
-  return await axios.put(`${API_URL}/spec/${name}`, formData, {
+  return await axios.put(`${getAPIURL()}/spec/${name}`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -36,6 +36,6 @@ export const updateSpec = async (name: string, file: File) => {
 };
 
 export const getSpec = async (name: string) => {
-  const resp = await axios.get<OpenApiSpec>(`${API_URL}/spec/${name}`);
+  const resp = await axios.get<OpenApiSpec>(`${getAPIURL()}/spec/${name}`);
   return resp.data;
 };

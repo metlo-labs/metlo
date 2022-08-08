@@ -23,9 +23,15 @@ export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass, RiskScore> = {
   [DataClass.VIN]: RiskScore.LOW,
   [DataClass.COORDINATE]: RiskScore.MEDIUM,
   [DataClass.DL_NUMBER]: RiskScore.MEDIUM,
-}
+};
 
-export const API_URL = "http://localhost:3000/api/v1";
+export const getAPIURL = () => {
+  return `${
+    typeof window !== "undefined"
+      ? window.location.origin
+      : process.env.BACKEND_URL || "http://localhost:8080"
+  }/api/v1`;
+};
 
 export const ENDPOINT_PAGE_LIMIT = 10;
 export const ALERT_PAGE_LIMIT = 10;
