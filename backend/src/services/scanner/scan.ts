@@ -183,12 +183,14 @@ export class ScannerService {
 
   static scan = (text: string) => {
     const res: Record<DataClass, string[]> = {} as Record<DataClass, string[]>;
-    DATA_CLASS_REGEX_MAP.forEach((exp, dataClass) => {
-      const matches = text.match(exp);
-      if (matches?.length > 0) {
-        res[dataClass] = matches;
-      }
-    });
+    if (text) {
+      DATA_CLASS_REGEX_MAP.forEach((exp, dataClass) => {
+        const matches = text.match(exp);
+        if (matches?.length > 0) {
+          res[dataClass] = matches;
+        }
+      });
+    }
     return res;
   };
 }

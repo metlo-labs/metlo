@@ -23,3 +23,12 @@ export const resolveAlertHandler = async (req: Request, res: Response) => {
     await ApiResponseHandler.error(res, err);
   }
 };
+
+export const getTopAlertsHandler = async (req: Request, res: Response) => {
+  try {
+    const topAlerts = await AlertService.getTopAlerts();
+    await ApiResponseHandler.success(res, topAlerts);
+  } catch (err) {
+    await ApiResponseHandler.error(res, err);
+  }
+};
