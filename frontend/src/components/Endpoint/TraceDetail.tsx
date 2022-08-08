@@ -16,13 +16,14 @@ const JSONContentViewer = (data: string, colorMode: ColorMode) => {
   const bgColor = colorMode === "dark" ? "#4C5564" : "#EDF2F7";
   try {
     return (
-      <Box w="full" h="full">
+      <Box w="full" h="full" rounded="md" bgColor={bgColor}>
         <ReactJson
           theme={colorMode === "dark" ? "summerfruit" : "summerfruit:inverted"}
           src={JSON.parse(data)}
           name={false}
           indentWidth={2}
           enableClipboard={false}
+          collapsed={1}
           style={{
             height: "100%",
             padding: "16px",
@@ -36,7 +37,7 @@ const JSONContentViewer = (data: string, colorMode: ColorMode) => {
     )
   } catch {
     return (
-      <Code p="2" rounded="md" w="full">
+      <Code h="full" p="2" rounded="md" w="full">
         {data}
       </Code>
     )
@@ -95,32 +96,32 @@ const TraceDetail: React.FC<TraceDetailProps> = React.memo(({ trace, isOpen, onC
                       </Code>
                     </VStack>
                   </GridItem>
-                  <GridItem>
-                    <VStack alignItems="flex-start">
+                  <GridItem h="full">
+                    <VStack h="full" alignItems="flex-start">
                       <Text fontWeight="semibold">Request Headers</Text>
                       {JSONContentViewer(JSON.stringify(trace.requestHeaders), colorMode.colorMode)}
                     </VStack>
                   </GridItem>
-                  <GridItem>
-                    <VStack alignItems="flex-start">
+                  <GridItem h="full">
+                    <VStack h="full" alignItems="flex-start">
                       <Text fontWeight="semibold">Request Parameters</Text>
                       {JSONContentViewer(JSON.stringify(trace.requestParameters), colorMode.colorMode)}
                     </VStack>
                   </GridItem>
-                  <GridItem>
-                    <VStack alignItems="flex-start">
+                  <GridItem h="full">
+                    <VStack h="full" alignItems="flex-start">
                       <Text fontWeight="semibold">Request Body</Text>
                       {JSONContentViewer(trace.requestBody, colorMode.colorMode)}
                     </VStack>
                   </GridItem>
-                  <GridItem>
-                    <VStack alignItems="flex-start">
+                  <GridItem h="full">
+                    <VStack h="full" alignItems="flex-start">
                       <Text fontWeight="semibold">Response Headers</Text>
                       {JSONContentViewer(JSON.stringify(trace.responseHeaders), colorMode.colorMode)}
                     </VStack>
                   </GridItem>
                 </Grid>
-                <VStack alignItems="flex-start">
+                <VStack pt="4" alignItems="flex-start">
                   <Text fontWeight="semibold">Response Body</Text>
                   {JSONContentViewer(trace.responseBody, colorMode.colorMode)}
                 </VStack>
