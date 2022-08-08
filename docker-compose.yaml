@@ -16,6 +16,12 @@ services:
     restart: unless-stopped
     environment:
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
+  jobs:
+    image: metlo/jobrunner
+    container_name: metlo-jobs
+    restart: unless-stopped
+    environment:
+      - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
   frontend: 
     image: metlo/frontend
     container_name: metlo-frontend
