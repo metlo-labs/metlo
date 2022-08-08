@@ -92,7 +92,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
           <TabPanel p="0">
             <PIIDataList PIIFields={endpoint.sensitiveDataClasses} />
           </TabPanel>
-          <TabPanel p="0">
+          <TabPanel p="0" h="full">
             <TraceList traces={endpoint.traces} />
           </TabPanel>
           <TabPanel p="0">

@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { useColorMode, Code, HStack, Badge, Text, useDisclosure, Box } from "@chakra-ui/react";
+import {
+  useColorMode,
+  Code,
+  HStack,
+  Badge,
+  Text,
+  useDisclosure,
+  Box,
+} from "@chakra-ui/react";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { getCustomStyles, rowStyles } from "../utils/TableUtils";
 import { ApiTrace } from "@common/types";
@@ -14,15 +22,26 @@ interface TraceListProps {
 
 const TraceList: React.FC<TraceListProps> = React.memo(({ traces }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [ trace, setTrace ] = useState<ApiTrace | undefined>();
+  const [trace, setTrace] = useState<ApiTrace | undefined>();
   const colorMode = useColorMode();
 
   const openModal = (trace: ApiTrace) => {
     setTrace(trace);
     onOpen();
-  }
+  };
 
   const columns: TableColumn<ApiTrace>[] = [
+    {
+      name: "Time",
+      sortable: true,
+      selector: (row: ApiTrace) => `${row.createdAt}`,
+      cell: (row: ApiTrace) => (
+        <Text fontFamily="mono" fontSize="sm">
+          {getDateTimeString(row.createdAt)}
+        </Text>
+      ),
+      grow: 2,
+    },
     {
       name: "Code",
       sortable: true,
@@ -60,7 +79,7 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces }) => {
         </HStack>
       ),
       id: "path",
-      grow: 2,
+      grow: 6,
     },
     {
       name: "Source",
@@ -73,7 +92,7 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces }) => {
         >{`${row.meta.source}:${row.meta.sourcePort}`}</Text>
       ),
       id: "source",
-      grow: 1,
+      grow: 3,
     },
     {
       name: "Destination",
@@ -87,25 +106,15 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces }) => {
         >{`${row.meta.destination}:${row.meta.destinationPort}`}</Text>
       ),
       id: "destinaition",
-      grow: 1,
+      grow: 3,
     },
-    {
-      name: "Time",
-      sortable: true,
-      selector: (row: ApiTrace) =>
-        `${row.createdAt}`,
-      cell: (row: ApiTrace) => (
-        <Text
-          fontFamily="mono"
-          fontSize="sm"
-        >{getDateTimeString(row.createdAt)}</Text>
-      )
-    }
   ];
   return (
-    <Box>
+    <Box h="full">
       <TraceDetail trace={trace} isOpen={isOpen} onClose={onClose} />
       <DataTable
+        fixedHeader={true}
+        fixedHeaderScrollHeight="100%"
         style={rowStyles}
         columns={columns}
         data={traces}
