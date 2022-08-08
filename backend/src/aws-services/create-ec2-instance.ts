@@ -28,14 +28,14 @@ import {
 // } from "@aws-sdk/client-pricing";
 import { generate_random_string } from "./utils";
 
-interface MachineSpecifications {
+export interface MachineSpecifications {
   minCpu: number;
   maxCpu: number;
   minMem: number;
   maxMem?: number;
 }
 
-async function get_all_images(
+export async function get_all_images(
   img_names: Array<string>,
   client: EC2Client
 ): Promise<Array<Image>> {
@@ -63,7 +63,7 @@ async function get_all_images(
   );
 }
 
-async function get_latest_image(
+export async function get_latest_image(
   client: EC2Client,
   img_names: Array<string> = [
     "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-????????",
@@ -73,14 +73,13 @@ async function get_latest_image(
   return resp;
 }
 
-async function get_valid_types(
+export async function get_valid_types(
   client: EC2Client,
   image: Image,
   specs: MachineSpecifications
 ): Promise<Array<InstanceTypeInfoFromInstanceRequirements>> {
   let command = new GetInstanceTypesFromInstanceRequirementsCommand({
     ArchitectureTypes: ["x86_64"],
-    VirtualizationTypes: [image.VirtualizationType],
     InstanceRequirements: {
       VCpuCount: { Min: specs.minCpu, Max: specs.maxCpu },
       MemoryMiB: {
@@ -94,7 +93,7 @@ async function get_valid_types(
   return resp.InstanceTypes;
 }
 
-async function describe_type(client: EC2Client, Instance_type: string) {
+export async function describe_type(client: EC2Client, Instance_type: string) {
   let command = new DescribeInstanceTypesCommand({
     InstanceTypes: [Instance_type],
   } as DescribeInstanceTypesCommandInput);
@@ -122,7 +121,7 @@ async function describe_type(client: EC2Client, Instance_type: string) {
 //   return resp;
 // }
 
-async function create_new_keypair(client: EC2Client, name: string) {
+export async function create_new_keypair(client: EC2Client, name: string) {
   let command = new CreateKeyPairCommand({
     KeyName: name,
     KeyType: KeyType.ed25519,
@@ -137,13 +136,13 @@ async function create_new_keypair(client: EC2Client, name: string) {
   return resp;
 }
 
-async function list_keypairs(client: EC2Client) {
+export async function list_keypairs(client: EC2Client) {
   let command = new DescribeKeyPairsCommand({} as DescribeKeyPairsCommandInput);
   let resp = await client.send(command);
   return resp;
 }
 
-async function create_new_instance(
+export async function create_new_instance(
   client: EC2Client,
   instance_ami: string,
   instance_type: string
