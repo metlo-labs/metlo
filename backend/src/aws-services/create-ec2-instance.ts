@@ -147,7 +147,7 @@ async function create_new_instance(
   client: EC2Client,
   instance_ami: string,
   instance_type: string
-) {
+): Promise<RunInstancesCommandOutput> {
   const id = generate_random_string(12);
   const key = await create_new_keypair(client, `METLO-Instance-${id}-Key`);
   console.log(key);
