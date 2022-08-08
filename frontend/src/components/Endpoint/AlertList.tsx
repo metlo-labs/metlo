@@ -1,4 +1,5 @@
 import React from "react";
+import { useRouter } from "next/router";
 import { useColorMode, Badge, HStack, Code, Text } from "@chakra-ui/react";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { getCustomStyles, rowStyles } from "../utils/TableUtils";
@@ -13,7 +14,15 @@ interface AlertListProps {
 
 const AlertList: React.FC<AlertListProps> = React.memo(
   ({ alerts, showEndpoint }) => {
+    const router = useRouter();
     const colorMode = useColorMode();
+    const onRowClicked = (
+      row: Alert,
+      e: React.MouseEvent<Element, MouseEvent>
+    ) => {
+      router.push({ pathname: `/endpoint/${row.apiEndpointUuid}`, query: { tab: "alerts"} })
+    }
+
     let columns: TableColumn<Alert>[] = [
       {
         name: "Risk",
@@ -101,6 +110,7 @@ const AlertList: React.FC<AlertListProps> = React.memo(
         columns={columns}
         data={alerts}
         customStyles={getCustomStyles(colorMode.colorMode)}
+        onRowClicked={onRowClicked}
       />
     );
   }

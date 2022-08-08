@@ -192,7 +192,7 @@ const List: React.FC<AlertTablesProps> = React.memo(
       row: Alert,
       e: React.MouseEvent<Element, MouseEvent>
     ) => {
-      router.push(`/endpoint/${row.apiEndpointUuid}`);
+      router.push({ pathname: `/endpoint/${row.apiEndpointUuid}`, query: { tab: "alerts" }});
     };
 
     const getTable = () => (

@@ -18,6 +18,7 @@ import {
   TabPanels,
   TabPanel,
 } from "@chakra-ui/react";
+import { useRouter } from "next/router";
 import { SectionHeader } from "../utils/Card";
 import { ApiEndpointDetailed } from "@common/types";
 import { METHOD_TO_COLOR } from "../../constants";
@@ -31,10 +32,26 @@ interface EndpointPageProps {
 }
 
 const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
+  const router = useRouter();
   const headerColor = useColorModeValue(
     "rgb(179, 181, 185)",
     "rgb(91, 94, 109)"
   );
+  const { tab } = router.query;
+  const getDefaultTab = () => {
+    switch (tab) {
+      case "overview":
+        return 0;
+      case "pii":
+        return 1;
+      case "traces":
+        return 2;
+      case "alerts":
+        return 3;
+      default:
+        return 0;
+    }
+  }
   return (
     <VStack
       w="full"
@@ -70,6 +87,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
         flexDir="column"
         flexGrow="1"
         overflow={{ base: "unset", lg: "hidden" }}
+        defaultIndex={getDefaultTab()}
       >
         <TabList>
           <Tab>
