@@ -16,3 +16,13 @@ export const getSpecs = async () => {
     return [];
   }
 };
+
+export const uploadSpec = async (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  return await axios.post(`${API_URL}/spec/new`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
