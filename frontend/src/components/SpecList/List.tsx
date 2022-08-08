@@ -23,6 +23,7 @@ const getHostsFromSpec = (spec: OpenApiSpec): string[] => {
 };
 
 const SpecList: React.FC<SpecListProps> = React.memo(({ apiSpecs }) => {
+  console.log(apiSpecs);
   const colorMode = useColorMode();
   const columns: TableColumn<OpenApiSpec>[] = [
     {
@@ -36,6 +37,12 @@ const SpecList: React.FC<SpecListProps> = React.memo(({ apiSpecs }) => {
       sortable: true,
       selector: (row: OpenApiSpec) => getHostsFromSpec(row).join(", ") || "",
       id: "hosts",
+    },
+    {
+      name: "Last Updated",
+      sortable: true,
+      selector: (row: OpenApiSpec) => row.updatedAt || "",
+      id: "lastUpdated",
     },
   ];
   return (

@@ -17,7 +17,7 @@ interface APISpecListProps {
 }
 
 const APISpecList: React.FC<APISpecListProps> = React.memo(({ apiSpecs }) => {
-  const router = useRouter()
+  const router = useRouter();
   const [fetching, setFetching] = useState<boolean>(false);
   const toast = useToast();
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -30,7 +30,7 @@ const APISpecList: React.FC<APISpecListProps> = React.memo(({ apiSpecs }) => {
     }
     try {
       await uploadSpec(file);
-      router.reload()
+      router.reload();
     } catch (err) {
       toast({
         title: "Upload Failed...",
