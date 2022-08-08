@@ -55,6 +55,15 @@ export class AlertService {
     return alerts;
   }
 
+  static async getTopAlerts(): Promise<AlertResponse[]> {
+    const alertRepository = AppDataSource.getRepository(Alert);
+    return await alertRepository.find({
+      relations: { apiEndpoint: true },
+      order: { createdAt: "DESC" },
+      take: 20,
+    });
+  }
+
   static async getAlert(alertId: string): Promise<AlertResponse> {
     const alertRepository = AppDataSource.getRepository(Alert);
     return await alertRepository.findOneBy({ uuid: alertId });

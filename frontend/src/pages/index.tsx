@@ -1,16 +1,16 @@
 import { Heading, VStack } from "@chakra-ui/react";
-import { getSummary } from "api/home";
+import { getSummary, getTopAlerts } from "api/home";
 import { GetServerSideProps } from "next";
-import { SummaryResponse } from "@common/types";
-import { testAlerts } from "testData";
+import { SummaryResponse, Alert } from "@common/types";
 import superjson from "superjson";
 import HomePage from "../components/Home";
 import { SideNavLinkDestination } from "../components/Sidebar/NavLinkUtils";
 import { SidebarLayoutShell } from "../components/SidebarLayoutShell";
 import { ContentContainer } from "../components/utils/ContentContainer";
 
-const Index = ({ summary }) => {
+const Index = ({ summary, topAlerts }) => {
   const parsedSummary = superjson.parse<SummaryResponse>(summary);
+  const parsedTopAlerts = superjson.parse<Alert[]>(topAlerts);
   return (
     <SidebarLayoutShell currentTab={SideNavLinkDestination.Home}>
       <ContentContainer>
@@ -23,7 +23,7 @@ const Index = ({ summary }) => {
             numAlerts={parsedSummary.newAlerts}
             numEndpoints={parsedSummary.endpointsTracked}
             numPIIDataDetected={parsedSummary.piiDataFields}
-            alerts={testAlerts}
+            alerts={parsedTopAlerts}
           />
         </VStack>
       </ContentContainer>
@@ -33,7 +33,8 @@ const Index = ({ summary }) => {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const summary = await getSummary();
-  return { props: { summary: superjson.stringify(summary) } };
+  const topAlerts = await getTopAlerts();
+  return { props: { summary: superjson.stringify(summary), topAlerts: superjson.stringify(topAlerts) } };
 };
 
 export default Index;
