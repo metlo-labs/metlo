@@ -26,3 +26,8 @@ export const uploadSpec = async (file: File) => {
     },
   });
 };
+
+export const getSpec = async (name: string) => {
+  const resp = await axios.get<OpenApiSpec>(`${API_URL}/spec/${name}`);
+  return resp.data;
+};

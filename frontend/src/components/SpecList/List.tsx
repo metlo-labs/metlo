@@ -1,5 +1,6 @@
 import React from "react";
 import yaml from "js-yaml";
+import { useRouter } from "next/router";
 import { useColorMode } from "@chakra-ui/react";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { getCustomStyles, rowStyles } from "../utils/TableUtils";
@@ -23,8 +24,14 @@ const getHostsFromSpec = (spec: OpenApiSpec): string[] => {
 };
 
 const SpecList: React.FC<SpecListProps> = React.memo(({ apiSpecs }) => {
-  console.log(apiSpecs);
+  const router = useRouter();
   const colorMode = useColorMode();
+  const onRowClicked = (
+    row: OpenApiSpec,
+    e: React.MouseEvent<Element, MouseEvent>
+  ) => {
+    router.push(`/spec/${row.name}`);
+  };
   const columns: TableColumn<OpenApiSpec>[] = [
     {
       name: "Name",
@@ -50,6 +57,7 @@ const SpecList: React.FC<SpecListProps> = React.memo(({ apiSpecs }) => {
       style={rowStyles}
       columns={columns}
       data={apiSpecs}
+      onRowClicked={onRowClicked}
       customStyles={getCustomStyles(colorMode.colorMode)}
     />
   );
