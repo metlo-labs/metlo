@@ -8,6 +8,16 @@ import { AppDataSource } from "../../data-source";
 import { OpenApiSpec } from "../../../models";
 import { SpecExtension } from "../../enums";
 
+export const getSpecHandler = async (req: Request, res: Response) => {
+  try {
+    const { specFileName } = req.params;
+    const spec = await SpecService.getSpec(specFileName);
+    await ApiResponseHandler.success(res, spec);
+  } catch (err) {
+    await ApiResponseHandler.error(res, err);
+  }
+};
+
 export const getSpecListHandler = async (req: Request, res: Response) => {
   try {
     const specList = await SpecService.getSpecs();

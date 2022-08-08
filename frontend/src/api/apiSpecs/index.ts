@@ -5,7 +5,7 @@ import { API_URL } from "../../constants";
 export const getSpecs = async () => {
   try {
     const resp = await axios.get<[OpenApiSpec[], number]>(
-      `${API_URL}/spec/list`
+      `${API_URL}/specs`
     );
     if (resp.status === 200 && resp.data) {
       return resp.data;

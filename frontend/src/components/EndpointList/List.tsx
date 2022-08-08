@@ -6,6 +6,7 @@ import DataTable, { SortOrder, TableColumn } from "react-data-table-component";
 import { METHOD_TO_COLOR, RISK_TO_COLOR } from "../../constants";
 import { getCustomStyles, rowStyles, SkeletonCell } from "../utils/TableUtils";
 import { ApiEndpoint } from "@common/types";
+import { getDateTimeString } from "../../utils";
 
 const PAGE_SIZE = 10;
 
@@ -156,14 +157,14 @@ const List: React.FC<EndpointTablesProps> = React.memo(
       {
         name: "First Detected",
         sortable: true,
-        selector: (row: ApiEndpoint) => row.firstDetected?.toString() || "",
+        selector: (row: ApiEndpoint) => getDateTimeString(row.firstDetected) || "N/A",
         id: "firstDetected",
         grow: 2,
       },
       {
         name: "Last Active",
         sortable: true,
-        selector: (row: ApiEndpoint) => row.lastActive?.toString() || "",
+        selector: (row: ApiEndpoint) => getDateTimeString(row.lastActive) || "N/A",
         id: "lastActive",
         grow: 2,
       },

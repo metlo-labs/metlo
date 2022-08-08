@@ -25,13 +25,15 @@ const Endpoints = () => {
       const res = await getHosts();
       setHosts(res);
     }
+    fetchHosts();
+  }, []);
+  useEffect(() => {
     const fetchEndpoints = async () => {
       const res = await getEndpoints(params);
       setEndpoints(res[0]);
       setTotalCount(res[1]);
       setFetching(false);
     }
-    fetchHosts();
     fetchEndpoints();
   }, [params]);
   return (
