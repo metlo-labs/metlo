@@ -73,8 +73,6 @@ export async function create_mirror_filter_rules(
     hash.update(unique_id);
     hash.update(JSON.stringify(filter_rules));
     let hash_str = hash.digest("base64").toString();
-    console.log(hash_str);
-
     let command = new CreateTrafficMirrorFilterRuleCommand({
       ClientToken: hash_str,
       TrafficDirection: v.direction === "out" ? "ingress" : "egress",
