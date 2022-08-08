@@ -53,6 +53,13 @@ export interface GetAlertParams {
   limit?: number;
 }
 
+export interface SummaryResponse {
+  highRiskAlerts: number;
+  newAlerts: number;
+  endpointsTracked: number;
+  piiDataFields: number;
+}
+
 export interface IsRiskParams {
   isRisk: boolean;
 }

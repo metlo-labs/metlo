@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
+import { SummaryService } from "../../services/summary";
 import ApiResponseHandler from "../../api-response-handler";
 
 export const getSummaryHandler = async (req: Request, res: Response) => {
-  await ApiResponseHandler.success(res, {
-    highRiskAlerts: 3,
-    newAlerts: 10,
-    endpointsTracked: 82,
-    piiDataFields: 22,
-  });
+  try {
+    const summaryResponse = await SummaryService.getSummaryData();
+    await ApiResponseHandler.success(res, summaryResponse);
+  } catch (err) {
+    await ApiResponseHandler.error(res, err);
+  }
 };
