@@ -5,6 +5,12 @@
 </p>
 
 ---
+<div align="center">
+
+[![Join Slack Community](https://img.shields.io/badge/slack%20community-join-blue)](https://metlo.com/slack)
+
+</div>
+---
 
 ## Quick start
 
