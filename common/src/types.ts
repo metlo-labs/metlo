@@ -100,8 +100,8 @@ export interface PIIField {
   dataClass: string;
   dataPath: string;
   risk: RiskScore;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   matches: string[];
   isRisk: boolean;
 }

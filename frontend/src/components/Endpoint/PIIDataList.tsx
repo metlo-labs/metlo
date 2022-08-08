@@ -4,6 +4,7 @@ import { PIIField } from "@common/types";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { getCustomStyles, rowStyles } from "../utils/TableUtils";
 import { RISK_TO_COLOR, DATA_CLASS_TO_RISK_SCORE } from "../../constants";
+import { getDateTimeString } from "../../utils";
 
 interface PIIDataListProps {
   PIIFields: PIIField[];
@@ -51,7 +52,7 @@ const PIIDataList: React.FC<PIIDataListProps> = React.memo(({ PIIFields }) => {
     {
       name: "Date Identified",
       sortable: true,
-      selector: (row: PIIField) => row.createdAt || "",
+      selector: (row: PIIField) => getDateTimeString(row.createdAt) || "",
       id: "dateIdentified",
       grow: 2,
     },

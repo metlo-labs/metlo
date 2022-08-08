@@ -1,8 +1,9 @@
 import React from "react";
 import dynamic from "next/dynamic";
-import { Badge, Box, Code, ColorMode, Grid, GridItem, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, Text, useColorMode, VStack } from "@chakra-ui/react";
+import { Badge, Box, Code, ColorMode, Grid, GridItem, HStack, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, Text, useColorMode, VStack } from "@chakra-ui/react";
 import { ApiTrace } from "@common/types";
 import { getDateTimeString } from "../../utils";
+import { METHOD_TO_COLOR } from "../../constants";
 import { statusCodeToColor } from "../utils/StatusCode";
 const ReactJson = dynamic(() => import("react-json-view"), { ssr: false })
 
@@ -70,14 +71,24 @@ const TraceDetail: React.FC<TraceDetailProps> = React.memo(({ trace, isOpen, onC
                   <GridItem>
                     <VStack alignItems="flex-start">
                       <Text fontWeight="semibold">Path</Text>
-                      <Code p="1" rounded="md" fontSize="sm">
-                        {trace.path}
-                      </Code>
+                      <HStack>
+                        <Badge
+                          fontSize="sm"
+                          px="2"
+                          py="1"
+                          colorScheme={METHOD_TO_COLOR[trace.method] || "gray"}
+                        >
+                          {trace.method.toUpperCase()}
+                        </Badge>
+                        <Code p="1" rounded="md" fontSize="sm">
+                          {trace.path}
+                        </Code>
+                      </HStack>
                     </VStack>
                   </GridItem>
                   <GridItem>
                     <VStack alignItems="flex-start">
-                      <Text fontWeight="semibold">Method</Text>
+                      <Text fontWeight="semibold">Response Status</Text>
                       <Badge
                         fontSize="sm"
                         px="2"
