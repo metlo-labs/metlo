@@ -1,5 +1,5 @@
 import React from "react";
-import { HStack, VStack, Text } from "@chakra-ui/react";
+import { HStack, VStack, Text, Grid, GridItem } from "@chakra-ui/react";
 
 interface SummaryStatsProps {
   numHighRiskAlerts: number;
@@ -12,7 +12,6 @@ const SummaryStatValue: React.FC<{ value: number; title: string }> = React.memo(
   ({ value, title }) => (
     <VStack
       bg="cellBG"
-      w="56"
       py="6"
       rounded="md"
       spacing="2"
@@ -31,12 +30,20 @@ const SummaryStatValue: React.FC<{ value: number; title: string }> = React.memo(
 const SummaryStats: React.FC<SummaryStatsProps> = React.memo(
   ({ numHighRiskAlerts, numAlerts, numEndpoints, numPIIDataDetected }) => {
     return (
-      <HStack spacing="5">
-        <SummaryStatValue value={numHighRiskAlerts} title="High Risk Alerts" />
-        <SummaryStatValue value={numAlerts} title="New Alerts" />
-        <SummaryStatValue value={numEndpoints} title="Endpoints Tracked" />
-        <SummaryStatValue value={numPIIDataDetected} title="PII Data Fields" />
-      </HStack>
+      <Grid w="full" templateColumns={{ base: "repeat(2, 1fr)", lg: "repeat(4, 1fr)"}} gap="4">
+        <GridItem w="full">
+          <SummaryStatValue value={numHighRiskAlerts} title="High Risk Alerts" />
+        </GridItem>
+        <GridItem w="full">
+          <SummaryStatValue value={numAlerts} title="New Alerts" />
+        </GridItem>
+        <GridItem w="full">
+          <SummaryStatValue value={numEndpoints} title="Endpoints Tracked" />
+        </GridItem>
+        <GridItem w="full">
+          <SummaryStatValue value={numPIIDataDetected} title="PII Data Fields" />
+        </GridItem>
+      </Grid>
     );
   }
 );
