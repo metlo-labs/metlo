@@ -1,10 +1,10 @@
 import axios from "axios";
-import { SummaryResponse, Alert } from "@common/types";
+import { Summary, Alert } from "@common/types";
 import { getAPIURL } from "../../constants";
 
-export const getSummary = async (): Promise<SummaryResponse> => {
+export const getSummary = async (): Promise<Summary> => {
   try {
-    const resp = await axios.get<SummaryResponse>(`${getAPIURL()}/summary`);
+    const resp = await axios.get<Summary>(`${getAPIURL()}/summary`);
     if (resp.status === 200 && resp.data) {
       return resp.data;
     }

@@ -7,7 +7,7 @@ import EmptyView from "../utils/EmptyView";
 import DataTable, { SortOrder, TableColumn } from "react-data-table-component";
 import { METHOD_TO_COLOR, RISK_TO_COLOR } from "../../constants";
 import { getCustomStyles, rowStyles, SkeletonCell } from "../utils/TableUtils";
-import { Alert, Endpoint } from "@common/types";
+import { Alert, ApiEndpoint } from "@common/types";
 import { getDateTimeString } from "../../utils";
 
 const PAGE_SIZE = 10;
@@ -72,7 +72,7 @@ const TableLoader: React.FC<TableLoaderProps> = ({
   ].map((e) => ({
     ...e,
     sortable: true,
-    cell: (row: Endpoint) => <SkeletonCell />,
+    cell: (row: ApiEndpoint) => <SkeletonCell />,
   }));
 
   return (

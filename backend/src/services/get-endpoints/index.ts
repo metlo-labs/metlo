@@ -1,13 +1,17 @@
 import { FindManyOptions, FindOptionsWhere, In } from "typeorm";
-import { GetEndpointParams } from "types";
 import { AppDataSource } from "data-source";
 import { ApiEndpoint, ApiTrace } from "models";
+import {
+  GetEndpointParams,
+  ApiEndpoint as ApiEndpointResponse,
+  ApiEndpointDetailed as ApiEndpointDetailedResponse,
+} from "@common/types";
 import Error500InternalServer from "errors/error-500-internal-server";
 
 export class GetEndpointsService {
   static async getEndpoints(
     getEndpointParams: GetEndpointParams
-  ): Promise<[any[], number]> {
+  ): Promise<[ApiEndpointResponse[], number]> {
     try {
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
       const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
@@ -77,7 +81,9 @@ export class GetEndpointsService {
     }
   }
 
-  static async getEndpoint(endpointId: string): Promise<any> {
+  static async getEndpoint(
+    endpointId: string
+  ): Promise<ApiEndpointDetailedResponse> {
     try {
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
       const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
@@ -122,7 +128,7 @@ export class GetEndpointsService {
     }
   }
 
-  static async getHosts() {
+  static async getHosts(): Promise<string[]> {
     try {
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
       const hosts: { [host: string]: string }[] = await apiEndpointRepository

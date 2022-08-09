@@ -3,19 +3,19 @@ import { Not } from "typeorm";
 import { RestMethod, SpecExtension } from "enums";
 import { ApiEndpoint, ApiTrace, MatchedDataClass, OpenApiSpec } from "models";
 import Error400BadRequest from "errors/error-400-bad-request";
-import { JSONValue } from "types";
+import { JSONValue, OpenApiSpec as OpenApiSpecResponse } from "@common/types";
 import { AppDataSource } from "data-source";
 import { getPathRegex } from "utils";
 import Error409Conflict from "errors/error-409-conflict";
 
 export class SpecService {
-  static async getSpec(specName: string): Promise<OpenApiSpec> {
+  static async getSpec(specName: string): Promise<OpenApiSpecResponse> {
     const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec);
     const spec = await openApiSpecRepository.findOneBy({ name: specName });
     return spec;
   }
 
-  static async getSpecs(): Promise<OpenApiSpec[]> {
+  static async getSpecs(): Promise<OpenApiSpecResponse[]> {
     const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec);
     const specList = await openApiSpecRepository.find({});
     return specList;

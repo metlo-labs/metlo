@@ -1,7 +1,7 @@
 import { RiskScore } from "enums";
 import { Alert, ApiEndpoint, MatchedDataClass } from "models";
 import { AppDataSource } from "data-source";
-import { SummaryResponse } from "types";
+import { Summary as SummaryResponse } from "@common/types";
 
 export class SummaryService {
   static async getSummaryData(): Promise<SummaryResponse> {

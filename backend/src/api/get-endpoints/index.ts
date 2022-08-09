@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { GetEndpointsService } from "services/get-endpoints";
-import { GetEndpointParams } from "types";
+import { GetEndpointParams } from "@common/types";
 import ApiResponseHandler from "api-response-handler";
 
 export const getEndpointsHandler = async (req: Request, res: Response) => {

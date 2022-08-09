@@ -16,7 +16,7 @@ const PIIDataList: React.FC<PIIDataListProps> = React.memo(({ PIIFields }) => {
     {
       name: "Risk Score",
       sortable: true,
-      selector: (row: PIIField) => row.risk || "",
+      selector: (row: PIIField) => DATA_CLASS_TO_RISK_SCORE[row.dataClass] || "",
       cell: (row: PIIField) => (
         <Badge
           p="1"

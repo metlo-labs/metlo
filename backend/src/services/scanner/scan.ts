@@ -11,7 +11,7 @@ import {
   SSN_REGEXP,
   VIN_REGEXP,
 } from "services/scanner/regexp";
-import { PairObject } from "types";
+import { PairObject } from "@common/types";
 import { ApiEndpoint, ApiTrace, MatchedDataClass } from "models";
 import { getRiskScore } from "utils";
 
@@ -181,7 +181,7 @@ export class ScannerService {
     apiEndpoint.riskScore = getRiskScore(apiEndpoint);
   }
 
-  static scan = (text: any) => {
+  static scan(text: any): Record<DataClass, string[]> {
     const res: Record<DataClass, string[]> = {} as Record<DataClass, string[]>;
     if (typeof text !== "string") {
       return res;
@@ -193,5 +193,5 @@ export class ScannerService {
       }
     });
     return res;
-  };
+  }
 }

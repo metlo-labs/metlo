@@ -1,5 +1,5 @@
 import { Raw } from "typeorm";
-import { TraceParams } from "types";
+import { TraceParams } from "@common/types";
 import { ApiEndpoint, ApiTrace } from "models";
 import { AppDataSource } from "data-source";
 import { ScannerService } from "services/scanner/scan";

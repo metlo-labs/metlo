@@ -1,4 +1,4 @@
-import { Alert, Connection, Endpoint } from "@common/types";
+import { Alert, Connection, ApiEndpointDetailed } from "@common/types";
 import {
   RestMethod,
   RiskScore,
@@ -7,45 +7,45 @@ import {
   DataClass,
 } from "@common/enums";
 
-export const testEndpoints: Endpoint[] = [
+export const testEndpoints: ApiEndpointDetailed[] = [
   {
     uuid: "5239bcfe-bf24-40e6-b952-b9811210108e",
     host: "AWS Gateway 1",
     path: "/foo/bar/{test}",
     method: RestMethod.POST,
     riskScore: RiskScore.HIGH,
-    firstDetected: "2022-07-31T00:52:10.586",
-    lastActive: "2022-07-31T00:52:10.586Z",
-    piiData: [
+    firstDetected: new Date("2022-07-31T00:52:10.586"),
+    lastActive: new Date("2022-07-31T00:52:10.586Z"),
+    sensitiveDataClasses: [
       {
         uuid: "62073e0e-7a46-4875-83b8-fd356cdaadaf",
         dataClass: DataClass.SSN,
         dataPath: "result.asdf",
-        risk: RiskScore.HIGH,
         createdAt: new Date("2022-07-31T00:52:10.586Z"),
         updatedAt: new Date("2022-07-31T00:52:10.586Z"),
         matches: [],
         isRisk: true,
+        apiEndpointUuid: "5239bcfe-bf24-40e6-b952-b9811210108e",
       },
       {
         uuid: "af226cd2-5fe6-4cf5-b55e-3bf6921d1e09",
         dataClass: DataClass.CREDIT_CARD,
         dataPath: "result.asdf.asdf",
-        risk: RiskScore.MEDIUM,
         createdAt: new Date("2022-07-31T00:52:10.586Z"),
         updatedAt: new Date("2022-07-31T00:52:10.586Z"),
         matches: [],
         isRisk: true,
+        apiEndpointUuid: "5239bcfe-bf24-40e6-b952-b9811210108e",
       },
       {
         uuid: "0bf054a6-6005-47e6-8d01-7ecb4c48be68",
         dataClass: DataClass.IP_ADDRESS,
         dataPath: "result.asdf.bar",
-        risk: RiskScore.LOW,
         createdAt: new Date("2022-07-31T00:52:10.586Z"),
         updatedAt: new Date("2022-07-31T00:52:10.586Z"),
         matches: [],
         isRisk: true,
+        apiEndpointUuid: "5239bcfe-bf24-40e6-b952-b9811210108e",
       },
     ],
     traces: [
@@ -108,18 +108,30 @@ export const testEndpoints: Endpoint[] = [
         resolved: false,
       },
     ],
+    openapiSpec: null,
+    openapiSpecName: "",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    owner: "",
+    totalCalls: 1,
   },
   {
     uuid: "3425c51f-179b-45b6-9c1c-938f7f678f17",
     host: "AWS Gateway 1",
     path: "/foo/blam/{test}",
-    method: "GET",
+    method: RestMethod.GET,
     riskScore: RiskScore.MEDIUM,
-    firstDetected: "2022-07-31T00:52:10.586Z",
-    lastActive: "2022-07-31T00:52:10.586Z",
-    piiData: [],
+    firstDetected: new Date("2022-07-31T00:52:10.586Z"),
+    lastActive: new Date("2022-07-31T00:52:10.586Z"),
+    sensitiveDataClasses: [],
     traces: [],
     alerts: [],
+    openapiSpec: null,
+    openapiSpecName: "",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    owner: "",
+    totalCalls: 1,
   },
 ];
 

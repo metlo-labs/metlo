@@ -7,7 +7,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { Meta, PairObject } from "types";
+import { Meta, PairObject } from "@common/types";
 import { RestMethod } from "enums";
 import { ApiEndpoint } from "models/api-endpoint";
 

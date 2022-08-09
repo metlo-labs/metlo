@@ -103,24 +103,11 @@ export interface PIIField {
   uuid: string;
   dataClass: string;
   dataPath: string;
-  risk: RiskScore;
   createdAt: Date;
   updatedAt: Date;
   matches: string[];
   isRisk: boolean;
-}
-
-export interface Endpoint {
-  uuid: string;
-  host: string;
-  path: string;
-  method: string;
-  riskScore: RiskScore;
-  firstDetected: string;
-  lastActive: string;
-  piiData: PIIField[];
-  traces: ApiTrace[];
-  alerts: Alert[];
+  apiEndpointUuid: string;
 }
 
 export interface ApiEndpoint {
@@ -128,8 +115,8 @@ export interface ApiEndpoint {
   path: string;
   createdAt: Date;
   updatedAt: Date;
-  firstDetected: Date;
-  lastActive: Date;
+  firstDetected?: Date;
+  lastActive?: Date;
   host: string;
   totalCalls: number;
   method: RestMethod;
@@ -141,7 +128,7 @@ export interface ApiEndpoint {
 export interface ApiEndpointDetailed extends ApiEndpoint {
   sensitiveDataClasses: PIIField[];
   openapiSpec: OpenApiSpec;
-  alerts: any[];
+  alerts: Alert[];
   traces: ApiTrace[];
 }
 
@@ -161,7 +148,7 @@ export interface Connection {
   type: ConnectionType;
 }
 
-export interface SummaryResponse {
+export interface Summary {
   highRiskAlerts: number;
   newAlerts: number;
   endpointsTracked: number;

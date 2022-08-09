@@ -1,7 +1,7 @@
 import { Heading, VStack } from "@chakra-ui/react";
 import { getSummary, getTopAlerts } from "api/home";
 import { GetServerSideProps } from "next";
-import { SummaryResponse, Alert } from "@common/types";
+import { Summary, Alert } from "@common/types";
 import superjson from "superjson";
 import HomePage from "../components/Home";
 import { SideNavLinkDestination } from "../components/Sidebar/NavLinkUtils";
@@ -9,7 +9,7 @@ import { SidebarLayoutShell } from "../components/SidebarLayoutShell";
 import { ContentContainer } from "../components/utils/ContentContainer";
 
 const Index = ({ summary, topAlerts }) => {
-  const parsedSummary = superjson.parse<SummaryResponse>(summary);
+  const parsedSummary = superjson.parse<Summary>(summary);
   const parsedTopAlerts = superjson.parse<Alert[]>(topAlerts);
   return (
     <SidebarLayoutShell currentTab={SideNavLinkDestination.Home}>
