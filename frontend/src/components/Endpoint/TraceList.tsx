@@ -33,6 +33,24 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces }) => {
   const headerBg = useColorModeValue("rgb(252, 252, 252)", "rgb(17, 19, 23)");
   const divColor = useColorModeValue("rgb(216, 216, 216)", "black");
   const headerTextColor = useColorModeValue("gray.700", "gray.200");
+  const selectedRowColor = useColorModeValue(
+    "rgb(242, 242, 242)",
+    "rgb(34, 37, 42)"
+  );
+
+  const conditionalStyles = [
+    {
+      when: (row: ApiTrace) => {
+        if (!trace) {
+          return false;
+        }
+        return row.uuid == trace.uuid;
+      },
+      style: {
+        backgroundColor: selectedRowColor,
+      },
+    },
+  ];
 
   const columns: TableColumn<ApiTrace>[] = [
     {
@@ -123,6 +141,7 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces }) => {
           fixedHeader={true}
           fixedHeaderScrollHeight="100%"
           style={rowStyles}
+          conditionalRowStyles={conditionalStyles}
           columns={columns}
           data={traces}
           customStyles={getCustomStyles(colorMode.colorMode)}

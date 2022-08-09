@@ -123,7 +123,7 @@ const TraceDetail: React.FC<TraceDetailProps> = React.memo(({ trace }) => {
           <VStack h="full" alignItems="flex-start">
             <Text fontWeight="semibold">Request Headers</Text>
             {JSONContentViewer(
-              JSON.stringify(trace.requestHeaders),
+              JSON.stringify(trace.requestHeaders || []),
               colorMode.colorMode
             )}
           </VStack>
