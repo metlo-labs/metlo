@@ -20,7 +20,7 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "importHelpers": true,
-    "baseUrl": "src"
+    "baseUrl": "./src",
   },
   "include": [
     "src/**/*.ts",
@@ -28,7 +28,6 @@
     "public/favicon/*.png",
     "public/robots.txt",
     ".env",
-    "models/**/*.ts",
   ],
   "exclude": ["node_modules", "src/http", "src/tests"]
 }

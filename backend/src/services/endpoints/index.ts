@@ -1,6 +1,6 @@
 import { IsNull, Raw } from "typeorm";
 import { isSuspectedParamater } from "../../utils";
-import { ApiEndpoint, ApiTrace, OpenApiSpec } from "../../../models";
+import { ApiEndpoint, ApiTrace, OpenApiSpec } from "../../models";
 import { AppDataSource } from "../../data-source";
 import { AlertType, RestMethod, SpecExtension } from "../../enums";
 import { ScannerService } from "../scanner/scan";

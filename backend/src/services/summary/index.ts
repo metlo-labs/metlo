@@ -1,5 +1,5 @@
 import { RiskScore } from "../../enums";
-import { Alert, ApiEndpoint, MatchedDataClass } from "../../../models";
+import { Alert, ApiEndpoint, MatchedDataClass } from "../../models";
 import { AppDataSource } from "../../data-source";
 import { SummaryResponse } from "../../types";
 

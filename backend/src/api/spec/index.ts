@@ -5,7 +5,7 @@ import { SpecService } from "../../services/spec";
 import ApiResponseHandler from "../../api-response-handler";
 import Error400BadRequest from "../../errors/error-400-bad-request";
 import { AppDataSource } from "../../data-source";
-import { OpenApiSpec } from "../../../models";
+import { OpenApiSpec } from "../../models";
 import { SpecExtension } from "../../enums";
 
 export const getSpecHandler = async (req: Request, res: Response) => {

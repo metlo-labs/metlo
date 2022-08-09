@@ -1,4 +1,4 @@
-import { MatchedDataClass } from "../../../models";
+import { MatchedDataClass } from "../../models";
 import { AppDataSource } from "../../data-source";
 
 export class DataClassService {

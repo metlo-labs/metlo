@@ -12,7 +12,7 @@ import {
   VIN_REGEXP,
 } from "./regexp";
 import { PairObject } from "../../types";
-import { ApiEndpoint, ApiTrace, MatchedDataClass } from "../../../models";
+import { ApiEndpoint, ApiTrace, MatchedDataClass } from "../../models";
 import { getRiskScore } from "../../utils";
 
 const DATA_CLASS_REGEX_MAP = new Map<DataClass, RegExp>([

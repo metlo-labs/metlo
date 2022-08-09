@@ -1,53 +1,65 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import {
+  BaseEntity,
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from "typeorm";
 import { MatchedDataClass } from "./matched-data-class";
-import { RestMethod, RiskScore } from "../src/enums";
+import { RestMethod, RiskScore } from "../enums";
 import { OpenApiSpec } from "./openapi-spec";
 import { Alert } from "./alert";
 
 @Entity()
 export class ApiEndpoint extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
-  uuid: string
+  uuid: string;
 
   @Column({ nullable: false })
-  path: string
+  path: string;
 
   @Column({ nullable: false })
-  pathRegex: string
+  pathRegex: string;
 
   @CreateDateColumn({ type: "timestamptz" })
-  createdAt: Date
+  createdAt: Date;
 
   @UpdateDateColumn({ type: "timestamptz" })
-  updatedAt: Date
+  updatedAt: Date;
 
   @Column({ nullable: false })
-  host: string
+  host: string;
 
-  @Column({ type: "integer", default: 0})
-  totalCalls: number
+  @Column({ type: "integer", default: 0 })
+  totalCalls: number;
 
-  @Column({ type: "enum", enum: RestMethod})
-  method: RestMethod
+  @Column({ type: "enum", enum: RestMethod })
+  method: RestMethod;
 
   @Column({ type: "enum", enum: RiskScore, default: RiskScore.NONE })
-  riskScore: RiskScore
+  riskScore: RiskScore;
 
   @Column({ nullable: true })
-  owner: string
+  owner: string;
 
-  @OneToMany(() => MatchedDataClass, dataClass => dataClass.apiEndpoint, { cascade: true })
-  sensitiveDataClasses: MatchedDataClass[]
+  @OneToMany(() => MatchedDataClass, (dataClass) => dataClass.apiEndpoint, {
+    cascade: true,
+  })
+  sensitiveDataClasses: MatchedDataClass[];
 
-  @OneToMany(() => Alert, alert => alert.apiEndpoint, { cascade: true })
-  alerts: Alert[]
+  @OneToMany(() => Alert, (alert) => alert.apiEndpoint, { cascade: true })
+  alerts: Alert[];
 
   @Column({ nullable: true })
-  openapiSpecName: string
+  openapiSpecName: string;
 
   @ManyToOne(() => OpenApiSpec)
   @JoinColumn()
-  openapiSpec: OpenApiSpec
+  openapiSpec: OpenApiSpec;
 
   addDataClass(dataClass: MatchedDataClass) {
     if (this.sensitiveDataClasses == null) {

@@ -1,6 +1,6 @@
 import { Raw } from "typeorm";
 import { TraceParams } from "../../types";
-import { ApiEndpoint, ApiTrace } from "../../../models";
+import { ApiEndpoint, ApiTrace } from "../../models";
 import { AppDataSource } from "../../data-source";
 import { ScannerService } from "../scanner/scan";
 import Error500InternalServer from "../../errors/error-500-internal-server";

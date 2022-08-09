@@ -1,5 +1,5 @@
 import validator from "validator";
-import { ApiEndpoint } from "../../models";
+import { ApiEndpoint } from "../models";
 import { pathParameterRegex } from "../constants";
 import { RiskScore } from "../enums";
 

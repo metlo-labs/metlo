@@ -6,7 +6,7 @@ import {
   ApiTrace,
   MatchedDataClass,
   OpenApiSpec,
-} from "../../../models";
+} from "../../models";
 import Error400BadRequest from "../../errors/error-400-bad-request";
 import { JSONValue } from "../../types";
 import { AppDataSource } from "../../data-source";

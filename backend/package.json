@@ -9,8 +9,8 @@
     "watch": "tsc -w",
     "dev": "nodemon src/index.ts",
     "dev-jobs": "nodemon src/jobs.ts",
-    "start": "node dist/src/index.js",
-    "start-jobs": "node dist/src/jobs.js",
+    "start": "node dist/index.js",
+    "start-jobs": "node dist/jobs.js",
     "format": "prettier --write './src/**/*.{ts,tsx}'",
     "rnd": "nodemon src/aws-services/create-ec2-instance.ts"
   },
