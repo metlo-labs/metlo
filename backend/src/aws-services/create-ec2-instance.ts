@@ -27,7 +27,6 @@ import {
 //   PricingClientConfig,
 //   GetProductsCommand,
 // } from "@aws-sdk/client-pricing";
-import { generate_random_string } from "./utils";
 
 export interface MachineSpecifications {
   minCpu: number;
@@ -64,6 +63,118 @@ export async function get_all_images(
   );
 }
 
+const supported_instances = [
+  "a1",
+  "c5",
+  "c5a",
+  "c5ad",
+  "c5d",
+  "c5n",
+  "c6a",
+  "c6g",
+  "c6gd",
+  "c6gn",
+  "c6i",
+  "c6id",
+  "d3",
+  "d3en",
+  "dl1",
+  "g4",
+  "g4ad",
+  "g5",
+  "g5g",
+  "hpc6a",
+  "i3en",
+  "i4i",
+  "im4gn",
+  "inf1",
+  "is4gen",
+  "m5",
+  "m5a",
+  "m5ad",
+  "m5d",
+  "m5dn",
+  "m5n",
+  "m5zn",
+  "m6a",
+  "m6g",
+  "m6gd",
+  "m6i",
+  "m6id",
+  "p3dn.24xlarge",
+  "p4",
+  "r5",
+  "r5a",
+  "r5ad",
+  "r5b",
+  "r5d",
+  "r5dn",
+  "r5n",
+  "r6a",
+  "r6g",
+  "r6gd",
+  "r6i",
+  "r6id",
+  "t3",
+  "t3a",
+  "t4g",
+  "u-6tb1.56xlarge",
+  "u-6tb1.112xlarge",
+  "u-9tb1.112xlarge",
+  "u-12tb1.112xlarge",
+  "vt1",
+  "x2gd",
+  "x2idn",
+  "x2iedn",
+  "x2iezn",
+  "z1d",
+  "a1.metal",
+  "c5.metal",
+  "c5d.metal",
+  "c5n.metal",
+  "c6a.metal",
+  "c6g.metal",
+  "c6gd.metal",
+  "c6i.metal",
+  "c6id.metal",
+  "g4dn.metal",
+  "g5g.metal",
+  "i3.metal",
+  "i3en.metal",
+  "i4i.metal",
+  "m5.metal",
+  "m5d.metal",
+  "m5dn.metal",
+  "m5n.metal",
+  "m5zn.metal",
+  "m6a.metal",
+  "m6g.metal",
+  "m6gd.metal",
+  "m6i.metal",
+  "m6id.metal",
+  "mac1.metal",
+  "r5.metal",
+  "r5b.metal",
+  "r5d.metal",
+  "r5dn.metal",
+  "r5n.metal",
+  "r6a.metal",
+  "r6g.metal",
+  "r6gd.metal",
+  "r6i.metal",
+  "r6id.metal",
+  "u-6tb1.metal",
+  "u-9tb1.metal",
+  "u-12tb1.metal",
+  "u-18tb1.metal",
+  "u-24tb1.metal",
+  "x2gd.metal",
+  "x2idn.metal",
+  "x2iedn.metal",
+  "x2iezn.metal",
+  "z1d.metal",
+];
+
 export async function get_latest_image(
   client: EC2Client,
   img_names: Array<string> = [
@@ -89,10 +200,38 @@ export async function get_valid_types(
         Max: specs.maxMem ? specs.maxMem * 1024 : null,
       },
       InstanceGenerations: ["current"],
+      BurstablePerformance: "included",
+      BareMetal: "included",
+      ExcludedInstanceTypes: [
+        "t2.nano",
+        "t2.micro",
+        "t2.small",
+        "t2.medium",
+        "t2.large",
+        "t2.xlarge",
+        "t2.2xlarge",
+        "c3.large",
+        "c3.xlarge",
+        "c3.2xlarge",
+        "c3.4xlarge",
+        "c3.8xlarge",
+        "r3.large",
+        "r3.xlarge",
+        "r3.2xlarge",
+        "r3.4xlarge",
+        "r3.8xlarge",
+        "i3.xlarge",
+        "i3.2xlarge",
+        "i3.4xlarge",
+        "i3.8xlarge",
+      ],
     },
   } as GetInstanceTypesFromInstanceRequirementsCommandInput);
   let resp = await client.send(command);
-  return resp.InstanceTypes;
+  return resp.InstanceTypes.filter((x) => {
+    let a = supported_instances.filter((y) => x.InstanceType.includes(y));
+    return a.length > 0;
+  });
 }
 
 export async function describe_type(client: EC2Client, Instance_type: string) {
@@ -147,9 +286,9 @@ export async function list_keypairs(client: EC2Client) {
 export async function create_new_instance(
   client: EC2Client,
   instance_ami: string,
-  instance_type: string
+  instance_type: string,
+  id: string
 ): Promise<[RunInstancesCommandOutput, CreateKeyPairCommandOutput]> {
-  const id = generate_random_string(12);
   const key = await create_new_keypair(client, `METLO-Instance-${id}-Key`);
   const command = new RunInstancesCommand({
     MaxCount: 1,

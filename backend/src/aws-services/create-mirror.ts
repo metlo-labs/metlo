@@ -10,6 +10,8 @@ import {
   EC2Client,
   TrafficMirrorFilterRule,
   TagSpecification,
+  DeleteTrafficMirrorFilterCommand,
+  DeleteTrafficMirrorFilterCommandInput,
 } from "@aws-sdk/client-ec2";
 import { createHash, Hash, randomUUID } from "crypto";
 
@@ -34,7 +36,7 @@ export async function create_mirror_target(
 ) {
   let command = new CreateTrafficMirrorTargetCommand({
     NetworkInterfaceId: network_interface_id,
-    ClientToken: network_interface_id,
+    ClientToken: randomUUID(),
     TagSpecifications: [
       {
         ResourceType: "traffic-mirror-target",
@@ -65,7 +67,7 @@ export async function create_mirror_filter_rules(
   client: EC2Client,
   unique_id: string,
   filter_rules: Array<TrafficFilterRuleSpecs>,
-  filter: TrafficMirrorFilterRule
+  filter_id: string
 ) {
   let command_resps = [];
   for (const v of filter_rules) {
@@ -83,7 +85,7 @@ export async function create_mirror_filter_rules(
       SourcePortRange: v.source_port,
       Protocol: v.protocol,
       RuleAction: "accept",
-      TrafficMirrorFilterId: filter.TrafficMirrorFilterId,
+      TrafficMirrorFilterId: filter_id,
     } as CreateTrafficMirrorFilterRuleCommandInput);
     let resp = client.send(command);
     command_resps.push(resp);
@@ -110,5 +112,17 @@ export async function create_mirror_session(
       },
     ],
   } as CreateTrafficMirrorSessionCommandInput);
+  return await client.send(command);
+}
+
+export async function delete_mirror_filter(
+  client: EC2Client,
+  filter_id: string,
+  unique_id: string
+) {
+  let command = new DeleteTrafficMirrorFilterCommand({
+    ClientToken: unique_id,
+    TrafficMirrorFilterId: filter_id,
+  } as DeleteTrafficMirrorFilterCommandInput);
   return await client.send(command);
 }
