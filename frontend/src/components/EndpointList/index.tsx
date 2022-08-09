@@ -1,5 +1,5 @@
+import React from "react";
 import { Box, VStack } from "@chakra-ui/react";
-import React, { useState } from "react";
 import { ApiEndpoint, GetEndpointParams } from "@common/types";
 import EndpointFilters from "./Filters";
 import List from "./List";

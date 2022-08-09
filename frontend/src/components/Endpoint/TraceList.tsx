@@ -5,43 +5,36 @@ import {
   HStack,
   Badge,
   Text,
-  useDisclosure,
   Box,
+  StackDivider,
+  Button,
+  Heading,
+  useColorModeValue,
 } from "@chakra-ui/react";
+import { ImCross } from "@react-icons/all-files/im/ImCross";
+import { DateTime } from "luxon";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { getCustomStyles, rowStyles } from "../utils/TableUtils";
 import { ApiTrace } from "@common/types";
 import { METHOD_TO_COLOR } from "../../constants";
 import { statusCodeToColor } from "../utils/StatusCode";
-import { getDateTimeString } from "../../utils";
 import TraceDetail from "./TraceDetail";
 
 interface TraceListProps {
   traces: ApiTrace[];
 }
 
+const getDateTimeString = (date: Date) =>
+  DateTime.fromISO(date.toString()).toLocaleString(DateTime.DATETIME_SHORT);
+
 const TraceList: React.FC<TraceListProps> = React.memo(({ traces }) => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const [trace, setTrace] = useState<ApiTrace | undefined>();
   const colorMode = useColorMode();
-
-  const openModal = (trace: ApiTrace) => {
-    setTrace(trace);
-    onOpen();
-  };
+  const headerBg = useColorModeValue("rgb(252, 252, 252)", "rgb(17, 19, 23)");
+  const divColor = useColorModeValue("rgb(216, 216, 216)", "black");
+  const headerTextColor = useColorModeValue("gray.700", "gray.200");
 
   const columns: TableColumn<ApiTrace>[] = [
-    {
-      name: "Time",
-      sortable: true,
-      selector: (row: ApiTrace) => `${row.createdAt}`,
-      cell: (row: ApiTrace) => (
-        <Text fontFamily="mono" fontSize="sm">
-          {getDateTimeString(row.createdAt)}
-        </Text>
-      ),
-      grow: 2,
-    },
     {
       name: "Code",
       sortable: true,
@@ -52,34 +45,54 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces }) => {
           px="2"
           py="1"
           colorScheme={statusCodeToColor(row.responseStatus) || "gray"}
+          data-tag="allowRowEvents"
         >
           {row.responseStatus}
         </Badge>
       ),
-      id: "path",
+      id: "code",
+      minWidth: "unset",
       grow: 0,
+    },
+    {
+      name: "Time",
+      selector: (row: ApiTrace) => `${row.createdAt}`,
+      cell: (row: ApiTrace) => (
+        <Text fontSize="sm" data-tag="allowRowEvents">
+          {getDateTimeString(row.createdAt)}
+        </Text>
+      ),
+      id: "time",
+      width: "160px",
     },
     {
       name: "Path",
       sortable: true,
       selector: (row: ApiTrace) => `${row.method}-${row.path}`,
       cell: (row: ApiTrace) => (
-        <HStack>
+        <HStack w="full" data-tag="allowRowEvents">
           <Badge
             fontSize="sm"
             px="2"
             py="1"
             colorScheme={METHOD_TO_COLOR[row.method] || "gray"}
+            data-tag="allowRowEvents"
           >
             {row.method.toUpperCase()}
           </Badge>
-          <Code p="1" pointerEvents="none">
+          <Code
+            p="1"
+            fontSize="sm"
+            pointerEvents="none"
+            whiteSpace="nowrap"
+            data-tag="allowRowEvents"
+          >
             {row.path}
           </Code>
         </HStack>
       ),
+      grow: 1,
       id: "path",
-      grow: 6,
     },
     {
       name: "Source",
@@ -89,39 +102,57 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces }) => {
         <Text
           fontFamily="mono"
           fontSize="sm"
+          data-tag="allowRowEvents"
         >{`${row.meta.source}:${row.meta.sourcePort}`}</Text>
       ),
       id: "source",
-      grow: 3,
-    },
-    {
-      name: "Destination",
-      sortable: true,
-      selector: (row: ApiTrace) =>
-        `${row.meta.destination}:${row.meta.destinationPort}`,
-      cell: (row: ApiTrace) => (
-        <Text
-          fontFamily="mono"
-          fontSize="sm"
-        >{`${row.meta.destination}:${row.meta.destinationPort}`}</Text>
-      ),
-      id: "destinaition",
-      grow: 3,
+      width: "225px",
+      hide: 1400,
     },
   ];
   return (
-    <Box h="full">
-      <TraceDetail trace={trace} isOpen={isOpen} onClose={onClose} />
-      <DataTable
-        fixedHeader={true}
-        fixedHeaderScrollHeight="100%"
-        style={rowStyles}
-        columns={columns}
-        data={traces}
-        customStyles={getCustomStyles(colorMode.colorMode)}
-        onRowClicked={(row) => openModal(row)}
-      />
-    </Box>
+    <HStack
+      h="full"
+      divider={<StackDivider borderWidth="2px" />}
+      spacing="0"
+      w="full"
+      alignItems="flex-start"
+    >
+      <Box w={trace ? "calc(100% - 650px)" : "full"} h="full">
+        <DataTable
+          fixedHeader={true}
+          fixedHeaderScrollHeight="100%"
+          style={rowStyles}
+          columns={columns}
+          data={traces}
+          customStyles={getCustomStyles(colorMode.colorMode)}
+          onRowClicked={setTrace}
+        />
+      </Box>
+      {trace ? (
+        <Box w="650px" h="full">
+          <HStack
+            w="full"
+            justifyContent="space-between"
+            alignItems="center"
+            height="52px"
+            px="4"
+            borderBottom="1px"
+            borderColor={divColor}
+            color={headerTextColor}
+            bg={headerBg}
+          >
+            <Heading size="md">Details</Heading>
+            <Button variant="ghost" onClick={() => setTrace(undefined)}>
+              <ImCross />
+            </Button>
+          </HStack>
+          <Box h="calc(100% - 52px)">
+            <TraceDetail trace={trace} />
+          </Box>
+        </Box>
+      ) : null}
+    </HStack>
   );
 });
 
