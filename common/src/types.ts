@@ -59,6 +59,10 @@ export interface GetAlertParams {
   limit?: number;
 }
 
+export interface UpdatePIIFieldParams {
+  isRisk: boolean;
+}
+
 export type JSONValue =
   | string
   | number

@@ -15,7 +15,9 @@ export class SummaryService {
     });
     const newAlerts = await alertRepository.countBy({ resolved: false });
     const endpointsTracked = await apiEndpointRepository.count({});
-    const piiDataFields = await matchedDataClassRepository.count({});
+    const piiDataFields = await matchedDataClassRepository.countBy({
+      isRisk: true,
+    });
     return {
       highRiskAlerts,
       newAlerts,

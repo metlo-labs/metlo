@@ -54,6 +54,10 @@ export interface GetAlertParams {
   limit?: number;
 }
 
+export interface UpdatePIIFieldParams {
+  isRisk: boolean;
+}
+
 export interface AlertResponse {
   uuid: string;
   type: AlertType;

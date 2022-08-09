@@ -19,7 +19,7 @@ import {
   updateSpecHandler,
   uploadNewSpecHandler,
 } from "./api/spec";
-import { isRiskHandler } from "./api/data-class";
+import { updatePIIFieldHandler } from "./api/data-class";
 import {
   getAlertsHandler,
   getTopAlertsHandler,
@@ -41,6 +41,7 @@ app.get("/api/v1", (req: Request, res: Response) => {
 
 app.post("/api/v1/log-request/single", logRequestSingleHandler);
 app.post("/api/v1/log-request/batch", logRequestBatchHandler);
+
 app.get("/api/v1/summary", getSummaryHandler);
 app.get("/api/v1/endpoints/hosts", getHostsHandler);
 app.get("/api/v1/endpoints", getEndpointsHandler);
@@ -56,7 +57,7 @@ app.put(
 app.get("/api/v1/specs", getSpecListHandler);
 app.get("/api/v1/spec/:specFileName", getSpecHandler);
 
-app.put("/api/v1/data-class/isRisk/:dataClassId", isRiskHandler);
+app.put("/api/v1/data-class/:piiFieldId", updatePIIFieldHandler);
 
 app.get("/api/v1/alerts", getAlertsHandler);
 app.get("/api/v1/topAlerts", getTopAlertsHandler);

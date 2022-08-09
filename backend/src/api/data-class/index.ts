@@ -1,22 +1,22 @@
 import { Request, Response } from "express";
 import { DataClassService } from "../../services/data-class";
-import { IsRiskParams } from "../../types";
+import { UpdatePIIFieldParams } from "../../types";
 import ApiResponseHandler from "../../api-response-handler";
 import Error400BadRequest from "../../errors/error-400-bad-request";
 import { AppDataSource } from "../../data-source";
 import { ApiEndpoint } from "../../../models";
 import { getRiskScore } from "../../utils";
 
-export const isRiskHandler = async (req: Request, res: Response) => {
+export const updatePIIFieldHandler = async (req: Request, res: Response) => {
   try {
-    const { isRisk }: IsRiskParams = req.body;
-    const { dataClassId } = req.params;
+    const { isRisk }: UpdatePIIFieldParams = req.body;
+    const { piiFieldId } = req.params;
     if (isRisk === null || isRisk === undefined) {
       throw new Error400BadRequest("isRisk not provided.");
     }
     const updatedMatchedDataClass = await DataClassService.updateIsRisk(
       isRisk,
-      dataClassId
+      piiFieldId
     );
     if (updatedMatchedDataClass) {
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
