@@ -31,7 +31,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(
         <VStack w="full" alignItems="flex-start" spacing="4">
           <Heading fontSize="xl">Top Alerts</Heading>
           <Box w="full" borderWidth="1px">
-            <AlertList alerts={alerts} showEndpoint />
+            <AlertList alerts={alerts} />
           </Box>
         </VStack>
       </VStack>

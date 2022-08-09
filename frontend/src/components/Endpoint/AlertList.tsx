@@ -1,26 +1,42 @@
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/router";
-import { useColorMode, Badge, HStack, Code, Text } from "@chakra-ui/react";
+import { useColorMode, Badge, HStack, Code, Text, Box, useDisclosure } from "@chakra-ui/react";
+import { ImCheckmark } from "@react-icons/all-files/im/ImCheckmark";
+import { ImCross } from "@react-icons/all-files/im/ImCross";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { getCustomStyles, rowStyles } from "../utils/TableUtils";
 import { Alert } from "@common/types";
 import { METHOD_TO_COLOR, RISK_TO_COLOR } from "../../constants";
 import { getDateTimeString } from "../../utils";
+import AlertDetail from "./AlertDetail";
+import { RestMethod } from "@common/enums";
 
 interface AlertListProps {
   alerts: Alert[];
-  showEndpoint?: boolean;
+  endpointPage?: boolean;
+  method?: RestMethod;
+  path?: string;
 }
 
 const AlertList: React.FC<AlertListProps> = React.memo(
-  ({ alerts, showEndpoint }) => {
+  ({ alerts, endpointPage, method, path }) => {
     const router = useRouter();
     const colorMode = useColorMode();
+    const { isOpen, onOpen, onClose } = useDisclosure();
+    const [alert, setAlert ] = useState<Alert| undefined>();
     const onRowClicked = (
       row: Alert,
       e: React.MouseEvent<Element, MouseEvent>
     ) => {
-      router.push({ pathname: `/endpoint/${row.apiEndpointUuid}`, query: { tab: "alerts"} })
+      if (endpointPage) {
+        openModal(row);
+      } else {
+        router.push({ pathname: `/endpoint/${row.apiEndpointUuid}`, query: { tab: "alerts"} })
+      }
+    }
+    const openModal = (alert: Alert) => {
+      setAlert(alert);
+      onOpen();
     }
 
     let columns: TableColumn<Alert>[] = [
@@ -42,7 +58,7 @@ const AlertList: React.FC<AlertListProps> = React.memo(
         grow: 0,
       },
     ];
-    if (showEndpoint) {
+    if (!endpointPage) {
       columns.push({
         name: "Endpoint",
         sortable: true,
@@ -104,14 +120,32 @@ const AlertList: React.FC<AlertListProps> = React.memo(
         grow: 1,
       }
     );
+    if (endpointPage) {
+      columns.push({
+          name: "Resolved",
+          sortable: true,
+          selector: (row: Alert) => row.resolved,
+          cell: (row: Alert) => (
+            <Box alignItems={"end"}>
+              {row.resolved ? <ImCheckmark color="#93DCAC" /> : <ImCross color="#FDB2B2" />}
+            </Box>
+          ),
+          center: true,
+          id: "resolved",
+          grow: 0,
+      })
+    }
     return (
-      <DataTable
-        style={rowStyles}
-        columns={columns}
-        data={alerts}
-        customStyles={getCustomStyles(colorMode.colorMode)}
-        onRowClicked={onRowClicked}
-      />
+      <Box>
+        <AlertDetail alert={alert} isOpen={isOpen} onClose={onClose} method={method} path={path} />
+        <DataTable
+          style={rowStyles}
+          columns={columns}
+          data={alerts}
+          customStyles={getCustomStyles(colorMode.colorMode)}
+          onRowClicked={onRowClicked}
+        />
+      </Box>
     );
   }
 );

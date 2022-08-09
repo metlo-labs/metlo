@@ -114,7 +114,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
             <TraceList traces={endpoint.traces} />
           </TabPanel>
           <TabPanel p="0">
-            <AlertList alerts={endpoint.alerts} />
+            <AlertList alerts={endpoint.alerts} method={endpoint.method} path={endpoint.path} endpointPage />
           </TabPanel>
         </TabPanels>
       </Tabs>

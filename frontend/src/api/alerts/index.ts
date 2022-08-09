@@ -17,3 +17,16 @@ export const getAlerts = async (params: GetAlertParams): Promise<[Alert[], numbe
     return [[], 0];
   }
 }
+
+export const resolveAlert = async (alertId: string, resolutionMessage: string): Promise<Alert> => {
+  try {
+    const resp = await axios.put<Alert>(`${getAPIURL()}/alert/resolve/${alertId}`, { resolutionMessage });
+    if (resp.status === 200 && resp.data) {
+      return resp.data;
+    }
+    return null;
+  } catch (err) {
+    console.error(`Error resolving alert: ${err}`);
+    return null;
+  }
+}

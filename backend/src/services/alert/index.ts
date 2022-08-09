@@ -1,8 +1,12 @@
 import { FindOptionsWhere, In, FindManyOptions } from "typeorm";
 import { AppDataSource } from "../../data-source";
 import { Alert, ApiEndpoint } from "../../../models";
-import { AlertType } from "../../enums";
-import { ALERT_TYPE_TO_RISK_SCORE } from "../../constants";
+import { AlertType, RiskScore } from "../../enums";
+import {
+  ALERT_TYPE_TO_RISK_SCORE,
+  RISK_SCORE_ORDER,
+  RISK_SCORE_ORDER_QUERY,
+} from "../../constants";
 import { GetAlertParams, AlertResponse } from "../../types";
 
 export class AlertService {
@@ -50,6 +54,9 @@ export class AlertService {
       relations: {
         apiEndpoint: true,
       },
+      order: {
+        createdAt: "DESC",
+      },
     });
 
     return alerts;
@@ -57,11 +64,14 @@ export class AlertService {
 
   static async getTopAlerts(): Promise<AlertResponse[]> {
     const alertRepository = AppDataSource.getRepository(Alert);
-    return await alertRepository.find({
-      relations: { apiEndpoint: true },
-      order: { createdAt: "DESC" },
-      take: 20,
-    });
+    return await alertRepository
+      .createQueryBuilder("alert")
+      .leftJoinAndSelect("alert.apiEndpoint", "apiEndpoint")
+      .where("alert.resolved = false")
+      .orderBy(RISK_SCORE_ORDER_QUERY, "DESC")
+      .addOrderBy("alert.createdAt", "DESC")
+      .limit(20)
+      .getMany();
   }
 
   static async getAlert(alertId: string): Promise<AlertResponse> {
@@ -78,6 +88,7 @@ export class AlertService {
     switch (alertType) {
       case AlertType.NEW_ENDPOINT:
         newAlert.description = `A new endpoint has been detected: ${apiEndpoint.path}`;
+        break;
       default:
         newAlert.description = `A new alert.`;
     }

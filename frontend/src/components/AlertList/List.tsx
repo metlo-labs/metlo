@@ -1,5 +1,7 @@
 import React from "react";
 import { Badge, Box, Code, useColorMode, HStack, Text } from "@chakra-ui/react";
+import { ImCheckmark } from "@react-icons/all-files/im/ImCheckmark";
+import { ImCross } from "@react-icons/all-files/im/ImCross";
 import { useRouter } from "next/router";
 import EmptyView from "../utils/EmptyView";
 import DataTable, { SortOrder, TableColumn } from "react-data-table-component";
@@ -61,6 +63,12 @@ const TableLoader: React.FC<TableLoaderProps> = ({
       id: "time",
       grow: 1,
     },
+    {
+      name: "Resolved",
+      selector: (row: Alert) => row.resolved,
+      id: "resolved",
+      grow: 0,
+    }
   ].map((e) => ({
     ...e,
     sortable: true,
@@ -185,6 +193,19 @@ const List: React.FC<AlertTablesProps> = React.memo(
         ),
         id: "time",
         grow: 1,
+      },
+      {
+        name: "Resolved",
+        sortable: true,
+        selector: (row: Alert) => row.resolved,
+        cell: (row: Alert) => (
+          <Box alignItems={"end"}>
+            {row.resolved ? <ImCheckmark color="#93DCAC" /> : <ImCross color="#FDB2B2" />}
+          </Box>
+        ),
+        center: true,
+        id: "resolved",
+        grow: 0,
       }
     ];
 

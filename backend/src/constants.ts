@@ -21,3 +21,19 @@ export const ALERT_TYPE_TO_RISK_SCORE: Record<AlertType, RiskScore> = {
   [AlertType.PII_DATA_DETECTED]: RiskScore.HIGH,
   [AlertType.UNDOCUMENTED_ENDPOINT]: RiskScore.LOW,
 };
+
+export const RISK_SCORE_ORDER: Record<RiskScore, number> = {
+  [RiskScore.HIGH]: 3,
+  [RiskScore.MEDIUM]: 2,
+  [RiskScore.LOW]: 1,
+  [RiskScore.NONE]: 0,
+};
+
+export const RISK_SCORE_ORDER_QUERY = `
+CASE "alert"."riskScore"
+  WHEN '${RiskScore.HIGH}' THEN ${RISK_SCORE_ORDER[RiskScore.HIGH]}
+  WHEN '${RiskScore.MEDIUM}' THEN ${RISK_SCORE_ORDER[RiskScore.MEDIUM]}
+  WHEN '${RiskScore.LOW}' THEN ${RISK_SCORE_ORDER[RiskScore.LOW]}
+  WHEN '${RiskScore.NONE}' THEN ${RISK_SCORE_ORDER[RiskScore.NONE]}
+END
+`;
