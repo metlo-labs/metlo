@@ -1,4 +1,4 @@
-import { RiskScore, DataClass, AlertType } from "./enums";
+import { RiskScore, DataClass, AlertType } from "enums";
 
 export const pathParameterRegex = new RegExp(String.raw`/{[^/]+}`, "g");
 

@@ -1,4 +1,4 @@
-import { DataClass } from "../../enums";
+import { DataClass } from "enums";
 import {
   ADDRESS_REGEXP,
   COORDINATE_REGEXP,
@@ -10,10 +10,10 @@ import {
   PHONE_NUMBER_REGEXP,
   SSN_REGEXP,
   VIN_REGEXP,
-} from "./regexp";
-import { PairObject } from "../../types";
-import { ApiEndpoint, ApiTrace, MatchedDataClass } from "../../models";
-import { getRiskScore } from "../../utils";
+} from "services/scanner/regexp";
+import { PairObject } from "types";
+import { ApiEndpoint, ApiTrace, MatchedDataClass } from "models";
+import { getRiskScore } from "utils";
 
 const DATA_CLASS_REGEX_MAP = new Map<DataClass, RegExp>([
   [DataClass.ADDRESS, ADDRESS_REGEXP],

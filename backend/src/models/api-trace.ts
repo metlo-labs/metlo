@@ -7,9 +7,9 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { Meta, PairObject } from "../types";
-import { RestMethod } from "../enums";
-import { ApiEndpoint } from "./api-endpoint";
+import { Meta, PairObject } from "types";
+import { RestMethod } from "enums";
+import { ApiEndpoint } from "models/api-endpoint";
 
 @Entity()
 export class ApiTrace extends BaseEntity {

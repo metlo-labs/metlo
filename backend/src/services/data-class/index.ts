@@ -1,5 +1,5 @@
-import { MatchedDataClass } from "../../models";
-import { AppDataSource } from "../../data-source";
+import { MatchedDataClass } from "models";
+import { AppDataSource } from "data-source";
 
 export class DataClassService {
   static async updateIsRisk(

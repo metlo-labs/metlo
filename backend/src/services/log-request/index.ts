@@ -1,9 +1,9 @@
 import { Raw } from "typeorm";
-import { TraceParams } from "../../types";
-import { ApiEndpoint, ApiTrace } from "../../models";
-import { AppDataSource } from "../../data-source";
-import { ScannerService } from "../scanner/scan";
-import Error500InternalServer from "../../errors/error-500-internal-server";
+import { TraceParams } from "types";
+import { ApiEndpoint, ApiTrace } from "models";
+import { AppDataSource } from "data-source";
+import { ScannerService } from "services/scanner/scan";
+import Error500InternalServer from "errors/error-500-internal-server";
 
 export class LogRequestService {
   static async logRequest(traceParams: TraceParams) {

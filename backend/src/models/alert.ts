@@ -7,8 +7,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { AlertType, RiskScore } from "../enums";
-import { ApiEndpoint } from "./api-endpoint";
+import { AlertType, RiskScore } from "enums";
+import { ApiEndpoint } from "models/api-endpoint";
 
 @Entity()
 export class Alert extends BaseEntity {

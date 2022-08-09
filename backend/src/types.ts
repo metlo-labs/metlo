@@ -1,5 +1,5 @@
-import { ApiEndpoint } from "./models";
-import { AlertType, RestMethod, RiskScore } from "./enums";
+import { ApiEndpoint } from "models";
+import { AlertType, RestMethod, RiskScore } from "enums";
 
 export interface Meta {
   incoming: boolean;

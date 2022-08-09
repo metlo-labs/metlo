@@ -9,10 +9,10 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { MatchedDataClass } from "./matched-data-class";
-import { RestMethod, RiskScore } from "../enums";
-import { OpenApiSpec } from "./openapi-spec";
-import { Alert } from "./alert";
+import { MatchedDataClass } from "models/matched-data-class";
+import { Alert } from "models/alert";
+import { OpenApiSpec } from "models/openapi-spec";
+import { RestMethod, RiskScore } from "enums";
 
 @Entity()
 export class ApiEndpoint extends BaseEntity {

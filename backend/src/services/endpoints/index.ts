@@ -1,10 +1,10 @@
 import { IsNull, Raw } from "typeorm";
-import { isSuspectedParamater } from "../../utils";
-import { ApiEndpoint, ApiTrace, OpenApiSpec } from "../../models";
-import { AppDataSource } from "../../data-source";
-import { AlertType, RestMethod, SpecExtension } from "../../enums";
-import { ScannerService } from "../scanner/scan";
-import { AlertService } from "../../services/alert";
+import { isSuspectedParamater } from "utils";
+import { ApiEndpoint, ApiTrace, OpenApiSpec } from "models";
+import { AppDataSource } from "data-source";
+import { AlertType, RestMethod, SpecExtension } from "enums";
+import { ScannerService } from "services/scanner/scan";
+import { AlertService } from "services/alert";
 
 interface GenerateEndpoint {
   parameterizedPath: string;

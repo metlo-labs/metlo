@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { LogRequestService } from "../../services/log-request";
-import { TraceParams } from "../../types";
-import ApiResponseHandler from "../../api-response-handler";
+import { LogRequestService } from "services/log-request";
+import { TraceParams } from "types";
+import ApiResponseHandler from "api-response-handler";
 
 export const logRequestSingleHandler = async (req: Request, res: Response) => {
   const traceParams: TraceParams = req.body;

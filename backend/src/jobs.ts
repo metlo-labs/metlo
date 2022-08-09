@@ -1,6 +1,6 @@
 import schedule from "node-schedule";
-import { AppDataSource } from "./data-source";
-import { EndpointsService } from "./services/endpoints";
+import { AppDataSource } from "data-source";
+import { EndpointsService } from "services/endpoints";
 
 const main = async () => {
   const datasource = await AppDataSource.initialize();

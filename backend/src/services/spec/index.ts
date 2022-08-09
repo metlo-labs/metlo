@@ -1,17 +1,12 @@
 import { v4 as uuidv4 } from "uuid";
 import { Not } from "typeorm";
-import { RestMethod, SpecExtension } from "../../enums";
-import {
-  ApiEndpoint,
-  ApiTrace,
-  MatchedDataClass,
-  OpenApiSpec,
-} from "../../models";
-import Error400BadRequest from "../../errors/error-400-bad-request";
-import { JSONValue } from "../../types";
-import { AppDataSource } from "../../data-source";
-import { getPathRegex } from "../../utils";
-import Error409Conflict from "../../errors/error-409-conflict";
+import { RestMethod, SpecExtension } from "enums";
+import { ApiEndpoint, ApiTrace, MatchedDataClass, OpenApiSpec } from "models";
+import Error400BadRequest from "errors/error-400-bad-request";
+import { JSONValue } from "types";
+import { AppDataSource } from "data-source";
+import { getPathRegex } from "utils";
+import Error409Conflict from "errors/error-409-conflict";
 
 export class SpecService {
   static async getSpec(specName: string): Promise<OpenApiSpec> {

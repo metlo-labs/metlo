@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import { DataClassService } from "../../services/data-class";
-import { UpdatePIIFieldParams } from "../../types";
-import ApiResponseHandler from "../../api-response-handler";
-import Error400BadRequest from "../../errors/error-400-bad-request";
-import { AppDataSource } from "../../data-source";
-import { ApiEndpoint } from "../../models";
-import { getRiskScore } from "../../utils";
+import { DataClassService } from "services/data-class";
+import { UpdatePIIFieldParams } from "types";
+import ApiResponseHandler from "api-response-handler";
+import Error400BadRequest from "errors/error-400-bad-request";
+import { AppDataSource } from "data-source";
+import { ApiEndpoint } from "models";
+import { getRiskScore } from "utils";
 
 export const updatePIIFieldHandler = async (req: Request, res: Response) => {
   try {

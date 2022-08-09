@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { ClientErrorTypes, ClientError } from "./errors/client-errors";
+import { ClientErrorTypes, ClientError } from "errors/client-errors";
 
 export default class ApiResponseHandler {
   static async success(res: Response, payload?: string | object | null) {

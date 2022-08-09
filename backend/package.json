@@ -7,10 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "watch": "tsc -w",
-    "dev": "nodemon src/index.ts",
-    "dev-jobs": "nodemon src/jobs.ts",
-    "start": "node dist/index.js",
-    "start-jobs": "node dist/jobs.js",
+    "dev": "nodemon -r tsconfig-paths/register src/index.ts",
+    "dev-jobs": "nodemon -r tsconfig-paths/register src/jobs.ts",
+    "start": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register dist/index.js",
+    "start-jobs": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register dist/jobs.js",
     "format": "prettier --write './src/**/*.{ts,tsx}'",
     "rnd": "nodemon src/aws-services/create-ec2-instance.ts"
   },
@@ -44,6 +44,7 @@
     "nodemon": "^2.0.19",
     "prettier": "^2.7.1",
     "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.1.0",
     "tslib": "^2.4.0",
     "typescript": "^4.7.4"
   }

@@ -7,8 +7,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { DataClass } from "../enums";
-import { ApiEndpoint } from "./api-endpoint";
+import { DataClass } from "enums";
+import { ApiEndpoint } from "models/api-endpoint";
 
 @Entity()
 export class MatchedDataClass extends BaseEntity {

@@ -1,13 +1,12 @@
 import { FindOptionsWhere, In, FindManyOptions } from "typeorm";
-import { AppDataSource } from "../../data-source";
-import { Alert, ApiEndpoint } from "../../models";
-import { AlertType, RiskScore } from "../../enums";
+import { AppDataSource } from "data-source";
+import { Alert, ApiEndpoint } from "models";
+import { AlertType } from "enums";
 import {
   ALERT_TYPE_TO_RISK_SCORE,
-  RISK_SCORE_ORDER,
   RISK_SCORE_ORDER_QUERY,
-} from "../../constants";
-import { GetAlertParams, AlertResponse } from "../../types";
+} from "backend-constants";
+import { GetAlertParams, AlertResponse } from "types";
 
 export class AlertService {
   static async getAlerts(

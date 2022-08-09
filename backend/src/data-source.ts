@@ -6,7 +6,7 @@ import {
   ApiTrace,
   OpenApiSpec,
   Alert,
-} from "./models";
+} from "models";
 
 export const AppDataSource = new DataSource({
   type: "postgres",

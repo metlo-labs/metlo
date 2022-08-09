@@ -4,28 +4,28 @@ import bodyParser from "body-parser";
 import {
   logRequestBatchHandler,
   logRequestSingleHandler,
-} from "./api/log-request";
-import { AppDataSource } from "./data-source";
-import { MulterSource } from "./multer-source";
+} from "api/log-request";
 import {
   getEndpointHandler,
   getEndpointsHandler,
   getHostsHandler,
-} from "./api/get-endpoints";
+} from "api/get-endpoints";
 import {
   deleteSpecHandler,
   getSpecHandler,
   getSpecListHandler,
   updateSpecHandler,
   uploadNewSpecHandler,
-} from "./api/spec";
-import { updatePIIFieldHandler } from "./api/data-class";
+} from "api/spec";
 import {
   getAlertsHandler,
   getTopAlertsHandler,
   resolveAlertHandler,
-} from "./api/alert";
-import { getSummaryHandler } from "./api/summary";
+} from "api/alert";
+import { updatePIIFieldHandler } from "api/data-class";
+import { getSummaryHandler } from "api/summary";
+import { AppDataSource } from "data-source";
+import { MulterSource } from "multer-source";
 
 dotenv.config();
 

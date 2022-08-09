@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { AlertService } from "../../services/alert";
-import { GetAlertParams } from "../../types";
-import ApiResponseHandler from "../../api-response-handler";
+import { AlertService } from "services/alert";
+import { GetAlertParams } from "types";
+import ApiResponseHandler from "api-response-handler";
 
 export const getAlertsHandler = async (req: Request, res: Response) => {
   try {
