@@ -26,12 +26,12 @@ export class SpecService {
     fileName: string,
     extension: SpecExtension,
     specString: string
-  ) {
+  ): Promise<void> {
     await this.deleteSpec(fileName);
     await this.uploadNewSpec(specObject, fileName, extension, specString);
   }
 
-  static async deleteSpec(fileName: string) {
+  static async deleteSpec(fileName: string): Promise<void> {
     const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
     const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec);
 
@@ -59,7 +59,7 @@ export class SpecService {
     fileName: string,
     extension: SpecExtension,
     specString: string
-  ) {
+  ): Promise<void> {
     const servers: any[] = specObject["servers"];
     const paths: JSONValue = specObject["paths"];
 

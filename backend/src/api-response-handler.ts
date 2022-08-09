@@ -2,7 +2,10 @@ import { Response } from "express";
 import { ClientErrorTypes, ClientError } from "errors/client-errors";
 
 export default class ApiResponseHandler {
-  static async success(res: Response, payload?: string | object | null) {
+  static async success(
+    res: Response,
+    payload?: string | object | null
+  ): Promise<void> {
     if (payload !== undefined && payload !== null) {
       res.status(200).send(payload);
     } else {
@@ -10,7 +13,7 @@ export default class ApiResponseHandler {
     }
   }
 
-  static async error(res: Response, error?: Error) {
+  static async error(res: Response, error?: Error): Promise<void> {
     const errorCode =
       error &&
       ClientErrorTypes.some((cet) => error instanceof cet) &&

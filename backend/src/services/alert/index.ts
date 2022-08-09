@@ -75,7 +75,10 @@ export class AlertService {
     return await alertRepository.findOneBy({ uuid: alertId });
   }
 
-  static async createAlert(alertType: AlertType, apiEndpoint: ApiEndpoint) {
+  static async createAlert(
+    alertType: AlertType,
+    apiEndpoint: ApiEndpoint
+  ): Promise<Alert> {
     const alertRepository = AppDataSource.getRepository(Alert);
     const newAlert = new Alert();
     newAlert.type = alertType;
@@ -88,14 +91,17 @@ export class AlertService {
       default:
         newAlert.description = `A new alert.`;
     }
-    await alertRepository.save(newAlert);
+    return await alertRepository.save(newAlert);
   }
 
-  static async resolveAlert(alertId: string, resolutionMessage: string) {
+  static async resolveAlert(
+    alertId: string,
+    resolutionMessage: string
+  ): Promise<Alert> {
     const alertRepository = AppDataSource.getRepository(Alert);
     const existingAlert = await alertRepository.findOneBy({ uuid: alertId });
     existingAlert.resolved = true;
     existingAlert.resolutionMessage = resolutionMessage || "";
-    await alertRepository.save(existingAlert);
+    return await alertRepository.save(existingAlert);
   }
 }

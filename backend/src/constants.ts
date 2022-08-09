@@ -1,6 +1,6 @@
 import { RiskScore, DataClass, AlertType } from "@common/enums";
 
-export const pathParameterRegex = new RegExp(String.raw`/{[^/]+}`, "g");
+export const pathParameterRegex: RegExp = new RegExp(String.raw`/{[^/]+}`, "g");
 
 export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass, RiskScore> = {
   [DataClass.ADDRESS]: RiskScore.HIGH,
@@ -29,7 +29,7 @@ export const RISK_SCORE_ORDER: Record<RiskScore, number> = {
   [RiskScore.NONE]: 0,
 };
 
-export const RISK_SCORE_ORDER_QUERY = `
+export const RISK_SCORE_ORDER_QUERY: string = `
 CASE "alert"."riskScore"
   WHEN '${RiskScore.HIGH}' THEN ${RISK_SCORE_ORDER[RiskScore.HIGH]}
   WHEN '${RiskScore.MEDIUM}' THEN ${RISK_SCORE_ORDER[RiskScore.MEDIUM]}

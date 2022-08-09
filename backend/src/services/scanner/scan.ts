@@ -48,7 +48,7 @@ export class ScannerService {
     matchDataPath: string,
     apiEndpoint: ApiEndpoint,
     matches: Record<DataClass, string[]>
-  ) {
+  ): Promise<void> {
     const existingMatch = this.matchExists(
       apiEndpoint.sensitiveDataClasses,
       matchDataPath,
@@ -64,7 +64,7 @@ export class ScannerService {
     }
   }
 
-  static parsedJson(jsonString: string) {
+  static parsedJson(jsonString: string): any {
     try {
       return JSON.parse(jsonString);
     } catch (err) {
@@ -76,7 +76,7 @@ export class ScannerService {
     dataPathPrefix: string,
     jsonBody: any,
     apiEndpoint: ApiEndpoint
-  ) {
+  ): Promise<void> {
     if (typeof jsonBody === "object") {
       for (let key in jsonBody) {
         this.recursiveParseJson(
@@ -103,7 +103,7 @@ export class ScannerService {
     dataPathPrefix: string,
     body: string,
     apiEndpoint: ApiEndpoint
-  ) {
+  ): Promise<void> {
     if (body) {
       const jsonBody = this.parsedJson(body);
       if (jsonBody) {
@@ -130,7 +130,7 @@ export class ScannerService {
     dataPathPrefix: string,
     data: PairObject[],
     apiEndpoint: ApiEndpoint
-  ) {
+  ): Promise<void> {
     if (data) {
       for (const item of data) {
         const field = item.name;
@@ -152,7 +152,7 @@ export class ScannerService {
   static async findAllMatchedDataClasses(
     apiTrace: ApiTrace,
     apiEndpoint: ApiEndpoint
-  ) {
+  ): Promise<void> {
     await this.findMatchedDataClasses(
       "req.params",
       apiTrace.requestParameters,

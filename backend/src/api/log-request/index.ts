@@ -3,7 +3,10 @@ import { LogRequestService } from "services/log-request";
 import { TraceParams } from "@common/types";
 import ApiResponseHandler from "api-response-handler";
 
-export const logRequestSingleHandler = async (req: Request, res: Response) => {
+export const logRequestSingleHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const traceParams: TraceParams = req.body;
   try {
     await LogRequestService.logRequest(traceParams);
@@ -13,7 +16,10 @@ export const logRequestSingleHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const logRequestBatchHandler = async (req: Request, res: Response) => {
+export const logRequestBatchHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const traceParamsBatch: TraceParams[] = req.body;
   try {
     await LogRequestService.logRequestBatch(traceParamsBatch);

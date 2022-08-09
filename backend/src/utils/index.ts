@@ -3,7 +3,7 @@ import { ApiEndpoint } from "models";
 import { pathParameterRegex } from "~/constants";
 import { RiskScore } from "@common/enums";
 
-export const isSuspectedParamater = (value: string) => {
+export const isSuspectedParamater = (value: string): boolean => {
   if (!isNaN(Number(value))) {
     return true;
   }
@@ -13,11 +13,11 @@ export const isSuspectedParamater = (value: string) => {
   return false;
 };
 
-export const getPathRegex = (path: string) => {
+export const getPathRegex = (path: string): string => {
   return String.raw`^${path.replace(pathParameterRegex, String.raw`/[^/]+`)}$`;
 };
 
-export const getRiskScore = (endpoint: ApiEndpoint) => {
+export const getRiskScore = (endpoint: ApiEndpoint): RiskScore => {
   let numRiskySensitiveDataClasses = 0;
   for (let i = 0; i < endpoint.sensitiveDataClasses?.length; i++) {
     if (endpoint.sensitiveDataClasses[i].isRisk) {

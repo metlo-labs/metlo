@@ -8,7 +8,10 @@ import { AppDataSource } from "data-source";
 import { OpenApiSpec } from "models";
 import { SpecExtension } from "@common/enums";
 
-export const getSpecHandler = async (req: Request, res: Response) => {
+export const getSpecHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const { specFileName } = req.params;
     const spec = await SpecService.getSpec(specFileName);
@@ -18,7 +21,10 @@ export const getSpecHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const getSpecListHandler = async (req: Request, res: Response) => {
+export const getSpecListHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const specList = await SpecService.getSpecs();
     await ApiResponseHandler.success(res, specList);
@@ -27,7 +33,10 @@ export const getSpecListHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const uploadNewSpecHandler = async (req: Request, res: Response) => {
+export const uploadNewSpecHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     if (!req.file) {
       throw new Error400BadRequest("No spec file found.");
@@ -72,7 +81,10 @@ export const uploadNewSpecHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteSpecHandler = async (req: Request, res: Response) => {
+export const deleteSpecHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const { specFileName } = req.params;
     await SpecService.deleteSpec(specFileName);
@@ -82,7 +94,10 @@ export const deleteSpecHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const updateSpecHandler = async (req: Request, res: Response) => {
+export const updateSpecHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const specFile = req.file;
     const { specFileName } = req.params;

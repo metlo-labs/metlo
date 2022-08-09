@@ -6,7 +6,7 @@ import { ScannerService } from "services/scanner/scan";
 import Error500InternalServer from "errors/error-500-internal-server";
 
 export class LogRequestService {
-  static async logRequest(traceParams: TraceParams) {
+  static async logRequest(traceParams: TraceParams): Promise<void> {
     try {
       /** Log Request in ApiTrace table */
       const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
@@ -57,7 +57,7 @@ export class LogRequestService {
     }
   }
 
-  static async logRequestBatch(traceParamsBatch: TraceParams[]) {
+  static async logRequestBatch(traceParamsBatch: TraceParams[]): Promise<void> {
     for (let i = 0; i < traceParamsBatch.length; i++) {
       this.logRequest(traceParamsBatch[i]);
     }

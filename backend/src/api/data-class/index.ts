@@ -7,7 +7,10 @@ import { AppDataSource } from "data-source";
 import { ApiEndpoint } from "models";
 import { getRiskScore } from "utils";
 
-export const updatePIIFieldHandler = async (req: Request, res: Response) => {
+export const updatePIIFieldHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const { isRisk }: UpdatePIIFieldParams = req.body;
     const { piiFieldId } = req.params;

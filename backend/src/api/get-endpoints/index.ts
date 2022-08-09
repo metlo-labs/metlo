@@ -3,7 +3,10 @@ import { GetEndpointsService } from "services/get-endpoints";
 import { GetEndpointParams } from "@common/types";
 import ApiResponseHandler from "api-response-handler";
 
-export const getEndpointsHandler = async (req: Request, res: Response) => {
+export const getEndpointsHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const getEndpointParams: GetEndpointParams = req.query;
   try {
     const endpoints = await GetEndpointsService.getEndpoints(getEndpointParams);
@@ -13,7 +16,10 @@ export const getEndpointsHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const getEndpointHandler = async (req: Request, res: Response) => {
+export const getEndpointHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { endpointId } = req.params;
   try {
     const endpoint = await GetEndpointsService.getEndpoint(endpointId);
@@ -23,7 +29,10 @@ export const getEndpointHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const getHostsHandler = async (req: Request, res: Response) => {
+export const getHostsHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const hosts = await GetEndpointsService.getHosts();
     await ApiResponseHandler.success(res, hosts);

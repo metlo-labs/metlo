@@ -14,8 +14,8 @@ interface GenerateEndpoint {
   traces: ApiTrace[];
 }
 
-export class EndpointsService {
-  static async generateEndpointsFromTraces() {
+export class JobsService {
+  static async generateEndpointsFromTraces(): Promise<void> {
     const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
     const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
     const regexToTracesMap: Record<string, GenerateEndpoint> = {};
@@ -114,7 +114,7 @@ export class EndpointsService {
     setTimeout(async () => await this.generateOpenApiSpec(), 1000);
   }
 
-  static async generateOpenApiSpec() {
+  static async generateOpenApiSpec(): Promise<void> {
     const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
     const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec);
     const nonSpecEndpoints = await apiEndpointRepository.findBy({

@@ -3,7 +3,10 @@ import { AlertService } from "services/alert";
 import { GetAlertParams } from "@common/types";
 import ApiResponseHandler from "api-response-handler";
 
-export const getAlertsHandler = async (req: Request, res: Response) => {
+export const getAlertsHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const alertParams: GetAlertParams = req.query;
     const alerts = await AlertService.getAlerts(alertParams);
@@ -13,7 +16,10 @@ export const getAlertsHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const resolveAlertHandler = async (req: Request, res: Response) => {
+export const resolveAlertHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const { alertId } = req.params;
     const { resolutionMessage } = req.body;
@@ -24,7 +30,10 @@ export const resolveAlertHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const getTopAlertsHandler = async (req: Request, res: Response) => {
+export const getTopAlertsHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const topAlerts = await AlertService.getTopAlerts();
     await ApiResponseHandler.success(res, topAlerts);

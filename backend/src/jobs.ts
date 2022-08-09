@@ -1,6 +1,6 @@
 import schedule from "node-schedule";
 import { AppDataSource } from "data-source";
-import { EndpointsService } from "services/endpoints";
+import { JobsService } from "services/jobs";
 
 const main = async () => {
   const datasource = await AppDataSource.initialize();
@@ -12,7 +12,7 @@ const main = async () => {
 
   schedule.scheduleJob("0 * * * *", () => {
     console.log("Generating Endpoints...");
-    EndpointsService.generateEndpointsFromTraces();
+    JobsService.generateEndpointsFromTraces();
   });
 
   process.on("SIGINT", () => {

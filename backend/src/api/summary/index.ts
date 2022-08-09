@@ -2,7 +2,10 @@ import { Request, Response } from "express";
 import { SummaryService } from "services/summary";
 import ApiResponseHandler from "api-response-handler";
 
-export const getSummaryHandler = async (req: Request, res: Response) => {
+export const getSummaryHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const summaryResponse = await SummaryService.getSummaryData();
     await ApiResponseHandler.success(res, summaryResponse);
