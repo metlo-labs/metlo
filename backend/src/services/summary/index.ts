@@ -1,4 +1,4 @@
-import { RiskScore } from "enums";
+import { RiskScore } from "@common/enums";
 import { Alert, ApiEndpoint, MatchedDataClass } from "models";
 import { AppDataSource } from "data-source";
 import { Summary as SummaryResponse } from "@common/types";

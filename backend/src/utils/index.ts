@@ -1,7 +1,7 @@
 import validator from "validator";
 import { ApiEndpoint } from "models";
 import { pathParameterRegex } from "~/constants";
-import { RiskScore } from "enums";
+import { RiskScore } from "@common/enums";
 
 export const isSuspectedParamater = (value: string) => {
   if (!isNaN(Number(value))) {

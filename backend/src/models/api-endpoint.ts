@@ -12,7 +12,7 @@ import {
 import { MatchedDataClass } from "models/matched-data-class";
 import { Alert } from "models/alert";
 import { OpenApiSpec } from "models/openapi-spec";
-import { RestMethod, RiskScore } from "enums";
+import { RestMethod, RiskScore } from "@common/enums";
 
 @Entity()
 export class ApiEndpoint extends BaseEntity {

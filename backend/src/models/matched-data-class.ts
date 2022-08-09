@@ -7,7 +7,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { DataClass } from "enums";
+import { DataClass } from "@common/enums";
 import { ApiEndpoint } from "models/api-endpoint";
 
 @Entity()

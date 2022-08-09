@@ -6,7 +6,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { SpecExtension } from "enums";
+import { SpecExtension } from "@common/enums";
 
 @Entity()
 export class OpenApiSpec extends BaseEntity {

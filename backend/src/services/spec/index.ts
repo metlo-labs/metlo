@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { Not } from "typeorm";
-import { RestMethod, SpecExtension } from "enums";
+import { RestMethod, SpecExtension } from "@common/enums";
 import { ApiEndpoint, ApiTrace, MatchedDataClass, OpenApiSpec } from "models";
 import Error400BadRequest from "errors/error-400-bad-request";
 import { JSONValue, OpenApiSpec as OpenApiSpecResponse } from "@common/types";

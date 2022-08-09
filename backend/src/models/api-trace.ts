@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { Meta, PairObject } from "@common/types";
-import { RestMethod } from "enums";
+import { RestMethod } from "@common/enums";
 import { ApiEndpoint } from "models/api-endpoint";
 
 @Entity()
