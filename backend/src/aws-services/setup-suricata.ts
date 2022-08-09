@@ -68,28 +68,28 @@ async function setup(
 ): Promise<STEP_RESPONSE> {
   switch (step) {
     case 1:
-      return await STEP_1(metadata_for_step as any);
+      return await aws_key_setup(metadata_for_step as any);
     case 2:
-      return await STEP_2(metadata_for_step as any);
+      return await aws_source_identification(metadata_for_step as any);
     case 3:
-      return await STEP_3(metadata_for_step as any);
+      return await aws_os_selection(metadata_for_step as any);
     case 4:
-      return await STEP_4(metadata_for_step as any);
+      return await aws_instance_selection(metadata_for_step as any);
     case 5:
-      return await STEP_5(metadata_for_step as any);
+      return await aws_instance_creation(metadata_for_step as any);
     case 6:
-      return await STEP_6(metadata_for_step as any);
+      return await aws_mirror_target_creation(metadata_for_step as any);
     case 7:
-      return await STEP_7(metadata_for_step as any);
+      return await aws_mirror_filter_creation(metadata_for_step as any);
     case 8:
-      return await STEP_8(metadata_for_step as any);
+      return await aws_mirror_session_creation(metadata_for_step as any);
     default:
       throw Error(`Don't have step ${step} registered`);
       break;
   }
 }
 
-async function STEP_1({
+async function aws_key_setup({
   access_id,
   secret_access_key,
 }): Promise<STEP_RESPONSE> {
@@ -126,7 +126,7 @@ async function STEP_1({
   }
 }
 
-async function STEP_2({
+async function aws_source_identification({
   access_id,
   secret_access_key,
   source_instance_id,
@@ -176,7 +176,7 @@ async function STEP_2({
   }
 }
 
-async function STEP_3({
+async function aws_os_selection({
   access_id,
   secret_access_key,
   ...rest
@@ -221,7 +221,7 @@ async function STEP_3({
   }
 }
 
-async function STEP_4({
+async function aws_instance_selection({
   access_id,
   secret_access_key,
   region,
@@ -278,7 +278,7 @@ async function STEP_4({
   }
 }
 
-async function STEP_5({
+async function aws_instance_creation({
   access_id,
   secret_access_key,
   region,
@@ -340,7 +340,7 @@ async function STEP_5({
   }
 }
 
-async function STEP_6({
+async function aws_mirror_target_creation({
   access_id,
   secret_access_key,
   region,
@@ -395,7 +395,7 @@ async function STEP_6({
   }
 }
 
-async function STEP_7({
+async function aws_mirror_filter_creation({
   access_id,
   secret_access_key,
   region,
@@ -477,7 +477,7 @@ async function STEP_7({
   }
 }
 
-async function STEP_8({
+async function aws_mirror_session_creation({
   access_id,
   secret_access_key,
   region,
