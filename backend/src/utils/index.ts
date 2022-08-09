@@ -1,6 +1,6 @@
 import validator from "validator";
 import { ApiEndpoint } from "models";
-import { pathParameterRegex } from "backend-constants";
+import { pathParameterRegex } from "~/constants";
 import { RiskScore } from "enums";
 
 export const isSuspectedParamater = (value: string) => {

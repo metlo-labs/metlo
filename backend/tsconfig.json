@@ -21,6 +21,10 @@
     "resolveJsonModule": true,
     "importHelpers": true,
     "baseUrl": "./src",
+    "paths": {
+      "@common/*": ["../../common/dist/*"],
+      "~/*": ["./*"],
+    }
   },
   "include": [
     "src/**/*.ts",

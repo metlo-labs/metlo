@@ -5,7 +5,7 @@ import { AlertType } from "enums";
 import {
   ALERT_TYPE_TO_RISK_SCORE,
   RISK_SCORE_ORDER_QUERY,
-} from "backend-constants";
+} from "~/constants";
 import { GetAlertParams, AlertResponse } from "types";
 
 export class AlertService {
