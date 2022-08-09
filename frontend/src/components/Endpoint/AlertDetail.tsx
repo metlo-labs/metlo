@@ -13,10 +13,11 @@ interface AlertDetailProps {
   path: string;
   isOpen: boolean;
   onClose: () => void;
+  resolutionMessage: string;
+  setResolutionMessage: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const AlertDetail: React.FC<AlertDetailProps> = React.memo(({ alert, isOpen, method, path, onClose }) => {
-  const [resolutionMessage, setResolutionMessage] = useState<string>(alert?.resolutionMessage);
+const AlertDetail: React.FC<AlertDetailProps> = React.memo(({ alert, resolutionMessage, setResolutionMessage, isOpen, method, path, onClose }) => {
   const [resolving, setResolving] = useState<boolean>(false);
   const toast = useToast();
   const router = useRouter();
@@ -36,6 +37,7 @@ const AlertDetail: React.FC<AlertDetailProps> = React.memo(({ alert, isOpen, met
       setResolving(false);
     }
   }
+
   return (
     <Box>
       <Modal isOpen={isOpen} onClose={onClose} size="4xl">
@@ -109,7 +111,7 @@ const AlertDetail: React.FC<AlertDetailProps> = React.memo(({ alert, isOpen, met
           <ModalFooter w="full">
             {alert?.resolved ?
               <Badge colorScheme="green" fontSize="lg">Resolved</Badge>
-            : <Button disabled={resolving} colorScheme="blue" onClick={handleResolveClick}>Resolve</Button>
+            : <Button isLoading={resolving} colorScheme="blue" onClick={handleResolveClick}>Resolve</Button>
             }
           </ModalFooter>
         </ModalContent>

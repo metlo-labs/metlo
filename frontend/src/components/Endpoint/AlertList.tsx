@@ -24,11 +24,13 @@ const AlertList: React.FC<AlertListProps> = React.memo(
     const colorMode = useColorMode();
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [alert, setAlert ] = useState<Alert| undefined>();
+    const [resolutionMessage, setResolutionMessage] = useState<string>();
     const onRowClicked = (
       row: Alert,
       e: React.MouseEvent<Element, MouseEvent>
     ) => {
       if (endpointPage) {
+        setResolutionMessage(row.resolutionMessage);
         openModal(row);
       } else {
         router.push({ pathname: `/endpoint/${row.apiEndpointUuid}`, query: { tab: "alerts"} })
@@ -137,7 +139,7 @@ const AlertList: React.FC<AlertListProps> = React.memo(
     }
     return (
       <Box>
-        <AlertDetail alert={alert} isOpen={isOpen} onClose={onClose} method={method} path={path} />
+        <AlertDetail resolutionMessage={resolutionMessage} setResolutionMessage={setResolutionMessage} alert={alert} isOpen={isOpen} onClose={onClose} method={method} path={path} />
         <DataTable
           style={rowStyles}
           columns={columns}
