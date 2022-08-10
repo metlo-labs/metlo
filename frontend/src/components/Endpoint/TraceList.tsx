@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   useColorMode,
   Code,
@@ -23,12 +23,13 @@ import EmptyView from "components/utils/EmptyView";
 
 interface TraceListProps {
   traces: ApiTrace[];
+  uuid?: string;
 }
 
 const getDateTimeString = (date: Date) =>
   DateTime.fromISO(date.toString()).toLocaleString(DateTime.DATETIME_SHORT);
 
-const TraceList: React.FC<TraceListProps> = React.memo(({ traces }) => {
+const TraceList: React.FC<TraceListProps> = React.memo(({ traces, uuid }) => {
   const [trace, setTrace] = useState<ApiTrace | undefined>();
   const colorMode = useColorMode();
   const headerBg = useColorModeValue("rgb(252, 252, 252)", "rgb(17, 19, 23)");
@@ -38,6 +39,14 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces }) => {
     "rgb(242, 242, 242)",
     "rgb(34, 37, 42)"
   );
+
+  useEffect(() => {
+    traces.forEach((currTrace) => {
+      if (currTrace.uuid === uuid) {
+        setTrace(currTrace);
+      }
+    });
+  }, [traces, uuid]);
 
   const conditionalStyles = [
     {

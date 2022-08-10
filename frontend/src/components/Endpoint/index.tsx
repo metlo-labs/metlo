@@ -37,7 +37,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
     "rgb(179, 181, 185)",
     "rgb(91, 94, 109)"
   );
-  const { tab } = router.query;
+  const { tab, uuid } = router.query;
   const getDefaultTab = () => {
     switch (tab) {
       case "overview":
@@ -52,6 +52,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
         return 0;
     }
   };
+
   return (
     <VStack
       w="full"
@@ -108,16 +109,20 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
             <EndpointOverview endpoint={endpoint} />
           </TabPanel>
           <TabPanel p="0" h="full">
-            <PIIDataList piiFields={endpoint.sensitiveDataClasses} />
+            <PIIDataList
+              piiFields={endpoint.sensitiveDataClasses}
+              uuid={uuid as string}
+            />
           </TabPanel>
           <TabPanel p="0" h="full">
-            <TraceList traces={endpoint.traces} />
+            <TraceList traces={endpoint.traces} uuid={uuid as string} />
           </TabPanel>
           <TabPanel p="0" h="full">
             <AlertList
               alerts={endpoint.alerts}
               method={endpoint.method}
               path={endpoint.path}
+              uuid={uuid as string}
               endpointPage
             />
           </TabPanel>

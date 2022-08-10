@@ -28,10 +28,11 @@ interface AlertListProps {
   endpointPage?: boolean;
   method?: RestMethod;
   path?: string;
+  uuid?: string;
 }
 
 const AlertList: React.FC<AlertListProps> = React.memo(
-  ({ alerts, endpointPage, method, path }) => {
+  ({ alerts, endpointPage, method, path, uuid }) => {
     const [alertList, setAlertList] = useState<Alert[]>(alerts);
     const router = useRouter();
     const colorMode = useColorMode();
@@ -44,6 +45,14 @@ const AlertList: React.FC<AlertListProps> = React.memo(
       setAlertList(alerts);
     }, [alerts]);
 
+    useEffect(() => {
+      alertList.forEach((currAlert) => {
+        if (currAlert.uuid === uuid) {
+          setAlert(currAlert);
+        }
+      });
+    }, [alertList, uuid]);
+
     const onRowClicked = (
       row: Alert,
       e: React.MouseEvent<Element, MouseEvent>
@@ -53,7 +62,7 @@ const AlertList: React.FC<AlertListProps> = React.memo(
       } else {
         router.push({
           pathname: `/endpoint/${row.apiEndpointUuid}`,
-          query: { tab: "alerts" },
+          query: { tab: "alerts", uuid: row.uuid },
         });
       }
     };

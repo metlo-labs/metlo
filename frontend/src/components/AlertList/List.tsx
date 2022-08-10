@@ -226,7 +226,7 @@ const List: React.FC<AlertTablesProps> = React.memo(
     ) => {
       router.push({
         pathname: `/endpoint/${row.apiEndpointUuid}`,
-        query: { tab: "alerts" },
+        query: { tab: "alerts", uuid: row.uuid },
       });
     };
 
