@@ -20,6 +20,10 @@ import {
   KeyType,
   CreateKeyPairCommandOutput,
   VirtualizationType,
+  CreateSecurityGroupCommand,
+  CreateSecurityGroupCommandInput,
+  AuthorizeSecurityGroupIngressCommand,
+  AuthorizeSecurityGroupIngressCommandInput,
 } from "@aws-sdk/client-ec2";
 // For pricing approximation
 // import {
@@ -283,6 +287,38 @@ export async function list_keypairs(client: EC2Client) {
   return resp;
 }
 
+export async function create_security_group(client: EC2Client, id: string) {
+  let command = new CreateSecurityGroupCommand({
+    GroupName: id,
+    Description: "Default security group created by METLO for mirror instance",
+  } as CreateSecurityGroupCommandInput);
+  let resp = await client.send(command);
+  return resp;
+}
+
+export async function create_security_group_ingress(
+  client: EC2Client,
+  security_group_id: string,
+  protocol: string,
+  port: number
+) {
+  let command = new AuthorizeSecurityGroupIngressCommand({
+    GroupId: security_group_id,
+    IpProtocol: protocol,
+    FromPort: port,
+    ToPort: port,
+    CidrIp: "0.0.0.0/0",
+    TagSpecifications: [
+      {
+        ResourceType: "security-group-rule",
+        Tags: [{ Key: "Created By", Value: "Created by METLO" }],
+      },
+    ],
+  });
+  let resp = await client.send(command);
+  return resp;
+}
+
 export async function create_new_instance(
   client: EC2Client,
   instance_ami: string,
@@ -290,6 +326,22 @@ export async function create_new_instance(
   id: string
 ): Promise<[RunInstancesCommandOutput, CreateKeyPairCommandOutput]> {
   const key = await create_new_keypair(client, `METLO-Instance-${id}-Key`);
+  const security_group = await create_security_group(
+    client,
+    `METLO-SECURITY-GROUP-${id}`
+  );
+  await create_security_group_ingress(
+    client,
+    security_group.GroupId,
+    "tcp",
+    22
+  );
+  await create_security_group_ingress(
+    client,
+    security_group.GroupId,
+    "udp",
+    4789
+  );
   const command = new RunInstancesCommand({
     MaxCount: 1,
     MinCount: 1,

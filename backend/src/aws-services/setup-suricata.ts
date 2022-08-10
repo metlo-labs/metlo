@@ -336,6 +336,8 @@ async function aws_instance_creation({
         destination_eni_id:
           resp[0].Instances[0].NetworkInterfaces[0].NetworkInterfaceId,
         ami,
+        remote_machine_url:
+          resp[0].Instances[0].NetworkInterfaces[0].Association.PublicIp,
         ...rest,
       },
     };
@@ -572,6 +574,7 @@ async function test_ssh({
       "ubuntu"
     );
     await test_connection(conn);
+    conn.dispose();
     return {
       success: "OK",
       step_number: 9,
@@ -607,12 +610,8 @@ async function push_files({
   remote_machine_url,
   ...rest
 }): Promise<STEP_RESPONSE> {
+  let conn = await create_ssh_connection(keypair, remote_machine_url, "ubuntu");
   try {
-    let conn = await create_ssh_connection(
-      keypair,
-      remote_machine_url,
-      "ubuntu"
-    );
     let filepath = `./src/aws-services/scripts/metlo-ingestor-${randomUUID()}.service`;
     await put_data_file(
       format("./src/aws-services/scripts/metlo-ingestor-template.service", [
@@ -638,11 +637,11 @@ async function push_files({
       ]
     );
     remove_file(filepath);
-
+    conn.dispose();
     return {
       success: "OK",
-      step_number: 9,
-      last_completed: 9,
+      step_number: 10,
+      last_completed: 10,
       error: null,
       keep: {
         keypair,
@@ -652,10 +651,11 @@ async function push_files({
       },
     };
   } catch (err) {
+    conn.dispose();
     return {
       success: "FAIL",
-      step_number: 9,
-      last_completed: 8,
+      step_number: 10,
+      last_completed: 9,
       error: {
         message: `Couldn't push files to remote machine`,
         err: err,
@@ -675,12 +675,8 @@ async function execute_commands({
   remote_machine_url,
   ...rest
 }): Promise<STEP_RESPONSE> {
+  let conn = await create_ssh_connection(keypair, remote_machine_url, "ubuntu");
   try {
-    let conn = await create_ssh_connection(
-      keypair,
-      remote_machine_url,
-      "ubuntu"
-    );
     await run_command(
       conn,
       "source $HOME/.nvm/nvm.sh && cd ~ && chmod +x install-nvm.sh && ./install-nvm.sh "
@@ -693,8 +689,8 @@ async function execute_commands({
 
     return {
       success: "OK",
-      step_number: 10,
-      last_completed: 10,
+      step_number: 11,
+      last_completed: 11,
       error: null,
       keep: {
         keypair,
@@ -703,10 +699,11 @@ async function execute_commands({
       },
     };
   } catch (err) {
+    conn.dispose();
     return {
       success: "FAIL",
-      step_number: 10,
-      last_completed: 9,
+      step_number: 11,
+      last_completed: 10,
       error: {
         message: `Couldn't exec commands to install things`,
         err: err,
@@ -721,8 +718,8 @@ async function execute_commands({
 }
 
 async function main() {
-  // // STEP 1
-  // let resp = await setup(1, info);
+  var resp;
+  let info = {
   // console.log(resp);
   // if (resp.success != "OK") {
   //   return;
@@ -761,68 +758,103 @@ async function main() {
   //     resp.keep.instance_types[
   //       Math.floor(Math.random() * resp.keep.instance_types.length)
   //     ],
+  } as STEP_RESPONSE["keep"];
+  resp = await get_valid_types(
+    new EC2Client({
+      credentials: {
+        accessKeyId: info.access_id,
+        secretAccessKey: info.secret_access_key,
+      },
+    }),
+    "hvm",
+    { minCpu: 0, maxCpu: 4, minMem: 2, maxMem: 8 }
+  );
+  // STEP 1
+  resp = await setup(1, info);
+  console.log(resp);
+  if (resp.success != "OK") {
+    return;
+  }
+  info = { ...resp.keep };
+  // STEP 2
+  info.source_instance_id = "i-0d2ca277bb3e4d0a7";
+  resp = await setup(2, info);
+  console.log(resp);
+  if (resp.success != "OK") {
+    return;
+  }
+  info = { ...resp.keep };
+  // STEP 3
+  resp = await setup(3, info);
+  console.log(resp);
+  if (resp.success != "OK") {
+    return;
+  }
+  info = { ...resp.keep };
+  // STEP 4
+  info.machine_specs = {
+    minCpu: 1,
+    maxCpu: 2,
+    minMem: 2,
+    maxMem: 8,
+  } as MachineSpecifications;
+  resp = await setup(4, info);
+  console.log(resp);
+  if (resp.success != "OK") {
+    return;
+  }
+  info = {
+    ...resp.keep,
+    selected_instance_type:
+      resp.keep.instance_types[
+        Math.floor(Math.random() * resp.keep.instance_types.length)
+      ],
+  };
+  // STEP 5
+  resp = await setup(5, info);
+  console.log(resp);
+  if (resp.success != "OK") {
+    return;
+  }
+  info = { ...resp.keep };
+  // STEP 6
+  resp = await setup(6, info);
+  console.log(resp);
+  if (resp.success != "OK") {
+    return;
+  }
+  info = { ...resp.keep };
+  // STEP 7
+  info = { ...resp.keep };
+  resp = await setup(7, info);
+  console.log(resp);
+  if (resp.success != "OK") {
+    return;
+  }
+  info = { ...resp.keep };
+  // STEP 8
+  resp = await setup(8, info);
+  console.log(resp);
+  if (resp.success != "OK") {
+    return;
+  }
   // };
-  // // STEP 5
-  // info;
-  // resp = await setup(5, info);
-  // console.log(resp);
-  // if (resp.success != "OK") {
-  //   return;
-  // }
-  // info = { ...resp.keep };
-  // let r = await get_valid_types(
-  //   new EC2Client({
-  //     credentials: {
-  //       accessKeyId: info.access_id,
-  //       secretAccessKey: info.secret_access_key,
-  //     },
-  //   }),
-  //   "hvm",
-  //   { minCpu: 0, maxCpu: 4, minMem: 2, maxMem: 8 }
-  // );
-  // // STEP 6
-  // resp = await setup(6, info);
-  // console.log(resp);
-  // if (resp.success != "OK") {
-  //   return;
-  // }
-  // info = { ...resp.keep };
-  // // STEP 7
-  // info.mirror_rules = [
-  //   {
-  //     destination_CIDR: "0.0.0.0/0",
-  //     source_CIDR: "0.0.0.0/0",
-  //     protocol: protocols.TCP,
-  //     direction: "in",
-  //   },
-  // ];
-  // resp = await setup(7, info);
-  // console.log(resp);
-  // if (resp.success != "OK") {
-  //   return;
-  // }
-  // info = { ...resp.keep };
-  // // STEP 8
-  // resp = await setup(8, info);
-  // console.log(resp);
-  // if (resp.success != "OK") {
-  //   return;
-  // }
-  // // STEP 9
-  // let resp = await setup(9, info);
-  // console.log(resp);
-  // if (resp.success != "OK") {
-  //   return;
-  // } // STEP 10
-  // let resp = await setup(10, info);
-  // console.log(resp);
-  // if (resp.success != "OK") {
-  //   return;
-  // } // STEP 11
-  // resp = await setup(11, info);
-  // console.log(resp);
-  // if (resp.success != "OK") {
-  //   return;
-  // }
+  // STEP 9
+  resp = await setup(9, info);
+  console.log(resp);
+  if (resp.success != "OK") {
+    return;
+  } // STEP 10
+  resp = await setup(10, info);
+  console.log(resp);
+  if (resp.success != "OK") {
+    return;
+  } // STEP 11
+  resp = await setup(11, info);
+  console.log(resp);
+  if (resp.success != "OK") {
+    return;
+  }
 }
 
+main();
