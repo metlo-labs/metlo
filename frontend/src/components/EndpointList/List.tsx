@@ -199,7 +199,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
     );
 
     if (totalCount == 0 && !fetching) {
-      return <EmptyView />;
+      return <EmptyView text="No Endpoints matching criteria!" />;
     }
     if (totalCount > 0) {
       return getTable();
