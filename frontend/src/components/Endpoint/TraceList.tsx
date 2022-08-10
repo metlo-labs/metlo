@@ -19,6 +19,7 @@ import { ApiTrace } from "@common/types";
 import { METHOD_TO_COLOR } from "../../constants";
 import { statusCodeToColor } from "../utils/StatusCode";
 import TraceDetail from "./TraceDetail";
+import EmptyView from "components/utils/EmptyView";
 
 interface TraceListProps {
   traces: ApiTrace[];
@@ -146,6 +147,7 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces }) => {
           data={traces}
           customStyles={getCustomStyles(colorMode.colorMode)}
           onRowClicked={setTrace}
+          noDataComponent={<EmptyView notRounded text="No Traces!" />}
         />
       </Box>
       {trace ? (

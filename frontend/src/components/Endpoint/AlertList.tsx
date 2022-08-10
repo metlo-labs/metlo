@@ -10,6 +10,7 @@ import { METHOD_TO_COLOR, RISK_TO_COLOR } from "../../constants";
 import { getDateTimeString } from "../../utils";
 import AlertDetail from "./AlertDetail";
 import { RestMethod } from "@common/enums";
+import EmptyView from "components/utils/EmptyView";
 
 interface AlertListProps {
   alerts: Alert[];
@@ -178,6 +179,7 @@ const AlertList: React.FC<AlertListProps> = React.memo(
             conditionalRowStyles={conditionalStyles}
             customStyles={getCustomStyles(colorMode.colorMode)}
             onRowClicked={onRowClicked}
+            noDataComponent={<EmptyView notRounded text="No Alerts!" />}
           />
         </Box>
         {alert ? (

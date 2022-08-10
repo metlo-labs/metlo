@@ -2,8 +2,8 @@ import React from "react";
 
 import { Box, Heading, BoxProps } from "@chakra-ui/react";
 
-const EmptyView: React.FC<BoxProps & { text?: string }> = React.memo(
-  (props) => {
+const EmptyView: React.FC<BoxProps & { text?: string, notRounded?: boolean }> = React.memo(
+  ({ notRounded, ...props }) => {
     return (
       <Box
         w="full"
@@ -11,7 +11,7 @@ const EmptyView: React.FC<BoxProps & { text?: string }> = React.memo(
         justifyContent="center"
         alignItems="center"
         bg="secondaryBG"
-        rounded="md"
+        rounded={notRounded ? "none" : "md"}
         minH="xs"
         {...props}
       >

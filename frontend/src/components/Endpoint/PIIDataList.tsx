@@ -8,6 +8,7 @@ import { getCustomStyles, rowStyles } from "../utils/TableUtils";
 import { RISK_TO_COLOR, DATA_CLASS_TO_RISK_SCORE } from "../../constants";
 import { getDateTimeString } from "../../utils";
 import PIIDataDetail from "./PIIDataDetail";
+import EmptyView from "components/utils/EmptyView";
 
 interface PIIDataListProps {
   piiFields: PIIField[];
@@ -119,6 +120,7 @@ const PIIDataList: React.FC<PIIDataListProps> = React.memo(({ piiFields }) => {
           conditionalRowStyles={conditionalStyles}
           customStyles={getCustomStyles(colorMode.colorMode)}
           onRowClicked={setPiiField}
+          noDataComponent={<EmptyView notRounded text="No PII Fields!" />}
         />
       </Box>
       {piiField ? (
