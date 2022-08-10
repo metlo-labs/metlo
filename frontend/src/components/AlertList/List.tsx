@@ -125,6 +125,7 @@ const List: React.FC<AlertTablesProps> = React.memo(
         selector: (row: Alert) => row.riskScore || "",
         cell: (row: Alert) => (
           <Badge
+            data-tag="allowRowEvents"
             p="1"
             fontSize="sm"
             colorScheme={RISK_TO_COLOR[row.riskScore]}
@@ -141,7 +142,7 @@ const List: React.FC<AlertTablesProps> = React.memo(
         sortable: true,
         selector: (row: Alert) => `${row.apiEndpoint.method}_${row.apiEndpoint.path}`,
         cell: (row: Alert) => (
-          <HStack>
+          <HStack data-tag="allowRowEvents">
             <Badge
               fontSize="sm"
               px="2"
@@ -163,7 +164,7 @@ const List: React.FC<AlertTablesProps> = React.memo(
         sortable: true,
         selector: (row: Alert) => row.type || "",
         cell: (row: Alert) => (
-          <Text fontSize="sm" fontWeight="semibold">
+          <Text data-tag="allowRowEvents" fontSize="sm" fontWeight="semibold">
             {row.type}
           </Text>
         ),
@@ -175,7 +176,7 @@ const List: React.FC<AlertTablesProps> = React.memo(
         sortable: true,
         selector: (row: Alert) => row.description || "",
         cell: (row: Alert) => (
-          <Text fontSize="sm" fontWeight="semibold">
+          <Text data-tag="allowRowEvents" fontSize="sm" fontWeight="semibold">
             {row.description}
           </Text>
         ),
@@ -187,7 +188,7 @@ const List: React.FC<AlertTablesProps> = React.memo(
         sortable: true,
         selector: (row: Alert) => row.createdAt.toISOString(),
         cell: (row: Alert) => (
-          <Text fontSize="sm" fontWeight="semibold">
+          <Text data-tag="allowRowEvents" fontSize="sm" fontWeight="semibold">
             {getDateTimeString(row.createdAt)}
           </Text>
         ),
@@ -199,7 +200,7 @@ const List: React.FC<AlertTablesProps> = React.memo(
         sortable: true,
         selector: (row: Alert) => row.resolved,
         cell: (row: Alert) => (
-          <Box alignItems={"end"}>
+          <Box data-tag="allowRowEvents" alignItems={"end"}>
             {row.resolved ? <ImCheckmark color="#93DCAC" /> : <ImCross color="#FDB2B2" />}
           </Box>
         ),
