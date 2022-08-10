@@ -239,7 +239,7 @@ const List: React.FC<AlertTablesProps> = React.memo(
     );
 
     if (totalCount == 0 && !fetching) {
-      return <EmptyView />;
+      return <EmptyView text="No New Alerts!" />;
     }
     if (totalCount > 0) {
       return getTable();
