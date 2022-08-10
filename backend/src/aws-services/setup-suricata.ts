@@ -20,6 +20,15 @@ import {
   protocols,
   TrafficFilterRuleSpecs,
 } from "./create-mirror";
+import {
+  create_ssh_connection,
+  format,
+  putfiles,
+  put_data_file,
+  remove_file,
+  run_command,
+  test_connection,
+} from "./ssh-setup";
 import { get_network_id_for_instance, match_av_to_region } from "./utils";
 
 export enum STEPS {
@@ -32,6 +41,9 @@ export enum STEPS {
   CREATE_MIRROR_TARGET = 6,
   CREATE_MIRROR_FILTER = 7,
   CREATE_MIRROR_SESSION = 8,
+  TEST_SSH = 9,
+  PUSH_FILES = 10,
+  EXEC_COMMAND = 11,
 }
 
 export interface STEP_RESPONSE {
@@ -59,6 +71,8 @@ export interface STEP_RESPONSE {
     keypair?: string;
     destination_eni_id?: string;
     virtualization_type?: string;
+    backend_url?: string;
+    remote_machine_url?: string;
   };
 }
 
@@ -83,6 +97,12 @@ async function setup(
       return await aws_mirror_filter_creation(metadata_for_step as any);
     case 8:
       return await aws_mirror_session_creation(metadata_for_step as any);
+    case 9:
+      return await test_ssh(metadata_for_step as any);
+    case 10:
+      return await push_files(metadata_for_step as any);
+    case 11:
+      return await execute_commands(metadata_for_step as any);
     default:
       throw Error(`Don't have step ${step} registered`);
       break;
@@ -539,3 +559,270 @@ async function aws_mirror_session_creation({
     };
   }
 }
+
+async function test_ssh({
+  keypair,
+  remote_machine_url,
+  ...rest
+}): Promise<STEP_RESPONSE> {
+  try {
+    let conn = await create_ssh_connection(
+      keypair,
+      remote_machine_url,
+      "ubuntu"
+    );
+    await test_connection(conn);
+    return {
+      success: "OK",
+      step_number: 9,
+      last_completed: 9,
+      error: null,
+      keep: {
+        keypair,
+        remote_machine_url,
+        ...rest,
+      },
+    };
+  } catch (err) {
+    return {
+      success: "FAIL",
+      step_number: 9,
+      last_completed: 8,
+      error: {
+        message: `Couldn't connect to ssh. Please check if key was constructed`,
+        err: err,
+      },
+      keep: {
+        keypair,
+        remote_machine_url,
+        ...rest,
+      },
+    };
+  }
+}
+
+async function push_files({
+  keypair,
+  backend_url,
+  remote_machine_url,
+  ...rest
+}): Promise<STEP_RESPONSE> {
+  try {
+    let conn = await create_ssh_connection(
+      keypair,
+      remote_machine_url,
+      "ubuntu"
+    );
+    let filepath = `./src/aws-services/scripts/metlo-ingestor-${randomUUID()}.service`;
+    await put_data_file(
+      format("./src/aws-services/scripts/metlo-ingestor-template.service", [
+        backend_url,
+      ]),
+      filepath
+    );
+    await putfiles(
+      conn,
+      [
+        "./src/aws-services/scripts/install.sh",
+        "./src/aws-services/scripts/install-nvm.sh",
+        "./src/aws-services/scripts/local.rules",
+        "./src/aws-services/scripts/suricata.yaml",
+        filepath,
+      ],
+      [
+        "install.sh",
+        "install-nvm.sh",
+        "local.rules",
+        "suricata.yaml",
+        "metlo-ingestor.service",
+      ]
+    );
+    remove_file(filepath);
+
+    return {
+      success: "OK",
+      step_number: 9,
+      last_completed: 9,
+      error: null,
+      keep: {
+        keypair,
+        remote_machine_url,
+        backend_url,
+        ...rest,
+      },
+    };
+  } catch (err) {
+    return {
+      success: "FAIL",
+      step_number: 9,
+      last_completed: 8,
+      error: {
+        message: `Couldn't push files to remote machine`,
+        err: err,
+      },
+      keep: {
+        keypair,
+        backend_url,
+        remote_machine_url,
+        ...rest,
+      },
+    };
+  }
+}
+
+async function execute_commands({
+  keypair,
+  remote_machine_url,
+  ...rest
+}): Promise<STEP_RESPONSE> {
+  try {
+    let conn = await create_ssh_connection(
+      keypair,
+      remote_machine_url,
+      "ubuntu"
+    );
+    await run_command(
+      conn,
+      "source $HOME/.nvm/nvm.sh && cd ~ && chmod +x install-nvm.sh && ./install-nvm.sh "
+    );
+    await run_command(
+      conn,
+      "source $HOME/.nvm/nvm.sh && cd ~ && chmod +x install.sh && ./install.sh "
+    );
+    conn.dispose();
+
+    return {
+      success: "OK",
+      step_number: 10,
+      last_completed: 10,
+      error: null,
+      keep: {
+        keypair,
+        remote_machine_url,
+        ...rest,
+      },
+    };
+  } catch (err) {
+    return {
+      success: "FAIL",
+      step_number: 10,
+      last_completed: 9,
+      error: {
+        message: `Couldn't exec commands to install things`,
+        err: err,
+      },
+      keep: {
+        keypair,
+        remote_machine_url,
+        ...rest,
+      },
+    };
+  }
+}
+
+async function main() {
+  // // STEP 1
+  // let resp = await setup(1, info);
+  // console.log(resp);
+  // if (resp.success != "OK") {
+  //   return;
+  // }
+  // info = { ...resp.keep };
+  // // STEP 2
+  // info.source_instance_id = "i-0d2ca277bb3e4d0a7";
+  // resp = await setup(2, info);
+  // console.log(resp);
+  // if (resp.success != "OK") {
+  //   return;
+  // }
+  // info = { ...resp.keep };
+  // // STEP 3
+  // resp = await setup(3, info);
+  // console.log(resp);
+  // if (resp.success != "OK") {
+  //   return;
+  // }
+  // info = { ...resp.keep };
+  // // STEP 4
+  // info.machine_specs = {
+  //   minCpu: 1,
+  //   maxCpu: 2,
+  //   minMem: 2,
+  //   maxMem: 8,
+  // } as MachineSpecifications;
+  // resp = await setup(4, info);
+  // console.log(resp);
+  // if (resp.success != "OK") {
+  //   return;
+  // }
+  // info = {
+  //   ...resp.keep,
+  //   selected_instance_type:
+  //     resp.keep.instance_types[
+  //       Math.floor(Math.random() * resp.keep.instance_types.length)
+  //     ],
+  // };
+  // // STEP 5
+  // info;
+  // resp = await setup(5, info);
+  // console.log(resp);
+  // if (resp.success != "OK") {
+  //   return;
+  // }
+  // info = { ...resp.keep };
+  // let r = await get_valid_types(
+  //   new EC2Client({
+  //     credentials: {
+  //       accessKeyId: info.access_id,
+  //       secretAccessKey: info.secret_access_key,
+  //     },
+  //   }),
+  //   "hvm",
+  //   { minCpu: 0, maxCpu: 4, minMem: 2, maxMem: 8 }
+  // );
+  // // STEP 6
+  // resp = await setup(6, info);
+  // console.log(resp);
+  // if (resp.success != "OK") {
+  //   return;
+  // }
+  // info = { ...resp.keep };
+  // // STEP 7
+  // info.mirror_rules = [
+  //   {
+  //     destination_CIDR: "0.0.0.0/0",
+  //     source_CIDR: "0.0.0.0/0",
+  //     protocol: protocols.TCP,
+  //     direction: "in",
+  //   },
+  // ];
+  // resp = await setup(7, info);
+  // console.log(resp);
+  // if (resp.success != "OK") {
+  //   return;
+  // }
+  // info = { ...resp.keep };
+  // // STEP 8
+  // resp = await setup(8, info);
+  // console.log(resp);
+  // if (resp.success != "OK") {
+  //   return;
+  // }
+  // // STEP 9
+  // let resp = await setup(9, info);
+  // console.log(resp);
+  // if (resp.success != "OK") {
+  //   return;
+  // } // STEP 10
+  // let resp = await setup(10, info);
+  // console.log(resp);
+  // if (resp.success != "OK") {
+  //   return;
+  // } // STEP 11
+  // resp = await setup(11, info);
+  // console.log(resp);
+  // if (resp.success != "OK") {
+  //   return;
+  // }
+}
+

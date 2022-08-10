@@ -1,46 +1,56 @@
-import { NodeSSH, SSHPutFilesOptions } from "node-ssh";
+import { NodeSSH } from "node-ssh";
+import { readFileSync, writeFileSync, openSync, unlinkSync } from "fs";
+import { format as _format } from "util";
+import { randomUUID } from "crypto";
 
-async function create_ssh_connection(private_key, host) {
+export async function create_ssh_connection(private_key, host, username) {
   const ssh = new NodeSSH();
-  console.log(private_key);
   let buff = Buffer.from(private_key, "utf-8");
   let conn = await ssh.connect({
     host: host,
-    username: "ubuntu",
+    username: username,
     privateKey: private_key,
   });
   return conn;
 }
 
-async function test_connection(client: NodeSSH): Promise<[boolean, string]> {
+export async function test_connection(
+  client: NodeSSH
+): Promise<[boolean, string]> {
   let resp = await client.execCommand("lsb_release -i");
   if (resp.stdout !== "" && resp.stderr === "") {
     return [true, ""];
   } else return [false, resp.stderr];
 }
 
-async function install_suricata(client: NodeSSH) {
-  console.log(process.cwd());
-  await client.putFiles([
-    { local: "./src/aws-services/scripts/install.sh", remote: "install.sh" },
-    {
-      local: "./src/aws-services/scripts/local.rules",
-      remote: "local.rules",
-    },
-    {
-      local: "./src/aws-services/scripts/metlo-ingestor.service",
-      remote: "metlo-ingestor.service",
-    },
-    {
-      local: "./src/aws-services/scripts/suricata.yaml",
-      remote: "suricata.yaml",
-    },
-  ]);
-  // let resp1  = await client.putFiles(files:[{local:"",remote:""}],{})
-  let resp = await client.execCommand(
-    "cd ~ && chmod +x install.sh && ./install.sh"
-  );
-  if (resp.stderr === "") {
-    return [true, ""];
-  } else return [false, resp.stderr];
+export async function run_command(client: NodeSSH, command: string) {
+  let resp = await client.execCommand(command);
+  console.log(resp.stdout);
+  console.log(resp.stderr);
+  return resp;
+}
+
+export async function put_data_file(data: string, location: string) {
+  let fd = openSync(location, "w");
+  writeFileSync(fd, data);
+}
+
+export async function remove_file(location: string) {
+  unlinkSync(location);
+}
+
+export function format(filepath: string, attributes: string[]) {
+  let str = readFileSync(filepath, "utf-8");
+  return _format(str, ...attributes);
+}
+
+export async function putfiles(
+  client: NodeSSH,
+  files: string[],
+  locations: string[]
+) {
+  let out_files = files.map((v, i) => {
+    return { local: v, remote: locations[i] };
+  });
+  await client.putFiles(out_files);
 }
