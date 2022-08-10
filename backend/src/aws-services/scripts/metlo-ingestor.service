@@ -1,0 +1,11 @@
+[Unit]
+Description=Metlo NodeJS ingestor application
+After=network-online.target
+
+[Service]
+Restart=on-failure
+WorkingDirectory=/etc/metlo-ingestor/ingestors/suricata/dist
+ExecStart=/usr/bin/node /opt/node-apps/demo0/site/app.js
+
+[Install]
+WantedBy=multi-user.target

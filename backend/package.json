@@ -27,6 +27,7 @@
     "js-yaml": "^4.1.0",
     "multer": "^1.4.5-lts.1",
     "node-schedule": "^2.1.0",
+    "node-ssh": "^13.0.0",
     "pg": "^8.7.3",
     "reflect-metadata": "^0.1.13",
     "typeorm": "^0.3.7",

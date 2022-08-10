@@ -1,0 +1,4 @@
+alert http any any -> any any (msg:"TEST"; flow:established,to_client; http.response_body; pcre:/./; sid:1; rev:1;)
+#alert http any any -> any any (msg:"TEST"; flow:established,to_server; http.request_body; pcre:/./; sid:2; rev:1;)
+#suppress gen_id 1, sig_id 2003614, track by_src, ip $HOME_NET
+#suppress gen_id 1, sig_id 2221034, track by_src, ip $HOME_NET
