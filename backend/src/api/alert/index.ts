@@ -23,7 +23,10 @@ export const resolveAlertHandler = async (
   try {
     const { alertId } = req.params;
     const { resolutionMessage } = req.body;
-    const resolvedAlert = await AlertService.resolveAlert(alertId, resolutionMessage);
+    const resolvedAlert = await AlertService.resolveAlert(
+      alertId,
+      resolutionMessage
+    );
     await ApiResponseHandler.success(res, resolvedAlert);
   } catch (err) {
     await ApiResponseHandler.error(res, err);

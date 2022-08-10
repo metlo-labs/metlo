@@ -27,6 +27,11 @@ const AlertList: React.FC<AlertListProps> = React.memo(
     const divColor = useColorModeValue("rgb(216, 216, 216)", "black");
     const headerTextColor = useColorModeValue("gray.700", "gray.200");
     const [alert, setAlert ] = useState<Alert| undefined>();
+
+    useEffect(() => {
+      setAlertList(alerts);
+    }, [alerts]);
+
     const onRowClicked = (
       row: Alert,
       e: React.MouseEvent<Element, MouseEvent>
@@ -56,10 +61,6 @@ const AlertList: React.FC<AlertListProps> = React.memo(
         },
       },
     ];
-
-    useEffect(() => {
-      setAlertList(alerts);
-    }, [alerts]);
 
     let columns: TableColumn<Alert>[] = [
       {
@@ -158,6 +159,7 @@ const AlertList: React.FC<AlertListProps> = React.memo(
           grow: 0,
       })
     }
+
     return (
       <HStack
         h="full"

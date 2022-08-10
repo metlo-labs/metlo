@@ -57,7 +57,7 @@ const JSONContentViewer = (data: string, colorMode: ColorMode) => {
 const TraceDetail: React.FC<TraceDetailProps> = React.memo(({ trace }) => {
   const colorMode = useColorMode();
   return (
-    <Box h="full" overflowY="scroll" p="4">
+    <Box h="full" overflowY="auto" p="4">
       <Grid templateColumns="1fr 1fr" gap="4">
         <GridItem colSpan={2}>
           <VStack alignItems="flex-start">

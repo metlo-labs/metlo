@@ -30,7 +30,7 @@ export const updatePIIFieldHandler = async (
       apiEndpoint.riskScore = getRiskScore(apiEndpoint);
       await apiEndpointRepository.save(apiEndpoint);
     }
-    await ApiResponseHandler.success(res, null);
+    await ApiResponseHandler.success(res, updatedMatchedDataClass);
   } catch (err) {
     await ApiResponseHandler.error(res, err);
   }

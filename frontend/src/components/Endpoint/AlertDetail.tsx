@@ -19,9 +19,18 @@ const AlertDetail: React.FC<AlertDetailProps> = React.memo(({ alert, method, pat
   const [resolving, setResolving] = useState<boolean>(false);
   const [resolutionMessage, setResolutionMessage] = useState<string>(alert?.resolutionMessage);
   const toast = useToast();
+
+  useEffect(() => {
+    setResolutionMessage(currAlert.resolutionMessage);
+  }, [currAlert])
+
+  useEffect(() => {
+    setCurrAlert(alert);
+  }, [alert]);
+
   const handleResolveClick = async () => {
     setResolving(true);
-    const resp: Alert = await resolveAlert(alert.uuid, resolutionMessage);
+    const resp: Alert = await resolveAlert(currAlert.uuid, resolutionMessage);
     if (resp) {
       toast({
         title: "Successfully resolved alert!",
@@ -49,14 +58,6 @@ const AlertDetail: React.FC<AlertDetailProps> = React.memo(({ alert, method, pat
     }
     setResolving(false);
   }
-
-  useEffect(() => {
-    setResolutionMessage(currAlert.resolutionMessage);
-  }, [currAlert])
-
-  useEffect(() => {
-    setCurrAlert(alert);
-  }, [alert]);
 
   return (
     <Box h="full" overflowY="auto" p="4">
