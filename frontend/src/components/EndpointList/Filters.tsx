@@ -22,11 +22,7 @@ const FilterHeader: React.FC<{ title: string }> = React.memo(({ title }) => (
 const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
   ({ host, hostList, riskScore, riskList, setParams, params }) => {
     return (
-      <Stack
-        direction={{ base: "column", lg: "row" }}
-        spacing="4"
-        w="full"
-      >
+      <Stack direction={{ base: "column", lg: "row" }} spacing="4" w="full">
         <Box w="xs">
           <FilterHeader title="Host" />
           <Select
@@ -44,7 +40,9 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
             }))}
             placeholder="Filter by host..."
             instanceId="endpoint-tbl-env-host"
-            onChange={(e) => setParams({...params, hosts: e.map((host) => host.label)})}
+            onChange={(e) =>
+              setParams({ ...params, hosts: e.map((host) => host.label) })
+            }
           />
         </Box>
         <Box w="xs">
@@ -64,7 +62,12 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
             }))}
             placeholder="Filter by risk..."
             instanceId="endpoint-tbl-env-risk"
-            onChange={(e) => setParams({...params, riskScores: e.map((riskScore) => riskScore.label as RiskScore)})}
+            onChange={(e) =>
+              setParams({
+                ...params,
+                riskScores: e.map((riskScore) => riskScore.label as RiskScore),
+              })
+            }
           />
         </Box>
       </Stack>

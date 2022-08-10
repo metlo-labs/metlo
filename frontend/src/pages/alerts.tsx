@@ -26,7 +26,7 @@ const Alerts = () => {
       setAlerts(res[0]);
       setTotalCount(res[1]);
       setFetching(false);
-    }
+    };
     fetchAlerts();
   }, [params]);
   return (
@@ -36,7 +36,13 @@ const Alerts = () => {
           <Heading fontWeight="medium" size="xl" mb="8">
             Alerts
           </Heading>
-          <AlertList alerts={alerts} fetching={fetching} totalCount={totalCount} params={params} setParams={setParams} />
+          <AlertList
+            alerts={alerts}
+            fetching={fetching}
+            totalCount={totalCount}
+            params={params}
+            setParams={setParams}
+          />
         </VStack>
       </ContentContainer>
     </SidebarLayoutShell>

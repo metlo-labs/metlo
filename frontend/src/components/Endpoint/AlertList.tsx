@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { useColorMode, Badge, HStack, Code, Text, Box, StackDivider, useColorModeValue, Heading, Button } from "@chakra-ui/react";
+import {
+  useColorMode,
+  Badge,
+  HStack,
+  Code,
+  Text,
+  Box,
+  StackDivider,
+  useColorModeValue,
+  Heading,
+  Button,
+} from "@chakra-ui/react";
 import { ImCheckmark } from "@react-icons/all-files/im/ImCheckmark";
 import { ImCross } from "@react-icons/all-files/im/ImCross";
 import DataTable, { TableColumn } from "react-data-table-component";
@@ -27,7 +38,7 @@ const AlertList: React.FC<AlertListProps> = React.memo(
     const headerBg = useColorModeValue("rgb(252, 252, 252)", "rgb(17, 19, 23)");
     const divColor = useColorModeValue("rgb(216, 216, 216)", "black");
     const headerTextColor = useColorModeValue("gray.700", "gray.200");
-    const [alert, setAlert ] = useState<Alert| undefined>();
+    const [alert, setAlert] = useState<Alert | undefined>();
 
     useEffect(() => {
       setAlertList(alerts);
@@ -40,9 +51,12 @@ const AlertList: React.FC<AlertListProps> = React.memo(
       if (endpointPage) {
         setAlert(row);
       } else {
-        router.push({ pathname: `/endpoint/${row.apiEndpointUuid}`, query: { tab: "alerts"} })
+        router.push({
+          pathname: `/endpoint/${row.apiEndpointUuid}`,
+          query: { tab: "alerts" },
+        });
       }
-    }
+    };
 
     const selectedRowColor = useColorModeValue(
       "rgb(242, 242, 242)",
@@ -87,7 +101,8 @@ const AlertList: React.FC<AlertListProps> = React.memo(
       columns.push({
         name: "Endpoint",
         sortable: true,
-        selector: (row: Alert) => `${row.apiEndpoint.method}_${row.apiEndpoint.path}`,
+        selector: (row: Alert) =>
+          `${row.apiEndpoint.method}_${row.apiEndpoint.path}`,
         cell: (row: Alert) => (
           <HStack data-tag="allowRowEvents">
             <Badge
@@ -147,18 +162,22 @@ const AlertList: React.FC<AlertListProps> = React.memo(
     );
     if (endpointPage) {
       columns.push({
-          name: "Resolved",
-          sortable: true,
-          selector: (row: Alert) => row.resolved,
-          cell: (row: Alert) => (
-            <Box data-tag="allowRowEvents" alignItems={"end"}>
-              {row.resolved ? <ImCheckmark color="#93DCAC" /> : <ImCross color="#FDB2B2" />}
-            </Box>
-          ),
-          center: true,
-          id: "resolved",
-          grow: 0,
-      })
+        name: "Resolved",
+        sortable: true,
+        selector: (row: Alert) => row.resolved,
+        cell: (row: Alert) => (
+          <Box data-tag="allowRowEvents" alignItems={"end"}>
+            {row.resolved ? (
+              <ImCheckmark color="#93DCAC" />
+            ) : (
+              <ImCross color="#FDB2B2" />
+            )}
+          </Box>
+        ),
+        center: true,
+        id: "resolved",
+        grow: 0,
+      });
     }
 
     return (
@@ -201,7 +220,13 @@ const AlertList: React.FC<AlertListProps> = React.memo(
               </Button>
             </HStack>
             <Box h="calc(100% - 52px)">
-              <AlertDetail alert={alert} method={method} path={path} alertList={alertList} setAlertList={setAlertList} />
+              <AlertDetail
+                alert={alert}
+                method={method}
+                path={path}
+                alertList={alertList}
+                setAlertList={setAlertList}
+              />
             </Box>
           </Box>
         ) : null}

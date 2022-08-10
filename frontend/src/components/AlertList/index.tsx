@@ -11,15 +11,15 @@ interface AlertListProps {
   totalCount: number;
   alerts: Alert[];
   params: GetAlertParams;
-  setParams: React.Dispatch<React.SetStateAction<GetAlertParams>>
+  setParams: React.Dispatch<React.SetStateAction<GetAlertParams>>;
 }
 
 const AlertList: React.FC<AlertListProps> = React.memo(
   ({ alerts, fetching, totalCount, params, setParams }) => {
     const setCurrentPage = (page: number) => {
       const offset = (page - 1) * ALERT_PAGE_LIMIT;
-      setParams({...params, offset })
-    }
+      setParams({ ...params, offset });
+    };
     return (
       <VStack
         w="full"

@@ -49,7 +49,9 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
             </GridItem>
             <GridItem>
               <DataHeading>PII Fields</DataHeading>
-              <DataAttribute>{endpoint.sensitiveDataClasses.length}</DataAttribute>
+              <DataAttribute>
+                {endpoint.sensitiveDataClasses.length}
+              </DataAttribute>
             </GridItem>
             <GridItem>
               <DataHeading>Alerts</DataHeading>
@@ -57,11 +59,15 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
             </GridItem>
             <GridItem>
               <DataHeading>First Detected</DataHeading>
-              <DataAttribute>{getDateTimeString(endpoint.firstDetected) || "N/A"}</DataAttribute>
+              <DataAttribute>
+                {getDateTimeString(endpoint.firstDetected) || "N/A"}
+              </DataAttribute>
             </GridItem>
             <GridItem>
               <DataHeading>Last Active</DataHeading>
-              <DataAttribute>{getDateTimeString(endpoint.lastActive) || "N/A"}</DataAttribute>
+              <DataAttribute>
+                {getDateTimeString(endpoint.lastActive) || "N/A"}
+              </DataAttribute>
             </GridItem>
             <GridItem w="100%" colSpan={2}>
               <DataHeading>Usage</DataHeading>
@@ -84,7 +90,12 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
           overflowY={{ base: "unset", lg: "scroll" }}
           h={{ base: "unset", lg: "full" }}
         >
-          <Highlight {...defaultProps} theme={theme} code={endpoint?.openapiSpec?.spec || "No spec."} language={endpoint?.openapiSpec?.extension || "yaml"}>
+          <Highlight
+            {...defaultProps}
+            theme={theme}
+            code={endpoint?.openapiSpec?.spec || "No spec."}
+            language={endpoint?.openapiSpec?.extension || "yaml"}
+          >
             {({ className, style, tokens, getLineProps, getTokenProps }) => (
               <pre
                 className={className}

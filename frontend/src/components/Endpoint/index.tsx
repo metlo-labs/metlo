@@ -51,7 +51,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
       default:
         return 0;
     }
-  }
+  };
   return (
     <VStack
       w="full"
@@ -114,7 +114,12 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
             <TraceList traces={endpoint.traces} />
           </TabPanel>
           <TabPanel p="0" h="full">
-            <AlertList alerts={endpoint.alerts} method={endpoint.method} path={endpoint.path} endpointPage />
+            <AlertList
+              alerts={endpoint.alerts}
+              method={endpoint.method}
+              path={endpoint.path}
+              endpointPage
+            />
           </TabPanel>
         </TabPanels>
       </Tabs>

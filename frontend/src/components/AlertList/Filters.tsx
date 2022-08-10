@@ -40,7 +40,12 @@ const AlertFilters: React.FC<AlertFilterProps> = React.memo(
             }))}
             placeholder="Filter by alert type..."
             instanceId="alert-tbl-env-alert"
-            onChange={(e) => setParams({...params, alertTypes: e.map((alert) => alert.label as AlertType)})}
+            onChange={(e) =>
+              setParams({
+                ...params,
+                alertTypes: e.map((alert) => alert.label as AlertType),
+              })
+            }
           />
         </Box>
         <Box w="xs">
@@ -60,7 +65,12 @@ const AlertFilters: React.FC<AlertFilterProps> = React.memo(
             }))}
             placeholder="Filter by risk..."
             instanceId="alert-tbl-env-risk"
-            onChange={(e) => setParams({...params, riskScores: e.map((riskScore) => riskScore.label as RiskScore)})}
+            onChange={(e) =>
+              setParams({
+                ...params,
+                riskScores: e.map((riskScore) => riskScore.label as RiskScore),
+              })
+            }
           />
         </Box>
       </Stack>

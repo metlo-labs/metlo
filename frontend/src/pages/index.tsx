@@ -34,7 +34,12 @@ const Index = ({ summary, topAlerts }) => {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const summary = await getSummary();
   const topAlerts = await getTopAlerts();
-  return { props: { summary: superjson.stringify(summary), topAlerts: superjson.stringify(topAlerts) } };
+  return {
+    props: {
+      summary: superjson.stringify(summary),
+      topAlerts: superjson.stringify(topAlerts),
+    },
+  };
 };
 
 export default Index;

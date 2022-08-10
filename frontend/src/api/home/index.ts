@@ -26,4 +26,4 @@ export const getTopAlerts = async (): Promise<Alert[]> => {
     console.error(`Error fetching top alerts: ${err}`);
     return [];
   }
-}
+};

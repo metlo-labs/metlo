@@ -4,7 +4,9 @@ import { getAPIURL } from "~/constants";
 
 export const getSpecs = async (): Promise<[OpenApiSpec[], number]> => {
   try {
-    const resp = await axios.get<[OpenApiSpec[], number]>(`${getAPIURL()}/specs`);
+    const resp = await axios.get<[OpenApiSpec[], number]>(
+      `${getAPIURL()}/specs`
+    );
     if (resp.status === 200 && resp.data) {
       return resp.data;
     }

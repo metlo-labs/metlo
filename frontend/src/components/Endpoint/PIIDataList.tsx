@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { useColorMode, Code, Badge, useColorModeValue, HStack, StackDivider, Box, Heading, Button } from "@chakra-ui/react";
+import {
+  useColorMode,
+  Code,
+  Badge,
+  useColorModeValue,
+  HStack,
+  StackDivider,
+  Box,
+  Heading,
+  Button,
+} from "@chakra-ui/react";
 import { ImCross } from "@react-icons/all-files/im/ImCross";
 import { ImCheckmark } from "@react-icons/all-files/im/ImCheckmark";
 import DataTable, { TableColumn } from "react-data-table-component";
@@ -20,7 +30,7 @@ const PIIDataList: React.FC<PIIDataListProps> = React.memo(({ piiFields }) => {
   const headerBg = useColorModeValue("rgb(252, 252, 252)", "rgb(17, 19, 23)");
   const divColor = useColorModeValue("rgb(216, 216, 216)", "black");
   const headerTextColor = useColorModeValue("gray.700", "gray.200");
-  const [piiField, setPiiField] = useState<PIIField| undefined>();
+  const [piiField, setPiiField] = useState<PIIField | undefined>();
 
   useEffect(() => {
     setPiiFieldList(piiFields);
@@ -49,7 +59,8 @@ const PIIDataList: React.FC<PIIDataListProps> = React.memo(({ piiFields }) => {
     {
       name: "Risk Score",
       sortable: true,
-      selector: (row: PIIField) => DATA_CLASS_TO_RISK_SCORE[row.dataClass] || "",
+      selector: (row: PIIField) =>
+        DATA_CLASS_TO_RISK_SCORE[row.dataClass] || "",
       cell: (row: PIIField) => (
         <Badge
           p="1"
@@ -99,16 +110,16 @@ const PIIDataList: React.FC<PIIDataListProps> = React.memo(({ piiFields }) => {
         </Box>
       ),
       grow: 0,
-    }
+    },
   ];
 
   return (
     <HStack
-        h="full"
-        divider={<StackDivider borderWidth="2px" />}
-        spacing="0"
-        w="full"
-        alignItems="flex-start"
+      h="full"
+      divider={<StackDivider borderWidth="2px" />}
+      spacing="0"
+      w="full"
+      alignItems="flex-start"
     >
       <Box w={piiField ? "calc(100% - 650px)" : "full"} h="full">
         <DataTable
@@ -142,7 +153,11 @@ const PIIDataList: React.FC<PIIDataListProps> = React.memo(({ piiFields }) => {
             </Button>
           </HStack>
           <Box h="calc(100% - 52px)">
-            <PIIDataDetail piiField={piiField} piiFieldList={piiFieldList} setPiiFieldList={setPiiFieldList}  />
+            <PIIDataDetail
+              piiField={piiField}
+              piiFieldList={piiFieldList}
+              setPiiFieldList={setPiiFieldList}
+            />
           </Box>
         </Box>
       ) : null}

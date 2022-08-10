@@ -6,7 +6,11 @@ import { useRouter } from "next/router";
 import DataTable, { SortOrder, TableColumn } from "react-data-table-component";
 import EmptyView from "components/utils/EmptyView";
 import { METHOD_TO_COLOR, RISK_TO_COLOR } from "~/constants";
-import { getCustomStyles, rowStyles, SkeletonCell } from "components/utils/TableUtils";
+import {
+  getCustomStyles,
+  rowStyles,
+  SkeletonCell,
+} from "components/utils/TableUtils";
 import { Alert, ApiEndpoint } from "@common/types";
 import { getDateTimeString } from "utils";
 
@@ -41,7 +45,8 @@ const TableLoader: React.FC<TableLoaderProps> = ({
     },
     {
       name: "Endpoint",
-      selector: (row: Alert) => `${row.apiEndpoint.method}_${row.apiEndpoint.path}`,
+      selector: (row: Alert) =>
+        `${row.apiEndpoint.method}_${row.apiEndpoint.path}`,
       id: "endpoint",
       grow: 1,
     },
@@ -68,7 +73,7 @@ const TableLoader: React.FC<TableLoaderProps> = ({
       selector: (row: Alert) => row.resolved,
       id: "resolved",
       grow: 0,
-    }
+    },
   ].map((e) => ({
     ...e,
     sortable: true,
@@ -140,7 +145,8 @@ const List: React.FC<AlertTablesProps> = React.memo(
       {
         name: "Endpoint",
         sortable: true,
-        selector: (row: Alert) => `${row.apiEndpoint.method}_${row.apiEndpoint.path}`,
+        selector: (row: Alert) =>
+          `${row.apiEndpoint.method}_${row.apiEndpoint.path}`,
         cell: (row: Alert) => (
           <HStack data-tag="allowRowEvents">
             <Badge
@@ -201,20 +207,27 @@ const List: React.FC<AlertTablesProps> = React.memo(
         selector: (row: Alert) => row.resolved,
         cell: (row: Alert) => (
           <Box data-tag="allowRowEvents" alignItems={"end"}>
-            {row.resolved ? <ImCheckmark color="#93DCAC" /> : <ImCross color="#FDB2B2" />}
+            {row.resolved ? (
+              <ImCheckmark color="#93DCAC" />
+            ) : (
+              <ImCross color="#FDB2B2" />
+            )}
           </Box>
         ),
         center: true,
         id: "resolved",
         grow: 0,
-      }
+      },
     ];
 
     const onRowClicked = (
       row: Alert,
       e: React.MouseEvent<Element, MouseEvent>
     ) => {
-      router.push({ pathname: `/endpoint/${row.apiEndpointUuid}`, query: { tab: "alerts" }});
+      router.push({
+        pathname: `/endpoint/${row.apiEndpointUuid}`,
+        query: { tab: "alerts" },
+      });
     };
 
     const getTable = () => (

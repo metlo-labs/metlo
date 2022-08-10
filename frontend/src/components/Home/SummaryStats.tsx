@@ -10,13 +10,7 @@ interface SummaryStatsProps {
 
 const SummaryStatValue: React.FC<{ value: number; title: string }> = React.memo(
   ({ value, title }) => (
-    <VStack
-      bg="cellBG"
-      py="6"
-      rounded="md"
-      spacing="2"
-      borderWidth="1px"
-    >
+    <VStack bg="cellBG" py="6" rounded="md" spacing="2" borderWidth="1px">
       <Text fontSize="3xl" fontWeight="semibold" rounded="md">
         {value}
       </Text>
@@ -30,9 +24,16 @@ const SummaryStatValue: React.FC<{ value: number; title: string }> = React.memo(
 const SummaryStats: React.FC<SummaryStatsProps> = React.memo(
   ({ numHighRiskAlerts, numAlerts, numEndpoints, numPIIDataDetected }) => {
     return (
-      <Grid w="full" templateColumns={{ base: "repeat(2, 1fr)", lg: "repeat(4, 1fr)"}} gap="4">
+      <Grid
+        w="full"
+        templateColumns={{ base: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }}
+        gap="4"
+      >
         <GridItem w="full">
-          <SummaryStatValue value={numHighRiskAlerts} title="High Risk Alerts" />
+          <SummaryStatValue
+            value={numHighRiskAlerts}
+            title="High Risk Alerts"
+          />
         </GridItem>
         <GridItem w="full">
           <SummaryStatValue value={numAlerts} title="New Alerts" />
@@ -41,7 +42,10 @@ const SummaryStats: React.FC<SummaryStatsProps> = React.memo(
           <SummaryStatValue value={numEndpoints} title="Endpoints Tracked" />
         </GridItem>
         <GridItem w="full">
-          <SummaryStatValue value={numPIIDataDetected} title="PII Data Fields" />
+          <SummaryStatValue
+            value={numPIIDataDetected}
+            title="PII Data Fields"
+          />
         </GridItem>
       </Grid>
     );

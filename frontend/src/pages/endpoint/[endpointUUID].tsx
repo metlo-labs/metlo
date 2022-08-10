@@ -8,7 +8,9 @@ import { getEndpoint } from "api/endpoints";
 import { ApiEndpointDetailed } from "@common/types";
 
 const Endpoint = ({ endpoint }) => {
-  const parsedEndpoint = superjson.parse(endpoint) as ApiEndpointDetailed | null;
+  const parsedEndpoint = superjson.parse(
+    endpoint
+  ) as ApiEndpointDetailed | null;
   if (!parsedEndpoint) {
     return <ErrorPage statusCode={404} />;
   }

@@ -23,7 +23,7 @@ const Endpoints = () => {
     const fetchHosts = async () => {
       const res = await getHosts();
       setHosts(res);
-    }
+    };
     fetchHosts();
   }, []);
   useEffect(() => {
@@ -32,7 +32,7 @@ const Endpoints = () => {
       setEndpoints(res[0]);
       setTotalCount(res[1]);
       setFetching(false);
-    }
+    };
     fetchEndpoints();
   }, [params]);
   return (
@@ -42,7 +42,14 @@ const Endpoints = () => {
           <Heading fontWeight="medium" size="xl" mb="8">
             Endpoints
           </Heading>
-          <EndpointList hosts={hosts} endpoints={endpoints} fetching={fetching} params={params} totalCount={totalCount} setParams={setParams} />
+          <EndpointList
+            hosts={hosts}
+            endpoints={endpoints}
+            fetching={fetching}
+            params={params}
+            totalCount={totalCount}
+            setParams={setParams}
+          />
         </VStack>
       </ContentContainer>
     </SidebarLayoutShell>

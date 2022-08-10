@@ -1,10 +1,6 @@
 import React from "react";
 
-import {
-  HTMLChakraProps,
-  useColorModeValue,
-  chakra,
-} from "@chakra-ui/react";
+import { HTMLChakraProps, useColorModeValue, chakra } from "@chakra-ui/react";
 
 export const Logo = React.memo(
   (props: HTMLChakraProps<"svg"> & { iconColor?: string }) => {

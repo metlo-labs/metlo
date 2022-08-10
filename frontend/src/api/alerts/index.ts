@@ -2,12 +2,13 @@ import axios from "axios";
 import { GetAlertParams, Alert } from "@common/types";
 import { getAPIURL } from "~/constants";
 
-export const getAlerts = async (params: GetAlertParams): Promise<[Alert[], number]> => {
+export const getAlerts = async (
+  params: GetAlertParams
+): Promise<[Alert[], number]> => {
   try {
-    const resp = await axios.get<[Alert[], number]>(
-      `${getAPIURL()}/alerts`,
-      { params }
-    );
+    const resp = await axios.get<[Alert[], number]>(`${getAPIURL()}/alerts`, {
+      params,
+    });
     if (resp.status === 200 && resp.data) {
       return resp.data;
     }
@@ -16,11 +17,17 @@ export const getAlerts = async (params: GetAlertParams): Promise<[Alert[], numbe
     console.error(`Error fetching alerts: ${err}`);
     return [[], 0];
   }
-}
+};
 
-export const resolveAlert = async (alertId: string, resolutionMessage: string): Promise<Alert> => {
+export const resolveAlert = async (
+  alertId: string,
+  resolutionMessage: string
+): Promise<Alert> => {
   try {
-    const resp = await axios.put<Alert>(`${getAPIURL()}/alert/resolve/${alertId}`, { resolutionMessage });
+    const resp = await axios.put<Alert>(
+      `${getAPIURL()}/alert/resolve/${alertId}`,
+      { resolutionMessage }
+    );
     if (resp.status === 200 && resp.data) {
       return resp.data;
     }
@@ -29,4 +36,4 @@ export const resolveAlert = async (alertId: string, resolutionMessage: string): 
     console.error(`Error resolving alert: ${err}`);
     return null;
   }
-}
+};

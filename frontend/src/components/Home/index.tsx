@@ -32,7 +32,11 @@ const HomePage: React.FC<HomePageProps> = React.memo(
         <VStack w="full" alignItems="flex-start" spacing="4">
           <Heading fontSize="xl">Top Alerts</Heading>
           <Box w="full" borderWidth="1px">
-            {alerts.length ? <AlertList alerts={alerts} /> : <EmptyView text="No New Alerts!"/>}
+            {alerts.length ? (
+              <AlertList alerts={alerts} />
+            ) : (
+              <EmptyView text="No New Alerts!" />
+            )}
           </Box>
         </VStack>
       </VStack>

@@ -2,8 +2,8 @@ import React from "react";
 
 import { Box, Heading, BoxProps } from "@chakra-ui/react";
 
-const EmptyView: React.FC<BoxProps & { text?: string, notRounded?: boolean }> = React.memo(
-  ({ notRounded, ...props }) => {
+const EmptyView: React.FC<BoxProps & { text?: string; notRounded?: boolean }> =
+  React.memo(({ notRounded, ...props }) => {
     return (
       <Box
         w="full"
@@ -15,12 +15,16 @@ const EmptyView: React.FC<BoxProps & { text?: string, notRounded?: boolean }> = 
         minH="xs"
         {...props}
       >
-        <Heading size="lg" fontWeight="semibold" textAlign="center" color="gray.400">
+        <Heading
+          size="lg"
+          fontWeight="semibold"
+          textAlign="center"
+          color="gray.400"
+        >
           {props.text || "Nothing here yet!"}
         </Heading>
       </Box>
     );
-  }
-);
+  });
 
 export default EmptyView;

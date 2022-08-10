@@ -19,8 +19,8 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
   ({ endpoints, fetching, totalCount, params, setParams, hosts }) => {
     const setCurrentPage = (page: number) => {
       const offset = (page - 1) * ENDPOINT_PAGE_LIMIT;
-      setParams({...params, offset });
-    }
+      setParams({ ...params, offset });
+    };
     return (
       <VStack
         w="full"
@@ -33,7 +33,12 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
         <Box p="4" borderBottom="1px" borderColor="inherit" w="full">
           <EndpointFilters
             hostList={hosts}
-            riskList={[RiskScore.NONE, RiskScore.LOW, RiskScore.MEDIUM, RiskScore.HIGH]}
+            riskList={[
+              RiskScore.NONE,
+              RiskScore.LOW,
+              RiskScore.MEDIUM,
+              RiskScore.HIGH,
+            ]}
             setParams={setParams}
             params={params}
           />
