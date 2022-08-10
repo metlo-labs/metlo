@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { useColorMode, Badge, HStack, Code, Text, Box, useDisclosure } from "@chakra-ui/react";
+import { useColorMode, Badge, HStack, Code, Text, Box, StackDivider, useColorModeValue, Heading, Button } from "@chakra-ui/react";
 import { ImCheckmark } from "@react-icons/all-files/im/ImCheckmark";
 import { ImCross } from "@react-icons/all-files/im/ImCross";
 import DataTable, { TableColumn } from "react-data-table-component";
@@ -20,26 +20,27 @@ interface AlertListProps {
 
 const AlertList: React.FC<AlertListProps> = React.memo(
   ({ alerts, endpointPage, method, path }) => {
+    const [alertList, setAlertList] = useState<Alert[]>(alerts);
     const router = useRouter();
     const colorMode = useColorMode();
-    const { isOpen, onOpen, onClose } = useDisclosure();
+    const headerBg = useColorModeValue("rgb(252, 252, 252)", "rgb(17, 19, 23)");
+    const divColor = useColorModeValue("rgb(216, 216, 216)", "black");
+    const headerTextColor = useColorModeValue("gray.700", "gray.200");
     const [alert, setAlert ] = useState<Alert| undefined>();
-    const [resolutionMessage, setResolutionMessage] = useState<string>();
     const onRowClicked = (
       row: Alert,
       e: React.MouseEvent<Element, MouseEvent>
     ) => {
       if (endpointPage) {
-        setResolutionMessage(row.resolutionMessage);
-        openModal(row);
+        setAlert(row);
       } else {
         router.push({ pathname: `/endpoint/${row.apiEndpointUuid}`, query: { tab: "alerts"} })
       }
     }
-    const openModal = (alert: Alert) => {
-      setAlert(alert);
-      onOpen();
-    }
+
+    useEffect(() => {
+      setAlertList(alerts);
+    }, [alerts]);
 
     let columns: TableColumn<Alert>[] = [
       {
@@ -138,16 +139,46 @@ const AlertList: React.FC<AlertListProps> = React.memo(
       })
     }
     return (
-      <Box>
-        <AlertDetail resolutionMessage={resolutionMessage} setResolutionMessage={setResolutionMessage} alert={alert} isOpen={isOpen} onClose={onClose} method={method} path={path} />
-        <DataTable
-          style={rowStyles}
-          columns={columns}
-          data={alerts}
-          customStyles={getCustomStyles(colorMode.colorMode)}
-          onRowClicked={onRowClicked}
-        />
-      </Box>
+      <HStack
+        h="full"
+        divider={<StackDivider borderWidth="2px" />}
+        spacing="0"
+        w="full"
+        alignItems="flex-start"
+      >
+        <Box w={alert ? "calc(100% - 650px)" : "full"} h="full">
+          <DataTable
+            style={rowStyles}
+            columns={columns}
+            data={alertList}
+            customStyles={getCustomStyles(colorMode.colorMode)}
+            onRowClicked={onRowClicked}
+          />
+        </Box>
+        {alert ? (
+          <Box w="650px" h="full">
+            <HStack
+              w="full"
+              justifyContent="space-between"
+              alignItems="center"
+              height="52px"
+              px="4"
+              borderBottom="1px"
+              borderColor={divColor}
+              color={headerTextColor}
+              bg={headerBg}
+            >
+              <Heading size="md">Details</Heading>
+              <Button variant="ghost" onClick={() => setAlert(undefined)}>
+                <ImCross />
+              </Button>
+            </HStack>
+            <Box h="calc(100% - 52px)">
+              <AlertDetail alert={alert} method={method} path={path} alertList={alertList} setAlertList={setAlertList} />
+            </Box>
+          </Box>
+        ) : null}
+      </HStack>
     );
   }
 );
