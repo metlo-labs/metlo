@@ -1,5 +1,4 @@
 import React from "react";
-
 import { Avatar, Box } from "@chakra-ui/react";
 
 interface MetloAvatarProps {

@@ -1,6 +1,6 @@
 import axios from "axios";
 import { OpenApiSpec } from "@common/types";
-import { getAPIURL } from "../../constants";
+import { getAPIURL } from "~/constants";
 
 export const getSpecs = async (): Promise<[OpenApiSpec[], number]> => {
   try {

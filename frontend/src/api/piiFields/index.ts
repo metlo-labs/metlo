@@ -1,6 +1,6 @@
 import axios from "axios"
 import { PIIField, UpdatePIIFieldParams } from "@common/types"
-import { getAPIURL } from "../../constants"
+import { getAPIURL } from "~/constants"
 
 export const updatePIIField = async (piiFieldId: string, params: UpdatePIIFieldParams): Promise<PIIField> => {
   try {

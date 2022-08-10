@@ -1,5 +1,5 @@
 import React from "react";
-import { HStack, VStack, Text, Grid, GridItem } from "@chakra-ui/react";
+import { VStack, Text, Grid, GridItem } from "@chakra-ui/react";
 
 interface SummaryStatsProps {
   numHighRiskAlerts: number;

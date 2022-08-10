@@ -14,10 +14,10 @@ import {
 import { ImCross } from "@react-icons/all-files/im/ImCross";
 import { DateTime } from "luxon";
 import DataTable, { TableColumn } from "react-data-table-component";
-import { getCustomStyles, rowStyles } from "../utils/TableUtils";
+import { getCustomStyles, rowStyles } from "components/utils/TableUtils";
 import { ApiTrace } from "@common/types";
-import { METHOD_TO_COLOR } from "../../constants";
-import { statusCodeToColor } from "../utils/StatusCode";
+import { METHOD_TO_COLOR } from "~/constants";
+import { statusCodeToColor } from "components/utils/StatusCode";
 import TraceDetail from "./TraceDetail";
 import EmptyView from "components/utils/EmptyView";
 

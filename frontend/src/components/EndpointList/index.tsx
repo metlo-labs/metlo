@@ -3,7 +3,7 @@ import { Box, VStack } from "@chakra-ui/react";
 import { ApiEndpoint, GetEndpointParams } from "@common/types";
 import EndpointFilters from "./Filters";
 import List from "./List";
-import { ENDPOINT_PAGE_LIMIT } from "../../constants";
+import { ENDPOINT_PAGE_LIMIT } from "~/constants";
 import { RiskScore } from "@common/enums";
 
 interface EndpointListProps {

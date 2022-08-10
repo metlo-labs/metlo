@@ -1,13 +1,12 @@
 import { Heading, VStack } from "@chakra-ui/react";
-import { SideNavLinkDestination } from "../components/Sidebar/NavLinkUtils";
 import { useEffect, useState } from "react";
+import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils";
 import { Alert, GetAlertParams } from "@common/types";
-import { testAlerts } from "testData";
 import { SidebarLayoutShell } from "components/SidebarLayoutShell";
 import { ContentContainer } from "components/utils/ContentContainer";
 import AlertList from "components/AlertList";
-import { ALERT_PAGE_LIMIT } from "../constants";
-import { getAlerts } from "../api/alerts";
+import { ALERT_PAGE_LIMIT } from "~/constants";
+import { getAlerts } from "api/alerts";
 
 const Alerts = () => {
   const [fetching, setFetching] = useState<boolean>(true);

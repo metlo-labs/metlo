@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Box, Grid, GridItem, Text, VStack, Code, Badge, HStack, Checkbox, useToast } from "@chakra-ui/react";
 import { PIIField } from "@common/types"
-import { RISK_TO_COLOR, DATA_CLASS_TO_RISK_SCORE } from "../../constants";
-import { getDateTimeString } from "../../utils";
-import { updatePIIField } from "../../api/piiFields";
+import { RISK_TO_COLOR, DATA_CLASS_TO_RISK_SCORE } from "~/constants";
+import { getDateTimeString } from "utils";
+import { updatePIIField } from "api/piiFields";
 
 interface PIIDataDetailProps {
   piiField: PIIField;

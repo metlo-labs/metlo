@@ -12,12 +12,12 @@ import {
   Box,
   useToast,
 } from "@chakra-ui/react";
+import { AiFillApi } from "@react-icons/all-files/ai/AiFillApi";
 import darkTheme from "prism-react-renderer/themes/duotoneDark";
 import lightTheme from "prism-react-renderer/themes/github";
-import { OpenApiSpec } from "@common/types";
-import { AiFillApi } from "@react-icons/all-files/ai/AiFillApi";
 import Highlight, { defaultProps } from "prism-react-renderer";
-import { updateSpec, uploadSpec } from "api/apiSpecs";
+import { OpenApiSpec } from "@common/types";
+import { updateSpec } from "api/apiSpecs";
 
 interface SpecPageProps {
   spec: OpenApiSpec;

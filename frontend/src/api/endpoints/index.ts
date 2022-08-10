@@ -1,6 +1,6 @@
 import axios from "axios"
 import { ApiEndpoint, ApiEndpointDetailed, GetEndpointParams } from "@common/types"
-import { getAPIURL } from "../../constants"
+import { getAPIURL } from "~/constants"
 
 export const getEndpoints = async (params: GetEndpointParams): Promise<[ApiEndpoint[], number]> => {
   try {

@@ -7,7 +7,7 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import React from "react";
-import { Logo, SmLogo } from "../Logo";
+import { Logo, SmLogo } from "components/Logo";
 import { SideNavLinkDestination } from "./NavLinkUtils";
 import SideNavLink from "./SideNavLink";
 

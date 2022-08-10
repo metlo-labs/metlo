@@ -1,12 +1,12 @@
 import { Heading, VStack } from "@chakra-ui/react";
-import { ApiEndpoint, GetEndpointParams } from "@common/types";
 import { useEffect, useState } from "react";
-import EndpointList from "../components/EndpointList";
-import { SideNavLinkDestination } from "../components/Sidebar/NavLinkUtils";
-import { SidebarLayoutShell } from "../components/SidebarLayoutShell";
-import { ContentContainer } from "../components/utils/ContentContainer";
-import { getEndpoints, getHosts } from "../api/endpoints";
-import { ENDPOINT_PAGE_LIMIT } from "../constants";
+import { ApiEndpoint, GetEndpointParams } from "@common/types";
+import EndpointList from "components/EndpointList";
+import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils";
+import { SidebarLayoutShell } from "components/SidebarLayoutShell";
+import { ContentContainer } from "components/utils/ContentContainer";
+import { getEndpoints, getHosts } from "api/endpoints";
+import { ENDPOINT_PAGE_LIMIT } from "~/constants";
 
 const Endpoints = () => {
   const [fetching, setFetching] = useState<boolean>(true);

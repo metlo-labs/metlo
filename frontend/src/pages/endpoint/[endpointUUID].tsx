@@ -1,10 +1,10 @@
 import { GetServerSideProps } from "next";
 import ErrorPage from "next/error";
-import { SideNavLinkDestination } from "../../components/Sidebar/NavLinkUtils";
-import { SidebarLayoutShell } from "../../components/SidebarLayoutShell";
-import EndpointPage from "../../components/Endpoint";
-import { getEndpoint } from "../../api/endpoints";
 import superjson from "superjson";
+import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils";
+import { SidebarLayoutShell } from "components/SidebarLayoutShell";
+import EndpointPage from "components/Endpoint";
+import { getEndpoint } from "api/endpoints";
 import { ApiEndpointDetailed } from "@common/types";
 
 const Endpoint = ({ endpoint }) => {

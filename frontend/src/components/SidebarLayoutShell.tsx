@@ -1,8 +1,8 @@
 import React from "react";
 import { Box, HStack } from "@chakra-ui/react";
 import SideNavBar from "./Sidebar";
-import { SideNavLinkDestination } from "./Sidebar/NavLinkUtils";
-import { DarkModeSwitch } from "./utils/DarkModeSwitch";
+import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils";
+import { DarkModeSwitch } from "components/utils/DarkModeSwitch";
 
 interface SidebarLayoutShellProps {
   currentTab?: SideNavLinkDestination;

@@ -4,10 +4,10 @@ import { useColorMode, Badge, HStack, Code, Text, Box, StackDivider, useColorMod
 import { ImCheckmark } from "@react-icons/all-files/im/ImCheckmark";
 import { ImCross } from "@react-icons/all-files/im/ImCross";
 import DataTable, { TableColumn } from "react-data-table-component";
-import { getCustomStyles, rowStyles } from "../utils/TableUtils";
+import { getCustomStyles, rowStyles } from "components/utils/TableUtils";
 import { Alert } from "@common/types";
-import { METHOD_TO_COLOR, RISK_TO_COLOR } from "../../constants";
-import { getDateTimeString } from "../../utils";
+import { METHOD_TO_COLOR, RISK_TO_COLOR } from "~/constants";
+import { getDateTimeString } from "utils";
 import AlertDetail from "./AlertDetail";
 import { RestMethod } from "@common/enums";
 import EmptyView from "components/utils/EmptyView";

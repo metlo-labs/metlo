@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Summary, Alert } from "@common/types";
-import { getAPIURL } from "../../constants";
+import { getAPIURL } from "~/constants";
 
 export const getSummary = async (): Promise<Summary> => {
   try {

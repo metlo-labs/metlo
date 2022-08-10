@@ -13,9 +13,9 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { ApiTrace } from "@common/types";
-import { getDateTimeString } from "../../utils";
-import { METHOD_TO_COLOR } from "../../constants";
-import { statusCodeToColor } from "../utils/StatusCode";
+import { getDateTimeString } from "utils";
+import { METHOD_TO_COLOR } from "~/constants";
+import { statusCodeToColor } from "components/utils/StatusCode";
 const ReactJson = dynamic(() => import("react-json-view"), { ssr: false });
 
 interface TraceDetailProps {

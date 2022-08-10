@@ -3,12 +3,12 @@ import { Badge, Box, Code, useColorMode, HStack, Text } from "@chakra-ui/react";
 import { ImCheckmark } from "@react-icons/all-files/im/ImCheckmark";
 import { ImCross } from "@react-icons/all-files/im/ImCross";
 import { useRouter } from "next/router";
-import EmptyView from "../utils/EmptyView";
 import DataTable, { SortOrder, TableColumn } from "react-data-table-component";
-import { METHOD_TO_COLOR, RISK_TO_COLOR } from "../../constants";
-import { getCustomStyles, rowStyles, SkeletonCell } from "../utils/TableUtils";
+import EmptyView from "components/utils/EmptyView";
+import { METHOD_TO_COLOR, RISK_TO_COLOR } from "~/constants";
+import { getCustomStyles, rowStyles, SkeletonCell } from "components/utils/TableUtils";
 import { Alert, ApiEndpoint } from "@common/types";
-import { getDateTimeString } from "../../utils";
+import { getDateTimeString } from "utils";
 
 const PAGE_SIZE = 10;
 

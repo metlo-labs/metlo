@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Alert } from "@common/types";
 import { Box, Badge, Grid, GridItem, VStack, Text, Code, HStack, Textarea, Button, useToast } from "@chakra-ui/react";
-import { getDateTimeString } from "../../utils";
-import { METHOD_TO_COLOR } from "../../constants"
+import { getDateTimeString } from "utils";
+import { METHOD_TO_COLOR } from "~/constants"
 import { RestMethod } from "@common/enums";
 import { resolveAlert } from "api/alerts";
 

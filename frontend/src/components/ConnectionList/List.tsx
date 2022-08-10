@@ -1,7 +1,7 @@
 import React from "react";
 import { Text, Image, useColorMode } from "@chakra-ui/react";
 import DataTable, { TableColumn } from "react-data-table-component";
-import { getCustomStyles, rowStyles } from "../utils/TableUtils";
+import { getCustomStyles, rowStyles } from "components/utils/TableUtils";
 import { Connection } from "@common/types";
 
 interface ConnectionListProps {

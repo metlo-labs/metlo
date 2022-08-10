@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useColorMode, Code, Badge, useColorModeValue, HStack, StackDivider, Box, Heading, Button } from "@chakra-ui/react";
 import { ImCross } from "@react-icons/all-files/im/ImCross";
 import { ImCheckmark } from "@react-icons/all-files/im/ImCheckmark";
-import { PIIField } from "@common/types";
 import DataTable, { TableColumn } from "react-data-table-component";
-import { getCustomStyles, rowStyles } from "../utils/TableUtils";
-import { RISK_TO_COLOR, DATA_CLASS_TO_RISK_SCORE } from "../../constants";
-import { getDateTimeString } from "../../utils";
+import { PIIField } from "@common/types";
+import { getCustomStyles, rowStyles } from "components/utils/TableUtils";
+import { RISK_TO_COLOR, DATA_CLASS_TO_RISK_SCORE } from "~/constants";
+import { getDateTimeString } from "utils";
 import PIIDataDetail from "./PIIDataDetail";
 import EmptyView from "components/utils/EmptyView";
 

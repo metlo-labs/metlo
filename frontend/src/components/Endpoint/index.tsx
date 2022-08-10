@@ -19,9 +19,9 @@ import {
   TabPanel,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
-import { SectionHeader } from "../utils/Card";
+import { SectionHeader } from "components/utils/Card";
 import { ApiEndpointDetailed } from "@common/types";
-import { METHOD_TO_COLOR } from "../../constants";
+import { METHOD_TO_COLOR } from "~/constants";
 import PIIDataList from "./PIIDataList";
 import TraceList from "./TraceList";
 import AlertList from "./AlertList";

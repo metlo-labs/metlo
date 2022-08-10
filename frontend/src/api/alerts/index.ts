@@ -1,6 +1,6 @@
 import axios from "axios";
 import { GetAlertParams, Alert } from "@common/types";
-import { getAPIURL } from "../../constants";
+import { getAPIURL } from "~/constants";
 
 export const getAlerts = async (params: GetAlertParams): Promise<[Alert[], number]> => {
   try {

@@ -8,14 +8,14 @@ import {
   Stack,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { DataAttribute, DataHeading } from "components/utils/Card";
-import EndpointUsageChart from "./UsageChart";
-import { RISK_TO_COLOR } from "../../constants";
 import Highlight, { defaultProps } from "prism-react-renderer";
 import darkTheme from "prism-react-renderer/themes/duotoneDark";
 import lightTheme from "prism-react-renderer/themes/github";
+import { DataAttribute, DataHeading } from "components/utils/Card";
+import EndpointUsageChart from "./UsageChart";
+import { RISK_TO_COLOR } from "~/constants";
 import EndpointPIIChart from "./PIIChart";
-import { getDateTimeString } from "../../utils";
+import { getDateTimeString } from "utils";
 
 interface EndpointOverviewProps {
   endpoint: ApiEndpointDetailed;

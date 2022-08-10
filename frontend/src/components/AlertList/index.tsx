@@ -3,7 +3,7 @@ import React from "react";
 import { Alert, GetAlertParams } from "@common/types";
 import List from "./List";
 import AlertFilters from "./Filters";
-import { ALERT_PAGE_LIMIT } from "../../constants";
+import { ALERT_PAGE_LIMIT } from "~/constants";
 import { AlertType, RiskScore } from "@common/enums";
 
 interface AlertListProps {

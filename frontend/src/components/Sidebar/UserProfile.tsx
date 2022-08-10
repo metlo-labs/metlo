@@ -1,7 +1,7 @@
 import React from "react";
 import { Flex, HStack, Text } from "@chakra-ui/react";
 
-import MetloAvatar from "../utils/MetloAvatar";
+import MetloAvatar from "components/utils/MetloAvatar";
 
 interface UserProfileProps {
   name?: string;

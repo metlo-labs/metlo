@@ -3,10 +3,10 @@ import yaml from "js-yaml";
 import { useRouter } from "next/router";
 import { useColorMode } from "@chakra-ui/react";
 import DataTable, { TableColumn } from "react-data-table-component";
-import { getCustomStyles, rowStyles } from "../utils/TableUtils";
+import { getCustomStyles, rowStyles } from "components/utils/TableUtils";
 import { OpenApiSpec } from "@common/types";
 import { SpecExtension } from "@common/enums";
-import { getDateTimeString } from "../../utils";
+import { getDateTimeString } from "utils";
 
 interface SpecListProps {
   apiSpecs: OpenApiSpec[];

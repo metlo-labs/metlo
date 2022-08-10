@@ -1,10 +1,10 @@
 import superjson from "superjson";
 import { Heading, VStack } from "@chakra-ui/react";
-import { SideNavLinkDestination } from "../components/Sidebar/NavLinkUtils";
+import { GetServerSideProps } from "next";
+import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils";
 import { SidebarLayoutShell } from "components/SidebarLayoutShell";
 import { ContentContainer } from "components/utils/ContentContainer";
 import ConnectionList from "components/ConnectionList";
-import { GetServerSideProps } from "next";
 import { testConnections } from "testData";
 import { Connection } from "@common/types";
 
