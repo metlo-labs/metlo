@@ -25,7 +25,12 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
   ({ endpoint }) => {
     const theme = useColorModeValue(lightTheme, darkTheme);
     return (
-      <Stack direction={{ base: "column", lg: "row" }} spacing="0" h="full">
+      <Stack
+        direction={{ base: "column", lg: "row" }}
+        overflowY="auto"
+        spacing="0"
+        h="full"
+      >
         <Box
           w={{ base: "full", lg: "50%" }}
           overflowY={{ base: "unset", lg: "scroll" }}

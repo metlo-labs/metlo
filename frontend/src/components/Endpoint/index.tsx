@@ -58,8 +58,8 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
       w="full"
       alignItems="flex-start"
       spacing="0"
-      h={{ base: "unset", lg: "100vh" }}
-      overflow={{ base: "unset", lg: "hidden" }}
+      h="100vh"
+      overflow="hidden"
     >
       <VStack alignItems="flex-start" pt="6" px="6">
         <NextLink href="/endpoints">
@@ -87,8 +87,8 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
         display="flex"
         flexDir="column"
         flexGrow="1"
-        overflow={{ base: "unset", lg: "hidden" }}
         defaultIndex={getDefaultTab()}
+        overflow="hidden"
       >
         <TabList>
           <Tab>
@@ -104,8 +104,8 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(({ endpoint }) => {
             <SectionHeader text="Alerts" sym={FaBell} />
           </Tab>
         </TabList>
-        <TabPanels flexGrow="1" overflow={{ base: "unset", lg: "hidden" }}>
-          <TabPanel p="0" h={{ base: "unset", lg: "full" }}>
+        <TabPanels flexGrow="1" h="full" overflow="hidden">
+          <TabPanel p="0" overflow="auto" h="full">
             <EndpointOverview endpoint={endpoint} />
           </TabPanel>
           <TabPanel p="0" h="full">
