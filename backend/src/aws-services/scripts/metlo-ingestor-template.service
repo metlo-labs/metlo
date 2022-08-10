@@ -5,7 +5,7 @@ After=network-online.target
 [Service]
 Restart=on-failure
 WorkingDirectory=/etc/metlo-ingestor/ingestors/suricata/dist
-ExecStart=/usr/bin/node /opt/node-apps/demo0/site/app.js
+ExecStart=/home/ubuntu/.nvm/versions/node/v17.9.1/bin/node /etc/metlo-ingestor/ingestors/suricata/dist/index.js -s /etc/suricata-logs/eve.sock -u %s
 
 [Install]
 WantedBy=multi-user.target

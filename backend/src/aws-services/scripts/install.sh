@@ -1,31 +1,39 @@
+echo "INSTALLING SURICATA"
 sudo add-apt-repository ppa:oisf/suricata-stable -y
 sudo apt install suricata -y
 sudo systemctl enable suricata.service
 sudo systemctl stop suricata.service
-mkdir /etc/suricata-logs
-chmod 777 /etc/suricata-logs
+sudo mkdir /etc/suricata-logs
+sudo chmod 777 /etc/suricata-logs
 
-mkdir /var/lib/suricata/rules
-mv ~/local.rules /var/lib/suricata/rules/local.rules
+sudo mkdir /var/lib/suricata
+sudo mkdir /var/lib/suricata/rules
+sudo mv ~/local.rules /var/lib/suricata/rules/local.rules -f
 
-mv ~/suricata.yaml /etc/suricata/suricata.yaml
+sudo mv ~/suricata.yaml /etc/suricata/suricata.yaml -f
 
-mkdir /usr/local/nvm
+sudo mkdir /usr/local/nvm
+sudo mkdir /etc/metlo-ingestor
 
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-
-export NVM_DIR=/usr/local/nvm
-export NPM_CONFIG_PREFIX=/usr/local/node
-export PATH="/usr/local/node/bin:$PATH"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
-
-nvm install 17
-nvm use 17
+echo "INSTALL NODE AND YARN"
+source $HOME/.nvm/nvm.sh
+nvm install 17.9.1
+nvm use 17.9.1
 npm install -g yarn
 
+echo "CLONING INGESTOR"
 cd /etc
+sudo chmod 777 /etc/metlo-ingestor
 git clone https://github.com/metlo-labs/metlo.git metlo-ingestor
 cd metlo-ingestor/ingestors/suricata
+yarn install
 yarn build
 
-sudo mv ~/metlo-ingestor.service /lib/systemd/system/metlo-ingestor.service
+echo "ADDING SERVICE"
+sudo mv ~/metlo-ingestor.service /lib/systemd/system/metlo-ingestor.service -f
+
+echo "STARTING SERVICES"
+sudo systemctl daemon-reload
+sudo systemctl enable metlo-ingestor.service
+sudo systemctl start metlo-ingestor.service
+sudo systemctl start suricata.service
