@@ -3,7 +3,8 @@
   "scripts": {
     "dev": "next",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.0.2",
@@ -31,9 +32,11 @@
   "devDependencies": {
     "@types/js-yaml": "^4.0.5",
     "@types/luxon": "^3.0.0",
-    "@types/node": "^18.0.0",
+    "@types/node": "^18.7.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
+    "eslint": "8.21.0",
+    "eslint-config-next": "12.2.4",
     "typescript": "^4.7.2"
   }
 }

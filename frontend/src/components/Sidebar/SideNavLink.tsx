@@ -25,9 +25,10 @@ interface SideNavLinkProps extends LinkProps {
 
 const SideNavLink: React.FC<SideNavLinkProps> = React.memo(
   ({ isActive, destination, isComingSoon, ...rest }) => {
+    const colorModeValue = useColorModeValue("rgb(163, 165, 170)", "rgb(98, 100, 116)");
     const iconColor = isActive
       ? "primary"
-      : useColorModeValue("rgb(163, 165, 170)", "rgb(98, 100, 116)");
+      : colorModeValue;
     return (
       <Box pointerEvents={isComingSoon ? "none" : "unset"}>
         <NextLink href={sideNavDestinationToHref(destination)}>

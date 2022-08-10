@@ -1,5 +1,5 @@
 import React from "react";
-import { Avatar, Box } from "@chakra-ui/react";
+import { Avatar, Box, Image } from "@chakra-ui/react";
 
 interface MetloAvatarProps {
   email: string;
@@ -14,7 +14,8 @@ const MetloAvatar: React.FC<MetloAvatarProps> = React.memo(
     if (imageUrl) {
       return (
         <Box h={avatarSize} w={avatarSize} rounded="full" overflow="hidden">
-          <img
+          <Image
+            alt="user-avatar"
             height="100%"
             width="100%"
             src={imageUrl}

@@ -18,6 +18,7 @@ const ConnectionList: React.FC<ConnectionListProps> = React.memo(
         selector: (row: Connection) => row.type || "",
         cell: (row: Connection) => (
           <Image
+            alt={`${row.type}-image`}
             height="8"
             src={`connections/${row.type}_${colorMode.colorMode}.svg`}
           />

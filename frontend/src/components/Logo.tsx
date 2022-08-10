@@ -9,7 +9,8 @@ import {
 export const Logo = React.memo(
   (props: HTMLChakraProps<"svg"> & { iconColor?: string }) => {
     const { iconColor, ...rest } = props;
-    const textColor = iconColor || useColorModeValue("black", "white");
+    const colorModeValue = useColorModeValue("black", "white");
+    const textColor = iconColor || colorModeValue;
     const color = iconColor || "rgb(101, 138, 216)";
     return (
       <chakra.svg
