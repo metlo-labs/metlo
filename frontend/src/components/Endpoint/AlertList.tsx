@@ -38,6 +38,25 @@ const AlertList: React.FC<AlertListProps> = React.memo(
       }
     }
 
+    const selectedRowColor = useColorModeValue(
+      "rgb(242, 242, 242)",
+      "rgb(34, 37, 42)"
+    );
+
+    const conditionalStyles = [
+      {
+        when: (row: Alert) => {
+          if (!alert) {
+            return false;
+          }
+          return row.uuid == alert.uuid;
+        },
+        style: {
+          backgroundColor: selectedRowColor,
+        },
+      },
+    ];
+
     useEffect(() => {
       setAlertList(alerts);
     }, [alerts]);
@@ -149,9 +168,12 @@ const AlertList: React.FC<AlertListProps> = React.memo(
       >
         <Box w={alert ? "calc(100% - 650px)" : "full"} h="full">
           <DataTable
+            fixedHeader={true}
+            fixedHeaderScrollHeight="100%"
             style={rowStyles}
             columns={columns}
             data={alertList}
+            conditionalRowStyles={conditionalStyles}
             customStyles={getCustomStyles(colorMode.colorMode)}
             onRowClicked={onRowClicked}
           />
