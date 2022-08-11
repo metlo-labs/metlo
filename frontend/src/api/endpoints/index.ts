@@ -3,6 +3,7 @@ import {
   ApiEndpoint,
   ApiEndpointDetailed,
   GetEndpointParams,
+  Usage,
 } from "@common/types";
 import { getAPIURL } from "~/constants";
 
@@ -50,6 +51,21 @@ export const getHosts = async (): Promise<string[]> => {
     return [];
   } catch (err) {
     console.error(`Error fetching hosts: ${err}`);
+    return [];
+  }
+};
+
+export const getUsage = async (endpointId: string): Promise<Usage[]> => {
+  try {
+    const resp = await axios.get<Usage[]>(
+      `${getAPIURL()}/endpoint/${endpointId}/usage`
+    );
+    if (resp.status === 200 && resp.data) {
+      return resp.data;
+    }
+    return [];
+  } catch (err) {
+    console.error(`Error fetching endpoint usage: ${err}`);
     return [];
   }
 };

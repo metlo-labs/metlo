@@ -1,5 +1,5 @@
 import React from "react";
-import { ApiEndpointDetailed } from "@common/types";
+import { ApiEndpointDetailed, Usage } from "@common/types";
 import {
   Box,
   Badge,
@@ -19,10 +19,11 @@ import { getDateTimeString } from "utils";
 
 interface EndpointOverviewProps {
   endpoint: ApiEndpointDetailed;
+  usage: Usage[];
 }
 
 const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
-  ({ endpoint }) => {
+  ({ endpoint, usage }) => {
     const theme = useColorModeValue(lightTheme, darkTheme);
     return (
       <Stack
@@ -77,7 +78,7 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
             <GridItem w="100%" colSpan={2}>
               <DataHeading>Usage</DataHeading>
               <Box maxW="lg">
-                <EndpointUsageChart />
+                <EndpointUsageChart usage={usage} />
               </Box>
             </GridItem>
             {endpoint.sensitiveDataClasses.length > 0 ? (

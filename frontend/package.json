@@ -17,6 +17,8 @@
     "axios": "^0.27.2",
     "chakra-react-select": "^4.1.4",
     "chart.js": "^3.8.2",
+    "chartjs-adapter-date-fns": "^2.0.0",
+    "date-fns": "^2.29.1",
     "framer-motion": "^6.3.0",
     "js-yaml": "^4.1.0",
     "luxon": "^3.0.1",

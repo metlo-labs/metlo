@@ -5,6 +5,7 @@ import {
   GetEndpointParams,
   ApiEndpoint as ApiEndpointResponse,
   ApiEndpointDetailed as ApiEndpointDetailedResponse,
+  Usage as UsageResponse,
 } from "@common/types";
 import Error500InternalServer from "errors/error-500-internal-server";
 
@@ -137,6 +138,26 @@ export class GetEndpointsService {
         .distinct(true)
         .getRawMany();
       return hosts.map((host) => host["host"]);
+    } catch (err) {
+      console.error(`Error in Get Endpoints service: ${err}`);
+      throw new Error500InternalServer(err);
+    }
+  }
+
+  static async getUsage(endpointId: string): Promise<UsageResponse[]> {
+    try {
+      const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
+      const usage = await apiTraceRepository
+        .createQueryBuilder("trace")
+        .select([
+          `DATE_TRUNC('day', "createdAt") AS date`,
+          `COUNT(uuid) AS count`,
+        ])
+        .where(`"apiEndpointUuid" = :id`, { id: endpointId })
+        .groupBy(`DATE_TRUNC('day', "createdAt")`)
+        .orderBy(`date`, "ASC")
+        .getRawMany();
+      return usage as UsageResponse[];
     } catch (err) {
       console.error(`Error in Get Endpoints service: ${err}`);
       throw new Error500InternalServer(err);

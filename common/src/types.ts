@@ -154,3 +154,8 @@ export interface Summary {
   endpointsTracked: number;
   piiDataFields: number;
 }
+
+export interface Usage {
+  date: Date;
+  count: number;
+}
