@@ -17,18 +17,9 @@ import {
   create_mirror_session,
   create_mirror_target,
   delete_mirror_filter,
-  protocols,
   TrafficFilterRuleSpecs,
 } from "./create-mirror";
-import {
-  create_ssh_connection,
-  format,
-  putfiles,
-  put_data_file,
-  remove_file,
-  run_command,
-  test_connection,
-} from "./ssh-setup";
+import { format, put_data_file, remove_file, SSH_CONN } from "./ssh-setup";
 import {
   get_network_id_for_instance,
   get_public_ip_for_network_interface,
@@ -386,7 +377,6 @@ async function get_public_ip({
       client,
       destination_eni_id
     );
-    console.log(JSON.stringify(resp));
     client.destroy();
     return {
       success: "OK",
@@ -627,14 +617,11 @@ async function test_ssh({
   remote_machine_url,
   ...rest
 }): Promise<STEP_RESPONSE> {
+  var conn;
   try {
-    let conn = await create_ssh_connection(
-      keypair,
-      remote_machine_url,
-      "ubuntu"
-    );
-    await test_connection(conn);
-    conn.dispose();
+    conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu");
+    await conn.test_connection();
+    conn.disconnect();
     return {
       success: "OK",
       step_number: 9,
@@ -647,6 +634,7 @@ async function test_ssh({
       },
     };
   } catch (err) {
+    if (conn && conn instanceof SSH_CONN) conn.disconnect();
     return {
       success: "FAIL",
       step_number: 9,
@@ -670,7 +658,7 @@ async function push_files({
   remote_machine_url,
   ...rest
 }): Promise<STEP_RESPONSE> {
-  let conn = await create_ssh_connection(keypair, remote_machine_url, "ubuntu");
+  let conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu");
   try {
     let filepath = `./src/aws-services/scripts/metlo-ingestor-${randomUUID()}.service`;
     await put_data_file(
@@ -679,8 +667,7 @@ async function push_files({
       ]),
       filepath
     );
-    await putfiles(
-      conn,
+    await conn.putfiles(
       [
         "./src/aws-services/scripts/install.sh",
         "./src/aws-services/scripts/install-nvm.sh",
@@ -697,7 +684,7 @@ async function push_files({
       ]
     );
     remove_file(filepath);
-    conn.dispose();
+    conn.disconnect();
     return {
       success: "OK",
       step_number: 10,
@@ -711,7 +698,7 @@ async function push_files({
       },
     };
   } catch (err) {
-    conn.dispose();
+    conn.disconnect();
     return {
       success: "FAIL",
       step_number: 10,
@@ -735,17 +722,15 @@ async function execute_commands({
   remote_machine_url,
   ...rest
 }): Promise<STEP_RESPONSE> {
-  let conn = await create_ssh_connection(keypair, remote_machine_url, "ubuntu");
+  let conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu");
   try {
-    await run_command(
-      conn,
+    await conn.run_command(
       "source $HOME/.nvm/nvm.sh && cd ~ && chmod +x install-nvm.sh && ./install-nvm.sh "
     );
-    await run_command(
-      conn,
+    await conn.run_command(
       "source $HOME/.nvm/nvm.sh && cd ~ && chmod +x install.sh && ./install.sh "
     );
-    conn.dispose();
+    conn.disconnect();
 
     return {
       success: "OK",
@@ -759,7 +744,7 @@ async function execute_commands({
       },
     };
   } catch (err) {
-    conn.dispose();
+    conn.disconnect();
     return {
       success: "FAIL",
       step_number: 11,
