@@ -75,21 +75,35 @@ export class AlertService {
     return await alertRepository.findOneBy({ uuid: alertId });
   }
 
+  static async getAlertWithConditions(
+    conditions: FindOptionsWhere<Alert>
+  ): Promise<Alert> {
+    const alertRepository = AppDataSource.getRepository(Alert);
+    return await alertRepository.findOneBy(conditions);
+  }
+
   static async createAlert(
     alertType: AlertType,
-    apiEndpoint: ApiEndpoint
+    apiEndpoint: ApiEndpoint,
+    description?: string[]
   ): Promise<Alert> {
     const alertRepository = AppDataSource.getRepository(Alert);
     const newAlert = new Alert();
     newAlert.type = alertType;
     newAlert.riskScore = ALERT_TYPE_TO_RISK_SCORE[alertType];
     newAlert.apiEndpoint = apiEndpoint;
-    switch (alertType) {
-      case AlertType.NEW_ENDPOINT:
-        newAlert.description = `A new endpoint has been detected: ${apiEndpoint.path}`;
-        break;
-      default:
-        newAlert.description = `A new alert.`;
+    if (description) {
+      newAlert.description = description;
+    } else {
+      switch (alertType) {
+        case AlertType.NEW_ENDPOINT:
+          newAlert.description = [
+            `A new endpoint has been detected: ${apiEndpoint.path}`,
+          ];
+          break;
+        default:
+          newAlert.description = [`A new alert.`];
+      }
     }
     return await alertRepository.save(newAlert);
   }

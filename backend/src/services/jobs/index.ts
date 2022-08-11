@@ -122,7 +122,7 @@ export class JobsService {
     });
     const hostMap: Record<string, ApiEndpoint[]> = {};
     const specIntro = {
-      openapi: "3.0.0",
+      openapi: "3.0.3",
       info: {
         title: "OpenAPI 3.0 Spec",
         description: "An auto-generated OpenAPI 3.0 specification.",

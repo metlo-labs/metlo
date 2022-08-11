@@ -35,3 +35,17 @@ export const getRiskScore = (endpoint: ApiEndpoint): RiskScore => {
       return RiskScore.NONE;
   }
 };
+
+export const parsedJsonNonNull = (
+  jsonString: string,
+  returnString?: boolean
+): any => {
+  try {
+    return JSON.parse(jsonString);
+  } catch (err) {
+    if (returnString) {
+      return jsonString;
+    }
+    return {};
+  }
+};

@@ -1,4 +1,4 @@
-import { RiskScore, DataClass, AlertType } from "@common/enums";
+import { RiskScore, DataClass, AlertType, SpecExtension } from "@common/enums";
 
 export const pathParameterRegex: RegExp = new RegExp(String.raw`/{[^/]+}`, "g");
 
@@ -37,3 +37,13 @@ CASE "alert"."riskScore"
   WHEN '${RiskScore.NONE}' THEN ${RISK_SCORE_ORDER[RiskScore.NONE]}
 END
 `;
+
+export const EXTENSION_TO_MIME_TYPE: Record<SpecExtension, string[]> = {
+  [SpecExtension.JSON]: ["application/json"],
+  [SpecExtension.YAML]: [
+    "text/yaml",
+    "text/x-yaml",
+    "application/x-yaml",
+    "application/yaml",
+  ],
+};

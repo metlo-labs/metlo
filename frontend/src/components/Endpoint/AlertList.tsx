@@ -145,18 +145,6 @@ const AlertList: React.FC<AlertListProps> = React.memo(
         grow: 1,
       },
       {
-        name: "Description",
-        sortable: true,
-        selector: (row: Alert) => row.description || "",
-        cell: (row: Alert) => (
-          <Text data-tag="allowRowEvents" fontSize="sm" fontWeight="semibold">
-            {row.description}
-          </Text>
-        ),
-        id: "title",
-        grow: 1,
-      },
-      {
         name: "Time",
         sortable: true,
         selector: (row: Alert) => row.createdAt.toISOString(),

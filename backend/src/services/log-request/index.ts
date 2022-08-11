@@ -4,6 +4,7 @@ import { ApiEndpoint, ApiTrace } from "models";
 import { AppDataSource } from "data-source";
 import { ScannerService } from "services/scanner/scan";
 import Error500InternalServer from "errors/error-500-internal-server";
+import { SpecService } from "services/spec";
 
 export class LogRequestService {
   static async logRequest(traceParams: TraceParams): Promise<void> {
@@ -49,6 +50,7 @@ export class LogRequestService {
         );
         apiTraceObj.apiEndpointUuid = apiEndpoint.uuid;
         await apiEndpointRepository.save(apiEndpoint);
+        await SpecService.findOpenApiSpecDiff(apiTraceObj, apiEndpoint);
       }
       await apiTraceRepository.save(apiTraceObj);
     } catch (err) {

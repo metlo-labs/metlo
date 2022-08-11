@@ -92,7 +92,7 @@ export interface Alert {
   riskScore: RiskScore;
   apiEndpointUuid: string;
   apiEndpoint: ApiEndpoint;
-  description: string;
+  description: string[];
   createdAt: Date;
   updatedAt: Date;
   resolved: boolean;

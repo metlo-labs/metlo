@@ -57,12 +57,6 @@ const TableLoader: React.FC<TableLoaderProps> = ({
       grow: 1,
     },
     {
-      name: "Description",
-      selector: (row: Alert) => row.description || "",
-      id: "title",
-      grow: 1,
-    },
-    {
       name: "Time",
       selector: (row: Alert) => row.createdAt.toISOString(),
       id: "time",
@@ -175,18 +169,6 @@ const List: React.FC<AlertTablesProps> = React.memo(
           </Text>
         ),
         id: "type",
-        grow: 1,
-      },
-      {
-        name: "Description",
-        sortable: true,
-        selector: (row: Alert) => row.description || "",
-        cell: (row: Alert) => (
-          <Text data-tag="allowRowEvents" fontSize="sm" fontWeight="semibold">
-            {row.description}
-          </Text>
-        ),
-        id: "title",
         grow: 1,
       },
       {

@@ -7,6 +7,7 @@ import Error400BadRequest from "errors/error-400-bad-request";
 import { AppDataSource } from "data-source";
 import { OpenApiSpec } from "models";
 import { SpecExtension } from "@common/enums";
+import { EXTENSION_TO_MIME_TYPE } from "~/constants";
 
 export const getSpecHandler = async (
   req: Request,
@@ -47,9 +48,13 @@ export const uploadNewSpecHandler = async (
       ?.split(".yaml")[0]
       ?.split(".yml")[0];
     let extension = undefined;
-    if (specFile.mimetype === "application/json") {
+    if (
+      EXTENSION_TO_MIME_TYPE[SpecExtension.JSON].includes(specFile.mimetype)
+    ) {
       extension = SpecExtension.JSON;
-    } else if (specFile.mimetype === "text/yaml") {
+    } else if (
+      EXTENSION_TO_MIME_TYPE[SpecExtension.YAML].includes(specFile.mimetype)
+    ) {
       extension = SpecExtension.YAML;
     } else {
       throw new Error400BadRequest(
@@ -102,9 +107,13 @@ export const updateSpecHandler = async (
     const specFile = req.file;
     const { specFileName } = req.params;
     let extension = undefined;
-    if (specFile.mimetype === "application/json") {
+    if (
+      EXTENSION_TO_MIME_TYPE[SpecExtension.JSON].includes(specFile.mimetype)
+    ) {
       extension = SpecExtension.JSON;
-    } else if (specFile.mimetype === "text/yaml") {
+    } else if (
+      EXTENSION_TO_MIME_TYPE[SpecExtension.YAML].includes(specFile.mimetype)
+    ) {
       extension = SpecExtension.YAML;
     } else {
       throw new Error400BadRequest(

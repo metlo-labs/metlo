@@ -12,6 +12,8 @@ import {
   Textarea,
   Button,
   useToast,
+  UnorderedList,
+  ListItem,
 } from "@chakra-ui/react";
 import { getDateTimeString } from "utils";
 import { METHOD_TO_COLOR } from "~/constants";
@@ -111,16 +113,22 @@ const AlertDetail: React.FC<AlertDetailProps> = React.memo(
               </HStack>
             </VStack>
           </GridItem>
-          <GridItem>
-            <VStack alignItems="flex-start">
-              <Text fontWeight="semibold">Description</Text>
-              <Code p="1" rounded="md" fontSize="sm">
-                {currAlert.description}
-              </Code>
-            </VStack>
-          </GridItem>
         </Grid>
         <VStack w="full" pt="4" spacing="4">
+          <VStack w="full" alignItems="flex-start">
+            <Text fontWeight="semibold">Description</Text>
+            <Code p="1" rounded="md" w="full" fontSize="sm">
+              {currAlert.description?.length > 1 ? (
+                <UnorderedList>
+                  {currAlert.description.map((item, idx) => (
+                    <ListItem key={idx} listStyleType={">"}>{item}</ListItem>
+                  ))}
+                </UnorderedList>
+              ) : (
+                currAlert.description[0] || "No description."
+              )}
+            </Code>
+          </VStack>
           <VStack w="full" alignItems="flex-start">
             <Text fontWeight="semibold">Resolution Reason</Text>
             <Textarea

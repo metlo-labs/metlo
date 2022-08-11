@@ -27,8 +27,8 @@ export class Alert extends BaseEntity {
   @ManyToOne(() => ApiEndpoint, (apiEndpoint) => apiEndpoint.alerts)
   apiEndpoint: ApiEndpoint;
 
-  @Column()
-  description: string;
+  @Column("varchar", { array: true, default: [] })
+  description: string[];
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date;
