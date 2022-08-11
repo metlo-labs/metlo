@@ -29,7 +29,11 @@ import {
   run_command,
   test_connection,
 } from "./ssh-setup";
-import { get_network_id_for_instance, match_av_to_region } from "./utils";
+import {
+  get_network_id_for_instance,
+  get_public_ip_for_network_interface,
+  match_av_to_region,
+} from "./utils";
 
 export enum STEPS {
   // SETUP MIRROR INSTANCE
@@ -38,6 +42,7 @@ export enum STEPS {
   SELECT_OS = 3,
   SELECT_INSTANCE_TYPE = 4,
   CREATE_INSTANCE = 5,
+  INSTANCE_IP = 5.5,
   CREATE_MIRROR_TARGET = 6,
   CREATE_MIRROR_FILTER = 7,
   CREATE_MIRROR_SESSION = 8,
@@ -91,6 +96,8 @@ async function setup(
       return await aws_instance_selection(metadata_for_step as any);
     case 5:
       return await aws_instance_creation(metadata_for_step as any);
+    case 5.5:
+      return await get_public_ip(metadata_for_step as any);
     case 6:
       return await aws_mirror_target_creation(metadata_for_step as any);
     case 7:
@@ -336,8 +343,6 @@ async function aws_instance_creation({
         destination_eni_id:
           resp[0].Instances[0].NetworkInterfaces[0].NetworkInterfaceId,
         ami,
-        remote_machine_url:
-          resp[0].Instances[0].NetworkInterfaces[0].Association.PublicIp,
         ...rest,
       },
     };
@@ -356,6 +361,61 @@ async function aws_instance_creation({
         region,
         ami,
         selected_instance_type,
+        ...rest,
+      },
+    };
+  }
+}
+
+async function get_public_ip({
+  access_id,
+  secret_access_key,
+  region,
+  destination_eni_id,
+  ...rest
+}): Promise<STEP_RESPONSE> {
+  try {
+    let client = new EC2Client({
+      credentials: {
+        secretAccessKey: secret_access_key,
+        accessKeyId: access_id,
+      },
+      region: region,
+    });
+    let resp = await get_public_ip_for_network_interface(
+      client,
+      destination_eni_id
+    );
+    console.log(JSON.stringify(resp));
+    client.destroy();
+    return {
+      success: "OK",
+      error: null,
+      step_number: 5.5,
+      last_completed: 5,
+      keep: {
+        secret_access_key: secret_access_key,
+        access_id: access_id,
+        region,
+        remote_machine_url: resp,
+        destination_eni_id,
+        ...rest,
+      },
+    };
+  } catch (err) {
+    return {
+      success: "FAIL",
+      step_number: 5.5,
+      last_completed: 5,
+      error: {
+        message: `Couldn't get public ip for instance ${destination_eni_id} on EC2.`,
+        err: err,
+      },
+      keep: {
+        secret_access_key,
+        access_id,
+        region,
+        destination_eni_id,
         ...rest,
       },
     };
