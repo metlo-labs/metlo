@@ -25,6 +25,7 @@ class EcommerceMakeProductProducer(BaseProducer):
         }
         req_body = {
             "name": "Test Product",
+            "owner_name": fake.name(),
             "price": randint(100, 1000),
         }
         return {
@@ -35,7 +36,7 @@ class EcommerceMakeProductProducer(BaseProducer):
                     "parameters": []
                 },
                 "method": "POST",
-                "body": "",
+                "body": json.dumps(req_body),
             },
             "response": {
                 "status": 200,
