@@ -30,7 +30,7 @@ export class SpecService {
 
   static async getSpecs(): Promise<OpenApiSpecResponse[]> {
     const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec);
-    const specList = await openApiSpecRepository.find({});
+    const specList = await openApiSpecRepository.find({ order: { updatedAt: "DESC" }});
     return specList;
   }
 
