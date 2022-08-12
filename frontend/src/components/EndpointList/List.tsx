@@ -130,7 +130,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
           </Badge>
         ),
         id: "riskScore",
-        grow: 1,
+        grow: 0,
       },
       {
         name: "Path",
@@ -156,7 +156,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         sortable: true,
         selector: (row: ApiEndpoint) => row.host || "",
         id: "host",
-        grow: 1,
+        grow: 3,
       },
       {
         name: "First Detected",
@@ -164,7 +164,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         selector: (row: ApiEndpoint) =>
           getDateTimeString(row.firstDetected) || "N/A",
         id: "firstDetected",
-        grow: 2,
+        grow: 1.5,
       },
       {
         name: "Last Active",
@@ -172,7 +172,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         selector: (row: ApiEndpoint) =>
           getDateTimeString(row.lastActive) || "N/A",
         id: "lastActive",
-        grow: 2,
+        grow: 1.5,
       },
     ];
 

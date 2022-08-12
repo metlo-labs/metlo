@@ -18,6 +18,8 @@ import Error409Conflict from "errors/error-409-conflict";
 import {
   generateAlertMessageFromReqErrors,
   generateAlertMessageFromRespErrors,
+  getSpecRequestParameters,
+  getSpecResponses,
 } from "./utils";
 import { AlertService } from "services/alert";
 
@@ -30,7 +32,9 @@ export class SpecService {
 
   static async getSpecs(): Promise<OpenApiSpecResponse[]> {
     const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec);
-    const specList = await openApiSpecRepository.find({ order: { updatedAt: "DESC" }});
+    const specList = await openApiSpecRepository.find({
+      order: { updatedAt: "DESC" },
+    });
     return specList;
   }
 
@@ -73,12 +77,8 @@ export class SpecService {
     extension: SpecExtension,
     specString: string
   ): Promise<void> {
-    const servers: any[] = specObject["servers"];
+    const serversRoot: any[] = specObject["servers"];
     const paths: JSONValue = specObject["paths"];
-
-    if (!servers || servers?.length === 0) {
-      throw new Error400BadRequest("No servers found in spec file.");
-    }
 
     const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
     const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec);
@@ -107,10 +107,23 @@ export class SpecService {
       matchedDataClasses: [],
     };
     for (const path of pathKeys) {
+      let serversPath = serversRoot;
+      if (paths[path]["servers"]) {
+        serversPath = paths[path]["servers"];
+      }
       const pathRegex = getPathRegex(path);
-      const methods = Object.keys(paths[path]);
+      const methods = Object.keys(paths[path]).filter((key) =>
+        Object.values(RestMethod).includes(key.toUpperCase() as RestMethod)
+      );
       for (const method of methods) {
-        for (const server of servers) {
+        let serversMethod = serversPath;
+        if (paths[path][method]["servers"]) {
+          serversMethod = paths[path][method]["servers"];
+        }
+        if (!serversMethod) {
+          throw new Error400BadRequest("No servers found in spec file.");
+        }
+        for (const server of serversMethod) {
           const host = server["url"];
           if (host) {
             // For exact endpoint match
@@ -219,8 +232,12 @@ export class SpecService {
         specObject["paths"][endpoint.path][endpoint.method.toLowerCase()];
 
       // Validate request info
+      const specRequestParameters = getSpecRequestParameters(
+        specObject,
+        endpoint
+      );
       const requestValidator = new OpenAPIRequestValidator({
-        parameters: specPath["parameters"],
+        parameters: specRequestParameters,
         requestBody: specPath["requestBody"],
         schemas: specObject["components"]["schemas"],
         errorTransformer: (error, ajvError) => {
@@ -230,6 +247,7 @@ export class SpecService {
           return error;
         },
         additionalQueryProperties: false,
+        enableHeadersLowercase: false,
       });
       const headers = {};
       const body = parsedJsonNonNull(trace.requestBody);
@@ -260,8 +278,7 @@ export class SpecService {
       const reqErrorMessages = generateAlertMessageFromReqErrors(requestErrors);
 
       // Validate response info
-      const responses =
-        specPath["responses"] || specObject["components"]["responses"];
+      const responses = getSpecResponses(specObject, endpoint);
       const responseValidator = new OpenAPIResponseValidator({
         components: specObject["components"],
         responses: responses,

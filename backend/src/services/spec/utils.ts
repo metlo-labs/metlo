@@ -1,5 +1,7 @@
+import { JSONValue } from "@common/types";
 import { OpenAPIRequestValidatorError } from "openapi-request-validator";
 import { OpenAPIResponseValidatorError } from "openapi-response-validator";
+import { ApiEndpoint } from "models";
 
 export const generateAlertMessageFromReqErrors = (
   errors: OpenAPIRequestValidatorError[]
@@ -37,4 +39,36 @@ export const generateAlertMessageFromRespErrors = (
       }
     }) || []
   );
+};
+
+export const getSpecRequestParameters = (
+  specObject: JSONValue,
+  endpoint: ApiEndpoint
+): any => {
+  const paths = specObject["paths"];
+  const path = paths[endpoint.path];
+  const operation = path[endpoint.method.toLowerCase()];
+
+  let parameters = operation["parameters"];
+  if (!parameters) {
+    parameters = path["parameters"];
+    if (!parameters) {
+      parameters = specObject["components"]["parameters"];
+    }
+  }
+  return parameters ?? null;
+};
+
+export const getSpecResponses = (
+  specObject: JSONValue,
+  endpoint: ApiEndpoint
+): any => {
+  const operation =
+    specObject["paths"][endpoint.path][endpoint.method.toLowerCase()];
+
+  let responses = operation["responses"];
+  if (!responses) {
+    responses = specObject["components"]["responses"];
+  }
+  return responses ?? null;
 };
