@@ -1,8 +1,9 @@
 import React from "react";
 import NextLink from "next/link";
-import { Box, VStack, HStack, Button } from "@chakra-ui/react";
+import { Box, VStack, HStack, Button, useDisclosure } from "@chakra-ui/react";
 import { Connection } from "@common/types";
 import List from "./List";
+import BasicUsage from "../NewConnection";
 
 interface ConnectionListProps {
   connections: Connection[];
@@ -10,6 +11,7 @@ interface ConnectionListProps {
 
 const ConnectionList: React.FC<ConnectionListProps> = React.memo(
   ({ connections }) => {
+    const { isOpen, onOpen, onClose } = useDisclosure();
     return (
       <VStack
         w="full"
@@ -22,9 +24,10 @@ const ConnectionList: React.FC<ConnectionListProps> = React.memo(
         <Box p="4" borderBottom="1px" borderColor="inherit" w="full">
           <HStack justifyContent="space-between">
             <Box />
-            <NextLink href="/connection/new">
-              <Button colorScheme="blue">New</Button>
-            </NextLink>
+            <Button colorScheme="blue" onClick={onOpen}>
+              New
+            </Button>
+            <BasicUsage isOpen={isOpen} onClose={onClose} />
           </HStack>
         </Box>
         <Box w="full">
