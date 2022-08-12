@@ -12,9 +12,11 @@ import {
   Textarea,
   Button,
   useToast,
-  UnorderedList,
   ListItem,
+  ListIcon,
+  List,
 } from "@chakra-ui/react";
+import { AiOutlineRight } from "@react-icons/all-files/ai/AiOutlineRight";
 import { getDateTimeString } from "utils";
 import { METHOD_TO_COLOR } from "~/constants";
 import { RestMethod } from "@common/enums";
@@ -117,13 +119,16 @@ const AlertDetail: React.FC<AlertDetailProps> = React.memo(
         <VStack w="full" pt="4" spacing="4">
           <VStack w="full" alignItems="flex-start">
             <Text fontWeight="semibold">Description</Text>
-            <Code p="1" rounded="md" w="full" fontSize="sm">
+            <Code p="3" rounded="md" w="full" fontSize="sm">
               {currAlert.description?.length > 1 ? (
-                <UnorderedList>
+                <List marginLeft="20px" css={{ textIndent: "-22px" }}>
                   {currAlert.description.map((item, idx) => (
-                    <ListItem key={idx} listStyleType={">"}>{item}</ListItem>
+                    <ListItem key={idx}>
+                      <ListIcon as={AiOutlineRight} />
+                      {item}
+                    </ListItem>
                   ))}
-                </UnorderedList>
+                </List>
               ) : (
                 currAlert.description[0] || "No description."
               )}
@@ -138,7 +143,9 @@ const AlertDetail: React.FC<AlertDetailProps> = React.memo(
                 cursor: "not-allowed",
               }}
               value={resolutionMessage || ""}
-              placeholder="Provide reason for resolving..."
+              placeholder={
+                !currAlert.resolved && "Provide reason for resolving..."
+              }
               onChange={(e) => setResolutionMessage(e.target.value)}
             />
           </VStack>
