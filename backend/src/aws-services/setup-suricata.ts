@@ -5,12 +5,7 @@ import {
   EC2Client,
 } from "@aws-sdk/client-ec2";
 import { randomUUID } from "crypto";
-import {
-  create_new_instance,
-  get_latest_image,
-  get_valid_types,
-  MachineSpecifications,
-} from "./create-ec2-instance";
+import { MachineSpecifications, EC2_CONN } from "./create-ec2-instance";
 import {
   create_mirror_filter,
   create_mirror_filter_rules,
@@ -33,13 +28,13 @@ export enum STEPS {
   SELECT_OS = 3,
   SELECT_INSTANCE_TYPE = 4,
   CREATE_INSTANCE = 5,
-  INSTANCE_IP = 5.5,
-  CREATE_MIRROR_TARGET = 6,
-  CREATE_MIRROR_FILTER = 7,
-  CREATE_MIRROR_SESSION = 8,
-  TEST_SSH = 9,
-  PUSH_FILES = 10,
-  EXEC_COMMAND = 11,
+  INSTANCE_IP = 6,
+  CREATE_MIRROR_TARGET = 7,
+  CREATE_MIRROR_FILTER = 8,
+  CREATE_MIRROR_SESSION = 9,
+  TEST_SSH = 10,
+  PUSH_FILES = 11,
+  EXEC_COMMAND = 12,
 }
 
 export interface STEP_RESPONSE {
@@ -48,7 +43,7 @@ export interface STEP_RESPONSE {
   last_completed: number;
   error?: {
     message: string;
-    err: any;
+    err: "string";
   };
   keep: {
     secret_access_key?: string;
@@ -87,19 +82,19 @@ async function setup(
       return await aws_instance_selection(metadata_for_step as any);
     case 5:
       return await aws_instance_creation(metadata_for_step as any);
-    case 5.5:
-      return await get_public_ip(metadata_for_step as any);
     case 6:
-      return await aws_mirror_target_creation(metadata_for_step as any);
+      return await get_public_ip(metadata_for_step as any);
     case 7:
-      return await aws_mirror_filter_creation(metadata_for_step as any);
+      return await aws_mirror_target_creation(metadata_for_step as any);
     case 8:
-      return await aws_mirror_session_creation(metadata_for_step as any);
+      return await aws_mirror_filter_creation(metadata_for_step as any);
     case 9:
-      return await test_ssh(metadata_for_step as any);
+      return await aws_mirror_session_creation(metadata_for_step as any);
     case 10:
-      return await push_files(metadata_for_step as any);
+      return await test_ssh(metadata_for_step as any);
     case 11:
+      return await push_files(metadata_for_step as any);
+    case 12:
       return await execute_commands(metadata_for_step as any);
     default:
       throw Error(`Don't have step ${step} registered`);
@@ -200,14 +195,9 @@ async function aws_os_selection({
   ...rest
 }): Promise<STEP_RESPONSE> {
   try {
-    let client = new EC2Client({
-      credentials: {
-        secretAccessKey: secret_access_key,
-        accessKeyId: access_id,
-      },
-    });
-    let resp = await get_latest_image(client);
-    client.destroy();
+    let conn = new EC2_CONN(access_id, secret_access_key);
+    let resp = await conn.get_latest_image();
+    conn.disconnect();
     return {
       success: "OK",
       step_number: 3,
@@ -248,18 +238,9 @@ async function aws_instance_selection({
   ...rest
 }): Promise<STEP_RESPONSE> {
   try {
-    let client = new EC2Client({
-      credentials: {
-        secretAccessKey: secret_access_key,
-        accessKeyId: access_id,
-      },
-    });
-    let resp = await get_valid_types(
-      client,
-      virtualization_type,
-      machine_specs
-    );
-    client.destroy();
+    let conn = new EC2_CONN(access_id, secret_access_key);
+    let resp = await conn.get_valid_types(virtualization_type, machine_specs);
+    conn.disconnect();
     return {
       success: "OK",
       step_number: 4,
@@ -305,20 +286,13 @@ async function aws_instance_creation({
   ...rest
 }): Promise<STEP_RESPONSE> {
   try {
-    let client = new EC2Client({
-      credentials: {
-        secretAccessKey: secret_access_key,
-        accessKeyId: access_id,
-      },
-      region: region,
-    });
-    let resp = await create_new_instance(
-      client,
+    let conn = new EC2_CONN(access_id, secret_access_key, region);
+    let resp = await conn.create_new_instance(
       ami,
       selected_instance_type,
       randomUUID()
     );
-    client.destroy();
+    conn.disconnect();
     return {
       success: "OK",
       error: null,
@@ -381,7 +355,7 @@ async function get_public_ip({
     return {
       success: "OK",
       error: null,
-      step_number: 5.5,
+      step_number: 6,
       last_completed: 5,
       keep: {
         secret_access_key: secret_access_key,
@@ -395,7 +369,7 @@ async function get_public_ip({
   } catch (err) {
     return {
       success: "FAIL",
-      step_number: 5.5,
+      step_number: 6,
       last_completed: 5,
       error: {
         message: `Couldn't get public ip for instance ${destination_eni_id} on EC2.`,
@@ -435,8 +409,8 @@ async function aws_mirror_target_creation({
     client.destroy();
     return {
       success: "OK",
-      step_number: 6,
-      last_completed: 6,
+      step_number: 7,
+      last_completed: 7,
       error: null,
       keep: {
         secret_access_key: secret_access_key,
@@ -450,7 +424,7 @@ async function aws_mirror_target_creation({
   } catch (err) {
     return {
       success: "FAIL",
-      step_number: 6,
+      step_number: 7,
       last_completed: 5,
       error: {
         message: `Couldn't create a mirror target out of ${source_instance_id}`,
@@ -487,8 +461,8 @@ async function aws_mirror_filter_creation({
   } catch (err) {
     return {
       success: "FAIL",
-      step_number: 7,
-      last_completed: 6,
+      step_number: 8,
+      last_completed: 7,
       error: {
         message: `Couldn't create a mirror filter`,
         err: err,
@@ -512,8 +486,8 @@ async function aws_mirror_filter_creation({
     client.destroy();
     return {
       success: "OK",
-      step_number: 7,
-      last_completed: 7,
+      step_number: 8,
+      last_completed: 8,
       error: null,
       keep: {
         secret_access_key: secret_access_key,
@@ -532,8 +506,8 @@ async function aws_mirror_filter_creation({
     );
     return {
       success: "FAIL",
-      step_number: 7,
-      last_completed: 6,
+      step_number: 8,
+      last_completed: 7,
       error: {
         message: `Couldn't create rules for filter id. Rolling back changes to filter and deleting it.`,
         err: err,
@@ -576,8 +550,8 @@ async function aws_mirror_session_creation({
     client.destroy();
     return {
       success: "OK",
-      step_number: 8,
-      last_completed: 8,
+      step_number: 9,
+      last_completed: 9,
       error: null,
       keep: {
         secret_access_key: secret_access_key,
@@ -593,8 +567,8 @@ async function aws_mirror_session_creation({
   } catch (err) {
     return {
       success: "FAIL",
-      step_number: 8,
-      last_completed: 7,
+      step_number: 9,
+      last_completed: 8,
       error: {
         message: `Couldn't create a mirror session targeting ${destination_eni_id}`,
         err: err,
@@ -624,8 +598,8 @@ async function test_ssh({
     conn.disconnect();
     return {
       success: "OK",
-      step_number: 9,
-      last_completed: 9,
+      step_number: 10,
+      last_completed: 10,
       error: null,
       keep: {
         keypair,
@@ -637,8 +611,8 @@ async function test_ssh({
     if (conn && conn instanceof SSH_CONN) conn.disconnect();
     return {
       success: "FAIL",
-      step_number: 9,
-      last_completed: 8,
+      step_number: 10,
+      last_completed: 9,
       error: {
         message: `Couldn't connect to ssh. Please check if key was constructed`,
         err: err,
@@ -687,8 +661,8 @@ async function push_files({
     conn.disconnect();
     return {
       success: "OK",
-      step_number: 10,
-      last_completed: 10,
+      step_number: 11,
+      last_completed: 11,
       error: null,
       keep: {
         keypair,
@@ -701,8 +675,8 @@ async function push_files({
     conn.disconnect();
     return {
       success: "FAIL",
-      step_number: 10,
-      last_completed: 9,
+      step_number: 11,
+      last_completed: 10,
       error: {
         message: `Couldn't push files to remote machine`,
         err: err,
@@ -734,8 +708,8 @@ async function execute_commands({
 
     return {
       success: "OK",
-      step_number: 11,
-      last_completed: 11,
+      step_number: 12,
+      last_completed: 12,
       error: null,
       keep: {
         keypair,
@@ -747,8 +721,8 @@ async function execute_commands({
     conn.disconnect();
     return {
       success: "FAIL",
-      step_number: 11,
-      last_completed: 10,
+      step_number: 12,
+      last_completed: 11,
       error: {
         message: `Couldn't exec commands to install things`,
         err: err,
@@ -761,145 +735,3 @@ async function execute_commands({
     };
   }
 }
-
-async function main() {
-  var resp;
-  let info = {
-  // console.log(resp);
-  // if (resp.success != "OK") {
-  //   return;
-  // }
-  // info = { ...resp.keep };
-  // // STEP 2
-  // info.source_instance_id = "i-0d2ca277bb3e4d0a7";
-  // resp = await setup(2, info);
-  // console.log(resp);
-  // if (resp.success != "OK") {
-  //   return;
-  // }
-  // info = { ...resp.keep };
-  // // STEP 3
-  // resp = await setup(3, info);
-  // console.log(resp);
-  // if (resp.success != "OK") {
-  //   return;
-  // }
-  // info = { ...resp.keep };
-  // // STEP 4
-  // info.machine_specs = {
-  //   minCpu: 1,
-  //   maxCpu: 2,
-  //   minMem: 2,
-  //   maxMem: 8,
-  // } as MachineSpecifications;
-  // resp = await setup(4, info);
-  // console.log(resp);
-  // if (resp.success != "OK") {
-  //   return;
-  // }
-  // info = {
-  //   ...resp.keep,
-  //   selected_instance_type:
-  //     resp.keep.instance_types[
-  //       Math.floor(Math.random() * resp.keep.instance_types.length)
-  //     ],
-  } as STEP_RESPONSE["keep"];
-  resp = await get_valid_types(
-    new EC2Client({
-      credentials: {
-        accessKeyId: info.access_id,
-        secretAccessKey: info.secret_access_key,
-      },
-    }),
-    "hvm",
-    { minCpu: 0, maxCpu: 4, minMem: 2, maxMem: 8 }
-  );
-  // STEP 1
-  resp = await setup(1, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  }
-  info = { ...resp.keep };
-  // STEP 2
-  info.source_instance_id = "i-0d2ca277bb3e4d0a7";
-  resp = await setup(2, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  }
-  info = { ...resp.keep };
-  // STEP 3
-  resp = await setup(3, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  }
-  info = { ...resp.keep };
-  // STEP 4
-  info.machine_specs = {
-    minCpu: 1,
-    maxCpu: 2,
-    minMem: 2,
-    maxMem: 8,
-  } as MachineSpecifications;
-  resp = await setup(4, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  }
-  info = {
-    ...resp.keep,
-    selected_instance_type:
-      resp.keep.instance_types[
-        Math.floor(Math.random() * resp.keep.instance_types.length)
-      ],
-  };
-  // STEP 5
-  resp = await setup(5, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  }
-  info = { ...resp.keep };
-  // STEP 6
-  resp = await setup(6, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  }
-  info = { ...resp.keep };
-  // STEP 7
-  info = { ...resp.keep };
-  resp = await setup(7, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  }
-  info = { ...resp.keep };
-  // STEP 8
-  resp = await setup(8, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  }
-  // };
-  // STEP 9
-  resp = await setup(9, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  } // STEP 10
-  resp = await setup(10, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  } // STEP 11
-  resp = await setup(11, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  }
-}
-
-main();
