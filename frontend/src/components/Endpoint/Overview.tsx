@@ -81,11 +81,16 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
                 <EndpointUsageChart usage={usage} />
               </Box>
             </GridItem>
-            {endpoint.sensitiveDataClasses.filter(e => e.isRisk).length > 0 ? (
+            {endpoint.sensitiveDataClasses.filter((e) => e.isRisk).length >
+            0 ? (
               <GridItem w="100%" colSpan={2}>
                 <DataHeading>PII Data</DataHeading>
                 <Box maxW="xs">
-                  <EndpointPIIChart piiFields={endpoint.sensitiveDataClasses.filter(e => e.isRisk)} />
+                  <EndpointPIIChart
+                    piiFields={endpoint.sensitiveDataClasses.filter(
+                      (e) => e.isRisk
+                    )}
+                  />
                 </Box>
               </GridItem>
             ) : null}
