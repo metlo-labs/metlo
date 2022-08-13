@@ -25,9 +25,9 @@ export const getRiskScore = (endpoint: ApiEndpoint): RiskScore => {
     }
   }
   switch (true) {
-    case numRiskySensitiveDataClasses >= 5:
-      return RiskScore.HIGH;
     case numRiskySensitiveDataClasses >= 3:
+      return RiskScore.HIGH;
+    case numRiskySensitiveDataClasses >= 2:
       return RiskScore.MEDIUM;
     case numRiskySensitiveDataClasses >= 1:
       return RiskScore.LOW;
