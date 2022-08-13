@@ -50,6 +50,15 @@ const PIIDataList: React.FC<PIIDataListProps> = React.memo(
       });
     }, [piiFieldList, uuid]);
 
+    const rowNotRiskBG =
+      colorMode.colorMode == "light"
+        ? {
+            opacity: 0.3,
+          }
+        : {
+            filter: "brightness(50%)",
+          };
+
     const conditionalStyles = [
       {
         when: (row: PIIField) => {
@@ -66,9 +75,7 @@ const PIIDataList: React.FC<PIIDataListProps> = React.memo(
         when: (row: PIIField) => {
           return !row.isRisk;
         },
-        style: {
-          opacity: 0.3,
-        },
+        style: rowNotRiskBG,
       },
     ];
 
