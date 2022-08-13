@@ -85,9 +85,20 @@ export class AlertService {
   static async createAlert(
     alertType: AlertType,
     apiEndpoint: ApiEndpoint,
-    description?: string[]
+    description?: string[],
+    noDuplicate?: boolean
   ): Promise<Alert> {
     const alertRepository = AppDataSource.getRepository(Alert);
+    if (noDuplicate) {
+      const existingUnresolvedAlert = alertRepository.findOneBy({
+        apiEndpointUuid: apiEndpoint.uuid,
+        type: alertType,
+        resolved: false,
+      });
+      if (existingUnresolvedAlert) {
+        return null;
+      }
+    }
     const newAlert = new Alert();
     newAlert.type = alertType;
     newAlert.riskScore = ALERT_TYPE_TO_RISK_SCORE[alertType];

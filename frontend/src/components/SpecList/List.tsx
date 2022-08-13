@@ -1,7 +1,7 @@
 import React from "react";
 import yaml from "js-yaml";
 import { useRouter } from "next/router";
-import { useColorMode } from "@chakra-ui/react";
+import { Code, Text, useColorMode, VStack } from "@chakra-ui/react";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { getCustomStyles, rowStyles } from "components/utils/TableUtils";
 import { OpenApiSpec } from "@common/types";
@@ -43,7 +43,14 @@ const SpecList: React.FC<SpecListProps> = React.memo(({ apiSpecs }) => {
     {
       name: "Hosts",
       sortable: true,
-      selector: (row: OpenApiSpec) => getHostsFromSpec(row)?.join(", ") || "",
+      selector: (row: OpenApiSpec) => row.hosts?.join(", ") || "",
+      cell: (row: OpenApiSpec) => (
+        <VStack alignItems="flex-start" py="2">
+          {row.hosts?.map((host, idx) => (
+            <Text key={idx}>{host}</Text>
+          ))}
+        </VStack>
+      ),
       id: "hosts",
     },
     {
