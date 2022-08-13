@@ -8,26 +8,11 @@ import {
   CreateTrafficMirrorSessionCommand,
   CreateTrafficMirrorSessionCommandInput,
   EC2Client,
-  TrafficMirrorFilterRule,
-  TagSpecification,
   DeleteTrafficMirrorFilterCommand,
   DeleteTrafficMirrorFilterCommandInput,
 } from "@aws-sdk/client-ec2";
-import { createHash, Hash, randomUUID } from "crypto";
-
-export enum protocols {
-  TCP = 6,
-  UDP = 17,
-}
-
-export interface TrafficFilterRuleSpecs {
-  destination_CIDR: string;
-  source_CIDR: string;
-  source_port?: string;
-  destination_port?: string;
-  protocol: protocols;
-  direction: "out" | "in";
-}
+import { createHash, randomUUID } from "crypto";
+import { TrafficFilterRuleSpecs } from "@common/types";
 
 export async function create_mirror_target(
   client: EC2Client,

@@ -1,6 +1,7 @@
 import {
   AlertType,
   ConnectionType,
+  protocols,
   RestMethod,
   RiskScore,
   SpecExtension,
@@ -159,4 +160,51 @@ export interface Summary {
 export interface Usage {
   date: Date;
   count: number;
+}
+
+export interface STEP_RESPONSE {
+  success: "OK" | "FAIL";
+  status: "START" | "COMPLETE" | "IN-PROGRESS";
+  step_number: number;
+  last_completed: number;
+  message: string;
+  error?: {
+    err: string;
+  };
+  data: {
+    secret_access_key?: string;
+    access_id?: string;
+    source_instance_id?: string;
+    region?: string;
+    ami?: string;
+    os_types?: string[];
+    instance_types?: string[];
+    machine_specs?: MachineSpecifications;
+    selected_instance_type?: string;
+    mirror_instance_id?: string;
+    mirror_target_id?: string;
+    mirror_filter_id?: string;
+    mirror_rules?: Array<TrafficFilterRuleSpecs>;
+    keypair?: string;
+    destination_eni_id?: string;
+    virtualization_type?: string;
+    backend_url?: string;
+    remote_machine_url?: string;
+  };
+}
+
+export interface MachineSpecifications {
+  minCpu: number;
+  maxCpu: number;
+  minMem: number;
+  maxMem?: number;
+}
+
+export interface TrafficFilterRuleSpecs {
+  destination_CIDR: string;
+  source_CIDR: string;
+  source_port?: string;
+  destination_port?: string;
+  protocol: protocols;
+  direction: "out" | "in";
 }

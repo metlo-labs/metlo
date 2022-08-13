@@ -2,8 +2,15 @@
   "compileOnSave": false,
   "compilerOptions": {
     "target": "es6",
-    "lib": ["dom", "es6", "es2017", "esnext.asynciterable"],
-    "typeRoots": ["node_modules/@types"],
+    "lib": [
+      "dom",
+      "es6",
+      "es2017",
+      "esnext.asynciterable"
+    ],
+    "typeRoots": [
+      "node_modules/@types",
+    ],
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
@@ -22,8 +29,12 @@
     "importHelpers": true,
     "baseUrl": "./src",
     "paths": {
-      "@common/*": ["../../common/dist/*"],
-      "~/*": ["./*"],
+      "@common/*": [
+        "../../common/dist/*"
+      ],
+      "~/*": [
+        "./*"
+      ],
     }
   },
   "include": [
@@ -33,6 +44,9 @@
     "public/robots.txt",
     ".env",
   ],
-  "exclude": ["node_modules", "src/http", "src/tests"]
+  "exclude": [
+    "node_modules",
+    "src/http",
+    "src/tests"
+  ]
 }
-

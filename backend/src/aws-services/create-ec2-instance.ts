@@ -25,6 +25,8 @@ import {
   AuthorizeSecurityGroupIngressCommand,
   AuthorizeSecurityGroupIngressCommandInput,
 } from "@aws-sdk/client-ec2";
+
+import { MachineSpecifications } from "@common/types";
 // For pricing approximation
 // import {
 //   Pricing
