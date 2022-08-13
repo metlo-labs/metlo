@@ -139,6 +139,7 @@ export interface OpenApiSpec {
   extension: SpecExtension;
   createdAt: Date;
   updatedAt: Date;
+  hosts: string[];
 }
 
 export interface Connection {

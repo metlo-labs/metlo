@@ -107,6 +107,7 @@ export class SpecService {
       traces: [],
       matchedDataClasses: [],
     };
+    let specHosts: Set<string> = new Set();
     for (const path of pathKeys) {
       let serversPath = serversRoot;
       if (paths[path]["servers"]) {
@@ -125,6 +126,7 @@ export class SpecService {
           throw new Error400BadRequest("No servers found in spec file.");
         }
         const hosts = getHostsFromServer(serversMethod);
+        specHosts = new Set([...specHosts, ...hosts]);
         for (const host of hosts) {
           // For exact endpoint match
           let updated = false;
@@ -200,6 +202,7 @@ export class SpecService {
         }
       }
     }
+    existingSpec.hosts = [...specHosts];
     await openApiSpecRepository.save(existingSpec);
     await apiEndpointRepository.save(endpoints.apiEndpoints);
     await apiTraceRepository.save(endpoints.traces);
