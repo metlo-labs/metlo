@@ -62,6 +62,14 @@ const PIIDataList: React.FC<PIIDataListProps> = React.memo(
           backgroundColor: selectedRowColor,
         },
       },
+      {
+        when: (row: PIIField) => {
+          return !row.isRisk;
+        },
+        style: {
+          opacity: 0.3,
+        },
+      },
     ];
 
     const columns: TableColumn<PIIField>[] = [

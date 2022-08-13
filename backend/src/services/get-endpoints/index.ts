@@ -95,6 +95,11 @@ export class GetEndpointsService {
           openapiSpec: true,
           alerts: true,
         },
+        order: {
+          sensitiveDataClasses: {
+            isRisk: "DESC",
+          },
+        },
       });
       const traces = await apiTraceRepository.find({
         where: { apiEndpointUuid: endpoint.uuid },
