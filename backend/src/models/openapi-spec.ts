@@ -17,7 +17,7 @@ export class OpenApiSpec extends BaseEntity {
   spec: string;
 
   @Column("varchar", { array: true, default: [] })
-  hosts: string[]
+  hosts: string[];
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date;

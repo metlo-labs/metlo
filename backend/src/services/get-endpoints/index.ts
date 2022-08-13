@@ -1,4 +1,3 @@
-import { FindManyOptions, FindOptionsWhere, In } from "typeorm";
 import { AppDataSource } from "data-source";
 import { ApiEndpoint, ApiTrace } from "models";
 import {
@@ -8,6 +7,7 @@ import {
   Usage as UsageResponse,
 } from "@common/types";
 import Error500InternalServer from "errors/error-500-internal-server";
+import { RISK_SCORE_ORDER_QUERY } from "~/constants";
 
 export class GetEndpointsService {
   static async getEndpoints(
@@ -16,39 +16,32 @@ export class GetEndpointsService {
     try {
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
       const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
-      let whereConditions: FindOptionsWhere<ApiEndpoint> = {};
-      let paginationParams: FindManyOptions<ApiEndpoint> = {};
+
+      let endpointsQb = apiEndpointRepository.createQueryBuilder("endpoint");
+
       if (getEndpointParams?.hosts) {
-        whereConditions = {
-          ...whereConditions,
-          host: In(getEndpointParams.hosts),
-        };
+        endpointsQb = endpointsQb.where("endpoint.host IN (:...hosts)", {
+          hosts: getEndpointParams.hosts,
+        });
       }
       if (getEndpointParams?.riskScores) {
-        whereConditions = {
-          ...whereConditions,
-          riskScore: In(getEndpointParams.riskScores),
-        };
+        endpointsQb = endpointsQb.andWhere(
+          "endpoint.riskScore IN (:...scores)",
+          { scores: getEndpointParams.riskScores }
+        );
       }
+      endpointsQb = endpointsQb.orderBy(
+        RISK_SCORE_ORDER_QUERY("endpoint", "riskScore"),
+        "DESC"
+      );
       if (getEndpointParams?.offset) {
-        paginationParams = {
-          ...paginationParams,
-          skip: getEndpointParams.offset,
-        };
+        endpointsQb = endpointsQb.offset(getEndpointParams.offset);
       }
       if (getEndpointParams?.limit) {
-        paginationParams = {
-          ...paginationParams,
-          take: getEndpointParams.limit,
-        };
+        endpointsQb = endpointsQb.limit(getEndpointParams.limit);
       }
 
-      const endpoints = await apiEndpointRepository.findAndCount({
-        where: whereConditions,
-        ...paginationParams,
-      });
-
-      // TODO: Calculate risk score for endpoints and if risk score param present, only return those that meet
+      const endpoints = await endpointsQb.getManyAndCount();
 
       const res: any[] = await Promise.all(
         endpoints[0].map(async (endpoint) => {

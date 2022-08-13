@@ -1,4 +1,4 @@
-import { FindOptionsWhere, In, FindManyOptions } from "typeorm";
+import { FindOptionsWhere } from "typeorm";
 import { AppDataSource } from "data-source";
 import { Alert, ApiEndpoint } from "models";
 import { AlertType } from "@common/enums";
@@ -10,52 +10,37 @@ export class AlertService {
     alertParams: GetAlertParams
   ): Promise<[AlertResponse[], number]> {
     const alertRepository = AppDataSource.getRepository(Alert);
-    let whereConditions: FindOptionsWhere<Alert> = {};
-    let paginationParams: FindManyOptions<Alert> = {};
+
+    let alertsQb = alertRepository
+      .createQueryBuilder("alert")
+      .leftJoinAndSelect("alert.apiEndpoint", "apiEndpoint");
 
     if (alertParams?.alertTypes) {
-      whereConditions = {
-        ...whereConditions,
-        type: In(alertParams.alertTypes),
-      };
+      alertsQb = alertsQb.where("alert.type IN (:...types)", {
+        types: alertParams.alertTypes,
+      });
     }
     if (alertParams?.riskScores) {
-      whereConditions = {
-        ...whereConditions,
-        riskScore: In(alertParams.riskScores),
-      };
+      alertsQb = alertsQb.andWhere("alert.riskScore IN (:...scores)", {
+        scores: alertParams.riskScores,
+      });
     }
     if (alertParams?.resolved) {
-      whereConditions = {
-        ...whereConditions,
+      alertsQb = alertsQb.andWhere("alert.resolved = :resolved", {
         resolved: alertParams.resolved,
-      };
+      });
     }
+    alertsQb = alertsQb
+      .orderBy(RISK_SCORE_ORDER_QUERY("alert", "riskScore"), "DESC")
+      .addOrderBy("alert.createdAt", "DESC");
     if (alertParams?.offset) {
-      paginationParams = {
-        ...paginationParams,
-        skip: alertParams.offset,
-      };
+      alertsQb = alertsQb.offset(alertParams.offset);
     }
     if (alertParams?.limit) {
-      paginationParams = {
-        ...paginationParams,
-        take: alertParams.limit,
-      };
+      alertsQb = alertsQb.limit(alertParams.limit);
     }
 
-    const alerts = await alertRepository.findAndCount({
-      where: whereConditions,
-      ...paginationParams,
-      relations: {
-        apiEndpoint: true,
-      },
-      order: {
-        createdAt: "DESC",
-      },
-    });
-
-    return alerts;
+    return await alertsQb.getManyAndCount();
   }
 
   static async getTopAlerts(): Promise<AlertResponse[]> {
@@ -64,7 +49,7 @@ export class AlertService {
       .createQueryBuilder("alert")
       .leftJoinAndSelect("alert.apiEndpoint", "apiEndpoint")
       .where("alert.resolved = false")
-      .orderBy(RISK_SCORE_ORDER_QUERY, "DESC")
+      .orderBy(RISK_SCORE_ORDER_QUERY("alert", "riskScore"), "DESC")
       .addOrderBy("alert.createdAt", "DESC")
       .limit(20)
       .getMany();
