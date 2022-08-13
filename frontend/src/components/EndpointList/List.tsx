@@ -130,6 +130,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
           </Badge>
         ),
         id: "riskScore",
+        minWidth: "110px",
         grow: 0,
       },
       {
