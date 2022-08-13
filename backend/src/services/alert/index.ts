@@ -1,4 +1,4 @@
-import { FindOptionsWhere, In, FindManyOptions } from "typeorm";
+import { FindOptionsWhere } from "typeorm";
 import { AppDataSource } from "data-source";
 import { Alert, ApiEndpoint } from "models";
 import { AlertType } from "@common/enums";
@@ -31,7 +31,7 @@ export class AlertService {
       });
     }
     alertsQb = alertsQb
-      .orderBy(RISK_SCORE_ORDER_QUERY, "DESC")
+      .orderBy(RISK_SCORE_ORDER_QUERY("alert", "riskScore"), "DESC")
       .addOrderBy("alert.createdAt", "DESC");
     if (alertParams?.offset) {
       alertsQb = alertsQb.offset(alertParams.offset);
@@ -49,7 +49,7 @@ export class AlertService {
       .createQueryBuilder("alert")
       .leftJoinAndSelect("alert.apiEndpoint", "apiEndpoint")
       .where("alert.resolved = false")
-      .orderBy(RISK_SCORE_ORDER_QUERY, "DESC")
+      .orderBy(RISK_SCORE_ORDER_QUERY("alert", "riskScore"), "DESC")
       .addOrderBy("alert.createdAt", "DESC")
       .limit(20)
       .getMany();

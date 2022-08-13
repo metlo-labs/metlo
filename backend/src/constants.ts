@@ -29,8 +29,11 @@ export const RISK_SCORE_ORDER: Record<RiskScore, number> = {
   [RiskScore.NONE]: 0,
 };
 
-export const RISK_SCORE_ORDER_QUERY: string = `
-CASE "alert"."riskScore"
+export const RISK_SCORE_ORDER_QUERY = (
+  table: string,
+  column: string
+): string => `
+CASE "${table}"."${column}"
   WHEN '${RiskScore.HIGH}' THEN ${RISK_SCORE_ORDER[RiskScore.HIGH]}
   WHEN '${RiskScore.MEDIUM}' THEN ${RISK_SCORE_ORDER[RiskScore.MEDIUM]}
   WHEN '${RiskScore.LOW}' THEN ${RISK_SCORE_ORDER[RiskScore.LOW]}
