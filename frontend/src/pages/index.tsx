@@ -12,7 +12,7 @@ const Index = ({ summary, topAlerts }) => {
   const parsedSummary = superjson.parse<Summary>(summary);
   const parsedTopAlerts = superjson.parse<Alert[]>(topAlerts);
   return (
-    <SidebarLayoutShell currentTab={SideNavLinkDestination.Home}>
+    <SidebarLayoutShell title="Home" currentTab={SideNavLinkDestination.Home}>
       <ContentContainer>
         <VStack w="full" alignItems="flex-start">
           <Heading fontWeight="medium" size="xl" mb="8">

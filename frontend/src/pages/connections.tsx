@@ -9,7 +9,7 @@ import { testConnections } from "testData";
 import { Connection } from "@common/types";
 
 const Connections = ({ connections }) => (
-  <SidebarLayoutShell currentTab={SideNavLinkDestination.Connections}>
+  <SidebarLayoutShell title="Connections" currentTab={SideNavLinkDestination.Connections}>
     <ContentContainer>
       <VStack w="full" alignItems="flex-start">
         <Heading fontWeight="medium" size="xl" mb="8">

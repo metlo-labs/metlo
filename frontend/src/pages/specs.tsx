@@ -9,7 +9,7 @@ import { OpenApiSpec } from "@common/types";
 import { getSpecs } from "api/apiSpecs";
 
 const Specs = ({ apiSpecs }) => (
-  <SidebarLayoutShell currentTab={SideNavLinkDestination.Specs}>
+  <SidebarLayoutShell title="API Specs" currentTab={SideNavLinkDestination.Specs}>
     <ContentContainer>
       <VStack w="full" alignItems="flex-start">
         <Heading fontWeight="medium" size="xl" mb="8">

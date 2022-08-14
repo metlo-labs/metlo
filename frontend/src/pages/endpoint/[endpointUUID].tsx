@@ -16,7 +16,10 @@ const Endpoint = ({ endpoint, usage }) => {
     return <ErrorPage statusCode={404} />;
   }
   return (
-    <SidebarLayoutShell currentTab={SideNavLinkDestination.Endpoints}>
+    <SidebarLayoutShell
+      title="Endpoint"
+      currentTab={SideNavLinkDestination.Endpoints}
+    >
       <EndpointPage endpoint={parsedEndpoint} usage={parsedUsage} />
     </SidebarLayoutShell>
   );

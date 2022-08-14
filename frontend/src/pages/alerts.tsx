@@ -30,7 +30,10 @@ const Alerts = () => {
     fetchAlerts();
   }, [params]);
   return (
-    <SidebarLayoutShell currentTab={SideNavLinkDestination.Alerts}>
+    <SidebarLayoutShell
+      title="Alerts"
+      currentTab={SideNavLinkDestination.Alerts}
+    >
       <ContentContainer>
         <VStack w="full" alignItems="flex-start">
           <Heading fontWeight="medium" size="xl" mb="8">
