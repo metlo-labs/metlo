@@ -10,6 +10,7 @@
 [![Prs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields)](http://makeapullrequest.com)
 [![Join Slack Community](https://img.shields.io/badge/slack%20community-join-blue)](https://metlo.com/slack)
 ![Github Commit Activity](https://img.shields.io/github/commit-activity/m/metlo-labs/metlo)
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/metlo-labs/metlo/build)
 [![License](https://img.shields.io/badge/license-MIT-brightgreen)](/LICENSE)
 
 </div>
