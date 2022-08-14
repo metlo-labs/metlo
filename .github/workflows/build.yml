@@ -7,7 +7,7 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
+  build-frontend:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -31,3 +31,28 @@ jobs:
     - name: Yarn Build Frontend
       run: yarn build
       working-directory: 'frontend'
+
+  build-backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 'backend'
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        cache-dependency-path: ./backend/yarn.lock
+        node-version: '18.x'
+        cache: 'yarn'
+    - name: Yarn Install Common
+      run: yarn
+      working-directory: 'common'
+    - name: Yarn Build Common
+      run: yarn build
+      working-directory: 'common'
+    - name: Yarn Install Backend
+      run: yarn
+      working-directory: 'backend'
+    - name: Yarn Build Backend
+      run: yarn build
+      working-directory: 'backend'
