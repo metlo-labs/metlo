@@ -25,7 +25,7 @@ export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass, RiskScore> = {
   [DataClass.DL_NUMBER]: RiskScore.MEDIUM,
 };
 
-export const asdfgetAPIURL = () => {
+export const getAPIURL = () => {
   return `${
     typeof window !== "undefined"
       ? window.location.origin
