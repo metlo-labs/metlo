@@ -1,4 +1,4 @@
-name: Build Frontend
+name: Build Backend
 
 on:
   push:
@@ -11,12 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: 'frontend'
+        working-directory: 'backend'
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
       with:
-        cache-dependency-path: ./frontend/yarn.lock
+        cache-dependency-path: ./backend/yarn.lock
         node-version: '18.x'
         cache: 'yarn'
     - name: Yarn Install Common
@@ -25,9 +25,9 @@ jobs:
     - name: Yarn Build Common
       run: yarn build
       working-directory: 'common'
-    - name: Yarn Install Frontend
+    - name: Yarn Install Backend
       run: yarn
-      working-directory: 'frontend'
-    - name: Yarn Build Frontend
+      working-directory: 'backend'
+    - name: Yarn Build Backend
       run: yarn build
-      working-directory: 'frontend'
+      working-directory: 'backend'
