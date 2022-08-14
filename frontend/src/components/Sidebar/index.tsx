@@ -40,17 +40,8 @@ const SideNavBar: React.FC<SideNavBarProps> = React.memo(({ currentTab }) => {
         display="flex"
         justifyContent={{ xl: "flex-start", base: "center" }}
       >
-        <Logo
-          width="40%"
-          ml="2"
-          height="auto"
-          display={{ xl: "unset", base: "none" }}
-        />
-        <SmLogo
-          width="30px"
-          height="30px"
-          display={{ xl: "none", base: "unset" }}
-        />
+        <Logo ml="2" display={{ xl: "unset", base: "none" }} />
+        <SmLogo display={{ xl: "none", base: "unset" }} />
       </Box>
       <Stack spacing={3}>
         <SideNavLink
