@@ -19,5 +19,15 @@ jobs:
         cache-dependency-path: ./frontend/yarn.lock
         node-version: '18.x'
         cache: 'yarn'
-    - run: yarn
-    - run: yarn build
+    - name: Yarn Install Common
+      run: yarn
+      working-directory: 'common'
+    - name: Yarn Build Common
+      run: yarn build
+      working-directory: 'common'
+    - name: Yarn Install Frontend
+      run: yarn
+      working-directory: 'frontend'
+    - name: Yarn Build Frontend
+      run: yarn build
+      working-directory: 'frontend'
