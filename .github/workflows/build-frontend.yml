@@ -9,14 +9,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 'frontend'
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
-      working-directory: ./frontend
       with:
         node-version: '18.x'
         cache: 'yarn'
     - run: yarn
-      working-directory: ./frontend
     - run: yarn build
-      working-directory: ./frontend
