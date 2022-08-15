@@ -32,19 +32,6 @@ const Connections = ({}) => {
               selected={selectedIndex}
               updateSelected={updateIndex}
             />
-            <NumberInput
-              onChange={(v) => updateIndex(parseInt(v))}
-              max={11}
-              min={0}
-              placeholder={"Jump To Step ?"}
-              py={4}
-            >
-              <NumberInputField
-                max={11}
-                min={0}
-                placeholder={"Jump To Step ?"}
-              />
-            </NumberInput>
           </Flex>
         </VStack>
       </ContentContainer>

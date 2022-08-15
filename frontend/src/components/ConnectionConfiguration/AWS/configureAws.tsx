@@ -404,7 +404,6 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
           );
         })}
       </Accordion>
-      {/* <Button onClick={() => setUpdating(!isUpdating)}>Update?</Button> */}
     </>
   );
 };
