@@ -1,9 +1,11 @@
 import {
   AlertType,
   ConnectionType,
+  protocols,
   RestMethod,
   RiskScore,
   SpecExtension,
+  STEPS,
 } from "./enums";
 
 export interface Meta {
@@ -159,4 +161,56 @@ export interface Summary {
 export interface Usage {
   date: Date;
   count: number;
+}
+
+export interface STEP_RESPONSE {
+  success: "OK" | "FAIL";
+  status: "STARTED" | "COMPLETE" | "IN-PROGRESS";
+  next_step: STEPS;
+  step_number: STEPS;
+  last_completed: STEPS;
+  message: string;
+  error?: {
+    err: string;
+  };
+  data: {
+    secret_access_key?: string;
+    access_id?: string;
+    source_instance_id?: string;
+    region?: string;
+    ami?: string;
+    os_types?: [{ name: string; ami: string }];
+    instance_types?: string[];
+    machine_specs?: MachineSpecifications;
+    selected_instance_type?: string;
+    mirror_instance_id?: string;
+    mirror_target_id?: string;
+    mirror_filter_id?: string;
+    mirror_rules?: Array<TrafficFilterRuleSpecs>;
+    keypair?: string;
+    destination_eni_id?: string;
+    virtualization_type?: string;
+    backend_url?: string;
+    remote_machine_url?: string;
+  };
+  returns?: {
+    os_types?: [{ name: string; ami: string }];
+    instance_types?: string[];
+  };
+}
+
+export interface MachineSpecifications {
+  minCpu: number;
+  maxCpu: number;
+  minMem: number;
+  maxMem?: number;
+}
+
+export interface TrafficFilterRuleSpecs {
+  destination_CIDR: string;
+  source_CIDR: string;
+  source_port?: string;
+  destination_port?: string;
+  protocol: protocols;
+  direction: "out" | "in";
 }

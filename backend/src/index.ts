@@ -1,6 +1,9 @@
 import express, { Express, Request, Response } from "express";
 import dotenv from "dotenv";
 import bodyParser from "body-parser";
+import { TypeormStore } from "connect-typeorm";
+import session from "express-session";
+import { Session as SessionModel } from "~/models/sessions";
 import {
   logRequestBatchHandler,
   logRequestSingleHandler,
@@ -27,6 +30,11 @@ import { updatePIIFieldHandler } from "api/data-class";
 import { getSummaryHandler } from "api/summary";
 import { AppDataSource } from "data-source";
 import { MulterSource } from "multer-source";
+import {
+  aws_instance_choices,
+  aws_os_choices,
+  setup_connection,
+} from "./api/setup";
 
 dotenv.config();
 
@@ -35,6 +43,18 @@ const port = process.env.PORT || 8080;
 
 app.disable("x-powered-by");
 app.use(bodyParser.json());
+app.use(
+  session({
+    resave: false,
+    saveUninitialized: false,
+    store: new TypeormStore({
+      cleanupLimit: 2,
+      limitSubquery: false, // If using MariaDB.
+      ttl: 86400,
+    }).connect(AppDataSource.getRepository(SessionModel)),
+    secret: "keyboard cat",
+  })
+);
 
 app.get("/api/v1", (req: Request, res: Response) => {
   res.send("OK");
@@ -64,6 +84,10 @@ app.put("/api/v1/data-class/:piiFieldId", updatePIIFieldHandler);
 app.get("/api/v1/alerts", getAlertsHandler);
 app.get("/api/v1/topAlerts", getTopAlertsHandler);
 app.put("/api/v1/alert/resolve/:alertId", resolveAlertHandler);
+
+app.post("/api/v1/setup_connection", setup_connection);
+app.post("/api/v1/setup_connection/aws/os", aws_os_choices);
+app.post("/api/v1/setup_connection/aws/instances", aws_instance_choices);
 
 const main = async () => {
   try {

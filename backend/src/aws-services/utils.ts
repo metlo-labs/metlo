@@ -87,6 +87,16 @@ export async function get_region_for_network_interface(
   return (await client.send(command)).NetworkInterfaces[0].AvailabilityZone;
 }
 
+export async function get_public_ip_for_network_interface(
+  client: EC2Client,
+  interface_id
+) {
+  let command = new DescribeNetworkInterfacesCommand({
+    NetworkInterfaceIds: [interface_id],
+  } as DescribeNetworkInterfacesCommandInput);
+  return (await client.send(command)).NetworkInterfaces[0].Association.PublicIp;
+}
+
 export async function describe_regions(client: EC2Client) {
   let command = new DescribeRegionsCommand({
     AllRegions: true,
@@ -100,4 +110,23 @@ export async function match_av_to_region(
 ) {
   let regions = await describe_regions(client);
   return regions.Regions.find((v) => availability_zone.includes(v.RegionName));
+}
+
+export function retry(fn: Function) {
+  return async (args) => {
+    var resp, error;
+    var idx = 0;
+    for (idx = 0; idx < 5; idx++) {
+      try {
+        resp = await fn(...args);
+        break;
+      } catch (err) {
+        error = err;
+      }
+    }
+    if (idx === 5 && error) {
+      throw error;
+    }
+    return resp;
+  };
 }

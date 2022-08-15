@@ -25,47 +25,14 @@ import {
   AuthorizeSecurityGroupIngressCommand,
   AuthorizeSecurityGroupIngressCommandInput,
 } from "@aws-sdk/client-ec2";
+
+import { MachineSpecifications } from "@common/types";
 // For pricing approximation
 // import {
-//   PricingClient,
+//   Pricing
 //   PricingClientConfig,
 //   GetProductsCommand,
 // } from "@aws-sdk/client-pricing";
-
-export interface MachineSpecifications {
-  minCpu: number;
-  maxCpu: number;
-  minMem: number;
-  maxMem?: number;
-}
-
-export async function get_all_images(
-  img_names: Array<string>,
-  client: EC2Client
-): Promise<Array<Image>> {
-  // Create anAmazon EC2 service client object.
-  const ec2Client = client;
-  const input: DescribeImagesCommandInput = {
-    Filters: [
-      { Name: "architecture", Values: ["x86_64"] },
-      { Name: "is-public", Values: ["true"] },
-      { Name: "image-type", Values: ["machine"] },
-      { Name: "state", Values: ["available"] },
-      {
-        Name: "name",
-        Values: img_names,
-      },
-    ],
-    Owners: ["099720109477"],
-    IncludeDeprecated: false,
-  };
-  const command = new DescribeImagesCommand(input);
-  const response = await ec2Client.send(command);
-  return response.Images.sort(
-    (a, b) =>
-      new Date(a.CreationDate).getTime() - new Date(b.CreationDate).getTime()
-  );
-}
 
 const supported_instances = [
   "a1",
@@ -179,209 +146,275 @@ const supported_instances = [
   "z1d.metal",
 ];
 
-export async function get_latest_image(
-  client: EC2Client,
-  img_names: Array<string> = [
-    "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-????????",
-  ]
-) {
-  let resp = (await get_all_images(img_names, client)).pop();
-  return resp;
-}
+export class EC2_CONN {
+  private access_id: string;
+  private secret_key: string;
+  private region?: string;
+  private conn: EC2Client;
+  constructor(access_id: string, secret_key: string, region?: string) {
+    this.access_id = access_id;
+    this.secret_key = secret_key;
+    this.region = region;
+  }
 
-export async function get_valid_types(
-  client: EC2Client,
-  vtx_type: VirtualizationType,
-  specs: MachineSpecifications
-): Promise<Array<InstanceTypeInfoFromInstanceRequirements>> {
-  let command = new GetInstanceTypesFromInstanceRequirementsCommand({
-    ArchitectureTypes: ["x86_64"],
-    VirtualizationTypes: [vtx_type],
-    InstanceRequirements: {
-      VCpuCount: { Min: specs.minCpu, Max: specs.maxCpu },
-      MemoryMiB: {
-        Min: specs.minMem * 1024,
-        Max: specs.maxMem ? specs.maxMem * 1024 : null,
+  public get_conn() {
+    if (this.conn) {
+      return this.conn;
+    }
+    this.conn = new EC2Client({
+      credentials: {
+        accessKeyId: this.access_id,
+        secretAccessKey: this.secret_key,
       },
-      InstanceGenerations: ["current"],
-      BurstablePerformance: "included",
-      BareMetal: "included",
-      ExcludedInstanceTypes: [
-        "t2.nano",
-        "t2.micro",
-        "t2.small",
-        "t2.medium",
-        "t2.large",
-        "t2.xlarge",
-        "t2.2xlarge",
-        "c3.large",
-        "c3.xlarge",
-        "c3.2xlarge",
-        "c3.4xlarge",
-        "c3.8xlarge",
-        "r3.large",
-        "r3.xlarge",
-        "r3.2xlarge",
-        "r3.4xlarge",
-        "r3.8xlarge",
-        "i3.xlarge",
-        "i3.2xlarge",
-        "i3.4xlarge",
-        "i3.8xlarge",
-      ],
-    },
-  } as GetInstanceTypesFromInstanceRequirementsCommandInput);
-  let resp = await client.send(command);
-  return resp.InstanceTypes.filter((x) => {
-    let a = supported_instances.filter((y) => x.InstanceType.includes(y));
-    return a.length > 0;
-  });
-}
+      region: this.region,
+    });
+    return this.conn;
+  }
 
-export async function describe_type(client: EC2Client, Instance_type: string) {
-  let command = new DescribeInstanceTypesCommand({
-    InstanceTypes: [Instance_type],
-  } as DescribeInstanceTypesCommandInput);
-  let resp = await client.send(command);
-  return resp.InstanceTypes[0];
-}
+  public disconnect() {
+    if (this.conn) this.conn.destroy();
+  }
 
-// TODO : Pricing API gives somewhat random results.
-// As in, systems with linux come out to $0.00 per hour
-// async function get_pricing(
-//   config: PricingClientConfig,
-//   instance_type: string,
-//   location: string
-// ) {
-//   let client = new PricingClient(config);
-//   let command = new GetProductsCommand({
-//     Filters: [
-//       { Field: "instanceType", Type: "TERM_MATCH", Value: instance_type },
-//       { Field: "location", Type: "TERM_MATCH", Value: location },
-//     ],
-//     FormatVersion: "aws_v1",
-//     ServiceCode: "AmazonEC2",
-//   });
-//   let resp = await client.send(command);
-//   return resp;
-// }
-
-export async function create_new_keypair(client: EC2Client, name: string) {
-  let command = new CreateKeyPairCommand({
-    KeyName: name,
-    KeyType: KeyType.ed25519,
-    // TagSpecifications: [
-    //   {
-    //     ResourceType: "instance",
-    //     Tags: [{ Key: "Created By", Value: "Metlo" }],
-    //   },
-    // ],
-  } as CreateKeyPairCommandInput);
-  let resp = await client.send(command);
-  return resp;
-}
-
-export async function list_keypairs(client: EC2Client) {
-  let command = new DescribeKeyPairsCommand({} as DescribeKeyPairsCommandInput);
-  let resp = await client.send(command);
-  return resp;
-}
-
-export async function create_security_group(client: EC2Client, id: string) {
-  let command = new CreateSecurityGroupCommand({
-    GroupName: id,
-    Description: "Default security group created by METLO for mirror instance",
-  } as CreateSecurityGroupCommandInput);
-  let resp = await client.send(command);
-  return resp;
-}
-
-export async function create_security_group_ingress(
-  client: EC2Client,
-  security_group_id: string,
-  protocol: string,
-  port: number
-) {
-  let command = new AuthorizeSecurityGroupIngressCommand({
-    GroupId: security_group_id,
-    IpProtocol: protocol,
-    FromPort: port,
-    ToPort: port,
-    CidrIp: "0.0.0.0/0",
-    TagSpecifications: [
-      {
-        ResourceType: "security-group-rule",
-        Tags: [{ Key: "Created By", Value: "Created by METLO" }],
-      },
-    ],
-  });
-  let resp = await client.send(command);
-  return resp;
-}
-
-export async function create_new_instance(
-  client: EC2Client,
-  instance_ami: string,
-  instance_type: string,
-  id: string
-): Promise<[RunInstancesCommandOutput, CreateKeyPairCommandOutput]> {
-  const key = await create_new_keypair(client, `METLO-Instance-${id}-Key`);
-  const security_group = await create_security_group(
-    client,
-    `METLO-SECURITY-GROUP-${id}`
-  );
-  await create_security_group_ingress(
-    client,
-    security_group.GroupId,
-    "tcp",
-    22
-  );
-  await create_security_group_ingress(
-    client,
-    security_group.GroupId,
-    "udp",
-    4789
-  );
-  const command = new RunInstancesCommand({
-    MaxCount: 1,
-    MinCount: 1,
-    ImageId: instance_ami,
-    InstanceType: instance_type,
-    KeyName: key.KeyName,
-    TagSpecifications: [
-      {
-        ResourceType: "instance",
-        Tags: [
-          {
-            Key: "Name",
-            Value: `METLO-Mirror-instance-${id}`,
-          },
-          { Key: "Created By", Value: "Metlo" },
-        ],
-      },
-      {
-        ResourceType: "volume",
-        Tags: [
-          {
-            Key: "Name",
-            Value: `METLO-Mirror-volume-${id}`,
-          },
-          { Key: "Created By", Value: "Metlo" },
-        ],
-      },
-    ],
-    BlockDeviceMappings: [
-      {
-        DeviceName: "/dev/sda1",
-        Ebs: {
-          DeleteOnTermination: true,
-          VolumeSize: 8,
-          VolumeType: "gp2",
-          Encrypted: true,
+  public async get_all_images(img_names: Array<string>): Promise<Array<Image>> {
+    // Create an Amazon EC2 service client object.
+    const input: DescribeImagesCommandInput = {
+      Filters: [
+        { Name: "architecture", Values: ["x86_64"] },
+        { Name: "is-public", Values: ["true"] },
+        { Name: "image-type", Values: ["machine"] },
+        { Name: "state", Values: ["available"] },
+        {
+          Name: "name",
+          Values: img_names,
         },
+      ],
+      Owners: ["099720109477"],
+      IncludeDeprecated: false,
+    };
+    const command = new DescribeImagesCommand(input);
+    const response = await this.get_conn().send(command);
+    return response.Images.sort(
+      (a, b) =>
+        new Date(a.CreationDate).getTime() - new Date(b.CreationDate).getTime()
+    );
+  }
+
+  public async get_latest_image(
+    img_names: Array<string> = [
+      "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-????????",
+    ]
+  ) {
+    let resp = (await this.get_all_images(img_names)).pop();
+    return resp;
+  }
+
+  public async image_from_ami(ami: string) {
+    const input: DescribeImagesCommandInput = {
+      Filters: [
+        { Name: "architecture", Values: ["x86_64"] },
+        { Name: "is-public", Values: ["true"] },
+        { Name: "image-type", Values: ["machine"] },
+        { Name: "state", Values: ["available"] },
+      ],
+      ImageIds: [ami],
+      IncludeDeprecated: false,
+    };
+    const command = new DescribeImagesCommand(input);
+    const response = await this.get_conn().send(command);
+    return response.Images.sort(
+      (a, b) =>
+        new Date(a.CreationDate).getTime() - new Date(b.CreationDate).getTime()
+    );
+  }
+
+  public async get_valid_types(
+    vtx_type: VirtualizationType,
+    specs: MachineSpecifications
+  ): Promise<Array<InstanceTypeInfoFromInstanceRequirements>> {
+    let command = new GetInstanceTypesFromInstanceRequirementsCommand({
+      ArchitectureTypes: ["x86_64"],
+      VirtualizationTypes: [vtx_type],
+      InstanceRequirements: {
+        VCpuCount: { Min: specs.minCpu, Max: specs.maxCpu },
+        MemoryMiB: {
+          Min: specs.minMem * 1024,
+          Max: specs.maxMem ? specs.maxMem * 1024 : null,
+        },
+        InstanceGenerations: ["current"],
+        BurstablePerformance: "included",
+        BareMetal: "included",
+        ExcludedInstanceTypes: [
+          "t2.nano",
+          "t2.micro",
+          "t2.small",
+          "t2.medium",
+          "t2.large",
+          "t2.xlarge",
+          "t2.2xlarge",
+          "c3.large",
+          "c3.xlarge",
+          "c3.2xlarge",
+          "c3.4xlarge",
+          "c3.8xlarge",
+          "r3.large",
+          "r3.xlarge",
+          "r3.2xlarge",
+          "r3.4xlarge",
+          "r3.8xlarge",
+          "i3.xlarge",
+          "i3.2xlarge",
+          "i3.4xlarge",
+          "i3.8xlarge",
+        ],
       },
-    ],
-  } as RunInstancesCommandInput);
-  const response = await client.send(command);
-  return [response, key];
+    } as GetInstanceTypesFromInstanceRequirementsCommandInput);
+    let conn = this.get_conn();
+    let resp = await conn.send(command);
+    return resp.InstanceTypes.filter((x) => {
+      let a = supported_instances.filter((y) => x.InstanceType.includes(y));
+      return a.length > 0;
+    });
+  }
+
+  public async describe_type(Instance_type: string) {
+    let command = new DescribeInstanceTypesCommand({
+      InstanceTypes: [Instance_type],
+    } as DescribeInstanceTypesCommandInput);
+    let resp = await this.get_conn().send(command);
+    return resp.InstanceTypes[0];
+  }
+
+  // TODO : Pricing API gives somewhat random results.
+  // As in, systems with linux come out to $0.00 per hour
+  // async function get_pricing(
+  //   config: PricingClientConfig,
+  //   instance_type: string,
+  //   location: string
+  // ) {
+  //   let client = new PricingClient(config);
+  //   let command = new GetProductsCommand({
+  //     Filters: [
+  //       { Field: "instanceType", Type: "TERM_MATCH", Value: instance_type },
+  //       { Field: "location", Type: "TERM_MATCH", Value: location },
+  //     ],
+  //     FormatVersion: "aws_v1",
+  //     ServiceCode: "AmazonEC2",
+  //   });
+  //   let resp = await this.get_conn().send(command);
+  //   return resp;
+  // }
+
+  public async create_new_keypair(name: string) {
+    let command = new CreateKeyPairCommand({
+      KeyName: name,
+      KeyType: KeyType.ed25519,
+      TagSpecifications: [
+        {
+          ResourceType: "key-pair",
+          Tags: [{ Key: "Created By", Value: "Metlo" }],
+        },
+      ],
+    } as CreateKeyPairCommandInput);
+    let resp = await this.get_conn().send(command);
+    return resp;
+  }
+
+  public async list_keypairs() {
+    let command = new DescribeKeyPairsCommand(
+      {} as DescribeKeyPairsCommandInput
+    );
+    let resp = await this.get_conn().send(command);
+    return resp;
+  }
+
+  public async create_security_group(id: string) {
+    let command = new CreateSecurityGroupCommand({
+      GroupName: id,
+      Description:
+        "Default security group created by METLO for mirror instance",
+    } as CreateSecurityGroupCommandInput);
+    let resp = await this.get_conn().send(command);
+    return resp;
+  }
+
+  public async create_security_group_ingress(
+    security_group_id: string,
+    protocol: string,
+    port: number
+  ) {
+    let command = new AuthorizeSecurityGroupIngressCommand({
+      GroupId: security_group_id,
+      IpProtocol: protocol,
+      FromPort: port,
+      ToPort: port,
+      CidrIp: "0.0.0.0/0",
+      TagSpecifications: [
+        {
+          ResourceType: "security-group-rule",
+          Tags: [{ Key: "Created By", Value: "Created by METLO" }],
+        },
+      ],
+    });
+    let resp = await this.get_conn().send(command);
+    return resp;
+  }
+
+  public async create_new_instance(
+    instance_ami: string,
+    instance_type: string,
+    id: string
+  ): Promise<[RunInstancesCommandOutput, CreateKeyPairCommandOutput]> {
+    const key = await this.create_new_keypair(`METLO-Instance-${id}-Key`);
+    const security_group = await this.create_security_group(
+      `METLO-SECURITY-GROUP-${id}`
+    );
+    await this.create_security_group_ingress(security_group.GroupId, "tcp", 22);
+    await this.create_security_group_ingress(
+      security_group.GroupId,
+      "udp",
+      4789
+    );
+    const command = new RunInstancesCommand({
+      MaxCount: 1,
+      MinCount: 1,
+      ImageId: instance_ami,
+      InstanceType: instance_type,
+      KeyName: key.KeyName,
+      TagSpecifications: [
+        {
+          ResourceType: "instance",
+          Tags: [
+            {
+              Key: "Name",
+              Value: `METLO-Mirror-instance-${id}`,
+            },
+            { Key: "Created By", Value: "Metlo" },
+          ],
+        },
+        {
+          ResourceType: "volume",
+          Tags: [
+            {
+              Key: "Name",
+              Value: `METLO-Mirror-volume-${id}`,
+            },
+            { Key: "Created By", Value: "Metlo" },
+          ],
+        },
+      ],
+      BlockDeviceMappings: [
+        {
+          DeviceName: "/dev/sda1",
+          Ebs: {
+            DeleteOnTermination: true,
+            VolumeSize: 8,
+            VolumeType: "gp2",
+            Encrypted: true,
+          },
+        },
+      ],
+    } as RunInstancesCommandInput);
+    const response = await this.get_conn().send(command);
+    return [response, key];
+  }
 }

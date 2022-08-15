@@ -5,107 +5,75 @@ import {
   EC2Client,
 } from "@aws-sdk/client-ec2";
 import { randomUUID } from "crypto";
-import {
-  create_new_instance,
-  get_latest_image,
-  get_valid_types,
-  MachineSpecifications,
-} from "./create-ec2-instance";
+import { EC2_CONN } from "./create-ec2-instance";
 import {
   create_mirror_filter,
   create_mirror_filter_rules,
   create_mirror_session,
   create_mirror_target,
   delete_mirror_filter,
-  protocols,
-  TrafficFilterRuleSpecs,
 } from "./create-mirror";
+import { format, put_data_file, remove_file, SSH_CONN } from "./ssh-setup";
 import {
-  create_ssh_connection,
-  format,
-  putfiles,
-  put_data_file,
-  remove_file,
-  run_command,
-  test_connection,
-} from "./ssh-setup";
-import { get_network_id_for_instance, match_av_to_region } from "./utils";
+  get_network_id_for_instance,
+  get_public_ip_for_network_interface,
+  list_all_instances,
+  match_av_to_region,
+} from "./utils";
 
-export enum STEPS {
-  // SETUP MIRROR INSTANCE
-  AWS_KEY_SETUP = 1,
-  SOURCE_INSTANCE_ID = 2,
-  SELECT_OS = 3,
-  SELECT_INSTANCE_TYPE = 4,
-  CREATE_INSTANCE = 5,
-  CREATE_MIRROR_TARGET = 6,
-  CREATE_MIRROR_FILTER = 7,
-  CREATE_MIRROR_SESSION = 8,
-  TEST_SSH = 9,
-  PUSH_FILES = 10,
-  EXEC_COMMAND = 11,
-}
+import { STEP_RESPONSE } from "@common/types";
+import { ConnectionType } from "@common/enums";
 
-export interface STEP_RESPONSE {
-  success: "OK" | "FAIL";
-  step_number: number;
-  last_completed: number;
-  error?: {
-    message: string;
-    err: any;
-  };
-  keep: {
-    secret_access_key?: string;
-    access_id?: string;
-    source_instance_id?: string;
-    region?: string;
-    ami?: string;
-    os_types?: string[];
-    instance_types?: string[];
-    machine_specs?: MachineSpecifications;
-    selected_instance_type?: string;
-    mirror_instance_id?: string;
-    mirror_target_id?: string;
-    mirror_filter_id?: string;
-    mirror_rules?: Array<TrafficFilterRuleSpecs>;
-    keypair?: string;
-    destination_eni_id?: string;
-    virtualization_type?: string;
-    backend_url?: string;
-    remote_machine_url?: string;
-  };
-}
-
-async function setup(
+export async function setup(
   step: number = 0,
+  type: ConnectionType,
   metadata_for_step: Object = {}
 ): Promise<STEP_RESPONSE> {
-  switch (step) {
-    case 1:
-      return await aws_key_setup(metadata_for_step as any);
-    case 2:
-      return await aws_source_identification(metadata_for_step as any);
-    case 3:
-      return await aws_os_selection(metadata_for_step as any);
-    case 4:
-      return await aws_instance_selection(metadata_for_step as any);
-    case 5:
-      return await aws_instance_creation(metadata_for_step as any);
-    case 6:
-      return await aws_mirror_target_creation(metadata_for_step as any);
-    case 7:
-      return await aws_mirror_filter_creation(metadata_for_step as any);
-    case 8:
-      return await aws_mirror_session_creation(metadata_for_step as any);
-    case 9:
-      return await test_ssh(metadata_for_step as any);
-    case 10:
-      return await push_files(metadata_for_step as any);
-    case 11:
-      return await execute_commands(metadata_for_step as any);
-    default:
-      throw Error(`Don't have step ${step} registered`);
-      break;
+  if (type == ConnectionType.AWS) {
+    switch (step) {
+      case 1:
+        return await aws_key_setup(metadata_for_step as any);
+      case 2:
+        return await aws_source_identification(metadata_for_step as any);
+      case 2:
+        return await aws_source_identification(metadata_for_step as any);
+      case 3:
+        return await aws_os_selection(metadata_for_step as any);
+      case 4:
+        return await aws_instance_selection(metadata_for_step as any);
+      case 5:
+        return await aws_instance_creation(metadata_for_step as any);
+      case 6:
+        return await get_public_ip(metadata_for_step as any);
+      case 7:
+        return await aws_mirror_target_creation(metadata_for_step as any);
+      case 8:
+        return await aws_mirror_filter_creation(metadata_for_step as any);
+      case 9:
+        return await aws_mirror_session_creation(metadata_for_step as any);
+      case 10:
+        return await test_ssh(metadata_for_step as any);
+      case 11:
+        return await push_files(metadata_for_step as any);
+      case 12:
+        return await execute_commands(metadata_for_step as any);
+      default:
+        throw Error(`Don't have step ${step} registered`);
+        break;
+    }
+  } else if (type == ConnectionType.GCP) {
+    return {
+      success: "FAIL",
+      status: "COMPLETE",
+      step_number: 1,
+      next_step: 2,
+      last_completed: 1,
+      message: "Not configured yet for GCP",
+      error: {
+        err: "Not configured yet for GCP",
+      },
+      data: {},
+    };
   }
 }
 
@@ -120,13 +88,17 @@ async function aws_key_setup({
         accessKeyId: access_id,
       },
     });
+    let region = await list_all_instances(client);
     client.destroy();
     return {
       success: "OK",
+      status: "IN-PROGRESS",
       step_number: 1,
+      next_step: 2,
       last_completed: 1,
+      message: "Verified AWS Credentials",
       error: null,
-      keep: {
+      data: {
         secret_access_key: secret_access_key,
         access_id: access_id,
       },
@@ -134,14 +106,16 @@ async function aws_key_setup({
   } catch (err) {
     return {
       success: "FAIL",
+      status: "IN-PROGRESS",
       step_number: 1,
+      next_step: 2,
       last_completed: 0,
+      message:
+        "Couldn't verify AWS Credentials. Please verify that access id and secret access key are correct.",
       error: {
-        message:
-          "Couldn't verify AWS Credentials. Please verify that access id and secret access key are correct.",
         err: err,
       },
-      keep: {},
+      data: {},
     };
   }
 }
@@ -169,10 +143,13 @@ async function aws_source_identification({
     client.destroy();
     return {
       success: "OK",
+      status: "IN-PROGRESS",
       step_number: 2,
+      next_step: 3,
       last_completed: 2,
+      message: "Verfied EC2 data mirror instance",
       error: null,
-      keep: {
+      data: {
         secret_access_key: secret_access_key,
         access_id: access_id,
         source_instance_id: source_instance_id,
@@ -182,13 +159,15 @@ async function aws_source_identification({
   } catch (err) {
     return {
       success: "FAIL",
+      status: "IN-PROGRESS",
       step_number: 2,
+      next_step: 3,
       last_completed: 1,
+      message: "Couldn't verify EC2 source instance for mirroring traffic",
       error: {
-        message: "Couldn't verify EC2 source instance for mirroring traffic",
         err: err,
       },
-      keep: {
+      data: {
         secret_access_key: secret_access_key,
         access_id: access_id,
       },
@@ -199,40 +178,41 @@ async function aws_source_identification({
 async function aws_os_selection({
   access_id,
   secret_access_key,
+  ami,
   ...rest
 }): Promise<STEP_RESPONSE> {
   try {
-    let client = new EC2Client({
-      credentials: {
-        secretAccessKey: secret_access_key,
-        accessKeyId: access_id,
-      },
-    });
-    let resp = await get_latest_image(client);
-    client.destroy();
+    let conn = new EC2_CONN(access_id, secret_access_key);
+    let resp = await conn.image_from_ami(ami);
+    conn.disconnect();
     return {
       success: "OK",
+      status: "IN-PROGRESS",
       step_number: 3,
+      next_step: 4,
       last_completed: 3,
+      message: "Compatible OS images found",
       error: null,
-      keep: {
+      data: {
         secret_access_key,
         access_id,
+        ami,
+        virtualization_type: resp[0].VirtualizationType,
         ...rest,
-        ami: resp.ImageId,
-        virtualization_type: resp.VirtualizationType,
       },
     };
   } catch (err) {
     return {
       success: "FAIL",
+      status: "IN-PROGRESS",
       step_number: 3,
+      next_step: 4,
       last_completed: 2,
+      message: "Couldn't obtain proper image for EC2 instance.",
       error: {
-        message: "Couldn't obtain proper image for EC2 instance.",
         err: err,
       },
-      keep: {
+      data: {
         secret_access_key: secret_access_key,
         access_id: access_id,
         ...rest,
@@ -247,46 +227,42 @@ async function aws_instance_selection({
   region,
   virtualization_type,
   machine_specs,
+  selected_instance_type,
+  ami,
   ...rest
 }): Promise<STEP_RESPONSE> {
   try {
-    let client = new EC2Client({
-      credentials: {
-        secretAccessKey: secret_access_key,
-        accessKeyId: access_id,
-      },
-    });
-    let resp = await get_valid_types(
-      client,
-      virtualization_type,
-      machine_specs
-    );
-    client.destroy();
     return {
       success: "OK",
+      status: "IN-PROGRESS",
       step_number: 4,
+      next_step: 5,
       last_completed: 4,
+      message: "Compatiable instances shown.",
       error: null,
-      keep: {
+      data: {
         secret_access_key,
         access_id,
         region,
-        instance_types: resp.map((v) => v.InstanceType),
+        selected_instance_type,
         virtualization_type,
         machine_specs,
+        ami,
         ...rest,
       },
     };
   } catch (err) {
     return {
       success: "FAIL",
+      status: "IN-PROGRESS",
       step_number: 4,
+      next_step: 5,
       last_completed: 3,
+      message: "Couldn't list valid instance type for EC2 instance.",
       error: {
-        message: "Couldn't list valid instance type for EC2 instance.",
         err: err,
       },
-      keep: {
+      data: {
         secret_access_key,
         access_id,
         region,
@@ -307,26 +283,22 @@ async function aws_instance_creation({
   ...rest
 }): Promise<STEP_RESPONSE> {
   try {
-    let client = new EC2Client({
-      credentials: {
-        secretAccessKey: secret_access_key,
-        accessKeyId: access_id,
-      },
-      region: region,
-    });
-    let resp = await create_new_instance(
-      client,
+    let conn = new EC2_CONN(access_id, secret_access_key, region);
+    let resp = await conn.create_new_instance(
       ami,
       selected_instance_type,
       randomUUID()
     );
-    client.destroy();
+    conn.disconnect();
     return {
       success: "OK",
+      status: "IN-PROGRESS",
       error: null,
       step_number: 5,
+      next_step: 6,
       last_completed: 5,
-      keep: {
+      message: `AWS of type ${selected_instance_type} Instance created`,
+      data: {
         secret_access_key: secret_access_key,
         access_id: access_id,
         region,
@@ -336,26 +308,85 @@ async function aws_instance_creation({
         destination_eni_id:
           resp[0].Instances[0].NetworkInterfaces[0].NetworkInterfaceId,
         ami,
-        remote_machine_url:
-          resp[0].Instances[0].NetworkInterfaces[0].Association.PublicIp,
         ...rest,
       },
     };
   } catch (err) {
     return {
       success: "FAIL",
+      status: "IN-PROGRESS",
       step_number: 5,
+      next_step: 6,
       last_completed: 4,
+      message: `Couldn't create new instance of type ${selected_instance_type} with ami ${ami} on EC2.`,
       error: {
-        message: `Couldn't create new instance of type ${selected_instance_type} with ami ${ami} on EC2.`,
         err: err,
       },
-      keep: {
+      data: {
         secret_access_key,
         access_id,
         region,
         ami,
         selected_instance_type,
+        ...rest,
+      },
+    };
+  }
+}
+
+async function get_public_ip({
+  access_id,
+  secret_access_key,
+  region,
+  destination_eni_id,
+  ...rest
+}): Promise<STEP_RESPONSE> {
+  try {
+    let client = new EC2Client({
+      credentials: {
+        secretAccessKey: secret_access_key,
+        accessKeyId: access_id,
+      },
+      region: region,
+    });
+    let resp = await get_public_ip_for_network_interface(
+      client,
+      destination_eni_id
+    );
+    client.destroy();
+    return {
+      success: "OK",
+      status: "IN-PROGRESS",
+      message: "Found IP for mirror target instance",
+      error: null,
+      step_number: 6,
+      next_step: 7,
+      last_completed: 5,
+      data: {
+        secret_access_key: secret_access_key,
+        access_id: access_id,
+        region,
+        remote_machine_url: resp,
+        destination_eni_id,
+        ...rest,
+      },
+    };
+  } catch (err) {
+    return {
+      success: "FAIL",
+      status: "IN-PROGRESS",
+      step_number: 6,
+      next_step: 7,
+      last_completed: 5,
+      message: `Couldn't get public ip for instance ${destination_eni_id} on EC2.`,
+      error: {
+        err: err,
+      },
+      data: {
+        secret_access_key,
+        access_id,
+        region,
+        destination_eni_id,
         ...rest,
       },
     };
@@ -385,10 +416,13 @@ async function aws_mirror_target_creation({
     client.destroy();
     return {
       success: "OK",
-      step_number: 6,
-      last_completed: 6,
+      status: "IN-PROGRESS",
+      message: "Configured mirror target on AWS",
+      step_number: 7,
+      next_step: 8,
+      last_completed: 7,
       error: null,
-      keep: {
+      data: {
         secret_access_key: secret_access_key,
         access_id: access_id,
         region,
@@ -400,13 +434,15 @@ async function aws_mirror_target_creation({
   } catch (err) {
     return {
       success: "FAIL",
-      step_number: 6,
+      status: "IN-PROGRESS",
+      step_number: 7,
+      next_step: 8,
       last_completed: 5,
+      message: `Couldn't create a mirror target out of ${source_instance_id}`,
       error: {
-        message: `Couldn't create a mirror target out of ${source_instance_id}`,
         err: err,
       },
-      keep: {
+      data: {
         secret_access_key,
         access_id,
         region,
@@ -437,13 +473,15 @@ async function aws_mirror_filter_creation({
   } catch (err) {
     return {
       success: "FAIL",
-      step_number: 7,
-      last_completed: 6,
+      status: "IN-PROGRESS",
+      step_number: 8,
+      next_step: 9,
+      last_completed: 7,
+      message: `Couldn't create a mirror filter`,
       error: {
-        message: `Couldn't create a mirror filter`,
         err: err,
       },
-      keep: {
+      data: {
         secret_access_key,
         access_id,
         region,
@@ -462,10 +500,13 @@ async function aws_mirror_filter_creation({
     client.destroy();
     return {
       success: "OK",
-      step_number: 7,
-      last_completed: 7,
+      status: "IN-PROGRESS",
+      step_number: 8,
+      next_step: 9,
+      last_completed: 8,
       error: null,
-      keep: {
+      message: "Created provided Traffic Filter(s)",
+      data: {
         secret_access_key: secret_access_key,
         access_id: access_id,
         region,
@@ -482,13 +523,15 @@ async function aws_mirror_filter_creation({
     );
     return {
       success: "FAIL",
-      step_number: 7,
-      last_completed: 6,
+      status: "IN-PROGRESS",
+      step_number: 8,
+      next_step: 9,
+      last_completed: 7,
+      message: `Couldn't create rules for filter id. Rolling back changes to filter and deleting it.`,
       error: {
-        message: `Couldn't create rules for filter id. Rolling back changes to filter and deleting it.`,
         err: err,
       },
-      keep: {
+      data: {
         secret_access_key,
         access_id,
         region,
@@ -526,10 +569,13 @@ async function aws_mirror_session_creation({
     client.destroy();
     return {
       success: "OK",
-      step_number: 8,
-      last_completed: 8,
+      status: "IN-PROGRESS",
+      step_number: 9,
+      next_step: 10,
+      last_completed: 9,
       error: null,
-      keep: {
+      message: "Configured mirror session succesfully",
+      data: {
         secret_access_key: secret_access_key,
         access_id: access_id,
         region,
@@ -543,13 +589,15 @@ async function aws_mirror_session_creation({
   } catch (err) {
     return {
       success: "FAIL",
-      step_number: 8,
-      last_completed: 7,
+      status: "IN-PROGRESS",
+      step_number: 9,
+      next_step: 10,
+      last_completed: 8,
+      message: `Couldn't create a mirror session targeting ${destination_eni_id}`,
       error: {
-        message: `Couldn't create a mirror session targeting ${destination_eni_id}`,
         err: err,
       },
-      keep: {
+      data: {
         access_id,
         secret_access_key,
         region,
@@ -567,35 +615,38 @@ async function test_ssh({
   remote_machine_url,
   ...rest
 }): Promise<STEP_RESPONSE> {
+  var conn;
   try {
-    let conn = await create_ssh_connection(
-      keypair,
-      remote_machine_url,
-      "ubuntu"
-    );
-    await test_connection(conn);
-    conn.dispose();
+    conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu");
+    await conn.test_connection();
+    conn.disconnect();
     return {
       success: "OK",
-      step_number: 9,
-      last_completed: 9,
+      status: "IN-PROGRESS",
+      step_number: 10,
+      next_step: 11,
+      last_completed: 10,
+      message: "Testing SSH connection to remote machine.",
       error: null,
-      keep: {
+      data: {
         keypair,
         remote_machine_url,
         ...rest,
       },
     };
   } catch (err) {
+    if (conn && conn instanceof SSH_CONN) conn.disconnect();
     return {
       success: "FAIL",
-      step_number: 9,
-      last_completed: 8,
+      status: "IN-PROGRESS",
+      step_number: 10,
+      next_step: 11,
+      last_completed: 9,
+      message: `Couldn't connect to ssh. Please check if key was constructed`,
       error: {
-        message: `Couldn't connect to ssh. Please check if key was constructed`,
         err: err,
       },
-      keep: {
+      data: {
         keypair,
         remote_machine_url,
         ...rest,
@@ -610,7 +661,7 @@ async function push_files({
   remote_machine_url,
   ...rest
 }): Promise<STEP_RESPONSE> {
-  let conn = await create_ssh_connection(keypair, remote_machine_url, "ubuntu");
+  let conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu");
   try {
     let filepath = `./src/aws-services/scripts/metlo-ingestor-${randomUUID()}.service`;
     await put_data_file(
@@ -619,8 +670,7 @@ async function push_files({
       ]),
       filepath
     );
-    await putfiles(
-      conn,
+    await conn.putfiles(
       [
         "./src/aws-services/scripts/install.sh",
         "./src/aws-services/scripts/install-nvm.sh",
@@ -637,13 +687,16 @@ async function push_files({
       ]
     );
     remove_file(filepath);
-    conn.dispose();
+    conn.disconnect();
     return {
       success: "OK",
-      step_number: 10,
-      last_completed: 10,
+      status: "IN-PROGRESS",
+      step_number: 11,
+      next_step: 12,
+      last_completed: 11,
+      message: "Pushed configuration files to remote machine",
       error: null,
-      keep: {
+      data: {
         keypair,
         remote_machine_url,
         backend_url,
@@ -651,16 +704,18 @@ async function push_files({
       },
     };
   } catch (err) {
-    conn.dispose();
+    conn.disconnect();
     return {
       success: "FAIL",
-      step_number: 10,
-      last_completed: 9,
+      status: "IN-PROGRESS",
+      step_number: 11,
+      next_step: 12,
+      last_completed: 10,
+      message: `Couldn't push configuration files to remote machine`,
       error: {
-        message: `Couldn't push files to remote machine`,
         err: err,
       },
-      keep: {
+      data: {
         keypair,
         backend_url,
         remote_machine_url,
@@ -675,40 +730,43 @@ async function execute_commands({
   remote_machine_url,
   ...rest
 }): Promise<STEP_RESPONSE> {
-  let conn = await create_ssh_connection(keypair, remote_machine_url, "ubuntu");
+  let conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu");
   try {
-    await run_command(
-      conn,
+    await conn.run_command(
       "source $HOME/.nvm/nvm.sh && cd ~ && chmod +x install-nvm.sh && ./install-nvm.sh "
     );
-    await run_command(
-      conn,
+    await conn.run_command(
       "source $HOME/.nvm/nvm.sh && cd ~ && chmod +x install.sh && ./install.sh "
     );
-    conn.dispose();
+    conn.disconnect();
 
     return {
       success: "OK",
-      step_number: 11,
-      last_completed: 11,
+      status: "COMPLETE",
+      step_number: 12,
+      next_step: null,
+      last_completed: 12,
+      message: "Executed configuration files on remote machine succesfully",
       error: null,
-      keep: {
+      data: {
         keypair,
         remote_machine_url,
         ...rest,
       },
     };
   } catch (err) {
-    conn.dispose();
+    conn.disconnect();
     return {
       success: "FAIL",
-      step_number: 11,
-      last_completed: 10,
+      status: "IN-PROGRESS",
+      step_number: 12,
+      next_step: null,
+      last_completed: 11,
+      message: `Couldn't exec commands to install things`,
       error: {
-        message: `Couldn't exec commands to install things`,
         err: err,
       },
-      keep: {
+      data: {
         keypair,
         remote_machine_url,
         ...rest,
@@ -716,145 +774,3 @@ async function execute_commands({
     };
   }
 }
-
-async function main() {
-  var resp;
-  let info = {
-  // console.log(resp);
-  // if (resp.success != "OK") {
-  //   return;
-  // }
-  // info = { ...resp.keep };
-  // // STEP 2
-  // info.source_instance_id = "i-0d2ca277bb3e4d0a7";
-  // resp = await setup(2, info);
-  // console.log(resp);
-  // if (resp.success != "OK") {
-  //   return;
-  // }
-  // info = { ...resp.keep };
-  // // STEP 3
-  // resp = await setup(3, info);
-  // console.log(resp);
-  // if (resp.success != "OK") {
-  //   return;
-  // }
-  // info = { ...resp.keep };
-  // // STEP 4
-  // info.machine_specs = {
-  //   minCpu: 1,
-  //   maxCpu: 2,
-  //   minMem: 2,
-  //   maxMem: 8,
-  // } as MachineSpecifications;
-  // resp = await setup(4, info);
-  // console.log(resp);
-  // if (resp.success != "OK") {
-  //   return;
-  // }
-  // info = {
-  //   ...resp.keep,
-  //   selected_instance_type:
-  //     resp.keep.instance_types[
-  //       Math.floor(Math.random() * resp.keep.instance_types.length)
-  //     ],
-  } as STEP_RESPONSE["keep"];
-  resp = await get_valid_types(
-    new EC2Client({
-      credentials: {
-        accessKeyId: info.access_id,
-        secretAccessKey: info.secret_access_key,
-      },
-    }),
-    "hvm",
-    { minCpu: 0, maxCpu: 4, minMem: 2, maxMem: 8 }
-  );
-  // STEP 1
-  resp = await setup(1, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  }
-  info = { ...resp.keep };
-  // STEP 2
-  info.source_instance_id = "i-0d2ca277bb3e4d0a7";
-  resp = await setup(2, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  }
-  info = { ...resp.keep };
-  // STEP 3
-  resp = await setup(3, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  }
-  info = { ...resp.keep };
-  // STEP 4
-  info.machine_specs = {
-    minCpu: 1,
-    maxCpu: 2,
-    minMem: 2,
-    maxMem: 8,
-  } as MachineSpecifications;
-  resp = await setup(4, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  }
-  info = {
-    ...resp.keep,
-    selected_instance_type:
-      resp.keep.instance_types[
-        Math.floor(Math.random() * resp.keep.instance_types.length)
-      ],
-  };
-  // STEP 5
-  resp = await setup(5, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  }
-  info = { ...resp.keep };
-  // STEP 6
-  resp = await setup(6, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  }
-  info = { ...resp.keep };
-  // STEP 7
-  info = { ...resp.keep };
-  resp = await setup(7, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  }
-  info = { ...resp.keep };
-  // STEP 8
-  resp = await setup(8, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  }
-  // };
-  // STEP 9
-  resp = await setup(9, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  } // STEP 10
-  resp = await setup(10, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  } // STEP 11
-  resp = await setup(11, info);
-  console.log(resp);
-  if (resp.success != "OK") {
-    return;
-  }
-}
-
-main();

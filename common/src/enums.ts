@@ -46,3 +46,24 @@ export enum SpecExtension {
   JSON = "json",
   YAML = "yaml",
 }
+
+export enum STEPS {
+  // SETUP MIRROR INSTANCE
+  AWS_KEY_SETUP = 1,
+  SOURCE_INSTANCE_ID = 2,
+  SELECT_OS = 3,
+  SELECT_INSTANCE_TYPE = 4,
+  CREATE_INSTANCE = 5,
+  INSTANCE_IP = 6,
+  CREATE_MIRROR_TARGET = 7,
+  CREATE_MIRROR_FILTER = 8,
+  CREATE_MIRROR_SESSION = 9,
+  TEST_SSH = 10,
+  PUSH_FILES = 11,
+  EXEC_COMMAND = 12,
+}
+
+export enum protocols {
+  TCP = 6,
+  UDP = 17,
+}
