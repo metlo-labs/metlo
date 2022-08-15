@@ -8,4 +8,13 @@ module.exports = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: '/connections/new',
+        destination: '/connections',
+        permanent: true,
+      },
+    ]
+  }
 };
