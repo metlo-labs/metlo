@@ -30,7 +30,11 @@ import { updatePIIFieldHandler } from "api/data-class";
 import { getSummaryHandler } from "api/summary";
 import { AppDataSource } from "data-source";
 import { MulterSource } from "multer-source";
-import { setup_connection } from "./api/setup";
+import {
+  aws_instance_choices,
+  aws_os_choices,
+  setup_connection,
+} from "./api/setup";
 
 dotenv.config();
 
@@ -82,6 +86,8 @@ app.get("/api/v1/topAlerts", getTopAlertsHandler);
 app.put("/api/v1/alert/resolve/:alertId", resolveAlertHandler);
 
 app.post("/api/v1/setup_connection", setup_connection);
+app.post("/api/v1/setup_connection/aws/os", aws_os_choices);
+app.post("/api/v1/setup_connection/aws/instances", aws_instance_choices);
 
 const main = async () => {
   try {

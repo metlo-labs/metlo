@@ -30,7 +30,8 @@
     "react-dom": "^18.2.0",
     "react-json-view": "^1.21.3",
     "styled-components": "^5.3.5",
-    "superjson": "^1.9.1"
+    "superjson": "^1.9.1",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.5",

@@ -56,12 +56,13 @@ export async function create_mirror_filter_rules(
 ) {
   let command_resps = [];
   for (const v of filter_rules) {
-    let hash = createHash("sha256");
-    hash.update(unique_id);
-    hash.update(JSON.stringify(filter_rules));
-    let hash_str = hash.digest("base64").toString();
+    // let hash = createHash("sha256");
+    // hash.update(unique_id);
+    // hash.update(JSON.stringify(filter_rules));
+    // let hash_str = hash.digest("base64").toString();
+    // console.log(hash_str);
     let command = new CreateTrafficMirrorFilterRuleCommand({
-      ClientToken: hash_str,
+      ClientToken: randomUUID(),
       TrafficDirection: v.direction === "out" ? "ingress" : "egress",
       RuleNumber: 100,
       SourceCidrBlock: v.source_CIDR,

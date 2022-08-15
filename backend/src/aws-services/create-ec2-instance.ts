@@ -34,13 +34,6 @@ import { MachineSpecifications } from "@common/types";
 //   GetProductsCommand,
 // } from "@aws-sdk/client-pricing";
 
-export interface MachineSpecifications {
-  minCpu: number;
-  maxCpu: number;
-  minMem: number;
-  maxMem?: number;
-}
-
 const supported_instances = [
   "a1",
   "c5",
@@ -175,6 +168,7 @@ export class EC2_CONN {
       },
       region: this.region,
     });
+    return this.conn;
   }
 
   public disconnect() {
@@ -212,6 +206,25 @@ export class EC2_CONN {
   ) {
     let resp = (await this.get_all_images(img_names)).pop();
     return resp;
+  }
+
+  public async image_from_ami(ami: string) {
+    const input: DescribeImagesCommandInput = {
+      Filters: [
+        { Name: "architecture", Values: ["x86_64"] },
+        { Name: "is-public", Values: ["true"] },
+        { Name: "image-type", Values: ["machine"] },
+        { Name: "state", Values: ["available"] },
+      ],
+      ImageIds: [ami],
+      IncludeDeprecated: false,
+    };
+    const command = new DescribeImagesCommand(input);
+    const response = await this.get_conn().send(command);
+    return response.Images.sort(
+      (a, b) =>
+        new Date(a.CreationDate).getTime() - new Date(b.CreationDate).getTime()
+    );
   }
 
   public async get_valid_types(
@@ -255,7 +268,8 @@ export class EC2_CONN {
         ],
       },
     } as GetInstanceTypesFromInstanceRequirementsCommandInput);
-    let resp = await this.get_conn().send(command);
+    let conn = this.get_conn();
+    let resp = await conn.send(command);
     return resp.InstanceTypes.filter((x) => {
       let a = supported_instances.filter((y) => x.InstanceType.includes(y));
       return a.length > 0;

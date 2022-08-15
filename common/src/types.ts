@@ -5,6 +5,7 @@ import {
   RestMethod,
   RiskScore,
   SpecExtension,
+  STEPS,
 } from "./enums";
 
 export interface Meta {
@@ -164,9 +165,10 @@ export interface Usage {
 
 export interface STEP_RESPONSE {
   success: "OK" | "FAIL";
-  status: "START" | "COMPLETE" | "IN-PROGRESS";
-  step_number: number;
-  last_completed: number;
+  status: "STARTED" | "COMPLETE" | "IN-PROGRESS";
+  next_step: STEPS;
+  step_number: STEPS;
+  last_completed: STEPS;
   message: string;
   error?: {
     err: string;
@@ -177,7 +179,7 @@ export interface STEP_RESPONSE {
     source_instance_id?: string;
     region?: string;
     ami?: string;
-    os_types?: string[];
+    os_types?: [{ name: string; ami: string }];
     instance_types?: string[];
     machine_specs?: MachineSpecifications;
     selected_instance_type?: string;
@@ -190,6 +192,10 @@ export interface STEP_RESPONSE {
     virtualization_type?: string;
     backend_url?: string;
     remote_machine_url?: string;
+  };
+  returns?: {
+    os_types?: [{ name: string; ami: string }];
+    instance_types?: string[];
   };
 }
 
