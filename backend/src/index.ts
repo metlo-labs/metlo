@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import { TypeormStore } from "connect-typeorm";
 import session from "express-session";
-import { Session as SessionModel } from "~/models/sessions";
+import { Session as SessionModel } from "~/models";
 import {
   logRequestBatchHandler,
   logRequestSingleHandler,

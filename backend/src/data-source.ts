@@ -6,8 +6,8 @@ import {
   ApiTrace,
   OpenApiSpec,
   Alert,
+  Session,
 } from "models";
-import { Session } from "./models/sessions";
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
