@@ -134,7 +134,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
               />
             </TabPanel>
             <TabPanel p="0" h="full">
-              <TestList tests={[]} />
+              <TestList endpoint={endpoint} />
             </TabPanel>
           </TabPanels>
         </Tabs>
