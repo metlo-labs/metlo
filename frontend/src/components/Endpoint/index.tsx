@@ -5,6 +5,7 @@ import { BsFillLockFill } from "@react-icons/all-files/bs/BsFillLockFill";
 import { GrStackOverflow } from "@react-icons/all-files/gr/GrStackOverflow";
 import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch";
 import { FaBell } from "@react-icons/all-files/fa/FaBell";
+import { BiTestTube } from "@react-icons/all-files/bi/BiTestTube";
 import {
   Badge,
   Code,
@@ -26,6 +27,7 @@ import PIIDataList from "./PIIDataList";
 import TraceList from "./TraceList";
 import AlertList from "./AlertList";
 import EndpointOverview from "./Overview";
+import TestList from "./TestList";
 
 interface EndpointPageProps {
   endpoint: ApiEndpointDetailed;
@@ -105,6 +107,9 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
             <Tab>
               <SectionHeader text="Alerts" sym={FaBell} />
             </Tab>
+            <Tab>
+              <SectionHeader text="Tests" sym={BiTestTube} />
+            </Tab>
           </TabList>
           <TabPanels flexGrow="1" h="full" overflow="hidden">
             <TabPanel p="0" overflow="auto" h="full">
@@ -127,6 +132,9 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
                 uuid={uuid as string}
                 endpointPage
               />
+            </TabPanel>
+            <TabPanel p="0" h="full">
+              <TestList tests={[]} />
             </TabPanel>
           </TabPanels>
         </Tabs>
