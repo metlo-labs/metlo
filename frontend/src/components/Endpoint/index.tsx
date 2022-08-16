@@ -52,6 +52,8 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
           return 2;
         case "alerts":
           return 3;
+        case "tests":
+          return 4;
         default:
           return 0;
       }

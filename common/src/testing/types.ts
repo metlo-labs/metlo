@@ -38,17 +38,24 @@ export interface RequestBody {
     | RequestBodyDataTypeFormData;
 }
 
+export interface TestResult {
+  name: string;
+  success: boolean;
+  output: string;
+}
+
 export interface Result {
   body: string;
   cookies: string;
   headers: Header[];
+  testResults: TestResult[];
 }
 
 export interface Request {
   name?: string;
   method: RestMethod;
   url: string;
-  authorization: Authorization;
+  authorization?: Authorization;
   params: QueryParam[];
   headers: Header[];
   body: RequestBody;
