@@ -11,9 +11,10 @@ import {
   NumberInputStepper,
   NumberDecrementStepper,
   NumberIncrementStepper,
+  useToast,
 } from "@chakra-ui/react";
 import { MachineSpecifications } from "@common/types";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { getAPIURL } from "~/constants";
 
@@ -21,12 +22,14 @@ interface KeySetupInterface {
   id: string;
   complete: (params: Record<string, any>) => void;
   isCurrent: boolean;
+  setLoadingState: (x: boolean) => void;
 }
 
 const InstanceSelection: React.FC<KeySetupInterface> = ({
   id,
   complete,
   isCurrent,
+  setLoadingState,
 }) => {
   const [instances, setInstances] = useState<Array<string>>(null);
   const [selectedInstance, setSelectedInstance] = useState<string>(null);
@@ -37,8 +40,11 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
       maxMem: 8,
       minMem: 2,
     });
+
+  const toast = useToast();
   useEffect(() => {
     if (isCurrent) {
+      setLoadingState(true);
       axios
         .post<Array<string>>(`${getAPIURL()}/setup_connection/aws/instances`, {
           id: id,
@@ -50,9 +56,17 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
             setSelectedInstance(res.data[0]);
           }
         })
-        .catch((err) => {});
+        .catch((err: AxiosError) => {
+          setInstances([]);
+          setSelectedInstance("");
+          toast({
+            title: "Couldn't fetch EC2 instance matching specs",
+            description: JSON.stringify(err.response.data),
+          });
+        })
+        .finally(() => setLoadingState(false));
     }
-  }, [isCurrent]);
+  }, [selectedInstanceSpecs, isCurrent]);
   if (instances != null) {
     return (
       <Grid
@@ -70,10 +84,10 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
             defaultValue={2}
             min={1}
             max={100}
-            onChange={(v) =>
+            onBlur={(v) =>
               setSelectedInstanceSpecs({
                 ...selectedInstanceSpecs,
-                minCpu: parseInt(v),
+                minCpu: parseInt(v.target.value),
               })
             }
           >
@@ -92,10 +106,10 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
             defaultValue={8}
             min={1}
             max={100}
-            onChange={(v) =>
+            onBlur={(v) =>
               setSelectedInstanceSpecs({
                 ...selectedInstanceSpecs,
-                maxCpu: parseInt(v),
+                maxCpu: parseInt(v.target.value),
               })
             }
           >
@@ -114,10 +128,10 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
             defaultValue={2}
             min={1}
             max={100}
-            onChange={(v) =>
+            onBlur={(v) =>
               setSelectedInstanceSpecs({
                 ...selectedInstanceSpecs,
-                minMem: parseInt(v),
+                minMem: parseInt(v.target.value),
               })
             }
           >
@@ -136,10 +150,10 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
             defaultValue={8}
             min={1}
             max={100}
-            onChange={(v) =>
+            onBlur={(v) =>
               setSelectedInstanceSpecs({
                 ...selectedInstanceSpecs,
-                maxMem: parseInt(v),
+                maxMem: parseInt(v.target.value),
               })
             }
           >

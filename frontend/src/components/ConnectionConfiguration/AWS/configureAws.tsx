@@ -135,7 +135,8 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
               step_increment_function(params, STEPS.SELECT_INSTANCE_TYPE);
             }}
             isCurrent={selectedIndex == selected}
-          ></InstanceSelection>
+            setLoadingState={setUpdating}
+          />
         );
       case STEPS.CREATE_INSTANCE:
         return (
