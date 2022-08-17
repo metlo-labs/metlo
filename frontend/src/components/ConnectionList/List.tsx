@@ -3,6 +3,7 @@ import { Text, Image, useColorMode } from "@chakra-ui/react";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { getCustomStyles, rowStyles } from "components/utils/TableUtils";
 import { ListConnections } from "@common/types";
+import { useRouter } from "next/router";
 
 interface ConnectionListProps {
   connections: ListConnections[];
@@ -10,6 +11,7 @@ interface ConnectionListProps {
 
 const ConnectionList: React.FC<ConnectionListProps> = React.memo(
   ({ connections }) => {
+    const router = useRouter();
     const colorMode = useColorMode();
     const columns: TableColumn<ListConnections>[] = [
       {
@@ -69,6 +71,9 @@ const ConnectionList: React.FC<ConnectionListProps> = React.memo(
         columns={columns}
         data={connections}
         customStyles={getCustomStyles(colorMode.colorMode)}
+        onRowClicked={(row, evt) => {
+          router.push(`/connections/${row.uuid}`);
+        }}
       />
     );
   }
