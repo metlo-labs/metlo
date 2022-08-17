@@ -80,22 +80,29 @@ const list_connections = async () => {
   }
 };
 
-const get_connection_for_uuid = async (uuid: string) => {
+const get_connection_for_uuid = async (
+  uuid: string,
+  with_metadata: boolean = false
+) => {
   try {
     const connectionRepository = AppDataSource.getRepository(Connections);
-    let resp = await connectionRepository
+    const selects = [
+      "conn.uuid",
+      "conn.name",
+      "conn.createdAt",
+      "conn.updatedAt",
+      "conn.connectionType",
+      "conn.aws",
+    ];
+    if (with_metadata) {
+      selects.push("conn.aws_meta");
+    }
+    let resp = connectionRepository
       .createQueryBuilder("conn")
-      .select([
-        "conn.uuid",
-        "conn.name",
-        "conn.createdAt",
-        "conn.updatedAt",
-        "conn.connectionType",
-        "conn.aws",
-      ])
+      .select(selects)
       .where("conn.uuid = :uuid", { uuid })
       .getOne();
-    return resp;
+    return await resp;
   } catch (err) {
     console.error(`Error in List Connections service: ${err}`);
     throw new Error500InternalServer(err);

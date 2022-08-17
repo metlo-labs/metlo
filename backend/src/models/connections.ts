@@ -43,7 +43,7 @@ export class Connections extends BaseEntity {
       let keypair_iv = generate_iv();
       let { encrypted: encrypted_k, tag: tag_k } = encrypt(
         this.aws.keypair,
-        Buffer.from(encryptionKey),
+        encryptionKey,
         keypair_iv
       );
       this.aws.keypair = encrypted_k;
@@ -52,7 +52,7 @@ export class Connections extends BaseEntity {
       let sa_key_iv = generate_iv();
       let { encrypted: encrypted_sa, tag: tag_sa } = encrypt(
         this.aws.secret_access_key,
-        Buffer.from(encryptionKey),
+        encryptionKey,
         sa_key_iv
       );
       this.aws.secret_access_key = encrypted_sa;
@@ -61,18 +61,18 @@ export class Connections extends BaseEntity {
       let access_id_iv = generate_iv();
       let { encrypted: encrypted_access_id, tag: tag_access_id } = encrypt(
         this.aws.secret_access_key,
-        Buffer.from(encryptionKey),
+        encryptionKey,
         access_id_iv
       );
       this.aws.access_id = encrypted_access_id;
       if (!this.aws_meta) {
         this.aws_meta = {
-          keypair_tag: tag_k.toString(),
-          keypair_iv: keypair_iv.toString(),
-          access_id_iv: access_id_iv.toString(),
-          access_id_tag: tag_access_id.toString(),
-          secret_access_key_tag: tag_sa.toString(),
-          secret_access_key_iv: sa_key_iv.toString(),
+          keypair_tag: tag_k.toString("base64"),
+          keypair_iv: keypair_iv.toString("base64"),
+          access_id_iv: access_id_iv.toString("base64"),
+          access_id_tag: tag_access_id.toString("base64"),
+          secret_access_key_tag: tag_sa.toString("base64"),
+          secret_access_key_iv: sa_key_iv.toString("base64"),
         };
       }
     }

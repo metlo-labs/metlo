@@ -15,7 +15,12 @@ const encrypt = (
 };
 
 /**  decrypt decodes base64-encoded ciphertext into a utf8-encoded string */
-const decrypt = (encrypted: string, key: Buffer, iv: Buffer, authTag) => {
+const decrypt = (
+  encrypted: string,
+  key: Buffer,
+  iv: Buffer,
+  authTag: Buffer
+) => {
   const decipher = crypto.createDecipheriv(algorithm, key, iv);
   decipher.setAuthTag(authTag);
   let str = decipher.update(encrypted, "base64", "utf8");

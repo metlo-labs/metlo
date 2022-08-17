@@ -4,6 +4,8 @@ import {
   get_connection_for_uuid as get_connection_for_uuid_service,
 } from "services/connections";
 import ApiResponseHandler from "~/api-response-handler";
+import { decrypt } from "~/utils/encryption";
+import Crypto from "crypto";
 
 const list_connections = async (req: Request, res: Response) => {
   try {
@@ -35,4 +37,24 @@ const get_connection_for_uuid = async (req: Request, res: Response) => {
   }
 };
 
-export { list_connections, get_connection_for_uuid };
+const get_ssh_key_for_connection_uuid = async (req: Request, res: Response) => {
+  try {
+    const { uuid } = req.params;
+    const connection = await get_connection_for_uuid_service(uuid, true);
+    const ssh_key = decrypt(
+      connection.aws.keypair,
+      Buffer.from(process.env.ENCRYPTION_KEY, "base64"),
+      Buffer.from(connection.aws_meta.keypair_iv, "base64"),
+      Buffer.from(connection.aws_meta.keypair_tag, "base64")
+    );
+    await ApiResponseHandler.success(res, { sshkey: ssh_key });
+  } catch (err) {
+    await ApiResponseHandler.error(res, err);
+  }
+};
+
+export {
+  list_connections,
+  get_connection_for_uuid,
+  get_ssh_key_for_connection_uuid,
+};
