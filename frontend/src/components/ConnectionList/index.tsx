@@ -1,12 +1,11 @@
 import React from "react";
-import NextLink from "next/link";
 import { Box, VStack, HStack, Button, useDisclosure } from "@chakra-ui/react";
-import { Connection } from "@common/types";
+import { ListConnections } from "@common/types";
 import List from "./List";
 import BasicUsage from "../NewConnection";
 
 interface ConnectionListProps {
-  connections: Connection[];
+  connections: ListConnections[];
 }
 
 const ConnectionList: React.FC<ConnectionListProps> = React.memo(

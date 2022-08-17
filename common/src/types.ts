@@ -227,3 +227,12 @@ export interface ENCRYPTED_AWS_CONNECTION__META {
   access_id_tag: string;
   access_id_iv: string;
 }
+
+export interface ListConnections {
+  uuid: string;
+  connectionType: ConnectionType;
+  createdAt: Date;
+  updatedAt: Date;
+  name: string;
+  aws?: Omit<AWS_CONNECTION, "secret_access_key" | "access_id" | "keypair">;
+}
