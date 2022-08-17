@@ -17,7 +17,7 @@ export interface Authorization {
   params: AuthAPIKeyParams | AuthBasicAuthParams;
 }
 
-interface DataPair {
+export interface DataPair {
   key: string;
   value: string;
   description?: string;
@@ -27,15 +27,12 @@ export type QueryParam = DataPair;
 export type Header = DataPair;
 
 export type RequestBodyDataTypeNone = null;
-export type RequestBodyDataTypeRaw = string;
+export type RequestBodyDataTypeJSON = string;
 export type RequestBodyDataTypeFormData = DataPair[];
 
 export interface RequestBody {
   type: RequestBodyType;
-  data:
-    | RequestBodyDataTypeNone
-    | RequestBodyDataTypeRaw
-    | RequestBodyDataTypeFormData;
+  data: RequestBodyDataTypeNone | RequestBodyDataTypeFormData | string;
 }
 
 export interface TestResult {

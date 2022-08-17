@@ -9,7 +9,7 @@ export enum APIKeyAuthAddTo {
 }
 
 export enum RequestBodyType {
-    NONE = "None",
-    RAW = "Raw",
-    FORM_DATA = "Form Data"
+  NONE = "None",
+  JSON = "JSON",
+  FORM_DATA = "Form Data",
 }

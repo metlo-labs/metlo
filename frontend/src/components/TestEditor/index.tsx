@@ -47,7 +47,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             <Button colorScheme="blue">Save</Button>
           </HStack>
         </VStack>
-        <HStack flexGrow="1" w="full" divider={<StackDivider />}>
+        <HStack flexGrow="1" w="full" divider={<StackDivider />} spacing="0">
           <RequestList
             requests={test.requests}
             selectedRequest={selectedRequest}
@@ -57,7 +57,22 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             px="4"
             w="64"
           />
-          <RequestEditor request={test.requests[selectedRequest]} />
+          <RequestEditor
+            flexGrow="1"
+            h="full"
+            py="6"
+            request={test.requests[selectedRequest]}
+            updateRequest={(t) =>
+              updateTest((test) => {
+                let newRequests = [...test.requests];
+                newRequests[selectedRequest] = t(newRequests[selectedRequest]);
+                return {
+                  ...test,
+                  requests: newRequests,
+                };
+              })
+            }
+          />
         </HStack>
       </VStack>
     );
