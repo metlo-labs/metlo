@@ -582,7 +582,7 @@ async function aws_mirror_session_creation({
         destination_eni_id,
         mirror_filter_id,
         mirror_target_id,
-        mirror_instance_id: resp.TrafficMirrorSession.TrafficMirrorTargetId,
+        mirror_session_id: resp.TrafficMirrorSession.TrafficMirrorSessionId,
         ...rest,
       },
     };

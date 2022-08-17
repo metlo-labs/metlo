@@ -206,6 +206,7 @@ export interface AWS_CONNECTION {
   mirror_instance_id: string;
   mirror_target_id: string;
   mirror_filter_id: string;
+  mirror_session_id: string;
   mirror_rules: Array<TrafficFilterRuleSpecs>;
   keypair: string;
   destination_eni_id: string;

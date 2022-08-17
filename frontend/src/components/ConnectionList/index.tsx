@@ -2,7 +2,7 @@ import React from "react";
 import { Box, VStack, HStack, Button, useDisclosure } from "@chakra-ui/react";
 import { ConnectionInfo } from "@common/types";
 import List from "./List";
-import BasicUsage from "../NewConnection";
+import NewConnection from "../NewConnection";
 import EmptyView from "../utils/EmptyView";
 
 interface ConnectionListProps {
@@ -27,7 +27,7 @@ const ConnectionList: React.FC<ConnectionListProps> = React.memo(
             <Button colorScheme="blue" onClick={onOpen}>
               New
             </Button>
-            <BasicUsage isOpen={isOpen} onClose={onClose} />
+            <NewConnection isOpen={isOpen} onClose={onClose} />
           </HStack>
         </Box>
         <Box w="full">
