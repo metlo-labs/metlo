@@ -107,7 +107,7 @@ const AWS_INFO = ({ connection }: { connection: ConnectionInfo }) => {
       <GridItem colStart={2} colSpan={3} alignSelf={"center"}>
         <Flex alignSelf={"center"} gap={2} w={"full"}>
           <Box alignSelf={"center"} w={"full"} fontWeight="bold">
-            {connection.aws.selected_instance_type}
+            {connection.aws.mirror_target_id}
           </Box>
           <Link
             href={`https://${connection.aws.region}.console.aws.amazon.com/vpc/v2/home?region=${connection.aws.region}#TrafficMirrorTarget:trafficMirrorTargetId=${connection.aws.mirror_target_id}`}
@@ -128,7 +128,7 @@ const AWS_INFO = ({ connection }: { connection: ConnectionInfo }) => {
       <GridItem colStart={2} colSpan={3} alignSelf={"center"}>
         <Flex alignSelf={"center"} gap={2} w={"full"}>
           <Box alignSelf={"center"} w={"full"} fontWeight="bold">
-            {connection.aws.selected_instance_type}
+            {connection.aws.mirror_filter_id}
           </Box>
           <Link
             href={`https://${connection.aws.region}.console.aws.amazon.com/vpc/v2/home?region=${connection.aws.region}#TrafficMirrorFilter:trafficMirrorFilterId=${connection.aws.mirror_filter_id}`}
@@ -149,7 +149,7 @@ const AWS_INFO = ({ connection }: { connection: ConnectionInfo }) => {
       <GridItem colStart={2} colSpan={3} alignSelf={"center"}>
         <Flex alignSelf={"center"} gap={2} w={"full"}>
           <Box alignSelf={"center"} w={"full"} fontWeight="bold">
-            {connection.aws.selected_instance_type}
+            {connection.aws.mirror_session_id}
           </Box>
           <Link
             href={`https://${connection.aws.region}.console.aws.amazon.com/vpc/v2/home?region=${connection.aws.region}#TrafficMirrorSession:trafficMirrorSessionId=${connection.aws.mirror_session_id}`}
