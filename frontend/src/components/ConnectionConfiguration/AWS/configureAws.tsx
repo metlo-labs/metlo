@@ -4,14 +4,8 @@ import {
   AccordionItem,
   AccordionButton,
   AccordionPanel,
-  Text,
   Spinner,
-  Button,
   Flex,
-  Editable,
-  EditableInput,
-  EditablePreview,
-  Input,
 } from "@chakra-ui/react";
 import { ConnectionType, STEPS } from "@common/enums";
 import { useState } from "react";
@@ -21,14 +15,12 @@ import SourceInstanceID from "./source_instance_id";
 import { STEP_RESPONSE } from "@common/types";
 import { STEP_TO_TITLE_MAP } from "@common/maps";
 import axios, { AxiosResponse, AxiosError } from "axios";
-import { id } from "date-fns/locale";
 import { getAPIURL } from "~/constants";
 import OsSelection from "./os_selection";
 import InstanceSelection from "./instance_selection";
 import GenericStepAWS from "./genericStepAws";
 import SetupRulesFilter from "./mirrorFilters";
 import { useToast } from "@chakra-ui/react";
-import { EditableControls } from "~/components/utils/EditableControls";
 interface configureAWSParams {
   selected: STEPS;
   updateSelected: (x: STEPS) => void;
