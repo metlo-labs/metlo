@@ -72,6 +72,9 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
   selected,
   updateSelected,
 }) => {
+  const [isUpdating, setUpdating] = useState(false);
+  const [id] = useState(uuidv4());
+  const [name, setName] = useState(`Metlo-Connection-${id}`);
   const toast = useToast();
 
   const create_toast_with_message = (msg: string, step: STEPS) => {
@@ -83,10 +86,6 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
       isClosable: true,
     });
   };
-
-  const [isUpdating, setUpdating] = useState(false);
-  const id = uuidv4();
-  const [name, setName] = useState(`Metlo-Connection-${id}`);
 
   const step_increment_function = (
     params: Record<string, any>,
@@ -114,6 +113,8 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
             complete={(params) => {
               step_increment_function(params, STEPS.AWS_KEY_SETUP);
             }}
+            name={name}
+            setName={setName}
           />
         );
       case STEPS.SOURCE_INSTANCE_ID:
@@ -226,21 +227,9 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
         );
     }
   };
+
   return (
     <>
-      <Editable
-        textAlign="center"
-        value={name}
-        fontSize="md"
-        isPreviewFocusable={false}
-        onChange={(v) => setName(v)}
-      >
-        <Flex>
-          <EditablePreview />
-          <Input as={EditableInput} />
-          <EditableControls />
-        </Flex>
-      </Editable>
       <Accordion
         w={"full"}
         index={selected - 1}

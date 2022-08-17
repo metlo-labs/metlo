@@ -3,7 +3,11 @@ import { SidebarLayoutShell } from "~/components/SidebarLayoutShell";
 import { ContentContainer } from "~/components/utils/ContentContainer";
 import { Flex, Heading, VStack } from "@chakra-ui/react";
 import { useState } from "react";
-import ConfigureAWS from "~/components/ConnectionConfiguration/AWS/configureAws";
+import dynamic from "next/dynamic";
+const ConfigureAWS = dynamic(
+  () => import("~/components/ConnectionConfiguration/AWS/configureAws"),
+  { ssr: false }
+);
 
 const Connections = ({}) => {
   const [selectedIndex, updateIndex] = useState(1);
