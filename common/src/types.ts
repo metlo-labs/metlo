@@ -228,7 +228,7 @@ export interface ENCRYPTED_AWS_CONNECTION__META {
   access_id_iv: string;
 }
 
-export interface ListConnections {
+export interface ConnectionInfo {
   uuid: string;
   connectionType: ConnectionType;
   createdAt: Date;

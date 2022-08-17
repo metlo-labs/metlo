@@ -5,7 +5,7 @@ import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils";
 import { SidebarLayoutShell } from "components/SidebarLayoutShell";
 import { ContentContainer } from "components/utils/ContentContainer";
 import ConnectionList from "components/ConnectionList";
-import { ListConnections } from "@common/types";
+import { ConnectionInfo } from "@common/types";
 import axios from "axios";
 import { getAPIURL } from "~/constants";
 
@@ -20,7 +20,7 @@ const Connections = ({ connections }) => (
           Connections
         </Heading>
         <ConnectionList
-          connections={superjson.parse<ListConnections[]>(connections)}
+          connections={superjson.parse<ConnectionInfo[]>(connections)}
         />
       </VStack>
     </ContentContainer>
@@ -28,7 +28,7 @@ const Connections = ({ connections }) => (
 );
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  let resp = await axios.get<Array<ListConnections>>(
+  let resp = await axios.get<Array<ConnectionInfo>>(
     `${getAPIURL()}/list_connections`
   );
   return {
