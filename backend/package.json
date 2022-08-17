@@ -11,8 +11,7 @@
     "dev-jobs": "nodemon -r tsconfig-paths/register src/jobs.ts",
     "start": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register dist/index.js",
     "start-jobs": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register dist/jobs.js",
-    "format": "prettier --write './src/**/*.{ts,tsx}'",
-    "rnd": "nodemon src/aws-services/create-ec2-instance.ts"
+    "format": "prettier --write './src/**/*.{ts,tsx}'"
   },
   "keywords": [],
   "author": "",
