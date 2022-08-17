@@ -68,7 +68,6 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
   const [id] = useState(uuidv4());
   const [name, setName] = useState(`Metlo-Connection-${id}`);
   const toast = useToast();
-
   const create_toast_with_message = (msg: string, step: STEPS) => {
     toast({
       title: `Encountered an error on step ${STEPS[step]}`,
@@ -214,6 +213,7 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
             id={id}
             complete={(params) => {
               step_increment_function(params, STEPS.EXEC_COMMAND);
+              toast({ title: "Mirroring setup completed!", status: "success" });
             }}
             isCurrent={selectedIndex == selected}
           ></GenericStepAWS>
