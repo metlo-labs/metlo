@@ -54,7 +54,9 @@ export const setup_connection = async (
   };
 
   if (resp.status === "COMPLETE") {
-    const { name } = req.body;
+    const {
+      params: { name },
+    } = req.body;
     await save_connection({
       conn_meta: req.session.connection_config[id].data as AWS_CONNECTION,
       id: id,
@@ -85,16 +87,20 @@ export const aws_instance_choices = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { id, specs } = req.body;
-  const { access_id, secret_access_key, virtualization_type } =
-    req.session.connection_config[id].data;
-  let conn = new EC2_CONN(access_id, secret_access_key);
-  let choices = await conn.get_valid_types(
-    virtualization_type as VirtualizationType,
-    specs
-  );
-  await ApiResponseHandler.success(
-    res,
-    choices.map((v) => v.InstanceType)
-  );
+  try {
+    const { id, specs } = req.body;
+    const { access_id, secret_access_key, virtualization_type } =
+      req.session.connection_config[id].data;
+    let conn = new EC2_CONN(access_id, secret_access_key);
+    let choices = await conn.get_valid_types(
+      virtualization_type as VirtualizationType,
+      specs
+    );
+    await ApiResponseHandler.success(
+      res,
+      choices.map((v) => v.InstanceType)
+    );
+  } catch (err) {
+    ApiResponseHandler.error(res, err);
+  }
 };
