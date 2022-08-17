@@ -173,26 +173,7 @@ export interface STEP_RESPONSE {
   error?: {
     err: string;
   };
-  data: {
-    secret_access_key?: string;
-    access_id?: string;
-    source_instance_id?: string;
-    region?: string;
-    ami?: string;
-    os_types?: [{ name: string; ami: string }];
-    instance_types?: string[];
-    machine_specs?: MachineSpecifications;
-    selected_instance_type?: string;
-    mirror_instance_id?: string;
-    mirror_target_id?: string;
-    mirror_filter_id?: string;
-    mirror_rules?: Array<TrafficFilterRuleSpecs>;
-    keypair?: string;
-    destination_eni_id?: string;
-    virtualization_type?: string;
-    backend_url?: string;
-    remote_machine_url?: string;
-  };
+  data: Partial<AWS_CONNECTION & AWS_CONNECTION_MISC>;
   returns?: {
     os_types?: [{ name: string; ami: string }];
     instance_types?: string[];
@@ -213,4 +194,36 @@ export interface TrafficFilterRuleSpecs {
   destination_port?: string;
   protocol: protocols;
   direction: "out" | "in";
+}
+
+export interface AWS_CONNECTION {
+  secret_access_key: string;
+  access_id: string;
+  source_instance_id: string;
+  region: string;
+  ami: string;
+  selected_instance_type: string;
+  mirror_instance_id: string;
+  mirror_target_id: string;
+  mirror_filter_id: string;
+  mirror_rules: Array<TrafficFilterRuleSpecs>;
+  keypair: string;
+  destination_eni_id: string;
+  backend_url: string;
+  remote_machine_url: string;
+}
+
+export interface AWS_CONNECTION_MISC {
+  instance_types: string[];
+  virtualization_type: string;
+  machine_specs: MachineSpecifications;
+}
+
+export interface ENCRYPTED_AWS_CONNECTION__META {
+  keypair_tag: string;
+  keypair_iv: string;
+  secret_access_key_tag: string;
+  secret_access_key_iv: string;
+  access_id_tag: string;
+  access_id_iv: string;
 }

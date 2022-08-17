@@ -7,6 +7,7 @@ import {
   OpenApiSpec,
   Alert,
   Session,
+  Connections,
 } from "models";
 
 export const AppDataSource: DataSource = new DataSource({
@@ -20,6 +21,7 @@ export const AppDataSource: DataSource = new DataSource({
     OpenApiSpec,
     Alert,
     Session,
+    Connections,
   ],
   migrations: [],
   logging: false,
