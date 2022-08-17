@@ -55,7 +55,7 @@ export class Connections extends BaseEntity {
         Buffer.from(encryptionKey),
         sa_key_iv
       );
-      this.aws.keypair = encrypted_sa;
+      this.aws.secret_access_key = encrypted_sa;
 
       // Encrypt AWS access id
       let access_id_iv = generate_iv();
@@ -64,7 +64,7 @@ export class Connections extends BaseEntity {
         Buffer.from(encryptionKey),
         access_id_iv
       );
-      this.aws.keypair = encrypted_access_id;
+      this.aws.access_id = encrypted_access_id;
       if (!this.aws_meta) {
         this.aws_meta = {
           keypair_tag: tag_k.toString(),
