@@ -31,7 +31,8 @@ export class SSH_CONN {
   public async test_connection(): Promise<[boolean, string]> {
     // Test if we can get release version of the OS. Should be compatible with all Linux based OS
     var resp, error;
-    for (let i = 0; i < 5; i++) {
+    var idx = 0;
+    for (; idx < 5; idx++) {
       try {
         resp = await (await this.get_conn()).execCommand("lsb_release -i");
         break;
@@ -42,12 +43,16 @@ export class SSH_CONN {
         }
       }
     }
+    if (idx === 5 && error) {
+      throw error;
+    }
     return [resp.stdout !== "" && resp.stderr === "", resp.stderr];
   }
 
   public async run_command(command: string) {
     var resp, error;
-    for (let i = 0; i < 5; i++) {
+    var idx = 0;
+    for (; idx < 5; idx++) {
       try {
         resp = await (await this.get_conn()).execCommand(command);
         break;
@@ -57,6 +62,9 @@ export class SSH_CONN {
           console.log(err);
         }
       }
+    }
+    if (idx === 5 && error) {
+      throw error;
     }
     return resp;
   }
