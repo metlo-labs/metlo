@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import {
   list_connections as list_connections_service,
   get_connection_for_uuid as get_connection_for_uuid_service,
+  update_connection_for_uuid as update_connection_for_uuid_service,
 } from "services/connections";
 import ApiResponseHandler from "~/api-response-handler";
 import { decrypt } from "~/utils/encryption";
@@ -53,8 +54,19 @@ const get_ssh_key_for_connection_uuid = async (req: Request, res: Response) => {
   }
 };
 
+const update_connection = async (req: Request, res: Response) => {
+  try {
+    const { name, id: uuid } = req.body;
+    let resp = await update_connection_for_uuid_service({ name, uuid });
+    await ApiResponseHandler.success(res, { name: name });
+  } catch (err) {
+    await ApiResponseHandler.error(res, err);
+  }
+};
+
 export {
   list_connections,
   get_connection_for_uuid,
   get_ssh_key_for_connection_uuid,
+  update_connection,
 };

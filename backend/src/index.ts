@@ -39,6 +39,7 @@ import {
   get_connection_for_uuid,
   get_ssh_key_for_connection_uuid,
   list_connections,
+  update_connection,
 } from "./api/connections";
 
 dotenv.config();
@@ -99,6 +100,7 @@ app.get(
   "/api/v1/list_connections/:uuid/sshkey",
   get_ssh_key_for_connection_uuid
 );
+app.post("/api/v1/update_connection", update_connection);
 
 const main = async () => {
   try {
