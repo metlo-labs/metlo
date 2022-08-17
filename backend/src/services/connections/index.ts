@@ -80,4 +80,26 @@ const list_connections = async () => {
   }
 };
 
-export { save_connection, list_connections };
+const get_connection_for_uuid = async (uuid: string) => {
+  try {
+    const connectionRepository = AppDataSource.getRepository(Connections);
+    let resp = await connectionRepository
+      .createQueryBuilder("conn")
+      .select([
+        "conn.uuid",
+        "conn.name",
+        "conn.createdAt",
+        "conn.updatedAt",
+        "conn.connectionType",
+        "conn.aws",
+      ])
+      .where("conn.uuid = :uuid", { uuid })
+      .getOne();
+    return resp;
+  } catch (err) {
+    console.error(`Error in List Connections service: ${err}`);
+    throw new Error500InternalServer(err);
+  }
+};
+
+export { save_connection, list_connections, get_connection_for_uuid };

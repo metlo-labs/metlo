@@ -35,7 +35,7 @@ import {
   aws_os_choices,
   setup_connection,
 } from "./api/setup";
-import { list_connections } from "./api/connections";
+import { get_connection_for_uuid, list_connections } from "./api/connections";
 
 dotenv.config();
 
@@ -90,6 +90,7 @@ app.post("/api/v1/setup_connection", setup_connection);
 app.post("/api/v1/setup_connection/aws/os", aws_os_choices);
 app.post("/api/v1/setup_connection/aws/instances", aws_instance_choices);
 app.get("/api/v1/list_connections", list_connections);
+app.get("/api/v1/list_connections/:uuid", get_connection_for_uuid);
 
 const main = async () => {
   try {
