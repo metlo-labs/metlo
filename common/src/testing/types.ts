@@ -43,9 +43,9 @@ export interface TestResult {
 
 export interface Result {
   body: string;
-  cookies: string;
   headers: Header[];
   testResults: TestResult[];
+  code: number;
 }
 
 export interface Request {

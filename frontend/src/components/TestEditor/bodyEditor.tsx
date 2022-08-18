@@ -2,10 +2,15 @@ import React from "react";
 import { RequestBody } from "@common/testing/types";
 import { Box, Heading, HStack, Select, VStack } from "@chakra-ui/react";
 import { RequestBodyType } from "@common/testing/enums";
-import Editor from "react-simple-code-editor";
-import { highlight, languages } from "prismjs/components/prism-core";
-import "prismjs/components/prism-json";
-import "prismjs/themes/prism.css";
+import "codemirror/lib/codemirror.css";
+import dynamic from "next/dynamic";
+const CodeMirror = dynamic(
+  () => {
+    import("codemirror/mode/javascript/javascript");
+    return import("react-codemirror");
+  },
+  { ssr: false }
+);
 
 interface RequestBodyProps {
   body: RequestBody;
@@ -34,16 +39,15 @@ const RequestBodyEditor: React.FC<RequestBodyProps> = React.memo(
       );
     } else if (body.type == RequestBodyType.JSON) {
       editor = (
-        <Editor
+        <CodeMirror
           value={body.data as string}
-          onValueChange={(val) => updateBody((e) => ({ ...e, data: val }))}
-          highlight={(code) => highlight(code, languages.json)}
-          padding={10}
-          style={{
-            backgroundColor: "white",
-            height: "100%",
-            fontFamily: '"Fira code", "Fira Mono", monospace',
-            fontSize: 14,
+          onChange={(val) => updateBody((e) => ({ ...e, data: val }))}
+          options={{
+            mode: {
+              name: "javascript",
+              json: true,
+            },
+            lineNumbers: true,
           }}
         />
       );

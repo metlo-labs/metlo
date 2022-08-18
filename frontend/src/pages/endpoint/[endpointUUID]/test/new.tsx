@@ -6,7 +6,7 @@ import { SidebarLayoutShell } from "components/SidebarLayoutShell";
 import TestEditor from "components/TestEditor";
 import { getEndpoint } from "api/endpoints";
 import { ApiEndpointDetailed } from "@common/types";
-import { RequestBodyType } from "@common/testing/enums";
+import { makeNewRequest } from "~/components/TestEditor/requestUtils";
 
 const NewTest = ({ endpoint }) => {
   const parsedEndpoint = superjson.parse(
@@ -25,19 +25,7 @@ const NewTest = ({ endpoint }) => {
         initTest={{
           name: "Untitled Test",
           tags: [],
-          requests: [
-            {
-              method: parsedEndpoint.method,
-              url: parsedEndpoint.path,
-              params: [],
-              headers: [],
-              body: {
-                type: RequestBodyType.NONE,
-                data: null,
-              },
-              tests: "",
-            },
-          ],
+          requests: [makeNewRequest(parsedEndpoint)],
         }}
       />
     </SidebarLayoutShell>

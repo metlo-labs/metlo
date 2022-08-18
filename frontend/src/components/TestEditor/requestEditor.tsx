@@ -11,6 +11,10 @@ import {
   Tab,
   TabPanels,
   TabPanel,
+  StackDivider,
+  Text,
+  useColorModeValue,
+  Code,
 } from "@chakra-ui/react";
 import { Request } from "@common/testing/types";
 import Select from "react-select";
@@ -19,128 +23,130 @@ import { SectionHeader } from "../utils/Card";
 import DataPairEditor from "../utils/DataPairEditor";
 import RequestBodyEditor from "./bodyEditor";
 import TestScriptEditor from "./testScriptEditor";
+import { getMethodSelectStyles } from "./styles";
 
 interface RequestEditorProps extends StackProps {
   request: Request;
+  sendSelectedRequest: () => void;
+  fetching: boolean;
   updateRequest: (t: (e: Request) => Request) => void;
 }
 
 const RequestEditor: React.FC<RequestEditorProps> = React.memo(
-  ({ request, updateRequest, ...props }) => {
+  ({ request, fetching, sendSelectedRequest, updateRequest, ...props }) => {
+    const methodMenuBg = useColorModeValue("white", "rgb(19, 22, 26)");
     return (
-      <VStack {...props}>
-        <HStack w="full" spacing="0" px="4" pb="2">
-          <Box w="36">
-            <Select
-              id="test-request-method-selector"
-              instanceId="test-request-method-selector"
-              styles={{
-                control: (provided, state) => ({
-                  ...provided,
-                  borderTopRightRadius: 0,
-                  borderBottomRightRadius: 0,
-                }),
-                option: (provided, state) => ({
-                  ...provided,
-                  backgroundColor: "blue",
-                }),
-                menu: (provided, state) => ({
-                  ...provided,
-                  backgroundColor: "blue",
-                }),
-                valueContainer: (provided, state) => ({
-                  ...provided,
-                  height: "38px",
-                  borderColor: "rgb(222, 228, 237)",
-                }),
-                container: (provided, state) => ({
-                  ...provided,
-                  borderColor: "rgb(222, 228, 237)",
-                }),
-              }}
-              options={Object.entries(RestMethod).map((e) => ({
-                value: e[1],
-                label: e[1],
-              }))}
-              value={{
-                value: request.method,
-                label: request.method,
-              }}
+      <VStack h="full" {...props} spacing="0" divider={<StackDivider />}>
+        <VStack h="60%" w="full" spacing="0">
+          <HStack w="full" spacing="0" px="4" pt="4" pb="2">
+            <Box w="36">
+              <Select
+                id="test-request-method-selector"
+                instanceId="test-request-method-selector"
+                styles={getMethodSelectStyles(methodMenuBg)}
+                options={Object.entries(RestMethod).map((e) => ({
+                  value: e[1],
+                  label: e[1],
+                }))}
+                value={{
+                  value: request.method,
+                  label: request.method,
+                }}
+                onChange={(e) =>
+                  updateRequest((old) => ({ ...old, method: e.value }))
+                }
+              />
+            </Box>
+            <Input
+              placeholder="URL"
+              rounded="none"
+              bg="secondaryBG"
+              value={request.url}
+              onChange={(evt) =>
+                updateRequest((old) => ({ ...old, url: evt.target.value }))
+              }
+              flexGrow="1"
             />
-          </Box>
-          <Input
-            placeholder="URL"
-            rounded="none"
-            bg="secondaryBG"
+            <Button
+              colorScheme="blue"
+              px="8"
+              roundedLeft="none"
+              onClick={sendSelectedRequest}
+              isLoading={fetching}
+            >
+              Send
+            </Button>
+          </HStack>
+          <Tabs
+            display="flex"
+            flexDir="column"
             flexGrow="1"
-          />
-          <Button colorScheme="blue" px="8" roundedLeft="none">
-            Send
-          </Button>
-        </HStack>
-        <Tabs w="full" flexGrow="1">
-          <TabList borderBottom="none">
-            <Tab>
-              <SectionHeader text="Params" />
-            </Tab>
-            {/*
-            <Tab>
-              <SectionHeader text="Authorization" />
-            </Tab>
-              */}
-            <Tab>
-              <SectionHeader text="Headers" />
-            </Tab>
-            <Tab>
-              <SectionHeader text="Body" />
-            </Tab>
-            <Tab>
-              <SectionHeader text="Tests" />
-            </Tab>
-          </TabList>
-          <TabPanels flexGrow="1" h="full" overflow="hidden">
-            <TabPanel h="full" p="0">
-              <DataPairEditor
-                title="Query Params"
-                pairs={request.params}
-                updatePairs={(t) =>
-                  updateRequest((e) => ({ ...e, params: t(e.params) }))
-                }
-                py="4"
-              />
-            </TabPanel>
-            {/*
-            <TabPanel p="0"></TabPanel>
-            */}
-            <TabPanel h="full" p="0">
-              <DataPairEditor
-                title="Headers"
-                pairs={request.headers}
-                updatePairs={(t) =>
-                  updateRequest((e) => ({ ...e, headers: t(e.headers) }))
-                }
-                py="4"
-              />
-            </TabPanel>
-            <TabPanel h="full" p="0">
-              <RequestBodyEditor
-                body={request.body}
-                updateBody={(t) =>
-                  updateRequest((e) => ({ ...e, body: t(e.body) }))
-                }
-              />
-            </TabPanel>
-            <TabPanel h="full" p="0">
-              <TestScriptEditor
-                testScript={request.tests}
-                updateTestScript={(t) =>
-                  updateRequest((e) => ({ ...e, tests: t(e.tests) }))
-                }
-                py="4"
-              />
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
+            overflow="hidden"
+            w="full"
+          >
+            <TabList borderBottom="none">
+              <Tab>
+                <SectionHeader text="Params" />
+              </Tab>
+              <Tab>
+                <SectionHeader text="Authorization" />
+              </Tab>
+              <Tab>
+                <SectionHeader text="Headers" />
+              </Tab>
+              <Tab>
+                <SectionHeader text="Body" />
+              </Tab>
+              <Tab>
+                <SectionHeader text="Tests" />
+              </Tab>
+            </TabList>
+            <TabPanels flexGrow="1">
+              <TabPanel p="0" h="full">
+                <DataPairEditor
+                  title="Query Params"
+                  pairs={request.params}
+                  updatePairs={(t) =>
+                    updateRequest((e) => ({ ...e, params: t(e.params) }))
+                  }
+                />
+              </TabPanel>
+              <TabPanel p="0" h="full"></TabPanel>
+              <TabPanel p="0" h="full">
+                <DataPairEditor
+                  title="Headers"
+                  pairs={request.headers}
+                  updatePairs={(t) =>
+                    updateRequest((e) => ({ ...e, headers: t(e.headers) }))
+                  }
+                />
+              </TabPanel>
+              <TabPanel p="0" h="full">
+                <RequestBodyEditor
+                  body={request.body}
+                  updateBody={(t) =>
+                    updateRequest((e) => ({ ...e, body: t(e.body) }))
+                  }
+                />
+              </TabPanel>
+              <TabPanel p="0" h="full">
+                <TestScriptEditor
+                  testScript={request.tests}
+                  updateTestScript={(t) =>
+                    updateRequest((e) => ({ ...e, tests: t(e.tests) }))
+                  }
+                />
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+        </VStack>
+        <VStack h="40%" w="full">
+          <Box h="full" w="full" overflow="scroll">
+            <Code p="4" minH="full" w="full" fontSize="xs">
+              <pre>{JSON.stringify(request.result, null, 4)}</pre>
+            </Code>
+          </Box>
+        </VStack>
       </VStack>
     );
   }

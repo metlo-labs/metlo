@@ -8,11 +8,15 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { IoMdTrash } from "@react-icons/all-files/io/IoMdTrash";
-import Editor from "react-simple-code-editor";
-import { highlight, languages } from "prismjs/components/prism-core";
-import "prismjs/components/prism-clike";
-import "prismjs/components/prism-javascript";
-import "prismjs/themes/prism.css";
+import "codemirror/lib/codemirror.css";
+import dynamic from "next/dynamic";
+const CodeMirror = dynamic(
+  () => {
+    import("codemirror/mode/javascript/javascript");
+    return import("react-codemirror");
+  },
+  { ssr: false }
+);
 
 interface TestScriptEditorProps extends StackProps {
   testScript: string;
@@ -39,16 +43,13 @@ const TestScriptEditor: React.FC<TestScriptEditorProps> = React.memo(
           </HStack>
         </HStack>
         <Box flexGrow="1" w="full">
-          <Editor
+          <CodeMirror
             value={testScript}
-            onValueChange={(val) => updateTestScript((e) => val)}
-            highlight={(code) => highlight(code, languages.js)}
-            padding={10}
-            style={{
-              backgroundColor: "white",
-              height: "100%",
-              fontFamily: '"Fira code", "Fira Mono", monospace',
-              fontSize: 14,
+            onChange={(val) => updateTestScript((e) => val)}
+            options={{
+              mode: {
+                name: "javascript",
+              },
             }}
           />
         </Box>

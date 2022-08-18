@@ -15,25 +15,28 @@ const TestEditorHeader: React.FC<TestEditorHeaderProps> = React.memo(
     return (
       <HStack>
         <NextLink href="/endpoints">
-          <HStack color="headerColor" spacing="1" cursor="pointer">
+          <HStack
+            color="headerColor"
+            fontSize="sm"
+            spacing="1"
+            cursor="pointer"
+          >
             <TiFlowSwitch />
             <Text fontWeight="semibold">Endpoints</Text>
           </HStack>
         </NextLink>
         <Box color="headerColor">
-          <FaChevronRight />
+          <FaChevronRight size="10" />
         </Box>
         <NextLink href={`/endpoint/${endpoint.uuid}?tab=tests`}>
           <HStack spacing="1" cursor="pointer">
             <Badge
-              px="2"
-              py="1"
-              fontSize="sm"
+              fontSize="xs"
               colorScheme={METHOD_TO_COLOR[endpoint.method] || "gray"}
             >
               {endpoint?.method.toUpperCase()}
             </Badge>
-            <Code fontSize="sm" fontWeight="semibold" p="1">
+            <Code fontSize="xs" fontWeight="semibold">
               {endpoint.path}
             </Code>
           </HStack>

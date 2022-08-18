@@ -15,3 +15,11 @@
   .InovuaReactDataGrid__row--selected {
   background-color: rgb(44, 50, 58) !important;
 }
+
+.ReactCodeMirror {
+  height: 100% !important;
+}
+
+.CodeMirror {
+  height: 100% !important;
+}

@@ -102,11 +102,11 @@ const DataPairEditor: React.FC<DataPairEditorProps> = React.memo(
           <Heading size="xs" fontWeight="semibold" color="gray.500" px="4">
             {title}
           </Heading>
-          <HStack pr="6" color="gray.500">
-            <Button size="sm" variant="ghost" onClick={addNew}>
+          <HStack pr="6" color="gray.500" spacing="0">
+            <Button size="sm" variant="ghost" onClick={addNew} rounded="none">
               <HiPlus />
             </Button>
-            <Button size="sm" variant="ghost" onClick={clearAll}>
+            <Button size="sm" variant="ghost" onClick={clearAll} rounded="none">
               <IoMdTrash />
             </Button>
           </HStack>
