@@ -17,7 +17,7 @@ const TestList: React.FC<TestListProps> = React.memo(({ tests }) => {
     row: TestDetailed,
     e: React.MouseEvent<Element, MouseEvent>
   ) => {
-    router.push(`/test/${row.uuid}`);
+    router.push(`/endpoint/${row.apiEndpoint.uuid}/test/${row.uuid}`);
   };
   const columns: TableColumn<TestDetailed>[] = [
     {
