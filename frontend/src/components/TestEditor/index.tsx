@@ -14,7 +14,7 @@ import TestEditorHeader from "./header";
 import RequestList from "./requestsList";
 import RequestEditor from "./requestEditor";
 import { makeNewEmptyRequest, sendRequest } from "./requestUtils";
-import { runTest } from "~/api/tests";
+import { runTest, saveTest } from "~/api/tests";
 import axios from "axios";
 import { getAPIURL } from "~/constants";
 
@@ -143,15 +143,8 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
         });
     };
 
-    const onSaveRequest = () => {
-      axios
-        .post(`${getAPIURL()}/tests/save`, {
-          test: state.test,
-          endpointUuid: endpoint.uuid,
-        })
-        .then((v) => console.log(v))
-        .catch((e) => console.log(e))
-        .finally(() => console.log("Request done"));
+    const onSaveRequest = async () => {
+      await saveTest(state.test, endpoint.uuid);
     };
 
     const onRunClick = () => {

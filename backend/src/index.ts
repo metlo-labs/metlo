@@ -104,7 +104,7 @@ app.get(
 app.post("/api/v1/update_connection", update_connection);
 app.post("/api/v1/test/run", runTestHandler);
 
-app.post("/api/v1/tests/save", saveTest);
+app.post("/api/v1/test/save", saveTest);
 app.get("/api/v1/tests/list", listTests);
 app.get("/api/v1/tests/list/:uuid", getTest);
 
