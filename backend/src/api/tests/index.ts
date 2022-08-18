@@ -36,3 +36,28 @@ export const saveTest = async (req: Request, res: Response): Promise<void> => {
 
   await ApiResponseHandler.success(res, resp);
 };
+
+export const listTests = async (req: Request, res: Response): Promise<void> => {
+  const { uuid } = req.params;
+
+  let resp = await AppDataSource.getRepository(ApiEndpointTest)
+    .createQueryBuilder()
+    .select()
+    .getMany();
+
+  await ApiResponseHandler.success(res, resp);
+};
+
+export const getTest = async (req: Request, res: Response): Promise<void> => {
+  const { uuid } = req.params;
+  try {
+    let resp = await AppDataSource.getRepository(ApiEndpointTest)
+      .createQueryBuilder()
+      .select()
+      .where("uuid = :uuid", { uuid })
+      .getOne();
+    await ApiResponseHandler.success(res, resp);
+  } catch (err) {
+    await ApiResponseHandler.error(res, err);
+  }
+};
