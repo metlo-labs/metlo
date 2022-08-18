@@ -13,6 +13,13 @@ export const listTests = async () => {
   return resp;
 };
 
+export const getTest = async (testUUID: string) => {
+  const resp = await axios.get<TestDetailed>(
+    `${getAPIURL()}/test/list/${testUUID}`
+  );
+  return resp;
+};
+
 export const saveTest = async (test: Test, endpoint_uuid: string) => {
   const resp = await axios.post<any>(`${getAPIURL()}/test/save`, {
     test,

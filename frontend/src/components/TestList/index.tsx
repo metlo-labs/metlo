@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, VStack } from "@chakra-ui/react";
 import List from "./List";
-import { Test, TestDetailed } from "@common/testing/types";
+import { TestDetailed } from "@common/testing/types";
 
 const ListTests: React.FC<{ tests: Array<TestDetailed> }> = React.memo(
   ({ tests }) => (

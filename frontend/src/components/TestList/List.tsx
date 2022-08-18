@@ -57,22 +57,22 @@ const TestList: React.FC<TestListProps> = React.memo(({ tests }) => {
       ),
       id: "requests",
     },
-    {
-      name: "Endpoint Risk",
-      sortable: true,
-      selector: (row: TestDetailed) => row.apiEndpoint.riskScore || "",
-      cell: (row: TestDetailed) => (
-        <Badge
-          p="1"
-          fontSize="sm"
-          colorScheme={RISK_TO_COLOR[row.apiEndpoint.riskScore]}
-          pointerEvents="none"
-        >
-          {row.apiEndpoint.riskScore}
-        </Badge>
-      ),
-      id: "endpointRisk",
-    },
+    // {
+    //   name: "Endpoint Risk",
+    //   sortable: true,
+    //   selector: (row: TestDetailed) => row.apiEndpoint.riskScore || "",
+    //   cell: (row: TestDetailed) => (
+    //     <Badge
+    //       p="1"
+    //       fontSize="sm"
+    //       colorScheme={RISK_TO_COLOR[row.apiEndpoint.riskScore]}
+    //       pointerEvents="none"
+    //     >
+    //       {row.apiEndpoint.riskScore}
+    //     </Badge>
+    //   ),
+    //   id: "endpointRisk",
+    // },
   ];
   return (
     <DataTable

@@ -1,5 +1,5 @@
 import { AppDataSource } from "data-source";
-import { ApiEndpoint, ApiTrace } from "models";
+import { ApiEndpoint, ApiEndpointTest, ApiTrace } from "models";
 import {
   GetEndpointParams,
   ApiEndpoint as ApiEndpointResponse,
@@ -81,6 +81,8 @@ export class GetEndpointsService {
     try {
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
       const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
+      const apiEndpointTestRepository =
+        AppDataSource.getRepository(ApiEndpointTest);
       const endpoint = await apiEndpointRepository.findOne({
         where: { uuid: endpointId },
         relations: {
@@ -115,10 +117,13 @@ export class GetEndpointsService {
           createdAt: "DESC",
         },
       });
+      const tests = await apiEndpointTestRepository.find({
+        where: { apiEndpoint: { uuid: endpointId } },
+      });
       return {
         ...endpoint,
         traces: [...traces],
-        tests: [],
+        tests: tests,
         firstDetected: firstDetected?.createdAt,
         lastActive: lastActive?.createdAt,
       };
