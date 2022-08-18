@@ -33,13 +33,13 @@ const TestList: React.FC<TestListProps> = React.memo(({ endpoint }) => {
     );
   }
   return (
-    <Box px={2} pt={4}>
-      <ListTests
-        tests={endpoint.tests.map((test, i) => {
-          return { ...test, apiEndpoint: endpoint } as TestDetailed;
-        })}
-      />
-    </Box>
+    <ListTests
+      tests={endpoint.tests.map((test, i) => {
+        return { ...test, apiEndpoint: endpoint } as TestDetailed;
+      })}
+      borderWidth="0px"
+      rounded="none"
+    />
   );
 });
 
