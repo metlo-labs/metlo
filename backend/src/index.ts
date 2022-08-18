@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import { TypeormStore } from "connect-typeorm";
 import session from "express-session";
-import { Session as SessionModel } from "~/models/sessions";
+import { Session as SessionModel } from "~/models";
 import {
   logRequestBatchHandler,
   logRequestSingleHandler,
@@ -36,6 +36,12 @@ import {
   setup_connection,
 } from "./api/setup";
 import { runTestHandler } from "./api/tests";
+import {
+  get_connection_for_uuid,
+  get_ssh_key_for_connection_uuid,
+  list_connections,
+  update_connection,
+} from "./api/connections";
 
 dotenv.config();
 
@@ -89,6 +95,13 @@ app.put("/api/v1/alert/resolve/:alertId", resolveAlertHandler);
 app.post("/api/v1/setup_connection", setup_connection);
 app.post("/api/v1/setup_connection/aws/os", aws_os_choices);
 app.post("/api/v1/setup_connection/aws/instances", aws_instance_choices);
+app.get("/api/v1/list_connections", list_connections);
+app.get("/api/v1/list_connections/:uuid", get_connection_for_uuid);
+app.get(
+  "/api/v1/list_connections/:uuid/sshkey",
+  get_ssh_key_for_connection_uuid
+);
+app.post("/api/v1/update_connection", update_connection);
 
 app.post("/api/v1/test/run", runTestHandler);
 

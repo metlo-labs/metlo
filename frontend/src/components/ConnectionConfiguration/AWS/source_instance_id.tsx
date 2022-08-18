@@ -1,9 +1,5 @@
 import { Box, Button, Flex, Grid, GridItem, Input } from "@chakra-ui/react";
-import { ConnectionType, STEPS } from "@common/enums";
-import { STEP_RESPONSE } from "@common/types";
-import axios, { AxiosResponse, AxiosError } from "axios";
 import { useState } from "react";
-import { getAPIURL } from "~/constants";
 
 interface KeySetupInterface {
   complete: (params: Record<string, any>) => void;

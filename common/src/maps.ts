@@ -21,11 +21,11 @@ export const STEP_TO_TITLE_MAP: Record<STEPS, string> = {
   [STEPS.SELECT_OS]: "OS Selection",
   [STEPS.SELECT_INSTANCE_TYPE]: "EC2 Instance type selection",
   [STEPS.CREATE_INSTANCE]: "EC2 Instance Instantiation",
-  [STEPS.INSTANCE_IP]: "Source Mirror Instance IP",
+  [STEPS.INSTANCE_IP]: "Obtain Mirror Instance IP",
   [STEPS.CREATE_MIRROR_TARGET]: "Traffic Mirror Target Creation",
   [STEPS.CREATE_MIRROR_FILTER]: "Traffic Mirror Filter Creation",
   [STEPS.CREATE_MIRROR_SESSION]: "Traffic Mirror Session Creation",
   [STEPS.TEST_SSH]: "SSH Connection Test",
   [STEPS.PUSH_FILES]: "Push installation files to remote instance",
-  [STEPS.EXEC_COMMAND]: "Installing metlo",
+  [STEPS.EXEC_COMMAND]: "Install metlo",
 };

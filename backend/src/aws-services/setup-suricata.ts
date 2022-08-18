@@ -20,6 +20,7 @@ import {
   list_all_instances,
   match_av_to_region,
 } from "./utils";
+import retry from "async-retry";
 
 import { STEP_RESPONSE } from "@common/types";
 import { ConnectionType } from "@common/enums";
@@ -582,7 +583,7 @@ async function aws_mirror_session_creation({
         destination_eni_id,
         mirror_filter_id,
         mirror_target_id,
-        mirror_instance_id: resp.TrafficMirrorSession.TrafficMirrorTargetId,
+        mirror_session_id: resp.TrafficMirrorSession.TrafficMirrorSessionId,
         ...rest,
       },
     };
@@ -618,7 +619,7 @@ async function test_ssh({
   var conn;
   try {
     conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu");
-    await conn.test_connection();
+    await retry(async () => await conn.test_connection());
     conn.disconnect();
     return {
       success: "OK",
