@@ -30,3 +30,19 @@ docker-compose up
 ```
 
 Now visit [http://localhost:8000](http://localhost:8000)
+
+## Endpoint Discovery
+* Undocumented, legacy and shadow API endpoints are an unknown and unprotected attack surface.
+* Metlo scans network traffic and creates an inventory of every single endpoint in your API.
+* Each endpoint is scanned for PII data and given a risk score.
+
+## API Testing
+* Don’t wait for an attack to discover API vulnerabilities. Metlo’s suite of automated tests and our security testing framework let you find vulnerabilities in development.
+* Our DAST scans your API’s for the most common security vulnerabilities.
+* Metlo’s built in testing framework helps you get to 100% Security Coverage on your highest risk APIs
+* Metlo integrates directly with your CI/CD
+
+## Protection
+* After an API vulnerability is discovered, intruders can quickly start the process of extracting sensitive data. Metlo alerts your security team as soon as anomalous API usage patterns are detected.
+* Our ML Algorithms build a model for baseline API behavior. Any deviation from this baseline is surfaced as soon as possible.
+* Metlo’s UI gives you full context around any attack to help quickly fix the vulnerability.
