@@ -5,6 +5,7 @@ import { OpenApiSpec } from "models/openapi-spec";
 import { Alert } from "models/alert";
 import { Session } from "models/sessions";
 import { Connections } from "./connections";
+import { ApiEndpointTest } from "./api-endpoint-test";
 
 export {
   ApiEndpoint,
@@ -14,4 +15,5 @@ export {
   Alert,
   Session,
   Connections,
+  ApiEndpointTest,
 };

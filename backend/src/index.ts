@@ -35,7 +35,7 @@ import {
   aws_os_choices,
   setup_connection,
 } from "./api/setup";
-import { runTestHandler } from "./api/tests";
+import { runTestHandler, saveTest } from "./api/tests";
 import {
   get_connection_for_uuid,
   get_ssh_key_for_connection_uuid,
@@ -102,8 +102,9 @@ app.get(
   get_ssh_key_for_connection_uuid
 );
 app.post("/api/v1/update_connection", update_connection);
-
 app.post("/api/v1/test/run", runTestHandler);
+
+app.post("/api/v1/tests/save", saveTest);
 
 const main = async () => {
   try {

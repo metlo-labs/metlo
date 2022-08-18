@@ -7,6 +7,7 @@ import TestEditor from "components/TestEditor";
 import { getEndpoint } from "api/endpoints";
 import { ApiEndpointDetailed } from "@common/types";
 import { makeNewRequest } from "~/components/TestEditor/requestUtils";
+import { v4 as uuidv4 } from "uuid";
 
 const NewTest = ({ endpoint }) => {
   const parsedEndpoint = superjson.parse(
@@ -23,6 +24,7 @@ const NewTest = ({ endpoint }) => {
       <TestEditor
         endpoint={parsedEndpoint}
         initTest={{
+          uuid: uuidv4(),
           name: "Untitled Test",
           tags: [],
           requests: [makeNewRequest(parsedEndpoint)],

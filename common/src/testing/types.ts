@@ -61,6 +61,7 @@ export interface Request {
 }
 
 export interface Test {
+  uuid: string;
   name: string;
   tags: string[];
   requests: Request[];

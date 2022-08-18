@@ -15,6 +15,8 @@ import RequestList from "./requestsList";
 import RequestEditor from "./requestEditor";
 import { makeNewEmptyRequest, sendRequest } from "./requestUtils";
 import { runTest } from "~/api/tests";
+import axios from "axios";
+import { getAPIURL } from "~/constants";
 
 interface TestEditorProps {
   endpoint: ApiEndpointDetailed;
@@ -141,6 +143,17 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
         });
     };
 
+    const onSaveRequest = () => {
+      axios
+        .post(`${getAPIURL()}/tests/save`, {
+          test: state.test,
+          endpointUuid: endpoint.uuid,
+        })
+        .then((v) => console.log(v))
+        .catch((e) => console.log(e))
+        .finally(() => console.log("Request done"));
+    };
+
     const onRunClick = () => {
       runTest(test);
     };
@@ -170,7 +183,9 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
               <Button colorScheme="blue" onClick={onRunClick}>
                 Run
               </Button>
-              <Button colorScheme="blue">Save</Button>
+              <Button colorScheme="blue" onClick={onSaveRequest}>
+                Save
+              </Button>
             </HStack>
           </HStack>
         </VStack>
