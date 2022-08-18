@@ -41,8 +41,9 @@ export const listTests = async (req: Request, res: Response): Promise<void> => {
   const { uuid } = req.params;
 
   let resp = await AppDataSource.getRepository(ApiEndpointTest)
-    .createQueryBuilder()
+    .createQueryBuilder("test")
     .select()
+    .leftJoinAndSelect("test.apiEndpoint", "apiEndpoint")
     .getMany();
 
   await ApiResponseHandler.success(res, resp);
