@@ -6,6 +6,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
+import { Request } from "@common/testing/types";
 import { ApiEndpoint } from "models/api-endpoint";
 
 @Entity()

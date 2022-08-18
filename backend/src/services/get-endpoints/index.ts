@@ -8,6 +8,7 @@ import {
 } from "@common/types";
 import Error500InternalServer from "errors/error-500-internal-server";
 import { RISK_SCORE_ORDER_QUERY } from "~/constants";
+import { Test } from "@common/testing/types";
 
 export class GetEndpointsService {
   static async getEndpoints(
@@ -123,7 +124,7 @@ export class GetEndpointsService {
       return {
         ...endpoint,
         traces: [...traces],
-        tests: tests,
+        tests: tests as Array<Test>,
         firstDetected: firstDetected?.createdAt,
         lastActive: lastActive?.createdAt,
       };
