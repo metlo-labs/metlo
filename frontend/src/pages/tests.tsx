@@ -1,13 +1,21 @@
-import { HStack } from "@chakra-ui/react";
-import { DarkModeSwitch } from "components/utils/DarkModeSwitch";
-import SideNavBar from "components/Sidebar";
+import { Heading, VStack } from "@chakra-ui/react";
 import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils";
+import { SidebarLayoutShell } from "~/components/SidebarLayoutShell";
+import { ContentContainer } from "~/components/utils/ContentContainer";
 
 const Tests = () => (
-  <HStack spacing={0}>
-    <DarkModeSwitch />
-    <SideNavBar currentTab={SideNavLinkDestination.Tests} />
-  </HStack>
+  <SidebarLayoutShell
+    title="Tests"
+    currentTab={SideNavLinkDestination.Tests}
+  >
+    <ContentContainer>
+      <VStack w="full" alignItems="flex-start">
+        <Heading fontWeight="medium" size="xl" mb="8">
+          Tests
+        </Heading>
+      </VStack>
+    </ContentContainer>
+  </SidebarLayoutShell>
 );
 
 export default Tests;

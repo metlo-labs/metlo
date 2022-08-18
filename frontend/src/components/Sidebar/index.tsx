@@ -55,7 +55,6 @@ const SideNavBar: React.FC<SideNavBarProps> = React.memo(({ currentTab }) => {
         <SideNavLink
           destination={SideNavLinkDestination.Tests}
           isActive={currentTab === SideNavLinkDestination.Tests}
-          isComingSoon
         />
         <SideNavLink
           destination={SideNavLinkDestination.Alerts}

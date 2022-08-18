@@ -2,7 +2,7 @@ import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch";
 import { FaHome } from "@react-icons/all-files/fa/FaHome";
 import { FaShareAlt } from "@react-icons/all-files/fa/FaShareAlt";
 import { FaBell } from "@react-icons/all-files/fa/FaBell";
-import { HiChartBar } from "@react-icons/all-files/hi/HiChartBar";
+import { BiTestTube } from "@react-icons/all-files/bi/BiTestTube";
 import { AiFillApi } from "@react-icons/all-files/ai/AiFillApi";
 import { IconType } from "@react-icons/all-files/lib";
 
@@ -45,7 +45,7 @@ export const sideNavDestinationToIcon: (
     case SideNavLinkDestination.Endpoints:
       return TiFlowSwitch;
     case SideNavLinkDestination.Tests:
-      return HiChartBar;
+      return BiTestTube;
     case SideNavLinkDestination.Alerts:
       return FaBell;
     case SideNavLinkDestination.Specs:

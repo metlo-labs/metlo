@@ -1,0 +1,25 @@
+.InovuaReactDataGrid__row-reorder-icon {
+  height: 20px;
+}
+
+.inovua-react-virtual-list--theme-default-light
+  .InovuaReactDataGrid__row--selected {
+  background-color: white !important;
+}
+
+.InovuaReactDataGrid__column-header__menu-tool {
+  display: none !important;
+}
+
+.inovua-react-virtual-list--theme-default-dark
+  .InovuaReactDataGrid__row--selected {
+  background-color: rgb(44, 50, 58) !important;
+}
+
+.ReactCodeMirror {
+  height: 100% !important;
+}
+
+.CodeMirror {
+  height: 100% !important;
+}

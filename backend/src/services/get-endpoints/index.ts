@@ -118,6 +118,7 @@ export class GetEndpointsService {
       return {
         ...endpoint,
         traces: [...traces],
+        tests: [],
         firstDetected: firstDetected?.createdAt,
         lastActive: lastActive?.createdAt,
       };

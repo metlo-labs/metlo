@@ -1,3 +1,4 @@
+import { Test } from "testing/types";
 import {
   AlertType,
   ConnectionType,
@@ -132,6 +133,7 @@ export interface ApiEndpointDetailed extends ApiEndpoint {
   openapiSpec: OpenApiSpec;
   alerts: Alert[];
   traces: ApiTrace[];
+  tests: Test[];
 }
 
 export interface OpenApiSpec {
