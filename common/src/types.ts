@@ -1,4 +1,4 @@
-import { Test } from "testing/types";
+import { Test } from "./testing/types";
 import {
   AlertType,
   ConnectionType,
