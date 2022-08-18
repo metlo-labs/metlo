@@ -14,6 +14,7 @@ import TestEditorHeader from "./header";
 import RequestList from "./requestsList";
 import RequestEditor from "./requestEditor";
 import { makeNewEmptyRequest, sendRequest } from "./requestUtils";
+import { runTest } from "~/api/tests";
 
 interface TestEditorProps {
   endpoint: ApiEndpointDetailed;
@@ -140,6 +141,10 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
         });
     };
 
+    const onRunClick = () => {
+      runTest(test);
+    };
+
     return (
       <VStack
         w="full"
@@ -161,7 +166,12 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
               <EditablePreview />
               <EditableInput />
             </Editable>
-            <Button colorScheme="blue">Save</Button>
+            <HStack>
+              <Button colorScheme="blue" onClick={onRunClick}>
+                Run
+              </Button>
+              <Button colorScheme="blue">Save</Button>
+            </HStack>
           </HStack>
         </VStack>
         <HStack

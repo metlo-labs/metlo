@@ -35,6 +35,7 @@ import {
   aws_os_choices,
   setup_connection,
 } from "./api/setup";
+import { runTestHandler } from "./api/tests";
 
 dotenv.config();
 
@@ -88,6 +89,8 @@ app.put("/api/v1/alert/resolve/:alertId", resolveAlertHandler);
 app.post("/api/v1/setup_connection", setup_connection);
 app.post("/api/v1/setup_connection/aws/os", aws_os_choices);
 app.post("/api/v1/setup_connection/aws/instances", aws_instance_choices);
+
+app.post("/api/v1/test/run", runTestHandler);
 
 const main = async () => {
   try {
