@@ -1,22 +1,13 @@
-import superjson from "superjson";
-import { GetServerSideProps } from "next";
 import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils";
-import { testConnections } from "testData";
 import { SidebarLayoutShell } from "~/components/SidebarLayoutShell";
 import { ContentContainer } from "~/components/utils/ContentContainer";
-import {
-  Flex,
-  Heading,
-  NumberInput,
-  NumberInputField,
-  VStack,
-} from "@chakra-ui/react";
+import { Flex, Heading, VStack } from "@chakra-ui/react";
 import { useState } from "react";
-import ConfigureAWS from "~/components/ConnectionConfiguration/AWS/configureAws";
-
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  return { props: { connections: superjson.stringify(testConnections) } };
-};
+import dynamic from "next/dynamic";
+const ConfigureAWS = dynamic(
+  () => import("~/components/ConnectionConfiguration/AWS/configureAws"),
+  { ssr: false }
+);
 
 const Connections = ({}) => {
   const [selectedIndex, updateIndex] = useState(1);
