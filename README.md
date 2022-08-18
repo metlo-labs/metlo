@@ -49,3 +49,28 @@ Now visit [http://localhost:8000](http://localhost:8000)
 * After an API vulnerability is discovered, intruders can quickly start the process of extracting sensitive data. Metlo alerts your security team as soon as anomalous API usage patterns are detected.
 * Our ML Algorithms build a model for baseline API behavior. Any deviation from this baseline is surfaced as soon as possible.
 * Metlo’s UI gives you full context around any attack to help quickly fix the vulnerability.
+
+## Development
+
+**1. Build the Common Modules**
+
+```bash
+$ cd common
+$ yarn watch
+```
+
+**2. Start the Frontend**
+
+```bash
+$ cd backend
+$ yarn install
+$ yarn dev
+```
+
+**3. Start the Backend**
+
+```bash
+$ cd backend
+$ yarn install
+$ yarn dev
+```
