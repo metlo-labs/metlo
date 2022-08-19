@@ -107,7 +107,12 @@ const RequestList: React.FC<RequestListProps> = React.memo(
     ...props
   }) => {
     return (
-      <VStack {...props} overflow="hidden">
+      <VStack
+        {...props}
+        overflow="hidden"
+        minW={{ md: "xs" }}
+        display={{ md: "inherit", base: "none" }}
+      >
         <VStack w="full" alignItems="flex-start" spacing="0">
           {requests.map((e, i) => (
             <RequestItem

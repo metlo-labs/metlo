@@ -47,6 +47,8 @@ export interface Result {
   headers: Header[];
   testResults: TestResult[];
   code: number;
+  statusText: string;
+  duration: number;
 }
 
 export interface Request {

@@ -1,8 +1,19 @@
 import React from "react";
 import { RequestBody } from "@common/testing/types";
-import { Box, Heading, HStack, Select, VStack } from "@chakra-ui/react";
+import {
+  Box,
+  ColorMode,
+  Heading,
+  HStack,
+  Select,
+  useColorMode,
+  VStack,
+} from "@chakra-ui/react";
 import { RequestBodyType } from "@common/testing/enums";
+// CodeMirror default theme for light mode
 import "codemirror/lib/codemirror.css";
+// CodeMirror seti theme for dark mode
+import "codemirror/theme/seti.css";
 import dynamic from "next/dynamic";
 const CodeMirror = dynamic(
   () => {
@@ -29,6 +40,7 @@ const bodyTypeToDefaultVal = (type: RequestBodyType) => {
 
 const RequestBodyEditor: React.FC<RequestBodyProps> = React.memo(
   ({ body, updateBody }) => {
+    const { colorMode } = useColorMode();
     let editor = null;
 
     if (body.type == RequestBodyType.NONE) {
@@ -48,6 +60,7 @@ const RequestBodyEditor: React.FC<RequestBodyProps> = React.memo(
               json: true,
             },
             lineNumbers: true,
+            theme: colorMode === ("dark" as ColorMode) ? "seti" : "codemirror",
           }}
         />
       );

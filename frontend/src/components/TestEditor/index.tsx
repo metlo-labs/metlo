@@ -15,7 +15,7 @@ import RequestList from "./requestsList";
 import RequestEditor from "./requestEditor";
 import { makeNewEmptyRequest, sendRequest } from "./requestUtils";
 import { runTest, saveTest } from "~/api/tests";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { getAPIURL } from "~/constants";
 
 interface TestEditorProps {
@@ -35,6 +35,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
       selectedRequest: 0,
     });
     const [fetching, updateFetching] = useState<boolean>(false);
+    const [saving, updateSaving] = useState<boolean>(false);
 
     const selectedRequest = state.selectedRequest;
     const updateSelectedRequest = useCallback(
@@ -120,21 +121,25 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
         .then((e) => {
           const result = {
             code: e.status,
+            statusText: e.statusText,
             headers: Object.entries(e.headers).map((e) => ({
               key: e[0],
               value: e[1] as string,
             })),
             testResults: [],
             body: e.data,
+            duration: e.duration,
           };
           updateRequest((e) => ({ ...e, result }));
         })
-        .catch((e) => {
+        .catch((e: AxiosError) => {
           const result = {
             code: e.response.status,
-            headers: e.response.headers,
+            statusText: e.response.statusText,
+            headers: e.response.headers as any,
             testResults: [],
-            body: e.response.data,
+            body: e.response.data as any,
+            duration: e.response.duration,
           };
           updateRequest((e) => ({ ...e, result }));
         })
@@ -144,7 +149,10 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
     };
 
     const onSaveRequest = async () => {
-      await saveTest(state.test, endpoint.uuid);
+      updateSaving(true);
+      saveTest(state.test, endpoint.uuid)
+        .catch((err) => console.log(err))
+        .finally(() => updateSaving(false));
     };
 
     const onRunClick = () => {
@@ -176,7 +184,11 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
               <Button colorScheme="blue" onClick={onRunClick}>
                 Run
               </Button>
-              <Button colorScheme="blue" onClick={onSaveRequest}>
+              <Button
+                colorScheme="blue"
+                onClick={onSaveRequest}
+                isLoading={saving}
+              >
                 Save
               </Button>
             </HStack>

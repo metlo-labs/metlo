@@ -8,6 +8,7 @@ import {
   SpecExtension,
   STEPS,
 } from "./enums";
+import "axios";
 
 export interface Meta {
   incoming: boolean;
@@ -26,6 +27,18 @@ export interface Url {
   host: string;
   path: string;
   parameters: PairObject[];
+}
+
+declare module "axios" {
+  interface AxiosRequestConfig {
+    metadata?: Record<string, any>;
+  }
+  interface AxiosResponseConfig {
+    metadata?: Record<string, any>;
+  }
+  interface AxiosResponse {
+    duration?: number;
+  }
 }
 
 export interface Request {

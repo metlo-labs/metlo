@@ -24,6 +24,7 @@ import DataPairEditor from "../utils/DataPairEditor";
 import RequestBodyEditor from "./bodyEditor";
 import TestScriptEditor from "./testScriptEditor";
 import { getMethodSelectStyles } from "./styles";
+import Response from "./responseViewer";
 
 interface RequestEditorProps extends StackProps {
   request: Request;
@@ -36,8 +37,19 @@ const RequestEditor: React.FC<RequestEditorProps> = React.memo(
   ({ request, fetching, sendSelectedRequest, updateRequest, ...props }) => {
     const methodMenuBg = useColorModeValue("white", "rgb(19, 22, 26)");
     return (
-      <VStack h="full" {...props} spacing="0" divider={<StackDivider />}>
-        <VStack h="60%" w="full" spacing="0">
+      <VStack
+        h="full"
+        {...props}
+        spacing="0"
+        divider={<StackDivider />}
+        resize={"both"}
+      >
+        <VStack
+          h="60%"
+          w="full"
+          spacing="0"
+          resize={"both"}
+        >
           <HStack w="full" spacing="0" px="4" pt="4" pb="2">
             <Box w="36">
               <Select
@@ -141,10 +153,19 @@ const RequestEditor: React.FC<RequestEditorProps> = React.memo(
           </Tabs>
         </VStack>
         <VStack h="40%" w="full">
-          <Box h="full" w="full" overflow="scroll">
-            <Code p="4" minH="full" w="full" fontSize="xs">
-              <pre>{JSON.stringify(request.result, null, 4)}</pre>
-            </Code>
+          <Box h="full" w="full" overflow="scroll" py={2}>
+            <Response
+              res={
+                request.result || {
+                  body: "",
+                  headers: [],
+                  testResults: [],
+                  code: NaN,
+                  statusText: "",
+                  duration: NaN,
+                }
+              }
+            />
           </Box>
         </VStack>
       </VStack>

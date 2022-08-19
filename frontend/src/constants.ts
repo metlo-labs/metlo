@@ -24,7 +24,12 @@ export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass, RiskScore> = {
   [DataClass.COORDINATE]: RiskScore.MEDIUM,
   [DataClass.DL_NUMBER]: RiskScore.MEDIUM,
 };
-
+export const statusToColor = (statusCode: number) => {
+  if (statusCode >= 200 && statusCode < 300) {
+    return "green";
+  }
+  return "red";
+};
 export const getAPIURL = () => {
   return `${
     typeof window !== "undefined"
