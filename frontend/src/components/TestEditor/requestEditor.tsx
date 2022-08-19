@@ -36,6 +36,11 @@ interface RequestEditorProps extends StackProps {
 const RequestEditor: React.FC<RequestEditorProps> = React.memo(
   ({ request, fetching, sendSelectedRequest, updateRequest, ...props }) => {
     const methodMenuBg = useColorModeValue("white", "rgb(19, 22, 26)");
+    const methodTextColor = useColorModeValue("black", "rgb(236, 233, 229)");
+    const methodHighlightColor = useColorModeValue(
+      "rgb(230, 224, 216)",
+      "rgb(25, 31, 39)"
+    );
     return (
       <VStack
         h="full"
@@ -55,7 +60,11 @@ const RequestEditor: React.FC<RequestEditorProps> = React.memo(
               <Select
                 id="test-request-method-selector"
                 instanceId="test-request-method-selector"
-                styles={getMethodSelectStyles(methodMenuBg)}
+                styles={getMethodSelectStyles(
+                  methodMenuBg,
+                  methodTextColor,
+                  methodHighlightColor
+                )}
                 options={Object.entries(RestMethod).map((e) => ({
                   value: e[1],
                   label: e[1],
