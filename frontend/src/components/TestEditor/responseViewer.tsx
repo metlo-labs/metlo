@@ -11,6 +11,7 @@ import {
   VStack,
   Text,
   StackDivider,
+  Flex,
 } from "@chakra-ui/react";
 import { Result } from "@common/testing/types";
 
@@ -32,8 +33,14 @@ const Response: React.FC<{ res: Result }> = ({ res }) => {
         overflow="hidden"
         px={0}
       >
-        <HStack w={"full"}>
-          <TabList w={"full"} fontSize={"xs"} gap={4} borderBottom="none">
+        <Flex w={"full"}>
+          <TabList
+            w={"full"}
+            fontSize={"xs"}
+            gap={4}
+            borderBottom="none"
+            flex={{ md: "75%", base: "100%" }}
+          >
             <Tab>
               <SectionHeader text="Body" />
             </Tab>
@@ -48,26 +55,28 @@ const Response: React.FC<{ res: Result }> = ({ res }) => {
             </Tab>
           </TabList>
 
-          <Hide below={"sm"}>
-            <HStack w={"full"} justifyContent={"flex-end"} pr={4}>
-              {res.duration && <Box fontSize={"xs"}>{res.duration} ms</Box>}
-              {res.code && (
-                <Box fontSize={"xs"} color={statusToColor(res.code)}>
-                  {res.code} {res.statusText}
-                </Box>
-              )}
-              {
-                <Box fontSize={"xs"}>
-                  {(res.headers["content-length"] || res.body) &&
-                    `${
-                      res.headers["content-length"] ||
-                      JSON.stringify(res.body).length
-                    } B`}
-                </Box>
-              }
-            </HStack>
-          </Hide>
-        </HStack>
+          <Box flex={{ md: "25%", base: "none" }}>
+            <Hide below={"md"}>
+              <HStack w={"full"} justifyContent={"flex-end"} pr={4}>
+                {res.duration && <Box fontSize={"xs"}>{res.duration} ms</Box>}
+                {res.code && (
+                  <Box fontSize={"xs"} color={statusToColor(res.code)}>
+                    {res.code} {res.statusText}
+                  </Box>
+                )}
+                {
+                  <Box fontSize={"xs"}>
+                    {(res.headers["content-length"] || res.body) &&
+                      `${
+                        res.headers["content-length"] ||
+                        JSON.stringify(res.body).length
+                      } B`}
+                  </Box>
+                }
+              </HStack>
+            </Hide>
+          </Box>
+        </Flex>
 
         <TabPanels>
           <TabPanel p={0}>
