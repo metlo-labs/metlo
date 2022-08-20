@@ -56,8 +56,8 @@ const Response: React.FC<{ res: Result }> = ({ res }) => {
           </TabList>
 
           <Box flex={{ md: "25%", base: "none" }}>
-            <Hide below={"md"}>
-              <HStack w={"full"} justifyContent={"flex-end"} pr={4}>
+            <Hide below="md">
+              <HStack w="full" justifyContent="flex-end" pr={4}>
                 {res.duration && <Box fontSize={"xs"}>{res.duration} ms</Box>}
                 {res.code && (
                   <Box fontSize={"xs"} color={statusToColor(res.code)}>
@@ -106,20 +106,20 @@ const Response: React.FC<{ res: Result }> = ({ res }) => {
                     <Text
                       rounded="none"
                       border="none"
-                      flexGrow="1"
+                      w="50%"
                       fontWeight="medium"
                       fontSize="sm"
-                      p={2}
+                      p="2"
                     >
                       {e.key}
                     </Text>
                     <Text
                       rounded="none"
                       border="none"
-                      flexGrow="1"
+                      w="50%"
                       fontWeight="medium"
                       fontSize="sm"
-                      p={2}
+                      p="2"
                     >
                       {e.value}
                     </Text>
