@@ -13,9 +13,19 @@ export interface AuthBasicAuthParams {
   password: string;
 }
 
+export interface AuthBearerParams {
+  bearer_token: string;
+}
+
+export interface AuthAPINoAuth {}
+
 export interface Authorization {
   type: AuthType;
-  params: AuthAPIKeyParams | AuthBasicAuthParams;
+  params:
+    | AuthAPINoAuth
+    | AuthAPIKeyParams
+    | AuthBasicAuthParams
+    | AuthBearerParams;
 }
 
 export interface DataPair {

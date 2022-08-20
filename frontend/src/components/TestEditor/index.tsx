@@ -8,6 +8,7 @@ import {
   EditablePreview,
   HStack,
   StackDivider,
+  useToast,
   VStack,
 } from "@chakra-ui/react";
 import TestEditorHeader from "./header";
@@ -36,6 +37,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
     });
     const [fetching, updateFetching] = useState<boolean>(false);
     const [saving, updateSaving] = useState<boolean>(false);
+    const toast = useToast();
 
     const selectedRequest = state.selectedRequest;
     const updateSelectedRequest = useCallback(
@@ -132,16 +134,36 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
           };
           updateRequest((e) => ({ ...e, result }));
         })
-        .catch((e: AxiosError) => {
-          const result = {
-            code: e.response.status,
-            statusText: e.response.statusText,
-            headers: e.response.headers as any,
-            testResults: [],
-            body: e.response.data as any,
-            duration: e.response.duration,
-          };
-          updateRequest((e) => ({ ...e, result }));
+        .catch((e) => {
+          if (e instanceof AxiosError) {
+            if (e.code === "ERR_NETWORK") {
+              toast({
+                title: e.message,
+                description: "More information availabe in the console",
+                status: "error",
+              });
+            } else {
+              const result = {
+                code: e.response.status,
+                statusText: e.response.statusText,
+                headers: [] as any,
+                testResults: [],
+                body: e.response.data as any,
+                duration: e.response.duration,
+              };
+              updateRequest((e) => ({ ...e, result }));
+            }
+          } else if (e instanceof Error) {
+            toast({ title: e.name, description: e.message, status: "error" });
+            console.log(e);
+          } else {
+            toast({
+              title: "Encountered an error",
+              description: "More information available in the console",
+              status: "error",
+            });
+            console.log(e);
+          }
         })
         .finally(() => {
           updateFetching(false);

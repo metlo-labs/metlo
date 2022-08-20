@@ -1,6 +1,8 @@
 export enum AuthType {
-  API_KEY = "API Key",
+  API_KEY = "API Key Auth",
   BASIC_AUTH = "Basic Auth",
+  NO_AUTH = "No Auth",
+  BEARER = "Bearer Auth",
 }
 
 export enum APIKeyAuthAddTo {

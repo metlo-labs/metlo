@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   VStack,
   StackProps,
@@ -16,7 +16,7 @@ import {
   useColorModeValue,
   Code,
 } from "@chakra-ui/react";
-import { Request } from "@common/testing/types";
+import { Request, Result } from "@common/testing/types";
 import Select from "react-select";
 import { RestMethod } from "@common/enums";
 import { SectionHeader } from "../utils/Card";
@@ -25,6 +25,8 @@ import RequestBodyEditor from "./bodyEditor";
 import TestScriptEditor from "./testScriptEditor";
 import { getMethodSelectStyles } from "./styles";
 import Response from "./responseViewer";
+import AuthSwitch from "../Authentication/authSwitch";
+import { AuthType } from "@common/testing/enums";
 
 interface RequestEditorProps extends StackProps {
   request: Request;
@@ -41,6 +43,7 @@ const RequestEditor: React.FC<RequestEditorProps> = React.memo(
       "rgb(230, 224, 216)",
       "rgb(25, 31, 39)"
     );
+    const [authType, setAuthType] = useState<AuthType>(AuthType.NO_AUTH);
     return (
       <VStack
         h="full"
@@ -49,12 +52,7 @@ const RequestEditor: React.FC<RequestEditorProps> = React.memo(
         divider={<StackDivider />}
         resize={"both"}
       >
-        <VStack
-          h="60%"
-          w="full"
-          spacing="0"
-          resize={"both"}
-        >
+        <VStack h="60%" w="full" spacing="0" resize={"both"}>
           <HStack w="full" spacing="0" px="4" pt="4" pb="2">
             <Box w="36">
               <Select
@@ -132,7 +130,20 @@ const RequestEditor: React.FC<RequestEditorProps> = React.memo(
                   }
                 />
               </TabPanel>
-              <TabPanel p="0" h="full"></TabPanel>
+              <TabPanel p="0" h="full">
+                <Box p={4}>
+                  <AuthSwitch
+                    variant={authType}
+                    setVariant={setAuthType}
+                    request={request}
+                    setRequest={(updatedReq) => {
+                      updateRequest((req) => {
+                        return { ...req, ...updatedReq };
+                      });
+                    }}
+                  />
+                </Box>
+              </TabPanel>
               <TabPanel p="0" h="full">
                 <DataPairEditor
                   title="Headers"
