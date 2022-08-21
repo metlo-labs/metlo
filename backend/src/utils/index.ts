@@ -1,7 +1,7 @@
 import validator from "validator";
 import { ApiEndpoint } from "models";
 import { pathParameterRegex } from "~/constants";
-import { RiskScore } from "@common/enums";
+import { DataType, RiskScore } from "@common/enums";
 
 export const isSuspectedParamater = (value: string): boolean => {
   if (!isNaN(Number(value))) {
@@ -33,6 +33,36 @@ export const getRiskScore = (endpoint: ApiEndpoint): RiskScore => {
       return RiskScore.LOW;
     default:
       return RiskScore.NONE;
+  }
+};
+
+export const getDataType = (data: any): DataType => {
+  if (data === undefined || data === null) {
+    return null;
+  }
+  if (typeof data === "boolean") {
+    return DataType.BOOLEAN;
+  }
+  if (Number(data)) {
+    if (Number.isInteger(data)) {
+      return DataType.INTEGER;
+    }
+    return DataType.NUMBER;
+  }
+  if (Array.isArray(data)) {
+    return DataType.ARRAY;
+  }
+  if (typeof data === "object") {
+    return DataType.OBJECT;
+  }
+  return DataType.STRING;
+};
+
+export const parsedJson = (jsonString: string): any => {
+  try {
+    return JSON.parse(jsonString);
+  } catch (err) {
+    return null;
   }
 };
 

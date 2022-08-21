@@ -13,7 +13,7 @@ import {
 } from "services/scanner/regexp";
 import { PairObject } from "@common/types";
 import { ApiEndpoint, ApiTrace, MatchedDataClass } from "models";
-import { getRiskScore } from "utils";
+import { getRiskScore, parsedJson } from "utils";
 
 const DATA_CLASS_REGEX_MAP = new Map<DataClass, RegExp>([
   [DataClass.ADDRESS, ADDRESS_REGEXP],
@@ -64,14 +64,6 @@ export class ScannerService {
     }
   }
 
-  static parsedJson(jsonString: string): any {
-    try {
-      return JSON.parse(jsonString);
-    } catch (err) {
-      return null;
-    }
-  }
-
   static async recursiveParseJson(
     dataPathPrefix: string,
     jsonBody: any,
@@ -105,7 +97,7 @@ export class ScannerService {
     apiEndpoint: ApiEndpoint
   ): Promise<void> {
     if (body) {
-      const jsonBody = this.parsedJson(body);
+      const jsonBody = parsedJson(body);
       if (jsonBody) {
         let dataPath = `${dataPathPrefix}.json`;
         for (let key in jsonBody) {

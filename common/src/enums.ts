@@ -67,3 +67,12 @@ export enum protocols {
   TCP = 6,
   UDP = 17,
 }
+
+export enum DataType {
+  INTEGER = "integer",
+  NUMBER = "number",
+  STRING = "string",
+  BOOLEAN = "boolean",
+  OBJECT = "object",
+  ARRAY = "array",
+}
