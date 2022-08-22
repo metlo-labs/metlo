@@ -1,10 +1,9 @@
 import React from "react";
 import { useRouter } from "next/router";
-import { Badge, Text, useColorMode, VStack } from "@chakra-ui/react";
+import { Badge, useColorMode, VStack } from "@chakra-ui/react";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { getCustomStyles, rowStyles } from "components/utils/TableUtils";
 import { TestDetailed } from "@common/testing/types";
-import { RISK_TO_COLOR } from "~/constants";
 
 interface TestListProps {
   tests: TestDetailed[];
@@ -47,8 +46,8 @@ const TestList: React.FC<TestListProps> = React.memo(({ tests }) => {
         <VStack
           alignItems="flex-start"
           py="2"
-          overflow={"hidden"}
-          textOverflow={"ellipsis"}
+          overflow="hidden"
+          textOverflow="ellipsis"
         >
           {row.requests?.map((req, idx) => (
             <Badge key={idx}>{req.url}</Badge>
@@ -57,22 +56,6 @@ const TestList: React.FC<TestListProps> = React.memo(({ tests }) => {
       ),
       id: "requests",
     },
-    // {
-    //   name: "Endpoint Risk",
-    //   sortable: true,
-    //   selector: (row: TestDetailed) => row.apiEndpoint.riskScore || "",
-    //   cell: (row: TestDetailed) => (
-    //     <Badge
-    //       p="1"
-    //       fontSize="sm"
-    //       colorScheme={RISK_TO_COLOR[row.apiEndpoint.riskScore]}
-    //       pointerEvents="none"
-    //     >
-    //       {row.apiEndpoint.riskScore}
-    //     </Badge>
-    //   ),
-    //   id: "endpointRisk",
-    // },
   ];
   return (
     <DataTable

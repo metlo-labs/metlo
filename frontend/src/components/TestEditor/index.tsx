@@ -11,6 +11,7 @@ import {
   useToast,
   VStack,
 } from "@chakra-ui/react";
+import { HiPencil } from "@react-icons/all-files/hi/HiPencil";
 import TestEditorHeader from "./header";
 import RequestList from "./requestsList";
 import RequestEditor from "./requestEditor";
@@ -192,15 +193,18 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
         <VStack alignItems="flex-start" px="6" pt="4" w="full">
           <TestEditorHeader endpoint={endpoint} />
           <HStack justifyContent="space-between" w="full" pb="4">
-            <Editable
-              value={test.name}
-              onChange={(name) => updateTest((e) => ({ ...e, name }))}
-              fontSize="2xl"
-              fontWeight="semibold"
-            >
-              <EditablePreview />
-              <EditableInput />
-            </Editable>
+            <HStack alignItems="center">
+              <HiPencil size="22" />
+              <Editable
+                value={test.name}
+                onChange={(name) => updateTest((e) => ({ ...e, name }))}
+                fontSize="2xl"
+                fontWeight="semibold"
+              >
+                <EditablePreview/>
+                <EditableInput />
+              </Editable>
+            </HStack>
             <HStack>
               <Button colorScheme="blue" onClick={onRunClick}>
                 Run

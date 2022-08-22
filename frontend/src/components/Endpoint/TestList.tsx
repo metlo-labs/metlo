@@ -2,7 +2,7 @@ import React from "react";
 import NextLink from "next/link";
 import { ApiEndpointDetailed } from "@common/types";
 import EmptyView from "../utils/EmptyView";
-import { Box, Button, Heading, VStack } from "@chakra-ui/react";
+import { Button, Heading, VStack } from "@chakra-ui/react";
 import ListTests from "../TestList";
 import { TestDetailed } from "@common/testing/types";
 
@@ -34,6 +34,7 @@ const TestList: React.FC<TestListProps> = React.memo(({ endpoint }) => {
   }
   return (
     <ListTests
+      endpointUUID={endpoint.uuid}
       tests={endpoint.tests.map((test, i) => {
         return { ...test, apiEndpoint: endpoint } as TestDetailed;
       })}
