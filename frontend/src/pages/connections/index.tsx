@@ -8,24 +8,32 @@ import ConnectionList from "components/ConnectionList";
 import { ConnectionInfo } from "@common/types";
 import axios from "axios";
 import { getAPIURL } from "~/constants";
+import { useState } from "react";
 
-const Connections = ({ connections }) => (
-  <SidebarLayoutShell
-    title="Connections"
-    currentTab={SideNavLinkDestination.Connections}
-  >
-    <ContentContainer>
-      <VStack w="full" alignItems="flex-start">
-        <Heading fontWeight="medium" size="xl" mb="8">
-          Connections
-        </Heading>
-        <ConnectionList
-          connections={superjson.parse<ConnectionInfo[]>(connections)}
-        />
-      </VStack>
-    </ContentContainer>
-  </SidebarLayoutShell>
-);
+const Connections = ({ connections: _connections }) => {
+  const [connections, setConnections] = useState(
+    superjson.parse<ConnectionInfo[]>(_connections)
+  );
+
+  return (
+    <SidebarLayoutShell
+      title="Connections"
+      currentTab={SideNavLinkDestination.Connections}
+    >
+      <ContentContainer>
+        <VStack w="full" alignItems="flex-start">
+          <Heading fontWeight="medium" size="xl" mb="8">
+            Connections
+          </Heading>
+          <ConnectionList
+            connections={connections}
+            setConnections={setConnections}
+          />
+        </VStack>
+      </ContentContainer>
+    </SidebarLayoutShell>
+  );
+};
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   let resp = await axios.get<Array<ConnectionInfo>>(

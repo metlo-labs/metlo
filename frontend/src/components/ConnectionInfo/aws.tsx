@@ -21,29 +21,42 @@ import { useState } from "react";
 import { getAPIURL } from "~/constants";
 import { EditableControls } from "../utils/EditableControls";
 
-const AWS_INFO = ({ connection }: { connection: ConnectionInfo }) => {
+interface AWS_INFOInterface {
+  connection: ConnectionInfo;
+  setConnection: (updatedConnection: ConnectionInfo) => void;
+}
+
+const AWS_INFO: React.FC<AWS_INFOInterface> = ({
+  connection,
+  setConnection,
+}) => {
   const [name, setName] = useState(connection.name);
   const colorMode = useColorMode();
   const toast = useToast();
-  const onEditableChange = (v) => {
-    axios
-      .post(`${getAPIURL()}/update_connection`, {
-        id: connection.uuid,
-        name: name,
-      })
-      .then((v) => {
-        toast({ title: "Updated Name for Connection" });
-      })
-      .catch((err) => {
-        toast({
-          title: "Couldn't update name for connection",
-          description: err,
+  const onEditableChange = () => {
+    if (
+      JSON.stringify(connection) !=
+      JSON.stringify({ ...connection, name: name })
+    ) {
+      axios
+        .post(`${getAPIURL()}/update_connection`, {
+          id: connection.uuid,
+          name: name,
+        })
+        .then((v) => {
+          toast({ title: "Updated Name for Connection" });
+          setConnection({ ...connection, name: name });
+        })
+        .catch((err) => {
+          toast({
+            title: "Couldn't update name for connection",
+            description: err,
+          });
         });
-      });
+    }
   };
 
   const onDownloadClick = (fileName, uuid) => {
-    console.log(`${getAPIURL()}/list_connections/${uuid}/sshkey`);
     axios
       .get<{ sshkey: string }>(`${getAPIURL()}/list_connections/${uuid}/sshkey`)
       .then((v) => {

@@ -1,17 +1,28 @@
 import React from "react";
-import { Box, VStack, HStack, Button, useDisclosure } from "@chakra-ui/react";
+import {
+  Box,
+  VStack,
+  HStack,
+  Button,
+  useDisclosure,
+  useQuery,
+} from "@chakra-ui/react";
 import { ConnectionInfo } from "@common/types";
 import List from "./List";
 import NewConnection from "../NewConnection";
 import EmptyView from "../utils/EmptyView";
+import { useRouter } from "next/router";
 
 interface ConnectionListProps {
   connections: ConnectionInfo[];
+  setConnections: (v: ConnectionInfo[]) => void;
 }
 
 const ConnectionList: React.FC<ConnectionListProps> = React.memo(
-  ({ connections }) => {
+  ({ connections, setConnections }) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
+    const router = useRouter();
+
     return (
       <VStack
         w="full"
@@ -32,7 +43,11 @@ const ConnectionList: React.FC<ConnectionListProps> = React.memo(
         </Box>
         <Box w="full">
           {connections.length > 0 ? (
-            <List connections={connections} />
+            <List
+              connections={connections}
+              selectedConnection={router.query.id as string}
+              setConnections={setConnections}
+            />
           ) : (
             <EmptyView notRounded text="No Connections Yet!" />
           )}
