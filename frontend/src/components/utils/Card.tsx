@@ -38,11 +38,11 @@ export const DataAttribute: React.FC<DataAttributeProps> = React.memo(
 
 export const SectionHeader: React.FC<{
   text: string;
-  sym: IconType;
+  sym?: IconType;
 }> = React.memo(({ text, sym }) => {
   return (
     <HStack justifyContent="center">
-      {sym({})}
+      {sym ? sym({}) : null}
       <Heading size="sm" fontWeight="semibold">
         {text}
       </Heading>

@@ -1,12 +1,17 @@
+import { Test } from "./testing/types";
 import {
   AlertType,
   ConnectionType,
+  DataClass,
+  DataTag,
+  DataType,
   protocols,
   RestMethod,
   RiskScore,
   SpecExtension,
   STEPS,
 } from "./enums";
+import "axios";
 
 export interface Meta {
   incoming: boolean;
@@ -25,6 +30,18 @@ export interface Url {
   host: string;
   path: string;
   parameters: PairObject[];
+}
+
+declare module "axios" {
+  interface AxiosRequestConfig {
+    metadata?: Record<string, any>;
+  }
+  interface AxiosResponseConfig {
+    metadata?: Record<string, any>;
+  }
+  interface AxiosResponse {
+    duration?: number;
+  }
 }
 
 export interface Request {
@@ -61,7 +78,7 @@ export interface GetAlertParams {
   limit?: number;
 }
 
-export interface UpdatePIIFieldParams {
+export interface UpdateDataFieldParams {
   isRisk: boolean;
 }
 
@@ -101,10 +118,12 @@ export interface Alert {
   resolutionMessage: string;
 }
 
-export interface PIIField {
+export interface DataField {
   uuid: string;
-  dataClass: string;
+  dataClass: DataClass;
   dataPath: string;
+  dataType: DataType;
+  dataTag: DataTag;
   createdAt: Date;
   updatedAt: Date;
   matches: string[];
@@ -128,10 +147,11 @@ export interface ApiEndpoint {
 }
 
 export interface ApiEndpointDetailed extends ApiEndpoint {
-  sensitiveDataClasses: PIIField[];
+  dataFields: DataField[];
   openapiSpec: OpenApiSpec;
   alerts: Alert[];
   traces: ApiTrace[];
+  tests: Test[];
 }
 
 export interface OpenApiSpec {
@@ -173,26 +193,7 @@ export interface STEP_RESPONSE {
   error?: {
     err: string;
   };
-  data: {
-    secret_access_key?: string;
-    access_id?: string;
-    source_instance_id?: string;
-    region?: string;
-    ami?: string;
-    os_types?: [{ name: string; ami: string }];
-    instance_types?: string[];
-    machine_specs?: MachineSpecifications;
-    selected_instance_type?: string;
-    mirror_instance_id?: string;
-    mirror_target_id?: string;
-    mirror_filter_id?: string;
-    mirror_rules?: Array<TrafficFilterRuleSpecs>;
-    keypair?: string;
-    destination_eni_id?: string;
-    virtualization_type?: string;
-    backend_url?: string;
-    remote_machine_url?: string;
-  };
+  data: Partial<AWS_CONNECTION & AWS_CONNECTION_MISC>;
   returns?: {
     os_types?: [{ name: string; ami: string }];
     instance_types?: string[];
@@ -213,4 +214,46 @@ export interface TrafficFilterRuleSpecs {
   destination_port?: string;
   protocol: protocols;
   direction: "out" | "in";
+}
+
+export interface AWS_CONNECTION {
+  secret_access_key: string;
+  access_id: string;
+  source_instance_id: string;
+  region: string;
+  ami: string;
+  selected_instance_type: string;
+  mirror_instance_id: string;
+  mirror_target_id: string;
+  mirror_filter_id: string;
+  mirror_session_id: string;
+  mirror_rules: Array<TrafficFilterRuleSpecs>;
+  keypair: string;
+  destination_eni_id: string;
+  backend_url: string;
+  remote_machine_url: string;
+}
+
+export interface AWS_CONNECTION_MISC {
+  instance_types: string[];
+  virtualization_type: string;
+  machine_specs: MachineSpecifications;
+}
+
+export interface ENCRYPTED_AWS_CONNECTION__META {
+  keypair_tag: string;
+  keypair_iv: string;
+  secret_access_key_tag: string;
+  secret_access_key_iv: string;
+  access_id_tag: string;
+  access_id_iv: string;
+}
+
+export interface ConnectionInfo {
+  uuid: string;
+  connectionType: ConnectionType;
+  createdAt: Date;
+  updatedAt: Date;
+  name: string;
+  aws?: Omit<AWS_CONNECTION, "secret_access_key" | "access_id" | "keypair">;
 }

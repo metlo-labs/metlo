@@ -1,36 +1,40 @@
 import { Request, Response } from "express";
-import { DataClassService } from "services/data-class";
-import { UpdatePIIFieldParams } from "@common/types";
+import { DataFieldService } from "services/data-field";
+import { UpdateDataFieldParams } from "@common/types";
 import ApiResponseHandler from "api-response-handler";
 import Error400BadRequest from "errors/error-400-bad-request";
 import { AppDataSource } from "data-source";
 import { ApiEndpoint } from "models";
 import { getRiskScore } from "utils";
 
-export const updatePIIFieldHandler = async (
+export const updateDataFieldHandler = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const { isRisk }: UpdatePIIFieldParams = req.body;
-    const { piiFieldId } = req.params;
+    const { isRisk }: UpdateDataFieldParams = req.body;
+    const { fieldId } = req.params;
     if (isRisk === null || isRisk === undefined) {
       throw new Error400BadRequest("isRisk not provided.");
     }
-    const updatedMatchedDataClass = await DataClassService.updateIsRisk(
+    const updatedDataField = await DataFieldService.updateIsRisk(
       isRisk,
-      piiFieldId
+      fieldId
     );
-    if (updatedMatchedDataClass) {
+    if (updatedDataField) {
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
       const apiEndpoint = await apiEndpointRepository.findOne({
-        where: { uuid: updatedMatchedDataClass.apiEndpointUuid },
-        relations: { sensitiveDataClasses: true },
+        where: {
+          uuid: updatedDataField.apiEndpointUuid,
+        },
+        relations: {
+          dataFields: true,
+        },
       });
-      apiEndpoint.riskScore = getRiskScore(apiEndpoint);
+      apiEndpoint.riskScore = getRiskScore(apiEndpoint.dataFields);
       await apiEndpointRepository.save(apiEndpoint);
     }
-    await ApiResponseHandler.success(res, updatedMatchedDataClass);
+    await ApiResponseHandler.success(res, updatedDataField);
   } catch (err) {
     await ApiResponseHandler.error(res, err);
   }

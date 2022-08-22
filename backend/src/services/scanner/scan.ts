@@ -1,4 +1,4 @@
-import { DataClass } from "@common/enums";
+import { DataClass, DataTag, DataType } from "@common/enums";
 import {
   ADDRESS_REGEXP,
   COORDINATE_REGEXP,
@@ -12,8 +12,9 @@ import {
   VIN_REGEXP,
 } from "services/scanner/regexp";
 import { PairObject } from "@common/types";
-import { ApiEndpoint, ApiTrace, MatchedDataClass } from "models";
-import { getRiskScore } from "utils";
+import { ApiEndpoint, ApiTrace, DataField } from "models";
+import { getDataType, getRiskScore, parsedJson } from "utils";
+import { AppDataSource } from "data-source";
 
 const DATA_CLASS_REGEX_MAP = new Map<DataClass, RegExp>([
   [DataClass.ADDRESS, ADDRESS_REGEXP],
@@ -29,46 +30,47 @@ const DATA_CLASS_REGEX_MAP = new Map<DataClass, RegExp>([
 ]);
 
 export class ScannerService {
-  static matchExists(
-    matchedDataClasses: MatchedDataClass[],
+  static async saveDataField(
+    dataClass: DataClass,
     dataPath: string,
-    dataClass: DataClass
-  ): boolean {
-    for (let i = 0; i < matchedDataClasses?.length; i++) {
-      const curr = matchedDataClasses[i];
-      if (curr.dataClass === dataClass && curr.dataPath === dataPath) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  static async saveMatch(
-    matchDataClass: DataClass,
-    matchDataPath: string,
     apiEndpoint: ApiEndpoint,
-    matches: Record<DataClass, string[]>
+    matches: string[],
+    dataValue: any
   ): Promise<void> {
-    const existingMatch = this.matchExists(
-      apiEndpoint.sensitiveDataClasses,
-      matchDataPath,
-      matchDataClass
+    const dataFieldRepository = AppDataSource.getRepository(DataField);
+    const existingDataField = apiEndpoint.existingDataField(
+      dataPath,
+      dataClass
     );
-    if (!existingMatch) {
-      const dataClass = new MatchedDataClass();
-      dataClass.dataClass = matchDataClass;
-      dataClass.dataPath = matchDataPath;
-      dataClass.matches = matches[matchDataClass];
-      dataClass.isRisk = true;
-      apiEndpoint.addDataClass(dataClass);
-    }
-  }
+    const dataType = getDataType(dataValue);
+    if (!existingDataField) {
+      const dataField = new DataField();
+      dataField.dataClass = dataClass;
+      dataField.dataPath = dataPath;
+      dataField.dataType = dataType;
+      if (matches.length > 0) {
+        dataField.matches = matches;
+        dataField.dataTag = DataTag.PII;
+        dataField.isRisk = true;
+      }
+      apiEndpoint.addDataField(dataField);
+    } else {
+      let updated = false;
+      if (existingDataField.dataClass === null && dataClass !== null) {
+        existingDataField.dataClass = dataClass;
+        existingDataField.matches = matches;
+        existingDataField.dataTag = DataTag.PII;
+        existingDataField.isRisk = true;
+        updated = true;
+      }
+      if (existingDataField.dataType !== dataType) {
+        existingDataField.dataType = dataType;
+        updated = true;
+      }
 
-  static parsedJson(jsonString: string): any {
-    try {
-      return JSON.parse(jsonString);
-    } catch (err) {
-      return null;
+      if (updated) {
+        await dataFieldRepository.save(existingDataField);
+      }
     }
   }
 
@@ -77,7 +79,7 @@ export class ScannerService {
     jsonBody: any,
     apiEndpoint: ApiEndpoint
   ): Promise<void> {
-    if (typeof jsonBody === "object") {
+    if (getDataType(jsonBody) === DataType.OBJECT) {
       for (let key in jsonBody) {
         this.recursiveParseJson(
           `${dataPathPrefix}.${key}`,
@@ -87,14 +89,20 @@ export class ScannerService {
       }
     } else {
       const matches = this.scan(jsonBody);
-      for (const match of Object.keys(matches)) {
-        const matchDataClass = match as DataClass;
-        await this.saveMatch(
-          matchDataClass,
-          dataPathPrefix,
-          apiEndpoint,
-          matches
-        );
+      const matchesKeys = Object.keys(matches);
+      if (matchesKeys.length > 0) {
+        for (const match of matchesKeys) {
+          const matchDataClass = match as DataClass;
+          await this.saveDataField(
+            matchDataClass,
+            dataPathPrefix,
+            apiEndpoint,
+            matches[match],
+            jsonBody
+          );
+        }
+      } else {
+        await this.saveDataField(null, dataPathPrefix, apiEndpoint, [], jsonBody);
       }
     }
   }
@@ -105,11 +113,11 @@ export class ScannerService {
     apiEndpoint: ApiEndpoint
   ): Promise<void> {
     if (body) {
-      const jsonBody = this.parsedJson(body);
+      const jsonBody = parsedJson(body);
       if (jsonBody) {
         let dataPath = `${dataPathPrefix}.json`;
         for (let key in jsonBody) {
-          this.recursiveParseJson(
+          await this.recursiveParseJson(
             `${dataPath}.${key}`,
             jsonBody[key],
             apiEndpoint
@@ -117,11 +125,7 @@ export class ScannerService {
         }
       } else {
         const dataPath = `${dataPathPrefix}.text`;
-        const matches = this.scan(body);
-        for (const match of Object.keys(matches)) {
-          const matchDataClass = match as DataClass;
-          await this.saveMatch(matchDataClass, dataPath, apiEndpoint, matches);
-        }
+        await this.recursiveParseJson(dataPath, body, apiEndpoint);
       }
     }
   }
@@ -134,7 +138,12 @@ export class ScannerService {
     if (data) {
       for (const item of data) {
         const field = item.name;
-        const matches = this.scan(item.value);
+        await this.recursiveParseJson(
+          `${dataPathPrefix}.${field}`,
+          item.value,
+          apiEndpoint
+        );
+        /*const matches = this.scan(item.value);
         for (const match of Object.keys(matches)) {
           const matchDataClass = match as DataClass;
           const matchDataPath = `${dataPathPrefix}.${field}`;
@@ -144,7 +153,7 @@ export class ScannerService {
             apiEndpoint,
             matches
           );
-        }
+        }*/
       }
     }
   }
@@ -178,7 +187,7 @@ export class ScannerService {
       apiTrace.responseBody,
       apiEndpoint
     );
-    apiEndpoint.riskScore = getRiskScore(apiEndpoint);
+    apiEndpoint.riskScore = getRiskScore(apiEndpoint.dataFields);
   }
 
   static scan(text: any): Record<DataClass, string[]> {
