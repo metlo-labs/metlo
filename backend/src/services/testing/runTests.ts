@@ -4,9 +4,9 @@ import {
   RequestDefinition,
   RequestBodyDefinition,
 } from "postman-collection";
-import { RequestBodyType } from "../../../../common/src/testing/enums";
-import { Request } from "../../../../common/src/testing/types";
-import { Test } from "../../../../common/src/testing/types";
+import { RequestBodyType } from "@common/testing/enums";
+import { Request } from "@common/testing/types";
+import { Test } from "@common/testing/types";
 
 const requestToItem = (e: Request, i: number) => {
   const event = e.tests.trim()
