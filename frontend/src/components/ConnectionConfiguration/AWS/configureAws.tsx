@@ -60,6 +60,8 @@ const incrementStep = (
   setUpdating(true);
 };
 
+const MAX_RETRY = 3;
+
 const ConfigureAWS: React.FC<configureAWSParams> = ({
   selected,
   updateSelected,
@@ -82,6 +84,7 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
     params: Record<string, any>,
     step: STEPS
   ) => {
+    let retries = 0;
     incrementStep(
       id,
       { ...params, name: name },
@@ -91,7 +94,43 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
         create_toast_with_message(err.data.message, step);
         console.log(err.data.error);
       },
-      () => {},
+      (error) => {
+        create_toast_with_message(error.message as string, step);
+        console.log(error);
+      },
+      setUpdating
+    );
+  };
+
+  const step_increment_function_with_retry = (
+    params: Record<string, any>,
+    step: STEPS,
+    retry_count: number
+  ) => {
+    incrementStep(
+      id,
+      { ...params, name: name },
+      step,
+      () => updateSelected(step + 1),
+      async (err) => {
+        if (retry_count > MAX_RETRY) {
+          create_toast_with_message(err.data.message, step);
+          console.log(err.data.error);
+        } else {
+          console.log(
+            `Retrying step ${step} at count ${retry_count} at time ${new Date()}`
+          );
+          await step_increment_function_with_retry(
+            params,
+            step,
+            retry_count + 1
+          );
+        }
+      },
+      (error) => {
+        create_toast_with_message(error.message as string, step);
+        console.log(error);
+      },
       setUpdating
     );
   };
@@ -151,11 +190,15 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
         return (
           <GenericStepAWS
             id={id}
-            complete={(params) => {
-              step_increment_function(params, STEPS.INSTANCE_IP);
+            complete={async (params) => {
+              await step_increment_function_with_retry(
+                params,
+                STEPS.INSTANCE_IP,
+                0
+              );
             }}
             isCurrent={selectedIndex == selected}
-          ></GenericStepAWS>
+          />
         );
       case STEPS.CREATE_MIRROR_TARGET:
         return (
@@ -191,32 +234,44 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
         return (
           <GenericStepAWS
             id={id}
-            complete={(params) => {
-              step_increment_function(params, STEPS.TEST_SSH);
+            complete={async (params) => {
+              await step_increment_function_with_retry(
+                params,
+                STEPS.TEST_SSH,
+                0
+              );
             }}
             isCurrent={selectedIndex == selected}
-          ></GenericStepAWS>
+          />
         );
       case STEPS.PUSH_FILES:
         return (
           <GenericStepAWS
             id={id}
-            complete={(params) => {
-              step_increment_function(params, STEPS.PUSH_FILES);
+            complete={async (params) => {
+              await step_increment_function_with_retry(
+                params,
+                STEPS.PUSH_FILES,
+                0
+              );
             }}
             isCurrent={selectedIndex == selected}
-          ></GenericStepAWS>
+          />
         );
       case STEPS.EXEC_COMMAND:
         return (
           <GenericStepAWS
             id={id}
-            complete={(params) => {
-              step_increment_function(params, STEPS.EXEC_COMMAND);
+            complete={async (params) => {
+              await step_increment_function_with_retry(
+                params,
+                STEPS.EXEC_COMMAND,
+                0
+              );
               toast({ title: "Mirroring setup completed!", status: "success" });
             }}
-            isCurrent={selectedIndex == selected}
-          ></GenericStepAWS>
+            isCurrent={selectedIndex == selected}          
+          />
         );
     }
   };

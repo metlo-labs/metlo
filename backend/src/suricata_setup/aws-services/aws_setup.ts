@@ -13,17 +13,14 @@ import {
   create_mirror_target,
   delete_mirror_filter,
 } from "./create-mirror";
-import { format, put_data_file, remove_file, SSH_CONN } from "./ssh-setup";
 import {
   get_network_id_for_instance,
   get_public_ip_for_network_interface,
   list_all_instances,
   match_av_to_region,
 } from "./utils";
-import retry from "async-retry";
 
 import { STEP_RESPONSE } from "@common/types";
-import { ConnectionType } from "@common/enums";
 
 export async function aws_key_setup({
   access_id,
@@ -552,169 +549,6 @@ export async function aws_mirror_session_creation({
         destination_eni_id,
         mirror_filter_id,
         mirror_target_id,
-        ...rest,
-      },
-    };
-  }
-}
-
-export async function test_ssh({
-  keypair,
-  remote_machine_url,
-  ...rest
-}): Promise<STEP_RESPONSE> {
-  var conn;
-  try {
-    conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu");
-    await retry(async () => await conn.test_connection());
-    conn.disconnect();
-    return {
-      success: "OK",
-      status: "IN-PROGRESS",
-      step_number: 10,
-      next_step: 11,
-      last_completed: 10,
-      message: "Testing SSH connection to remote machine.",
-      error: null,
-      data: {
-        keypair,
-        remote_machine_url,
-        ...rest,
-      },
-    };
-  } catch (err) {
-    if (conn && conn instanceof SSH_CONN) conn.disconnect();
-    return {
-      success: "FAIL",
-      status: "IN-PROGRESS",
-      step_number: 10,
-      next_step: 11,
-      last_completed: 9,
-      message: `Couldn't connect to ssh. Please check if key was constructed`,
-      error: {
-        err: err,
-      },
-      data: {
-        keypair,
-        remote_machine_url,
-        ...rest,
-      },
-    };
-  }
-}
-
-export async function push_files({
-  keypair,
-  remote_machine_url,
-  ...rest
-}): Promise<STEP_RESPONSE> {
-  const endpoint = "/api/v1/log-request/batch";
-  let conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu");
-  try {
-    let filepath = `./src/suricata-setup/scripts/metlo-ingestor-${randomUUID()}.service`;
-    await put_data_file(
-      format("./src/aws-services/scripts/metlo-ingestor-template.service", [
-        `${process.env.BACKEND_URL}/${endpoint}`,
-      ]),
-      filepath
-    );
-    await conn.putfiles(
-      [
-        "./src/suricata-setup/scripts/install.sh",
-        "./src/suricata-setup/scripts/install-nvm.sh",
-        "./src/suricata-setup/scripts/local.rules",
-        "./src/suricata-setup/scripts/suricata.yaml",
-        filepath,
-      ],
-      [
-        "install.sh",
-        "install-nvm.sh",
-        "local.rules",
-        "suricata.yaml",
-        "metlo-ingestor.service",
-      ]
-    );
-    remove_file(filepath);
-    conn.disconnect();
-    return {
-      success: "OK",
-      status: "IN-PROGRESS",
-      step_number: 11,
-      next_step: 12,
-      last_completed: 11,
-      message: "Pushed configuration files to remote machine",
-      error: null,
-      data: {
-        keypair,
-        remote_machine_url,
-        ...rest,
-      },
-    };
-  } catch (err) {
-    conn.disconnect();
-    return {
-      success: "FAIL",
-      status: "IN-PROGRESS",
-      step_number: 11,
-      next_step: 12,
-      last_completed: 10,
-      message: `Couldn't push configuration files to remote machine`,
-      error: {
-        err: err,
-      },
-      data: {
-        keypair,
-        remote_machine_url,
-        ...rest,
-      },
-    };
-  }
-}
-
-export async function execute_commands({
-  keypair,
-  remote_machine_url,
-  ...rest
-}): Promise<STEP_RESPONSE> {
-  let conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu");
-  try {
-    await conn.run_command(
-      "source $HOME/.nvm/nvm.sh && cd ~ && chmod +x install-nvm.sh && ./install-nvm.sh "
-    );
-    await conn.run_command(
-      "source $HOME/.nvm/nvm.sh && cd ~ && chmod +x install.sh && ./install.sh "
-    );
-    conn.disconnect();
-
-    return {
-      success: "OK",
-      status: "COMPLETE",
-      step_number: 12,
-      next_step: null,
-      last_completed: 12,
-      message: "Executed configuration files on remote machine succesfully",
-      error: null,
-      data: {
-        keypair,
-        remote_machine_url,
-        ...rest,
-      },
-    };
-  } catch (err) {
-    conn.disconnect();
-    return {
-      success: "FAIL",
-      status: "IN-PROGRESS",
-      step_number: 12,
-      next_step: null,
-      last_completed: 11,
-      message: `Couldn't exec commands to install things`,
-      error: {
-        err: err,
-      },
-      data: {
-        keypair,
-        remote_machine_url,
         ...rest,
       },
     };

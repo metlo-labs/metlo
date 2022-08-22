@@ -2,13 +2,10 @@ import { Request, Response } from "express";
 import ApiResponseHandler from "api-response-handler";
 import { AWS_CONNECTION, STEP_RESPONSE } from "@common/types";
 import { ConnectionType } from "@common/enums";
-import { setup } from "~/suricata_setup";
+import { setup } from "suricata_setup";
 import "express-session";
-import { EC2_CONN } from "~/suricata_setup/aws-services/create-ec2-instance";
+import { EC2_CONN } from "suricata_setup/aws-services/create-ec2-instance";
 import { VirtualizationType } from "@aws-sdk/client-ec2";
-import { Connections } from "models";
-import { AppDataSource } from "data-source";
-import Error500InternalServer from "errors/error-500-internal-server";
 import { save_connection } from "services/connections";
 
 declare module "express-session" {

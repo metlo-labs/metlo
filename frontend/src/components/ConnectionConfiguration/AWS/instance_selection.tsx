@@ -82,7 +82,8 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
         <GridItem colSpan={1} rowStart={1}>
           <NumberInput
             defaultValue={2}
-            min={1}
+            min={0}
+            step={0.5}
             max={100}
             onBlur={(v) =>
               setSelectedInstanceSpecs({
@@ -104,7 +105,8 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
         <GridItem colSpan={1} rowStart={2}>
           <NumberInput
             defaultValue={8}
-            min={1}
+            min={0}
+            step={0.5}
             max={100}
             onBlur={(v) =>
               setSelectedInstanceSpecs({
@@ -126,7 +128,8 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
         <GridItem colSpan={1} rowStart={3}>
           <NumberInput
             defaultValue={2}
-            min={1}
+            min={0}
+            step={0.5}
             max={100}
             onBlur={(v) =>
               setSelectedInstanceSpecs({
@@ -148,7 +151,8 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
         <GridItem colSpan={1} rowStart={4}>
           <NumberInput
             defaultValue={8}
-            min={1}
+            min={0}
+            step={0.5}
             max={100}
             onBlur={(v) =>
               setSelectedInstanceSpecs({

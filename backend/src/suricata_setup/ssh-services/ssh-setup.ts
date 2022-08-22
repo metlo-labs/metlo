@@ -29,12 +29,12 @@ export class SSH_CONN {
     return this.conn;
   }
 
-  public async test_connection(): Promise<[boolean, string]> {
+  public async test_connection(): Promise<[boolean]> {
     // Test if we can get release version of the OS. Should be compatible with all Linux based OS
     var resp, error;
-    var idx = 0;
     try {
-      resp = await (await this.get_conn()).execCommand("lsb_release -i");
+      resp = await this.run_command("lsb_release -i");
+      return resp;
     } catch (err) {
       error = err;
       if (err instanceof Error) {
@@ -42,7 +42,8 @@ export class SSH_CONN {
         console.log("error in test_cmd");
       }
     }
-    return [resp.stdout !== "" && resp.stderr === "", resp.stderr];
+    console.log(resp);
+    return [!!resp];
   }
 
   public async run_command(command: string) {
@@ -51,13 +52,13 @@ export class SSH_CONN {
       async (f, at) => {
         console.log(at);
         try {
-          let resp = await (await this.get_conn()).execCommand(command);
+          resp = await (await this.get_conn()).execCommand(command);
+          return resp;
         } catch (err) {
           console.log(err);
           console.log("error in run_cmd");
           throw err;
         }
-        return resp;
       },
       { retries: 10 }
     );
@@ -83,9 +84,8 @@ export class SSH_CONN {
   }
 }
 
-export async function put_data_file(data: string, location: string) {
-  let fd = openSync(location, "w");
-  writeFileSync(fd, data);
+export function put_data_file(data: string, location: string) {
+  writeFileSync(location, data);
 }
 
 export async function remove_file(location: string) {
