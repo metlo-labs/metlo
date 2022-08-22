@@ -611,7 +611,7 @@ export async function push_files({
   const endpoint = "/api/v1/log-request/batch";
   let conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu");
   try {
-    let filepath = `./src/aws-services/scripts/metlo-ingestor-${randomUUID()}.service`;
+    let filepath = `./src/suricata-setup/scripts/metlo-ingestor-${randomUUID()}.service`;
     await put_data_file(
       format("./src/aws-services/scripts/metlo-ingestor-template.service", [
         `${process.env.BACKEND_URL}/${endpoint}`,
@@ -620,10 +620,10 @@ export async function push_files({
     );
     await conn.putfiles(
       [
-        "./src/aws-services/scripts/install.sh",
-        "./src/aws-services/scripts/install-nvm.sh",
-        "./src/aws-services/scripts/local.rules",
-        "./src/aws-services/scripts/suricata.yaml",
+        "./src/suricata-setup/scripts/install.sh",
+        "./src/suricata-setup/scripts/install-nvm.sh",
+        "./src/suricata-setup/scripts/local.rules",
+        "./src/suricata-setup/scripts/suricata.yaml",
         filepath,
       ],
       [
