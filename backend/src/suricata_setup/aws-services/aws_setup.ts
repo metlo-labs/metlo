@@ -25,60 +25,7 @@ import retry from "async-retry";
 import { STEP_RESPONSE } from "@common/types";
 import { ConnectionType } from "@common/enums";
 
-export async function setup(
-  step: number = 0,
-  type: ConnectionType,
-  metadata_for_step: Object = {}
-): Promise<STEP_RESPONSE> {
-  if (type == ConnectionType.AWS) {
-    switch (step) {
-      case 1:
-        return await aws_key_setup(metadata_for_step as any);
-      case 2:
-        return await aws_source_identification(metadata_for_step as any);
-      case 2:
-        return await aws_source_identification(metadata_for_step as any);
-      case 3:
-        return await aws_os_selection(metadata_for_step as any);
-      case 4:
-        return await aws_instance_selection(metadata_for_step as any);
-      case 5:
-        return await aws_instance_creation(metadata_for_step as any);
-      case 6:
-        return await get_public_ip(metadata_for_step as any);
-      case 7:
-        return await aws_mirror_target_creation(metadata_for_step as any);
-      case 8:
-        return await aws_mirror_filter_creation(metadata_for_step as any);
-      case 9:
-        return await aws_mirror_session_creation(metadata_for_step as any);
-      case 10:
-        return await test_ssh(metadata_for_step as any);
-      case 11:
-        return await push_files(metadata_for_step as any);
-      case 12:
-        return await execute_commands(metadata_for_step as any);
-      default:
-        throw Error(`Don't have step ${step} registered`);
-        break;
-    }
-  } else if (type == ConnectionType.GCP) {
-    return {
-      success: "FAIL",
-      status: "COMPLETE",
-      step_number: 1,
-      next_step: 2,
-      last_completed: 1,
-      message: "Not configured yet for GCP",
-      error: {
-        err: "Not configured yet for GCP",
-      },
-      data: {},
-    };
-  }
-}
-
-async function aws_key_setup({
+export async function aws_key_setup({
   access_id,
   secret_access_key,
 }): Promise<STEP_RESPONSE> {
@@ -121,7 +68,7 @@ async function aws_key_setup({
   }
 }
 
-async function aws_source_identification({
+export async function aws_source_identification({
   access_id,
   secret_access_key,
   source_instance_id,
@@ -176,7 +123,7 @@ async function aws_source_identification({
   }
 }
 
-async function aws_os_selection({
+export async function aws_os_selection({
   access_id,
   secret_access_key,
   ami,
@@ -222,7 +169,7 @@ async function aws_os_selection({
   }
 }
 
-async function aws_instance_selection({
+export async function aws_instance_selection({
   access_id,
   secret_access_key,
   region,
@@ -275,7 +222,7 @@ async function aws_instance_selection({
   }
 }
 
-async function aws_instance_creation({
+export async function aws_instance_creation({
   access_id,
   secret_access_key,
   region,
@@ -335,7 +282,7 @@ async function aws_instance_creation({
   }
 }
 
-async function get_public_ip({
+export async function get_public_ip({
   access_id,
   secret_access_key,
   region,
@@ -394,7 +341,7 @@ async function get_public_ip({
   }
 }
 
-async function aws_mirror_target_creation({
+export async function aws_mirror_target_creation({
   access_id,
   secret_access_key,
   region,
@@ -454,7 +401,7 @@ async function aws_mirror_target_creation({
   }
 }
 
-async function aws_mirror_filter_creation({
+export async function aws_mirror_filter_creation({
   access_id,
   secret_access_key,
   region,
@@ -543,7 +490,7 @@ async function aws_mirror_filter_creation({
   }
 }
 
-async function aws_mirror_session_creation({
+export async function aws_mirror_session_creation({
   access_id,
   secret_access_key,
   region,
@@ -611,7 +558,7 @@ async function aws_mirror_session_creation({
   }
 }
 
-async function test_ssh({
+export async function test_ssh({
   keypair,
   remote_machine_url,
   ...rest
@@ -656,18 +603,18 @@ async function test_ssh({
   }
 }
 
-async function push_files({
+export async function push_files({
   keypair,
-  backend_url,
   remote_machine_url,
   ...rest
 }): Promise<STEP_RESPONSE> {
+  const endpoint = "/api/v1/log-request/batch";
   let conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu");
   try {
     let filepath = `./src/aws-services/scripts/metlo-ingestor-${randomUUID()}.service`;
     await put_data_file(
       format("./src/aws-services/scripts/metlo-ingestor-template.service", [
-        backend_url,
+        `${process.env.BACKEND_URL}/${endpoint}`,
       ]),
       filepath
     );
@@ -700,7 +647,6 @@ async function push_files({
       data: {
         keypair,
         remote_machine_url,
-        backend_url,
         ...rest,
       },
     };
@@ -718,7 +664,6 @@ async function push_files({
       },
       data: {
         keypair,
-        backend_url,
         remote_machine_url,
         ...rest,
       },
@@ -726,7 +671,7 @@ async function push_files({
   }
 }
 
-async function execute_commands({
+export async function execute_commands({
   keypair,
   remote_machine_url,
   ...rest
