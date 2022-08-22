@@ -1,25 +1,49 @@
-.InovuaReactDataGrid__row-reorder-icon {
-  height: 20px;
+.Resizer {
+  background: #000;
+  opacity: 0.2;
+  z-index: 1;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  -moz-background-clip: padding;
+  -webkit-background-clip: padding;
+  background-clip: padding-box;
 }
 
-.inovua-react-virtual-list--theme-default-light
-  .InovuaReactDataGrid__row--selected {
-  background-color: white !important;
+.Resizer:hover {
+  -webkit-transition: all 2s ease;
+  transition: all 2s ease;
 }
 
-.InovuaReactDataGrid__column-header__menu-tool {
-  display: none !important;
+.Resizer.horizontal {
+  height: 11px;
+  margin: -5px 0;
+  border-top: 5px solid rgba(255, 255, 255, 0);
+  border-bottom: 5px solid rgba(255, 255, 255, 0);
+  cursor: row-resize;
+  width: 100%;
 }
 
-.inovua-react-virtual-list--theme-default-dark
-  .InovuaReactDataGrid__row--selected {
-  background-color: rgb(44, 50, 58) !important;
+.Resizer.horizontal:hover {
+  border-top: 5px solid rgba(0, 0, 0, 0.5);
+  border-bottom: 5px solid rgba(0, 0, 0, 0.5);
 }
 
-.ReactCodeMirror {
-  height: 100% !important;
+.Resizer.vertical {
+  width: 11px;
+  margin: 0 -5px;
+  border-left: 5px solid rgba(255, 255, 255, 0);
+  border-right: 5px solid rgba(255, 255, 255, 0);
+  cursor: col-resize;
 }
 
-.CodeMirror {
-  height: 100% !important;
+.Resizer.vertical:hover {
+  border-left: 5px solid rgba(0, 0, 0, 0.5);
+  border-right: 5px solid rgba(0, 0, 0, 0.5);
+}
+.Resizer.disabled {
+  cursor: not-allowed;
+}
+.Resizer.disabled:hover {
+  border-color: transparent;
 }

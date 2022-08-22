@@ -15,7 +15,7 @@ const NoAuth: React.FC<apiAuthInterface> = ({ evaluate }) => {
         params: {},
       };
     });
-  }, []);
+  }, [evaluate]);
 
   return (
     <Box>

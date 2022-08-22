@@ -15,9 +15,8 @@ import TestEditorHeader from "./header";
 import RequestList from "./requestsList";
 import RequestEditor from "./requestEditor";
 import { makeNewEmptyRequest, sendRequest } from "./requestUtils";
+import { AxiosError } from "axios";
 import { runTest, saveTest } from "api/tests";
-import axios, { AxiosError } from "axios";
-import { getAPIURL } from "~/constants";
 
 interface TestEditorProps {
   endpoint: ApiEndpointDetailed;
@@ -91,7 +90,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             },
           };
         }),
-      [setState]
+      [setState, endpoint]
     );
 
     const deleteRequest = useCallback(
@@ -230,10 +229,9 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             addNewRequest={addNewRequest}
             deleteRequest={deleteRequest}
             h="full"
-            w="72"
+            w={{ base: "52", xl: "72" }}
           />
           <RequestEditor
-            flexGrow="1"
             sendSelectedRequest={sendSelectedRequest}
             fetching={fetching}
             request={test.requests[selectedRequest]}

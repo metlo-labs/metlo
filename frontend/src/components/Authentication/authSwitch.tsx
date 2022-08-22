@@ -1,7 +1,6 @@
 import { Box, HStack, Select, StackDivider, VStack } from "@chakra-ui/react";
 import { AuthType } from "@common/testing/enums";
-import { Authorization, Result, Request } from "@common/testing/types";
-import EmptyView from "../utils/EmptyView";
+import { Authorization, Request } from "@common/testing/types";
 import APIAuth from "./apiKey";
 import BasicAuth from "./basicAuth";
 import BearerAuth from "./bearerAuth";
@@ -37,9 +36,9 @@ const AuthSwitch: React.FC<AuthSwitchInterface> = ({
   };
   return (
     <VStack divider={<StackDivider />}>
-      <HStack w={"full"}>
-        <Box w={"full"}>Type</Box>
-        <Box w={"full"}>
+      <HStack w="full">
+        <Box w="full">Type</Box>
+        <Box w="full">
           <Select
             value={variant}
             onChange={(v) => setVariant(v.target.value as AuthType)}
@@ -52,7 +51,7 @@ const AuthSwitch: React.FC<AuthSwitchInterface> = ({
           </Select>
         </Box>
       </HStack>
-      <Box w={"full"}>{getAuthComponent(variant)}</Box>
+      <Box w="full">{getAuthComponent(variant)}</Box>
     </VStack>
   );
 };

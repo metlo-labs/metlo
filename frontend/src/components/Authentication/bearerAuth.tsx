@@ -20,13 +20,13 @@ const BearerAuth: React.FC<basicAuthInterface> = ({ evaluate }) => {
         params: { bearer_token: bearerToken } as AuthBearerParams,
       };
     });
-  }, [bearerToken]);
+  }, [bearerToken, evaluate]);
 
   return (
-    <VStack w={"full"}>
-      <HStack w={"full"}>
-        <Box w={"full"}>Bearer Token</Box>
-        <Box w={"full"}>
+    <VStack w="full">
+      <HStack w="full">
+        <Box w="full">Bearer Token</Box>
+        <Box w="full">
           <Input
             value={bearerToken}
             onChange={(v) => setBearerToken(v.target.value)}

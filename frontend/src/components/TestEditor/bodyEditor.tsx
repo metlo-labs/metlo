@@ -1,27 +1,8 @@
 import React from "react";
+import { Box, Heading, HStack, Select, useColorModeValue, VStack } from "@chakra-ui/react";
 import { RequestBody } from "@common/testing/types";
-import {
-  Box,
-  ColorMode,
-  Heading,
-  HStack,
-  Select,
-  useColorMode,
-  VStack,
-} from "@chakra-ui/react";
 import { RequestBodyType } from "@common/testing/enums";
-// CodeMirror default theme for light mode
-import "codemirror/lib/codemirror.css";
-// CodeMirror seti theme for dark mode
-import "codemirror/theme/seti.css";
-import dynamic from "next/dynamic";
-const CodeMirror = dynamic(
-  () => {
-    import("codemirror/mode/javascript/javascript");
-    return import("react-codemirror");
-  },
-  { ssr: false }
-);
+import Editor from "@monaco-editor/react";
 
 interface RequestBodyProps {
   body: RequestBody;
@@ -40,9 +21,8 @@ const bodyTypeToDefaultVal = (type: RequestBodyType) => {
 
 const RequestBodyEditor: React.FC<RequestBodyProps> = React.memo(
   ({ body, updateBody }) => {
-    const { colorMode } = useColorMode();
+    const theme = useColorModeValue("light", "vs-dark");
     let editor = null;
-
     if (body.type == RequestBodyType.NONE) {
       editor = (
         <Heading w="full" py="10" textAlign="center" size="sm" color="gray.500">
@@ -51,16 +31,18 @@ const RequestBodyEditor: React.FC<RequestBodyProps> = React.memo(
       );
     } else if (body.type == RequestBodyType.JSON) {
       editor = (
-        <CodeMirror
+        <Editor
+          height="100%"
+          width="100%"
+          defaultLanguage="javascript"
           value={body.data as string}
           onChange={(val) => updateBody((e) => ({ ...e, data: val }))}
           options={{
-            mode: {
-              name: "javascript",
-              json: true,
+            minimap: {
+              enabled: false,
             },
-            lineNumbers: true,
-            theme: colorMode === ("dark" as ColorMode) ? "seti" : "codemirror",
+            automaticLayout: true,
+            theme,
           }}
         />
       );

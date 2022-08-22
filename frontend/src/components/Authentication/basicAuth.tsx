@@ -17,28 +17,28 @@ const BasicAuth: React.FC<basicAuthInterface> = ({ evaluate }) => {
         params: { username: userName, password: password },
       };
     });
-  }, [userName, password]);
+  }, [userName, password, evaluate]);
 
   return (
-    <VStack w={"full"}>
-      <HStack w={"full"}>
-        <Box w={"full"}>User Name</Box>
-        <Box w={"full"}>
+    <VStack w="full">
+      <HStack w="full">
+        <Box w="full">User Name</Box>
+        <Box w="full">
           <Input
             value={userName}
             onChange={(v) => setUserName(v.target.value)}
-            placeholder={"User Name"}
+            placeholder="User Name"
           />
         </Box>
       </HStack>
-      <HStack w={"full"}>
-        <Box w={"full"}>Password</Box>
-        <Box w={"full"}>
+      <HStack w="full">
+        <Box w="full">Password</Box>
+        <Box w="full">
           <Input
             value={password}
             onChange={(v) => setPassword(v.target.value)}
-            placeholder={"Password"}
-            type={"password"}
+            placeholder="Password"
+            type="password"
           />
         </Box>
       </HStack>

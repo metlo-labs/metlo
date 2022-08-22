@@ -24,13 +24,13 @@ const APIAuth: React.FC<apiAuthInterface> = ({ evaluate }) => {
         } as AuthAPIKeyParams,
       };
     });
-  }, [location, key, param]);
+  }, [location, key, param, evaluate]);
 
   return (
     <VStack>
-      <HStack w={"full"}>
-        <Box w={"full"}>Key</Box>
-        <Box w={"full"}>
+      <HStack w="full">
+        <Box w="full">Key</Box>
+        <Box w="full">
           <Input
             value={key}
             onChange={(v) => setKey(v.target.value)}
@@ -38,9 +38,9 @@ const APIAuth: React.FC<apiAuthInterface> = ({ evaluate }) => {
           />
         </Box>
       </HStack>
-      <HStack w={"full"}>
-        <Box w={"full"}>Value</Box>
-        <Box w={"full"}>
+      <HStack w="full">
+        <Box w="full">Value</Box>
+        <Box w="full">
           <Input
             value={param}
             onChange={(v) => setParam(v.target.value)}
@@ -48,9 +48,9 @@ const APIAuth: React.FC<apiAuthInterface> = ({ evaluate }) => {
           />
         </Box>
       </HStack>
-      <HStack w={"full"}>
-        <Box w={"full"}>Add To</Box>
-        <Box w={"full"}>
+      <HStack w="full">
+        <Box w="full">Add To</Box>
+        <Box w="full">
           <Select
             value={location}
             onChange={(v) => setLocation(v.target.value as APIKeyAuthAddTo)}

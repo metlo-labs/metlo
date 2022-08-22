@@ -5,18 +5,11 @@ import {
   Heading,
   HStack,
   StackProps,
+  useColorModeValue,
   VStack,
 } from "@chakra-ui/react";
 import { IoMdTrash } from "@react-icons/all-files/io/IoMdTrash";
-import "codemirror/lib/codemirror.css";
-import dynamic from "next/dynamic";
-const CodeMirror = dynamic(
-  () => {
-    import("codemirror/mode/javascript/javascript");
-    return import("react-codemirror");
-  },
-  { ssr: false }
-);
+import Editor from "@monaco-editor/react";
 
 interface TestScriptEditorProps extends StackProps {
   testScript: string;
@@ -25,6 +18,7 @@ interface TestScriptEditorProps extends StackProps {
 
 const TestScriptEditor: React.FC<TestScriptEditorProps> = React.memo(
   ({ testScript, updateTestScript, ...props }) => {
+    const theme = useColorModeValue("light", "vs-dark");
     return (
       <VStack w="full" alignItems="flex-start" h="full" spacing="0" {...props}>
         <HStack
@@ -42,14 +36,19 @@ const TestScriptEditor: React.FC<TestScriptEditorProps> = React.memo(
             </Button>
           </HStack>
         </HStack>
-        <Box flexGrow="1" w="full">
-          <CodeMirror
-            value={testScript}
+        <Box flexGrow="1" w="full" bg="secondaryBG">
+          <Editor
+            height="100%"
+            width="100%"
+            defaultLanguage="javascript"
+            value={testScript as string}
             onChange={(val) => updateTestScript((e) => val)}
             options={{
-              mode: {
-                name: "javascript",
+              minimap: {
+                enabled: false,
               },
+              automaticLayout: true,
+              theme,
             }}
           />
         </Box>

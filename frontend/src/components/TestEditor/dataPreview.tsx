@@ -5,21 +5,11 @@ import {
   useRadioGroup,
   VStack,
   useColorModeValue,
+  Code,
 } from "@chakra-ui/react";
-import EmptyView from "../utils/EmptyView";
-import dynamic from "next/dynamic";
-import "codemirror/lib/codemirror.css";
-import "codemirror/theme/seti.css";
 import { Result } from "@common/testing/types";
 import { useState } from "react";
-
-const CodeMirror = dynamic(
-  () => {
-    import("codemirror/mode/javascript/javascript");
-    return import("react-codemirror");
-  },
-  { ssr: false }
-);
+import Editor from "@monaco-editor/react";
 
 interface DataPreviewInterface {
   res: Result;
@@ -58,7 +48,7 @@ function RadioCard({ variant, ...props }) {
 }
 
 const DataPreview: React.FC<DataPreviewInterface> = ({ res }) => {
-  const theme = useColorModeValue("codemirror", "seti");
+  const theme = useColorModeValue("light", "vs-dark");
   const [selectedValue, setSelectedValue] = useState("Pretty");
   const { getRootProps, getRadioProps } = useRadioGroup({
     name: "preview-format",
@@ -67,8 +57,12 @@ const DataPreview: React.FC<DataPreviewInterface> = ({ res }) => {
   });
   const group = getRootProps();
 
+  if (!res.body) {
+    return null;
+  }
+
   return (
-    <VStack spacing="0">
+    <VStack spacing="0" h="full" w="full">
       <HStack spacing="0" p="2" {...group} w="full">
         <RadioCard
           variant="left"
@@ -85,33 +79,27 @@ const DataPreview: React.FC<DataPreviewInterface> = ({ res }) => {
           Raw
         </RadioCard>
       </HStack>
-      <Box w="full">
+      <Box w="full" flexGrow="1" overflow="hidden">
         {selectedValue === "Pretty" ? (
-          res.body ? (
-            <CodeMirror
-              value={res.body ? JSON.stringify(res.body, null, 4) : undefined}
-              options={{
-                mode: {
-                  name: "javascript",
-                  json: true,
-                },
-                lineNumbers: true,
-                readOnly: true,
-                theme,
-              }}
-            />
-          ) : (
-            <EmptyView />
-          )
+          <Editor
+            height="100%"
+            width="100%"
+            defaultLanguage="json"
+            value={JSON.stringify(res.body, null, 4)}
+            options={{
+              minimap: {
+                enabled: false,
+              },
+              automaticLayout: true,
+              readOnly: true,
+              theme,
+            }}
+          />
         ) : null}
         {selectedValue === "Raw" ? (
-          res.body ? (
-            <Box textOverflow={"clip"} overflowWrap={"break-word"} px={2}>
-              {JSON.stringify(res.body, null, 4)}
-            </Box>
-          ) : (
-            <EmptyView />
-          )
+          <Code h="full" w="full" overflow="scroll">
+            <pre>{JSON.stringify(res.body)}</pre>
+          </Code>
         ) : null}
       </Box>
     </VStack>

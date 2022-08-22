@@ -14,7 +14,7 @@ interface SidebarLayoutShellProps {
 export const SidebarLayoutShell: React.FC<SidebarLayoutShellProps> = React.memo(
   ({ title, currentTab, children }) => {
     return (
-      <HStack spacing={0}>
+      <HStack spacing="0" w="100vw">
         {title ? (
           <Head>
             <title>{title}</title>
