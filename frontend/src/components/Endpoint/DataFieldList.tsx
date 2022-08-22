@@ -90,7 +90,9 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
           <Badge
             p="1"
             fontSize="sm"
-            colorScheme={RISK_TO_COLOR[DATA_CLASS_TO_RISK_SCORE[row.dataClass ?? ""]]}
+            colorScheme={
+              RISK_TO_COLOR[DATA_CLASS_TO_RISK_SCORE[row.dataClass ?? ""]]
+            }
             pointerEvents="none"
           >
             {DATA_CLASS_TO_RISK_SCORE[row.dataClass ?? ""]}

@@ -4,8 +4,8 @@ import {
   get_connection_for_uuid as get_connection_for_uuid_service,
   update_connection_for_uuid as update_connection_for_uuid_service,
 } from "services/connections";
-import ApiResponseHandler from "~/api-response-handler";
-import { decrypt } from "~/utils/encryption";
+import ApiResponseHandler from "api-response-handler";
+import { decrypt } from "utils/encryption";
 import Crypto from "crypto";
 
 const list_connections = async (req: Request, res: Response) => {

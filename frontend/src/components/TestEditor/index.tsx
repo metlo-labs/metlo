@@ -15,7 +15,7 @@ import TestEditorHeader from "./header";
 import RequestList from "./requestsList";
 import RequestEditor from "./requestEditor";
 import { makeNewEmptyRequest, sendRequest } from "./requestUtils";
-import { runTest, saveTest } from "~/api/tests";
+import { runTest, saveTest } from "api/tests";
 import axios, { AxiosError } from "axios";
 import { getAPIURL } from "~/constants";
 

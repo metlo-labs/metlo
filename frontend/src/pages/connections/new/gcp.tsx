@@ -1,6 +1,6 @@
 import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils";
-import { SidebarLayoutShell } from "~/components/SidebarLayoutShell";
-import { ContentContainer } from "~/components/utils/ContentContainer";
+import { SidebarLayoutShell } from "components/SidebarLayoutShell";
+import { ContentContainer } from "components/utils/ContentContainer";
 import { Flex, Heading, VStack } from "@chakra-ui/react";
 import { useState } from "react";
 

@@ -9,7 +9,7 @@ import {
 } from "typeorm";
 import { ConnectionType } from "@common/enums";
 import { AWS_CONNECTION, ENCRYPTED_AWS_CONNECTION__META } from "@common/types";
-import { encrypt, generate_iv } from "~/utils/encryption";
+import { encrypt, generate_iv } from "utils/encryption";
 
 @Entity()
 export class Connections extends BaseEntity {

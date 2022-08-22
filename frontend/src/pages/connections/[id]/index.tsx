@@ -4,11 +4,11 @@ import axios from "axios";
 import { getAPIURL } from "~/constants";
 import { ConnectionInfo } from "@common/types";
 import { useEffect } from "react";
-import { SideNavLinkDestination } from "~/components/Sidebar/NavLinkUtils";
-import { SidebarLayoutShell } from "~/components/SidebarLayoutShell";
-import { ContentContainer } from "~/components/utils/ContentContainer";
+import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils";
+import { SidebarLayoutShell } from "components/SidebarLayoutShell";
+import { ContentContainer } from "components/utils/ContentContainer";
 import { ConnectionType } from "@common/enums";
-import AWS_INFO from "~/components/ConnectionInfo/aws";
+import AWS_INFO from "components/ConnectionInfo/aws";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const resp = await axios.get(

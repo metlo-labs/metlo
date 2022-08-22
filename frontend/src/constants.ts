@@ -12,7 +12,7 @@ export const RISK_TO_COLOR = {
   [RiskScore.HIGH]: "red",
 };
 
-export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass|"", RiskScore> = {
+export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass | "", RiskScore> = {
   [DataClass.ADDRESS]: RiskScore.HIGH,
   [DataClass.EMAIL]: RiskScore.MEDIUM,
   [DataClass.CREDIT_CARD]: RiskScore.HIGH,

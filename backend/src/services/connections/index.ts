@@ -1,8 +1,8 @@
 import { ConnectionType } from "@common/enums";
 import { AWS_CONNECTION } from "@common/types";
-import { AppDataSource } from "~/data-source";
-import Error500InternalServer from "~/errors/error-500-internal-server";
-import { Connections } from "~/models";
+import { AppDataSource } from "data-source";
+import Error500InternalServer from "errors/error-500-internal-server";
+import { Connections } from "models";
 
 const save_connection = async ({
   conn_meta,

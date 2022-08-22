@@ -6,7 +6,7 @@ import { SidebarLayoutShell } from "components/SidebarLayoutShell";
 import TestEditor from "components/TestEditor";
 import { getEndpoint } from "api/endpoints";
 import { ApiEndpointDetailed } from "@common/types";
-import { makeNewRequest } from "~/components/TestEditor/requestUtils";
+import { makeNewRequest } from "components/TestEditor/requestUtils";
 import { v4 as uuidv4 } from "uuid";
 
 const NewTest = ({ endpoint }) => {

@@ -1,10 +1,10 @@
 import { Heading, VStack } from "@chakra-ui/react";
 import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils";
 import { GetServerSideProps } from "next";
-import { listTests } from "~/api/tests";
-import { SidebarLayoutShell } from "~/components/SidebarLayoutShell";
-import ListTests from "~/components/TestList";
-import { ContentContainer } from "~/components/utils/ContentContainer";
+import { listTests } from "api/tests";
+import { SidebarLayoutShell } from "components/SidebarLayoutShell";
+import ListTests from "components/TestList";
+import { ContentContainer } from "components/utils/ContentContainer";
 import superjson from "superjson";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {

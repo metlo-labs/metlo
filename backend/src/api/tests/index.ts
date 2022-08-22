@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import ApiResponseHandler from "api-response-handler";
-import { runTest } from "~/services/testing/runTests";
-import { AppDataSource } from "~/data-source";
-import { ApiEndpointTest } from "~/models";
+import { runTest } from "services/testing/runTests";
+import { AppDataSource } from "data-source";
+import { ApiEndpointTest } from "models";
 
 export const runTestHandler = async (
   req: Request,
