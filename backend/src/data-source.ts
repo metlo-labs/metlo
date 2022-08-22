@@ -2,7 +2,7 @@ import "dotenv/config";
 import { DataSource } from "typeorm";
 import {
   ApiEndpoint,
-  MatchedDataClass,
+  DataField,
   ApiTrace,
   OpenApiSpec,
   Alert,
@@ -17,7 +17,7 @@ export const AppDataSource: DataSource = new DataSource({
   synchronize: true,
   entities: [
     ApiEndpoint,
-    MatchedDataClass,
+    DataField,
     ApiTrace,
     OpenApiSpec,
     Alert,

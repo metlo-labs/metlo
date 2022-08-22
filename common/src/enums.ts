@@ -23,6 +23,10 @@ export enum DataClass {
   DL_NUMBER = "Driver License Number",
 }
 
+export enum DataTag {
+  PII = "PII",
+}
+
 export enum RiskScore {
   NONE = "none",
   LOW = "low",

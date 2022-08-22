@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import { TypeormStore } from "connect-typeorm";
 import session from "express-session";
-import { Session as SessionModel } from "~/models";
+import { Session as SessionModel } from "models";
 import {
   logRequestBatchHandler,
   logRequestSingleHandler,
@@ -26,7 +26,7 @@ import {
   getTopAlertsHandler,
   resolveAlertHandler,
 } from "api/alert";
-import { updatePIIFieldHandler } from "api/data-class";
+import { updateDataFieldHandler } from "api/data-field";
 import { getSummaryHandler } from "api/summary";
 import { AppDataSource } from "data-source";
 import { MulterSource } from "multer-source";
@@ -42,6 +42,7 @@ import {
   list_connections,
   update_connection,
 } from "./api/connections";
+//import { JobsService } from "services/jobs";
 
 dotenv.config();
 
@@ -86,7 +87,7 @@ app.put(
 app.get("/api/v1/specs", getSpecListHandler);
 app.get("/api/v1/spec/:specFileName", getSpecHandler);
 
-app.put("/api/v1/data-class/:piiFieldId", updatePIIFieldHandler);
+app.put("/api/v1/data-field/:fieldId", updateDataFieldHandler);
 
 app.get("/api/v1/alerts", getAlertsHandler);
 app.get("/api/v1/topAlerts", getTopAlertsHandler);
@@ -117,7 +118,7 @@ const main = async () => {
     app.listen(port, () => {
       console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
     });
-    //await EndpointsService.generateEndpointsFromTraces();
+    //await JobsService.generateEndpointsFromTraces();
     //await EndpointsService.generateOpenApiSpec();
   } catch (err) {
     console.error(`CatchBlockInsideMain: ${err}`);

@@ -72,7 +72,6 @@ export class JobsService {
 
   static parseContent(bodySpec: BodyContent, bodyString: string, key: string) {
     const parsedBody = parsedJson(bodyString);
-    console.log(bodySpec, bodyString, key);
     let nonNullKey: string;
     if (!parsedBody && bodyString) {
       nonNullKey = key || "text/plain";
@@ -104,7 +103,7 @@ export class JobsService {
             method: trace.method,
             host: trace.host,
           },
-          relations: { sensitiveDataClasses: true },
+          relations: { dataFields: true },
         });
         if (apiEndpoint) {
           apiEndpoint.totalCalls += 1;

@@ -7,16 +7,22 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { DataClass } from "@common/enums";
+import { DataClass, DataTag, DataType } from "@common/enums";
 import { ApiEndpoint } from "models/api-endpoint";
 
 @Entity()
-export class MatchedDataClass extends BaseEntity {
+export class DataField extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string;
 
-  @Column({ type: "enum", enum: DataClass })
+  @Column({ type: "enum", enum: DataClass, nullable: true })
   dataClass: DataClass;
+
+  @Column({ type: "enum", enum: DataType, nullable: false })
+  dataType: DataType;
+
+  @Column({ type: "enum", enum: DataTag, nullable: true })
+  dataTag: DataTag;
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date;
@@ -27,15 +33,15 @@ export class MatchedDataClass extends BaseEntity {
   @Column({ nullable: false })
   dataPath: string;
 
-  @Column({ type: "varchar", array: true, nullable: false })
+  @Column({ type: "varchar", array: true, nullable: false, default: [] })
   matches: string[];
 
-  @Column({ type: "bool", default: true })
+  @Column({ type: "bool", default: false })
   isRisk: boolean;
 
   @Column({ nullable: false })
   apiEndpointUuid: string;
 
-  @ManyToOne(() => ApiEndpoint, (apiTrace) => apiTrace.sensitiveDataClasses)
+  @ManyToOne(() => ApiEndpoint, (apiEndpoint) => apiEndpoint.dataFields)
   apiEndpoint: ApiEndpoint;
 }

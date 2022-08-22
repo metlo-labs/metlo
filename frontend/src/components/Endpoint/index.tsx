@@ -23,7 +23,7 @@ import { useRouter } from "next/router";
 import { SectionHeader } from "components/utils/Card";
 import { ApiEndpointDetailed, Usage } from "@common/types";
 import { METHOD_TO_COLOR } from "~/constants";
-import PIIDataList from "./PIIDataList";
+import DataFieldList from "./DataFieldList";
 import TraceList from "./TraceList";
 import AlertList from "./AlertList";
 import EndpointOverview from "./Overview";
@@ -46,7 +46,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
       switch (tab) {
         case "overview":
           return 0;
-        case "pii":
+        case "fields":
           return 1;
         case "traces":
           return 2;
@@ -101,7 +101,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
               <SectionHeader text="Overview" sym={BiInfoCircle} />
             </Tab>
             <Tab>
-              <SectionHeader text="PII Fields" sym={BsFillLockFill} />
+              <SectionHeader text="Fields" sym={BsFillLockFill} />
             </Tab>
             <Tab>
               <SectionHeader text="Traces" sym={GrStackOverflow} />
@@ -118,8 +118,8 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
               <EndpointOverview endpoint={endpoint} usage={usage} />
             </TabPanel>
             <TabPanel p="0" h="full">
-              <PIIDataList
-                piiFields={endpoint.sensitiveDataClasses}
+              <DataFieldList
+                dataFields={endpoint.dataFields}
                 uuid={uuid as string}
               />
             </TabPanel>

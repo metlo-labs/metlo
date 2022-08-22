@@ -2,6 +2,9 @@ import { Test } from "./testing/types";
 import {
   AlertType,
   ConnectionType,
+  DataClass,
+  DataTag,
+  DataType,
   protocols,
   RestMethod,
   RiskScore,
@@ -75,7 +78,7 @@ export interface GetAlertParams {
   limit?: number;
 }
 
-export interface UpdatePIIFieldParams {
+export interface UpdateDataFieldParams {
   isRisk: boolean;
 }
 
@@ -115,10 +118,12 @@ export interface Alert {
   resolutionMessage: string;
 }
 
-export interface PIIField {
+export interface DataField {
   uuid: string;
-  dataClass: string;
+  dataClass: DataClass;
   dataPath: string;
+  dataType: DataType;
+  dataTag: DataTag;
   createdAt: Date;
   updatedAt: Date;
   matches: string[];
@@ -142,7 +147,7 @@ export interface ApiEndpoint {
 }
 
 export interface ApiEndpointDetailed extends ApiEndpoint {
-  sensitiveDataClasses: PIIField[];
+  dataFields: DataField[];
   openapiSpec: OpenApiSpec;
   alerts: Alert[];
   traces: ApiTrace[];

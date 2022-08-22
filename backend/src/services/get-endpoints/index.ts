@@ -9,6 +9,7 @@ import {
 import Error500InternalServer from "errors/error-500-internal-server";
 import { RISK_SCORE_ORDER_QUERY } from "~/constants";
 import { Test } from "@common/testing/types";
+import Error404NotFound from "errors/error-404-not-found";
 
 export class GetEndpointsService {
   static async getEndpoints(
@@ -87,16 +88,20 @@ export class GetEndpointsService {
       const endpoint = await apiEndpointRepository.findOne({
         where: { uuid: endpointId },
         relations: {
-          sensitiveDataClasses: true,
+          dataFields: true,
           openapiSpec: true,
           alerts: true,
         },
         order: {
-          sensitiveDataClasses: {
+          dataFields: {
             isRisk: "DESC",
+            dataClass: "ASC",
           },
         },
       });
+      if (!endpoint) {
+        throw new Error404NotFound("Endpoint does not exist.");
+      }
       const traces = await apiTraceRepository.find({
         where: { apiEndpointUuid: endpoint.uuid },
         order: { createdAt: "DESC" },

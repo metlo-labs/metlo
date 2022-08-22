@@ -1,5 +1,5 @@
 import validator from "validator";
-import { ApiEndpoint } from "models";
+import { DataField } from "models";
 import { pathParameterRegex } from "~/constants";
 import { DataType, RiskScore } from "@common/enums";
 
@@ -17,10 +17,10 @@ export const getPathRegex = (path: string): string => {
   return String.raw`^${path.replace(pathParameterRegex, String.raw`/[^/]+`)}$`;
 };
 
-export const getRiskScore = (endpoint: ApiEndpoint): RiskScore => {
+export const getRiskScore = (dataFields: DataField[]): RiskScore => {
   let numRiskySensitiveDataClasses = 0;
-  for (let i = 0; i < endpoint.sensitiveDataClasses?.length; i++) {
-    if (endpoint.sensitiveDataClasses[i].isRisk) {
+  for (const dataField of dataFields) {
+    if (dataField.dataClass !== null && dataField.isRisk) {
       numRiskySensitiveDataClasses += 1;
     }
   }
@@ -44,7 +44,7 @@ export const getDataType = (data: any): DataType => {
     return DataType.BOOLEAN;
   }
   if (Number(data)) {
-    if (Number.isInteger(data)) {
+    if (Number.isInteger(Number(data))) {
       return DataType.INTEGER;
     }
     return DataType.NUMBER;

@@ -13,42 +13,43 @@ import {
 import { ImCross } from "@react-icons/all-files/im/ImCross";
 import { ImCheckmark } from "@react-icons/all-files/im/ImCheckmark";
 import DataTable, { TableColumn } from "react-data-table-component";
-import { PIIField } from "@common/types";
+import { DataField } from "@common/types";
 import { getCustomStyles, rowStyles } from "components/utils/TableUtils";
 import { RISK_TO_COLOR, DATA_CLASS_TO_RISK_SCORE } from "~/constants";
 import { getDateTimeString } from "utils";
-import PIIDataDetail from "./PIIDataDetail";
+import DataFieldDetail from "./DataFieldDetail";
 import EmptyView from "components/utils/EmptyView";
+import { RiskScore } from "@common/enums";
 
-interface PIIDataListProps {
-  piiFields: PIIField[];
+interface DataFieldListProps {
+  dataFields: DataField[];
   uuid?: string;
 }
 
-const PIIDataList: React.FC<PIIDataListProps> = React.memo(
-  ({ piiFields, uuid }) => {
-    const [piiFieldList, setPiiFieldList] = useState<PIIField[]>(piiFields);
+const DataFieldList: React.FC<DataFieldListProps> = React.memo(
+  ({ dataFields, uuid }) => {
+    const [dataFieldList, setDataFieldList] = useState<DataField[]>(dataFields);
     const colorMode = useColorMode();
     const headerBg = useColorModeValue("rgb(252, 252, 252)", "rgb(17, 19, 23)");
     const divColor = useColorModeValue("rgb(216, 216, 216)", "black");
     const headerTextColor = useColorModeValue("gray.700", "gray.200");
-    const [piiField, setPiiField] = useState<PIIField | undefined>();
+    const [dataField, setDataField] = useState<DataField | undefined>();
     const selectedRowColor = useColorModeValue(
       "rgb(242, 242, 242)",
       "rgb(34, 37, 42)"
     );
 
     useEffect(() => {
-      setPiiFieldList(piiFields);
-    }, [piiFields]);
+      setDataFieldList(dataFields);
+    }, [dataFields]);
 
     useEffect(() => {
-      piiFieldList.forEach((currPiiField) => {
-        if (currPiiField.uuid === uuid) {
-          setPiiField(currPiiField);
+      dataFieldList.forEach((currDataField) => {
+        if (currDataField.uuid === uuid) {
+          setDataField(currDataField);
         }
       });
-    }, [piiFieldList, uuid]);
+    }, [dataFieldList, uuid]);
 
     const rowNotRiskBG =
       colorMode.colorMode == "light"
@@ -61,55 +62,55 @@ const PIIDataList: React.FC<PIIDataListProps> = React.memo(
 
     const conditionalStyles = [
       {
-        when: (row: PIIField) => {
-          if (!piiField) {
+        when: (row: DataField) => {
+          if (!dataField) {
             return false;
           }
-          return row.uuid == piiField.uuid;
+          return row.uuid == dataField.uuid;
         },
         style: {
           backgroundColor: selectedRowColor,
         },
       },
       {
-        when: (row: PIIField) => {
+        when: (row: DataField) => {
           return !row.isRisk;
         },
         style: rowNotRiskBG,
       },
     ];
 
-    const columns: TableColumn<PIIField>[] = [
+    const columns: TableColumn<DataField>[] = [
       {
         name: "Risk Score",
         sortable: true,
-        selector: (row: PIIField) =>
+        selector: (row: DataField) =>
           DATA_CLASS_TO_RISK_SCORE[row.dataClass] || "",
-        cell: (row: PIIField) => (
+        cell: (row: DataField) => (
           <Badge
             p="1"
             fontSize="sm"
-            colorScheme={RISK_TO_COLOR[DATA_CLASS_TO_RISK_SCORE[row.dataClass]]}
+            colorScheme={RISK_TO_COLOR[DATA_CLASS_TO_RISK_SCORE[row.dataClass ?? ""]]}
             pointerEvents="none"
           >
-            {DATA_CLASS_TO_RISK_SCORE[row.dataClass]}
+            {DATA_CLASS_TO_RISK_SCORE[row.dataClass ?? ""]}
           </Badge>
         ),
         id: "riskScore",
         grow: 0.5,
       },
       {
-        name: "Data Type",
+        name: "Sensitive Data Class",
         sortable: true,
-        selector: (row: PIIField) => row.dataClass || "",
-        id: "dataType",
+        selector: (row: DataField) => row.dataClass || "",
+        id: "dataClass",
         grow: 1,
       },
       {
         name: "Data Path",
         sortable: true,
-        selector: (row: PIIField) => row.dataPath,
-        cell: (row: PIIField) => (
+        selector: (row: DataField) => row.dataPath,
+        cell: (row: DataField) => (
           <Code p="1" pointerEvents="none">
             {row.dataPath}
           </Code>
@@ -120,17 +121,17 @@ const PIIDataList: React.FC<PIIDataListProps> = React.memo(
       {
         name: "Date Identified",
         sortable: true,
-        selector: (row: PIIField) => getDateTimeString(row.createdAt) || "",
+        selector: (row: DataField) => getDateTimeString(row.createdAt) || "",
         id: "dateIdentified",
         grow: 1,
       },
       {
         name: "Fake",
         sortable: true,
-        selector: (row: PIIField) => row.isRisk,
-        cell: (row: PIIField) => (
+        selector: (row: DataField) => row.isRisk,
+        cell: (row: DataField) => (
           <Box data-tag="allowRowEvents" alignItems="end">
-            {!row.isRisk && <ImCheckmark color="#93DCAC" />}
+            {!row.isRisk && row.dataClass && <ImCheckmark color="#93DCAC" />}
           </Box>
         ),
         grow: 0,
@@ -145,20 +146,20 @@ const PIIDataList: React.FC<PIIDataListProps> = React.memo(
         w="full"
         alignItems="flex-start"
       >
-        <Box w={piiField ? "calc(100% - 650px)" : "full"} h="full">
+        <Box w={dataField ? "calc(100% - 650px)" : "full"} h="full">
           <DataTable
             fixedHeader={true}
             fixedHeaderScrollHeight="100%"
             style={rowStyles}
             columns={columns}
-            data={piiFieldList}
+            data={dataFieldList}
             conditionalRowStyles={conditionalStyles}
             customStyles={getCustomStyles(colorMode.colorMode)}
-            onRowClicked={setPiiField}
-            noDataComponent={<EmptyView notRounded text="No PII Fields!" />}
+            onRowClicked={setDataField}
+            noDataComponent={<EmptyView notRounded text="No Fields!" />}
           />
         </Box>
-        {piiField ? (
+        {dataField ? (
           <Box w="650px" h="full">
             <HStack
               w="full"
@@ -172,15 +173,15 @@ const PIIDataList: React.FC<PIIDataListProps> = React.memo(
               bg={headerBg}
             >
               <Heading size="md">Details</Heading>
-              <Button variant="ghost" onClick={() => setPiiField(undefined)}>
+              <Button variant="ghost" onClick={() => setDataField(undefined)}>
                 <ImCross />
               </Button>
             </HStack>
             <Box h="calc(100% - 52px)">
-              <PIIDataDetail
-                piiField={piiField}
-                piiFieldList={piiFieldList}
-                setPiiFieldList={setPiiFieldList}
+              <DataFieldDetail
+                dataField={dataField}
+                dataFieldList={dataFieldList}
+                setdataFieldList={setDataFieldList}
               />
             </Box>
           </Box>
@@ -190,4 +191,4 @@ const PIIDataList: React.FC<PIIDataListProps> = React.memo(
   }
 );
 
-export default PIIDataList;
+export default DataFieldList;
