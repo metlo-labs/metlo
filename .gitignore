@@ -4,3 +4,8 @@ node_modules
 env
 dist
 __pycache__
+
+# Test json/yaml files
+*-test.json
+*-test.yaml
+*-test.yml
