@@ -36,7 +36,10 @@ const Endpoints = () => {
     fetchEndpoints();
   }, [params]);
   return (
-    <SidebarLayoutShell title="Endpoints" currentTab={SideNavLinkDestination.Endpoints}>
+    <SidebarLayoutShell
+      title="Endpoints"
+      currentTab={SideNavLinkDestination.Endpoints}
+    >
       <ContentContainer>
         <VStack w="full" alignItems="flex-start">
           <Heading fontWeight="medium" size="xl" mb="8">

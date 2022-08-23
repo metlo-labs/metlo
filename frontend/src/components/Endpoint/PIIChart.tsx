@@ -2,7 +2,7 @@ import React from "react";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { LayoutPosition } from "chart.js/types/layout";
 import { Pie } from "react-chartjs-2";
-import { PIIField } from "@common/types";
+import { DataField } from "@common/types";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -16,7 +16,7 @@ const options = {
 };
 
 interface EndpointPIIChartProps {
-  piiFields: PIIField[];
+  piiFields: DataField[];
 }
 
 const EndpointPIIChart: React.FC<EndpointPIIChartProps> = React.memo(

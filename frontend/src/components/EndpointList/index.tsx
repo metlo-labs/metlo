@@ -28,7 +28,7 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
         borderWidth="1px"
         rounded="md"
         spacing="0"
-        overflow="hidden"
+        overflow="visible"
       >
         <Box p="4" borderBottom="1px" borderColor="inherit" w="full">
           <EndpointFilters

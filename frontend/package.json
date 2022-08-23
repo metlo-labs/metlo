@@ -13,6 +13,7 @@
     "@chakra-ui/theme-tools": "^2.0.2",
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.9.0",
+    "@monaco-editor/react": "^4.4.5",
     "@react-icons/all-files": "^4.1.0",
     "axios": "^0.27.2",
     "chakra-react-select": "^4.1.4",
@@ -29,6 +30,8 @@
     "react-data-table-component": "^7.5.2",
     "react-dom": "^18.2.0",
     "react-json-view": "^1.21.3",
+    "react-select": "^5.4.0",
+    "react-split-pane": "^0.1.92",
     "styled-components": "^5.3.5",
     "superjson": "^1.9.1",
     "uuid": "^8.3.2"

@@ -17,7 +17,7 @@
     "baseUrl": "./src",
     "paths": {
       "@common/*": ["../../common/dist/*"],
-      "~/*": ["./*"]
+      "~/constants": ["./constants"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],

@@ -32,8 +32,8 @@
       "@common/*": [
         "../../common/dist/*"
       ],
-      "~/*": [
-        "./*"
+      "~/constants": [
+        "./constants"
       ],
     }
   },

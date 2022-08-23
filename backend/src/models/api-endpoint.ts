@@ -9,10 +9,10 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { MatchedDataClass } from "models/matched-data-class";
+import { DataField } from "models/data-field";
 import { Alert } from "models/alert";
 import { OpenApiSpec } from "models/openapi-spec";
-import { RestMethod, RiskScore } from "@common/enums";
+import { DataClass, DataSection, RestMethod, RiskScore } from "@common/enums";
 
 @Entity()
 export class ApiEndpoint extends BaseEntity {
@@ -46,10 +46,10 @@ export class ApiEndpoint extends BaseEntity {
   @Column({ nullable: true })
   owner: string;
 
-  @OneToMany(() => MatchedDataClass, (dataClass) => dataClass.apiEndpoint, {
-    cascade: true,
+  @OneToMany(() => DataField, (dataField) => dataField.apiEndpoint, {
+    cascade: ["insert"],
   })
-  sensitiveDataClasses: MatchedDataClass[];
+  dataFields: DataField[];
 
   @OneToMany(() => Alert, (alert) => alert.apiEndpoint, { cascade: true })
   alerts: Alert[];
@@ -61,11 +61,11 @@ export class ApiEndpoint extends BaseEntity {
   @JoinColumn()
   openapiSpec: OpenApiSpec;
 
-  addDataClass(dataClass: MatchedDataClass) {
-    if (this.sensitiveDataClasses == null) {
-      this.sensitiveDataClasses = Array<MatchedDataClass>();
+  addDataField(dataField: DataField) {
+    if (this.dataFields == null) {
+      this.dataFields = Array<DataField>();
     }
-    this.sensitiveDataClasses.push(dataClass);
+    this.dataFields.push(dataField);
   }
 
   addAlert(alert: Alert) {
@@ -73,5 +73,28 @@ export class ApiEndpoint extends BaseEntity {
       this.alerts = Array<Alert>();
     }
     this.alerts.push(alert);
+  }
+
+  existingDataField(
+    dataPath: string,
+    dataClass: DataClass,
+    dataSection: DataSection
+  ) {
+    if (this.dataFields == null) {
+      this.dataFields = Array<DataField>();
+    }
+    for (const dataField of this.dataFields) {
+      if (
+        (dataField.dataClass === dataClass &&
+          dataField.dataPath === dataPath &&
+          dataField.dataSection === dataSection) ||
+        ((dataClass === null || dataField.dataClass === null) &&
+          dataField.dataPath === dataPath &&
+          dataField.dataSection === dataSection)
+      ) {
+        return dataField;
+      }
+    }
+    return null;
   }
 }

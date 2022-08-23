@@ -1,4 +1,4 @@
-import { RiskScore, DataClass } from "@common/enums";
+import { RiskScore, DataClass, DataTag } from "@common/enums";
 
 export const METHOD_TO_COLOR = {
   GET: "green",
@@ -12,7 +12,11 @@ export const RISK_TO_COLOR = {
   [RiskScore.HIGH]: "red",
 };
 
-export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass, RiskScore> = {
+export const TAG_TO_COLOR = {
+  [DataTag.PII]: "blue",
+};
+
+export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass | "", RiskScore> = {
   [DataClass.ADDRESS]: RiskScore.HIGH,
   [DataClass.EMAIL]: RiskScore.MEDIUM,
   [DataClass.CREDIT_CARD]: RiskScore.HIGH,
@@ -23,8 +27,14 @@ export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass, RiskScore> = {
   [DataClass.VIN]: RiskScore.LOW,
   [DataClass.COORDINATE]: RiskScore.MEDIUM,
   [DataClass.DL_NUMBER]: RiskScore.MEDIUM,
+  "": RiskScore.NONE,
 };
-
+export const statusToColor = (statusCode: number) => {
+  if (statusCode >= 200 && statusCode < 300) {
+    return "green";
+  }
+  return "red";
+};
 export const getAPIURL = () => {
   return `${
     typeof window !== "undefined"

@@ -9,7 +9,7 @@ import OpenAPIResponseValidator, {
   OpenAPIResponseValidatorValidationError,
 } from "openapi-response-validator";
 import { AlertType, RestMethod, SpecExtension } from "@common/enums";
-import { ApiEndpoint, ApiTrace, MatchedDataClass, OpenApiSpec } from "models";
+import { ApiEndpoint, ApiTrace, DataField, OpenApiSpec } from "models";
 import Error400BadRequest from "errors/error-400-bad-request";
 import { JSONValue, OpenApiSpec as OpenApiSpecResponse } from "@common/types";
 import { AppDataSource } from "data-source";
@@ -84,8 +84,7 @@ export class SpecService {
     const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
     const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec);
     const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
-    const matchedDataClassRepository =
-      AppDataSource.getRepository(MatchedDataClass);
+    const dataFieldRepository = AppDataSource.getRepository(DataField);
     let existingSpec = await openApiSpecRepository.findOneBy({
       name: fileName,
     });
@@ -100,12 +99,12 @@ export class SpecService {
       similarEndpoints: ApiEndpoint[];
       apiEndpoints: ApiEndpoint[];
       traces: ApiTrace[];
-      matchedDataClasses: MatchedDataClass[];
+      dataFields: DataField[];
     } = {
       similarEndpoints: [],
       apiEndpoints: [],
       traces: [],
-      matchedDataClasses: [],
+      dataFields: [],
     };
     let specHosts: Set<string> = new Set();
     for (const path of pathKeys) {
@@ -174,7 +173,7 @@ export class SpecService {
                 host,
               },
               relations: {
-                sensitiveDataClasses: true,
+                dataFields: true,
               },
             });
             similarEndpoints.forEach(async (endpoint) => {
@@ -183,17 +182,15 @@ export class SpecService {
               const traces = await apiTraceRepository.findBy({
                 apiEndpointUuid: endpoint.uuid,
               });
-              endpoint.sensitiveDataClasses.forEach((matchedDataClass) => {
-                matchedDataClass.apiEndpoint = apiEndpoint;
+              endpoint.dataFields.forEach((dataField) => {
+                dataField.apiEndpoint = apiEndpoint;
               });
               traces.forEach((trace) => {
                 trace.apiEndpointUuid = apiEndpoint.uuid;
               });
               //await apiTraceRepository.save(traces);
               endpoints.traces.push(...traces);
-              endpoints.matchedDataClasses.push(
-                ...endpoint.sensitiveDataClasses
-              );
+              endpoints.dataFields.push(...endpoint.dataFields);
             });
             endpoints.similarEndpoints.push(...similarEndpoints);
             //await apiEndpointRepository.remove(similarEndpoints);
@@ -206,7 +203,7 @@ export class SpecService {
     await openApiSpecRepository.save(existingSpec);
     await apiEndpointRepository.save(endpoints.apiEndpoints);
     await apiTraceRepository.save(endpoints.traces);
-    await matchedDataClassRepository.save(endpoints.matchedDataClasses);
+    await dataFieldRepository.save(endpoints.dataFields);
     await apiEndpointRepository.remove(endpoints.similarEndpoints);
   }
 

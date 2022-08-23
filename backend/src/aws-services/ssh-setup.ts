@@ -1,6 +1,7 @@
 import { NodeSSH } from "node-ssh";
 import { readFileSync, writeFileSync, openSync, unlinkSync } from "fs";
 import { format as _format } from "util";
+import retry from "async-retry";
 
 export class SSH_CONN {
   private key: string;
@@ -31,15 +32,14 @@ export class SSH_CONN {
   public async test_connection(): Promise<[boolean, string]> {
     // Test if we can get release version of the OS. Should be compatible with all Linux based OS
     var resp, error;
-    for (let i = 0; i < 5; i++) {
-      try {
-        resp = await (await this.get_conn()).execCommand("lsb_release -i");
-        break;
-      } catch (err) {
-        error = err;
-        if (err instanceof Error) {
-          console.log(err);
-        }
+    var idx = 0;
+    try {
+      resp = await (await this.get_conn()).execCommand("lsb_release -i");
+    } catch (err) {
+      error = err;
+      if (err instanceof Error) {
+        console.log(err);
+        console.log("error in test_cmd");
       }
     }
     return [resp.stdout !== "" && resp.stderr === "", resp.stderr];
@@ -47,17 +47,20 @@ export class SSH_CONN {
 
   public async run_command(command: string) {
     var resp, error;
-    for (let i = 0; i < 5; i++) {
-      try {
-        resp = await (await this.get_conn()).execCommand(command);
-        break;
-      } catch (err) {
-        error = err;
-        if (err instanceof Error) {
+    resp = await retry(
+      async (f, at) => {
+        console.log(at);
+        try {
+          let resp = await (await this.get_conn()).execCommand(command);
+        } catch (err) {
           console.log(err);
+          console.log("error in run_cmd");
+          throw err;
         }
-      }
-    }
+        return resp;
+      },
+      { retries: 10 }
+    );
     return resp;
   }
 
@@ -71,7 +74,12 @@ export class SSH_CONN {
     let out_files = files.map((v, i) => {
       return { local: v, remote: locations[i] };
     });
-    await (await this.get_conn()).putFiles(out_files);
+    await retry(
+      async () => {
+        await (await this.get_conn()).putFiles(out_files);
+      },
+      { retries: 4 }
+    );
   }
 }
 
