@@ -2,9 +2,9 @@ import { Raw } from "typeorm";
 import { TraceParams } from "@common/types";
 import { ApiEndpoint, ApiTrace } from "models";
 import { AppDataSource } from "data-source";
-import { ScannerService } from "services/scanner/scan";
 import Error500InternalServer from "errors/error-500-internal-server";
 import { SpecService } from "services/spec";
+import { DataFieldService } from "services/data-field";
 
 export class LogRequestService {
   static async logRequest(traceParams: TraceParams): Promise<void> {
@@ -44,7 +44,7 @@ export class LogRequestService {
       if (apiEndpoint) {
         apiEndpoint.totalCalls += 1;
         // Check for sensitive data
-        await ScannerService.findAllMatchedDataClasses(
+        await DataFieldService.findAllDataFields(
           apiTraceObj,
           apiEndpoint
         );

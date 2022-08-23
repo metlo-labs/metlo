@@ -8,8 +8,8 @@ import {
 import { ApiEndpoint, ApiTrace, OpenApiSpec } from "models";
 import { AppDataSource } from "data-source";
 import { AlertType, DataType, RestMethod, SpecExtension } from "@common/enums";
-import { ScannerService } from "services/scanner/scan";
 import { AlertService } from "services/alert";
+import { DataFieldService } from "services/data-field";
 
 interface GenerateEndpoint {
   parameterizedPath: string;
@@ -108,7 +108,7 @@ export class JobsService {
         if (apiEndpoint) {
           apiEndpoint.totalCalls += 1;
           // Check for sensitive data
-          await ScannerService.findAllMatchedDataClasses(trace, apiEndpoint);
+          await DataFieldService.findAllDataFields(trace, apiEndpoint);
           trace.apiEndpointUuid = apiEndpoint.uuid;
           await apiEndpointRepository.save(apiEndpoint);
           await apiTraceRepository.save(trace);
@@ -176,7 +176,7 @@ export class JobsService {
         // TODO: Do something with setting sensitive data classes during iteration of traces and add auto generated open api spec for inferred endpoints
         for (let i = 0; i < value.traces.length; i++) {
           const trace = value.traces[i];
-          await ScannerService.findAllMatchedDataClasses(trace, apiEndpoint);
+          await DataFieldService.findAllDataFields(trace, apiEndpoint);
           trace.apiEndpoint = apiEndpoint;
         }
         await apiEndpointRepository.save(apiEndpoint);
