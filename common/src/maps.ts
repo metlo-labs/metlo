@@ -1,4 +1,4 @@
-import { STEPS } from "./enums";
+import { DataSection, STEPS } from "./enums";
 
 export const NEXT_STEP: Record<STEPS, STEPS | null> = {
   [STEPS.AWS_KEY_SETUP]: STEPS.SOURCE_INSTANCE_ID,
@@ -29,3 +29,12 @@ export const STEP_TO_TITLE_MAP: Record<STEPS, string> = {
   [STEPS.PUSH_FILES]: "Push installation files to remote instance",
   [STEPS.EXEC_COMMAND]: "Install metlo",
 };
+
+export const DATA_SECTION_TO_LABEL_MAP: Record<DataSection, string> = {
+  [DataSection.REQUEST_PATH]: "Request Path Parameters",
+  [DataSection.REQUEST_QUERY]: "Request Query Parameters",
+  [DataSection.REQUEST_HEADER]: "Request Headers",
+  [DataSection.REQUEST_BODY]: "Request Body",
+  [DataSection.RESPONSE_HEADER]: "Response Headers",
+  [DataSection.RESPONSE_BODY]: "Response Body",
+}

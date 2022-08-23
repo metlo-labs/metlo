@@ -101,7 +101,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
               <SectionHeader text="Overview" sym={BiInfoCircle} />
             </Tab>
             <Tab>
-              <SectionHeader text="Fields" sym={BsFillLockFill} />
+              <SectionHeader text="Detected Fields" sym={BsFillLockFill} />
             </Tab>
             <Tab>
               <SectionHeader text="Traces" sym={GrStackOverflow} />

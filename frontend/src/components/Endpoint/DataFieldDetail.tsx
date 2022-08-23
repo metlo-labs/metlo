@@ -10,9 +10,15 @@ import {
   HStack,
   Checkbox,
   useToast,
+  UnorderedList,
+  ListItem,
 } from "@chakra-ui/react";
 import { DataField } from "@common/types";
-import { RISK_TO_COLOR, DATA_CLASS_TO_RISK_SCORE } from "~/constants";
+import {
+  RISK_TO_COLOR,
+  DATA_CLASS_TO_RISK_SCORE,
+  TAG_TO_COLOR,
+} from "~/constants";
 import { getDateTimeString } from "utils";
 import { updateDataField } from "api/dataFields";
 
@@ -72,10 +78,14 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
         <Grid templateColumns="1fr 1fr" gap="4">
           <GridItem>
             <VStack alignItems="flex-start">
-              <Text fontWeight="semibold">Data Path</Text>
-              <Code p="1" rounded="md" fontSize="sm">
-                {currDataField.dataPath}
-              </Code>
+              <Text fontWeight="semibold">Field</Text>
+              {currDataField.dataPath ? (
+                <Code p="1" rounded="md" fontSize="sm">
+                  {currDataField.dataPath}
+                </Code>
+              ) : (
+                <Text>None</Text>
+              )}
             </VStack>
           </GridItem>
           <GridItem>
@@ -111,40 +121,57 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
               </Code>
             </VStack>
           </GridItem>
-          <GridItem>
-            <VStack alignItems="flex-start">
-              <Text fontWeight="semibold">Sensitive Data Class</Text>
-              <Code p="1" rounded="md" fontSize="sm">
-                {currDataField.dataClass || "N/A"}
-              </Code>
-            </VStack>
-          </GridItem>
-          <GridItem>
-            <VStack alignItems="flex-start">
-              <Text fontWeight="semibold">Tag</Text>
-              <Code p="1" rounded="md" fontSize="sm">
-                {currDataField.dataTag || "N/A"}
-              </Code>
-            </VStack>
-          </GridItem>
+          {currDataField.dataClass && (
+            <GridItem>
+              <VStack alignItems="flex-start">
+                <Text fontWeight="semibold">Sensitive Data Class</Text>
+                <Code p="1" rounded="md" fontSize="sm">
+                  {currDataField.dataClass}
+                </Code>
+              </VStack>
+            </GridItem>
+          )}
+          {currDataField.dataTag && (
+            <GridItem>
+              <VStack alignItems="flex-start">
+                <Text fontWeight="semibold">Tag</Text>
+                <Badge
+                  py="1"
+                  px="2"
+                  fontSize="sm"
+                  colorScheme={TAG_TO_COLOR[currDataField.dataTag]}
+                >
+                  {currDataField.dataTag}
+                </Badge>
+              </VStack>
+            </GridItem>
+          )}
         </Grid>
         <VStack w="full" pt="4" spacing="4">
-          <VStack w="full" alignItems="flex-start">
-            <Text fontWeight="semibold">Example Matches</Text>
-            <Code p="1" w="full" rounded="md" fontSize="sm">
-              {currDataField.matches.join("\n")}
-            </Code>
-          </VStack>
-          <HStack w="full" spacing="5">
-            <Checkbox
-              isChecked={!currDataField.isRisk}
-              onChange={handleUpdateClick}
-              size="lg"
-              colorScheme="green"
-            >
-              Fake
-            </Checkbox>
-          </HStack>
+          {currDataField.matches?.length > 0 && (
+            <VStack w="full" alignItems="flex-start">
+              <Text fontWeight="semibold">Example Matches</Text>
+              <Code p="1" w="full" rounded="md" fontSize="sm">
+                <UnorderedList px="3">
+                  {currDataField.matches.map((match, idx) => (
+                    <ListItem key={idx}>{match}</ListItem>
+                  ))}
+                </UnorderedList>
+              </Code>
+            </VStack>
+          )}
+          {currDataField.dataClass && (
+            <HStack w="full" spacing="5">
+              <Checkbox
+                isChecked={!currDataField.isRisk}
+                onChange={handleUpdateClick}
+                size="lg"
+                colorScheme="green"
+              >
+                Fake
+              </Checkbox>
+            </HStack>
+          )}
         </VStack>
       </Box>
     );

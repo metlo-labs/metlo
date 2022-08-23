@@ -12,7 +12,7 @@ import {
 import { DataField } from "models/data-field";
 import { Alert } from "models/alert";
 import { OpenApiSpec } from "models/openapi-spec";
-import { DataClass, RestMethod, RiskScore } from "@common/enums";
+import { DataClass, DataSection, RestMethod, RiskScore } from "@common/enums";
 
 @Entity()
 export class ApiEndpoint extends BaseEntity {
@@ -75,15 +75,22 @@ export class ApiEndpoint extends BaseEntity {
     this.alerts.push(alert);
   }
 
-  existingDataField(dataPath: string, dataClass: DataClass) {
+  existingDataField(
+    dataPath: string,
+    dataClass: DataClass,
+    dataSection: DataSection
+  ) {
     if (this.dataFields == null) {
       this.dataFields = Array<DataField>();
     }
     for (const dataField of this.dataFields) {
       if (
         (dataField.dataClass === dataClass &&
-          dataField.dataPath === dataPath) ||
-        (dataClass === null && dataField.dataPath === dataPath)
+          dataField.dataPath === dataPath &&
+          dataField.dataSection === dataSection) ||
+        ((dataClass === null || dataField.dataClass === null) &&
+          dataField.dataPath === dataPath &&
+          dataField.dataSection === dataSection)
       ) {
         return dataField;
       }

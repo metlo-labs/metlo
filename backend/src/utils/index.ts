@@ -18,6 +18,9 @@ export const getPathRegex = (path: string): string => {
 };
 
 export const getRiskScore = (dataFields: DataField[]): RiskScore => {
+  if (!dataFields) {
+    return RiskScore.NONE;
+  }
   let numRiskySensitiveDataClasses = 0;
   for (const dataField of dataFields) {
     if (dataField.dataClass !== null && dataField.isRisk) {

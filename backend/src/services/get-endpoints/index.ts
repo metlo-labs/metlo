@@ -96,6 +96,7 @@ export class GetEndpointsService {
           dataFields: {
             isRisk: "DESC",
             dataClass: "ASC",
+            dataPath: "ASC",
           },
         },
       });

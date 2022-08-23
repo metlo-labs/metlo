@@ -7,7 +7,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { DataClass, DataTag, DataType } from "@common/enums";
+import { DataClass, DataTag, DataType, DataSection } from "@common/enums";
 import { ApiEndpoint } from "models/api-endpoint";
 
 @Entity()
@@ -23,6 +23,9 @@ export class DataField extends BaseEntity {
 
   @Column({ type: "enum", enum: DataTag, nullable: true })
   dataTag: DataTag;
+
+  @Column({ type: "enum", enum: DataSection, nullable: false })
+  dataSection: DataSection;
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date;
@@ -44,4 +47,21 @@ export class DataField extends BaseEntity {
 
   @ManyToOne(() => ApiEndpoint, (apiEndpoint) => apiEndpoint.dataFields)
   apiEndpoint: ApiEndpoint;
+
+  updateMatches(matches: string[]): boolean {
+    let updated = false;
+    if (this.matches === null || this.matches === undefined) {
+      this.matches = Array<string>();
+    }
+    for (const match of matches) {
+      if (this.matches.length >= 10) {
+        break;
+      }
+      if (!this.matches.includes(match)) {
+        this.matches.push(match);
+        updated = true;
+      }
+    }
+    return updated;
+  }
 }

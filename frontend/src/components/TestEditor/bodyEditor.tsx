@@ -1,5 +1,12 @@
 import React from "react";
-import { Box, Heading, HStack, Select, useColorModeValue, VStack } from "@chakra-ui/react";
+import {
+  Box,
+  Heading,
+  HStack,
+  Select,
+  useColorModeValue,
+  VStack,
+} from "@chakra-ui/react";
 import { RequestBody } from "@common/testing/types";
 import { RequestBodyType } from "@common/testing/enums";
 import Editor from "@monaco-editor/react";
