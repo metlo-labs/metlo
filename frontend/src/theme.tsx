@@ -33,6 +33,10 @@ const theme = extendTheme({
         default: "white",
         _dark: "rgb(39, 40, 43)",
       },
+      headerColor: {
+        default: "rgb(179, 181, 185)",
+        _dark: "rgb(91, 94, 109)",
+      },
     },
     radii: {
       button: "12px",

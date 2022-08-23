@@ -5,6 +5,7 @@ import { BsFillLockFill } from "@react-icons/all-files/bs/BsFillLockFill";
 import { GrStackOverflow } from "@react-icons/all-files/gr/GrStackOverflow";
 import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch";
 import { FaBell } from "@react-icons/all-files/fa/FaBell";
+import { BiTestTube } from "@react-icons/all-files/bi/BiTestTube";
 import {
   Badge,
   Code,
@@ -22,10 +23,11 @@ import { useRouter } from "next/router";
 import { SectionHeader } from "components/utils/Card";
 import { ApiEndpointDetailed, Usage } from "@common/types";
 import { METHOD_TO_COLOR } from "~/constants";
-import PIIDataList from "./PIIDataList";
+import DataFieldList from "./DataFieldList";
 import TraceList from "./TraceList";
 import AlertList from "./AlertList";
 import EndpointOverview from "./Overview";
+import TestList from "./TestList";
 
 interface EndpointPageProps {
   endpoint: ApiEndpointDetailed;
@@ -44,12 +46,14 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
       switch (tab) {
         case "overview":
           return 0;
-        case "pii":
+        case "fields":
           return 1;
         case "traces":
           return 2;
         case "alerts":
           return 3;
+        case "tests":
+          return 4;
         default:
           return 0;
       }
@@ -97,7 +101,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
               <SectionHeader text="Overview" sym={BiInfoCircle} />
             </Tab>
             <Tab>
-              <SectionHeader text="PII Fields" sym={BsFillLockFill} />
+              <SectionHeader text="Detected Fields" sym={BsFillLockFill} />
             </Tab>
             <Tab>
               <SectionHeader text="Traces" sym={GrStackOverflow} />
@@ -105,14 +109,17 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
             <Tab>
               <SectionHeader text="Alerts" sym={FaBell} />
             </Tab>
+            <Tab>
+              <SectionHeader text="Tests" sym={BiTestTube} />
+            </Tab>
           </TabList>
           <TabPanels flexGrow="1" h="full" overflow="hidden">
             <TabPanel p="0" overflow="auto" h="full">
               <EndpointOverview endpoint={endpoint} usage={usage} />
             </TabPanel>
             <TabPanel p="0" h="full">
-              <PIIDataList
-                piiFields={endpoint.sensitiveDataClasses}
+              <DataFieldList
+                dataFields={endpoint.dataFields}
                 uuid={uuid as string}
               />
             </TabPanel>
@@ -127,6 +134,9 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
                 uuid={uuid as string}
                 endpointPage
               />
+            </TabPanel>
+            <TabPanel p="0" h="full">
+              <TestList endpoint={endpoint} />
             </TabPanel>
           </TabPanels>
         </Tabs>

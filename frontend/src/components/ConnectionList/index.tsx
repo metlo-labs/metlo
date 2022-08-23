@@ -1,12 +1,12 @@
 import React from "react";
-import NextLink from "next/link";
 import { Box, VStack, HStack, Button, useDisclosure } from "@chakra-ui/react";
-import { Connection } from "@common/types";
+import { ConnectionInfo } from "@common/types";
 import List from "./List";
-import BasicUsage from "../NewConnection";
+import NewConnection from "../NewConnection";
+import EmptyView from "../utils/EmptyView";
 
 interface ConnectionListProps {
-  connections: Connection[];
+  connections: ConnectionInfo[];
 }
 
 const ConnectionList: React.FC<ConnectionListProps> = React.memo(
@@ -27,11 +27,15 @@ const ConnectionList: React.FC<ConnectionListProps> = React.memo(
             <Button colorScheme="blue" onClick={onOpen}>
               New
             </Button>
-            <BasicUsage isOpen={isOpen} onClose={onClose} />
+            <NewConnection isOpen={isOpen} onClose={onClose} />
           </HStack>
         </Box>
         <Box w="full">
-          <List connections={connections} />
+          {connections.length > 0 ? (
+            <List connections={connections} />
+          ) : (
+            <EmptyView notRounded text="No Connections Yet!" />
+          )}
         </Box>
       </VStack>
     );

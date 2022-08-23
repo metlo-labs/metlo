@@ -4,13 +4,10 @@ import {
   Flex,
   Grid,
   GridItem,
-  Input,
   Select,
   Spinner,
 } from "@chakra-ui/react";
-import { ConnectionType, STEPS } from "@common/enums";
-import { STEP_RESPONSE } from "@common/types";
-import axios, { AxiosResponse, AxiosError } from "axios";
+import axios from "axios";
 import { useEffect, useState } from "react";
 import { getAPIURL } from "~/constants";
 

@@ -16,6 +16,7 @@ import EndpointUsageChart from "./UsageChart";
 import { RISK_TO_COLOR } from "~/constants";
 import EndpointPIIChart from "./PIIChart";
 import { getDateTimeString } from "utils";
+import { DataTag } from "@common/enums";
 
 interface EndpointOverviewProps {
   endpoint: ApiEndpointDetailed;
@@ -25,6 +26,9 @@ interface EndpointOverviewProps {
 const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
   ({ endpoint, usage }) => {
     const theme = useColorModeValue(lightTheme, darkTheme);
+    const piiFields = endpoint.dataFields.filter(
+      (field) => field.dataTag === DataTag.PII && field.isRisk
+    );
     return (
       <Stack
         direction={{ base: "column", lg: "row" }}
@@ -55,9 +59,7 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
             </GridItem>
             <GridItem>
               <DataHeading>PII Fields</DataHeading>
-              <DataAttribute>
-                {endpoint.sensitiveDataClasses.length}
-              </DataAttribute>
+              <DataAttribute>{piiFields.length}</DataAttribute>
             </GridItem>
             <GridItem>
               <DataHeading>Alerts</DataHeading>
@@ -81,16 +83,11 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
                 <EndpointUsageChart usage={usage} />
               </Box>
             </GridItem>
-            {endpoint.sensitiveDataClasses.filter((e) => e.isRisk).length >
-            0 ? (
+            {piiFields.length > 0 ? (
               <GridItem w="100%" colSpan={2}>
                 <DataHeading>PII Data</DataHeading>
                 <Box maxW="xs">
-                  <EndpointPIIChart
-                    piiFields={endpoint.sensitiveDataClasses.filter(
-                      (e) => e.isRisk
-                    )}
-                  />
+                  <EndpointPIIChart piiFields={piiFields} />
                 </Box>
               </GridItem>
             ) : null}

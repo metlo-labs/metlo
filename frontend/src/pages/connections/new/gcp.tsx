@@ -1,19 +1,8 @@
-import superjson from "superjson";
-import { GetServerSideProps } from "next";
 import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils";
-import { testConnections } from "testData";
-import { SidebarLayoutShell } from "~/components/SidebarLayoutShell";
-import { ContentContainer } from "~/components/utils/ContentContainer";
-import {
-  Flex,
-  Heading,
-  VStack,
-} from "@chakra-ui/react";
+import { SidebarLayoutShell } from "components/SidebarLayoutShell";
+import { ContentContainer } from "components/utils/ContentContainer";
+import { Flex, Heading, VStack } from "@chakra-ui/react";
 import { useState } from "react";
-
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  return { props: { connections: superjson.stringify(testConnections) } };
-};
 
 const Connections = ({}) => {
   const [selectedIndex, updateIndex] = useState(1);

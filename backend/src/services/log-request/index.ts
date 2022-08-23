@@ -39,7 +39,7 @@ export class LogRequestService {
           method,
           host,
         },
-        relations: { sensitiveDataClasses: true },
+        relations: { dataFields: true },
       });
       if (apiEndpoint) {
         apiEndpoint.totalCalls += 1;

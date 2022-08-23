@@ -23,6 +23,10 @@ export enum DataClass {
   DL_NUMBER = "Driver License Number",
 }
 
+export enum DataTag {
+  PII = "PII",
+}
+
 export enum RiskScore {
   NONE = "none",
   LOW = "low",
@@ -66,4 +70,22 @@ export enum STEPS {
 export enum protocols {
   TCP = 6,
   UDP = 17,
+}
+
+export enum DataType {
+  INTEGER = "integer",
+  NUMBER = "number",
+  STRING = "string",
+  BOOLEAN = "boolean",
+  OBJECT = "object",
+  ARRAY = "array",
+}
+
+export enum DataSection {
+  REQUEST_PATH = "reqPath",
+  REQUEST_QUERY = "reqQuery",
+  REQUEST_HEADER = "reqHeaders",
+  REQUEST_BODY = "reqBody",
+  RESPONSE_HEADER = "resHeaders",
+  RESPONSE_BODY = "resBody",
 }

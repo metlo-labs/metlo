@@ -2,12 +2,14 @@ import "dotenv/config";
 import { DataSource } from "typeorm";
 import {
   ApiEndpoint,
-  MatchedDataClass,
+  DataField,
   ApiTrace,
   OpenApiSpec,
   Alert,
+  Session,
+  Connections,
+  ApiEndpointTest,
 } from "models";
-import { Session } from "./models/sessions";
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -15,11 +17,13 @@ export const AppDataSource: DataSource = new DataSource({
   synchronize: true,
   entities: [
     ApiEndpoint,
-    MatchedDataClass,
+    DataField,
     ApiTrace,
     OpenApiSpec,
     Alert,
     Session,
+    Connections,
+    ApiEndpointTest,
   ],
   migrations: [],
   logging: false,
