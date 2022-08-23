@@ -5,8 +5,6 @@ import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils";
 import { SidebarLayoutShell } from "components/SidebarLayoutShell";
 import TestEditor from "components/TestEditor";
 import { ApiEndpointDetailed } from "@common/types";
-import { makeNewRequest } from "components/TestEditor/requestUtils";
-import { v4 as uuidv4 } from "uuid";
 import { getTest } from "api/tests";
 import { getEndpoint } from "api/endpoints";
 import { Test } from "@common/testing/types";
@@ -21,7 +19,7 @@ const NewTest = ({ endpoint, test }) => {
   }
   return (
     <SidebarLayoutShell
-      title="New Test"
+      title={parsedTest.name}
       currentTab={SideNavLinkDestination.Endpoints}
     >
       <TestEditor endpoint={parsedEndpoint} initTest={parsedTest} />

@@ -1,4 +1,4 @@
-import { RiskScore, DataClass } from "@common/enums";
+import { RiskScore, DataClass, DataTag } from "@common/enums";
 
 export const METHOD_TO_COLOR = {
   GET: "green",
@@ -10,6 +10,10 @@ export const RISK_TO_COLOR = {
   [RiskScore.LOW]: "gray",
   [RiskScore.MEDIUM]: "orange",
   [RiskScore.HIGH]: "red",
+};
+
+export const TAG_TO_COLOR = {
+  [DataTag.PII]: "blue",
 };
 
 export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass | "", RiskScore> = {

@@ -19,7 +19,7 @@ import { statusToColor } from "../../constants";
 import DataPreview from "./dataPreview";
 
 const Response: React.FC<{ res: Result }> = React.memo(({ res }) => {
-  const tabsBG = useColorModeValue("white", "black")
+  const tabsBG = useColorModeValue("white", "black");
   if (!res) {
     return null;
   }

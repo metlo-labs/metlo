@@ -3,6 +3,7 @@ import {
   AlertType,
   ConnectionType,
   DataClass,
+  DataSection,
   DataTag,
   DataType,
   protocols,
@@ -122,6 +123,7 @@ export interface DataField {
   uuid: string;
   dataClass: DataClass;
   dataPath: string;
+  dataSection: DataSection;
   dataType: DataType;
   dataTag: DataTag;
   createdAt: Date;

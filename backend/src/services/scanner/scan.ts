@@ -1,4 +1,4 @@
-import { DataClass, DataTag, DataType } from "@common/enums";
+import { DataClass, DataSection, DataTag, DataType } from "@common/enums";
 import {
   ADDRESS_REGEXP,
   COORDINATE_REGEXP,
@@ -33,6 +33,7 @@ export class ScannerService {
   static async saveDataField(
     dataClass: DataClass,
     dataPath: string,
+    dataSection: DataSection,
     apiEndpoint: ApiEndpoint,
     matches: string[],
     dataValue: any
@@ -40,7 +41,8 @@ export class ScannerService {
     const dataFieldRepository = AppDataSource.getRepository(DataField);
     const existingDataField = apiEndpoint.existingDataField(
       dataPath,
-      dataClass
+      dataClass,
+      dataSection
     );
     const dataType = getDataType(dataValue);
     if (!existingDataField) {
@@ -48,8 +50,9 @@ export class ScannerService {
       dataField.dataClass = dataClass;
       dataField.dataPath = dataPath;
       dataField.dataType = dataType;
-      if (matches.length > 0) {
-        dataField.matches = matches;
+      dataField.dataSection = dataSection;
+      if (matches?.length > 0) {
+        dataField.updateMatches(matches);
         dataField.dataTag = DataTag.PII;
         dataField.isRisk = true;
       }
@@ -58,7 +61,7 @@ export class ScannerService {
       let updated = false;
       if (existingDataField.dataClass === null && dataClass !== null) {
         existingDataField.dataClass = dataClass;
-        existingDataField.matches = matches;
+        existingDataField.updateMatches(matches);
         existingDataField.dataTag = DataTag.PII;
         existingDataField.isRisk = true;
         updated = true;
@@ -66,6 +69,9 @@ export class ScannerService {
       if (existingDataField.dataType !== dataType) {
         existingDataField.dataType = dataType;
         updated = true;
+      }
+      if (matches?.length > 0) {
+        updated = existingDataField.updateMatches(matches);
       }
 
       if (updated) {
@@ -76,84 +82,113 @@ export class ScannerService {
 
   static async recursiveParseJson(
     dataPathPrefix: string,
+    dataSection: DataSection,
     jsonBody: any,
     apiEndpoint: ApiEndpoint
   ): Promise<void> {
     if (getDataType(jsonBody) === DataType.OBJECT) {
-      for (let key in jsonBody) {
+      for (const key in jsonBody) {
         this.recursiveParseJson(
           `${dataPathPrefix}.${key}`,
+          dataSection,
           jsonBody[key],
           apiEndpoint
         );
       }
+    } else if (getDataType(jsonBody) === DataType.ARRAY) {
+      for (const item of jsonBody) {
+        this.recursiveParseJson(dataPathPrefix, dataSection, item, apiEndpoint);
+      }
     } else {
       const matches = this.scan(jsonBody);
       const matchesKeys = Object.keys(matches);
-      if (matchesKeys.length > 0) {
+      if (matchesKeys?.length > 0) {
         for (const match of matchesKeys) {
           const matchDataClass = match as DataClass;
           await this.saveDataField(
             matchDataClass,
             dataPathPrefix,
+            dataSection,
             apiEndpoint,
             matches[match],
             jsonBody
           );
         }
       } else {
-        await this.saveDataField(null, dataPathPrefix, apiEndpoint, [], jsonBody);
+        await this.saveDataField(
+          null,
+          dataPathPrefix,
+          dataSection,
+          apiEndpoint,
+          [],
+          jsonBody
+        );
       }
     }
   }
 
-  static async findMatchedDataClassesBody(
-    dataPathPrefix: string,
+  static async findBodyDataFields(
+    dataSection: DataSection,
     body: string,
     apiEndpoint: ApiEndpoint
   ): Promise<void> {
     if (body) {
       const jsonBody = parsedJson(body);
       if (jsonBody) {
-        let dataPath = `${dataPathPrefix}.json`;
         for (let key in jsonBody) {
           await this.recursiveParseJson(
-            `${dataPath}.${key}`,
+            key,
+            dataSection,
             jsonBody[key],
             apiEndpoint
           );
         }
       } else {
-        const dataPath = `${dataPathPrefix}.text`;
-        await this.recursiveParseJson(dataPath, body, apiEndpoint);
+        await this.recursiveParseJson("", dataSection, body, apiEndpoint);
       }
     }
   }
 
-  static async findMatchedDataClasses(
-    dataPathPrefix: string,
+  static async findPairObjectDataFields(
+    dataSection: DataSection,
     data: PairObject[],
     apiEndpoint: ApiEndpoint
   ): Promise<void> {
     if (data) {
       for (const item of data) {
         const field = item.name;
+        const jsonBody = parsedJson(item.value);
         await this.recursiveParseJson(
-          `${dataPathPrefix}.${field}`,
-          item.value,
+          field,
+          dataSection,
+          jsonBody ?? item.value,
           apiEndpoint
         );
-        /*const matches = this.scan(item.value);
-        for (const match of Object.keys(matches)) {
-          const matchDataClass = match as DataClass;
-          const matchDataPath = `${dataPathPrefix}.${field}`;
-          await this.saveMatch(
-            matchDataClass,
-            matchDataPath,
-            apiEndpoint,
-            matches
-          );
-        }*/
+      }
+    }
+  }
+
+  static async findPathDataFields(
+    path: string,
+    apiEndpoint: ApiEndpoint
+  ): Promise<void> {
+    if (!path || !apiEndpoint?.path) {
+      return;
+    }
+    const tracePathTokens = path.split("/");
+    const endpointPathTokens = apiEndpoint.path.split("/");
+    if (tracePathTokens.length !== endpointPathTokens.length) {
+      return;
+    }
+    for (let i = 0; i < endpointPathTokens.length; i++) {
+      const currToken = endpointPathTokens[i];
+      if (currToken.startsWith("{") && currToken.endsWith("}")) {
+        await this.recursiveParseJson(
+          currToken.slice(1, -1),
+          DataSection.REQUEST_PATH,
+          tracePathTokens[i],
+          apiEndpoint
+        );
       }
     }
   }
@@ -162,28 +197,29 @@ export class ScannerService {
     apiTrace: ApiTrace,
     apiEndpoint: ApiEndpoint
   ): Promise<void> {
-    await this.findMatchedDataClasses(
-      "req.params",
+    await this.findPathDataFields(apiTrace.path, apiEndpoint);
+    await this.findPairObjectDataFields(
+      DataSection.REQUEST_QUERY,
       apiTrace.requestParameters,
       apiEndpoint
     );
-    await this.findMatchedDataClasses(
-      "req.headers",
+    await this.findPairObjectDataFields(
+      DataSection.REQUEST_HEADER,
       apiTrace.requestHeaders,
       apiEndpoint
     );
-    await this.findMatchedDataClasses(
-      "res.headers",
+    await this.findPairObjectDataFields(
+      DataSection.RESPONSE_HEADER,
       apiTrace.responseHeaders,
       apiEndpoint
     );
-    await this.findMatchedDataClassesBody(
-      "req.body",
+    await this.findBodyDataFields(
+      DataSection.REQUEST_BODY,
       apiTrace.requestBody,
       apiEndpoint
     );
-    await this.findMatchedDataClassesBody(
-      "res.body",
+    await this.findBodyDataFields(
+      DataSection.RESPONSE_BODY,
       apiTrace.responseBody,
       apiEndpoint
     );
@@ -192,11 +228,14 @@ export class ScannerService {
 
   static scan(text: any): Record<DataClass, string[]> {
     const res: Record<DataClass, string[]> = {} as Record<DataClass, string[]>;
-    if (typeof text !== "string") {
+    let convertedText: string;
+    try {
+      convertedText = text.toString();
+    } catch (err) {
       return res;
     }
     DATA_CLASS_REGEX_MAP.forEach((exp, dataClass) => {
-      const matches = text.match(exp);
+      const matches = convertedText.match(exp);
       if (matches?.length > 0) {
         res[dataClass] = matches;
       }
