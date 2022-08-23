@@ -60,7 +60,7 @@ app.use(
       limitSubquery: false, // If using MariaDB.
       ttl: 86400,
     }).connect(AppDataSource.getRepository(SessionModel)),
-    secret: "keyboard cat",
+    secret: process.env.EXPRESS_SECRET,
   })
 );
 
