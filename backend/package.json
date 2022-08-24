@@ -12,7 +12,7 @@
     "start": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register dist/index.js",
     "start-jobs": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register dist/jobs.js",
     "sync-endpoints": "ts-node -r tsconfig-paths/register src/scripts/generate-endpoints.ts",
-    "format": "prettier --write './src/**/*.{ts,tsx}'",
+    "format": "prettier --write './src/**/*.{ts,tsx}'"
   },
   "keywords": [],
   "author": "",
