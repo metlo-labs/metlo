@@ -45,6 +45,7 @@ export class DataFieldService {
       dataField.dataPath = dataPath;
       dataField.dataType = dataType;
       dataField.dataSection = dataSection;
+      dataField.apiEndpointUuid = apiEndpoint.uuid;
       if (matches?.length > 0) {
         dataField.updateMatches(matches);
         dataField.dataTag = DataTag.PII;

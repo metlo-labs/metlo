@@ -42,7 +42,6 @@ import {
   list_connections,
   update_connection,
 } from "./api/connections";
-//import { JobsService } from "services/jobs";
 
 dotenv.config();
 
@@ -118,8 +117,6 @@ const main = async () => {
     app.listen(port, () => {
       console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
     });
-    //await JobsService.generateEndpointsFromTraces();
-    //await EndpointsService.generateOpenApiSpec();
   } catch (err) {
     console.error(`CatchBlockInsideMain: ${err}`);
   }

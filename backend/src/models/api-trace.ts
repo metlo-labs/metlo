@@ -31,10 +31,10 @@ export class ApiTrace extends BaseEntity {
   @Column({ nullable: true })
   owner: string;
 
-  @Column({ type: "jsonb", nullable: true })
+  @Column({ type: "jsonb", nullable: true, default: [] })
   requestParameters: PairObject[];
 
-  @Column({ type: "jsonb", nullable: true })
+  @Column({ type: "jsonb", nullable: true, default: [] })
   requestHeaders: PairObject[];
 
   @Column({ nullable: true })
@@ -43,7 +43,7 @@ export class ApiTrace extends BaseEntity {
   @Column({ type: "integer" })
   responseStatus: number;
 
-  @Column({ type: "jsonb", nullable: true })
+  @Column({ type: "jsonb", nullable: true, default: [] })
   responseHeaders: PairObject[];
 
   @Column({ nullable: true })

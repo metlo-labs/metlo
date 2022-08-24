@@ -9,7 +9,8 @@ const main = async () => {
   }
   console.log("AppDataSource Initialized...");
   console.log("Generating Endpoints...");
-  JobsService.generateEndpointsFromTraces();
+  await JobsService.generateEndpointsFromTraces();
+  console.log("Finished generating Endpoints");
 };
 
 main();

@@ -172,6 +172,7 @@ export class JobsService {
         apiEndpoint.totalCalls = value.traces.length;
         apiEndpoint.method = value.traces[0].method;
         apiEndpoint.owner = value.traces[0].owner;
+        await apiEndpointRepository.save(apiEndpoint);
 
         // TODO: Do something with setting sensitive data classes during iteration of traces and add auto generated open api spec for inferred endpoints
         for (let i = 0; i < value.traces.length; i++) {
