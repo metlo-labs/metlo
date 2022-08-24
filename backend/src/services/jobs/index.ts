@@ -65,26 +65,29 @@ export class JobsService {
       return bodySchema;
     } else {
       return {
-        type: getDataType(parsedBody),
+        type: dataType,
       };
     }
   }
 
   static parseContent(bodySpec: BodyContent, bodyString: string, key: string) {
-    const parsedBody = parsedJson(bodyString);
+    let parsedBody = parsedJson(bodyString);
     let nonNullKey: string;
     if (!parsedBody && bodyString) {
       nonNullKey = key || "text/plain";
-      bodySpec[nonNullKey] = {};
+      parsedBody = bodyString;
     } else if (parsedBody) {
-      nonNullKey = key || "application/json";
-      if (!bodySpec?.[nonNullKey]) {
-        bodySpec[nonNullKey] = { schema: {} };
-      }
-      bodySpec[nonNullKey] = {
-        schema: this.parseSchema(bodySpec[nonNullKey].schema, parsedBody),
-      };
+      const dataType = getDataType(parsedBody);
+      nonNullKey = key || (dataType === DataType.OBJECT ? "application/json" : "text/plain");
+    } else {
+      return;
     }
+    if (!bodySpec?.[nonNullKey]) {
+      bodySpec[nonNullKey] = { schema: {} };
+    }
+    bodySpec[nonNullKey] = {
+      schema: this.parseSchema(bodySpec[nonNullKey].schema, parsedBody),
+    };
   }
 
   static async generateEndpointsFromTraces(): Promise<void> {
