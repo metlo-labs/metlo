@@ -173,7 +173,19 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
     const onSaveRequest = async () => {
       updateSaving(true);
       saveTest(state.test, endpoint.uuid)
-        .catch((err) => console.log(err))
+        .then((e) => {
+          toast({
+            title: "Saved Request",
+            status: "success",
+          });
+        })
+        .catch((err) => {
+          toast({
+            title: "Error Saving",
+            description: err.message,
+            status: "error",
+          });
+        })
         .finally(() => updateSaving(false));
     };
 
@@ -201,7 +213,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
                 fontSize="2xl"
                 fontWeight="semibold"
               >
-                <EditablePreview/>
+                <EditablePreview />
                 <EditableInput />
               </Editable>
             </HStack>
