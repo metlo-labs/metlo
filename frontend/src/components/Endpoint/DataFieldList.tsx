@@ -273,6 +273,7 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
         conditionalRowStyles={conditionalStyles}
         noDataComponent={
           <EmptyView
+            minH="100px"
             text={`No ${DATA_SECTION_TO_LABEL_MAP[data.section]} fields.`}
             notRounded
           />
@@ -289,6 +290,7 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
         style={rowStyles}
         customStyles={getCustomStyles(colorMode.colorMode)}
         expandableRowsComponent={(props) => expandedComponent(props.data)}
+        expandableRowExpanded={(row) => row.dataFields?.length > 0}
       />
     );
 
