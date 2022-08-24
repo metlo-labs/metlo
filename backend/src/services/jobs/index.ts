@@ -37,7 +37,7 @@ interface BodyContent {
 }
 
 interface Responses {
-  [key: string]: { headers?: BodyContent; content?: BodyContent };
+  [key: string]: { description: string; headers?: BodyContent; content?: BodyContent };
 }
 
 export class JobsService {
@@ -309,6 +309,7 @@ export class JobsService {
             }
             if (!responses[responseStatusString]?.headers) {
               responses[responseStatusString] = {
+                description: `${responseStatusString} description`,
                 ...responses[responseStatusString],
                 headers: {},
               };
@@ -325,6 +326,7 @@ export class JobsService {
           if (responseBody) {
             if (!responses[responseStatusString]?.content) {
               responses[responseStatusString] = {
+                description: `${responseStatusString} description`,
                 ...responses[responseStatusString],
                 content: {},
               };
