@@ -30,6 +30,7 @@ class EcommerceMakeCartProducer(BaseProducer):
                     "path": "/cart",
                     "parameters": []
                 },
+                "headers": [],
                 "method": "POST",
                 "body": "",
             },

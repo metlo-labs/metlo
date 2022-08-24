@@ -35,6 +35,7 @@ class EcommerceMakeProductProducer(BaseProducer):
                     "path": "/product",
                     "parameters": []
                 },
+                "headers": [],
                 "method": "POST",
                 "body": json.dumps(req_body),
             },

@@ -57,6 +57,7 @@ class EcommerceAddProductToCartProducer(BaseProducer):
                     "path": f"/cart/{cart_uuid}/add-product",
                     "parameters": []
                 },
+                "headers": [],
                 "method": "POST",
                 "body": json.dumps(req_body),
             },

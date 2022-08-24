@@ -61,6 +61,7 @@ class EcommerceMakePurchaseProducer(BaseProducer):
                     "path": f"/cart/{cart_uuid}/purchase",
                     "parameters": []
                 },
+                "headers": [],
                 "method": "POST",
                 "body": json.dumps(req_body),
             },
