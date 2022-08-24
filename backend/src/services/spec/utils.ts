@@ -27,6 +27,8 @@ export const generateAlertMessageFromReqErrors = (
           return `Property '${error.path}' ${error.message} in request ${error.location}`;
         case "additionalProperties":
           return `Property '${error.path}' is present in request ${error.location} without being defined in OpenAPI Spec`;
+        case "format":
+          return `Property '${error.path}' ${error.message} in request ${error.location}`;
         default:
           return `${error.message}: '${error.path}' in request ${error.location}`;
       }
@@ -46,6 +48,8 @@ export const generateAlertMessageFromRespErrors = (
           return `Property '${error.path}' ${error.message} in response body`;
         case "additionalProperties":
           return `Property '${error.path}' is present in response body without being defined in OpenAPI Spec`;
+        case "format":
+          return `Property '${error.path}' ${error.message} in response body`;
         default:
           return `${error.message}: '${error.path}' in response body`;
       }

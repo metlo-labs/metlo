@@ -246,7 +246,7 @@ export class SpecService {
           return error;
         },
         additionalQueryProperties: false,
-        enableHeadersLowercase: false,
+        enableHeadersLowercase: true,
       });
       const headers = {};
       const body = parsedJsonNonNull(trace.requestBody);
