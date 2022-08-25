@@ -103,13 +103,14 @@ export interface RESPONSE {
       parameters: Array<HEADERS>;
     };
     headers: Array<HEADERS>;
-    body: string;
+    body?: string;
     method: string;
   };
   response: {
+    url: string;
     status: number;
     headers: Array<HEADERS>;
-    body: string;
+    body?: string;
   };
   meta: {
     environment: "production";
