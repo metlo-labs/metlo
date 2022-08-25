@@ -2,6 +2,7 @@ import validator from "validator";
 import { DataField } from "models";
 import { pathParameterRegex } from "~/constants";
 import { DataType, RiskScore } from "@common/enums";
+import wordJson from "./words.json";
 
 export const isSuspectedParamater = (value: string): boolean => {
   if (!isNaN(Number(value))) {
@@ -9,6 +10,12 @@ export const isSuspectedParamater = (value: string): boolean => {
   }
   if (validator.isUUID(value)) {
     return true;
+  }
+  const splitParam = value.split(/[-_]/);
+  for (const token of splitParam) {
+    if (!wordJson[token]) {
+      return true;
+    }
   }
   return false;
 };
@@ -46,8 +53,8 @@ export const getDataType = (data: any): DataType => {
   if (typeof data === "boolean") {
     return DataType.BOOLEAN;
   }
-  if (Number(data)) {
-    if (Number.isInteger(Number(data))) {
+  if (typeof data === "number") {
+    if (Number.isInteger(data)) {
       return DataType.INTEGER;
     }
     return DataType.NUMBER;
