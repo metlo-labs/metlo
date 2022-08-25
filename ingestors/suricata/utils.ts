@@ -61,43 +61,25 @@ export function prepareResponse(
   let src_complete_url = new URL(alert.app_proto + "://" + alert.src_ip);
   const resp: RESPONSE = {
     request: {
-      src: {
+      url: {
         base_url: src_complete_url.href,
-      },
-      dst: {
-        base_url: remote_complete_url.href.replace(
-          remote_complete_url.search,
-          ""
-        ),
-        parameters: Array.from(remote_complete_url.searchParams.entries()).map(
-          (v) => ({ name: v[0], value: v[1] })
+        path: src_complete_url.pathname,
+        parameters: Array.from(src_complete_url.searchParams).map(
+          ([key, val]) => ({ name: key, value: val })
         ),
       },
       method: alert.http.http_method,
       headers: meta?.metadata.request_headers || [],
-      body: {
-        decoded: Boolean(alert.http.http_request_body_printable),
-        value: alert.http.http_request_body_printable || null,
-      },
+      body: alert.http.http_request_body_printable || null,
     },
     response: {
+      url: remote_complete_url.href,
       status: alert.http.status,
-      src: {
-        base_url: remote_complete_url.href.replace(
-          remote_complete_url.search,
-          ""
-        ),
-      },
-      dst: {
-        base_url: src_complete_url.href,
-      },
       headers: meta?.metadata.response_headers || [],
-      body: {
-        decoded: Boolean(alert.http.http_response_body_printable),
-        value: alert.http.http_request_body_printable,
-      },
+      body: alert.http.http_request_body_printable || null,
     },
     meta: {
+      environment: "production",
       incoming: true,
       source: alert.src_ip,
       source_port: alert.src_port,

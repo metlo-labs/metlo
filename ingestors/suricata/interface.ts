@@ -97,35 +97,22 @@ export interface ALERT extends COMMON {
 
 export interface RESPONSE {
   request: {
-    src: {
+    url: {
       base_url: string;
-    };
-    dst: {
-      base_url: string;
+      path: string;
       parameters: Array<HEADERS>;
     };
     headers: Array<HEADERS>;
-    body: {
-      decoded: boolean;
-      value: string | null;
-    };
+    body: string;
     method: string;
   };
   response: {
     status: number;
-    src: {
-      base_url: string;
-    };
-    dst: {
-      base_url: string;
-    };
     headers: Array<HEADERS>;
-    body: {
-      decoded: boolean;
-      value: string | null;
-    };
+    body: string;
   };
   meta: {
+    environment: "production";
     incoming: true;
     source: string;
     source_port: number;
