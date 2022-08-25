@@ -27,8 +27,8 @@ export class Alert extends BaseEntity {
   @ManyToOne(() => ApiEndpoint, (apiEndpoint) => apiEndpoint.alerts)
   apiEndpoint: ApiEndpoint;
 
-  @Column("varchar", { array: true, default: [] })
-  description: string[];
+  @Column({ nullable: false })
+  description: string;
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date;
@@ -41,4 +41,7 @@ export class Alert extends BaseEntity {
 
   @Column({ nullable: true })
   resolutionMessage: string;
+
+  @Column("jsonb", { nullable: false, default: {} })
+  context: object;
 }

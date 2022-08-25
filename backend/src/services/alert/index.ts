@@ -1,6 +1,6 @@
 import { FindOptionsWhere } from "typeorm";
 import { AppDataSource } from "data-source";
-import { Alert, ApiEndpoint } from "models";
+import { Alert, ApiEndpoint, ApiTrace } from "models";
 import { AlertType } from "@common/enums";
 import { ALERT_TYPE_TO_RISK_SCORE, RISK_SCORE_ORDER_QUERY } from "~/constants";
 import { GetAlertParams, Alert as AlertResponse } from "@common/types";
@@ -67,20 +67,51 @@ export class AlertService {
     return await alertRepository.findOneBy(conditions);
   }
 
+  static async existingUnresolvedAlert(
+    apiEndpointUuid: string,
+    type: AlertType,
+    description: string
+  ) {
+    const alertRepository = AppDataSource.getRepository(Alert);
+    return await alertRepository.findOneBy({
+      apiEndpointUuid,
+      type,
+      resolved: false,
+      description,
+    });
+  }
+
   static async createAlert(
     alertType: AlertType,
     apiEndpoint: ApiEndpoint,
-    description?: string[],
+    description?: string,
+    context?: object,
     noDuplicate?: boolean
   ): Promise<Alert> {
     const alertRepository = AppDataSource.getRepository(Alert);
+    let alertDescription = description;
+    if (!alertDescription) {
+      switch (alertType) {
+        case AlertType.NEW_ENDPOINT:
+          alertDescription = `A new endpoint has been detected: ${apiEndpoint.path}`;
+          break;
+        case AlertType.OPEN_API_SPEC_DIFF:
+          alertDescription = `A OpenAPI Spec diff has been detected.`;
+          break;
+        case AlertType.PII_DATA_DETECTED:
+          alertDescription = `PII Data has been detected.`;
+          break;
+        default:
+          alertDescription = `A new alert.`;
+      }
+    }
     if (noDuplicate) {
-      const existingUnresolvedAlert = alertRepository.findOneBy({
-        apiEndpointUuid: apiEndpoint.uuid,
-        type: alertType,
-        resolved: false,
-      });
-      if (existingUnresolvedAlert) {
+      const existing = await this.existingUnresolvedAlert(
+        apiEndpoint.uuid,
+        alertType,
+        alertDescription
+      );
+      if (existing) {
         return null;
       }
     }
@@ -88,20 +119,42 @@ export class AlertService {
     newAlert.type = alertType;
     newAlert.riskScore = ALERT_TYPE_TO_RISK_SCORE[alertType];
     newAlert.apiEndpoint = apiEndpoint;
-    if (description) {
-      newAlert.description = description;
-    } else {
-      switch (alertType) {
-        case AlertType.NEW_ENDPOINT:
-          newAlert.description = [
-            `A new endpoint has been detected: ${apiEndpoint.path}`,
-          ];
-          break;
-        default:
-          newAlert.description = [`A new alert.`];
+    newAlert.context = context;
+    newAlert.description = alertDescription;
+    return await alertRepository.save(newAlert);
+  }
+
+  static async createSpecDiffAlerts(
+    alertItems: Record<string, string[]>,
+    apiEndpointUuid: string,
+    apiTrace: ApiTrace,
+  ): Promise<Alert[]> {
+    if (!alertItems || Object.keys(alertItems)?.length === 0) {
+      return;
+    }
+    const alertRepository = AppDataSource.getRepository(Alert);
+    let alerts: Alert[] = [];
+    for (const key in alertItems) {
+      const existing = await this.existingUnresolvedAlert(
+        apiEndpointUuid,
+        AlertType.OPEN_API_SPEC_DIFF,
+        key
+      );
+      if (!existing) {
+        const newAlert = new Alert();
+        newAlert.type = AlertType.OPEN_API_SPEC_DIFF;
+        newAlert.riskScore =
+          ALERT_TYPE_TO_RISK_SCORE[AlertType.OPEN_API_SPEC_DIFF];
+        newAlert.apiEndpointUuid = apiEndpointUuid;
+        newAlert.context = {
+          pathPointer: alertItems[key],
+          trace: apiTrace
+        };
+        newAlert.description = key;
+        alerts.push(newAlert);
       }
     }
-    return await alertRepository.save(newAlert);
+    return await alertRepository.save(alerts);
   }
 
   static async resolveAlert(

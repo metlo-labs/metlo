@@ -120,18 +120,7 @@ const AlertDetail: React.FC<AlertDetailProps> = React.memo(
           <VStack w="full" alignItems="flex-start">
             <Text fontWeight="semibold">Description</Text>
             <Code p="3" rounded="md" w="full" fontSize="sm">
-              {currAlert.description?.length > 1 ? (
-                <List marginLeft="20px" css={{ textIndent: "-22px" }}>
-                  {currAlert.description.map((item, idx) => (
-                    <ListItem key={idx}>
-                      <ListIcon as={AiOutlineRight} />
-                      {item}
-                    </ListItem>
-                  ))}
-                </List>
-              ) : (
-                currAlert.description[0] || "No description."
-              )}
+              {currAlert.description}
             </Code>
           </VStack>
           <VStack w="full" alignItems="flex-start">

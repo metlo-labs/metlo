@@ -37,7 +37,11 @@ interface BodyContent {
 }
 
 interface Responses {
-  [key: string]: { description: string; headers?: BodyContent; content?: BodyContent };
+  [key: string]: {
+    description: string;
+    headers?: BodyContent;
+    content?: BodyContent;
+  };
 }
 
 export class JobsService {
@@ -78,7 +82,9 @@ export class JobsService {
       parsedBody = bodyString;
     } else if (parsedBody) {
       const dataType = getDataType(parsedBody);
-      nonNullKey = key || (dataType === DataType.OBJECT ? "application/json" : "text/plain");
+      nonNullKey =
+        key ||
+        (dataType === DataType.OBJECT ? "application/json" : "text/plain");
     } else {
       return;
     }

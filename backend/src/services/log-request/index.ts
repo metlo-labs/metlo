@@ -44,10 +44,7 @@ export class LogRequestService {
       if (apiEndpoint) {
         apiEndpoint.totalCalls += 1;
         // Check for sensitive data
-        await DataFieldService.findAllDataFields(
-          apiTraceObj,
-          apiEndpoint
-        );
+        await DataFieldService.findAllDataFields(apiTraceObj, apiEndpoint);
         apiTraceObj.apiEndpointUuid = apiEndpoint.uuid;
         await apiEndpointRepository.save(apiEndpoint);
         await SpecService.findOpenApiSpecDiff(apiTraceObj, apiEndpoint);
