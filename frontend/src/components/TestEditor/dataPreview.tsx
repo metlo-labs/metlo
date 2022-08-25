@@ -61,6 +61,12 @@ const DataPreview: React.FC<DataPreviewInterface> = ({ res }) => {
     return null;
   }
 
+  let prettyContent = res.body;
+  const contentTypeHeader = res.headers.find((e) => e.key == "Content-Type");
+  if (contentTypeHeader && contentTypeHeader.value == "application/json") {
+    prettyContent = JSON.stringify(JSON.parse(res.body), null, 4);
+  }
+
   return (
     <VStack spacing="0" h="full" w="full">
       <HStack spacing="0" p="2" {...group} w="full">
@@ -85,7 +91,7 @@ const DataPreview: React.FC<DataPreviewInterface> = ({ res }) => {
             height="100%"
             width="100%"
             defaultLanguage="json"
-            value={res.body}
+            value={prettyContent}
             options={{
               minimap: {
                 enabled: false,

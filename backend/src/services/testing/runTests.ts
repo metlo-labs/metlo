@@ -56,7 +56,7 @@ export const mapNewmanResult = (e: NewmanRunSummary): Result[] => {
     statusText: execution.response.status,
     // @ts-ignore
     duration: execution.response.responseTime,
-    testResults: execution.assertions.map((e) => ({
+    testResults: (execution.assertions || []).map((e) => ({
       name: e.assertion,
       success: !e.error,
       output: JSON.stringify(e.error, null, 4),
