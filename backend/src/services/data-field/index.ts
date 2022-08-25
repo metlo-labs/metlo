@@ -127,9 +127,13 @@ export class DataFieldService {
     body: string,
     apiEndpoint: ApiEndpoint
   ): Promise<void> {
-    if (body) {
-      const jsonBody = parsedJson(body);
-      if (jsonBody) {
+    if (!body) {
+      return;
+    }
+    const jsonBody = parsedJson(body);
+    if (jsonBody) {
+      const dataType = getDataType(jsonBody);
+      if (dataType === DataType.OBJECT) {
         for (let key in jsonBody) {
           await this.recursiveParseJson(
             key,
@@ -138,9 +142,13 @@ export class DataFieldService {
             apiEndpoint
           );
         }
-      } else {
-        await this.recursiveParseJson("", dataSection, body, apiEndpoint);
+      } else if (dataType === DataType.ARRAY) {
+        for (let item of jsonBody) {
+          await this.recursiveParseJson("", dataSection, item, apiEndpoint);
+        }
       }
+    } else {
+      await this.recursiveParseJson("", dataSection, body, apiEndpoint);
     }
   }
 
