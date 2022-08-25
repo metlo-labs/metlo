@@ -85,7 +85,7 @@ const DataPreview: React.FC<DataPreviewInterface> = ({ res }) => {
             height="100%"
             width="100%"
             defaultLanguage="json"
-            value={JSON.stringify(res.body, null, 4)}
+            value={res.body}
             options={{
               minimap: {
                 enabled: false,
@@ -98,7 +98,7 @@ const DataPreview: React.FC<DataPreviewInterface> = ({ res }) => {
         ) : null}
         {selectedValue === "Raw" ? (
           <Code h="full" w="full" overflow="scroll">
-            <pre>{JSON.stringify(res.body)}</pre>
+            <pre>{res.body}</pre>
           </Code>
         ) : null}
       </Box>

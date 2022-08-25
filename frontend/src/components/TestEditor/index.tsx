@@ -119,55 +119,26 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
 
     const sendSelectedRequest = () => {
       updateFetching(true);
-      sendRequest(test.requests[selectedRequest])
-        .then((e) => {
-          const result = {
-            code: e.status,
-            statusText: e.statusText,
-            headers: Object.entries(e.headers).map((e) => ({
-              key: e[0],
-              value: e[1] as string,
-            })),
-            testResults: [],
-            body: e.data,
-            duration: e.duration,
-          };
-          updateRequest((e) => ({ ...e, result }));
+      runTest({
+        ...test,
+        requests: [test.requests[selectedRequest]],
+      })
+        .then((res) => {
+          updateTest((e) => ({
+            ...e,
+            requests: e.requests.map((req, i) =>
+              i == selectedRequest ? { ...req, result: res[0] } : req
+            ),
+          }));
         })
-        .catch((e) => {
-          if (e instanceof AxiosError) {
-            if (e.code === "ERR_NETWORK") {
-              toast({
-                title: e.message,
-                description: "More information availabe in the console",
-                status: "error",
-              });
-            } else {
-              const result = {
-                code: e.response.status,
-                statusText: e.response.statusText,
-                headers: [] as any,
-                testResults: [],
-                body: e.response.data as any,
-                duration: e.response.duration,
-              };
-              updateRequest((e) => ({ ...e, result }));
-            }
-          } else if (e instanceof Error) {
-            toast({ title: e.name, description: e.message, status: "error" });
-            console.log(e);
-          } else {
-            toast({
-              title: "Encountered an error",
-              description: "More information available in the console",
-              status: "error",
-            });
-            console.log(e);
-          }
+        .catch((err) => {
+          toast({
+            title: "Error Running Test",
+            description: err.message,
+            status: "error",
+          });
         })
-        .finally(() => {
-          updateFetching(false);
-        });
+        .finally(() => updateFetching(false));
     };
 
     const onSaveRequest = async () => {
@@ -190,7 +161,22 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
     };
 
     const onRunClick = () => {
-      runTest(test);
+      updateFetching(true);
+      runTest(test)
+        .then((res) => {
+          updateTest((e) => ({
+            ...e,
+            requests: e.requests.map((req, i) => ({ ...req, result: res[i] })),
+          }));
+        })
+        .catch((err) => {
+          toast({
+            title: "Error Running Test",
+            description: err.message,
+            status: "error",
+          });
+        })
+        .finally(() => updateFetching(false));
     };
 
     return (
@@ -218,7 +204,11 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
               </Editable>
             </HStack>
             <HStack>
-              <Button colorScheme="blue" onClick={onRunClick}>
+              <Button
+                colorScheme="blue"
+                onClick={onRunClick}
+                isLoading={fetching}
+              >
                 Run
               </Button>
               <Button

@@ -11,11 +11,13 @@ import {
   StackDivider,
   Flex,
   useColorModeValue,
+  Box,
 } from "@chakra-ui/react";
 import { Result } from "@common/testing/types";
-import EmptyView from "../utils/EmptyView";
 import { SectionHeader } from "../utils/Card";
 import { statusToColor } from "../../constants";
+import { BiCheckCircle } from "@react-icons/all-files/bi/BiCheckCircle";
+import { GiCancel } from "@react-icons/all-files/gi/GiCancel";
 import DataPreview from "./dataPreview";
 
 const Response: React.FC<{ res: Result }> = React.memo(({ res }) => {
@@ -59,13 +61,15 @@ const Response: React.FC<{ res: Result }> = React.memo(({ res }) => {
           </Text>
         </HStack>
       </Flex>
-      <TabPanels flexGrow="1">
+      <TabPanels flexGrow="1" overflow="hidden">
         <TabPanel p="0" h="full">
           <DataPreview res={res} />
         </TabPanel>
-        <TabPanel p="0">
+        <TabPanel p="0" h="full">
           <VStack
             w="full"
+            h="full"
+            overflow="scroll"
             divider={<StackDivider />}
             spacing="0"
             borderBottom="1px"
@@ -100,8 +104,39 @@ const Response: React.FC<{ res: Result }> = React.memo(({ res }) => {
             })}
           </VStack>
         </TabPanel>
-        <TabPanel p="0">
-          <EmptyView />
+        <TabPanel p="0" h="full">
+          <VStack
+            w="full"
+            h="full"
+            overflow="scroll"
+            divider={<StackDivider />}
+            spacing="0"
+            borderBottom="1px"
+            borderColor="gray.200"
+            pt="4"
+          >
+            {Object.values(res.testResults).map((e, i) => {
+              return (
+                <HStack
+                  key={i}
+                  spacing="0"
+                  w="full"
+                  color={e.success ? "green.500" : "red.500"}
+                >
+                  <Text
+                    rounded="none"
+                    border="none"
+                    fontWeight="medium"
+                    fontSize="sm"
+                    p="2"
+                  >
+                    {e.name}
+                  </Text>
+                  {e.success ? <BiCheckCircle /> : <GiCancel />}
+                </HStack>
+              );
+            })}
+          </VStack>
         </TabPanel>
       </TabPanels>
     </Tabs>

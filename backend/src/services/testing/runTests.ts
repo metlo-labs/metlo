@@ -1,11 +1,11 @@
-import newman from "newman";
+import newman, { NewmanRunSummary } from "newman";
 import {
   CollectionDefinition,
   RequestDefinition,
   RequestBodyDefinition,
 } from "postman-collection";
 import { RequestBodyType } from "@common/testing/enums";
-import { Request } from "@common/testing/types";
+import { Request, Result } from "@common/testing/types";
 import { Test } from "@common/testing/types";
 
 const requestToItem = (e: Request, i: number) => {
@@ -41,21 +41,49 @@ const requestToItem = (e: Request, i: number) => {
   return item;
 };
 
-export const runTest = (e: Test) => {
+export const mapNewmanResult = (e: NewmanRunSummary): Result[] => {
+  return e.run.executions.map((execution, i) => ({
+    // @ts-ignore
+    body: execution.response.stream.toString(),
+    // @ts-ignore
+    headers: execution.response.headers.map((h: any) => ({
+      key: h.key,
+      value: h.value,
+    })),
+    // @ts-ignore
+    code: execution.response.code,
+    // @ts-ignore
+    statusText: execution.response.status,
+    // @ts-ignore
+    duration: execution.response.responseTime,
+    testResults: execution.assertions.map((e) => ({
+      name: e.assertion,
+      success: !e.error,
+      output: JSON.stringify(e.error, null, 4),
+    })),
+  }));
+};
+
+export const runTest = (e: Test): Promise<Result[]> => {
   const items = e.requests.map(requestToItem);
   const collection: CollectionDefinition = {
     info: {
-      name: "Sample Postman Collection",
+      name: "Postman Collection",
     },
     item: items,
   };
-  const res = newman.run(
-    {
-      collection,
-    },
-    (a, b) => {
-      console.log(JSON.stringify(a, null, 4));
-      console.log(JSON.stringify(b, null, 4));
-    }
-  );
+  return new Promise((resolve, reject) => {
+    newman.run(
+      {
+        collection,
+      },
+      (err, res) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(mapNewmanResult(res));
+      }
+    );
+  });
 };

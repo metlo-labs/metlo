@@ -8,9 +8,12 @@ export const runTestHandler = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  console.log(req.body);
-  runTest(req.body.test);
-  await ApiResponseHandler.success(res, null);
+  try {
+    const testRes = await runTest(req.body.test);
+    await ApiResponseHandler.success(res, testRes);
+  } catch (err) {
+    await ApiResponseHandler.error(res, err);
+  }
 };
 
 export const saveTest = async (req: Request, res: Response): Promise<void> => {

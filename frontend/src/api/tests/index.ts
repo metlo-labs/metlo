@@ -1,11 +1,12 @@
 import axios from "axios";
 import { getAPIURL } from "~/constants";
-import { TestDetailed, Test } from "@common/testing/types";
+import { TestDetailed, Test, Result } from "@common/testing/types";
 
 export const runTest = async (test: Test) => {
-  const resp = await axios.post<any>(`${getAPIURL()}/test/run`, {
+  const resp = await axios.post<Result[]>(`${getAPIURL()}/test/run`, {
     test,
   });
+  return resp.data;
 };
 
 export const listTests = async () => {

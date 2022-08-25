@@ -45,7 +45,12 @@ const RequestEditor: React.FC<RequestEditorProps> = React.memo(
       <Box flexGrow="1" h="full">
         <Box w="full" height="full" position="relative">
           {/* @ts-ignore */}
-          <SplitPane split="horizontal" minSize="0" defaultSize="50%">
+          <SplitPane
+            split="horizontal"
+            minSize="0"
+            defaultSize="50%"
+            paneStyle={{ overflow: "hidden" }}
+          >
             <VStack w="full" spacing="0">
               <HStack w="full" spacing="0" px="4" pt="4" pb="2">
                 <Box w="36">
