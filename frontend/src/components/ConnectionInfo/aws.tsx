@@ -99,10 +99,10 @@ const AWS_INFO: React.FC<AWS_INFOInterface> = ({
       <GridItem colStart={2} colSpan={3} alignSelf={"center"}>
         <Flex alignSelf={"center"} gap={2} w={"full"}>
           <Box alignSelf={"center"} w={"full"} fontWeight="bold">
-            s{connection.aws.selected_instance_type}
+            {connection.aws.selected_instance_type}
           </Box>
           <Link
-            href={`https://${connection.aws.region}.console.aws.amazon.com/ec2/v2/home?region=${connection.aws.region}#InstanceDetails:instanceId=${connection.aws.mirror_target_id}`}
+            href={`https://${connection.aws.region}.console.aws.amazon.com/ec2/v2/home?region=${connection.aws.region}#InstanceDetails:instanceId=${connection.aws.mirror_instance_id}`}
             target="_blank"
           >
             <Button aria-label="See on aws" bg={"transparent"} p={0}>

@@ -10,6 +10,7 @@ interface KeySetupInterface {
 const KeySetup: React.FC<KeySetupInterface> = ({ complete, name, setName }) => {
   const [accessId, setAccessId] = useState("");
   const [secretAccessKey, setSecretAccessKey] = useState("");
+  const [region, setRegion] = useState("");
 
   return (
     <Grid
@@ -49,6 +50,14 @@ const KeySetup: React.FC<KeySetupInterface> = ({ complete, name, setName }) => {
           />
         </Box>
       </GridItem>
+      <GridItem colSpan={1}>
+        <Box>Region</Box>
+      </GridItem>
+      <GridItem colSpan={2}>
+        <Box>
+          <Input onChange={(e) => setRegion(e.target.value)} value={region} />
+        </Box>
+      </GridItem>
       <GridItem w={"full"} colSpan={3}>
         <Flex justifyContent={"flex-end"} my={4}>
           <Button
@@ -56,9 +65,10 @@ const KeySetup: React.FC<KeySetupInterface> = ({ complete, name, setName }) => {
               complete({
                 access_id: accessId,
                 secret_access_key: secretAccessKey,
+                region: region,
               })
             }
-            disabled={!(accessId && secretAccessKey)}
+            disabled={!(accessId && secretAccessKey && region)}
           >
             Next Step
           </Button>

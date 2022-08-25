@@ -10,8 +10,14 @@ services:
     volumes:
       - db:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init_db.sql
+    ports:
+    # WARNING : DB **SHOULD NEVER** BE EXPOSED IN THE PROD INSTANCE. Be careful when using the local docker compose.
+      - 5432:5432
   backend:
-    image: metlo/backend
+    build:
+      context: ./
+      dockerfile: ./deploy/backend/Dockerfile
+    # image: metlo/backend
     container_name: metlo-backend
     restart: unless-stopped
     ports:
@@ -28,7 +34,10 @@ services:
     environment:
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
   frontend:
-    image: metlo/frontend
+    # image: metlo/frontend
+    build:
+      context: ./
+      dockerfile: ./deploy/frontend/Dockerfile
     container_name: metlo-frontend
     restart: unless-stopped
     environment:

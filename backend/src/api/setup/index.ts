@@ -71,9 +71,9 @@ export const aws_os_choices = async (
   res: Response
 ): Promise<void> => {
   const { id } = req.body;
-  const { access_id, secret_access_key } =
+  const { access_id, secret_access_key, region } =
     req.session.connection_config[id].data;
-  let conn = new EC2_CONN(access_id, secret_access_key);
+  let conn = new EC2_CONN(access_id, secret_access_key, region);
   let choices = await conn.get_latest_image();
   await ApiResponseHandler.success(res, [
     [choices.Description, choices.ImageId],
@@ -86,9 +86,9 @@ export const aws_instance_choices = async (
 ): Promise<void> => {
   try {
     const { id, specs } = req.body;
-    const { access_id, secret_access_key, virtualization_type } =
+    const { access_id, secret_access_key, virtualization_type, region } =
       req.session.connection_config[id].data;
-    let conn = new EC2_CONN(access_id, secret_access_key);
+    let conn = new EC2_CONN(access_id, secret_access_key, region);
     let choices = await conn.get_valid_types(
       virtualization_type as VirtualizationType,
       specs

@@ -6,6 +6,7 @@ import {
 } from "@aws-sdk/client-ec2";
 import { randomUUID } from "crypto";
 import { EC2_CONN } from "./create-ec2-instance";
+import { STSClient } from "@aws-sdk/client-sts";
 import {
   create_mirror_filter,
   create_mirror_filter_rules,
@@ -18,6 +19,7 @@ import {
   get_public_ip_for_network_interface,
   list_all_instances,
   match_av_to_region,
+  verifyIdentity,
 } from "./utils";
 
 import { STEP_RESPONSE } from "@common/types";
@@ -25,15 +27,18 @@ import { STEP_RESPONSE } from "@common/types";
 export async function aws_key_setup({
   access_id,
   secret_access_key,
+  region,
+  ...rest
 }): Promise<STEP_RESPONSE> {
   try {
-    let client = new EC2Client({
+    let client = new STSClient({
       credentials: {
-        secretAccessKey: secret_access_key,
         accessKeyId: access_id,
+        secretAccessKey: secret_access_key,
       },
+      region,
     });
-    let region = await list_all_instances(client);
+    await verifyIdentity(client);
     client.destroy();
     return {
       success: "OK",
@@ -46,6 +51,8 @@ export async function aws_key_setup({
       data: {
         secret_access_key: secret_access_key,
         access_id: access_id,
+        region,
+        ...rest,
       },
     };
   } catch (err) {
@@ -69,6 +76,8 @@ export async function aws_source_identification({
   access_id,
   secret_access_key,
   source_instance_id,
+  region: _region,
+  ...rest
 }): Promise<STEP_RESPONSE> {
   try {
     let client = new EC2Client({
@@ -76,6 +85,7 @@ export async function aws_source_identification({
         secretAccessKey: secret_access_key,
         accessKeyId: access_id,
       },
+      region: _region,
     });
     let command = new DescribeInstancesCommand({
       InstanceIds: [source_instance_id],
@@ -99,6 +109,7 @@ export async function aws_source_identification({
         access_id: access_id,
         source_instance_id: source_instance_id,
         region: region.RegionName,
+        ...rest,
       },
     };
   } catch (err) {
@@ -115,6 +126,8 @@ export async function aws_source_identification({
       data: {
         secret_access_key: secret_access_key,
         access_id: access_id,
+        region: _region,
+        ...rest,
       },
     };
   }
@@ -124,10 +137,11 @@ export async function aws_os_selection({
   access_id,
   secret_access_key,
   ami,
+  region,
   ...rest
 }): Promise<STEP_RESPONSE> {
   try {
-    let conn = new EC2_CONN(access_id, secret_access_key);
+    let conn = new EC2_CONN(access_id, secret_access_key, region);
     let resp = await conn.image_from_ami(ami);
     conn.disconnect();
     return {
@@ -141,6 +155,7 @@ export async function aws_os_selection({
       data: {
         secret_access_key,
         access_id,
+        region,
         ami,
         virtualization_type: resp[0].VirtualizationType,
         ...rest,
@@ -160,6 +175,8 @@ export async function aws_os_selection({
       data: {
         secret_access_key: secret_access_key,
         access_id: access_id,
+        region,
+        ami,
         ...rest,
       },
     };
@@ -213,6 +230,7 @@ export async function aws_instance_selection({
         region,
         virtualization_type,
         machine_specs,
+        ami,
         ...rest,
       },
     };

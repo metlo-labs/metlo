@@ -9,6 +9,7 @@ import {
   DescribeRegionsCommand,
   DescribeRegionsCommandInput,
 } from "@aws-sdk/client-ec2";
+import { STSClient, GetCallerIdentityCommand } from "@aws-sdk/client-sts";
 
 const characters =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -110,6 +111,10 @@ export async function match_av_to_region(
 ) {
   let regions = await describe_regions(client);
   return regions.Regions.find((v) => availability_zone.includes(v.RegionName));
+}
+
+export async function verifyIdentity(client: STSClient) {
+  await client.send(new GetCallerIdentityCommand({}));
 }
 
 export function retry(fn: Function) {

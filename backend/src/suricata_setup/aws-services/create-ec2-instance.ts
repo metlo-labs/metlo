@@ -24,7 +24,10 @@ import {
   CreateSecurityGroupCommandInput,
   AuthorizeSecurityGroupIngressCommand,
   AuthorizeSecurityGroupIngressCommandInput,
+  DescribeInstancesCommand,
 } from "@aws-sdk/client-ec2";
+
+import { STSClient, GetCallerIdentityCommand } from "@aws-sdk/client-sts";
 
 import { MachineSpecifications } from "@common/types";
 // For pricing approximation
@@ -175,6 +178,16 @@ export class EC2_CONN {
     if (this.conn) this.conn.destroy();
   }
 
+  public async get_caller_identity() {
+    let sts_conn = new STSClient({
+      credentials: {
+        accessKeyId: this.access_id,
+        secretAccessKey: this.secret_key,
+      },
+    });
+    sts_conn.send(new GetCallerIdentityCommand({}));
+  }
+
   public async get_all_images(img_names: Array<string>): Promise<Array<Image>> {
     // Create an Amazon EC2 service client object.
     const input: DescribeImagesCommandInput = {
@@ -205,6 +218,13 @@ export class EC2_CONN {
     ]
   ) {
     let resp = (await this.get_all_images(img_names)).pop();
+    return resp;
+  }
+
+  public async describe_instance(ec2_instance_id) {
+    let resp = await this.get_conn().send(
+      new DescribeInstancesCommand({ InstanceIds: [ec2_instance_id] })
+    );
     return resp;
   }
 
