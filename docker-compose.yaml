@@ -9,7 +9,7 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - db:/var/lib/postgresql/data
-      - ./deploy/db/init.sql:/docker-entrypoint-initdb.d/init_db.sql
+      - ./init.sql:/docker-entrypoint-initdb.d/init_db.sql
   backend:
     image: metlo/backend
     container_name: metlo-backend
