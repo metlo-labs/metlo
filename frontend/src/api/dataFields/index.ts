@@ -1,14 +1,18 @@
 import axios from "axios";
-import { DataField, UpdateDataFieldParams } from "@common/types";
+import {
+  DataField,
+  IgnoreDataClassParams,
+  UpdateDataFieldParams,
+} from "@common/types";
 import { getAPIURL } from "~/constants";
 
-export const updateDataField = async (
+export const ignoreDataClass = async (
   fieldId: string,
-  params: UpdateDataFieldParams
+  params: IgnoreDataClassParams
 ): Promise<DataField> => {
   try {
     const resp = await axios.put<DataField>(
-      `${getAPIURL()}/data-field/${fieldId}`,
+      `${getAPIURL()}/data-field/${fieldId}/ignore`,
       { ...params }
     );
     if (resp.status === 200 && resp.data) {

@@ -10,8 +10,25 @@ import Error500InternalServer from "errors/error-500-internal-server";
 import { RISK_SCORE_ORDER_QUERY } from "~/constants";
 import { Test } from "@common/testing/types";
 import Error404NotFound from "errors/error-404-not-found";
+import { getRiskScore } from "utils";
 
 export class GetEndpointsService {
+  static async updateEndpointRiskScore(
+    apiEndpointUuid: string
+  ): Promise<ApiEndpoint> {
+    const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
+    const apiEndpoint = await apiEndpointRepository.findOne({
+      where: {
+        uuid: apiEndpointUuid,
+      },
+      relations: {
+        dataFields: true,
+      },
+    });
+    apiEndpoint.riskScore = getRiskScore(apiEndpoint.dataFields);
+    return await apiEndpointRepository.save(apiEndpoint);
+  }
+
   static async getEndpoints(
     getEndpointParams: GetEndpointParams
   ): Promise<[ApiEndpointResponse[], number]> {
@@ -94,8 +111,7 @@ export class GetEndpointsService {
         },
         order: {
           dataFields: {
-            isRisk: "DESC",
-            dataClass: "ASC",
+            dataTag: "ASC",
             dataPath: "ASC",
           },
         },

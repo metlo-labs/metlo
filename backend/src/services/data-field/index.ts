@@ -1,98 +1,133 @@
-import { AppDataSource } from "data-source";
-import Error500InternalServer from "errors/error-500-internal-server";
 import { PairObject } from "@common/types";
 import { DataClass, DataSection, DataTag, DataType } from "@common/enums";
 import { ApiEndpoint, ApiTrace, DataField } from "models";
 import { getDataType, getRiskScore, parsedJson } from "utils";
 import { ScannerService } from "services/scanner/scan";
+import { AppDataSource } from "data-source";
+import Error500InternalServer from "errors/error-500-internal-server";
 
 export class DataFieldService {
-  static async updateIsRisk(
-    isRisk: boolean,
-    fieldId: string
-  ): Promise<DataField> {
+  static async ignoreDataClass(
+    dataFieldId: string,
+    dataClass: DataClass,
+    dataPath: string,
+    dataSection: DataSection
+  ) {
     const dataFieldRepository = AppDataSource.getRepository(DataField);
-    const dataField = await dataFieldRepository.findOne({
-      where: { uuid: fieldId },
+    const dataField = await dataFieldRepository.findOneBy({
+      uuid: dataFieldId,
+      dataPath,
+      dataSection,
     });
-    if (!dataField.dataClass) {
+    const dataClasses = dataField.dataClasses;
+    if (!dataClasses.includes(dataClass)) {
       throw new Error500InternalServer(
-        "Cannot update because data field is not identified as sensitive data."
+        "Data class does not exist for data field"
       );
     }
-    dataField.isRisk = isRisk;
+    dataField.dataClasses = dataClasses.filter((item) => item !== dataClass);
+    dataField.falsePositives.push(dataClass);
+    if (dataField.dataClasses.length === 0) {
+      dataField.dataTag = null;
+    }
     return await dataFieldRepository.save(dataField);
   }
 
-  static async saveDataField(
+  static existingDataField(
+    dataFields: DataField[],
+    dataPath: string,
+    dataSection: DataSection
+  ) {
+    for (let i = 0; i < dataFields?.length; i++) {
+      const dataField = dataFields[i];
+      if (
+        dataField.dataPath === dataPath &&
+        dataField.dataSection === dataSection
+      ) {
+        return i;
+      }
+    }
+    return null;
+  }
+
+  static saveDataField(
     dataClass: DataClass,
     dataPath: string,
     dataSection: DataSection,
     apiEndpoint: ApiEndpoint,
     matches: string[],
-    dataValue: any
-  ): Promise<void> {
-    const dataFieldRepository = AppDataSource.getRepository(DataField);
-    const existingDataField = apiEndpoint.existingDataField(
+    dataValue: any,
+    dataFields: DataField[],
+    updatedFields: DataField[]
+  ): void {
+    const existingDataFieldIdx = this.existingDataField(
+      dataFields,
       dataPath,
-      dataClass,
       dataSection
     );
     const dataType = getDataType(dataValue);
-    if (!existingDataField) {
+
+    if (existingDataFieldIdx === null) {
       const dataField = new DataField();
-      dataField.dataClass = dataClass;
       dataField.dataPath = dataPath;
       dataField.dataType = dataType;
       dataField.dataSection = dataSection;
       dataField.apiEndpointUuid = apiEndpoint.uuid;
-      if (matches?.length > 0) {
-        dataField.updateMatches(matches);
+      if (dataClass && matches?.length > 0) {
+        dataField.addDataClass(dataClass);
         dataField.dataTag = DataTag.PII;
-        dataField.isRisk = true;
+        dataField.updateMatches(dataClass, matches);
       }
-      apiEndpoint.addDataField(dataField);
+      dataFields.push(dataField);
+      updatedFields.push(dataField);
     } else {
+      const existingDataField = dataFields[existingDataFieldIdx];
       let updated = false;
-      if (existingDataField.dataClass === null && dataClass !== null) {
-        existingDataField.dataClass = dataClass;
-        existingDataField.updateMatches(matches);
+      updated = existingDataField.addDataClass(dataClass);
+      updated = existingDataField.updateMatches(dataClass, matches) || updated;
+      if (updated) {
         existingDataField.dataTag = DataTag.PII;
-        existingDataField.isRisk = true;
-        updated = true;
       }
+
       if (existingDataField.dataType !== dataType) {
         existingDataField.dataType = dataType;
         updated = true;
       }
-      if (matches?.length > 0) {
-        updated = existingDataField.updateMatches(matches);
-      }
-
       if (updated) {
-        await dataFieldRepository.save(existingDataField);
+        updatedFields.push(existingDataField);
       }
     }
   }
 
-  static async recursiveParseJson(
+  static recursiveParseJson(
     dataPathPrefix: string,
     dataSection: DataSection,
     jsonBody: any,
-    apiEndpoint: ApiEndpoint
-  ): Promise<void> {
+    apiEndpoint: ApiEndpoint,
+    dataFields: DataField[],
+    updatedFields: DataField[]
+  ): void {
     if (getDataType(jsonBody) === DataType.OBJECT) {
       for (const key in jsonBody) {
         this.recursiveParseJson(
           `${dataPathPrefix}.${key}`,
           dataSection,
           jsonBody[key],
-          apiEndpoint
+          apiEndpoint,
+          dataFields,
+          updatedFields
         );
       }
     } else if (getDataType(jsonBody) === DataType.ARRAY) {
       for (const item of jsonBody) {
-        this.recursiveParseJson(dataPathPrefix, dataSection, item, apiEndpoint);
+        this.recursiveParseJson(
+          dataPathPrefix,
+          dataSection,
+          item,
+          apiEndpoint,
+          dataFields,
+          updatedFields
+        );
       }
     } else {
       const matches = ScannerService.scan(jsonBody);
@@ -100,33 +135,39 @@ export class DataFieldService {
       if (matchesKeys?.length > 0) {
         for (const match of matchesKeys) {
           const matchDataClass = match as DataClass;
-          await this.saveDataField(
+          this.saveDataField(
             matchDataClass,
             dataPathPrefix,
             dataSection,
             apiEndpoint,
             matches[match],
-            jsonBody
+            jsonBody,
+            dataFields,
+            updatedFields
           );
         }
       } else {
-        await this.saveDataField(
+        this.saveDataField(
           null,
           dataPathPrefix,
           dataSection,
           apiEndpoint,
           [],
-          jsonBody
+          jsonBody,
+          dataFields,
+          updatedFields
         );
       }
     }
   }
 
-  static async findBodyDataFields(
+  static findBodyDataFields(
     dataSection: DataSection,
     body: string,
-    apiEndpoint: ApiEndpoint
-  ): Promise<void> {
+    apiEndpoint: ApiEndpoint,
+    dataFields: DataField[],
+    updatedFields: DataField[]
+  ): void {
     if (!body) {
       return;
     }
@@ -135,46 +176,68 @@ export class DataFieldService {
       const dataType = getDataType(jsonBody);
       if (dataType === DataType.OBJECT) {
         for (let key in jsonBody) {
-          await this.recursiveParseJson(
+          this.recursiveParseJson(
             key,
             dataSection,
             jsonBody[key],
-            apiEndpoint
+            apiEndpoint,
+            dataFields,
+            updatedFields
           );
         }
       } else if (dataType === DataType.ARRAY) {
         for (let item of jsonBody) {
-          await this.recursiveParseJson("", dataSection, item, apiEndpoint);
+          this.recursiveParseJson(
+            "",
+            dataSection,
+            item,
+            apiEndpoint,
+            dataFields,
+            updatedFields
+          );
         }
       }
     } else {
-      await this.recursiveParseJson("", dataSection, body, apiEndpoint);
+      this.recursiveParseJson(
+        "",
+        dataSection,
+        body,
+        apiEndpoint,
+        dataFields,
+        updatedFields
+      );
     }
   }
 
-  static async findPairObjectDataFields(
+  static findPairObjectDataFields(
     dataSection: DataSection,
     data: PairObject[],
-    apiEndpoint: ApiEndpoint
-  ): Promise<void> {
+    apiEndpoint: ApiEndpoint,
+    dataFields: DataField[],
+    updatedFields: DataField[]
+  ): void {
     if (data) {
       for (const item of data) {
         const field = item.name;
         const jsonBody = parsedJson(item.value);
-        await this.recursiveParseJson(
+        this.recursiveParseJson(
           field,
           dataSection,
           jsonBody ?? item.value,
-          apiEndpoint
+          apiEndpoint,
+          dataFields,
+          updatedFields
         );
       }
     }
   }
 
-  static async findPathDataFields(
+  static findPathDataFields(
     path: string,
-    apiEndpoint: ApiEndpoint
-  ): Promise<void> {
+    apiEndpoint: ApiEndpoint,
+    dataFields: DataField[],
+    updatedFields: DataField[]
+  ): void {
     if (!path || !apiEndpoint?.path) {
       return;
     }
@@ -186,46 +249,70 @@ export class DataFieldService {
     for (let i = 0; i < endpointPathTokens.length; i++) {
       const currToken = endpointPathTokens[i];
       if (currToken.startsWith("{") && currToken.endsWith("}")) {
-        await this.recursiveParseJson(
+        this.recursiveParseJson(
           currToken.slice(1, -1),
           DataSection.REQUEST_PATH,
           tracePathTokens[i],
-          apiEndpoint
+          apiEndpoint,
+          dataFields,
+          updatedFields
         );
       }
     }
   }
 
-  static async findAllDataFields(
+  static findAllDataFields(
     apiTrace: ApiTrace,
-    apiEndpoint: ApiEndpoint
-  ): Promise<void> {
-    await this.findPathDataFields(apiTrace.path, apiEndpoint);
-    await this.findPairObjectDataFields(
+    apiEndpoint: ApiEndpoint,
+    returnAllFields?: boolean
+  ): DataField[] {
+    const dataFields: DataField[] = apiEndpoint.dataFields ?? [];
+    const updatedFields: DataField[] = [];
+    this.findPathDataFields(
+      apiTrace.path,
+      apiEndpoint,
+      dataFields,
+      updatedFields
+    );
+    this.findPairObjectDataFields(
       DataSection.REQUEST_QUERY,
       apiTrace.requestParameters,
-      apiEndpoint
+      apiEndpoint,
+      dataFields,
+      updatedFields
     );
-    await this.findPairObjectDataFields(
+    this.findPairObjectDataFields(
       DataSection.REQUEST_HEADER,
       apiTrace.requestHeaders,
-      apiEndpoint
+      apiEndpoint,
+      dataFields,
+      updatedFields
     );
-    await this.findPairObjectDataFields(
+    this.findPairObjectDataFields(
       DataSection.RESPONSE_HEADER,
       apiTrace.responseHeaders,
-      apiEndpoint
+      apiEndpoint,
+      dataFields,
+      updatedFields
     );
-    await this.findBodyDataFields(
+    this.findBodyDataFields(
       DataSection.REQUEST_BODY,
       apiTrace.requestBody,
-      apiEndpoint
+      apiEndpoint,
+      dataFields,
+      updatedFields
     );
-    await this.findBodyDataFields(
+    this.findBodyDataFields(
       DataSection.RESPONSE_BODY,
       apiTrace.responseBody,
-      apiEndpoint
+      apiEndpoint,
+      dataFields,
+      updatedFields
     );
-    apiEndpoint.riskScore = getRiskScore(apiEndpoint.dataFields);
+    if (returnAllFields) {
+      return dataFields;
+    }
+    apiEndpoint.riskScore = getRiskScore(dataFields);
+    return updatedFields;
   }
 }

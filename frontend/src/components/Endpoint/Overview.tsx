@@ -27,7 +27,7 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
   ({ endpoint, usage }) => {
     const theme = useColorModeValue(lightTheme, darkTheme);
     const piiFields = endpoint.dataFields.filter(
-      (field) => field.dataTag === DataTag.PII && field.isRisk
+      (field) => field.dataTag === DataTag.PII
     );
     return (
       <Stack

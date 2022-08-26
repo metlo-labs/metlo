@@ -7,6 +7,16 @@ import { Session } from "models/sessions";
 import { Connections } from "./connections";
 import { ApiEndpointTest } from "./api-endpoint-test";
 
+export type DatabaseModel =
+  | ApiEndpoint
+  | DataField
+  | ApiTrace
+  | OpenApiSpec
+  | Alert
+  | Session
+  | Connections
+  | ApiEndpointTest;
+
 export {
   ApiEndpoint,
   DataField,

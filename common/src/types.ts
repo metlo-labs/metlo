@@ -79,6 +79,12 @@ export interface GetAlertParams {
   limit?: number;
 }
 
+export interface IgnoreDataClassParams {
+  dataClass: DataClass;
+  dataSection: DataSection;
+  dataPath: string;
+}
+
 export interface UpdateDataFieldParams {
   isRisk: boolean;
 }
@@ -122,15 +128,15 @@ export interface Alert {
 
 export interface DataField {
   uuid: string;
-  dataClass: DataClass;
+  dataClasses: DataClass[];
   dataPath: string;
   dataSection: DataSection;
   dataType: DataType;
   dataTag: DataTag;
+  falsePositives: DataClass[];
   createdAt: Date;
   updatedAt: Date;
-  matches: string[];
-  isRisk: boolean;
+  matches: Record<DataClass, string[]>;
   apiEndpointUuid: string;
 }
 

@@ -30,8 +30,8 @@ export const getRiskScore = (dataFields: DataField[]): RiskScore => {
   }
   let numRiskySensitiveDataClasses = 0;
   for (const dataField of dataFields) {
-    if (dataField.dataClass !== null && dataField.isRisk) {
-      numRiskySensitiveDataClasses += 1;
+    if (dataField.dataClasses) {
+      numRiskySensitiveDataClasses += dataField.dataClasses?.length ?? 0;
     }
   }
   switch (true) {

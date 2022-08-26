@@ -16,7 +16,6 @@ export class SummaryService {
     const endpointsTracked = await apiEndpointRepository.count({});
     const piiDataFields = await dataFieldRepository.countBy({
       dataTag: DataTag.PII,
-      isRisk: true,
     });
     return {
       highRiskAlerts,

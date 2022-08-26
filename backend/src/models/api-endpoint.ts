@@ -46,12 +46,10 @@ export class ApiEndpoint extends BaseEntity {
   @Column({ nullable: true })
   owner: string;
 
-  @OneToMany(() => DataField, (dataField) => dataField.apiEndpoint, {
-    cascade: ["insert"],
-  })
+  @OneToMany(() => DataField, (dataField) => dataField.apiEndpoint)
   dataFields: DataField[];
 
-  @OneToMany(() => Alert, (alert) => alert.apiEndpoint, { cascade: true })
+  @OneToMany(() => Alert, (alert) => alert.apiEndpoint)
   alerts: Alert[];
 
   @Column({ nullable: true })
@@ -60,41 +58,4 @@ export class ApiEndpoint extends BaseEntity {
   @ManyToOne(() => OpenApiSpec)
   @JoinColumn()
   openapiSpec: OpenApiSpec;
-
-  addDataField(dataField: DataField) {
-    if (this.dataFields == null) {
-      this.dataFields = Array<DataField>();
-    }
-    this.dataFields.push(dataField);
-  }
-
-  addAlert(alert: Alert) {
-    if (this.alerts == null) {
-      this.alerts = Array<Alert>();
-    }
-    this.alerts.push(alert);
-  }
-
-  existingDataField(
-    dataPath: string,
-    dataClass: DataClass,
-    dataSection: DataSection
-  ) {
-    if (this.dataFields == null) {
-      this.dataFields = Array<DataField>();
-    }
-    for (const dataField of this.dataFields) {
-      if (
-        (dataField.dataClass === dataClass &&
-          dataField.dataPath === dataPath &&
-          dataField.dataSection === dataSection) ||
-        ((dataClass === null || dataField.dataClass === null) &&
-          dataField.dataPath === dataPath &&
-          dataField.dataSection === dataSection)
-      ) {
-        return dataField;
-      }
-    }
-    return null;
-  }
 }

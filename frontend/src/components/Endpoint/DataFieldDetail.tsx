@@ -7,20 +7,22 @@ import {
   VStack,
   Code,
   Badge,
-  HStack,
-  Checkbox,
   useToast,
-  UnorderedList,
-  ListItem,
 } from "@chakra-ui/react";
 import { DataField } from "@common/types";
 import {
   RISK_TO_COLOR,
-  DATA_CLASS_TO_RISK_SCORE,
   TAG_TO_COLOR,
 } from "~/constants";
-import { getDateTimeString } from "utils";
-import { updateDataField } from "api/dataFields";
+import {
+  getDateTimeString,
+  getMaxRiskScoreFromList,
+  getRiskScores,
+} from "utils";
+import { ignoreDataClass } from "api/dataFields";
+import { DataClass, RiskScore } from "@common/enums";
+import { DataClassComponent } from "./DataClass";
+import EmptyView from "components/utils/EmptyView";
 
 interface DataFieldDetailProps {
   dataField: DataField;
@@ -32,22 +34,29 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
   ({ dataField, dataFieldList, setdataFieldList }) => {
     const [currDataField, setCurrDataField] = useState<DataField>(dataField);
     const [updating, setUpdating] = useState<boolean>(false);
+    const [riskScore, setRiskScore] = useState<RiskScore>();
     const toast = useToast();
 
     useEffect(() => {
       setCurrDataField(dataField);
     }, [dataField]);
 
-    const handleUpdateClick = async (
-      e: React.ChangeEvent<HTMLInputElement>
-    ) => {
+    useEffect(() => {
+      setRiskScore(
+        getMaxRiskScoreFromList(getRiskScores(currDataField.dataClasses))
+      );
+    }, [currDataField]);
+
+    const handleIgnoreClick = async (ignoredDataClass: DataClass) => {
       setUpdating(true);
-      const resp: DataField = await updateDataField(currDataField.uuid, {
-        isRisk: !e.target.checked,
+      const resp: DataField = await ignoreDataClass(currDataField.uuid, {
+        dataClass: ignoredDataClass,
+        dataPath: currDataField.dataPath,
+        dataSection: currDataField.dataSection,
       });
       if (resp) {
         toast({
-          title: "Successfully Updated Data Field!",
+          title: `Ignored Data Class ${ignoredDataClass}`,
           status: "success",
           duration: 5000,
           isClosable: true,
@@ -63,7 +72,7 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
         setdataFieldList([...tempFieldList]);
       } else {
         toast({
-          title: "Updating Data Field Failed...",
+          title: `Ignoring Data Class ${ignoredDataClass} failed...`,
           status: "error",
           duration: 5000,
           isClosable: true,
@@ -94,14 +103,10 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
               <Badge
                 p="1"
                 fontSize="sm"
-                colorScheme={
-                  RISK_TO_COLOR[
-                    DATA_CLASS_TO_RISK_SCORE[currDataField.dataClass ?? ""]
-                  ]
-                }
+                colorScheme={RISK_TO_COLOR[riskScore]}
                 pointerEvents="none"
               >
-                {DATA_CLASS_TO_RISK_SCORE[currDataField.dataClass ?? ""]}
+                {riskScore}
               </Badge>
             </VStack>
           </GridItem>
@@ -121,16 +126,6 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
               </Code>
             </VStack>
           </GridItem>
-          {currDataField.dataClass && (
-            <GridItem>
-              <VStack alignItems="flex-start">
-                <Text fontWeight="semibold">Sensitive Data Class</Text>
-                <Code p="1" rounded="md" fontSize="sm">
-                  {currDataField.dataClass}
-                </Code>
-              </VStack>
-            </GridItem>
-          )}
           {currDataField.dataTag && (
             <GridItem>
               <VStack alignItems="flex-start">
@@ -148,29 +143,21 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
           )}
         </Grid>
         <VStack w="full" pt="4" spacing="4">
-          {currDataField.matches?.length > 0 && (
-            <VStack w="full" alignItems="flex-start">
-              <Text fontWeight="semibold">Example Matches</Text>
-              <Code p="1" w="full" rounded="md" fontSize="sm">
-                <UnorderedList px="3">
-                  {currDataField.matches.map((match, idx) => (
-                    <ListItem key={idx}>{match}</ListItem>
-                  ))}
-                </UnorderedList>
-              </Code>
-            </VStack>
-          )}
-          {currDataField.dataClass && (
-            <HStack w="full" spacing="5">
-              <Checkbox
-                isChecked={!currDataField.isRisk}
-                onChange={handleUpdateClick}
-                size="lg"
-                colorScheme="green"
-              >
-                Fake
-              </Checkbox>
-            </HStack>
+          <Text w="full" fontWeight="semibold">
+            Sensitive Data Classes
+          </Text>
+          {currDataField.dataClasses?.length > 0 ? (
+            currDataField.dataClasses.map((dataClass) => (
+              <DataClassComponent
+                key={dataClass}
+                dataClass={dataClass}
+                matches={currDataField.matches[dataClass]}
+                handleIgnoreClick={handleIgnoreClick}
+                updating={updating}
+              />
+            ))
+          ) : (
+            <EmptyView text="No sensitive data detected." />
           )}
         </VStack>
       </Box>

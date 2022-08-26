@@ -118,21 +118,23 @@ export class AlertService {
     const newAlert = new Alert();
     newAlert.type = alertType;
     newAlert.riskScore = ALERT_TYPE_TO_RISK_SCORE[alertType];
-    newAlert.apiEndpoint = apiEndpoint;
+    newAlert.apiEndpointUuid = apiEndpoint.uuid;
     newAlert.context = context;
     newAlert.description = alertDescription;
-    return await alertRepository.save(newAlert);
+    return newAlert;
   }
 
   static async createSpecDiffAlerts(
     alertItems: Record<string, string[]>,
     apiEndpointUuid: string,
-    apiTrace: ApiTrace,
+    apiTrace: ApiTrace
   ): Promise<Alert[]> {
-    if (!alertItems || Object.keys(alertItems)?.length === 0) {
-      return;
+    if (!alertItems) {
+      return [];
     }
-    const alertRepository = AppDataSource.getRepository(Alert);
+    if (Object.keys(alertItems)?.length === 0) {
+      return [];
+    }
     let alerts: Alert[] = [];
     for (const key in alertItems) {
       const existing = await this.existingUnresolvedAlert(
@@ -148,13 +150,13 @@ export class AlertService {
         newAlert.apiEndpointUuid = apiEndpointUuid;
         newAlert.context = {
           pathPointer: alertItems[key],
-          trace: apiTrace
+          trace: apiTrace,
         };
         newAlert.description = key;
         alerts.push(newAlert);
       }
     }
-    return await alertRepository.save(alerts);
+    return alerts;
   }
 
   static async resolveAlert(

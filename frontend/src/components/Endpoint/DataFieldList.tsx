@@ -12,19 +12,18 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { ImCross } from "@react-icons/all-files/im/ImCross";
-import { ImCheckmark } from "@react-icons/all-files/im/ImCheckmark";
 import DataTable, { TableColumn } from "react-data-table-component";
 import { DataField } from "@common/types";
 import { getCustomStyles, rowStyles } from "components/utils/TableUtils";
+import { RISK_TO_COLOR, TAG_TO_COLOR } from "~/constants";
 import {
-  RISK_TO_COLOR,
-  DATA_CLASS_TO_RISK_SCORE,
-  TAG_TO_COLOR,
-} from "~/constants";
-import { getDateTimeString } from "utils";
+  getDateTimeString,
+  getMaxRiskScoreFromList,
+  getRiskScores,
+} from "utils";
 import DataFieldDetail from "./DataFieldDetail";
 import EmptyView from "components/utils/EmptyView";
-import { DataSection, RiskScore } from "@common/enums";
+import { DataSection } from "@common/enums";
 import { DATA_SECTION_TO_LABEL_MAP } from "@common/maps";
 
 interface DataFieldListProps {
@@ -61,27 +60,28 @@ const columns: TableColumn<DataField>[] = [
   {
     name: "Risk Score",
     sortable: true,
-    selector: (row: DataField) => DATA_CLASS_TO_RISK_SCORE[row.dataClass] || "",
+    selector: (row: DataField) =>
+      getMaxRiskScoreFromList(getRiskScores(row.dataClasses)) || "",
     cell: (row: DataField) => (
       <Badge
         p="1"
         fontSize="sm"
         colorScheme={
-          RISK_TO_COLOR[DATA_CLASS_TO_RISK_SCORE[row.dataClass ?? ""]]
+          RISK_TO_COLOR[getMaxRiskScoreFromList(getRiskScores(row.dataClasses))]
         }
         pointerEvents="none"
       >
-        {DATA_CLASS_TO_RISK_SCORE[row.dataClass ?? ""]}
+        {getMaxRiskScoreFromList(getRiskScores(row.dataClasses))}
       </Badge>
     ),
     id: "riskScore",
     grow: 0.5,
   },
   {
-    name: "Sensitive Data Class",
+    name: "Sensitive Data Classes",
     sortable: true,
-    selector: (row: DataField) => row.dataClass || "",
-    id: "dataClass",
+    selector: (row: DataField) => row.dataClasses.join(", ") || "",
+    id: "dataClasses",
     grow: 1,
   },
   {
@@ -108,17 +108,6 @@ const columns: TableColumn<DataField>[] = [
     selector: (row: DataField) => getDateTimeString(row.createdAt) || "",
     id: "dateIdentified",
     grow: 1,
-  },
-  {
-    name: "Fake",
-    sortable: true,
-    selector: (row: DataField) => row.isRisk,
-    cell: (row: DataField) => (
-      <Box data-tag="allowRowEvents" alignItems="end">
-        {!row.isRisk && row.dataClass && <ImCheckmark color="#93DCAC" />}
-      </Box>
-    ),
-    grow: 0,
   },
 ];
 
@@ -253,12 +242,6 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
         style: {
           backgroundColor: selectedRowColor,
         },
-      },
-      {
-        when: (row: DataField) => {
-          return !row.isRisk && !!row.dataClass;
-        },
-        style: rowNotRiskBG,
       },
     ];
 

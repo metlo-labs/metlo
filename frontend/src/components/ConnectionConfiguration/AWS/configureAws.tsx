@@ -270,7 +270,7 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
               );
               toast({ title: "Mirroring setup completed!", status: "success" });
             }}
-            isCurrent={selectedIndex == selected}          
+            isCurrent={selectedIndex == selected}
           />
         );
     }

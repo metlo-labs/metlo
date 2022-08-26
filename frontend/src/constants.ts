@@ -16,6 +16,13 @@ export const TAG_TO_COLOR = {
   [DataTag.PII]: "blue",
 };
 
+export const RISK_SCORE_ORDER: Record<RiskScore, number> = {
+  [RiskScore.HIGH]: 3,
+  [RiskScore.MEDIUM]: 2,
+  [RiskScore.LOW]: 1,
+  [RiskScore.NONE]: 0,
+};
+
 export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass | "", RiskScore> = {
   [DataClass.ADDRESS]: RiskScore.HIGH,
   [DataClass.EMAIL]: RiskScore.MEDIUM,

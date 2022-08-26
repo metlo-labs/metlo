@@ -1,16 +1,16 @@
 import { Raw } from "typeorm";
 import { TraceParams } from "@common/types";
-import { ApiEndpoint, ApiTrace } from "models";
+import { ApiEndpoint, ApiTrace, DataField, Alert } from "models";
 import { AppDataSource } from "data-source";
 import Error500InternalServer from "errors/error-500-internal-server";
 import { SpecService } from "services/spec";
 import { DataFieldService } from "services/data-field";
+import { DatabaseService } from "services/database";
 
 export class LogRequestService {
   static async logRequest(traceParams: TraceParams): Promise<void> {
     try {
       /** Log Request in ApiTrace table */
-      const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
       const path = traceParams?.request?.url?.path;
       const method = traceParams?.request?.method;
       const host = traceParams?.request?.url?.host;
@@ -41,15 +41,28 @@ export class LogRequestService {
         },
         relations: { dataFields: true },
       });
+      let dataFields: DataField[] = [];
+      let alerts: Alert[] = [];
+      let apiEndpointSave: ApiEndpoint[] = [];
       if (apiEndpoint) {
         apiEndpoint.totalCalls += 1;
-        // Check for sensitive data
-        await DataFieldService.findAllDataFields(apiTraceObj, apiEndpoint);
+        dataFields = DataFieldService.findAllDataFields(
+          apiTraceObj,
+          apiEndpoint
+        );
         apiTraceObj.apiEndpointUuid = apiEndpoint.uuid;
-        await apiEndpointRepository.save(apiEndpoint);
-        await SpecService.findOpenApiSpecDiff(apiTraceObj, apiEndpoint);
+        alerts = await SpecService.findOpenApiSpecDiff(
+          apiTraceObj,
+          apiEndpoint
+        );
+        apiEndpointSave = [apiEndpoint];
       }
-      await apiTraceRepository.save(apiTraceObj);
+      await DatabaseService.executeTransactions([[apiTraceObj]], [], true);
+      await DatabaseService.executeTransactions(
+        [[...alerts], [...dataFields], [...apiEndpointSave]],
+        [],
+        true
+      );
     } catch (err) {
       console.error(`Error in Log Request service: ${err}`);
       throw new Error500InternalServer(err);
@@ -58,7 +71,7 @@ export class LogRequestService {
 
   static async logRequestBatch(traceParamsBatch: TraceParams[]): Promise<void> {
     for (let i = 0; i < traceParamsBatch.length; i++) {
-      this.logRequest(traceParamsBatch[i]);
+      await this.logRequest(traceParamsBatch[i]);
     }
   }
 }
