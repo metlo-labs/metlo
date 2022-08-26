@@ -25,11 +25,11 @@ import {
   AuthorizeSecurityGroupIngressCommand,
   AuthorizeSecurityGroupIngressCommandInput,
   DescribeInstancesCommand,
-} from "@aws-sdk/client-ec2";
+} from "@aws-sdk/client-ec2"
 
-import { STSClient, GetCallerIdentityCommand } from "@aws-sdk/client-sts";
+import { STSClient, GetCallerIdentityCommand } from "@aws-sdk/client-sts"
 
-import { MachineSpecifications } from "@common/types";
+import { MachineSpecifications } from "@common/types"
 // For pricing approximation
 // import {
 //   Pricing
@@ -147,22 +147,22 @@ const supported_instances = [
   "x2iedn.metal",
   "x2iezn.metal",
   "z1d.metal",
-];
+]
 
 export class EC2_CONN {
-  private access_id: string;
-  private secret_key: string;
-  private region?: string;
-  private conn: EC2Client;
+  private access_id: string
+  private secret_key: string
+  private region?: string
+  private conn: EC2Client
   constructor(access_id: string, secret_key: string, region?: string) {
-    this.access_id = access_id;
-    this.secret_key = secret_key;
-    this.region = region;
+    this.access_id = access_id
+    this.secret_key = secret_key
+    this.region = region
   }
 
   public get_conn() {
     if (this.conn) {
-      return this.conn;
+      return this.conn
     }
     this.conn = new EC2Client({
       credentials: {
@@ -170,12 +170,12 @@ export class EC2_CONN {
         secretAccessKey: this.secret_key,
       },
       region: this.region,
-    });
-    return this.conn;
+    })
+    return this.conn
   }
 
   public disconnect() {
-    if (this.conn) this.conn.destroy();
+    if (this.conn) this.conn.destroy()
   }
 
   public async get_caller_identity() {
@@ -184,8 +184,8 @@ export class EC2_CONN {
         accessKeyId: this.access_id,
         secretAccessKey: this.secret_key,
       },
-    });
-    sts_conn.send(new GetCallerIdentityCommand({}));
+    })
+    sts_conn.send(new GetCallerIdentityCommand({}))
   }
 
   public async get_all_images(img_names: Array<string>): Promise<Array<Image>> {
@@ -203,29 +203,29 @@ export class EC2_CONN {
       ],
       Owners: ["099720109477"],
       IncludeDeprecated: false,
-    };
-    const command = new DescribeImagesCommand(input);
-    const response = await this.get_conn().send(command);
+    }
+    const command = new DescribeImagesCommand(input)
+    const response = await this.get_conn().send(command)
     return response.Images.sort(
       (a, b) =>
-        new Date(a.CreationDate).getTime() - new Date(b.CreationDate).getTime()
-    );
+        new Date(a.CreationDate).getTime() - new Date(b.CreationDate).getTime(),
+    )
   }
 
   public async get_latest_image(
     img_names: Array<string> = [
       "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-????????",
-    ]
+    ],
   ) {
-    let resp = (await this.get_all_images(img_names)).pop();
-    return resp;
+    let resp = (await this.get_all_images(img_names)).pop()
+    return resp
   }
 
   public async describe_instance(ec2_instance_id) {
     let resp = await this.get_conn().send(
-      new DescribeInstancesCommand({ InstanceIds: [ec2_instance_id] })
-    );
-    return resp;
+      new DescribeInstancesCommand({ InstanceIds: [ec2_instance_id] }),
+    )
+    return resp
   }
 
   public async image_from_ami(ami: string) {
@@ -238,18 +238,18 @@ export class EC2_CONN {
       ],
       ImageIds: [ami],
       IncludeDeprecated: false,
-    };
-    const command = new DescribeImagesCommand(input);
-    const response = await this.get_conn().send(command);
+    }
+    const command = new DescribeImagesCommand(input)
+    const response = await this.get_conn().send(command)
     return response.Images.sort(
       (a, b) =>
-        new Date(a.CreationDate).getTime() - new Date(b.CreationDate).getTime()
-    );
+        new Date(a.CreationDate).getTime() - new Date(b.CreationDate).getTime(),
+    )
   }
 
   public async get_valid_types(
     vtx_type: VirtualizationType,
-    specs: MachineSpecifications
+    specs: MachineSpecifications,
   ): Promise<Array<InstanceTypeInfoFromInstanceRequirements>> {
     let command = new GetInstanceTypesFromInstanceRequirementsCommand({
       ArchitectureTypes: ["x86_64"],
@@ -287,21 +287,21 @@ export class EC2_CONN {
           "i3.8xlarge",
         ],
       },
-    } as GetInstanceTypesFromInstanceRequirementsCommandInput);
-    let conn = this.get_conn();
-    let resp = await conn.send(command);
-    return resp.InstanceTypes.filter((x) => {
-      let a = supported_instances.filter((y) => x.InstanceType.includes(y));
-      return a.length > 0;
-    });
+    } as GetInstanceTypesFromInstanceRequirementsCommandInput)
+    let conn = this.get_conn()
+    let resp = await conn.send(command)
+    return resp.InstanceTypes.filter(x => {
+      let a = supported_instances.filter(y => x.InstanceType.includes(y))
+      return a.length > 0
+    })
   }
 
   public async describe_type(Instance_type: string) {
     let command = new DescribeInstanceTypesCommand({
       InstanceTypes: [Instance_type],
-    } as DescribeInstanceTypesCommandInput);
-    let resp = await this.get_conn().send(command);
-    return resp.InstanceTypes[0];
+    } as DescribeInstanceTypesCommandInput)
+    let resp = await this.get_conn().send(command)
+    return resp.InstanceTypes[0]
   }
 
   // TODO : Pricing API gives somewhat random results.
@@ -334,17 +334,17 @@ export class EC2_CONN {
           Tags: [{ Key: "Created By", Value: "Metlo" }],
         },
       ],
-    } as CreateKeyPairCommandInput);
-    let resp = await this.get_conn().send(command);
-    return resp;
+    } as CreateKeyPairCommandInput)
+    let resp = await this.get_conn().send(command)
+    return resp
   }
 
   public async list_keypairs() {
     let command = new DescribeKeyPairsCommand(
-      {} as DescribeKeyPairsCommandInput
-    );
-    let resp = await this.get_conn().send(command);
-    return resp;
+      {} as DescribeKeyPairsCommandInput,
+    )
+    let resp = await this.get_conn().send(command)
+    return resp
   }
 
   public async create_security_group(id: string) {
@@ -352,15 +352,15 @@ export class EC2_CONN {
       GroupName: id,
       Description:
         "Default security group created by METLO for mirror instance",
-    } as CreateSecurityGroupCommandInput);
-    let resp = await this.get_conn().send(command);
-    return resp;
+    } as CreateSecurityGroupCommandInput)
+    let resp = await this.get_conn().send(command)
+    return resp
   }
 
   public async create_security_group_ingress(
     security_group_id: string,
     protocol: string,
-    port: number
+    port: number,
   ) {
     let command = new AuthorizeSecurityGroupIngressCommand({
       GroupId: security_group_id,
@@ -374,26 +374,26 @@ export class EC2_CONN {
           Tags: [{ Key: "Created By", Value: "Created by METLO" }],
         },
       ],
-    });
-    let resp = await this.get_conn().send(command);
-    return resp;
+    })
+    let resp = await this.get_conn().send(command)
+    return resp
   }
 
   public async create_new_instance(
     instance_ami: string,
     instance_type: string,
-    id: string
+    id: string,
   ): Promise<[RunInstancesCommandOutput, CreateKeyPairCommandOutput]> {
-    const key = await this.create_new_keypair(`METLO-Instance-${id}-Key`);
+    const key = await this.create_new_keypair(`METLO-Instance-${id}-Key`)
     const security_group = await this.create_security_group(
-      `METLO-SECURITY-GROUP-${id}`
-    );
-    await this.create_security_group_ingress(security_group.GroupId, "tcp", 22);
+      `METLO-SECURITY-GROUP-${id}`,
+    )
+    await this.create_security_group_ingress(security_group.GroupId, "tcp", 22)
     await this.create_security_group_ingress(
       security_group.GroupId,
       "udp",
-      4789
-    );
+      4789,
+    )
     const command = new RunInstancesCommand({
       MaxCount: 1,
       MinCount: 1,
@@ -433,8 +433,8 @@ export class EC2_CONN {
           },
         },
       ],
-    } as RunInstancesCommandInput);
-    const response = await this.get_conn().send(command);
-    return [response, key];
+    } as RunInstancesCommandInput)
+    const response = await this.get_conn().send(command)
+    return [response, key]
   }
 }

@@ -1,8 +1,8 @@
 export default class Error404NotFound extends Error {
-  code: number;
+  code: number
 
   constructor(message: string) {
-    super(message);
-    this.code = 404;
+    super(message)
+    this.code = 404
   }
 }

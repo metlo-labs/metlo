@@ -1,5 +1,5 @@
-import "dotenv/config";
-import { DataSource } from "typeorm";
+import "dotenv/config"
+import { DataSource } from "typeorm"
 import {
   ApiEndpoint,
   DataField,
@@ -9,7 +9,7 @@ import {
   Session,
   Connections,
   ApiEndpointTest,
-} from "models";
+} from "models"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -27,4 +27,4 @@ export const AppDataSource: DataSource = new DataSource({
   ],
   migrations: [],
   logging: false,
-});
+})

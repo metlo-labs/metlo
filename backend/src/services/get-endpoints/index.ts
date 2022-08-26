@@ -1,22 +1,22 @@
-import { AppDataSource } from "data-source";
-import { ApiEndpoint, ApiEndpointTest, ApiTrace } from "models";
+import { AppDataSource } from "data-source"
+import { ApiEndpoint, ApiEndpointTest, ApiTrace } from "models"
 import {
   GetEndpointParams,
   ApiEndpoint as ApiEndpointResponse,
   ApiEndpointDetailed as ApiEndpointDetailedResponse,
   Usage as UsageResponse,
-} from "@common/types";
-import Error500InternalServer from "errors/error-500-internal-server";
-import { RISK_SCORE_ORDER_QUERY } from "~/constants";
-import { Test } from "@common/testing/types";
-import Error404NotFound from "errors/error-404-not-found";
-import { getRiskScore } from "utils";
+} from "@common/types"
+import Error500InternalServer from "errors/error-500-internal-server"
+import { RISK_SCORE_ORDER_QUERY } from "~/constants"
+import { Test } from "@common/testing/types"
+import Error404NotFound from "errors/error-404-not-found"
+import { getRiskScore } from "utils"
 
 export class GetEndpointsService {
   static async updateEndpointRiskScore(
-    apiEndpointUuid: string
+    apiEndpointUuid: string,
   ): Promise<ApiEndpoint> {
-    const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
+    const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
     const apiEndpoint = await apiEndpointRepository.findOne({
       where: {
         uuid: apiEndpointUuid,
@@ -24,46 +24,46 @@ export class GetEndpointsService {
       relations: {
         dataFields: true,
       },
-    });
-    apiEndpoint.riskScore = getRiskScore(apiEndpoint.dataFields);
-    return await apiEndpointRepository.save(apiEndpoint);
+    })
+    apiEndpoint.riskScore = getRiskScore(apiEndpoint.dataFields)
+    return await apiEndpointRepository.save(apiEndpoint)
   }
 
   static async getEndpoints(
-    getEndpointParams: GetEndpointParams
+    getEndpointParams: GetEndpointParams,
   ): Promise<[ApiEndpointResponse[], number]> {
     try {
-      const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
-      const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
+      const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
+      const apiTraceRepository = AppDataSource.getRepository(ApiTrace)
 
-      let endpointsQb = apiEndpointRepository.createQueryBuilder("endpoint");
+      let endpointsQb = apiEndpointRepository.createQueryBuilder("endpoint")
 
       if (getEndpointParams?.hosts) {
         endpointsQb = endpointsQb.where("endpoint.host IN (:...hosts)", {
           hosts: getEndpointParams.hosts,
-        });
+        })
       }
       if (getEndpointParams?.riskScores) {
         endpointsQb = endpointsQb.andWhere(
           "endpoint.riskScore IN (:...scores)",
-          { scores: getEndpointParams.riskScores }
-        );
+          { scores: getEndpointParams.riskScores },
+        )
       }
       endpointsQb = endpointsQb.orderBy(
         RISK_SCORE_ORDER_QUERY("endpoint", "riskScore"),
-        "DESC"
-      );
+        "DESC",
+      )
       if (getEndpointParams?.offset) {
-        endpointsQb = endpointsQb.offset(getEndpointParams.offset);
+        endpointsQb = endpointsQb.offset(getEndpointParams.offset)
       }
       if (getEndpointParams?.limit) {
-        endpointsQb = endpointsQb.limit(getEndpointParams.limit);
+        endpointsQb = endpointsQb.limit(getEndpointParams.limit)
       }
 
-      const endpoints = await endpointsQb.getManyAndCount();
+      const endpoints = await endpointsQb.getManyAndCount()
 
       const res: any[] = await Promise.all(
-        endpoints[0].map(async (endpoint) => {
+        endpoints[0].map(async endpoint => {
           const firstDetected = await apiTraceRepository.findOne({
             where: {
               apiEndpointUuid: endpoint.uuid,
@@ -71,7 +71,7 @@ export class GetEndpointsService {
             order: {
               createdAt: "ASC",
             },
-          });
+          })
           const lastActive = await apiTraceRepository.findOne({
             where: {
               apiEndpointUuid: endpoint.uuid,
@@ -79,29 +79,29 @@ export class GetEndpointsService {
             order: {
               createdAt: "DESC",
             },
-          });
+          })
           return {
             ...endpoint,
             firstDetected: firstDetected?.createdAt,
             lastActive: lastActive?.createdAt,
-          };
-        })
-      );
-      return [res, endpoints[1]];
+          }
+        }),
+      )
+      return [res, endpoints[1]]
     } catch (err) {
-      console.error(`Error in Get Endpoints service: ${err}`);
-      throw new Error500InternalServer(err);
+      console.error(`Error in Get Endpoints service: ${err}`)
+      throw new Error500InternalServer(err)
     }
   }
 
   static async getEndpoint(
-    endpointId: string
+    endpointId: string,
   ): Promise<ApiEndpointDetailedResponse> {
     try {
-      const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
-      const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
+      const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
+      const apiTraceRepository = AppDataSource.getRepository(ApiTrace)
       const apiEndpointTestRepository =
-        AppDataSource.getRepository(ApiEndpointTest);
+        AppDataSource.getRepository(ApiEndpointTest)
       const endpoint = await apiEndpointRepository.findOne({
         where: { uuid: endpointId },
         relations: {
@@ -115,15 +115,15 @@ export class GetEndpointsService {
             dataPath: "ASC",
           },
         },
-      });
+      })
       if (!endpoint) {
-        throw new Error404NotFound("Endpoint does not exist.");
+        throw new Error404NotFound("Endpoint does not exist.")
       }
       const traces = await apiTraceRepository.find({
         where: { apiEndpointUuid: endpoint.uuid },
         order: { createdAt: "DESC" },
         take: 100,
-      });
+      })
       const firstDetected = await apiTraceRepository.findOne({
         where: {
           apiEndpointUuid: endpoint.uuid,
@@ -131,7 +131,7 @@ export class GetEndpointsService {
         order: {
           createdAt: "ASC",
         },
-      });
+      })
       const lastActive = await apiTraceRepository.findOne({
         where: {
           apiEndpointUuid: endpoint.uuid,
@@ -139,41 +139,41 @@ export class GetEndpointsService {
         order: {
           createdAt: "DESC",
         },
-      });
+      })
       const tests = await apiEndpointTestRepository.find({
         where: { apiEndpoint: { uuid: endpointId } },
-      });
+      })
       return {
         ...endpoint,
         traces: [...traces],
         tests: tests as Array<Test>,
         firstDetected: firstDetected?.createdAt,
         lastActive: lastActive?.createdAt,
-      };
+      }
     } catch (err) {
-      console.error(`Error in Get Endpoints service: ${err}`);
-      throw new Error500InternalServer(err);
+      console.error(`Error in Get Endpoints service: ${err}`)
+      throw new Error500InternalServer(err)
     }
   }
 
   static async getHosts(): Promise<string[]> {
     try {
-      const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
+      const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
       const hosts: { [host: string]: string }[] = await apiEndpointRepository
         .createQueryBuilder("apiEndpoint")
         .select(["host"])
         .distinct(true)
-        .getRawMany();
-      return hosts.map((host) => host["host"]);
+        .getRawMany()
+      return hosts.map(host => host["host"])
     } catch (err) {
-      console.error(`Error in Get Endpoints service: ${err}`);
-      throw new Error500InternalServer(err);
+      console.error(`Error in Get Endpoints service: ${err}`)
+      throw new Error500InternalServer(err)
     }
   }
 
   static async getUsage(endpointId: string): Promise<UsageResponse[]> {
     try {
-      const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
+      const apiTraceRepository = AppDataSource.getRepository(ApiTrace)
       const usage = await apiTraceRepository
         .createQueryBuilder("trace")
         .select([
@@ -183,11 +183,11 @@ export class GetEndpointsService {
         .where(`"apiEndpointUuid" = :id`, { id: endpointId })
         .groupBy(`DATE_TRUNC('day', "createdAt")`)
         .orderBy(`date`, "ASC")
-        .getRawMany();
-      return usage as UsageResponse[];
+        .getRawMany()
+      return usage as UsageResponse[]
     } catch (err) {
-      console.error(`Error in Get Endpoints service: ${err}`);
-      throw new Error500InternalServer(err);
+      console.error(`Error in Get Endpoints service: ${err}`)
+      throw new Error500InternalServer(err)
     }
   }
 }

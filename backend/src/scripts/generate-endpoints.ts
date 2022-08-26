@@ -1,16 +1,16 @@
-import { AppDataSource } from "data-source";
-import { JobsService } from "services/jobs";
+import { AppDataSource } from "data-source"
+import { JobsService } from "services/jobs"
 
 const main = async () => {
-  const datasource = await AppDataSource.initialize();
+  const datasource = await AppDataSource.initialize()
   if (!datasource.isInitialized) {
-    console.error("Couldn't initialize datasource...");
-    return;
+    console.error("Couldn't initialize datasource...")
+    return
   }
-  console.log("AppDataSource Initialized...");
-  console.log("Generating Endpoints...");
-  await JobsService.generateEndpointsFromTraces();
-  console.log("Finished generating Endpoints");
-};
+  console.log("AppDataSource Initialized...")
+  console.log("Generating Endpoints...")
+  await JobsService.generateEndpointsFromTraces()
+  console.log("Finished generating Endpoints")
+}
 
-main();
+main()

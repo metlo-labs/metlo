@@ -1,4 +1,4 @@
-import Multer from "multer";
+import Multer from "multer"
 
 export const MulterSource = Multer({
   storage: Multer.memoryStorage(),
@@ -6,4 +6,4 @@ export const MulterSource = Multer({
     // limit 500mb
     fileSize: 500 * 1024 * 1024,
   },
-});
+})

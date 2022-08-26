@@ -10,14 +10,14 @@ import {
   EC2Client,
   DeleteTrafficMirrorFilterCommand,
   DeleteTrafficMirrorFilterCommandInput,
-} from "@aws-sdk/client-ec2";
-import { createHash, randomUUID } from "crypto";
-import { TrafficFilterRuleSpecs } from "@common/types";
+} from "@aws-sdk/client-ec2"
+import { createHash, randomUUID } from "crypto"
+import { TrafficFilterRuleSpecs } from "@common/types"
 
 export async function create_mirror_target(
   client: EC2Client,
   network_interface_id: string,
-  unique_id: string
+  unique_id: string,
 ) {
   let command = new CreateTrafficMirrorTargetCommand({
     NetworkInterfaceId: network_interface_id,
@@ -28,13 +28,13 @@ export async function create_mirror_target(
         Tags: [{ Key: "Name", Value: `METLO-TRAFFIC-TARGET-${unique_id}` }],
       },
     ],
-  } as CreateTrafficMirrorTargetCommandInput);
-  return await client.send(command);
+  } as CreateTrafficMirrorTargetCommandInput)
+  return await client.send(command)
 }
 
 export async function create_mirror_filter(
   client: EC2Client,
-  unique_id: string
+  unique_id: string,
 ) {
   let command = new CreateTrafficMirrorFilterCommand({
     ClientToken: unique_id,
@@ -44,17 +44,17 @@ export async function create_mirror_filter(
         Tags: [{ Key: "Name", Value: `METLO-MIRROR-FILTER-${unique_id}` }],
       },
     ],
-  } as CreateTrafficMirrorFilterCommandInput);
-  return await client.send(command);
+  } as CreateTrafficMirrorFilterCommandInput)
+  return await client.send(command)
 }
 
 export async function create_mirror_filter_rules(
   client: EC2Client,
   unique_id: string,
   filter_rules: Array<TrafficFilterRuleSpecs>,
-  filter_id: string
+  filter_id: string,
 ) {
-  let command_resps = [];
+  let command_resps = []
   for (const v of filter_rules) {
     // let hash = createHash("sha256");
     // hash.update(unique_id);
@@ -72,11 +72,11 @@ export async function create_mirror_filter_rules(
       Protocol: v.protocol,
       RuleAction: "accept",
       TrafficMirrorFilterId: filter_id,
-    } as CreateTrafficMirrorFilterRuleCommandInput);
-    let resp = client.send(command);
-    command_resps.push(resp);
+    } as CreateTrafficMirrorFilterRuleCommandInput)
+    let resp = client.send(command)
+    command_resps.push(resp)
   }
-  return await Promise.all(command_resps);
+  return await Promise.all(command_resps)
 }
 
 export async function create_mirror_session(
@@ -84,7 +84,7 @@ export async function create_mirror_session(
   unique_id: string,
   network_instance_id: string,
   filter_id: string,
-  target_id: string
+  target_id: string,
 ) {
   let command = new CreateTrafficMirrorSessionCommand({
     SessionNumber: 1,
@@ -97,18 +97,18 @@ export async function create_mirror_session(
         Tags: [{ Key: "Name", Value: `METLO-MIRROR-SESSION-${unique_id}` }],
       },
     ],
-  } as CreateTrafficMirrorSessionCommandInput);
-  return await client.send(command);
+  } as CreateTrafficMirrorSessionCommandInput)
+  return await client.send(command)
 }
 
 export async function delete_mirror_filter(
   client: EC2Client,
   filter_id: string,
-  unique_id: string
+  unique_id: string,
 ) {
   let command = new DeleteTrafficMirrorFilterCommand({
     ClientToken: unique_id,
     TrafficMirrorFilterId: filter_id,
-  } as DeleteTrafficMirrorFilterCommandInput);
-  return await client.send(command);
+  } as DeleteTrafficMirrorFilterCommandInput)
+  return await client.send(command)
 }

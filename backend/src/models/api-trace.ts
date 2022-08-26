@@ -6,56 +6,56 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
-} from "typeorm";
-import { Meta, PairObject } from "@common/types";
-import { RestMethod } from "@common/enums";
-import { ApiEndpoint } from "models/api-endpoint";
+} from "typeorm"
+import { Meta, PairObject } from "@common/types"
+import { RestMethod } from "@common/enums"
+import { ApiEndpoint } from "models/api-endpoint"
 
 @Entity()
 export class ApiTrace extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
-  uuid: string;
+  uuid: string
 
   @Column({ nullable: false })
-  path: string;
+  path: string
 
   @CreateDateColumn({ type: "timestamptz" })
-  createdAt: Date;
+  createdAt: Date
 
   @Column({ nullable: false })
-  host: string;
+  host: string
 
   @Column({ type: "enum", enum: RestMethod })
-  method: RestMethod;
+  method: RestMethod
 
   @Column({ nullable: true })
-  owner: string;
+  owner: string
 
   @Column({ type: "jsonb", nullable: true, default: [] })
-  requestParameters: PairObject[];
+  requestParameters: PairObject[]
 
   @Column({ type: "jsonb", nullable: true, default: [] })
-  requestHeaders: PairObject[];
+  requestHeaders: PairObject[]
 
   @Column({ nullable: true })
-  requestBody: string;
+  requestBody: string
 
   @Column({ type: "integer" })
-  responseStatus: number;
+  responseStatus: number
 
   @Column({ type: "jsonb", nullable: true, default: [] })
-  responseHeaders: PairObject[];
+  responseHeaders: PairObject[]
 
   @Column({ nullable: true })
-  responseBody: string;
+  responseBody: string
 
   @Column({ type: "jsonb", nullable: true })
-  meta: Meta;
+  meta: Meta
 
   @Column({ nullable: true })
-  apiEndpointUuid: string;
+  apiEndpointUuid: string
 
   @ManyToOne(() => ApiEndpoint)
   @JoinColumn()
-  apiEndpoint: ApiEndpoint;
+  apiEndpoint: ApiEndpoint
 }

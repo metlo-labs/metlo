@@ -11,59 +11,59 @@ import compute, {
   InstanceGroupManagersClient,
   HealthChecksClient,
   AutoscalersClient,
-} from "@google-cloud/compute";
+} from "@google-cloud/compute"
 
-const PREFIX_LENGTH = 24;
-const METLO_DATA_COLLECTOR_TAG = "metlo-capture";
-const COOL_DOWN_PERIOD = 180;
+const PREFIX_LENGTH = 24
+const METLO_DATA_COLLECTOR_TAG = "metlo-capture"
+const COOL_DOWN_PERIOD = 180
 
 export class GCP_CONN {
-  private zone: string;
-  private region: string;
-  private project: string;
-  private keyfile: Object;
+  private zone: string
+  private region: string
+  private project: string
+  private keyfile: Object
 
   constructor(key_file: Object, zone: string, project: string) {
-    this.keyfile = key_file;
-    this.zone = zone;
-    this.region = zone.substring(0, zone.length - 2);
-    this.project = project;
+    this.keyfile = key_file
+    this.zone = zone
+    this.region = zone.substring(0, zone.length - 2)
+    this.project = project
   }
 
   public async test_connection() {
     try {
       // We run `initialize` in get_conn, which tests the connection internally.
-      let conn = new InstancesClient({ credentials: this.keyfile });
-      conn.initialize();
-      return true;
+      let conn = new InstancesClient({ credentials: this.keyfile })
+      conn.initialize()
+      return true
     } catch (err) {
-      return false;
+      return false
     }
   }
 
   public async list_instances() {
-    let conn = new InstancesClient({ credentials: this.keyfile });
-    return conn.list({ project: this.project, zone: this.zone });
+    let conn = new InstancesClient({ credentials: this.keyfile })
+    return conn.list({ project: this.project, zone: this.zone })
   }
 
   public async get_instance_by_name({ instanceName }) {
-    let conn = new InstancesClient({ credentials: this.keyfile });
+    let conn = new InstancesClient({ credentials: this.keyfile })
     const resp = conn.list({
       project: this.project,
       zone: this.zone,
       filter: `name eq ${instanceName}`,
-    });
-    return resp;
+    })
+    return resp
   }
 
   public async get_subnet_information({ subnetName }) {
-    let conn = new SubnetworksClient({ credentials: this.keyfile });
+    let conn = new SubnetworksClient({ credentials: this.keyfile })
     const resp = conn.get({
       project: this.project,
       subnetwork: "default",
       region: "us-west1",
-    });
-    return resp;
+    })
+    return resp
   }
 
   public async get_address_information({ addressName }) {
@@ -71,12 +71,12 @@ export class GCP_CONN {
       project: this.project,
       address: addressName,
       region: "us-west1",
-    });
-    return resp;
+    })
+    return resp
   }
 
   public async create_new_address({ addressName, network }) {
-    const conn = new GlobalAddressesClient({ credentials: this.keyfile });
+    const conn = new GlobalAddressesClient({ credentials: this.keyfile })
     let resp = conn.insert({
       project: this.project,
       addressResource: {
@@ -84,21 +84,21 @@ export class GCP_CONN {
         prefixLength: PREFIX_LENGTH,
         network,
       },
-    });
-    return resp;
+    })
+    return resp
   }
 
   public async delete_new_address({ addressName }) {
-    const conn = new GlobalAddressesClient({ credentials: this.keyfile });
+    const conn = new GlobalAddressesClient({ credentials: this.keyfile })
     let resp = conn.delete({
       project: this.project,
       address: addressName,
-    });
-    return resp;
+    })
+    return resp
   }
 
   public async create_firewall({ firewallName, networkName, ipRange }) {
-    const conn = new FirewallsClient({ credentials: this.keyfile });
+    const conn = new FirewallsClient({ credentials: this.keyfile })
     return conn.insert({
       project: this.project,
       firewallResource: {
@@ -113,25 +113,25 @@ export class GCP_CONN {
           },
         ],
       },
-    });
+    })
   }
 
   public async list_routers() {
-    let conn = new RoutersClient({ credentials: this.keyfile });
-    return conn.list({ region: this.region, project: this.project });
+    let conn = new RoutersClient({ credentials: this.keyfile })
+    return conn.list({ region: this.region, project: this.project })
   }
 
   public async list_nats({ router }) {
-    let conn = new RoutersClient({ credentials: this.keyfile });
+    let conn = new RoutersClient({ credentials: this.keyfile })
     return conn.getNatMappingInfo({
       router,
       region: this.region,
       project: this.project,
-    });
+    })
   }
 
   public async create_router({ routerName, networkURL, subnetURL }) {
-    let conn = new RoutersClient({ credentials: this.keyfile });
+    let conn = new RoutersClient({ credentials: this.keyfile })
     return conn.insert({
       project: this.project,
       region: this.region,
@@ -148,11 +148,11 @@ export class GCP_CONN {
           },
         ],
       },
-    });
+    })
   }
 
   public async create_health_check({ healthCheckName }) {
-    let conn = new HealthChecksClient({ credentials: this.keyfile });
+    let conn = new HealthChecksClient({ credentials: this.keyfile })
     return conn.insert({
       project: this.project,
       healthCheckResource: {
@@ -171,7 +171,7 @@ export class GCP_CONN {
           enable: false,
         },
       },
-    });
+    })
   }
 
   public async create_image_template({
@@ -181,7 +181,7 @@ export class GCP_CONN {
     subnet,
     imageTemplateName,
   }) {
-    let conn = new InstanceTemplatesClient({ credentials: this.keyfile });
+    let conn = new InstanceTemplatesClient({ credentials: this.keyfile })
     return conn.insert({
       project: this.project,
       instanceTemplateResource: {
@@ -220,7 +220,7 @@ export class GCP_CONN {
           },
         },
       },
-    });
+    })
   }
 
   public async create_managed_instance({
@@ -228,7 +228,7 @@ export class GCP_CONN {
     healthCheckURL,
     instanceName,
   }) {
-    let conn = new InstanceGroupManagersClient({ credentials: this.keyfile });
+    let conn = new InstanceGroupManagersClient({ credentials: this.keyfile })
     return conn.insert(
       {
         project: this.project,
@@ -247,8 +247,8 @@ export class GCP_CONN {
           ],
         },
       },
-      {}
-    );
+      {},
+    )
   }
 
   public async create_auto_scaling({
@@ -257,7 +257,7 @@ export class GCP_CONN {
     maxReplicas,
     minReplicas,
   }) {
-    let conn = new AutoscalersClient({ credentials: this.keyfile });
+    let conn = new AutoscalersClient({ credentials: this.keyfile })
     return conn.insert({
       project: this.project,
       zone: this.zone,
@@ -270,6 +270,6 @@ export class GCP_CONN {
           coolDownPeriodSec: COOL_DOWN_PERIOD,
         },
       },
-    });
+    })
   }
 }
