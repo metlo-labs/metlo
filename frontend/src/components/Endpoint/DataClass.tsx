@@ -9,16 +9,16 @@ import {
   Grid,
   GridItem,
   Button,
-} from "@chakra-ui/react";
-import { RiEyeOffFill } from "@react-icons/all-files/ri/RiEyeOffFill";
-import { DataClass, RiskScore } from "@common/enums";
-import { DATA_CLASS_TO_RISK_SCORE, RISK_TO_COLOR } from "~/constants";
+} from "@chakra-ui/react"
+import { RiEyeOffFill } from "@react-icons/all-files/ri/RiEyeOffFill"
+import { DataClass, RiskScore } from "@common/enums"
+import { DATA_CLASS_TO_RISK_SCORE, RISK_TO_COLOR } from "~/constants"
 
 interface DataClassComponentProps {
-  dataClass: DataClass;
-  matches: string[];
-  handleIgnoreClick: (ignoredDataClass: DataClass) => Promise<void>;
-  updating: boolean;
+  dataClass: DataClass
+  matches: string[]
+  handleIgnoreClick: (ignoredDataClass: DataClass) => Promise<void>
+  updating: boolean
 }
 
 const RISK_SCORE_TO_COMPONENT_COLOR: Record<RiskScore, string[]> = {
@@ -26,7 +26,7 @@ const RISK_SCORE_TO_COMPONENT_COLOR: Record<RiskScore, string[]> = {
   [RiskScore.MEDIUM]: ["orange.100", "rgba(251, 211, 141, 0.16)"],
   [RiskScore.LOW]: ["gray.100", "rgba(226, 232, 240, 0.16)"],
   [RiskScore.NONE]: ["green.100", "rgba(154, 230, 180, 0.16)"],
-};
+}
 
 export const DataClassComponent: React.FC<DataClassComponentProps> = ({
   dataClass,
@@ -34,9 +34,9 @@ export const DataClassComponent: React.FC<DataClassComponentProps> = ({
   handleIgnoreClick,
   updating,
 }) => {
-  const riskScore = DATA_CLASS_TO_RISK_SCORE[dataClass];
-  const colors = RISK_SCORE_TO_COMPONENT_COLOR[riskScore];
-  const color = useColorModeValue(colors[0], colors[1]);
+  const riskScore = DATA_CLASS_TO_RISK_SCORE[dataClass]
+  const colors = RISK_SCORE_TO_COMPONENT_COLOR[riskScore]
+  const color = useColorModeValue(colors[0], colors[1])
 
   return (
     <VStack
@@ -84,5 +84,5 @@ export const DataClassComponent: React.FC<DataClassComponentProps> = ({
         </Button>
       </Box>
     </VStack>
-  );
-};
+  )
+}

@@ -1,25 +1,25 @@
-import { Box, VStack } from "@chakra-ui/react";
-import React from "react";
-import { Alert, GetAlertParams } from "@common/types";
-import List from "./List";
-import AlertFilters from "./Filters";
-import { ALERT_PAGE_LIMIT } from "~/constants";
-import { AlertType, RiskScore } from "@common/enums";
+import { Box, VStack } from "@chakra-ui/react"
+import React from "react"
+import { Alert, GetAlertParams } from "@common/types"
+import List from "./List"
+import AlertFilters from "./Filters"
+import { ALERT_PAGE_LIMIT } from "~/constants"
+import { AlertType, RiskScore } from "@common/enums"
 
 interface AlertListProps {
-  fetching: boolean;
-  totalCount: number;
-  alerts: Alert[];
-  params: GetAlertParams;
-  setParams: React.Dispatch<React.SetStateAction<GetAlertParams>>;
+  fetching: boolean
+  totalCount: number
+  alerts: Alert[]
+  params: GetAlertParams
+  setParams: React.Dispatch<React.SetStateAction<GetAlertParams>>
 }
 
 const AlertList: React.FC<AlertListProps> = React.memo(
   ({ alerts, fetching, totalCount, params, setParams }) => {
     const setCurrentPage = (page: number) => {
-      const offset = (page - 1) * ALERT_PAGE_LIMIT;
-      setParams({ ...params, offset });
-    };
+      const offset = (page - 1) * ALERT_PAGE_LIMIT
+      setParams({ ...params, offset })
+    }
     return (
       <VStack
         w="full"
@@ -49,8 +49,8 @@ const AlertList: React.FC<AlertListProps> = React.memo(
           />
         </Box>
       </VStack>
-    );
-  }
-);
+    )
+  },
+)
 
-export default AlertList;
+export default AlertList

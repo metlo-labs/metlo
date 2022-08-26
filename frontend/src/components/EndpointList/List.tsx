@@ -1,39 +1,39 @@
-import React from "react";
-import { Badge, Box, Code, useColorMode, HStack } from "@chakra-ui/react";
-import { useRouter } from "next/router";
-import EmptyView from "components/utils/EmptyView";
-import DataTable, { SortOrder, TableColumn } from "react-data-table-component";
-import { METHOD_TO_COLOR, RISK_TO_COLOR } from "~/constants";
+import React from "react"
+import { Badge, Box, Code, useColorMode, HStack } from "@chakra-ui/react"
+import { useRouter } from "next/router"
+import EmptyView from "components/utils/EmptyView"
+import DataTable, { SortOrder, TableColumn } from "react-data-table-component"
+import { METHOD_TO_COLOR, RISK_TO_COLOR } from "~/constants"
 import {
   getCustomStyles,
   rowStyles,
   SkeletonCell,
-} from "components/utils/TableUtils";
-import { ApiEndpoint } from "@common/types";
-import { getDateTimeString } from "utils";
+} from "components/utils/TableUtils"
+import { ApiEndpoint } from "@common/types"
+import { getDateTimeString } from "utils"
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 10
 
 interface EndpointTablesProps {
-  endpoints: ApiEndpoint[];
-  totalCount: number;
-  currentPage: number;
-  setCurrentPage: (e: number) => void;
-  fetching: boolean;
-  setOrdering: (e: "ASC" | "DESC") => void;
-  setOrderBy: (e: string | undefined) => void;
+  endpoints: ApiEndpoint[]
+  totalCount: number
+  currentPage: number
+  setCurrentPage: (e: number) => void
+  fetching: boolean
+  setOrdering: (e: "ASC" | "DESC") => void
+  setOrderBy: (e: string | undefined) => void
 }
 
 interface TableLoaderProps {
-  currentPage: number;
-  totalCount: number;
+  currentPage: number
+  totalCount: number
 }
 
 const TableLoader: React.FC<TableLoaderProps> = ({
   currentPage,
   totalCount,
 }) => {
-  const colorMode = useColorMode();
+  const colorMode = useColorMode()
   const loadingColumns: TableColumn<any>[] = [
     {
       name: "Risk Score",
@@ -65,11 +65,11 @@ const TableLoader: React.FC<TableLoaderProps> = ({
       id: "lastActive",
       grow: 2,
     },
-  ].map((e) => ({
+  ].map(e => ({
     ...e,
     sortable: true,
     cell: (row: ApiEndpoint) => <SkeletonCell />,
-  }));
+  }))
 
   return (
     <Box w="full" h="full">
@@ -80,15 +80,15 @@ const TableLoader: React.FC<TableLoaderProps> = ({
         paginationServer
         columns={loadingColumns}
         data={Array.apply(null, Array(PAGE_SIZE)).map(() => {
-          return {};
+          return {}
         })}
         customStyles={getCustomStyles(colorMode.colorMode)}
         pagination
         paginationDefaultPage={currentPage}
       />
     </Box>
-  );
-};
+  )
+}
 
 const List: React.FC<EndpointTablesProps> = React.memo(
   ({
@@ -100,19 +100,19 @@ const List: React.FC<EndpointTablesProps> = React.memo(
     setOrdering,
     setOrderBy,
   }) => {
-    const router = useRouter();
-    const colorMode = useColorMode();
+    const router = useRouter()
+    const colorMode = useColorMode()
     const handlePageChange = (page: number) => {
-      setCurrentPage(page);
-    };
+      setCurrentPage(page)
+    }
 
     const handleSort = (
       column: TableColumn<ApiEndpoint>,
-      sortDirection: SortOrder
+      sortDirection: SortOrder,
     ) => {
-      setOrdering(sortDirection.toUpperCase() as "ASC" | "DESC");
-      setOrderBy(column.id?.toString());
-    };
+      setOrdering(sortDirection.toUpperCase() as "ASC" | "DESC")
+      setOrderBy(column.id?.toString())
+    }
 
     const columns: TableColumn<ApiEndpoint>[] = [
       {
@@ -175,14 +175,14 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         id: "lastActive",
         grow: 1.5,
       },
-    ];
+    ]
 
     const onRowClicked = (
       row: ApiEndpoint,
-      e: React.MouseEvent<Element, MouseEvent>
+      e: React.MouseEvent<Element, MouseEvent>,
     ) => {
-      router.push(`/endpoint/${row.uuid}`);
-    };
+      router.push(`/endpoint/${row.uuid}`)
+    }
 
     const getTable = () => (
       <DataTable
@@ -203,16 +203,16 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         onRowClicked={onRowClicked}
         paginationDefaultPage={currentPage}
       />
-    );
+    )
 
     if (totalCount == 0 && !fetching) {
-      return <EmptyView text="No results found." />;
+      return <EmptyView text="No results found." />
     }
     if (totalCount > 0) {
-      return getTable();
+      return getTable()
     }
-    return null;
-  }
-);
+    return null
+  },
+)
 
-export default List;
+export default List

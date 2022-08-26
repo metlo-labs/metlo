@@ -1,11 +1,11 @@
-import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils";
-import { SidebarLayoutShell } from "components/SidebarLayoutShell";
-import { ContentContainer } from "components/utils/ContentContainer";
-import { Flex, Heading, VStack } from "@chakra-ui/react";
-import { useState } from "react";
+import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
+import { SidebarLayoutShell } from "components/SidebarLayoutShell"
+import { ContentContainer } from "components/utils/ContentContainer"
+import { Flex, Heading, VStack } from "@chakra-ui/react"
+import { useState } from "react"
 
 const Connections = ({}) => {
-  const [selectedIndex, updateIndex] = useState(1);
+  const [selectedIndex, updateIndex] = useState(1)
   return (
     <SidebarLayoutShell currentTab={SideNavLinkDestination.Connections}>
       <ContentContainer height="full">
@@ -19,7 +19,7 @@ const Connections = ({}) => {
         </VStack>
       </ContentContainer>
     </SidebarLayoutShell>
-  );
-};
+  )
+}
 
-export default Connections;
+export default Connections

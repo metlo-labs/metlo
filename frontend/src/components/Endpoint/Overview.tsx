@@ -1,5 +1,5 @@
-import React from "react";
-import { ApiEndpointDetailed, Usage } from "@common/types";
+import React from "react"
+import { ApiEndpointDetailed, Usage } from "@common/types"
 import {
   Box,
   Badge,
@@ -7,28 +7,28 @@ import {
   GridItem,
   Stack,
   useColorModeValue,
-} from "@chakra-ui/react";
-import Highlight, { defaultProps } from "prism-react-renderer";
-import darkTheme from "prism-react-renderer/themes/duotoneDark";
-import lightTheme from "prism-react-renderer/themes/github";
-import { DataAttribute, DataHeading } from "components/utils/Card";
-import EndpointUsageChart from "./UsageChart";
-import { RISK_TO_COLOR } from "~/constants";
-import EndpointPIIChart from "./PIIChart";
-import { getDateTimeString } from "utils";
-import { DataTag } from "@common/enums";
+} from "@chakra-ui/react"
+import Highlight, { defaultProps } from "prism-react-renderer"
+import darkTheme from "prism-react-renderer/themes/duotoneDark"
+import lightTheme from "prism-react-renderer/themes/github"
+import { DataAttribute, DataHeading } from "components/utils/Card"
+import EndpointUsageChart from "./UsageChart"
+import { RISK_TO_COLOR } from "~/constants"
+import EndpointPIIChart from "./PIIChart"
+import { getDateTimeString } from "utils"
+import { DataTag } from "@common/enums"
 
 interface EndpointOverviewProps {
-  endpoint: ApiEndpointDetailed;
-  usage: Usage[];
+  endpoint: ApiEndpointDetailed
+  usage: Usage[]
 }
 
 const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
   ({ endpoint, usage }) => {
-    const theme = useColorModeValue(lightTheme, darkTheme);
+    const theme = useColorModeValue(lightTheme, darkTheme)
     const piiFields = endpoint.dataFields.filter(
-      (field) => field.dataTag === DataTag.PII
-    );
+      field => field.dataTag === DataTag.PII,
+    )
     return (
       <Stack
         direction={{ base: "column", lg: "row" }}
@@ -149,8 +149,8 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
           </Highlight>
         </Box>
       </Stack>
-    );
-  }
-);
+    )
+  },
+)
 
-export default EndpointOverview;
+export default EndpointOverview

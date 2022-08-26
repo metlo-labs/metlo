@@ -1,16 +1,16 @@
-import { Box, Button, Flex, Grid, GridItem, Input } from "@chakra-ui/react";
-import { useState } from "react";
+import { Box, Button, Flex, Grid, GridItem, Input } from "@chakra-ui/react"
+import { useState } from "react"
 
 interface KeySetupInterface {
-  complete: (params: Record<string, any>) => void;
-  name: string;
-  setName: (name: string) => void;
+  complete: (params: Record<string, any>) => void
+  name: string
+  setName: (name: string) => void
 }
 
 const KeySetup: React.FC<KeySetupInterface> = ({ complete, name, setName }) => {
-  const [accessId, setAccessId] = useState("");
-  const [secretAccessKey, setSecretAccessKey] = useState("");
-  const [region, setRegion] = useState("");
+  const [accessId, setAccessId] = useState("")
+  const [secretAccessKey, setSecretAccessKey] = useState("")
+  const [region, setRegion] = useState("")
 
   return (
     <Grid
@@ -25,7 +25,7 @@ const KeySetup: React.FC<KeySetupInterface> = ({ complete, name, setName }) => {
       </GridItem>
       <GridItem colSpan={2}>
         <Box>
-          <Input onChange={(e) => setName(e.target.value)} value={name} />
+          <Input onChange={e => setName(e.target.value)} value={name} />
         </Box>
       </GridItem>
       <GridItem colSpan={1}>
@@ -33,10 +33,7 @@ const KeySetup: React.FC<KeySetupInterface> = ({ complete, name, setName }) => {
       </GridItem>
       <GridItem colSpan={2}>
         <Box>
-          <Input
-            onChange={(e) => setAccessId(e.target.value)}
-            value={accessId}
-          />
+          <Input onChange={e => setAccessId(e.target.value)} value={accessId} />
         </Box>
       </GridItem>
       <GridItem colSpan={1}>
@@ -45,7 +42,7 @@ const KeySetup: React.FC<KeySetupInterface> = ({ complete, name, setName }) => {
       <GridItem colSpan={2}>
         <Box>
           <Input
-            onChange={(e) => setSecretAccessKey(e.target.value)}
+            onChange={e => setSecretAccessKey(e.target.value)}
             value={secretAccessKey}
           />
         </Box>
@@ -55,7 +52,7 @@ const KeySetup: React.FC<KeySetupInterface> = ({ complete, name, setName }) => {
       </GridItem>
       <GridItem colSpan={2}>
         <Box>
-          <Input onChange={(e) => setRegion(e.target.value)} value={region} />
+          <Input onChange={e => setRegion(e.target.value)} value={region} />
         </Box>
       </GridItem>
       <GridItem w={"full"} colSpan={3}>
@@ -75,6 +72,6 @@ const KeySetup: React.FC<KeySetupInterface> = ({ complete, name, setName }) => {
         </Flex>
       </GridItem>
     </Grid>
-  );
-};
-export default KeySetup;
+  )
+}
+export default KeySetup

@@ -1,4 +1,4 @@
-import React from "react";
+import React from "react"
 import {
   HStack,
   Tab,
@@ -12,18 +12,18 @@ import {
   Flex,
   useColorModeValue,
   Box,
-} from "@chakra-ui/react";
-import { Result } from "@common/testing/types";
-import { SectionHeader } from "../utils/Card";
-import { statusToColor } from "../../constants";
-import { BiCheckCircle } from "@react-icons/all-files/bi/BiCheckCircle";
-import { GiCancel } from "@react-icons/all-files/gi/GiCancel";
-import DataPreview from "./dataPreview";
+} from "@chakra-ui/react"
+import { Result } from "@common/testing/types"
+import { SectionHeader } from "../utils/Card"
+import { statusToColor } from "../../constants"
+import { BiCheckCircle } from "@react-icons/all-files/bi/BiCheckCircle"
+import { GiCancel } from "@react-icons/all-files/gi/GiCancel"
+import DataPreview from "./dataPreview"
 
 const Response: React.FC<{ res: Result }> = React.memo(({ res }) => {
-  const tabsBG = useColorModeValue("white", "black");
+  const tabsBG = useColorModeValue("white", "black")
   if (!res) {
-    return null;
+    return null
   }
   return (
     <Tabs
@@ -100,7 +100,7 @@ const Response: React.FC<{ res: Result }> = React.memo(({ res }) => {
                     {e.value}
                   </Text>
                 </HStack>
-              );
+              )
             })}
           </VStack>
         </TabPanel>
@@ -134,13 +134,13 @@ const Response: React.FC<{ res: Result }> = React.memo(({ res }) => {
                   </Text>
                   {e.success ? <BiCheckCircle /> : <GiCancel />}
                 </HStack>
-              );
+              )
             })}
           </VStack>
         </TabPanel>
       </TabPanels>
     </Tabs>
-  );
-});
+  )
+})
 
-export default Response;
+export default Response

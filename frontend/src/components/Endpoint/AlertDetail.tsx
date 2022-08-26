@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Alert } from "@common/types";
+import React, { useEffect, useState } from "react"
+import { Alert } from "@common/types"
 import {
   Box,
   Badge,
@@ -15,41 +15,41 @@ import {
   ListItem,
   ListIcon,
   List,
-} from "@chakra-ui/react";
-import { AiOutlineRight } from "@react-icons/all-files/ai/AiOutlineRight";
-import { getDateTimeString } from "utils";
-import { METHOD_TO_COLOR } from "~/constants";
-import { RestMethod } from "@common/enums";
-import { resolveAlert } from "api/alerts";
+} from "@chakra-ui/react"
+import { AiOutlineRight } from "@react-icons/all-files/ai/AiOutlineRight"
+import { getDateTimeString } from "utils"
+import { METHOD_TO_COLOR } from "~/constants"
+import { RestMethod } from "@common/enums"
+import { resolveAlert } from "api/alerts"
 
 interface AlertDetailProps {
-  alert: Alert;
-  method: RestMethod;
-  path: string;
-  alertList: Alert[];
-  setAlertList: React.Dispatch<React.SetStateAction<Alert[]>>;
+  alert: Alert
+  method: RestMethod
+  path: string
+  alertList: Alert[]
+  setAlertList: React.Dispatch<React.SetStateAction<Alert[]>>
 }
 
 const AlertDetail: React.FC<AlertDetailProps> = React.memo(
   ({ alert, method, path, alertList, setAlertList }) => {
-    const [currAlert, setCurrAlert] = useState<Alert>(alert);
-    const [resolving, setResolving] = useState<boolean>(false);
+    const [currAlert, setCurrAlert] = useState<Alert>(alert)
+    const [resolving, setResolving] = useState<boolean>(false)
     const [resolutionMessage, setResolutionMessage] = useState<string>(
-      alert?.resolutionMessage
-    );
-    const toast = useToast();
+      alert?.resolutionMessage,
+    )
+    const toast = useToast()
 
     useEffect(() => {
-      setResolutionMessage(currAlert.resolutionMessage);
-    }, [currAlert]);
+      setResolutionMessage(currAlert.resolutionMessage)
+    }, [currAlert])
 
     useEffect(() => {
-      setCurrAlert(alert);
-    }, [alert]);
+      setCurrAlert(alert)
+    }, [alert])
 
     const handleResolveClick = async () => {
-      setResolving(true);
-      const resp: Alert = await resolveAlert(currAlert.uuid, resolutionMessage);
+      setResolving(true)
+      const resp: Alert = await resolveAlert(currAlert.uuid, resolutionMessage)
       if (resp) {
         toast({
           title: "Successfully resolved alert!",
@@ -57,15 +57,15 @@ const AlertDetail: React.FC<AlertDetailProps> = React.memo(
           duration: 5000,
           isClosable: true,
           position: "top",
-        });
-        const tempAlertList = [...alertList];
+        })
+        const tempAlertList = [...alertList]
         for (let i = 0; i < tempAlertList.length; i++) {
           if (tempAlertList[i].uuid === resp.uuid) {
-            tempAlertList[i] = resp;
+            tempAlertList[i] = resp
           }
         }
-        setCurrAlert(resp);
-        setAlertList([...tempAlertList]);
+        setCurrAlert(resp)
+        setAlertList([...tempAlertList])
       } else {
         toast({
           title: "Resolving Alert Failed...",
@@ -73,10 +73,10 @@ const AlertDetail: React.FC<AlertDetailProps> = React.memo(
           duration: 5000,
           isClosable: true,
           position: "top",
-        });
+        })
       }
-      setResolving(false);
-    };
+      setResolving(false)
+    }
 
     return (
       <Box h="full" overflowY="auto" p="4">
@@ -135,7 +135,7 @@ const AlertDetail: React.FC<AlertDetailProps> = React.memo(
               placeholder={
                 !currAlert.resolved && "Provide reason for resolving..."
               }
-              onChange={(e) => setResolutionMessage(e.target.value)}
+              onChange={e => setResolutionMessage(e.target.value)}
             />
           </VStack>
           {currAlert?.resolved ? (
@@ -154,8 +154,8 @@ const AlertDetail: React.FC<AlertDetailProps> = React.memo(
           )}
         </VStack>
       </Box>
-    );
-  }
-);
+    )
+  },
+)
 
-export default AlertDetail;
+export default AlertDetail

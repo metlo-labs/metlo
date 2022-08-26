@@ -1,13 +1,13 @@
-import React from "react";
-import NextLink from "next/link";
-import { ApiEndpointDetailed } from "@common/types";
-import { Badge, Box, Code, HStack, Text } from "@chakra-ui/react";
-import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch";
-import { FaChevronRight } from "@react-icons/all-files/fa/FaChevronRight";
-import { METHOD_TO_COLOR } from "~/constants";
+import React from "react"
+import NextLink from "next/link"
+import { ApiEndpointDetailed } from "@common/types"
+import { Badge, Box, Code, HStack, Text } from "@chakra-ui/react"
+import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch"
+import { FaChevronRight } from "@react-icons/all-files/fa/FaChevronRight"
+import { METHOD_TO_COLOR } from "~/constants"
 
 interface TestEditorHeaderProps {
-  endpoint: ApiEndpointDetailed;
+  endpoint: ApiEndpointDetailed
 }
 
 const TestEditorHeader: React.FC<TestEditorHeaderProps> = React.memo(
@@ -42,8 +42,8 @@ const TestEditorHeader: React.FC<TestEditorHeaderProps> = React.memo(
           </HStack>
         </NextLink>
       </HStack>
-    );
-  }
-);
+    )
+  },
+)
 
-export default TestEditorHeader;
+export default TestEditorHeader

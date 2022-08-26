@@ -1,13 +1,13 @@
-import React from "react";
-import NextLink from "next/link";
-import { ApiEndpointDetailed } from "@common/types";
-import EmptyView from "../utils/EmptyView";
-import { Button, Heading, VStack } from "@chakra-ui/react";
-import ListTests from "../TestList";
-import { TestDetailed } from "@common/testing/types";
+import React from "react"
+import NextLink from "next/link"
+import { ApiEndpointDetailed } from "@common/types"
+import EmptyView from "../utils/EmptyView"
+import { Button, Heading, VStack } from "@chakra-ui/react"
+import ListTests from "../TestList"
+import { TestDetailed } from "@common/testing/types"
 
 interface TestListProps {
-  endpoint: ApiEndpointDetailed;
+  endpoint: ApiEndpointDetailed
 }
 
 const TestList: React.FC<TestListProps> = React.memo(({ endpoint }) => {
@@ -30,18 +30,18 @@ const TestList: React.FC<TestListProps> = React.memo(({ endpoint }) => {
           </NextLink>
         </VStack>
       </EmptyView>
-    );
+    )
   }
   return (
     <ListTests
       endpointUUID={endpoint.uuid}
       tests={endpoint.tests.map((test, i) => {
-        return { ...test, apiEndpoint: endpoint } as TestDetailed;
+        return { ...test, apiEndpoint: endpoint } as TestDetailed
       })}
       borderWidth="0px"
       rounded="none"
     />
-  );
-});
+  )
+})
 
-export default TestList;
+export default TestList

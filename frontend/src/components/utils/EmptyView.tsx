@@ -1,6 +1,6 @@
-import React from "react";
+import React from "react"
 
-import { Box, Heading, BoxProps } from "@chakra-ui/react";
+import { Box, Heading, BoxProps } from "@chakra-ui/react"
 
 const EmptyView: React.FC<
   BoxProps & { text?: string; notRounded?: boolean; children?: React.ReactNode }
@@ -29,7 +29,7 @@ const EmptyView: React.FC<
         </Heading>
       )}
     </Box>
-  );
-});
+  )
+})
 
-export default EmptyView;
+export default EmptyView

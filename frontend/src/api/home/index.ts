@@ -1,29 +1,29 @@
-import axios from "axios";
-import { Summary, Alert } from "@common/types";
-import { getAPIURL } from "~/constants";
+import axios from "axios"
+import { Summary, Alert } from "@common/types"
+import { getAPIURL } from "~/constants"
 
 export const getSummary = async (): Promise<Summary> => {
   try {
-    const resp = await axios.get<Summary>(`${getAPIURL()}/summary`);
+    const resp = await axios.get<Summary>(`${getAPIURL()}/summary`)
     if (resp.status === 200 && resp.data) {
-      return resp.data;
+      return resp.data
     }
-    return null;
+    return null
   } catch (err) {
-    console.error(`Error fetching summary stats: ${err}`);
-    return null;
+    console.error(`Error fetching summary stats: ${err}`)
+    return null
   }
-};
+}
 
 export const getTopAlerts = async (): Promise<Alert[]> => {
   try {
-    const resp = await axios.get<Alert[]>(`${getAPIURL()}/topAlerts`);
+    const resp = await axios.get<Alert[]>(`${getAPIURL()}/topAlerts`)
     if (resp.status === 200 && resp.data) {
-      return resp.data;
+      return resp.data
     }
-    return [];
+    return []
   } catch (err) {
-    console.error(`Error fetching top alerts: ${err}`);
-    return [];
+    console.error(`Error fetching top alerts: ${err}`)
+    return []
   }
-};
+}

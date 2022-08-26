@@ -1,53 +1,53 @@
-import React, { useState } from "react";
-import { Text, Image, useColorMode, useDisclosure } from "@chakra-ui/react";
-import DataTable, { TableColumn } from "react-data-table-component";
-import { getCustomStyles, rowStyles } from "components/utils/TableUtils";
-import { ConnectionInfo } from "@common/types";
-import { useRouter } from "next/router";
-import ConnectionSelector from "components/ConnectionInfo/connectionSelector";
+import React, { useState } from "react"
+import { Text, Image, useColorMode, useDisclosure } from "@chakra-ui/react"
+import DataTable, { TableColumn } from "react-data-table-component"
+import { getCustomStyles, rowStyles } from "components/utils/TableUtils"
+import { ConnectionInfo } from "@common/types"
+import { useRouter } from "next/router"
+import ConnectionSelector from "components/ConnectionInfo/connectionSelector"
 
 interface ConnectionListProps {
-  connections: ConnectionInfo[];
-  selectedConnection?: string;
-  setConnections: (v: ConnectionInfo[]) => void;
+  connections: ConnectionInfo[]
+  selectedConnection?: string
+  setConnections: (v: ConnectionInfo[]) => void
 }
 
 const ConnectionList: React.FC<ConnectionListProps> = React.memo(
   ({ connections, selectedConnection, setConnections }) => {
-    const router = useRouter();
-    const colorMode = useColorMode();
-    const [openConnection, setOpenConnection] = useState(selectedConnection);
+    const router = useRouter()
+    const colorMode = useColorMode()
+    const [openConnection, setOpenConnection] = useState(selectedConnection)
 
     const onConnectionUpdate = (updatedConnection: ConnectionInfo) => {
-      const newConns = connections.map((v) => {
+      const newConns = connections.map(v => {
         if (v.uuid == updatedConnection.uuid) {
-          return updatedConnection;
+          return updatedConnection
         }
-        return v;
-      });
-      setConnections(newConns);
-    };
+        return v
+      })
+      setConnections(newConns)
+    }
 
     const {
       isOpen,
       onOpen: _onOpen,
       onClose: _onClose,
-    } = useDisclosure({ isOpen: !!selectedConnection });
+    } = useDisclosure({ isOpen: !!selectedConnection })
 
     const onOpen = (connectionId: string) => {
-      setOpenConnection(connectionId);
-      router.push(`?id=${connectionId}`, undefined, { shallow: true });
-      _onOpen();
-    };
+      setOpenConnection(connectionId)
+      router.push(`?id=${connectionId}`, undefined, { shallow: true })
+      _onOpen()
+    }
 
     const onClose = () => {
-      const currentURL = new URL(window.location.href);
+      const currentURL = new URL(window.location.href)
       router.push(currentURL.origin + currentURL.pathname, undefined, {
         shallow: true,
-      });
-      setOpenConnection(null);
-      _onClose();
-    };
+      })
+      setOpenConnection(null)
+      _onClose()
+    }
 
     const columns: TableColumn<ConnectionInfo>[] = [
       {
@@ -100,11 +100,11 @@ const ConnectionList: React.FC<ConnectionListProps> = React.memo(
         id: "created",
         grow: 1,
       },
-    ];
+    ]
     return (
       <>
         <ConnectionSelector
-          connection={connections.find((v) => v.uuid === openConnection)}
+          connection={connections.find(v => v.uuid === openConnection)}
           setConnectionUpdated={onConnectionUpdate}
           isOpen={isOpen}
           onClose={onClose}
@@ -115,12 +115,12 @@ const ConnectionList: React.FC<ConnectionListProps> = React.memo(
           data={connections}
           customStyles={getCustomStyles(colorMode.colorMode)}
           onRowClicked={(row, evt) => {
-            onOpen(row.uuid);
+            onOpen(row.uuid)
           }}
         />
       </>
-    );
-  }
-);
+    )
+  },
+)
 
-export default ConnectionList;
+export default ConnectionList

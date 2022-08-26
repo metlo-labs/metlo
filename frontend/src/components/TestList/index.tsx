@@ -1,18 +1,18 @@
-import React, { useState } from "react";
-import { StackProps, VStack } from "@chakra-ui/react";
-import List from "./List";
-import { TestDetailed } from "@common/testing/types";
-import TestFilters from "./Filters";
+import React, { useState } from "react"
+import { StackProps, VStack } from "@chakra-ui/react"
+import List from "./List"
+import { TestDetailed } from "@common/testing/types"
+import TestFilters from "./Filters"
 
 interface ListTestsProps extends StackProps {
-  endpointUUID: string;
-  tests: TestDetailed[];
+  endpointUUID: string
+  tests: TestDetailed[]
 }
 
 const ListTests: React.FC<ListTestsProps> = React.memo(
   ({ endpointUUID, tests, ...props }) => {
-    const [tags, setTags] = useState<string[]>([]);
-    const allTags = Array.from(new Set(tests.map((e) => e.tags).flat()));
+    const [tags, setTags] = useState<string[]>([])
+    const allTags = Array.from(new Set(tests.map(e => e.tags).flat()))
     return (
       <VStack
         w="full"
@@ -32,8 +32,8 @@ const ListTests: React.FC<ListTestsProps> = React.memo(
         />
         <List tests={tests} />
       </VStack>
-    );
-  }
-);
+    )
+  },
+)
 
-export default ListTests;
+export default ListTests

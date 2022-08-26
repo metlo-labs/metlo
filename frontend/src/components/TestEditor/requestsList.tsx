@@ -1,35 +1,35 @@
-import React, { useState } from "react";
-import { HStack, VStack, StackProps, Button, Text } from "@chakra-ui/react";
-import { IoMdTrash } from "@react-icons/all-files/io/IoMdTrash";
-import { FiPlus } from "@react-icons/all-files/fi/FiPlus";
-import { Request } from "@common/testing/types";
-import { METHOD_TO_COLOR } from "~/constants";
+import React, { useState } from "react"
+import { HStack, VStack, StackProps, Button, Text } from "@chakra-ui/react"
+import { IoMdTrash } from "@react-icons/all-files/io/IoMdTrash"
+import { FiPlus } from "@react-icons/all-files/fi/FiPlus"
+import { Request } from "@common/testing/types"
+import { METHOD_TO_COLOR } from "~/constants"
 
 interface RequestListProps extends StackProps {
-  requests: Request[];
-  selectedRequest: number;
-  updateSelectedRequest: (e: number) => void;
-  addNewRequest: () => void;
-  deleteRequest: (e: number) => void;
+  requests: Request[]
+  selectedRequest: number
+  updateSelectedRequest: (e: number) => void
+  addNewRequest: () => void
+  deleteRequest: (e: number) => void
 }
 
 interface RequestItemProps {
-  request: Request;
-  selectedRequest: number;
-  idx: number;
-  updateSelectedRequest: (e: number) => void;
-  deleteRequest: (e: number) => void;
+  request: Request
+  selectedRequest: number
+  idx: number
+  updateSelectedRequest: (e: number) => void
+  deleteRequest: (e: number) => void
 }
 
 const RequestItem: React.FC<RequestItemProps> = React.memo(
   ({ request, selectedRequest, idx, updateSelectedRequest, deleteRequest }) => {
-    const [hovered, setHover] = useState(false);
-    let host = "----";
-    let path = "----";
+    const [hovered, setHover] = useState(false)
+    let host = "----"
+    let path = "----"
     try {
-      const url = new URL(request.url);
-      host = url.host;
-      path = decodeURI(url.pathname);
+      const url = new URL(request.url)
+      host = url.host
+      path = decodeURI(url.pathname)
     } catch (e) {}
     return (
       <HStack
@@ -82,9 +82,9 @@ const RequestItem: React.FC<RequestItemProps> = React.memo(
           hidden={!hovered}
           size="sm"
           variant="ghost"
-          onClick={(e) => {
-            e.stopPropagation();
-            deleteRequest(idx);
+          onClick={e => {
+            e.stopPropagation()
+            deleteRequest(idx)
           }}
           color="red.200"
           _hover={{ color: "red.500" }}
@@ -93,9 +93,9 @@ const RequestItem: React.FC<RequestItemProps> = React.memo(
           <IoMdTrash color="inherit" />
         </Button>
       </HStack>
-    );
-  }
-);
+    )
+  },
+)
 
 const RequestList: React.FC<RequestListProps> = React.memo(
   ({
@@ -128,8 +128,8 @@ const RequestList: React.FC<RequestListProps> = React.memo(
           Request
         </Button>
       </VStack>
-    );
-  }
-);
+    )
+  },
+)
 
-export default RequestList;
+export default RequestList

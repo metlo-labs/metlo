@@ -6,15 +6,15 @@ import {
   GridItem,
   Select,
   Spinner,
-} from "@chakra-ui/react";
-import axios from "axios";
-import { useEffect, useState } from "react";
-import { getAPIURL } from "~/constants";
+} from "@chakra-ui/react"
+import axios from "axios"
+import { useEffect, useState } from "react"
+import { getAPIURL } from "~/constants"
 
 interface KeySetupInterface {
-  id: string;
-  complete: (params: Record<string, any>) => void;
-  isCurrent: boolean;
+  id: string
+  complete: (params: Record<string, any>) => void
+  isCurrent: boolean
 }
 
 const OsSelection: React.FC<KeySetupInterface> = ({
@@ -22,8 +22,8 @@ const OsSelection: React.FC<KeySetupInterface> = ({
   complete,
   isCurrent,
 }) => {
-  const [os_choice, set_choice] = useState("");
-  const [OSChoices, setOSChoices] = useState<Array<[string, string]>>(null);
+  const [os_choice, set_choice] = useState("")
+  const [OSChoices, setOSChoices] = useState<Array<[string, string]>>(null)
   useEffect(() => {
     if (isCurrent) {
       axios
@@ -31,17 +31,17 @@ const OsSelection: React.FC<KeySetupInterface> = ({
           `${getAPIURL()}/setup_connection/aws/os`,
           {
             id: id,
-          }
+          },
         )
-        .then((res) => {
-          setOSChoices(res.data);
+        .then(res => {
+          setOSChoices(res.data)
           if (res.data.length > 0) {
-            set_choice(res.data[0][1]);
+            set_choice(res.data[0][1])
           }
         })
-        .catch((err) => {});
+        .catch(err => {})
     }
-  }, [isCurrent]);
+  }, [isCurrent])
   if (OSChoices != null) {
     return (
       <Grid
@@ -57,7 +57,7 @@ const OsSelection: React.FC<KeySetupInterface> = ({
         <GridItem colSpan={2}>
           <Box>
             <Select
-              onChange={(e) => set_choice(e.target.value)}
+              onChange={e => set_choice(e.target.value)}
               value={os_choice}
             >
               {OSChoices.map((v, i) => (
@@ -79,12 +79,12 @@ const OsSelection: React.FC<KeySetupInterface> = ({
           </Flex>
         </GridItem>
       </Grid>
-    );
+    )
   }
   return (
     <Flex w={"full"} h={"full"} justify={"center"} mt={8}>
       <Spinner size={"xl"} />
     </Flex>
-  );
-};
-export default OsSelection;
+  )
+}
+export default OsSelection

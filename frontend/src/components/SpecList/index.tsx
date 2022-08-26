@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState } from "react"
 import {
   Box,
   VStack,
@@ -6,31 +6,31 @@ import {
   Button,
   InputGroup,
   useToast,
-} from "@chakra-ui/react";
-import { OpenApiSpec } from "@common/types";
-import List from "./List";
-import { uploadSpec } from "api/apiSpecs";
-import { useRouter } from "next/router";
+} from "@chakra-ui/react"
+import { OpenApiSpec } from "@common/types"
+import List from "./List"
+import { uploadSpec } from "api/apiSpecs"
+import { useRouter } from "next/router"
 
 interface APISpecListProps {
-  apiSpecs: OpenApiSpec[];
+  apiSpecs: OpenApiSpec[]
 }
 
 const APISpecList: React.FC<APISpecListProps> = React.memo(({ apiSpecs }) => {
-  const router = useRouter();
-  const [fetching, setFetching] = useState<boolean>(false);
-  const toast = useToast();
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const handleClick = () => inputRef.current?.click();
+  const router = useRouter()
+  const [fetching, setFetching] = useState<boolean>(false)
+  const toast = useToast()
+  const inputRef = useRef<HTMLInputElement | null>(null)
+  const handleClick = () => inputRef.current?.click()
   const handleSubmission = async (evt: React.ChangeEvent<HTMLInputElement>) => {
-    setFetching(true);
-    const file = evt.target.files[0];
+    setFetching(true)
+    const file = evt.target.files[0]
     if (!file) {
-      return;
+      return
     }
     try {
-      await uploadSpec(file);
-      router.reload();
+      await uploadSpec(file)
+      router.reload()
     } catch (err) {
       toast({
         title: "Upload Failed...",
@@ -39,10 +39,10 @@ const APISpecList: React.FC<APISpecListProps> = React.memo(({ apiSpecs }) => {
         duration: 8000,
         isClosable: true,
         position: "top",
-      });
+      })
     }
-    setFetching(false);
-  };
+    setFetching(false)
+  }
   return (
     <VStack
       w="full"
@@ -60,8 +60,8 @@ const APISpecList: React.FC<APISpecListProps> = React.memo(({ apiSpecs }) => {
                 type="file"
                 multiple={false}
                 hidden
-                ref={(e) => {
-                  inputRef.current = e;
+                ref={e => {
+                  inputRef.current = e
                 }}
               />
               <Button colorScheme="blue" isLoading={fetching}>
@@ -75,7 +75,7 @@ const APISpecList: React.FC<APISpecListProps> = React.memo(({ apiSpecs }) => {
         <List apiSpecs={apiSpecs} />
       </Box>
     </VStack>
-  );
-});
+  )
+})
 
-export default APISpecList;
+export default APISpecList

@@ -1,11 +1,11 @@
-import React from "react";
-import NextLink from "next/link";
-import { BiInfoCircle } from "@react-icons/all-files/bi/BiInfoCircle";
-import { BsFillLockFill } from "@react-icons/all-files/bs/BsFillLockFill";
-import { GrStackOverflow } from "@react-icons/all-files/gr/GrStackOverflow";
-import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch";
-import { FaBell } from "@react-icons/all-files/fa/FaBell";
-import { BiTestTube } from "@react-icons/all-files/bi/BiTestTube";
+import React from "react"
+import NextLink from "next/link"
+import { BiInfoCircle } from "@react-icons/all-files/bi/BiInfoCircle"
+import { BsFillLockFill } from "@react-icons/all-files/bs/BsFillLockFill"
+import { GrStackOverflow } from "@react-icons/all-files/gr/GrStackOverflow"
+import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch"
+import { FaBell } from "@react-icons/all-files/fa/FaBell"
+import { BiTestTube } from "@react-icons/all-files/bi/BiTestTube"
 import {
   Badge,
   Code,
@@ -18,46 +18,46 @@ import {
   Tab,
   TabPanels,
   TabPanel,
-} from "@chakra-ui/react";
-import { useRouter } from "next/router";
-import { SectionHeader } from "components/utils/Card";
-import { ApiEndpointDetailed, Usage } from "@common/types";
-import { METHOD_TO_COLOR } from "~/constants";
-import DataFieldList from "./DataFieldList";
-import TraceList from "./TraceList";
-import AlertList from "./AlertList";
-import EndpointOverview from "./Overview";
-import TestList from "./TestList";
+} from "@chakra-ui/react"
+import { useRouter } from "next/router"
+import { SectionHeader } from "components/utils/Card"
+import { ApiEndpointDetailed, Usage } from "@common/types"
+import { METHOD_TO_COLOR } from "~/constants"
+import DataFieldList from "./DataFieldList"
+import TraceList from "./TraceList"
+import AlertList from "./AlertList"
+import EndpointOverview from "./Overview"
+import TestList from "./TestList"
 
 interface EndpointPageProps {
-  endpoint: ApiEndpointDetailed;
-  usage: Usage[];
+  endpoint: ApiEndpointDetailed
+  usage: Usage[]
 }
 
 const EndpointPage: React.FC<EndpointPageProps> = React.memo(
   ({ endpoint, usage }) => {
-    const router = useRouter();
+    const router = useRouter()
     const headerColor = useColorModeValue(
       "rgb(179, 181, 185)",
-      "rgb(91, 94, 109)"
-    );
-    const { tab, uuid } = router.query;
+      "rgb(91, 94, 109)",
+    )
+    const { tab, uuid } = router.query
     const getDefaultTab = () => {
       switch (tab) {
         case "overview":
-          return 0;
+          return 0
         case "fields":
-          return 1;
+          return 1
         case "traces":
-          return 2;
+          return 2
         case "alerts":
-          return 3;
+          return 3
         case "tests":
-          return 4;
+          return 4
         default:
-          return 0;
+          return 0
       }
-    };
+    }
 
     return (
       <VStack
@@ -141,8 +141,8 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
           </TabPanels>
         </Tabs>
       </VStack>
-    );
-  }
-);
+    )
+  },
+)
 
-export default EndpointPage;
+export default EndpointPage

@@ -12,17 +12,17 @@ import {
   NumberDecrementStepper,
   NumberIncrementStepper,
   useToast,
-} from "@chakra-ui/react";
-import { MachineSpecifications } from "@common/types";
-import axios, { AxiosError } from "axios";
-import { useEffect, useState } from "react";
-import { getAPIURL } from "~/constants";
+} from "@chakra-ui/react"
+import { MachineSpecifications } from "@common/types"
+import axios, { AxiosError } from "axios"
+import { useEffect, useState } from "react"
+import { getAPIURL } from "~/constants"
 
 interface KeySetupInterface {
-  id: string;
-  complete: (params: Record<string, any>) => void;
-  isCurrent: boolean;
-  setLoadingState: (x: boolean) => void;
+  id: string
+  complete: (params: Record<string, any>) => void
+  isCurrent: boolean
+  setLoadingState: (x: boolean) => void
 }
 
 const InstanceSelection: React.FC<KeySetupInterface> = ({
@@ -31,42 +31,42 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
   isCurrent,
   setLoadingState,
 }) => {
-  const [instances, setInstances] = useState<Array<string>>(null);
-  const [selectedInstance, setSelectedInstance] = useState<string>(null);
+  const [instances, setInstances] = useState<Array<string>>(null)
+  const [selectedInstance, setSelectedInstance] = useState<string>(null)
   const [selectedInstanceSpecs, setSelectedInstanceSpecs] =
     useState<MachineSpecifications>({
       maxCpu: 4,
       minCpu: 1,
       maxMem: 8,
       minMem: 2,
-    });
+    })
 
-  const toast = useToast();
+  const toast = useToast()
   useEffect(() => {
     if (isCurrent) {
-      setLoadingState(true);
+      setLoadingState(true)
       axios
         .post<Array<string>>(`${getAPIURL()}/setup_connection/aws/instances`, {
           id: id,
           specs: selectedInstanceSpecs,
         })
-        .then((res) => {
-          setInstances(res.data);
+        .then(res => {
+          setInstances(res.data)
           if (res.data.length > 0) {
-            setSelectedInstance(res.data[0]);
+            setSelectedInstance(res.data[0])
           }
         })
         .catch((err: AxiosError) => {
-          setInstances([]);
-          setSelectedInstance("");
+          setInstances([])
+          setSelectedInstance("")
           toast({
             title: "Couldn't fetch EC2 instance matching specs",
             description: JSON.stringify(err.response.data),
-          });
+          })
         })
-        .finally(() => setLoadingState(false));
+        .finally(() => setLoadingState(false))
     }
-  }, [selectedInstanceSpecs, isCurrent]);
+  }, [selectedInstanceSpecs, isCurrent])
   if (instances != null) {
     return (
       <Grid
@@ -85,7 +85,7 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
             min={0}
             step={0.5}
             max={100}
-            onBlur={(v) =>
+            onBlur={v =>
               setSelectedInstanceSpecs({
                 ...selectedInstanceSpecs,
                 minCpu: parseInt(v.target.value),
@@ -108,7 +108,7 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
             min={0}
             step={0.5}
             max={100}
-            onBlur={(v) =>
+            onBlur={v =>
               setSelectedInstanceSpecs({
                 ...selectedInstanceSpecs,
                 maxCpu: parseInt(v.target.value),
@@ -131,7 +131,7 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
             min={0}
             step={0.5}
             max={100}
-            onBlur={(v) =>
+            onBlur={v =>
               setSelectedInstanceSpecs({
                 ...selectedInstanceSpecs,
                 minMem: parseInt(v.target.value),
@@ -154,7 +154,7 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
             min={0}
             step={0.5}
             max={100}
-            onBlur={(v) =>
+            onBlur={v =>
               setSelectedInstanceSpecs({
                 ...selectedInstanceSpecs,
                 maxMem: parseInt(v.target.value),
@@ -174,7 +174,7 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
         <GridItem colSpan={2} rowStart={5}>
           <Box>
             <Select
-              onChange={(e) => setSelectedInstance(e.target.value)}
+              onChange={e => setSelectedInstance(e.target.value)}
               value={selectedInstance}
               disabled={instances.length == 0}
             >
@@ -199,12 +199,12 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
           </Flex>
         </GridItem>
       </Grid>
-    );
+    )
   }
   return (
     <Flex w={"full"} h={"full"} justify={"center"} mt={8}>
       <Spinner size={"xl"} />
     </Flex>
-  );
-};
-export default InstanceSelection;
+  )
+}
+export default InstanceSelection

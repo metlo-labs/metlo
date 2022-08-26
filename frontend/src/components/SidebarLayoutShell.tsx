@@ -1,14 +1,14 @@
-import React from "react";
-import Head from "next/head";
-import { Box, HStack } from "@chakra-ui/react";
-import SideNavBar from "./Sidebar";
-import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils";
-import { DarkModeSwitch } from "components/utils/DarkModeSwitch";
+import React from "react"
+import Head from "next/head"
+import { Box, HStack } from "@chakra-ui/react"
+import SideNavBar from "./Sidebar"
+import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
+import { DarkModeSwitch } from "components/utils/DarkModeSwitch"
 
 interface SidebarLayoutShellProps {
-  title?: string;
-  currentTab?: SideNavLinkDestination;
-  children?: React.ReactNode;
+  title?: string
+  currentTab?: SideNavLinkDestination
+  children?: React.ReactNode
 }
 
 export const SidebarLayoutShell: React.FC<SidebarLayoutShellProps> = React.memo(
@@ -26,6 +26,6 @@ export const SidebarLayoutShell: React.FC<SidebarLayoutShellProps> = React.memo(
           <DarkModeSwitch />
         </Box>
       </HStack>
-    );
-  }
-);
+    )
+  },
+)

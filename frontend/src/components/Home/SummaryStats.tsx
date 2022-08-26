@@ -1,11 +1,11 @@
-import React from "react";
-import { VStack, Text, Grid, GridItem } from "@chakra-ui/react";
+import React from "react"
+import { VStack, Text, Grid, GridItem } from "@chakra-ui/react"
 
 interface SummaryStatsProps {
-  numHighRiskAlerts: number;
-  numAlerts: number;
-  numEndpoints: number;
-  numPIIDataDetected: number;
+  numHighRiskAlerts: number
+  numAlerts: number
+  numEndpoints: number
+  numPIIDataDetected: number
 }
 
 const SummaryStatValue: React.FC<{ value: number; title: string }> = React.memo(
@@ -18,8 +18,8 @@ const SummaryStatValue: React.FC<{ value: number; title: string }> = React.memo(
         {title}
       </Text>
     </VStack>
-  )
-);
+  ),
+)
 
 const SummaryStats: React.FC<SummaryStatsProps> = React.memo(
   ({ numHighRiskAlerts, numAlerts, numEndpoints, numPIIDataDetected }) => {
@@ -48,8 +48,8 @@ const SummaryStats: React.FC<SummaryStatsProps> = React.memo(
           />
         </GridItem>
       </Grid>
-    );
-  }
-);
+    )
+  },
+)
 
-export default SummaryStats;
+export default SummaryStats

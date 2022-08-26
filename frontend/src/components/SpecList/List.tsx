@@ -1,38 +1,38 @@
-import React from "react";
-import yaml from "js-yaml";
-import { useRouter } from "next/router";
-import { Code, Text, useColorMode, VStack } from "@chakra-ui/react";
-import DataTable, { TableColumn } from "react-data-table-component";
-import { getCustomStyles, rowStyles } from "components/utils/TableUtils";
-import { OpenApiSpec } from "@common/types";
-import { SpecExtension } from "@common/enums";
-import { getDateTimeString } from "utils";
+import React from "react"
+import yaml from "js-yaml"
+import { useRouter } from "next/router"
+import { Code, Text, useColorMode, VStack } from "@chakra-ui/react"
+import DataTable, { TableColumn } from "react-data-table-component"
+import { getCustomStyles, rowStyles } from "components/utils/TableUtils"
+import { OpenApiSpec } from "@common/types"
+import { SpecExtension } from "@common/enums"
+import { getDateTimeString } from "utils"
 
 interface SpecListProps {
-  apiSpecs: OpenApiSpec[];
+  apiSpecs: OpenApiSpec[]
 }
 
 const getHostsFromSpec = (spec: OpenApiSpec): string[] => {
-  let parsedSpec = null;
+  let parsedSpec = null
   if (spec.extension === SpecExtension.JSON) {
-    parsedSpec = JSON.parse(spec.spec);
+    parsedSpec = JSON.parse(spec.spec)
   } else if (spec.extension === SpecExtension.YAML) {
-    parsedSpec = yaml.load(spec.spec);
+    parsedSpec = yaml.load(spec.spec)
   }
   if (parsedSpec) {
-    return parsedSpec.servers.map((e: any) => e.url);
+    return parsedSpec.servers.map((e: any) => e.url)
   }
-};
+}
 
 const SpecList: React.FC<SpecListProps> = React.memo(({ apiSpecs }) => {
-  const router = useRouter();
-  const colorMode = useColorMode();
+  const router = useRouter()
+  const colorMode = useColorMode()
   const onRowClicked = (
     row: OpenApiSpec,
-    e: React.MouseEvent<Element, MouseEvent>
+    e: React.MouseEvent<Element, MouseEvent>,
   ) => {
-    router.push(`/spec/${row.name}`);
-  };
+    router.push(`/spec/${row.name}`)
+  }
   const columns: TableColumn<OpenApiSpec>[] = [
     {
       name: "Name",
@@ -59,7 +59,7 @@ const SpecList: React.FC<SpecListProps> = React.memo(({ apiSpecs }) => {
       selector: (row: OpenApiSpec) => getDateTimeString(row.updatedAt) || "",
       id: "lastUpdated",
     },
-  ];
+  ]
   return (
     <DataTable
       style={rowStyles}
@@ -68,7 +68,7 @@ const SpecList: React.FC<SpecListProps> = React.memo(({ apiSpecs }) => {
       onRowClicked={onRowClicked}
       customStyles={getCustomStyles(colorMode.colorMode)}
     />
-  );
-});
+  )
+})
 
-export default SpecList;
+export default SpecList

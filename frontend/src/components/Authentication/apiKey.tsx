@@ -1,17 +1,17 @@
-import { Box, HStack, Input, Select, VStack } from "@chakra-ui/react";
-import { APIKeyAuthAddTo, AuthType } from "@common/testing/enums";
-import { AuthAPIKeyParams, Authorization } from "@common/testing/types";
-import { useEffect, useState } from "react";
+import { Box, HStack, Input, Select, VStack } from "@chakra-ui/react"
+import { APIKeyAuthAddTo, AuthType } from "@common/testing/enums"
+import { AuthAPIKeyParams, Authorization } from "@common/testing/types"
+import { useEffect, useState } from "react"
 
 interface apiAuthInterface {
-  evaluate: (v: () => Authorization) => void;
+  evaluate: (v: () => Authorization) => void
 }
 const APIAuth: React.FC<apiAuthInterface> = ({ evaluate }) => {
-  const [key, setKey] = useState("");
-  const [param, setParam] = useState("");
+  const [key, setKey] = useState("")
+  const [param, setParam] = useState("")
   const [location, setLocation] = useState<APIKeyAuthAddTo>(
-    APIKeyAuthAddTo.HEADERS
-  );
+    APIKeyAuthAddTo.HEADERS,
+  )
 
   useEffect(() => {
     evaluate(() => {
@@ -22,9 +22,9 @@ const APIAuth: React.FC<apiAuthInterface> = ({ evaluate }) => {
           value: param,
           add_to: location,
         } as AuthAPIKeyParams,
-      };
-    });
-  }, [location, key, param, evaluate]);
+      }
+    })
+  }, [location, key, param, evaluate])
 
   return (
     <VStack>
@@ -33,7 +33,7 @@ const APIAuth: React.FC<apiAuthInterface> = ({ evaluate }) => {
         <Box w="full">
           <Input
             value={key}
-            onChange={(v) => setKey(v.target.value)}
+            onChange={v => setKey(v.target.value)}
             placeholder={"Key"}
           />
         </Box>
@@ -43,7 +43,7 @@ const APIAuth: React.FC<apiAuthInterface> = ({ evaluate }) => {
         <Box w="full">
           <Input
             value={param}
-            onChange={(v) => setParam(v.target.value)}
+            onChange={v => setParam(v.target.value)}
             placeholder={"Value"}
           />
         </Box>
@@ -53,7 +53,7 @@ const APIAuth: React.FC<apiAuthInterface> = ({ evaluate }) => {
         <Box w="full">
           <Select
             value={location}
-            onChange={(v) => setLocation(v.target.value as APIKeyAuthAddTo)}
+            onChange={v => setLocation(v.target.value as APIKeyAuthAddTo)}
           >
             <option value={APIKeyAuthAddTo.HEADERS}>Headers</option>
             <option value={APIKeyAuthAddTo.QUERY_PARAMS}>Query Params</option>
@@ -61,6 +61,6 @@ const APIAuth: React.FC<apiAuthInterface> = ({ evaluate }) => {
         </Box>
       </HStack>
     </VStack>
-  );
-};
-export default APIAuth;
+  )
+}
+export default APIAuth

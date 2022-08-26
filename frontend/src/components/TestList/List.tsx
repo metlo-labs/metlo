@@ -1,23 +1,23 @@
-import React from "react";
-import { useRouter } from "next/router";
-import { Badge, useColorMode, VStack } from "@chakra-ui/react";
-import DataTable, { TableColumn } from "react-data-table-component";
-import { getCustomStyles, rowStyles } from "components/utils/TableUtils";
-import { TestDetailed } from "@common/testing/types";
+import React from "react"
+import { useRouter } from "next/router"
+import { Badge, useColorMode, VStack } from "@chakra-ui/react"
+import DataTable, { TableColumn } from "react-data-table-component"
+import { getCustomStyles, rowStyles } from "components/utils/TableUtils"
+import { TestDetailed } from "@common/testing/types"
 
 interface TestListProps {
-  tests: TestDetailed[];
+  tests: TestDetailed[]
 }
 
 const TestList: React.FC<TestListProps> = React.memo(({ tests }) => {
-  const router = useRouter();
-  const colorMode = useColorMode();
+  const router = useRouter()
+  const colorMode = useColorMode()
   const onRowClicked = (
     row: TestDetailed,
-    e: React.MouseEvent<Element, MouseEvent>
+    e: React.MouseEvent<Element, MouseEvent>,
   ) => {
-    router.push(`/endpoint/${row.apiEndpoint.uuid}/test/${row.uuid}`);
-  };
+    router.push(`/endpoint/${row.apiEndpoint.uuid}/test/${row.uuid}`)
+  }
   const columns: TableColumn<TestDetailed>[] = [
     {
       name: "Name",
@@ -56,7 +56,7 @@ const TestList: React.FC<TestListProps> = React.memo(({ tests }) => {
       ),
       id: "requests",
     },
-  ];
+  ]
   return (
     <DataTable
       style={rowStyles}
@@ -65,7 +65,7 @@ const TestList: React.FC<TestListProps> = React.memo(({ tests }) => {
       onRowClicked={onRowClicked}
       customStyles={getCustomStyles(colorMode.colorMode)}
     />
-  );
-});
+  )
+})
 
-export default TestList;
+export default TestList

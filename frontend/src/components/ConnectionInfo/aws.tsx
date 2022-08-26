@@ -1,4 +1,4 @@
-import { DownloadIcon } from "@chakra-ui/icons";
+import { DownloadIcon } from "@chakra-ui/icons"
 import {
   Box,
   Editable,
@@ -13,26 +13,26 @@ import {
   useColorMode,
   Button,
   useToast,
-} from "@chakra-ui/react";
-import { ConnectionType } from "@common/enums";
-import { ConnectionInfo } from "@common/types";
-import axios from "axios";
-import { useState } from "react";
-import { getAPIURL } from "~/constants";
-import { EditableControls } from "../utils/EditableControls";
+} from "@chakra-ui/react"
+import { ConnectionType } from "@common/enums"
+import { ConnectionInfo } from "@common/types"
+import axios from "axios"
+import { useState } from "react"
+import { getAPIURL } from "~/constants"
+import { EditableControls } from "../utils/EditableControls"
 
 interface AWS_INFOInterface {
-  connection: ConnectionInfo;
-  setConnection: (updatedConnection: ConnectionInfo) => void;
+  connection: ConnectionInfo
+  setConnection: (updatedConnection: ConnectionInfo) => void
 }
 
 const AWS_INFO: React.FC<AWS_INFOInterface> = ({
   connection,
   setConnection,
 }) => {
-  const [name, setName] = useState(connection.name);
-  const colorMode = useColorMode();
-  const toast = useToast();
+  const [name, setName] = useState(connection.name)
+  const colorMode = useColorMode()
+  const toast = useToast()
   const onEditableChange = () => {
     if (
       JSON.stringify(connection) !=
@@ -43,38 +43,38 @@ const AWS_INFO: React.FC<AWS_INFOInterface> = ({
           id: connection.uuid,
           name: name,
         })
-        .then((v) => {
-          toast({ title: "Updated Name for Connection" });
-          setConnection({ ...connection, name: name });
+        .then(v => {
+          toast({ title: "Updated Name for Connection" })
+          setConnection({ ...connection, name: name })
         })
-        .catch((err) => {
+        .catch(err => {
           toast({
             title: "Couldn't update name for connection",
             description: err,
-          });
-        });
+          })
+        })
     }
-  };
+  }
 
   const onDownloadClick = (fileName, uuid) => {
     axios
       .get<{ sshkey: string }>(`${getAPIURL()}/list_connections/${uuid}/sshkey`)
-      .then((v) => {
-        const element = document.createElement("a");
+      .then(v => {
+        const element = document.createElement("a")
         const file = new Blob([v.data.sshkey], {
           type: "text/plain",
-        });
-        element.href = URL.createObjectURL(file);
-        element.download = `${fileName}.pem`;
-        document.body.appendChild(element); // Required for this to work in FireFox
-        element.click();
-        document.body.removeChild(element);
+        })
+        element.href = URL.createObjectURL(file)
+        element.download = `${fileName}.pem`
+        document.body.appendChild(element) // Required for this to work in FireFox
+        element.click()
+        document.body.removeChild(element)
       })
-      .catch((err) => {
-        console.log(err);
-        toast({ title: "Couldn't download ssh key file", description: err });
-      });
-  };
+      .catch(err => {
+        console.log(err)
+        toast({ title: "Couldn't download ssh key file", description: err })
+      })
+  }
   return (
     <Grid w={"full"} gridTemplateColumns={"repeat(4,1fr)"} gap={6}>
       <GridItem colStart={1} alignSelf={"center"}>
@@ -83,7 +83,7 @@ const AWS_INFO: React.FC<AWS_INFOInterface> = ({
       <GridItem colStart={2} colSpan={3} alignSelf={"center"} w={"full"}>
         <Editable
           value={name}
-          onChange={(v) => setName(v)}
+          onChange={v => setName(v)}
           onSubmit={onEditableChange}
         >
           <Flex gap={4}>
@@ -194,7 +194,7 @@ const AWS_INFO: React.FC<AWS_INFOInterface> = ({
         </Box>
       </GridItem>
     </Grid>
-  );
-};
+  )
+}
 
-export default AWS_INFO;
+export default AWS_INFO

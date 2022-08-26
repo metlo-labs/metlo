@@ -1,7 +1,7 @@
 export const getMethodSelectStyles = (
   methodMenuBG: string,
   methodTextColor: string,
-  methodHighlightColor: string
+  methodHighlightColor: string,
 ) => ({
   control: (provided, state) => ({
     ...provided,
@@ -34,4 +34,4 @@ export const getMethodSelectStyles = (
     ...provided,
     borderColor: "rgb(222, 228, 237)",
   }),
-});
+})

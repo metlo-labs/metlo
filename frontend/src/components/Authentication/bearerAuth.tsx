@@ -1,26 +1,22 @@
-import { Box, HStack, Input, VStack } from "@chakra-ui/react";
-import { AuthType } from "@common/testing/enums";
-import {
-  AuthBearerParams,
-  Authorization,
-  Request,
-} from "@common/testing/types";
-import { useEffect, useState } from "react";
+import { Box, HStack, Input, VStack } from "@chakra-ui/react"
+import { AuthType } from "@common/testing/enums"
+import { AuthBearerParams, Authorization, Request } from "@common/testing/types"
+import { useEffect, useState } from "react"
 
 interface basicAuthInterface {
-  evaluate: (v: () => Authorization) => void;
+  evaluate: (v: () => Authorization) => void
 }
 const BearerAuth: React.FC<basicAuthInterface> = ({ evaluate }) => {
-  const [bearerToken, setBearerToken] = useState("");
+  const [bearerToken, setBearerToken] = useState("")
 
   useEffect(() => {
     evaluate(() => {
       return {
         type: AuthType.BEARER,
         params: { bearer_token: bearerToken } as AuthBearerParams,
-      };
-    });
-  }, [bearerToken, evaluate]);
+      }
+    })
+  }, [bearerToken, evaluate])
 
   return (
     <VStack w="full">
@@ -29,12 +25,12 @@ const BearerAuth: React.FC<basicAuthInterface> = ({ evaluate }) => {
         <Box w="full">
           <Input
             value={bearerToken}
-            onChange={(v) => setBearerToken(v.target.value)}
+            onChange={v => setBearerToken(v.target.value)}
             placeholder={"BearerToken"}
           />
         </Box>
       </HStack>
     </VStack>
-  );
-};
-export default BearerAuth;
+  )
+}
+export default BearerAuth

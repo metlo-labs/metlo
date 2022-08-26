@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import React, { useEffect, useState } from "react"
+import { useRouter } from "next/router"
 import {
   useColorMode,
   Badge,
@@ -11,80 +11,80 @@ import {
   useColorModeValue,
   Heading,
   Button,
-} from "@chakra-ui/react";
-import { ImCheckmark } from "@react-icons/all-files/im/ImCheckmark";
-import { ImCross } from "@react-icons/all-files/im/ImCross";
-import DataTable, { TableColumn } from "react-data-table-component";
-import { getCustomStyles, rowStyles } from "components/utils/TableUtils";
-import { Alert } from "@common/types";
-import { METHOD_TO_COLOR, RISK_TO_COLOR } from "~/constants";
-import { getDateTimeString } from "utils";
-import AlertDetail from "./AlertDetail";
-import { RestMethod } from "@common/enums";
-import EmptyView from "components/utils/EmptyView";
+} from "@chakra-ui/react"
+import { ImCheckmark } from "@react-icons/all-files/im/ImCheckmark"
+import { ImCross } from "@react-icons/all-files/im/ImCross"
+import DataTable, { TableColumn } from "react-data-table-component"
+import { getCustomStyles, rowStyles } from "components/utils/TableUtils"
+import { Alert } from "@common/types"
+import { METHOD_TO_COLOR, RISK_TO_COLOR } from "~/constants"
+import { getDateTimeString } from "utils"
+import AlertDetail from "./AlertDetail"
+import { RestMethod } from "@common/enums"
+import EmptyView from "components/utils/EmptyView"
 
 interface AlertListProps {
-  alerts: Alert[];
-  endpointPage?: boolean;
-  method?: RestMethod;
-  path?: string;
-  uuid?: string;
+  alerts: Alert[]
+  endpointPage?: boolean
+  method?: RestMethod
+  path?: string
+  uuid?: string
 }
 
 const AlertList: React.FC<AlertListProps> = React.memo(
   ({ alerts, endpointPage, method, path, uuid }) => {
-    const [alertList, setAlertList] = useState<Alert[]>(alerts);
-    const router = useRouter();
-    const colorMode = useColorMode();
-    const headerBg = useColorModeValue("rgb(252, 252, 252)", "rgb(17, 19, 23)");
-    const divColor = useColorModeValue("rgb(216, 216, 216)", "black");
-    const headerTextColor = useColorModeValue("gray.700", "gray.200");
-    const [alert, setAlert] = useState<Alert | undefined>();
+    const [alertList, setAlertList] = useState<Alert[]>(alerts)
+    const router = useRouter()
+    const colorMode = useColorMode()
+    const headerBg = useColorModeValue("rgb(252, 252, 252)", "rgb(17, 19, 23)")
+    const divColor = useColorModeValue("rgb(216, 216, 216)", "black")
+    const headerTextColor = useColorModeValue("gray.700", "gray.200")
+    const [alert, setAlert] = useState<Alert | undefined>()
 
     useEffect(() => {
-      setAlertList(alerts);
-    }, [alerts]);
+      setAlertList(alerts)
+    }, [alerts])
 
     useEffect(() => {
-      alertList.forEach((currAlert) => {
+      alertList.forEach(currAlert => {
         if (currAlert.uuid === uuid) {
-          setAlert(currAlert);
+          setAlert(currAlert)
         }
-      });
-    }, [alertList, uuid]);
+      })
+    }, [alertList, uuid])
 
     const onRowClicked = (
       row: Alert,
-      e: React.MouseEvent<Element, MouseEvent>
+      e: React.MouseEvent<Element, MouseEvent>,
     ) => {
       if (endpointPage) {
-        setAlert(row);
+        setAlert(row)
       } else {
         router.push({
           pathname: `/endpoint/${row.apiEndpointUuid}`,
           query: { tab: "alerts", uuid: row.uuid },
-        });
+        })
       }
-    };
+    }
 
     const selectedRowColor = useColorModeValue(
       "rgb(242, 242, 242)",
-      "rgb(34, 37, 42)"
-    );
+      "rgb(34, 37, 42)",
+    )
 
     const conditionalStyles = [
       {
         when: (row: Alert) => {
           if (!alert) {
-            return false;
+            return false
           }
-          return row.uuid == alert.uuid;
+          return row.uuid == alert.uuid
         },
         style: {
           backgroundColor: selectedRowColor,
         },
       },
-    ];
+    ]
 
     let columns: TableColumn<Alert>[] = [
       {
@@ -105,7 +105,7 @@ const AlertList: React.FC<AlertListProps> = React.memo(
         id: "risk",
         grow: 0,
       },
-    ];
+    ]
     if (!endpointPage) {
       columns.push({
         name: "Endpoint",
@@ -129,7 +129,7 @@ const AlertList: React.FC<AlertListProps> = React.memo(
         ),
         id: "endpoint",
         grow: 1,
-      });
+      })
     }
     columns.push(
       {
@@ -155,8 +155,8 @@ const AlertList: React.FC<AlertListProps> = React.memo(
         ),
         id: "time",
         grow: 1,
-      }
-    );
+      },
+    )
     if (endpointPage) {
       columns.push({
         name: "Resolved",
@@ -174,7 +174,7 @@ const AlertList: React.FC<AlertListProps> = React.memo(
         center: true,
         id: "resolved",
         grow: 0,
-      });
+      })
     }
 
     return (
@@ -228,8 +228,8 @@ const AlertList: React.FC<AlertListProps> = React.memo(
           </Box>
         ) : null}
       </HStack>
-    );
-  }
-);
+    )
+  },
+)
 
-export default AlertList;
+export default AlertList

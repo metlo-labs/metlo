@@ -1,9 +1,9 @@
-import React from "react";
-import { Textarea, Text } from "@chakra-ui/react";
+import React from "react"
+import { Textarea, Text } from "@chakra-ui/react"
 
 interface OutputLogInterface {
-  log: Array<any>;
-  formatter: (prev: any, curr: any, idx: number) => string;
+  log: Array<any>
+  formatter: (prev: any, curr: any, idx: number) => string
 }
 const OutputLog: React.FC<OutputLogInterface> = ({ log, formatter }) => {
   return (
@@ -18,7 +18,7 @@ const OutputLog: React.FC<OutputLogInterface> = ({ log, formatter }) => {
       rounded={8}
       mt={4}
     />
-  );
-};
+  )
+}
 
-export default OutputLog;
+export default OutputLog

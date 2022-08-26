@@ -1,23 +1,23 @@
-import React from "react";
-import { Stack, Box, Text } from "@chakra-ui/react";
-import { Select } from "chakra-react-select";
-import { GetEndpointParams } from "@common/types";
-import { RiskScore } from "@common/enums";
+import React from "react"
+import { Stack, Box, Text } from "@chakra-ui/react"
+import { Select } from "chakra-react-select"
+import { GetEndpointParams } from "@common/types"
+import { RiskScore } from "@common/enums"
 
 interface EndpointFilterProps {
-  host?: string;
-  riskScore?: string;
-  hostList: string[];
-  riskList: string[];
-  setParams: React.Dispatch<React.SetStateAction<GetEndpointParams>>;
-  params: GetEndpointParams;
+  host?: string
+  riskScore?: string
+  hostList: string[]
+  riskList: string[]
+  setParams: React.Dispatch<React.SetStateAction<GetEndpointParams>>
+  params: GetEndpointParams
 }
 
 const FilterHeader: React.FC<{ title: string }> = React.memo(({ title }) => (
   <Text fontWeight="semibold" mb="2" fontSize="sm">
     {title}
   </Text>
-));
+))
 
 const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
   ({ host, hostList, riskScore, riskList, setParams, params }) => {
@@ -34,14 +34,14 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
             }
             isMulti={true}
             size="sm"
-            options={hostList.map((e) => ({
+            options={hostList.map(e => ({
               label: e,
               value: e,
             }))}
             placeholder="Filter by host..."
             instanceId="endpoint-tbl-env-host"
-            onChange={(e) =>
-              setParams({ ...params, hosts: e.map((host) => host.label) })
+            onChange={e =>
+              setParams({ ...params, hosts: e.map(host => host.label) })
             }
           />
         </Box>
@@ -56,23 +56,23 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
             }
             isMulti={true}
             size="sm"
-            options={riskList.map((e) => ({
+            options={riskList.map(e => ({
               label: e,
               value: e,
             }))}
             placeholder="Filter by risk..."
             instanceId="endpoint-tbl-env-risk"
-            onChange={(e) =>
+            onChange={e =>
               setParams({
                 ...params,
-                riskScores: e.map((riskScore) => riskScore.label as RiskScore),
+                riskScores: e.map(riskScore => riskScore.label as RiskScore),
               })
             }
           />
         </Box>
       </Stack>
-    );
-  }
-);
+    )
+  },
+)
 
-export default EndpointFilters;
+export default EndpointFilters

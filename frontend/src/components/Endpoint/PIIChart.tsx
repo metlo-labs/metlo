@@ -1,10 +1,10 @@
-import React from "react";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-import { LayoutPosition } from "chart.js/types/layout";
-import { Pie } from "react-chartjs-2";
-import { DataField } from "@common/types";
+import React from "react"
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js"
+import { LayoutPosition } from "chart.js/types/layout"
+import { Pie } from "react-chartjs-2"
+import { DataField } from "@common/types"
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(ArcElement, Tooltip, Legend)
 
 const options = {
   responsive: true,
@@ -13,18 +13,22 @@ const options = {
       position: "top" as LayoutPosition,
     },
   },
-};
+}
 
 interface EndpointPIIChartProps {
-  piiFields: DataField[];
+  piiFields: DataField[]
 }
 
 const EndpointPIIChart: React.FC<EndpointPIIChartProps> = React.memo(
   ({ piiFields }) => {
-    let dataClassToCount = {};
+    let dataClassToCount = {}
     piiFields
-      .map((e) => e.dataClasses)
-      .forEach((dataClass) => dataClass.forEach((e) => ((dataClassToCount[e] = (dataClassToCount[e] || 0) + 1))));
+      .map(e => e.dataClasses)
+      .forEach(dataClass =>
+        dataClass.forEach(
+          e => (dataClassToCount[e] = (dataClassToCount[e] || 0) + 1),
+        ),
+      )
     const data = {
       labels: Object.keys(dataClassToCount),
       datasets: [
@@ -49,9 +53,9 @@ const EndpointPIIChart: React.FC<EndpointPIIChartProps> = React.memo(
           borderWidth: 1,
         },
       ],
-    };
-    return <Pie options={options} data={data} />;
-  }
-);
+    }
+    return <Pie options={options} data={data} />
+  },
+)
 
-export default EndpointPIIChart;
+export default EndpointPIIChart

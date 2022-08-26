@@ -1,16 +1,16 @@
-import React from "react";
-import { Box, Heading, VStack } from "@chakra-ui/react";
-import SummaryStats from "./SummaryStats";
-import AlertList from "components/Endpoint/AlertList";
-import { Alert } from "@common/types";
-import EmptyView from "components/utils/EmptyView";
+import React from "react"
+import { Box, Heading, VStack } from "@chakra-ui/react"
+import SummaryStats from "./SummaryStats"
+import AlertList from "components/Endpoint/AlertList"
+import { Alert } from "@common/types"
+import EmptyView from "components/utils/EmptyView"
 
 interface HomePageProps {
-  numHighRiskAlerts: number;
-  numAlerts: number;
-  numEndpoints: number;
-  numPIIDataDetected: number;
-  alerts: Alert[];
+  numHighRiskAlerts: number
+  numAlerts: number
+  numEndpoints: number
+  numPIIDataDetected: number
+  alerts: Alert[]
 }
 
 const HomePage: React.FC<HomePageProps> = React.memo(
@@ -40,8 +40,8 @@ const HomePage: React.FC<HomePageProps> = React.memo(
           </Box>
         </VStack>
       </VStack>
-    );
-  }
-);
+    )
+  },
+)
 
-export default HomePage;
+export default HomePage
