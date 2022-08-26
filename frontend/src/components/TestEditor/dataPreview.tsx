@@ -6,22 +6,22 @@ import {
   VStack,
   useColorModeValue,
   Code,
-} from "@chakra-ui/react";
-import { Result } from "@common/testing/types";
-import { useState } from "react";
-import Editor from "@monaco-editor/react";
+} from "@chakra-ui/react"
+import { Result } from "@common/testing/types"
+import { useState } from "react"
+import Editor from "@monaco-editor/react"
 
 interface DataPreviewInterface {
-  res: Result;
+  res: Result
 }
 
 function RadioCard({ variant, ...props }) {
-  const { getInputProps, getCheckboxProps } = useRadio(props);
-  const input = getInputProps();
-  const checkbox = getCheckboxProps();
-  const bg = useColorModeValue("gray.100", "gray.800");
-  const textColor = useColorModeValue("gray.500", "gray.500");
-  const selectedTextColor = useColorModeValue("black", "white");
+  const { getInputProps, getCheckboxProps } = useRadio(props)
+  const input = getInputProps()
+  const checkbox = getCheckboxProps()
+  const bg = useColorModeValue("gray.100", "gray.800")
+  const textColor = useColorModeValue("gray.500", "gray.500")
+  const selectedTextColor = useColorModeValue("black", "white")
 
   return (
     <Box as="label">
@@ -44,27 +44,27 @@ function RadioCard({ variant, ...props }) {
         {props.children}
       </Box>
     </Box>
-  );
+  )
 }
 
 const DataPreview: React.FC<DataPreviewInterface> = ({ res }) => {
-  const theme = useColorModeValue("light", "vs-dark");
-  const [selectedValue, setSelectedValue] = useState("Pretty");
+  const theme = useColorModeValue("light", "vs-dark")
+  const [selectedValue, setSelectedValue] = useState("Pretty")
   const { getRootProps, getRadioProps } = useRadioGroup({
     name: "preview-format",
     defaultValue: "Pretty",
     onChange: setSelectedValue,
-  });
-  const group = getRootProps();
+  })
+  const group = getRootProps()
 
   if (!res.body) {
-    return null;
+    return null
   }
 
-  let prettyContent = res.body;
-  const contentTypeHeader = res.headers.find((e) => e.key == "Content-Type");
+  let prettyContent = res.body
+  const contentTypeHeader = res.headers.find(e => e.key == "Content-Type")
   if (contentTypeHeader && contentTypeHeader.value == "application/json") {
-    prettyContent = JSON.stringify(JSON.parse(res.body), null, 4);
+    prettyContent = JSON.stringify(JSON.parse(res.body), null, 4)
   }
 
   return (
@@ -109,7 +109,7 @@ const DataPreview: React.FC<DataPreviewInterface> = ({ res }) => {
         ) : null}
       </Box>
     </VStack>
-  );
-};
+  )
+}
 
-export default DataPreview;
+export default DataPreview

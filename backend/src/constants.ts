@@ -1,6 +1,6 @@
-import { RiskScore, DataClass, AlertType, SpecExtension } from "@common/enums";
+import { RiskScore, DataClass, AlertType, SpecExtension } from "@common/enums"
 
-export const pathParameterRegex: RegExp = new RegExp(String.raw`/{[^/]+}`, "g");
+export const pathParameterRegex: RegExp = new RegExp(String.raw`/{[^/]+}`, "g")
 
 export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass, RiskScore> = {
   [DataClass.ADDRESS]: RiskScore.HIGH,
@@ -13,25 +13,25 @@ export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass, RiskScore> = {
   [DataClass.VIN]: RiskScore.LOW,
   [DataClass.COORDINATE]: RiskScore.MEDIUM,
   [DataClass.DL_NUMBER]: RiskScore.MEDIUM,
-};
+}
 
 export const ALERT_TYPE_TO_RISK_SCORE: Record<AlertType, RiskScore> = {
   [AlertType.NEW_ENDPOINT]: RiskScore.LOW,
   [AlertType.OPEN_API_SPEC_DIFF]: RiskScore.LOW,
   [AlertType.PII_DATA_DETECTED]: RiskScore.HIGH,
   [AlertType.UNDOCUMENTED_ENDPOINT]: RiskScore.LOW,
-};
+}
 
 export const RISK_SCORE_ORDER: Record<RiskScore, number> = {
   [RiskScore.HIGH]: 3,
   [RiskScore.MEDIUM]: 2,
   [RiskScore.LOW]: 1,
   [RiskScore.NONE]: 0,
-};
+}
 
 export const RISK_SCORE_ORDER_QUERY = (
   table: string,
-  column: string
+  column: string,
 ): string => `
 CASE "${table}"."${column}"
   WHEN '${RiskScore.HIGH}' THEN ${RISK_SCORE_ORDER[RiskScore.HIGH]}
@@ -39,7 +39,7 @@ CASE "${table}"."${column}"
   WHEN '${RiskScore.LOW}' THEN ${RISK_SCORE_ORDER[RiskScore.LOW]}
   WHEN '${RiskScore.NONE}' THEN ${RISK_SCORE_ORDER[RiskScore.NONE]}
 END
-`;
+`
 
 export const EXTENSION_TO_MIME_TYPE: Record<SpecExtension, string[]> = {
   [SpecExtension.JSON]: ["application/json"],
@@ -49,4 +49,4 @@ export const EXTENSION_TO_MIME_TYPE: Record<SpecExtension, string[]> = {
     "application/x-yaml",
     "application/yaml",
   ],
-};
+}

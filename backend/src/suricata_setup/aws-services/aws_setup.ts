@@ -3,26 +3,26 @@ import {
   DescribeInstancesCommand,
   DescribeInstancesCommandInput,
   EC2Client,
-} from "@aws-sdk/client-ec2";
-import { randomUUID } from "crypto";
-import { EC2_CONN } from "./create-ec2-instance";
-import { STSClient } from "@aws-sdk/client-sts";
+} from "@aws-sdk/client-ec2"
+import { randomUUID } from "crypto"
+import { EC2_CONN } from "./create-ec2-instance"
+import { STSClient } from "@aws-sdk/client-sts"
 import {
   create_mirror_filter,
   create_mirror_filter_rules,
   create_mirror_session,
   create_mirror_target,
   delete_mirror_filter,
-} from "./create-mirror";
+} from "./create-mirror"
 import {
   get_network_id_for_instance,
   get_public_ip_for_network_interface,
   list_all_instances,
   match_av_to_region,
   verifyIdentity,
-} from "./utils";
+} from "./utils"
 
-import { STEP_RESPONSE } from "@common/types";
+import { STEP_RESPONSE } from "@common/types"
 
 export async function aws_key_setup({
   access_id,
@@ -37,9 +37,9 @@ export async function aws_key_setup({
         secretAccessKey: secret_access_key,
       },
       region,
-    });
-    await verifyIdentity(client);
-    client.destroy();
+    })
+    await verifyIdentity(client)
+    client.destroy()
     return {
       success: "OK",
       status: "IN-PROGRESS",
@@ -54,7 +54,7 @@ export async function aws_key_setup({
         region,
         ...rest,
       },
-    };
+    }
   } catch (err) {
     return {
       success: "FAIL",
@@ -68,7 +68,7 @@ export async function aws_key_setup({
         err: err,
       },
       data: {},
-    };
+    }
   }
 }
 
@@ -86,16 +86,16 @@ export async function aws_source_identification({
         accessKeyId: access_id,
       },
       region: _region,
-    });
+    })
     let command = new DescribeInstancesCommand({
       InstanceIds: [source_instance_id],
-    } as DescribeInstancesCommandInput);
-    let resp = await client.send(command);
+    } as DescribeInstancesCommandInput)
+    let resp = await client.send(command)
     let region = await match_av_to_region(
       client,
-      resp.Reservations[0].Instances[0].Placement.AvailabilityZone
-    );
-    client.destroy();
+      resp.Reservations[0].Instances[0].Placement.AvailabilityZone,
+    )
+    client.destroy()
     return {
       success: "OK",
       status: "IN-PROGRESS",
@@ -111,7 +111,7 @@ export async function aws_source_identification({
         region: region.RegionName,
         ...rest,
       },
-    };
+    }
   } catch (err) {
     return {
       success: "FAIL",
@@ -129,7 +129,7 @@ export async function aws_source_identification({
         region: _region,
         ...rest,
       },
-    };
+    }
   }
 }
 
@@ -141,9 +141,9 @@ export async function aws_os_selection({
   ...rest
 }): Promise<STEP_RESPONSE> {
   try {
-    let conn = new EC2_CONN(access_id, secret_access_key, region);
-    let resp = await conn.image_from_ami(ami);
-    conn.disconnect();
+    let conn = new EC2_CONN(access_id, secret_access_key, region)
+    let resp = await conn.image_from_ami(ami)
+    conn.disconnect()
     return {
       success: "OK",
       status: "IN-PROGRESS",
@@ -160,7 +160,7 @@ export async function aws_os_selection({
         virtualization_type: resp[0].VirtualizationType,
         ...rest,
       },
-    };
+    }
   } catch (err) {
     return {
       success: "FAIL",
@@ -179,7 +179,7 @@ export async function aws_os_selection({
         ami,
         ...rest,
       },
-    };
+    }
   }
 }
 
@@ -212,7 +212,7 @@ export async function aws_instance_selection({
         ami,
         ...rest,
       },
-    };
+    }
   } catch (err) {
     return {
       success: "FAIL",
@@ -233,7 +233,7 @@ export async function aws_instance_selection({
         ami,
         ...rest,
       },
-    };
+    }
   }
 }
 
@@ -246,13 +246,13 @@ export async function aws_instance_creation({
   ...rest
 }): Promise<STEP_RESPONSE> {
   try {
-    let conn = new EC2_CONN(access_id, secret_access_key, region);
+    let conn = new EC2_CONN(access_id, secret_access_key, region)
     let resp = await conn.create_new_instance(
       ami,
       selected_instance_type,
-      randomUUID()
-    );
-    conn.disconnect();
+      randomUUID(),
+    )
+    conn.disconnect()
     return {
       success: "OK",
       status: "IN-PROGRESS",
@@ -273,7 +273,7 @@ export async function aws_instance_creation({
         ami,
         ...rest,
       },
-    };
+    }
   } catch (err) {
     return {
       success: "FAIL",
@@ -293,7 +293,7 @@ export async function aws_instance_creation({
         selected_instance_type,
         ...rest,
       },
-    };
+    }
   }
 }
 
@@ -311,12 +311,12 @@ export async function get_public_ip({
         accessKeyId: access_id,
       },
       region: region,
-    });
+    })
     let resp = await get_public_ip_for_network_interface(
       client,
-      destination_eni_id
-    );
-    client.destroy();
+      destination_eni_id,
+    )
+    client.destroy()
     return {
       success: "OK",
       status: "IN-PROGRESS",
@@ -333,7 +333,7 @@ export async function get_public_ip({
         destination_eni_id,
         ...rest,
       },
-    };
+    }
   } catch (err) {
     return {
       success: "FAIL",
@@ -352,7 +352,7 @@ export async function get_public_ip({
         destination_eni_id,
         ...rest,
       },
-    };
+    }
   }
 }
 
@@ -370,13 +370,13 @@ export async function aws_mirror_target_creation({
         accessKeyId: access_id,
       },
       region: region,
-    });
+    })
     let resp = await create_mirror_target(
       client,
       await get_network_id_for_instance(client, source_instance_id),
-      randomUUID()
-    );
-    client.destroy();
+      randomUUID(),
+    )
+    client.destroy()
     return {
       success: "OK",
       status: "IN-PROGRESS",
@@ -393,7 +393,7 @@ export async function aws_mirror_target_creation({
         mirror_target_id: resp.TrafficMirrorTarget.TrafficMirrorTargetId,
         ...rest,
       },
-    };
+    }
   } catch (err) {
     return {
       success: "FAIL",
@@ -412,7 +412,7 @@ export async function aws_mirror_target_creation({
         source_instance_id,
         ...rest,
       },
-    };
+    }
   }
 }
 
@@ -429,10 +429,10 @@ export async function aws_mirror_filter_creation({
       accessKeyId: access_id,
     },
     region: region,
-  });
-  let filter: CreateTrafficMirrorFilterCommandOutput;
+  })
+  let filter: CreateTrafficMirrorFilterCommandOutput
   try {
-    filter = await create_mirror_filter(client, randomUUID());
+    filter = await create_mirror_filter(client, randomUUID())
   } catch (err) {
     return {
       success: "FAIL",
@@ -451,16 +451,16 @@ export async function aws_mirror_filter_creation({
         mirror_rules,
         ...rest,
       },
-    };
+    }
   }
   try {
     let _ = await create_mirror_filter_rules(
       client,
       randomUUID(),
       mirror_rules,
-      filter.TrafficMirrorFilter.TrafficMirrorFilterId
-    );
-    client.destroy();
+      filter.TrafficMirrorFilter.TrafficMirrorFilterId,
+    )
+    client.destroy()
     return {
       success: "OK",
       status: "IN-PROGRESS",
@@ -477,13 +477,13 @@ export async function aws_mirror_filter_creation({
         mirror_filter_id: filter.TrafficMirrorFilter.TrafficMirrorFilterId,
         ...rest,
       },
-    };
+    }
   } catch (err) {
     await delete_mirror_filter(
       client,
       filter.TrafficMirrorFilter.TrafficMirrorFilterId,
-      randomUUID()
-    );
+      randomUUID(),
+    )
     return {
       success: "FAIL",
       status: "IN-PROGRESS",
@@ -501,7 +501,7 @@ export async function aws_mirror_filter_creation({
         mirror_rules,
         ...rest,
       },
-    };
+    }
   }
 }
 
@@ -521,15 +521,15 @@ export async function aws_mirror_session_creation({
         accessKeyId: access_id,
       },
       region: region,
-    });
+    })
     let resp = await create_mirror_session(
       client,
       randomUUID(),
       destination_eni_id,
       mirror_filter_id,
-      mirror_target_id
-    );
-    client.destroy();
+      mirror_target_id,
+    )
+    client.destroy()
     return {
       success: "OK",
       status: "IN-PROGRESS",
@@ -548,7 +548,7 @@ export async function aws_mirror_session_creation({
         mirror_session_id: resp.TrafficMirrorSession.TrafficMirrorSessionId,
         ...rest,
       },
-    };
+    }
   } catch (err) {
     return {
       success: "FAIL",
@@ -569,6 +569,6 @@ export async function aws_mirror_session_creation({
         mirror_target_id,
         ...rest,
       },
-    };
+    }
   }
 }

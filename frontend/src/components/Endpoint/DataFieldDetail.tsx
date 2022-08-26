@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react"
 import {
   Box,
   Grid,
@@ -8,52 +8,49 @@ import {
   Code,
   Badge,
   useToast,
-} from "@chakra-ui/react";
-import { DataField } from "@common/types";
-import {
-  RISK_TO_COLOR,
-  TAG_TO_COLOR,
-} from "~/constants";
+} from "@chakra-ui/react"
+import { DataField } from "@common/types"
+import { RISK_TO_COLOR, TAG_TO_COLOR } from "~/constants"
 import {
   getDateTimeString,
   getMaxRiskScoreFromList,
   getRiskScores,
-} from "utils";
-import { ignoreDataClass } from "api/dataFields";
-import { DataClass, RiskScore } from "@common/enums";
-import { DataClassComponent } from "./DataClass";
-import EmptyView from "components/utils/EmptyView";
+} from "utils"
+import { ignoreDataClass } from "api/dataFields"
+import { DataClass, RiskScore } from "@common/enums"
+import { DataClassComponent } from "./DataClass"
+import EmptyView from "components/utils/EmptyView"
 
 interface DataFieldDetailProps {
-  dataField: DataField;
-  dataFieldList: DataField[];
-  setdataFieldList: React.Dispatch<React.SetStateAction<DataField[]>>;
+  dataField: DataField
+  dataFieldList: DataField[]
+  setdataFieldList: React.Dispatch<React.SetStateAction<DataField[]>>
 }
 
 const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
   ({ dataField, dataFieldList, setdataFieldList }) => {
-    const [currDataField, setCurrDataField] = useState<DataField>(dataField);
-    const [updating, setUpdating] = useState<boolean>(false);
-    const [riskScore, setRiskScore] = useState<RiskScore>();
-    const toast = useToast();
+    const [currDataField, setCurrDataField] = useState<DataField>(dataField)
+    const [updating, setUpdating] = useState<boolean>(false)
+    const [riskScore, setRiskScore] = useState<RiskScore>()
+    const toast = useToast()
 
     useEffect(() => {
-      setCurrDataField(dataField);
-    }, [dataField]);
+      setCurrDataField(dataField)
+    }, [dataField])
 
     useEffect(() => {
       setRiskScore(
-        getMaxRiskScoreFromList(getRiskScores(currDataField.dataClasses))
-      );
-    }, [currDataField]);
+        getMaxRiskScoreFromList(getRiskScores(currDataField.dataClasses)),
+      )
+    }, [currDataField])
 
     const handleIgnoreClick = async (ignoredDataClass: DataClass) => {
-      setUpdating(true);
+      setUpdating(true)
       const resp: DataField = await ignoreDataClass(currDataField.uuid, {
         dataClass: ignoredDataClass,
         dataPath: currDataField.dataPath,
         dataSection: currDataField.dataSection,
-      });
+      })
       if (resp) {
         toast({
           title: `Ignored Data Class ${ignoredDataClass}`,
@@ -61,15 +58,15 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
           duration: 5000,
           isClosable: true,
           position: "top",
-        });
-        const tempFieldList = [...dataFieldList];
+        })
+        const tempFieldList = [...dataFieldList]
         for (let i = 0; i < tempFieldList.length; i++) {
           if (tempFieldList[i].uuid === resp.uuid) {
-            tempFieldList[i] = resp;
+            tempFieldList[i] = resp
           }
         }
-        setCurrDataField(resp);
-        setdataFieldList([...tempFieldList]);
+        setCurrDataField(resp)
+        setdataFieldList([...tempFieldList])
       } else {
         toast({
           title: `Ignoring Data Class ${ignoredDataClass} failed...`,
@@ -77,10 +74,10 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
           duration: 5000,
           isClosable: true,
           position: "top",
-        });
+        })
       }
-      setUpdating(false);
-    };
+      setUpdating(false)
+    }
 
     return (
       <Box h="full" overflowY="auto" p="4">
@@ -147,7 +144,7 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
             Sensitive Data Classes
           </Text>
           {currDataField.dataClasses?.length > 0 ? (
-            currDataField.dataClasses.map((dataClass) => (
+            currDataField.dataClasses.map(dataClass => (
               <DataClassComponent
                 key={dataClass}
                 dataClass={dataClass}
@@ -161,8 +158,8 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
           )}
         </VStack>
       </Box>
-    );
-  }
-);
+    )
+  },
+)
 
-export default DataFieldDetail;
+export default DataFieldDetail

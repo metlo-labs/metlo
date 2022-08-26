@@ -5,25 +5,25 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
-} from "typeorm";
-import { Request } from "@common/testing/types";
-import { ApiEndpoint } from "models/api-endpoint";
+} from "typeorm"
+import { Request } from "@common/testing/types"
+import { ApiEndpoint } from "models/api-endpoint"
 
 @Entity()
 export class ApiEndpointTest extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
-  uuid: string;
+  uuid: string
 
   @Column({ nullable: false })
-  name: string;
+  name: string
 
   @Column({ type: "jsonb", nullable: true })
-  tags: string[];
+  tags: string[]
 
   @Column({ type: "jsonb", nullable: true })
-  requests: Request[];
+  requests: Request[]
 
   @ManyToOne(() => ApiEndpoint)
   @JoinColumn()
-  apiEndpoint: ApiEndpoint;
+  apiEndpoint: ApiEndpoint
 }

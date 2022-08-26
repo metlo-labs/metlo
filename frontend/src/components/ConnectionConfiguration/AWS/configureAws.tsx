@@ -6,24 +6,24 @@ import {
   AccordionPanel,
   Spinner,
   Flex,
-} from "@chakra-ui/react";
-import { ConnectionType, STEPS } from "@common/enums";
-import { useState } from "react";
-import KeySetup from "./key_setup";
-import { v4 as uuidv4 } from "uuid";
-import SourceInstanceID from "./source_instance_id";
-import { STEP_RESPONSE } from "@common/types";
-import { STEP_TO_TITLE_MAP } from "@common/maps";
-import axios, { AxiosResponse, AxiosError } from "axios";
-import { getAPIURL } from "~/constants";
-import OsSelection from "./os_selection";
-import InstanceSelection from "./instance_selection";
-import GenericStepAWS from "./genericStepAws";
-import SetupRulesFilter from "./mirrorFilters";
-import { useToast } from "@chakra-ui/react";
+} from "@chakra-ui/react"
+import { ConnectionType, STEPS } from "@common/enums"
+import { useState } from "react"
+import KeySetup from "./key_setup"
+import { v4 as uuidv4 } from "uuid"
+import SourceInstanceID from "./source_instance_id"
+import { STEP_RESPONSE } from "@common/types"
+import { STEP_TO_TITLE_MAP } from "@common/maps"
+import axios, { AxiosResponse, AxiosError } from "axios"
+import { getAPIURL } from "~/constants"
+import OsSelection from "./os_selection"
+import InstanceSelection from "./instance_selection"
+import GenericStepAWS from "./genericStepAws"
+import SetupRulesFilter from "./mirrorFilters"
+import { useToast } from "@chakra-ui/react"
 interface configureAWSParams {
-  selected: STEPS;
-  updateSelected: (x: STEPS) => void;
+  selected: STEPS
+  updateSelected: (x: STEPS) => void
 }
 
 const incrementStep = (
@@ -31,11 +31,11 @@ const incrementStep = (
   params: Record<string, any>,
   step: STEPS,
   onStepSuccess: (
-    data: AxiosResponse<Omit<STEP_RESPONSE, "data">, any>
+    data: AxiosResponse<Omit<STEP_RESPONSE, "data">, any>,
   ) => void,
   onStepError: (data: AxiosResponse<Omit<STEP_RESPONSE, "data">, any>) => void,
   onError: (data: AxiosError) => void,
-  setUpdating: (x: boolean) => void
+  setUpdating: (x: boolean) => void,
 ) => {
   axios
     .post<Omit<STEP_RESPONSE, "data">>(`${getAPIURL()}/setup_connection`, {
@@ -44,32 +44,32 @@ const incrementStep = (
       type: ConnectionType.AWS,
       step: step,
     })
-    .then((value) => {
+    .then(value => {
       if (value.data.success === "OK") {
-        onStepSuccess(value);
+        onStepSuccess(value)
       } else if (value.data.success === "FAIL") {
-        onStepError(value);
+        onStepError(value)
       }
     })
     .catch((err: AxiosError) => {
-      onError(err);
+      onError(err)
     })
     .finally(() => {
-      setUpdating(false);
-    });
-  setUpdating(true);
-};
+      setUpdating(false)
+    })
+  setUpdating(true)
+}
 
-const MAX_RETRY = 3;
+const MAX_RETRY = 3
 
 const ConfigureAWS: React.FC<configureAWSParams> = ({
   selected,
   updateSelected,
 }) => {
-  const [isUpdating, setUpdating] = useState(false);
-  const [id] = useState(uuidv4());
-  const [name, setName] = useState(`Metlo-Connection-${id}`);
-  const toast = useToast();
+  const [isUpdating, setUpdating] = useState(false)
+  const [id] = useState(uuidv4())
+  const [name, setName] = useState(`Metlo-Connection-${id}`)
+  const toast = useToast()
   const create_toast_with_message = (msg: string, step: STEPS) => {
     toast({
       title: `Encountered an error on step ${STEPS[step]}`,
@@ -77,204 +77,204 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
       status: "error",
       duration: 6000,
       isClosable: true,
-    });
-  };
+    })
+  }
 
   const step_increment_function = (
     params: Record<string, any>,
-    step: STEPS
+    step: STEPS,
   ) => {
-    let retries = 0;
+    let retries = 0
     incrementStep(
       id,
       { ...params, name: name },
       step,
       () => updateSelected(step + 1),
-      (err) => {
-        create_toast_with_message(err.data.message, step);
-        console.log(err.data.error);
+      err => {
+        create_toast_with_message(err.data.message, step)
+        console.log(err.data.error)
       },
-      (error) => {
-        create_toast_with_message(error.message as string, step);
-        console.log(error);
+      error => {
+        create_toast_with_message(error.message as string, step)
+        console.log(error)
       },
-      setUpdating
-    );
-  };
+      setUpdating,
+    )
+  }
 
   const step_increment_function_with_retry = (
     params: Record<string, any>,
     step: STEPS,
-    retry_count: number
+    retry_count: number,
   ) => {
     incrementStep(
       id,
       { ...params, name: name },
       step,
       () => updateSelected(step + 1),
-      async (err) => {
+      async err => {
         if (retry_count > MAX_RETRY) {
-          create_toast_with_message(err.data.message, step);
-          console.log(err.data.error);
+          create_toast_with_message(err.data.message, step)
+          console.log(err.data.error)
         } else {
           console.log(
-            `Retrying step ${step} at count ${retry_count} at time ${new Date()}`
-          );
+            `Retrying step ${step} at count ${retry_count} at time ${new Date()}`,
+          )
           await step_increment_function_with_retry(
             params,
             step,
-            retry_count + 1
-          );
+            retry_count + 1,
+          )
         }
       },
-      (error) => {
-        create_toast_with_message(error.message as string, step);
-        console.log(error);
+      error => {
+        create_toast_with_message(error.message as string, step)
+        console.log(error)
       },
-      setUpdating
-    );
-  };
+      setUpdating,
+    )
+  }
 
   let internals = (selectedIndex: STEPS): React.ReactElement => {
     switch (selectedIndex) {
       case STEPS.AWS_KEY_SETUP:
         return (
           <KeySetup
-            complete={(params) => {
-              step_increment_function(params, STEPS.AWS_KEY_SETUP);
+            complete={params => {
+              step_increment_function(params, STEPS.AWS_KEY_SETUP)
             }}
             name={name}
             setName={setName}
           />
-        );
+        )
       case STEPS.SOURCE_INSTANCE_ID:
         return (
           <SourceInstanceID
-            complete={(params) => {
-              step_increment_function(params, STEPS.SOURCE_INSTANCE_ID);
+            complete={params => {
+              step_increment_function(params, STEPS.SOURCE_INSTANCE_ID)
             }}
           />
-        );
+        )
       case STEPS.SELECT_OS:
         return (
           <OsSelection
             isCurrent={selectedIndex === selected}
-            complete={(params) => {
-              step_increment_function(params, STEPS.SELECT_OS);
+            complete={params => {
+              step_increment_function(params, STEPS.SELECT_OS)
             }}
             id={id}
           />
-        );
+        )
       case STEPS.SELECT_INSTANCE_TYPE:
         return (
           <InstanceSelection
             id={id}
-            complete={(params) => {
-              step_increment_function(params, STEPS.SELECT_INSTANCE_TYPE);
+            complete={params => {
+              step_increment_function(params, STEPS.SELECT_INSTANCE_TYPE)
             }}
             isCurrent={selectedIndex == selected}
             setLoadingState={setUpdating}
           />
-        );
+        )
       case STEPS.CREATE_INSTANCE:
         return (
           <GenericStepAWS
             id={id}
-            complete={(params) => {
-              step_increment_function(params, STEPS.CREATE_INSTANCE);
+            complete={params => {
+              step_increment_function(params, STEPS.CREATE_INSTANCE)
             }}
             isCurrent={selectedIndex == selected}
           ></GenericStepAWS>
-        );
+        )
       case STEPS.INSTANCE_IP:
         return (
           <GenericStepAWS
             id={id}
-            complete={async (params) => {
+            complete={async params => {
               await step_increment_function_with_retry(
                 params,
                 STEPS.INSTANCE_IP,
-                0
-              );
+                0,
+              )
             }}
             isCurrent={selectedIndex == selected}
           />
-        );
+        )
       case STEPS.CREATE_MIRROR_TARGET:
         return (
           <GenericStepAWS
             id={id}
-            complete={(params) => {
-              step_increment_function(params, STEPS.CREATE_MIRROR_TARGET);
+            complete={params => {
+              step_increment_function(params, STEPS.CREATE_MIRROR_TARGET)
             }}
             isCurrent={selectedIndex == selected}
           ></GenericStepAWS>
-        );
+        )
       case STEPS.CREATE_MIRROR_FILTER:
         return (
           <SetupRulesFilter
             id={id}
-            complete={(params) => {
-              step_increment_function(params, STEPS.CREATE_MIRROR_FILTER);
+            complete={params => {
+              step_increment_function(params, STEPS.CREATE_MIRROR_FILTER)
             }}
             isCurrent={selectedIndex == selected}
           />
-        );
+        )
       case STEPS.CREATE_MIRROR_SESSION:
         return (
           <GenericStepAWS
             id={id}
-            complete={(params) => {
-              step_increment_function(params, STEPS.CREATE_MIRROR_SESSION);
+            complete={params => {
+              step_increment_function(params, STEPS.CREATE_MIRROR_SESSION)
             }}
             isCurrent={selectedIndex == selected}
           ></GenericStepAWS>
-        );
+        )
       case STEPS.TEST_SSH:
         return (
           <GenericStepAWS
             id={id}
-            complete={async (params) => {
+            complete={async params => {
               await step_increment_function_with_retry(
                 params,
                 STEPS.TEST_SSH,
-                0
-              );
+                0,
+              )
             }}
             isCurrent={selectedIndex == selected}
           />
-        );
+        )
       case STEPS.PUSH_FILES:
         return (
           <GenericStepAWS
             id={id}
-            complete={async (params) => {
+            complete={async params => {
               await step_increment_function_with_retry(
                 params,
                 STEPS.PUSH_FILES,
-                0
-              );
+                0,
+              )
             }}
             isCurrent={selectedIndex == selected}
           />
-        );
+        )
       case STEPS.EXEC_COMMAND:
         return (
           <GenericStepAWS
             id={id}
-            complete={async (params) => {
+            complete={async params => {
               await step_increment_function_with_retry(
                 params,
                 STEPS.EXEC_COMMAND,
-                0
-              );
-              toast({ title: "Mirroring setup completed!", status: "success" });
+                0,
+              )
+              toast({ title: "Mirroring setup completed!", status: "success" })
             }}
             isCurrent={selectedIndex == selected}
           />
-        );
+        )
     }
-  };
+  }
 
   return (
     <>
@@ -314,11 +314,11 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
                 </Box>
               </AccordionPanel>
             </AccordionItem>
-          );
+          )
         })}
       </Accordion>
     </>
-  );
-};
+  )
+}
 
-export default ConfigureAWS;
+export default ConfigureAWS

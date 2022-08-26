@@ -1,4 +1,4 @@
-import { CloseIcon } from "@chakra-ui/icons";
+import { CloseIcon } from "@chakra-ui/icons"
 import {
   Grid,
   GridItem,
@@ -12,31 +12,31 @@ import {
   Flex,
   Button,
   HStack,
-} from "@chakra-ui/react";
-import { protocols } from "@common/enums";
-import { TrafficFilterRuleSpecs } from "@common/types";
-import { useEffect, useState } from "react";
+} from "@chakra-ui/react"
+import { protocols } from "@common/enums"
+import { TrafficFilterRuleSpecs } from "@common/types"
+import { useEffect, useState } from "react"
 
 interface GenericStepAWSInterface {
-  id: string;
-  complete: (params: Record<string, any>) => void;
-  isCurrent: boolean;
+  id: string
+  complete: (params: Record<string, any>) => void
+  isCurrent: boolean
 }
 
 const update_attribute = (
   data: Array<TrafficFilterRuleSpecs>,
   attribute_name,
   change_at,
-  change_to
+  change_to,
 ) => {
   return data.map((v, idx) => {
     if (idx === change_at) {
-      v[attribute_name] = change_to;
-      return v;
+      v[attribute_name] = change_to
+      return v
     }
-    return v;
-  });
-};
+    return v
+  })
+}
 
 const SetupRulesFilter: React.FC<GenericStepAWSInterface> = ({
   id,
@@ -52,7 +52,7 @@ const SetupRulesFilter: React.FC<GenericStepAWSInterface> = ({
       direction: "in",
       protocol: protocols.TCP,
     },
-  ]);
+  ])
   return (
     <Flex direction={"column"} gap={8}>
       <Box>Add Rules for mirroring data</Box>
@@ -69,15 +69,15 @@ const SetupRulesFilter: React.FC<GenericStepAWSInterface> = ({
                   <GridItem>Destination CIDR</GridItem>
                   <Input
                     value={rules[i].destination_CIDR}
-                    onChange={(v) => {
+                    onChange={v => {
                       updateRules(
                         update_attribute(
                           rules,
                           "destination_CIDR",
                           i,
-                          v.target.value
-                        )
-                      );
+                          v.target.value,
+                        ),
+                      )
                     }}
                   />
                 </VStack>
@@ -87,15 +87,15 @@ const SetupRulesFilter: React.FC<GenericStepAWSInterface> = ({
                   <GridItem>Source CIDR</GridItem>
                   <Input
                     value={rules[i].source_CIDR}
-                    onChange={(v) => {
+                    onChange={v => {
                       updateRules(
                         update_attribute(
                           rules,
                           "source_CIDR",
                           i,
-                          v.target.value
-                        )
-                      );
+                          v.target.value,
+                        ),
+                      )
                     }}
                   />
                 </VStack>
@@ -105,15 +105,15 @@ const SetupRulesFilter: React.FC<GenericStepAWSInterface> = ({
                   <GridItem>Destination Port</GridItem>
                   <Input
                     value={rules[i].destination_port}
-                    onChange={(v) => {
+                    onChange={v => {
                       updateRules(
                         update_attribute(
                           rules,
                           "destination_port",
                           i,
-                          v.target.value
-                        )
-                      );
+                          v.target.value,
+                        ),
+                      )
                     }}
                   />
                 </VStack>
@@ -123,15 +123,15 @@ const SetupRulesFilter: React.FC<GenericStepAWSInterface> = ({
                   <GridItem>Source Port</GridItem>
                   <Input
                     value={rules[i].source_port}
-                    onChange={(v) => {
+                    onChange={v => {
                       updateRules(
                         update_attribute(
                           rules,
                           "source_port",
                           i,
-                          v.target.value
-                        )
-                      );
+                          v.target.value,
+                        ),
+                      )
                     }}
                   />
                 </VStack>
@@ -141,10 +141,10 @@ const SetupRulesFilter: React.FC<GenericStepAWSInterface> = ({
                   <GridItem>Traffic Direction</GridItem>
                   <Select
                     value={rules[i].direction}
-                    onChange={(v) => {
+                    onChange={v => {
                       updateRules(
-                        update_attribute(rules, "direction", i, v.target.value)
-                      );
+                        update_attribute(rules, "direction", i, v.target.value),
+                      )
                     }}
                   >
                     <option value={"out"}>Out</option>
@@ -161,7 +161,7 @@ const SetupRulesFilter: React.FC<GenericStepAWSInterface> = ({
                       //   let new_rules = rules.splice(i, 1);
                       //   console.log(new_rules);
                       //   console.log(rules);
-                      updateRules(rules.filter((_, idx) => idx != i));
+                      updateRules(rules.filter((_, idx) => idx != i))
                     }}
                   />
                 </VStack>
@@ -183,7 +183,7 @@ const SetupRulesFilter: React.FC<GenericStepAWSInterface> = ({
                 direction: "in",
                 protocol: protocols.TCP,
               },
-            ]);
+            ])
           }}
         >
           New Filter
@@ -198,6 +198,6 @@ const SetupRulesFilter: React.FC<GenericStepAWSInterface> = ({
         </Button>
       </HStack>
     </Flex>
-  );
-};
-export default SetupRulesFilter;
+  )
+}
+export default SetupRulesFilter

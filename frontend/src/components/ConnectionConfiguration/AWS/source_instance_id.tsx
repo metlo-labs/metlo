@@ -1,12 +1,12 @@
-import { Box, Button, Flex, Grid, GridItem, Input } from "@chakra-ui/react";
-import { useState } from "react";
+import { Box, Button, Flex, Grid, GridItem, Input } from "@chakra-ui/react"
+import { useState } from "react"
 
 interface KeySetupInterface {
-  complete: (params: Record<string, any>) => void;
+  complete: (params: Record<string, any>) => void
 }
 
 const SourceInstanceID: React.FC<KeySetupInterface> = ({ complete }) => {
-  const [instanceID, setInstanceId] = useState("");
+  const [instanceID, setInstanceId] = useState("")
 
   return (
     <Grid
@@ -22,7 +22,7 @@ const SourceInstanceID: React.FC<KeySetupInterface> = ({ complete }) => {
       <GridItem colSpan={2}>
         <Box>
           <Input
-            onChange={(e) => setInstanceId(e.target.value)}
+            onChange={e => setInstanceId(e.target.value)}
             value={instanceID}
           />
         </Box>
@@ -38,6 +38,6 @@ const SourceInstanceID: React.FC<KeySetupInterface> = ({ complete }) => {
         </Flex>
       </GridItem>
     </Grid>
-  );
-};
-export default SourceInstanceID;
+  )
+}
+export default SourceInstanceID

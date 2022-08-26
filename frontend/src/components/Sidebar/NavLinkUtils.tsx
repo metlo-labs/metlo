@@ -1,10 +1,10 @@
-import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch";
-import { FaHome } from "@react-icons/all-files/fa/FaHome";
-import { FaShareAlt } from "@react-icons/all-files/fa/FaShareAlt";
-import { FaBell } from "@react-icons/all-files/fa/FaBell";
-import { BiTestTube } from "@react-icons/all-files/bi/BiTestTube";
-import { AiFillApi } from "@react-icons/all-files/ai/AiFillApi";
-import { IconType } from "@react-icons/all-files/lib";
+import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch"
+import { FaHome } from "@react-icons/all-files/fa/FaHome"
+import { FaShareAlt } from "@react-icons/all-files/fa/FaShareAlt"
+import { FaBell } from "@react-icons/all-files/fa/FaBell"
+import { BiTestTube } from "@react-icons/all-files/bi/BiTestTube"
+import { AiFillApi } from "@react-icons/all-files/ai/AiFillApi"
+import { IconType } from "@react-icons/all-files/lib"
 
 export enum SideNavLinkDestination {
   Home,
@@ -15,58 +15,58 @@ export enum SideNavLinkDestination {
 }
 
 export const sideNavDestinationToLabel: (
-  dest: SideNavLinkDestination
-) => string = (dest) => {
+  dest: SideNavLinkDestination,
+) => string = dest => {
   switch (dest) {
     case SideNavLinkDestination.Home:
-      return "Home";
+      return "Home"
     case SideNavLinkDestination.Endpoints:
-      return "Endpoints";
+      return "Endpoints"
     case SideNavLinkDestination.Alerts:
-      return "Alerts";
+      return "Alerts"
     case SideNavLinkDestination.Specs:
-      return "API Specs";
+      return "API Specs"
     case SideNavLinkDestination.Connections:
-      return "Connections";
+      return "Connections"
     default:
-      throw Error(`No value mapped for ${dest}`);
+      throw Error(`No value mapped for ${dest}`)
   }
-};
+}
 
 export const sideNavDestinationToIcon: (
-  dest: SideNavLinkDestination
-) => IconType = (dest) => {
+  dest: SideNavLinkDestination,
+) => IconType = dest => {
   switch (dest) {
     case SideNavLinkDestination.Home:
-      return FaHome;
+      return FaHome
     case SideNavLinkDestination.Endpoints:
-      return TiFlowSwitch;
+      return TiFlowSwitch
     case SideNavLinkDestination.Alerts:
-      return FaBell;
+      return FaBell
     case SideNavLinkDestination.Specs:
-      return AiFillApi;
+      return AiFillApi
     case SideNavLinkDestination.Connections:
-      return FaShareAlt;
+      return FaShareAlt
     default:
-      throw Error(`No value mapped for ${dest}`);
+      throw Error(`No value mapped for ${dest}`)
   }
-};
+}
 
 export const sideNavDestinationToHref: (
-  dest: SideNavLinkDestination
-) => string = (dest) => {
+  dest: SideNavLinkDestination,
+) => string = dest => {
   switch (dest) {
     case SideNavLinkDestination.Home:
-      return "/";
+      return "/"
     case SideNavLinkDestination.Endpoints:
-      return "/endpoints";
+      return "/endpoints"
     case SideNavLinkDestination.Alerts:
-      return "/alerts";
+      return "/alerts"
     case SideNavLinkDestination.Specs:
-      return "/specs";
+      return "/specs"
     case SideNavLinkDestination.Connections:
-      return "/connections";
+      return "/connections"
     default:
-      throw Error(`No value mapped for ${dest}`);
+      throw Error(`No value mapped for ${dest}`)
   }
-};
+}

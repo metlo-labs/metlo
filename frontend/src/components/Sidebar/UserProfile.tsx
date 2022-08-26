@@ -1,12 +1,12 @@
-import React from "react";
-import { Flex, HStack, Text } from "@chakra-ui/react";
+import React from "react"
+import { Flex, HStack, Text } from "@chakra-ui/react"
 
-import MetloAvatar from "components/utils/MetloAvatar";
+import MetloAvatar from "components/utils/MetloAvatar"
 
 interface UserProfileProps {
-  name?: string;
-  imageUrl?: string;
-  email?: string;
+  name?: string
+  imageUrl?: string
+  email?: string
 }
 
 const UserProfile: React.FC<UserProfileProps> = React.memo(
@@ -23,8 +23,8 @@ const UserProfile: React.FC<UserProfileProps> = React.memo(
           </Text>
         </Flex>
       </HStack>
-    );
-  }
-);
+    )
+  },
+)
 
-export default UserProfile;
+export default UserProfile

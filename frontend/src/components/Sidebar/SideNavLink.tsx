@@ -7,29 +7,29 @@ import {
   LinkProps,
   Text,
   useColorModeValue,
-} from "@chakra-ui/react";
-import NextLink from "next/link";
-import React from "react";
+} from "@chakra-ui/react"
+import NextLink from "next/link"
+import React from "react"
 import {
   sideNavDestinationToHref,
   sideNavDestinationToIcon,
   sideNavDestinationToLabel,
   SideNavLinkDestination,
-} from "./NavLinkUtils";
+} from "./NavLinkUtils"
 
 interface SideNavLinkProps extends LinkProps {
-  destination: SideNavLinkDestination;
-  isActive?: boolean;
-  isComingSoon?: boolean;
+  destination: SideNavLinkDestination
+  isActive?: boolean
+  isComingSoon?: boolean
 }
 
 const SideNavLink: React.FC<SideNavLinkProps> = React.memo(
   ({ isActive, destination, isComingSoon, ...rest }) => {
     const colorModeValue = useColorModeValue(
       "rgb(163, 165, 170)",
-      "rgb(98, 100, 116)"
-    );
-    const iconColor = isActive ? "primary" : colorModeValue;
+      "rgb(98, 100, 116)",
+    )
+    const iconColor = isActive ? "primary" : colorModeValue
     return (
       <Box pointerEvents={isComingSoon ? "none" : "unset"}>
         <NextLink href={sideNavDestinationToHref(destination)}>
@@ -89,8 +89,8 @@ const SideNavLink: React.FC<SideNavLinkProps> = React.memo(
           </Link>
         </NextLink>
       </Box>
-    );
-  }
-);
+    )
+  },
+)
 
-export default SideNavLink;
+export default SideNavLink

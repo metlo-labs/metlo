@@ -6,64 +6,64 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-} from "typeorm";
-import { DataClass, DataTag, DataType, DataSection } from "@common/enums";
-import { ApiEndpoint } from "models/api-endpoint";
+} from "typeorm"
+import { DataClass, DataTag, DataType, DataSection } from "@common/enums"
+import { ApiEndpoint } from "models/api-endpoint"
 
 @Entity()
 export class DataField extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
-  uuid: string;
+  uuid: string
 
   @Column({ type: "enum", enum: DataClass, array: true, default: [] })
-  dataClasses: DataClass[];
+  dataClasses: DataClass[]
 
   @Column({ type: "enum", enum: DataClass, array: true, default: [] })
-  falsePositives: DataClass[];
+  falsePositives: DataClass[]
 
   @Column({ type: "enum", enum: DataType, nullable: false })
-  dataType: DataType;
+  dataType: DataType
 
   @Column({ type: "enum", enum: DataTag, nullable: true })
-  dataTag: DataTag;
+  dataTag: DataTag
 
   @Column({ type: "enum", enum: DataSection, nullable: false })
-  dataSection: DataSection;
+  dataSection: DataSection
 
   @CreateDateColumn({ type: "timestamptz" })
-  createdAt: Date;
+  createdAt: Date
 
   @UpdateDateColumn({ type: "timestamptz" })
-  updatedAt: Date;
+  updatedAt: Date
 
   @Column({ nullable: false })
-  dataPath: string;
+  dataPath: string
 
   @Column({ type: "jsonb", nullable: false, default: {} })
-  matches: Record<DataClass, string[]>;
+  matches: Record<DataClass, string[]>
 
   @Column({ nullable: false })
-  apiEndpointUuid: string;
+  apiEndpointUuid: string
 
-  @ManyToOne(() => ApiEndpoint, (apiEndpoint) => apiEndpoint.dataFields)
-  apiEndpoint: ApiEndpoint;
+  @ManyToOne(() => ApiEndpoint, apiEndpoint => apiEndpoint.dataFields)
+  apiEndpoint: ApiEndpoint
 
   addDataClass(dataClass: DataClass): boolean {
     if (this.dataClasses === null || this.dataClasses === undefined) {
-      this.dataClasses = Array<DataClass>();
+      this.dataClasses = Array<DataClass>()
     }
     if (this.falsePositives === null || this.falsePositives === undefined) {
-      this.falsePositives = Array<DataClass>();
+      this.falsePositives = Array<DataClass>()
     }
     if (
       dataClass === null ||
       this.dataClasses.includes(dataClass) ||
       this.falsePositives.includes(dataClass)
     ) {
-      return false;
+      return false
     }
-    this.dataClasses.push(dataClass);
-    return true;
+    this.dataClasses.push(dataClass)
+    return true
   }
 
   updateMatches(dataClass: DataClass, matches: string[]): boolean {
@@ -73,29 +73,29 @@ export class DataField extends BaseEntity {
       dataClass === null ||
       !this.dataClasses.includes(dataClass)
     ) {
-      return false;
+      return false
     }
 
-    let updated = false;
+    let updated = false
     if (this.matches === null || this.matches === undefined) {
-      this.matches = {} as Record<DataClass, string[]>;
+      this.matches = {} as Record<DataClass, string[]>
     }
     if (
       this.matches[dataClass] == null ||
       this.matches[dataClass] === undefined
     ) {
-      this.matches[dataClass] = [];
+      this.matches[dataClass] = []
     }
 
     for (const match of matches) {
       if (this.matches[dataClass].length >= 10) {
-        break;
+        break
       }
       if (!this.matches[dataClass].includes(match)) {
-        this.matches[dataClass].push(match);
-        updated = true;
+        this.matches[dataClass].push(match)
+        updated = true
       }
     }
-    return updated;
+    return updated
   }
 }

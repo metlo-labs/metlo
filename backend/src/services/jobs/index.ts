@@ -1,25 +1,25 @@
-import { FindOptionsWhere, IsNull, MoreThan, Raw } from "typeorm";
-import { v4 as uuidv4 } from "uuid";
+import { FindOptionsWhere, IsNull, MoreThan, Raw } from "typeorm"
+import { v4 as uuidv4 } from "uuid"
 import {
   getDataType,
   getRiskScore,
   isSuspectedParamater,
   parsedJson,
   parsedJsonNonNull,
-} from "utils";
-import { ApiEndpoint, ApiTrace, OpenApiSpec } from "models";
-import { AppDataSource } from "data-source";
-import { AlertType, DataType, RestMethod, SpecExtension } from "@common/enums";
-import { AlertService } from "services/alert";
-import { DataFieldService } from "services/data-field";
-import { DatabaseService } from "services/database";
+} from "utils"
+import { ApiEndpoint, ApiTrace, OpenApiSpec } from "models"
+import { AppDataSource } from "data-source"
+import { AlertType, DataType, RestMethod, SpecExtension } from "@common/enums"
+import { AlertService } from "services/alert"
+import { DataFieldService } from "services/data-field"
+import { DatabaseService } from "services/database"
 
 interface GenerateEndpoint {
-  parameterizedPath: string;
-  host: string;
-  regex: string;
-  method: RestMethod;
-  traces: ApiTrace[];
+  parameterizedPath: string
+  host: string
+  regex: string
+  method: RestMethod
+  traces: ApiTrace[]
 }
 
 enum In {
@@ -30,26 +30,26 @@ enum In {
 }
 
 interface BodySchema {
-  type?: DataType;
-  items?: BodySchema;
-  properties?: Record<string, BodySchema>;
+  type?: DataType
+  items?: BodySchema
+  properties?: Record<string, BodySchema>
 }
 
 interface BodyContent {
-  [key: string]: { schema?: BodySchema };
+  [key: string]: { schema?: BodySchema }
 }
 
 interface Responses {
   [key: string]: {
-    description: string;
-    headers?: BodyContent;
-    content?: BodyContent;
-  };
+    description: string
+    headers?: BodyContent
+    content?: BodyContent
+  }
 }
 
 export class JobsService {
   static parseSchema(bodySchema: BodySchema, parsedBody: any) {
-    const dataType = getDataType(parsedBody);
+    const dataType = getDataType(parsedBody)
     if (dataType === DataType.OBJECT) {
       for (let property in parsedBody) {
         bodySchema = {
@@ -58,117 +58,117 @@ export class JobsService {
             ...bodySchema?.properties,
             [property]: this.parseSchema(
               bodySchema?.properties?.[property],
-              parsedBody[property]
+              parsedBody[property],
             ),
           },
-        };
+        }
       }
-      return bodySchema;
+      return bodySchema
     } else if (dataType === DataType.ARRAY) {
       bodySchema = {
         type: DataType.ARRAY,
         items: this.parseSchema(bodySchema?.items, parsedBody[0] ?? ""),
-      };
-      return bodySchema;
+      }
+      return bodySchema
     } else {
       return {
         type: dataType,
-      };
+      }
     }
   }
 
   static parseContent(bodySpec: BodyContent, bodyString: string, key: string) {
-    let parsedBody = parsedJson(bodyString);
-    let nonNullKey: string;
+    let parsedBody = parsedJson(bodyString)
+    let nonNullKey: string
     if (!parsedBody && bodyString) {
-      nonNullKey = key || "text/plain";
-      parsedBody = bodyString;
+      nonNullKey = key || "text/plain"
+      parsedBody = bodyString
     } else if (parsedBody) {
-      const dataType = getDataType(parsedBody);
+      const dataType = getDataType(parsedBody)
       nonNullKey =
         key ||
-        (dataType === DataType.OBJECT ? "application/json" : "text/plain");
+        (dataType === DataType.OBJECT ? "application/json" : "text/plain")
     } else {
-      return;
+      return
     }
     if (!bodySpec?.[nonNullKey]) {
-      bodySpec[nonNullKey] = { schema: {} };
+      bodySpec[nonNullKey] = { schema: {} }
     }
     bodySpec[nonNullKey] = {
       schema: this.parseSchema(bodySpec[nonNullKey].schema, parsedBody),
-    };
+    }
   }
 
   static async generateEndpointsFromTraces(): Promise<void> {
     try {
-      const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
-      const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
-      const regexToTracesMap: Record<string, GenerateEndpoint> = {};
+      const apiTraceRepository = AppDataSource.getRepository(ApiTrace)
+      const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
+      const regexToTracesMap: Record<string, GenerateEndpoint> = {}
       const traces = await apiTraceRepository.findBy({
         apiEndpointUuid: IsNull(),
-      });
+      })
       if (traces?.length > 0) {
         for (let i = 0; i < traces.length; i++) {
-          const trace = traces[i];
+          const trace = traces[i]
           const apiEndpoint = await apiEndpointRepository.findOne({
             where: {
-              pathRegex: Raw((alias) => `:path ~ ${alias}`, {
+              pathRegex: Raw(alias => `:path ~ ${alias}`, {
                 path: trace.path,
               }),
               method: trace.method,
               host: trace.host,
             },
             relations: { dataFields: true },
-          });
+          })
           if (apiEndpoint) {
-            apiEndpoint.totalCalls += 1;
+            apiEndpoint.totalCalls += 1
             const dataFields = DataFieldService.findAllDataFields(
               trace,
-              apiEndpoint
-            );
-            trace.apiEndpointUuid = apiEndpoint.uuid;
+              apiEndpoint,
+            )
+            trace.apiEndpointUuid = apiEndpoint.uuid
             await DatabaseService.executeTransactions(
               [[...dataFields], [apiEndpoint], [trace]],
               [],
-              true
-            );
+              true,
+            )
           } else {
-            let found = false;
-            const regexes = Object.keys(regexToTracesMap);
+            let found = false
+            const regexes = Object.keys(regexToTracesMap)
             for (let x = 0; x < regexes.length && !found; x++) {
-              const regex = regexes[x];
+              const regex = regexes[x]
               if (
                 RegExp(regex).test(
-                  `${trace.host}-${trace.method}-${trace.path}`
+                  `${trace.host}-${trace.method}-${trace.path}`,
                 )
               ) {
-                found = true;
-                regexToTracesMap[regex].traces.push(trace);
+                found = true
+                regexToTracesMap[regex].traces.push(trace)
               }
             }
             if (!found) {
-              const pathTokens = trace.path.split("/");
-              let paramNum = 1;
-              let parameterizedPath = "";
-              let pathRegex = String.raw``;
+              const pathTokens = trace.path.split("/")
+              let paramNum = 1
+              let parameterizedPath = ""
+              let pathRegex = String.raw``
               for (let j = 0; j < pathTokens.length; j++) {
-                const tokenString = pathTokens[j];
+                const tokenString = pathTokens[j]
                 if (tokenString.length > 0) {
                   if (isSuspectedParamater(tokenString)) {
-                    parameterizedPath += `/{param${paramNum}}`;
-                    pathRegex += String.raw`/[^/]+`;
-                    paramNum += 1;
+                    parameterizedPath += `/{param${paramNum}}`
+                    pathRegex += String.raw`/[^/]+`
+                    paramNum += 1
                   } else {
-                    parameterizedPath += `/${tokenString}`;
-                    pathRegex += String.raw`/${tokenString}`;
+                    parameterizedPath += `/${tokenString}`
+                    pathRegex += String.raw`/${tokenString}`
                   }
                 }
               }
               if (pathRegex.length > 0) {
-                pathRegex = String.raw`^${pathRegex}$`;
-                const regexKey = `${trace.host}-${trace.method}-${pathRegex}`;
+                pathRegex = String.raw`^${pathRegex}$`
+                const regexKey = `${trace.host}-${trace.method}-${pathRegex}`
                 if (regexToTracesMap[regexKey]) {
-                  regexToTracesMap[regexKey].traces.push(trace);
+                  regexToTracesMap[regexKey].traces.push(trace)
                 } else {
                   regexToTracesMap[regexKey] = {
                     parameterizedPath,
@@ -176,7 +176,7 @@ export class JobsService {
                     regex: pathRegex,
                     method: trace.method,
                     traces: [trace],
-                  };
+                  }
                 }
               }
             }
@@ -187,32 +187,32 @@ export class JobsService {
           /** Check if endpoint already exists for the trace */
           //const existingEndpoint = await apiEndpointRepository.findOneBy({ pathRegex: value.regex, method: value.method, host: value.host })
 
-          const value = regexToTracesMap[regex];
-          const apiEndpoint = new ApiEndpoint();
-          apiEndpoint.uuid = uuidv4();
-          apiEndpoint.path = value.parameterizedPath;
-          apiEndpoint.pathRegex = value.regex;
-          apiEndpoint.host = value.traces[0].host;
-          apiEndpoint.totalCalls = value.traces.length;
-          apiEndpoint.method = value.traces[0].method;
-          apiEndpoint.owner = value.traces[0].owner;
-          apiEndpoint.dataFields = [];
+          const value = regexToTracesMap[regex]
+          const apiEndpoint = new ApiEndpoint()
+          apiEndpoint.uuid = uuidv4()
+          apiEndpoint.path = value.parameterizedPath
+          apiEndpoint.pathRegex = value.regex
+          apiEndpoint.host = value.traces[0].host
+          apiEndpoint.totalCalls = value.traces.length
+          apiEndpoint.method = value.traces[0].method
+          apiEndpoint.owner = value.traces[0].owner
+          apiEndpoint.dataFields = []
 
           // TODO: Do something with setting sensitive data classes during iteration of traces and add auto generated open api spec for inferred endpoints
           for (let i = 0; i < value.traces.length; i++) {
-            const trace = value.traces[i];
+            const trace = value.traces[i]
             apiEndpoint.dataFields = DataFieldService.findAllDataFields(
               trace,
               apiEndpoint,
-              true
-            );
-            trace.apiEndpoint = apiEndpoint;
+              true,
+            )
+            trace.apiEndpoint = apiEndpoint
           }
-          apiEndpoint.riskScore = getRiskScore(apiEndpoint.dataFields);
+          apiEndpoint.riskScore = getRiskScore(apiEndpoint.dataFields)
           const alert = await AlertService.createAlert(
             AlertType.NEW_ENDPOINT,
-            apiEndpoint
-          );
+            apiEndpoint,
+          )
           await DatabaseService.executeTransactions(
             [
               [apiEndpoint],
@@ -221,52 +221,52 @@ export class JobsService {
               [...value.traces],
             ],
             [],
-            true
-          );
+            true,
+          )
         }
       }
-      await this.generateOpenApiSpec();
+      await this.generateOpenApiSpec()
     } catch (err) {
-      console.error(`Encountered error while generating endpoints: ${err}`);
+      console.error(`Encountered error while generating endpoints: ${err}`)
     }
   }
 
   static async generateOpenApiSpec(): Promise<void> {
     try {
-      const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint);
-      const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec);
-      const apiTraceRepository = AppDataSource.getRepository(ApiTrace);
+      const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
+      const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec)
+      const apiTraceRepository = AppDataSource.getRepository(ApiTrace)
       const nonSpecEndpoints = await apiEndpointRepository.findBy({
         openapiSpecName: IsNull(),
-      });
-      const hostMap: Record<string, ApiEndpoint[]> = {};
+      })
+      const hostMap: Record<string, ApiEndpoint[]> = {}
       const specIntro = {
         openapi: "3.0.3",
         info: {
           title: "OpenAPI 3.0 Spec",
           description: "An auto-generated OpenAPI 3.0 specification.",
         },
-      };
+      }
       for (let i = 0; i < nonSpecEndpoints.length; i++) {
-        const endpoint = nonSpecEndpoints[i];
+        const endpoint = nonSpecEndpoints[i]
         if (hostMap[endpoint.host]) {
-          hostMap[endpoint.host].push(endpoint);
+          hostMap[endpoint.host].push(endpoint)
         } else {
-          hostMap[endpoint.host] = [endpoint];
+          hostMap[endpoint.host] = [endpoint]
         }
       }
       for (const host in hostMap) {
         let spec = await openApiSpecRepository.findOneBy({
           name: `${host}-generated`,
-        });
-        let openApiSpec = {};
+        })
+        let openApiSpec = {}
         if (spec) {
-          openApiSpec = JSON.parse(spec.spec);
+          openApiSpec = JSON.parse(spec.spec)
         } else {
-          spec = new OpenApiSpec();
-          spec.name = `${host}-generated`;
-          spec.isAutoGenerated = true;
-          spec.hosts = [host];
+          spec = new OpenApiSpec()
+          spec.name = `${host}-generated`
+          spec.isAutoGenerated = true
+          spec.hosts = [host]
           openApiSpec = {
             ...specIntro,
             servers: [
@@ -275,145 +275,145 @@ export class JobsService {
               },
             ],
             paths: {},
-          };
+          }
         }
-        const endpoints = hostMap[host];
+        const endpoints = hostMap[host]
         for (let i = 0; i < endpoints.length; i++) {
-          const endpoint = endpoints[i];
-          const paths = openApiSpec["paths"];
-          const path = endpoint.path;
-          const method = endpoint.method.toLowerCase();
+          const endpoint = endpoints[i]
+          const paths = openApiSpec["paths"]
+          const path = endpoint.path
+          const method = endpoint.method.toLowerCase()
           let whereConditions: FindOptionsWhere<ApiTrace> = {
             apiEndpointUuid: endpoint.uuid,
-          };
+          }
           if (spec.updatedAt) {
             whereConditions = {
               createdAt: MoreThan(spec.updatedAt),
               ...whereConditions,
-            };
+            }
           }
           const traces = await apiTraceRepository.find({
             where: { ...whereConditions },
             order: { createdAt: "ASC" },
-          });
-          let parameters: Record<string, BodySchema> = {};
-          let requestBodySpec: BodyContent = {};
-          let responses: Responses = {};
+          })
+          let parameters: Record<string, BodySchema> = {}
+          let requestBodySpec: BodyContent = {}
+          let responses: Responses = {}
           if (paths[path]) {
             if (paths[path][method]) {
-              const specParameters = paths[path][method]["parameters"];
+              const specParameters = paths[path][method]["parameters"]
               requestBodySpec =
-                paths[path][method]["requestBody"]?.["content"] ?? {};
-              responses = paths[path][method]["responses"] ?? {};
+                paths[path][method]["requestBody"]?.["content"] ?? {}
+              responses = paths[path][method]["responses"] ?? {}
               for (const parameter of specParameters) {
                 parameters[`${parameter?.name}<>${parameter?.in}`] =
-                  parameter?.schema ?? {};
+                  parameter?.schema ?? {}
               }
             } else {
-              paths[path][method] = {};
+              paths[path][method] = {}
             }
           } else {
             paths[path] = {
               [method]: {},
-            };
+            }
           }
           for (const trace of traces) {
-            const requestParamters = trace.requestParameters;
-            const requestHeaders = trace.requestHeaders;
-            const requestBody = trace.requestBody;
-            const responseHeaders = trace.responseHeaders;
-            const responseBody = trace.responseBody;
+            const requestParamters = trace.requestParameters
+            const requestHeaders = trace.requestHeaders
+            const requestBody = trace.requestBody
+            const responseHeaders = trace.responseHeaders
+            const responseBody = trace.responseBody
             const responseStatusString =
-              trace.responseStatus?.toString() || "default";
-            let requestContentType = null;
-            let responseContentType = null;
+              trace.responseStatus?.toString() || "default"
+            let requestContentType = null
+            let responseContentType = null
             for (const requestParameter of requestParamters) {
-              const key = `${requestParameter.name}<>query`;
+              const key = `${requestParameter.name}<>query`
               parameters[key] = this.parseSchema(
                 parameters[key] ?? {},
-                parsedJsonNonNull(requestParameter.value, true)
-              );
+                parsedJsonNonNull(requestParameter.value, true),
+              )
             }
             for (const requestHeader of requestHeaders) {
-              const key = `${requestHeader.name}<>header`;
+              const key = `${requestHeader.name}<>header`
               parameters[key] = this.parseSchema(
                 parameters[key] ?? {},
-                parsedJsonNonNull(requestHeader.value, true)
-              );
+                parsedJsonNonNull(requestHeader.value, true),
+              )
               if (requestHeader.name.toLowerCase() === "content-type") {
-                requestContentType = requestHeader.value.toLowerCase();
+                requestContentType = requestHeader.value.toLowerCase()
               }
             }
             for (const responseHeader of responseHeaders) {
               if (responseHeader.name.toLowerCase() === "content-type") {
-                responseContentType = responseHeader.value.toLowerCase();
+                responseContentType = responseHeader.value.toLowerCase()
               }
               if (!responses[responseStatusString]?.headers) {
                 responses[responseStatusString] = {
                   description: `${responseStatusString} description`,
                   ...responses[responseStatusString],
                   headers: {},
-                };
+                }
               }
               this.parseContent(
                 responses[responseStatusString]?.headers,
                 responseHeader.value,
-                responseHeader.name
-              );
+                responseHeader.name,
+              )
             }
 
             // Request body only for put, post, options, patch, trace
-            this.parseContent(requestBodySpec, requestBody, requestContentType);
+            this.parseContent(requestBodySpec, requestBody, requestContentType)
             if (responseBody) {
               if (!responses[responseStatusString]?.content) {
                 responses[responseStatusString] = {
                   description: `${responseStatusString} description`,
                   ...responses[responseStatusString],
                   content: {},
-                };
+                }
               }
               this.parseContent(
                 responses[responseStatusString]?.content,
                 responseBody,
-                responseContentType
-              );
+                responseContentType,
+              )
             }
           }
-          let specParameterList = [];
+          let specParameterList = []
           for (const parameter in parameters) {
-            const splitParameter = parameter.split("<>");
+            const splitParameter = parameter.split("<>")
             specParameterList.push({
               name: splitParameter[0],
               in: splitParameter[1],
               schema: parameters[parameter],
-            });
+            })
           }
           if (specParameterList.length > 0) {
-            paths[path][method]["parameters"] = specParameterList;
+            paths[path][method]["parameters"] = specParameterList
           }
           if (Object.keys(requestBodySpec).length > 0) {
             paths[path][method]["requestBody"] = {
               content: {
                 ...requestBodySpec,
               },
-            };
+            }
           }
           if (Object.keys(responses).length > 0) {
             paths[path][method]["responses"] = {
               ...responses,
-            };
+            }
           }
 
           // Add endpoint path parameters to parameter list
-          endpoint.openapiSpec = spec;
+          endpoint.openapiSpec = spec
         }
-        spec.spec = JSON.stringify(openApiSpec, null, 2);
-        spec.extension = SpecExtension.JSON;
-        await openApiSpecRepository.save(spec);
-        await apiEndpointRepository.save(endpoints);
+        spec.spec = JSON.stringify(openApiSpec, null, 2)
+        spec.extension = SpecExtension.JSON
+        await openApiSpecRepository.save(spec)
+        await apiEndpointRepository.save(endpoints)
       }
     } catch (err) {
-      console.error(`Encountered error while generating OpenAPI specs: ${err}`);
+      console.error(`Encountered error while generating OpenAPI specs: ${err}`)
     }
   }
 }

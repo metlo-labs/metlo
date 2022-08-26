@@ -15,12 +15,12 @@ import {
   useColorMode,
   Square,
   Box,
-} from "@chakra-ui/react";
-import NextLink from "next/link";
-import { ConnectionType } from "@common/enums";
+} from "@chakra-ui/react"
+import NextLink from "next/link"
+import { ConnectionType } from "@common/enums"
 
 const NewConnection = ({ isOpen, onClose }) => {
-  const colorMode = useColorMode();
+  const colorMode = useColorMode()
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
@@ -57,7 +57,7 @@ const NewConnection = ({ isOpen, onClose }) => {
         </ModalFooter>
       </ModalContent>
     </Modal>
-  );
-};
+  )
+}
 
-export default NewConnection;
+export default NewConnection

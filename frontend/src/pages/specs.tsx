@@ -1,12 +1,12 @@
-import superjson from "superjson";
-import { GetServerSideProps } from "next";
-import { Heading, VStack } from "@chakra-ui/react";
-import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils";
-import { SidebarLayoutShell } from "components/SidebarLayoutShell";
-import { ContentContainer } from "components/utils/ContentContainer";
-import SpecList from "components/SpecList";
-import { OpenApiSpec } from "@common/types";
-import { getSpecs } from "api/apiSpecs";
+import superjson from "superjson"
+import { GetServerSideProps } from "next"
+import { Heading, VStack } from "@chakra-ui/react"
+import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
+import { SidebarLayoutShell } from "components/SidebarLayoutShell"
+import { ContentContainer } from "components/utils/ContentContainer"
+import SpecList from "components/SpecList"
+import { OpenApiSpec } from "@common/types"
+import { getSpecs } from "api/apiSpecs"
 
 const Specs = ({ apiSpecs }) => (
   <SidebarLayoutShell
@@ -22,11 +22,11 @@ const Specs = ({ apiSpecs }) => (
       </VStack>
     </ContentContainer>
   </SidebarLayoutShell>
-);
+)
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const apiSpecs = await getSpecs();
-  return { props: { apiSpecs: superjson.stringify(apiSpecs) } };
-};
+export const getServerSideProps: GetServerSideProps = async context => {
+  const apiSpecs = await getSpecs()
+  return { props: { apiSpecs: superjson.stringify(apiSpecs) } }
+}
 
-export default Specs;
+export default Specs

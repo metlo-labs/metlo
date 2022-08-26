@@ -1,23 +1,23 @@
-import React from "react";
-import { Stack, Box, Text } from "@chakra-ui/react";
-import { Select } from "chakra-react-select";
-import { GetAlertParams } from "@common/types";
-import { AlertType, RiskScore } from "@common/enums";
+import React from "react"
+import { Stack, Box, Text } from "@chakra-ui/react"
+import { Select } from "chakra-react-select"
+import { GetAlertParams } from "@common/types"
+import { AlertType, RiskScore } from "@common/enums"
 
 interface AlertFilterProps {
-  alert?: string;
-  riskScore?: string;
-  alertList: string[];
-  riskList: string[];
-  params: GetAlertParams;
-  setParams: React.Dispatch<React.SetStateAction<GetAlertParams>>;
+  alert?: string
+  riskScore?: string
+  alertList: string[]
+  riskList: string[]
+  params: GetAlertParams
+  setParams: React.Dispatch<React.SetStateAction<GetAlertParams>>
 }
 
 const FilterHeader: React.FC<{ title: string }> = React.memo(({ title }) => (
   <Text fontWeight="semibold" mb="2" fontSize="sm">
     {title}
   </Text>
-));
+))
 
 const AlertFilters: React.FC<AlertFilterProps> = React.memo(
   ({ alert, alertList, riskScore, riskList, params, setParams }) => {
@@ -34,16 +34,16 @@ const AlertFilters: React.FC<AlertFilterProps> = React.memo(
             }
             isMulti={true}
             size="sm"
-            options={alertList.map((e) => ({
+            options={alertList.map(e => ({
               label: e,
               value: e,
             }))}
             placeholder="Filter by alert type..."
             instanceId="alert-tbl-env-alert"
-            onChange={(e) =>
+            onChange={e =>
               setParams({
                 ...params,
-                alertTypes: e.map((alert) => alert.label as AlertType),
+                alertTypes: e.map(alert => alert.label as AlertType),
               })
             }
           />
@@ -59,23 +59,23 @@ const AlertFilters: React.FC<AlertFilterProps> = React.memo(
             }
             isMulti={true}
             size="sm"
-            options={riskList.map((e) => ({
+            options={riskList.map(e => ({
               label: e,
               value: e,
             }))}
             placeholder="Filter by risk..."
             instanceId="alert-tbl-env-risk"
-            onChange={(e) =>
+            onChange={e =>
               setParams({
                 ...params,
-                riskScores: e.map((riskScore) => riskScore.label as RiskScore),
+                riskScores: e.map(riskScore => riskScore.label as RiskScore),
               })
             }
           />
         </Box>
       </Stack>
-    );
-  }
-);
+    )
+  },
+)
 
-export default AlertFilters;
+export default AlertFilters

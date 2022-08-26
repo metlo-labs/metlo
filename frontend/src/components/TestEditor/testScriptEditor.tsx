@@ -1,4 +1,4 @@
-import React from "react";
+import React from "react"
 import {
   Box,
   Button,
@@ -7,18 +7,18 @@ import {
   StackProps,
   useColorModeValue,
   VStack,
-} from "@chakra-ui/react";
-import { IoMdTrash } from "@react-icons/all-files/io/IoMdTrash";
-import Editor from "@monaco-editor/react";
+} from "@chakra-ui/react"
+import { IoMdTrash } from "@react-icons/all-files/io/IoMdTrash"
+import Editor from "@monaco-editor/react"
 
 interface TestScriptEditorProps extends StackProps {
-  testScript: string;
-  updateTestScript: (t: (e: string) => string) => void;
+  testScript: string
+  updateTestScript: (t: (e: string) => string) => void
 }
 
 const TestScriptEditor: React.FC<TestScriptEditorProps> = React.memo(
   ({ testScript, updateTestScript, ...props }) => {
-    const theme = useColorModeValue("light", "vs-dark");
+    const theme = useColorModeValue("light", "vs-dark")
     return (
       <VStack w="full" alignItems="flex-start" h="full" spacing="0" {...props}>
         <HStack
@@ -42,7 +42,7 @@ const TestScriptEditor: React.FC<TestScriptEditorProps> = React.memo(
             width="100%"
             defaultLanguage="javascript"
             value={testScript as string}
-            onChange={(val) => updateTestScript((e) => val)}
+            onChange={val => updateTestScript(e => val)}
             options={{
               minimap: {
                 enabled: false,
@@ -53,8 +53,8 @@ const TestScriptEditor: React.FC<TestScriptEditorProps> = React.memo(
           />
         </Box>
       </VStack>
-    );
-  }
-);
+    )
+  },
+)
 
-export default TestScriptEditor;
+export default TestScriptEditor

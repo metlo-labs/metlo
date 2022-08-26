@@ -1,6 +1,6 @@
-import React, { useRef, useState } from "react";
-import NextLink from "next/link";
-import { useRouter } from "next/router";
+import React, { useRef, useState } from "react"
+import NextLink from "next/link"
+import { useRouter } from "next/router"
 import {
   Heading,
   useColorModeValue,
@@ -11,34 +11,34 @@ import {
   Button,
   Box,
   useToast,
-} from "@chakra-ui/react";
-import { AiFillApi } from "@react-icons/all-files/ai/AiFillApi";
-import darkTheme from "prism-react-renderer/themes/duotoneDark";
-import lightTheme from "prism-react-renderer/themes/github";
-import Highlight, { defaultProps } from "prism-react-renderer";
-import { OpenApiSpec } from "@common/types";
-import { updateSpec } from "api/apiSpecs";
+} from "@chakra-ui/react"
+import { AiFillApi } from "@react-icons/all-files/ai/AiFillApi"
+import darkTheme from "prism-react-renderer/themes/duotoneDark"
+import lightTheme from "prism-react-renderer/themes/github"
+import Highlight, { defaultProps } from "prism-react-renderer"
+import { OpenApiSpec } from "@common/types"
+import { updateSpec } from "api/apiSpecs"
 
 interface SpecPageProps {
-  spec: OpenApiSpec;
+  spec: OpenApiSpec
 }
 
 const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
-  const theme = useColorModeValue(lightTheme, darkTheme);
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const router = useRouter();
-  const toast = useToast();
-  const [fetching, setFetching] = useState<boolean>(false);
-  const handleClick = () => inputRef.current?.click();
+  const theme = useColorModeValue(lightTheme, darkTheme)
+  const inputRef = useRef<HTMLInputElement | null>(null)
+  const router = useRouter()
+  const toast = useToast()
+  const [fetching, setFetching] = useState<boolean>(false)
+  const handleClick = () => inputRef.current?.click()
   const handleSubmission = async (evt: React.ChangeEvent<HTMLInputElement>) => {
-    setFetching(true);
-    const file = evt.target.files[0];
+    setFetching(true)
+    const file = evt.target.files[0]
     if (!file) {
-      return;
+      return
     }
     try {
-      await updateSpec(spec.name, file);
-      router.reload();
+      await updateSpec(spec.name, file)
+      router.reload()
     } catch (err) {
       toast({
         title: "Update Failed...",
@@ -47,14 +47,14 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
         duration: 8000,
         isClosable: true,
         position: "top",
-      });
+      })
     }
-    setFetching(false);
-  };
+    setFetching(false)
+  }
   const headerColor = useColorModeValue(
     "rgb(179, 181, 185)",
-    "rgb(91, 94, 109)"
-  );
+    "rgb(91, 94, 109)",
+  )
 
   return (
     <VStack w="full" alignItems="flex-start" spacing="10">
@@ -74,8 +74,8 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
               type="file"
               multiple={false}
               hidden
-              ref={(e) => {
-                inputRef.current = e;
+              ref={e => {
+                inputRef.current = e
               }}
             />
             <Button colorScheme="blue" isLoading={fetching}>
@@ -135,7 +135,7 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
         )}
       </Highlight>
     </VStack>
-  );
-});
+  )
+})
 
-export default SpecPage;
+export default SpecPage

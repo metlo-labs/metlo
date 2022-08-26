@@ -1,4 +1,4 @@
-import React from "react";
+import React from "react"
 import {
   Box,
   Heading,
@@ -6,36 +6,36 @@ import {
   Select,
   useColorModeValue,
   VStack,
-} from "@chakra-ui/react";
-import { RequestBody } from "@common/testing/types";
-import { RequestBodyType } from "@common/testing/enums";
-import Editor from "@monaco-editor/react";
+} from "@chakra-ui/react"
+import { RequestBody } from "@common/testing/types"
+import { RequestBodyType } from "@common/testing/enums"
+import Editor from "@monaco-editor/react"
 
 interface RequestBodyProps {
-  body: RequestBody;
-  updateBody: (t: (e: RequestBody) => RequestBody) => void;
+  body: RequestBody
+  updateBody: (t: (e: RequestBody) => RequestBody) => void
 }
 
 const bodyTypeToDefaultVal = (type: RequestBodyType) => {
   if (type == RequestBodyType.NONE) {
-    return null;
+    return null
   } else if (type == RequestBodyType.JSON) {
-    return "";
+    return ""
   } else if (type == RequestBodyType.FORM_DATA) {
-    return [];
+    return []
   }
-};
+}
 
 const RequestBodyEditor: React.FC<RequestBodyProps> = React.memo(
   ({ body, updateBody }) => {
-    const theme = useColorModeValue("light", "vs-dark");
-    let editor = null;
+    const theme = useColorModeValue("light", "vs-dark")
+    let editor = null
     if (body.type == RequestBodyType.NONE) {
       editor = (
         <Heading w="full" py="10" textAlign="center" size="sm" color="gray.500">
           This request does not have a body...
         </Heading>
-      );
+      )
     } else if (body.type == RequestBodyType.JSON) {
       editor = (
         <Editor
@@ -43,7 +43,7 @@ const RequestBodyEditor: React.FC<RequestBodyProps> = React.memo(
           width="100%"
           defaultLanguage="javascript"
           value={body.data as string}
-          onChange={(val) => updateBody((e) => ({ ...e, data: val }))}
+          onChange={val => updateBody(e => ({ ...e, data: val }))}
           options={{
             minimap: {
               enabled: false,
@@ -52,9 +52,9 @@ const RequestBodyEditor: React.FC<RequestBodyProps> = React.memo(
             theme,
           }}
         />
-      );
+      )
     } else if (body.type == RequestBodyType.FORM_DATA) {
-      editor = null;
+      editor = null
     }
 
     return (
@@ -67,8 +67,8 @@ const RequestBodyEditor: React.FC<RequestBodyProps> = React.memo(
             size="sm"
             w="64"
             value={body.type}
-            onChange={(e) =>
-              updateBody((oldBody) => ({
+            onChange={e =>
+              updateBody(oldBody => ({
                 ...oldBody,
                 type: e.target.value as RequestBodyType,
                 data: bodyTypeToDefaultVal(e.target.value as RequestBodyType),
@@ -86,8 +86,8 @@ const RequestBodyEditor: React.FC<RequestBodyProps> = React.memo(
           {editor}
         </Box>
       </VStack>
-    );
-  }
-);
+    )
+  },
+)
 
-export default RequestBodyEditor;
+export default RequestBodyEditor

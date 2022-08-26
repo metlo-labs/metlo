@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from "react"
 import {
   VStack,
   Input,
@@ -11,36 +11,36 @@ import {
   TabPanels,
   TabPanel,
   useColorModeValue,
-} from "@chakra-ui/react";
-import { Request } from "@common/testing/types";
-import Select from "react-select";
-import { RestMethod } from "@common/enums";
-import { SectionHeader } from "../utils/Card";
-import DataPairEditor from "../utils/DataPairEditor";
-import RequestBodyEditor from "./bodyEditor";
-import TestScriptEditor from "./testScriptEditor";
-import { getMethodSelectStyles } from "./styles";
-import Response from "./responseViewer";
-import AuthSwitch from "../Authentication/authSwitch";
-import { AuthType } from "@common/testing/enums";
-import SplitPane from "react-split-pane";
+} from "@chakra-ui/react"
+import { Request } from "@common/testing/types"
+import Select from "react-select"
+import { RestMethod } from "@common/enums"
+import { SectionHeader } from "../utils/Card"
+import DataPairEditor from "../utils/DataPairEditor"
+import RequestBodyEditor from "./bodyEditor"
+import TestScriptEditor from "./testScriptEditor"
+import { getMethodSelectStyles } from "./styles"
+import Response from "./responseViewer"
+import AuthSwitch from "../Authentication/authSwitch"
+import { AuthType } from "@common/testing/enums"
+import SplitPane from "react-split-pane"
 
 interface RequestEditorProps {
-  request: Request;
-  sendSelectedRequest: () => void;
-  fetching: boolean;
-  updateRequest: (t: (e: Request) => Request) => void;
+  request: Request
+  sendSelectedRequest: () => void
+  fetching: boolean
+  updateRequest: (t: (e: Request) => Request) => void
 }
 
 const RequestEditor: React.FC<RequestEditorProps> = React.memo(
   ({ request, fetching, sendSelectedRequest, updateRequest }) => {
-    const methodMenuBg = useColorModeValue("white", "rgb(19, 22, 26)");
-    const methodTextColor = useColorModeValue("black", "rgb(236, 233, 229)");
+    const methodMenuBg = useColorModeValue("white", "rgb(19, 22, 26)")
+    const methodTextColor = useColorModeValue("black", "rgb(236, 233, 229)")
     const methodHighlightColor = useColorModeValue(
       "rgb(230, 224, 216)",
-      "rgb(25, 31, 39)"
-    );
-    const [authType, setAuthType] = useState<AuthType>(AuthType.NO_AUTH);
+      "rgb(25, 31, 39)",
+    )
+    const [authType, setAuthType] = useState<AuthType>(AuthType.NO_AUTH)
     return (
       <Box flexGrow="1" h="full">
         <Box w="full" height="full" position="relative">
@@ -60,9 +60,9 @@ const RequestEditor: React.FC<RequestEditorProps> = React.memo(
                     styles={getMethodSelectStyles(
                       methodMenuBg,
                       methodTextColor,
-                      methodHighlightColor
+                      methodHighlightColor,
                     )}
-                    options={Object.entries(RestMethod).map((e) => ({
+                    options={Object.entries(RestMethod).map(e => ({
                       value: e[1],
                       label: e[1],
                     }))}
@@ -70,8 +70,8 @@ const RequestEditor: React.FC<RequestEditorProps> = React.memo(
                       value: request.method,
                       label: request.method,
                     }}
-                    onChange={(e) =>
-                      updateRequest((old) => ({ ...old, method: e.value }))
+                    onChange={e =>
+                      updateRequest(old => ({ ...old, method: e.value }))
                     }
                   />
                 </Box>
@@ -80,8 +80,8 @@ const RequestEditor: React.FC<RequestEditorProps> = React.memo(
                   rounded="none"
                   bg="secondaryBG"
                   value={request.url}
-                  onChange={(evt) =>
-                    updateRequest((old) => ({ ...old, url: evt.target.value }))
+                  onChange={evt =>
+                    updateRequest(old => ({ ...old, url: evt.target.value }))
                   }
                   flexGrow="1"
                 />
@@ -124,8 +124,8 @@ const RequestEditor: React.FC<RequestEditorProps> = React.memo(
                     <DataPairEditor
                       title="Query Params"
                       pairs={request.params}
-                      updatePairs={(t) =>
-                        updateRequest((e) => ({ ...e, params: t(e.params) }))
+                      updatePairs={t =>
+                        updateRequest(e => ({ ...e, params: t(e.params) }))
                       }
                     />
                   </TabPanel>
@@ -142,24 +142,24 @@ const RequestEditor: React.FC<RequestEditorProps> = React.memo(
                     <DataPairEditor
                       title="Headers"
                       pairs={request.headers}
-                      updatePairs={(t) =>
-                        updateRequest((e) => ({ ...e, headers: t(e.headers) }))
+                      updatePairs={t =>
+                        updateRequest(e => ({ ...e, headers: t(e.headers) }))
                       }
                     />
                   </TabPanel>
                   <TabPanel p="0" h="full">
                     <RequestBodyEditor
                       body={request.body}
-                      updateBody={(t) =>
-                        updateRequest((e) => ({ ...e, body: t(e.body) }))
+                      updateBody={t =>
+                        updateRequest(e => ({ ...e, body: t(e.body) }))
                       }
                     />
                   </TabPanel>
                   <TabPanel p="0" h="full">
                     <TestScriptEditor
                       testScript={request.tests}
-                      updateTestScript={(t) =>
-                        updateRequest((e) => ({ ...e, tests: t(e.tests) }))
+                      updateTestScript={t =>
+                        updateRequest(e => ({ ...e, tests: t(e.tests) }))
                       }
                     />
                   </TabPanel>
@@ -170,8 +170,8 @@ const RequestEditor: React.FC<RequestEditorProps> = React.memo(
           </SplitPane>
         </Box>
       </Box>
-    );
-  }
-);
+    )
+  },
+)
 
-export default RequestEditor;
+export default RequestEditor

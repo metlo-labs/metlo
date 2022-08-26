@@ -1,91 +1,91 @@
-import validator from "validator";
-import { DataField } from "models";
-import { pathParameterRegex } from "~/constants";
-import { DataType, RiskScore } from "@common/enums";
-import wordJson from "./words.json";
+import validator from "validator"
+import { DataField } from "models"
+import { pathParameterRegex } from "~/constants"
+import { DataType, RiskScore } from "@common/enums"
+import wordJson from "./words.json"
 
 export const isSuspectedParamater = (value: string): boolean => {
   if (!isNaN(Number(value))) {
-    return true;
+    return true
   }
   if (validator.isUUID(value)) {
-    return true;
+    return true
   }
-  const splitParam = value.split(/[-_]/);
+  const splitParam = value.split(/[-_]/)
   for (const token of splitParam) {
     if (!wordJson[token]) {
-      return true;
+      return true
     }
   }
-  return false;
-};
+  return false
+}
 
 export const getPathRegex = (path: string): string => {
-  return String.raw`^${path.replace(pathParameterRegex, String.raw`/[^/]+`)}$`;
-};
+  return String.raw`^${path.replace(pathParameterRegex, String.raw`/[^/]+`)}$`
+}
 
 export const getRiskScore = (dataFields: DataField[]): RiskScore => {
   if (!dataFields) {
-    return RiskScore.NONE;
+    return RiskScore.NONE
   }
-  let numRiskySensitiveDataClasses = 0;
+  let numRiskySensitiveDataClasses = 0
   for (const dataField of dataFields) {
     if (dataField.dataClasses) {
-      numRiskySensitiveDataClasses += dataField.dataClasses?.length ?? 0;
+      numRiskySensitiveDataClasses += dataField.dataClasses?.length ?? 0
     }
   }
   switch (true) {
     case numRiskySensitiveDataClasses >= 3:
-      return RiskScore.HIGH;
+      return RiskScore.HIGH
     case numRiskySensitiveDataClasses >= 2:
-      return RiskScore.MEDIUM;
+      return RiskScore.MEDIUM
     case numRiskySensitiveDataClasses >= 1:
-      return RiskScore.LOW;
+      return RiskScore.LOW
     default:
-      return RiskScore.NONE;
+      return RiskScore.NONE
   }
-};
+}
 
 export const getDataType = (data: any): DataType => {
   if (data === undefined || data === null) {
-    return null;
+    return null
   }
   if (typeof data === "boolean") {
-    return DataType.BOOLEAN;
+    return DataType.BOOLEAN
   }
   if (typeof data === "number") {
     if (Number.isInteger(data)) {
-      return DataType.INTEGER;
+      return DataType.INTEGER
     }
-    return DataType.NUMBER;
+    return DataType.NUMBER
   }
   if (Array.isArray(data)) {
-    return DataType.ARRAY;
+    return DataType.ARRAY
   }
   if (typeof data === "object") {
-    return DataType.OBJECT;
+    return DataType.OBJECT
   }
-  return DataType.STRING;
-};
+  return DataType.STRING
+}
 
 export const parsedJson = (jsonString: string): any => {
   try {
-    return JSON.parse(jsonString);
+    return JSON.parse(jsonString)
   } catch (err) {
-    return null;
+    return null
   }
-};
+}
 
 export const parsedJsonNonNull = (
   jsonString: string,
-  returnString?: boolean
+  returnString?: boolean,
 ): any => {
   try {
-    return JSON.parse(jsonString);
+    return JSON.parse(jsonString)
   } catch (err) {
     if (returnString) {
-      return jsonString;
+      return jsonString
     }
-    return {};
+    return {}
   }
-};
+}

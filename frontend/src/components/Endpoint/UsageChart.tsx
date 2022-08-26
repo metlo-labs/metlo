@@ -1,4 +1,4 @@
-import React from "react";
+import React from "react"
 import {
   Chart as ChartJS,
   LinearScale,
@@ -8,10 +8,10 @@ import {
   Title,
   Tooltip,
   Legend,
-} from "chart.js";
-import { Line } from "react-chartjs-2";
-import "chartjs-adapter-date-fns";
-import { Usage } from "@common/types";
+} from "chart.js"
+import { Line } from "react-chartjs-2"
+import "chartjs-adapter-date-fns"
+import { Usage } from "@common/types"
 
 ChartJS.register(
   LinearScale,
@@ -20,8 +20,8 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
-);
+  Legend,
+)
 
 export const options = {
   responsive: true,
@@ -56,30 +56,30 @@ export const options = {
       },
     },
   },
-};
+}
 
 interface EndpointUsageChartProps {
-  usage: Usage[];
+  usage: Usage[]
 }
 
 const EndpointUsageChart: React.FC<EndpointUsageChartProps> = React.memo(
   ({ usage }) => {
-    let labels = [];
+    let labels = []
     let datasets = [
       {
         data: [],
         borderColor: "rgb(255, 99, 132)",
         backgroundColor: "rgba(255, 99, 132, 0.5)",
       },
-    ];
-    labels = usage.map((item) => item.date);
-    datasets[0].data = usage.map((item) => item.count);
+    ]
+    labels = usage.map(item => item.date)
+    datasets[0].data = usage.map(item => item.count)
     const data = {
       labels,
       datasets,
-    };
-    return <Line height="100" options={options as any} data={data} />;
-  }
-);
+    }
+    return <Line height="100" options={options as any} data={data} />
+  },
+)
 
-export default EndpointUsageChart;
+export default EndpointUsageChart

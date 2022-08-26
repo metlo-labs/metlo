@@ -8,54 +8,54 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-} from "typeorm";
-import { DataField } from "models/data-field";
-import { Alert } from "models/alert";
-import { OpenApiSpec } from "models/openapi-spec";
-import { DataClass, DataSection, RestMethod, RiskScore } from "@common/enums";
+} from "typeorm"
+import { DataField } from "models/data-field"
+import { Alert } from "models/alert"
+import { OpenApiSpec } from "models/openapi-spec"
+import { DataClass, DataSection, RestMethod, RiskScore } from "@common/enums"
 
 @Entity()
 export class ApiEndpoint extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
-  uuid: string;
+  uuid: string
 
   @Column({ nullable: false })
-  path: string;
+  path: string
 
   @Column({ nullable: false })
-  pathRegex: string;
+  pathRegex: string
 
   @CreateDateColumn({ type: "timestamptz" })
-  createdAt: Date;
+  createdAt: Date
 
   @UpdateDateColumn({ type: "timestamptz" })
-  updatedAt: Date;
+  updatedAt: Date
 
   @Column({ nullable: false })
-  host: string;
+  host: string
 
   @Column({ type: "integer", default: 0 })
-  totalCalls: number;
+  totalCalls: number
 
   @Column({ type: "enum", enum: RestMethod })
-  method: RestMethod;
+  method: RestMethod
 
   @Column({ type: "enum", enum: RiskScore, default: RiskScore.NONE })
-  riskScore: RiskScore;
+  riskScore: RiskScore
 
   @Column({ nullable: true })
-  owner: string;
+  owner: string
 
-  @OneToMany(() => DataField, (dataField) => dataField.apiEndpoint)
-  dataFields: DataField[];
+  @OneToMany(() => DataField, dataField => dataField.apiEndpoint)
+  dataFields: DataField[]
 
-  @OneToMany(() => Alert, (alert) => alert.apiEndpoint)
-  alerts: Alert[];
+  @OneToMany(() => Alert, alert => alert.apiEndpoint)
+  alerts: Alert[]
 
   @Column({ nullable: true })
-  openapiSpecName: string;
+  openapiSpecName: string
 
   @ManyToOne(() => OpenApiSpec)
   @JoinColumn()
-  openapiSpec: OpenApiSpec;
+  openapiSpec: OpenApiSpec
 }

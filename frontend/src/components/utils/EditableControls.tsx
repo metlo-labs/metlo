@@ -1,10 +1,10 @@
-import { CheckIcon, CloseIcon, EditIcon } from "@chakra-ui/icons";
+import { CheckIcon, CloseIcon, EditIcon } from "@chakra-ui/icons"
 import {
   useEditableControls,
   ButtonGroup,
   IconButton,
   Flex,
-} from "@chakra-ui/react";
+} from "@chakra-ui/react"
 
 const EditableControls = () => {
   const {
@@ -12,7 +12,7 @@ const EditableControls = () => {
     getSubmitButtonProps,
     getCancelButtonProps,
     getEditButtonProps,
-  } = useEditableControls();
+  } = useEditableControls()
 
   return isEditing ? (
     <ButtonGroup justifyContent="center" size="sm">
@@ -36,6 +36,6 @@ const EditableControls = () => {
         {...getEditButtonProps()}
       />
     </Flex>
-  );
-};
-export { EditableControls };
+  )
+}
+export { EditableControls }

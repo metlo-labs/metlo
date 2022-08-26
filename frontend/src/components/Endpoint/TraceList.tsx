@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react"
 import {
   useColorMode,
   Code,
@@ -10,57 +10,57 @@ import {
   Button,
   Heading,
   useColorModeValue,
-} from "@chakra-ui/react";
-import { ImCross } from "@react-icons/all-files/im/ImCross";
-import { DateTime } from "luxon";
-import DataTable, { TableColumn } from "react-data-table-component";
-import { getCustomStyles, rowStyles } from "components/utils/TableUtils";
-import { ApiTrace } from "@common/types";
-import { METHOD_TO_COLOR } from "~/constants";
-import { statusCodeToColor } from "components/utils/StatusCode";
-import TraceDetail from "./TraceDetail";
-import EmptyView from "components/utils/EmptyView";
+} from "@chakra-ui/react"
+import { ImCross } from "@react-icons/all-files/im/ImCross"
+import { DateTime } from "luxon"
+import DataTable, { TableColumn } from "react-data-table-component"
+import { getCustomStyles, rowStyles } from "components/utils/TableUtils"
+import { ApiTrace } from "@common/types"
+import { METHOD_TO_COLOR } from "~/constants"
+import { statusCodeToColor } from "components/utils/StatusCode"
+import TraceDetail from "./TraceDetail"
+import EmptyView from "components/utils/EmptyView"
 
 interface TraceListProps {
-  traces: ApiTrace[];
-  uuid?: string;
+  traces: ApiTrace[]
+  uuid?: string
 }
 
 const getDateTimeString = (date: Date) =>
-  DateTime.fromISO(date.toString()).toLocaleString(DateTime.DATETIME_SHORT);
+  DateTime.fromISO(date.toString()).toLocaleString(DateTime.DATETIME_SHORT)
 
 const TraceList: React.FC<TraceListProps> = React.memo(({ traces, uuid }) => {
-  const [trace, setTrace] = useState<ApiTrace | undefined>();
-  const colorMode = useColorMode();
-  const headerBg = useColorModeValue("rgb(252, 252, 252)", "rgb(17, 19, 23)");
-  const divColor = useColorModeValue("rgb(216, 216, 216)", "black");
-  const headerTextColor = useColorModeValue("gray.700", "gray.200");
+  const [trace, setTrace] = useState<ApiTrace | undefined>()
+  const colorMode = useColorMode()
+  const headerBg = useColorModeValue("rgb(252, 252, 252)", "rgb(17, 19, 23)")
+  const divColor = useColorModeValue("rgb(216, 216, 216)", "black")
+  const headerTextColor = useColorModeValue("gray.700", "gray.200")
   const selectedRowColor = useColorModeValue(
     "rgb(242, 242, 242)",
-    "rgb(34, 37, 42)"
-  );
+    "rgb(34, 37, 42)",
+  )
 
   useEffect(() => {
-    traces.forEach((currTrace) => {
+    traces.forEach(currTrace => {
       if (currTrace.uuid === uuid) {
-        setTrace(currTrace);
+        setTrace(currTrace)
       }
-    });
-  }, [traces, uuid]);
+    })
+  }, [traces, uuid])
 
   const conditionalStyles = [
     {
       when: (row: ApiTrace) => {
         if (!trace) {
-          return false;
+          return false
         }
-        return row.uuid == trace.uuid;
+        return row.uuid == trace.uuid
       },
       style: {
         backgroundColor: selectedRowColor,
       },
     },
-  ];
+  ]
 
   const columns: TableColumn<ApiTrace>[] = [
     {
@@ -137,7 +137,7 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces, uuid }) => {
       width: "225px",
       hide: 1400,
     },
-  ];
+  ]
   return (
     <HStack
       h="full"
@@ -183,7 +183,7 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces, uuid }) => {
         </Box>
       ) : null}
     </HStack>
-  );
-});
+  )
+})
 
-export default TraceList;
+export default TraceList

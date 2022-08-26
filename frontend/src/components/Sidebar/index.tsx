@@ -5,25 +5,25 @@ import {
   Spacer,
   Stack,
   useColorModeValue,
-} from "@chakra-ui/react";
-import React from "react";
-import { Logo, SmLogo } from "components/Logo";
-import { SideNavLinkDestination } from "./NavLinkUtils";
-import SideNavLink from "./SideNavLink";
+} from "@chakra-ui/react"
+import React from "react"
+import { Logo, SmLogo } from "components/Logo"
+import { SideNavLinkDestination } from "./NavLinkUtils"
+import SideNavLink from "./SideNavLink"
 
 interface SideNavBarProps {
-  currentTab?: SideNavLinkDestination;
+  currentTab?: SideNavLinkDestination
 }
 
 const SideNavBar: React.FC<SideNavBarProps> = React.memo(({ currentTab }) => {
   const textColor = useColorModeValue(
     "rgb(102, 105, 117)",
-    "rgb(104, 107, 124)"
-  );
+    "rgb(104, 107, 124)",
+  )
   const dividerColor = useColorModeValue(
     "rgb(238, 239, 239)",
-    "rgb(37, 39, 46)"
-  );
+    "rgb(37, 39, 46)",
+  )
 
   return (
     <Flex
@@ -68,7 +68,7 @@ const SideNavBar: React.FC<SideNavBarProps> = React.memo(({ currentTab }) => {
       </Stack>
       <Spacer />
     </Flex>
-  );
-});
+  )
+})
 
-export default SideNavBar;
+export default SideNavBar

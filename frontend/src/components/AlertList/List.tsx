@@ -1,41 +1,41 @@
-import React from "react";
-import { Badge, Box, Code, useColorMode, HStack, Text } from "@chakra-ui/react";
-import { ImCheckmark } from "@react-icons/all-files/im/ImCheckmark";
-import { ImCross } from "@react-icons/all-files/im/ImCross";
-import { useRouter } from "next/router";
-import DataTable, { SortOrder, TableColumn } from "react-data-table-component";
-import EmptyView from "components/utils/EmptyView";
-import { METHOD_TO_COLOR, RISK_TO_COLOR } from "~/constants";
+import React from "react"
+import { Badge, Box, Code, useColorMode, HStack, Text } from "@chakra-ui/react"
+import { ImCheckmark } from "@react-icons/all-files/im/ImCheckmark"
+import { ImCross } from "@react-icons/all-files/im/ImCross"
+import { useRouter } from "next/router"
+import DataTable, { SortOrder, TableColumn } from "react-data-table-component"
+import EmptyView from "components/utils/EmptyView"
+import { METHOD_TO_COLOR, RISK_TO_COLOR } from "~/constants"
 import {
   getCustomStyles,
   rowStyles,
   SkeletonCell,
-} from "components/utils/TableUtils";
-import { Alert, ApiEndpoint } from "@common/types";
-import { getDateTimeString } from "utils";
+} from "components/utils/TableUtils"
+import { Alert, ApiEndpoint } from "@common/types"
+import { getDateTimeString } from "utils"
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 10
 
 interface AlertTablesProps {
-  alerts: Alert[];
-  totalCount: number;
-  currentPage: number;
-  setCurrentPage: (e: number) => void;
-  fetching: boolean;
-  setOrdering: (e: "ASC" | "DESC") => void;
-  setOrderBy: (e: string | undefined) => void;
+  alerts: Alert[]
+  totalCount: number
+  currentPage: number
+  setCurrentPage: (e: number) => void
+  fetching: boolean
+  setOrdering: (e: "ASC" | "DESC") => void
+  setOrderBy: (e: string | undefined) => void
 }
 
 interface TableLoaderProps {
-  currentPage: number;
-  totalCount: number;
+  currentPage: number
+  totalCount: number
 }
 
 const TableLoader: React.FC<TableLoaderProps> = ({
   currentPage,
   totalCount,
 }) => {
-  const colorMode = useColorMode();
+  const colorMode = useColorMode()
   const loadingColumns: TableColumn<any>[] = [
     {
       name: "Risk",
@@ -68,11 +68,11 @@ const TableLoader: React.FC<TableLoaderProps> = ({
       id: "resolved",
       grow: 0,
     },
-  ].map((e) => ({
+  ].map(e => ({
     ...e,
     sortable: true,
     cell: (row: ApiEndpoint) => <SkeletonCell />,
-  }));
+  }))
 
   return (
     <Box w="full" h="full">
@@ -83,15 +83,15 @@ const TableLoader: React.FC<TableLoaderProps> = ({
         paginationServer
         columns={loadingColumns}
         data={Array.apply(null, Array(PAGE_SIZE)).map(() => {
-          return {};
+          return {}
         })}
         customStyles={getCustomStyles(colorMode.colorMode)}
         pagination
         paginationDefaultPage={currentPage}
       />
     </Box>
-  );
-};
+  )
+}
 
 const List: React.FC<AlertTablesProps> = React.memo(
   ({
@@ -103,19 +103,19 @@ const List: React.FC<AlertTablesProps> = React.memo(
     setOrdering,
     setOrderBy,
   }) => {
-    const router = useRouter();
-    const colorMode = useColorMode();
+    const router = useRouter()
+    const colorMode = useColorMode()
     const handlePageChange = (page: number) => {
-      setCurrentPage(page);
-    };
+      setCurrentPage(page)
+    }
 
     const handleSort = (
       column: TableColumn<Alert>,
-      sortDirection: SortOrder
+      sortDirection: SortOrder,
     ) => {
-      setOrdering(sortDirection.toUpperCase() as "ASC" | "DESC");
-      setOrderBy(column.id?.toString());
-    };
+      setOrdering(sortDirection.toUpperCase() as "ASC" | "DESC")
+      setOrderBy(column.id?.toString())
+    }
 
     const columns: TableColumn<Alert>[] = [
       {
@@ -200,17 +200,17 @@ const List: React.FC<AlertTablesProps> = React.memo(
         id: "resolved",
         grow: 0,
       },
-    ];
+    ]
 
     const onRowClicked = (
       row: Alert,
-      e: React.MouseEvent<Element, MouseEvent>
+      e: React.MouseEvent<Element, MouseEvent>,
     ) => {
       router.push({
         pathname: `/endpoint/${row.apiEndpointUuid}`,
         query: { tab: "alerts", uuid: row.uuid },
-      });
-    };
+      })
+    }
 
     const getTable = () => (
       <DataTable
@@ -231,16 +231,16 @@ const List: React.FC<AlertTablesProps> = React.memo(
         onRowClicked={onRowClicked}
         paginationDefaultPage={currentPage}
       />
-    );
+    )
 
     if (totalCount == 0 && !fetching) {
-      return <EmptyView text="No results found." />;
+      return <EmptyView text="No results found." />
     }
     if (totalCount > 0) {
-      return getTable();
+      return getTable()
     }
-    return null;
-  }
-);
+    return null
+  },
+)
 
-export default List;
+export default List

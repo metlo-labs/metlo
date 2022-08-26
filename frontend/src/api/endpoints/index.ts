@@ -1,71 +1,71 @@
-import axios from "axios";
+import axios from "axios"
 import {
   ApiEndpoint,
   ApiEndpointDetailed,
   GetEndpointParams,
   Usage,
-} from "@common/types";
-import { getAPIURL } from "~/constants";
+} from "@common/types"
+import { getAPIURL } from "~/constants"
 
 export const getEndpoints = async (
-  params: GetEndpointParams
+  params: GetEndpointParams,
 ): Promise<[ApiEndpoint[], number]> => {
   try {
     const resp = await axios.get<[ApiEndpoint[], number]>(
       `${getAPIURL()}/endpoints`,
-      { params }
-    );
+      { params },
+    )
     if (resp.status === 200 && resp.data) {
-      return resp.data;
+      return resp.data
     }
-    return [[], 0];
+    return [[], 0]
   } catch (err) {
-    console.error(`Error fetching endpoints: ${err}`);
-    return [[], 0];
+    console.error(`Error fetching endpoints: ${err}`)
+    return [[], 0]
   }
-};
+}
 
 export const getEndpoint = async (
-  endpointId: string
+  endpointId: string,
 ): Promise<ApiEndpointDetailed> => {
   try {
     const resp = await axios.get<ApiEndpointDetailed>(
-      `${getAPIURL()}/endpoint/${endpointId}`
-    );
+      `${getAPIURL()}/endpoint/${endpointId}`,
+    )
     if (resp.status === 200 && resp.data) {
-      return resp.data;
+      return resp.data
     }
-    return null;
+    return null
   } catch (err) {
-    console.error(`Error fetching endpoint: ${err}`);
-    return null;
+    console.error(`Error fetching endpoint: ${err}`)
+    return null
   }
-};
+}
 
 export const getHosts = async (): Promise<string[]> => {
   try {
-    const resp = await axios.get<string[]>(`${getAPIURL()}/endpoints/hosts`);
+    const resp = await axios.get<string[]>(`${getAPIURL()}/endpoints/hosts`)
     if (resp.status === 200 && resp.data) {
-      return resp.data;
+      return resp.data
     }
-    return [];
+    return []
   } catch (err) {
-    console.error(`Error fetching hosts: ${err}`);
-    return [];
+    console.error(`Error fetching hosts: ${err}`)
+    return []
   }
-};
+}
 
 export const getUsage = async (endpointId: string): Promise<Usage[]> => {
   try {
     const resp = await axios.get<Usage[]>(
-      `${getAPIURL()}/endpoint/${endpointId}/usage`
-    );
+      `${getAPIURL()}/endpoint/${endpointId}/usage`,
+    )
     if (resp.status === 200 && resp.data) {
-      return resp.data;
+      return resp.data
     }
-    return [];
+    return []
   } catch (err) {
-    console.error(`Error fetching endpoint usage: ${err}`);
-    return [];
+    console.error(`Error fetching endpoint usage: ${err}`)
+    return []
   }
-};
+}

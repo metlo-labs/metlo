@@ -1,4 +1,4 @@
-import { DataClass } from "@common/enums";
+import { DataClass } from "@common/enums"
 import {
   ADDRESS_REGEXP,
   COORDINATE_REGEXP,
@@ -10,7 +10,7 @@ import {
   PHONE_NUMBER_REGEXP,
   SSN_REGEXP,
   VIN_REGEXP,
-} from "services/scanner/regexp";
+} from "services/scanner/regexp"
 
 const DATA_CLASS_REGEX_MAP = new Map<DataClass, RegExp>([
   [DataClass.ADDRESS, ADDRESS_REGEXP],
@@ -23,23 +23,23 @@ const DATA_CLASS_REGEX_MAP = new Map<DataClass, RegExp>([
   [DataClass.PHONE_NUMBER, PHONE_NUMBER_REGEXP],
   [DataClass.SSN, SSN_REGEXP],
   [DataClass.VIN, VIN_REGEXP],
-]);
+])
 
 export class ScannerService {
   static scan(text: any): Record<DataClass, string[]> {
-    const res: Record<DataClass, string[]> = {} as Record<DataClass, string[]>;
-    let convertedText: string;
+    const res: Record<DataClass, string[]> = {} as Record<DataClass, string[]>
+    let convertedText: string
     try {
-      convertedText = text.toString();
+      convertedText = text.toString()
     } catch (err) {
-      return res;
+      return res
     }
     DATA_CLASS_REGEX_MAP.forEach((exp, dataClass) => {
-      const matches = convertedText.match(exp);
+      const matches = convertedText.match(exp)
       if (matches?.length > 0) {
-        res[dataClass] = matches;
+        res[dataClass] = matches
       }
-    });
-    return res;
+    })
+    return res
   }
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react"
 import {
   useColorMode,
   Code,
@@ -10,30 +10,30 @@ import {
   Heading,
   Button,
   Text,
-} from "@chakra-ui/react";
-import { ImCross } from "@react-icons/all-files/im/ImCross";
-import DataTable, { TableColumn } from "react-data-table-component";
-import { DataField } from "@common/types";
-import { getCustomStyles, rowStyles } from "components/utils/TableUtils";
-import { RISK_TO_COLOR, TAG_TO_COLOR } from "~/constants";
+} from "@chakra-ui/react"
+import { ImCross } from "@react-icons/all-files/im/ImCross"
+import DataTable, { TableColumn } from "react-data-table-component"
+import { DataField } from "@common/types"
+import { getCustomStyles, rowStyles } from "components/utils/TableUtils"
+import { RISK_TO_COLOR, TAG_TO_COLOR } from "~/constants"
 import {
   getDateTimeString,
   getMaxRiskScoreFromList,
   getRiskScores,
-} from "utils";
-import DataFieldDetail from "./DataFieldDetail";
-import EmptyView from "components/utils/EmptyView";
-import { DataSection } from "@common/enums";
-import { DATA_SECTION_TO_LABEL_MAP } from "@common/maps";
+} from "utils"
+import DataFieldDetail from "./DataFieldDetail"
+import EmptyView from "components/utils/EmptyView"
+import { DataSection } from "@common/enums"
+import { DATA_SECTION_TO_LABEL_MAP } from "@common/maps"
 
 interface DataFieldListProps {
-  dataFields: DataField[];
-  uuid?: string;
+  dataFields: DataField[]
+  uuid?: string
 }
 
 interface FieldSection {
-  section: DataSection;
-  dataFields: DataField[];
+  section: DataSection
+  dataFields: DataField[]
 }
 
 const columns: TableColumn<DataField>[] = [
@@ -109,23 +109,23 @@ const columns: TableColumn<DataField>[] = [
     id: "dateIdentified",
     grow: 1,
   },
-];
+]
 
 const expandableTableColumns: TableColumn<FieldSection>[] = [
   {
     name: "Section",
     selector: (row: FieldSection) => DATA_SECTION_TO_LABEL_MAP[row?.section],
   },
-];
+]
 
 const DataFieldList: React.FC<DataFieldListProps> = React.memo(
   ({ dataFields, uuid }) => {
-    const [dataFieldList, setDataFieldList] = useState<DataField[]>(dataFields);
-    const colorMode = useColorMode();
-    const headerBg = useColorModeValue("rgb(252, 252, 252)", "rgb(17, 19, 23)");
-    const divColor = useColorModeValue("rgb(216, 216, 216)", "black");
-    const headerTextColor = useColorModeValue("gray.700", "gray.200");
-    const [dataField, setDataField] = useState<DataField | undefined>();
+    const [dataFieldList, setDataFieldList] = useState<DataField[]>(dataFields)
+    const colorMode = useColorMode()
+    const headerBg = useColorModeValue("rgb(252, 252, 252)", "rgb(17, 19, 23)")
+    const divColor = useColorModeValue("rgb(216, 216, 216)", "black")
+    const headerTextColor = useColorModeValue("gray.700", "gray.200")
+    const [dataField, setDataField] = useState<DataField | undefined>()
     const [dataSections, setDataSections] = useState<FieldSection[]>([
       {
         section: DataSection.REQUEST_PATH,
@@ -151,49 +151,49 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
         section: DataSection.RESPONSE_BODY,
         dataFields: [],
       },
-    ]);
+    ])
     const selectedRowColor = useColorModeValue(
       "rgb(242, 242, 242)",
-      "rgb(34, 37, 42)"
-    );
+      "rgb(34, 37, 42)",
+    )
 
     useEffect(() => {
-      setDataFieldList(dataFields);
-    }, [dataFields]);
+      setDataFieldList(dataFields)
+    }, [dataFields])
 
     useEffect(() => {
-      const tempReqPath = [];
-      const tempReqHeader = [];
-      const tempReqQuery = [];
-      const tempReqBody = [];
-      const tempResHeader = [];
-      const tempResBody = [];
-      dataFieldList.forEach((currDataField) => {
+      const tempReqPath = []
+      const tempReqHeader = []
+      const tempReqQuery = []
+      const tempReqBody = []
+      const tempResHeader = []
+      const tempResBody = []
+      dataFieldList.forEach(currDataField => {
         if (currDataField.uuid === uuid) {
-          setDataField(currDataField);
+          setDataField(currDataField)
         }
         switch (currDataField.dataSection) {
           case DataSection.REQUEST_PATH:
-            tempReqPath.push(currDataField);
-            break;
+            tempReqPath.push(currDataField)
+            break
           case DataSection.REQUEST_HEADER:
-            tempReqHeader.push(currDataField);
-            break;
+            tempReqHeader.push(currDataField)
+            break
           case DataSection.REQUEST_QUERY:
-            tempReqQuery.push(currDataField);
-            break;
+            tempReqQuery.push(currDataField)
+            break
           case DataSection.REQUEST_BODY:
-            tempReqBody.push(currDataField);
-            break;
+            tempReqBody.push(currDataField)
+            break
           case DataSection.RESPONSE_HEADER:
-            tempResHeader.push(currDataField);
-            break;
+            tempResHeader.push(currDataField)
+            break
           case DataSection.RESPONSE_BODY:
-            tempResBody.push(currDataField);
+            tempResBody.push(currDataField)
           default:
-            break;
+            break
         }
-      });
+      })
       setDataSections([
         {
           section: DataSection.REQUEST_PATH,
@@ -219,8 +219,8 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
           section: DataSection.RESPONSE_BODY,
           dataFields: tempResBody,
         },
-      ]);
-    }, [dataFieldList, uuid]);
+      ])
+    }, [dataFieldList, uuid])
 
     const rowNotRiskBG =
       colorMode.colorMode == "light"
@@ -229,21 +229,21 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
           }
         : {
             filter: "brightness(50%)",
-          };
+          }
 
     const conditionalStyles = [
       {
         when: (row: DataField) => {
           if (!dataField) {
-            return false;
+            return false
           }
-          return row.uuid == dataField.uuid;
+          return row.uuid == dataField.uuid
         },
         style: {
           backgroundColor: selectedRowColor,
         },
       },
-    ];
+    ]
 
     const expandedComponent = (data: FieldSection) => (
       <DataTable
@@ -262,7 +262,7 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
           />
         }
       />
-    );
+    )
 
     const expandableTable = (
       <DataTable
@@ -272,10 +272,10 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
         noTableHead
         style={rowStyles}
         customStyles={getCustomStyles(colorMode.colorMode)}
-        expandableRowsComponent={(props) => expandedComponent(props.data)}
-        expandableRowExpanded={(row) => row.dataFields?.length > 0}
+        expandableRowsComponent={props => expandedComponent(props.data)}
+        expandableRowExpanded={row => row.dataFields?.length > 0}
       />
-    );
+    )
 
     return (
       <HStack
@@ -331,8 +331,8 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
           </Box>
         ) : null}
       </HStack>
-    );
-  }
-);
+    )
+  },
+)
 
-export default DataFieldList;
+export default DataFieldList

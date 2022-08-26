@@ -1,8 +1,8 @@
 export default class Error400BadRequest extends Error {
-  code: number;
+  code: number
 
   constructor(message: string) {
-    super(message);
-    this.code = 400;
+    super(message)
+    this.code = 400
   }
 }

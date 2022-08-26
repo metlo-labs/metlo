@@ -1,16 +1,16 @@
-import React from "react";
-import { Avatar, Box, Image } from "@chakra-ui/react";
+import React from "react"
+import { Avatar, Box, Image } from "@chakra-ui/react"
 
 interface MetloAvatarProps {
-  email: string;
-  name?: string;
-  imageUrl?: string;
-  size?: number;
+  email: string
+  name?: string
+  imageUrl?: string
+  size?: number
 }
 
 const MetloAvatar: React.FC<MetloAvatarProps> = React.memo(
   ({ email, name, imageUrl, size }) => {
-    const avatarSize = size || 12;
+    const avatarSize = size || 12
     if (imageUrl) {
       return (
         <Box h={avatarSize} w={avatarSize} rounded="full" overflow="hidden">
@@ -22,13 +22,13 @@ const MetloAvatar: React.FC<MetloAvatarProps> = React.memo(
             referrerPolicy="no-referrer"
           />
         </Box>
-      );
+      )
     }
     if (name) {
-      return <Avatar h={avatarSize} w={avatarSize} bg="gray.100" name={name} />;
+      return <Avatar h={avatarSize} w={avatarSize} bg="gray.100" name={name} />
     }
-    return <Avatar h={avatarSize} w={avatarSize} bg="gray.100" name={email} />;
-  }
-);
+    return <Avatar h={avatarSize} w={avatarSize} bg="gray.100" name={email} />
+  },
+)
 
-export default MetloAvatar;
+export default MetloAvatar

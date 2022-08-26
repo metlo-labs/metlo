@@ -1,17 +1,17 @@
-import { STEP_RESPONSE } from "@common/types";
-import { randomUUID } from "crypto";
-import { SSH_CONN, put_data_file, format, remove_file } from "./ssh-setup";
+import { STEP_RESPONSE } from "@common/types"
+import { randomUUID } from "crypto"
+import { SSH_CONN, put_data_file, format, remove_file } from "./ssh-setup"
 
 export async function test_ssh({
   keypair,
   remote_machine_url,
   ...rest
 }): Promise<STEP_RESPONSE> {
-  var conn;
+  var conn
   try {
-    conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu");
-    await conn.test_connection();
-    conn.disconnect();
+    conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu")
+    await conn.test_connection()
+    conn.disconnect()
     return {
       success: "OK",
       status: "IN-PROGRESS",
@@ -25,9 +25,9 @@ export async function test_ssh({
         remote_machine_url,
         ...rest,
       },
-    };
+    }
   } catch (err) {
-    if (conn && conn instanceof SSH_CONN) conn.disconnect();
+    if (conn && conn instanceof SSH_CONN) conn.disconnect()
     return {
       success: "FAIL",
       status: "IN-PROGRESS",
@@ -43,7 +43,7 @@ export async function test_ssh({
         remote_machine_url,
         ...rest,
       },
-    };
+    }
   }
 }
 
@@ -52,17 +52,17 @@ export async function push_files({
   remote_machine_url,
   ...rest
 }): Promise<STEP_RESPONSE> {
-  const endpoint = "/api/v1/log-request/batch";
-  let conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu");
+  const endpoint = "/api/v1/log-request/batch"
+  let conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu")
   try {
-    let filepath = `${__dirname}/../generics/scripts/metlo-ingestor-${randomUUID()}.service`;
+    let filepath = `${__dirname}/../generics/scripts/metlo-ingestor-${randomUUID()}.service`
     put_data_file(
       format(
         `${__dirname}/../generics/scripts/metlo-ingestor-template.service`,
-        [`${process.env.BACKEND_URL}/${endpoint}`]
+        [`${process.env.BACKEND_URL}/${endpoint}`],
       ),
-      filepath
-    );
+      filepath,
+    )
     await conn.putfiles(
       [
         `${__dirname}/../generics/scripts/install.sh`,
@@ -77,10 +77,10 @@ export async function push_files({
         "local.rules",
         "suricata.yaml",
         "metlo-ingestor.service",
-      ]
-    );
-    remove_file(filepath);
-    conn.disconnect();
+      ],
+    )
+    remove_file(filepath)
+    conn.disconnect()
     return {
       success: "OK",
       status: "IN-PROGRESS",
@@ -94,9 +94,9 @@ export async function push_files({
         remote_machine_url,
         ...rest,
       },
-    };
+    }
   } catch (err) {
-    conn.disconnect();
+    conn.disconnect()
     return {
       success: "FAIL",
       status: "IN-PROGRESS",
@@ -112,7 +112,7 @@ export async function push_files({
         remote_machine_url,
         ...rest,
       },
-    };
+    }
   }
 }
 
@@ -121,15 +121,15 @@ export async function execute_commands({
   remote_machine_url,
   ...rest
 }): Promise<STEP_RESPONSE> {
-  let conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu");
+  let conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu")
   try {
     await conn.run_command(
-      "source $HOME/.nvm/nvm.sh && cd ~ && chmod +x install-nvm.sh && ./install-nvm.sh "
-    );
+      "source $HOME/.nvm/nvm.sh && cd ~ && chmod +x install-nvm.sh && ./install-nvm.sh ",
+    )
     await conn.run_command(
-      "source $HOME/.nvm/nvm.sh && cd ~ && chmod +x install.sh && ./install.sh "
-    );
-    conn.disconnect();
+      "source $HOME/.nvm/nvm.sh && cd ~ && chmod +x install.sh && ./install.sh ",
+    )
+    conn.disconnect()
 
     return {
       success: "OK",
@@ -144,9 +144,9 @@ export async function execute_commands({
         remote_machine_url,
         ...rest,
       },
-    };
+    }
   } catch (err) {
-    conn.disconnect();
+    conn.disconnect()
     return {
       success: "FAIL",
       status: "IN-PROGRESS",
@@ -162,6 +162,6 @@ export async function execute_commands({
         remote_machine_url,
         ...rest,
       },
-    };
+    }
   }
 }
