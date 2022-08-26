@@ -22,7 +22,7 @@ export class DataField extends BaseEntity {
   falsePositives: DataClass[]
 
   @Column({ type: "enum", enum: DataClass, array: true, default: [] })
-  scannerIdentified: DataClass[];
+  scannerIdentified: DataClass[]
 
   @Column({ type: "enum", enum: DataType, nullable: false })
   dataType: DataType
