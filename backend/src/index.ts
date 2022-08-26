@@ -42,6 +42,7 @@ import {
   list_connections,
   update_connection,
 } from "./api/connections";
+import runAllTests from "services/testing/runAllTests";
 
 dotenv.config();
 
@@ -117,6 +118,7 @@ const main = async () => {
     app.listen(port, () => {
       console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
     });
+    runAllTests();
   } catch (err) {
     console.error(`CatchBlockInsideMain: ${err}`);
   }
