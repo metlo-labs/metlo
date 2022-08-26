@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { ApiEndpointDetailed } from "@common/types";
+import { TestTags } from "@common/enums";
 import { Request, Test } from "@common/testing/types";
 import {
   Button,
@@ -15,9 +16,9 @@ import { HiPencil } from "@react-icons/all-files/hi/HiPencil";
 import TestEditorHeader from "./header";
 import RequestList from "./requestsList";
 import RequestEditor from "./requestEditor";
-import { makeNewEmptyRequest, sendRequest } from "./requestUtils";
-import { AxiosError } from "axios";
+import { makeNewEmptyRequest } from "./requestUtils";
 import { runTest, saveTest } from "api/tests";
+import { TagList } from "components/utils/TagList";
 
 interface TestEditorProps {
   endpoint: ApiEndpointDetailed;
@@ -191,18 +192,25 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
         <VStack alignItems="flex-start" px="6" pt="4" w="full">
           <TestEditorHeader endpoint={endpoint} />
           <HStack justifyContent="space-between" w="full" pb="4">
-            <HStack alignItems="center">
-              <HiPencil size="22" />
-              <Editable
-                value={test.name}
-                onChange={(name) => updateTest((e) => ({ ...e, name }))}
-                fontSize="2xl"
-                fontWeight="semibold"
-              >
-                <EditablePreview />
-                <EditableInput />
-              </Editable>
-            </HStack>
+            <VStack alignItems="flex-start" spacing="0">
+              <HStack alignItems="center">
+                <HiPencil size="22" />
+                <Editable
+                  value={test.name}
+                  onChange={(name) => updateTest((e) => ({ ...e, name }))}
+                  fontSize="2xl"
+                  fontWeight="semibold"
+                >
+                  <EditablePreview />
+                  <EditableInput />
+                </Editable>
+              </HStack>
+              <TagList
+                allTags={Object.values(TestTags)}
+                tags={test.tags}
+                updateTags={(tags) => updateTest((e) => ({ ...e, tags }))}
+              />
+            </VStack>
             <HStack>
               <Button
                 colorScheme="blue"

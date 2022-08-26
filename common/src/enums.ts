@@ -89,3 +89,11 @@ export enum DataSection {
   RESPONSE_HEADER = "resHeaders",
   RESPONSE_BODY = "resBody",
 }
+
+export enum TestTags {
+  BROKEN_OBJECT_LEVEL_AUTHORIZATION = "Broken Object Level Authorization",
+  BROKEN_USER_AUTHENTICATION = "Broken User Authentication",
+  BROKEN_FUNCTION_LEVEL_AUTHORIZATION = "Broken Function Level Authorization",
+  MASS_ASSIGNMENT = "Mass Assignment",
+  SECURITY_MISCONFIGURATION = "Security Misconfiguration",
+}
