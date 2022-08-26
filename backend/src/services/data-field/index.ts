@@ -19,14 +19,20 @@ export class DataFieldService {
       dataPath,
       dataSection,
     })
+
     const dataClasses = dataField.dataClasses
+    const scannerIdentified = dataField.scannerIdentified
     if (!dataClasses.includes(dataClass)) {
       throw new Error500InternalServer(
         "Data class does not exist for data field",
       )
     }
-    dataField.dataClasses = dataClasses.filter(item => item !== dataClass)
-    dataField.falsePositives.push(dataClass)
+
+    if (scannerIdentified.includes(dataClass)) {
+      dataField.falsePositives.push(dataClass)
+    }
+    dataField.dataClasses = dataClasses.filter((item) => item !== dataClass)
+    dataField.scannerIdentified = scannerIdentified.filter((item) => item !== dataClass)
     if (dataField.dataClasses.length === 0) {
       dataField.dataTag = null
     }

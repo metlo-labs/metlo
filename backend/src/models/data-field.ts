@@ -21,6 +21,9 @@ export class DataField extends BaseEntity {
   @Column({ type: "enum", enum: DataClass, array: true, default: [] })
   falsePositives: DataClass[]
 
+  @Column({ type: "enum", enum: DataClass, array: true, default: [] })
+  scannerIdentified: DataClass[];
+
   @Column({ type: "enum", enum: DataType, nullable: false })
   dataType: DataType
 
@@ -55,6 +58,9 @@ export class DataField extends BaseEntity {
     if (this.falsePositives === null || this.falsePositives === undefined) {
       this.falsePositives = Array<DataClass>()
     }
+    if (this.scannerIdentified === null || this.scannerIdentified === undefined) {
+      this.scannerIdentified = Array<DataClass>();
+    }
     if (
       dataClass === null ||
       this.dataClasses.includes(dataClass) ||
@@ -63,7 +69,8 @@ export class DataField extends BaseEntity {
       return false
     }
     this.dataClasses.push(dataClass)
-    return true
+    this.scannerIdentified.push(dataClass)
+    return true;
   }
 
   updateMatches(dataClass: DataClass, matches: string[]): boolean {

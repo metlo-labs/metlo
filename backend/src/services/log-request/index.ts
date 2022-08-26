@@ -56,7 +56,7 @@ export class LogRequestService {
       }
       await DatabaseService.executeTransactions([[apiTraceObj]], [], true)
       await DatabaseService.executeTransactions(
-        [[...alerts], [...dataFields], [...apiEndpointSave]],
+        [[...alerts], [...apiEndpointSave], [...dataFields]],
         [],
         true,
       )

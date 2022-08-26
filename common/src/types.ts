@@ -134,6 +134,7 @@ export interface DataField {
   dataType: DataType
   dataTag: DataTag
   falsePositives: DataClass[]
+  scannerIdentified: DataClass[]
   createdAt: Date
   updatedAt: Date
   matches: Record<DataClass, string[]>
