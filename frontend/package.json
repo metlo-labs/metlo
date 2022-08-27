@@ -8,7 +8,7 @@
     "format": "prettier --write './src/**/*.{ts,tsx}'"
   },
   "dependencies": {
-    "@chakra-ui/icons": "^2.0.2",
+    "@chakra-ui/icons": "^2.0.6",
     "@chakra-ui/react": "^2.2.1",
     "@chakra-ui/theme-tools": "^2.0.2",
     "@emotion/react": "^11.9.0",
