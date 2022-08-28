@@ -1,7 +1,7 @@
 import React from "react"
 import NextLink from "next/link"
 import { BiInfoCircle } from "@react-icons/all-files/bi/BiInfoCircle"
-import { BsFillLockFill } from "@react-icons/all-files/bs/BsFillLockFill"
+import { BsSearch } from "@react-icons/all-files/bs/BsSearch"
 import { GrStackOverflow } from "@react-icons/all-files/gr/GrStackOverflow"
 import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch"
 import { FaBell } from "@react-icons/all-files/fa/FaBell"
@@ -101,7 +101,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
               <SectionHeader text="Overview" sym={BiInfoCircle} />
             </Tab>
             <Tab>
-              <SectionHeader text="Detected Fields" sym={BsFillLockFill} />
+              <SectionHeader text="Detected Fields" sym={BsSearch} />
             </Tab>
             <Tab>
               <SectionHeader text="Traces" sym={GrStackOverflow} />
