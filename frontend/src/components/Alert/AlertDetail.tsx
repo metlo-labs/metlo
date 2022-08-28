@@ -91,7 +91,7 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
             <Text mb="2" fontWeight="semibold">
               Spec
             </Text>
-            <Box h="670px">
+            <Box maxH="670px">
               <Highlight
                 {...defaultProps}
                 theme={theme}
@@ -113,6 +113,7 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
                         fontSize: "14px",
                         padding: "8px",
                         overflowX: "auto",
+                        minHeight: "500px",
                         maxHeight: "670px",
                         overflowY: "auto",
                       }}
@@ -166,7 +167,7 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
             <Text fontWeight="semibold" mb="2">
               Differing Trace
             </Text>
-            <Box maxH="670px" bg={panelColor} p="2" overflowY="auto">
+            <Box maxH="670px" minH="500px" bg={panelColor} p="2" overflowY="auto">
               <VStack mb="4" h="full" w="full" alignItems="flex-start">
                 <Text fontWeight="semibold">Request Path</Text>
                 <Code rounded="md" p="2" fontSize="sm">
