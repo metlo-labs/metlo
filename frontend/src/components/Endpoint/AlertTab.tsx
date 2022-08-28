@@ -61,7 +61,7 @@ export const AlertTab: React.FC<AlertTabProps> = ({ apiEndpointUuid }) => {
   }
 
   return (
-    <Box pt="4" pr="2" h="full">
+    <Box pt="4" px="8" h="full">
       <AlertList
         alerts={alerts}
         handleUpdateAlert={handleUpdateAlert}

@@ -114,7 +114,13 @@ export const AlertComponent: React.FC<AlertComponentProps> = ({
         <ModalContent maxW="70%" h="85%">
           <ModalHeader mr="30px">
             <HStack w="full" justifyContent="space-between">
-              <Heading size="lg">{alert.type}</Heading>
+              <HStack>
+                <Heading size="lg">{alert.type}</Heading>
+                {alert.status === Status.IGNORED && <RiEyeOffFill />}
+                {alert.status === Status.RESOLVED && (
+                  <FiCheckCircle fontSize="20px" color="green" />
+                )}
+              </HStack>
               <Badge
                 fontSize="lg"
                 px="2"
