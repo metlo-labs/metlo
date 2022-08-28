@@ -21,6 +21,7 @@ import {
   getHostsFromServer,
   getSpecRequestParameters,
   getSpecResponses,
+  parsePathParameter,
   SpecValue,
 } from "./utils"
 import { AlertService } from "services/alert"
@@ -287,7 +288,9 @@ export class SpecService {
       for (let i = 0; i < endpointPathTokens.length; i++) {
         const currToken = endpointPathTokens[i]
         if (currToken.startsWith("{") && currToken.endsWith("}")) {
-          pathParams[currToken.slice(1, -1)] = tracePathTokens[i]
+          pathParams[currToken.slice(1, -1)] = parsePathParameter(
+            tracePathTokens[i],
+          )
         }
       }
       trace.requestHeaders.forEach(

@@ -52,6 +52,10 @@ const getPathToRequestLocation = (
   return []
 }
 
+export const parsePathParameter = (parameterValue: string) => {
+  return Number(parameterValue) ?? parameterValue
+}
+
 export const generateAlertMessageFromReqErrors = (
   errors: OpenAPIRequestValidatorError[],
   pathToParameters: string[],
