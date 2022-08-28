@@ -45,6 +45,11 @@ export const AlertComponent: React.FC<AlertComponentProps> = ({
     alert.resolutionMessage,
   )
 
+  const closeModal = () => {
+    setResolutionMessage(alert.resolutionMessage)
+    onClose()
+  }
+
   return (
     <Box w="full">
       <Box
@@ -104,12 +109,31 @@ export const AlertComponent: React.FC<AlertComponentProps> = ({
           </Button>
         </HStack>
       </VStack>
-      <Modal size="6xl" isOpen={isOpen} onClose={onClose}>
+      <Modal isCentered isOpen={isOpen} onClose={closeModal}>
         <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>{alert.type}</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody maxH="700px" overflowY="auto">
+        <ModalContent maxW="70%" h="85%">
+          <ModalHeader mr="30px">
+            <HStack w="full" justifyContent="space-between">
+              <Heading size="lg">{alert.type}</Heading>
+              <Badge
+                fontSize="lg"
+                px="2"
+                py="1"
+                colorScheme={RISK_TO_COLOR[alert.riskScore]}
+              >
+                {alert.riskScore}
+              </Badge>
+            </HStack>
+          </ModalHeader>
+          <ModalCloseButton mt="10px" />
+          <ModalBody
+            h="full"
+            py="4"
+            bg="secondaryBG"
+            borderTopWidth={2}
+            borderBottomWidth={2}
+            overflow="auto"
+          >
             {alert && (
               <AlertDetail
                 alert={alert}
