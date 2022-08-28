@@ -1,6 +1,8 @@
+import { DataClass, RiskScore } from "@common/enums"
 import axios, { AxiosError } from "axios"
 import { getTime } from "date-fns"
 import { DateTime } from "luxon"
+import { DATA_CLASS_TO_RISK_SCORE, RISK_SCORE_ORDER } from "./constants"
 
 export const getDateTimeString = (date: Date) => {
   if (date) {
@@ -50,4 +52,17 @@ export async function api_call_retry({
       if (onFinally) onFinally()
     }
   }, INTERVAL)
+}
+
+export const getRiskScores = (dataClasses: DataClass[]) =>
+  dataClasses?.map(dataClass => DATA_CLASS_TO_RISK_SCORE[dataClass])
+
+export const getMaxRiskScoreFromList = (riskScores: RiskScore[]): RiskScore => {
+  let maxRisk = RiskScore.NONE
+  for (let i = 0; i < riskScores?.length; i++) {
+    if (RISK_SCORE_ORDER[riskScores[i]] > RISK_SCORE_ORDER[maxRisk]) {
+      maxRisk = riskScores[i]
+    }
+  }
+  return maxRisk
 }
