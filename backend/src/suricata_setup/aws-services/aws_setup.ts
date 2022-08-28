@@ -110,6 +110,9 @@ export async function aws_source_identification({
         source_eni_id:
           resp.Reservations[0].Instances[0].NetworkInterfaces[0]
             .NetworkInterfaceId,
+        source_private_ip:
+          resp.Reservations[0].Instances[0].NetworkInterfaces[0]
+            .PrivateIpAddress,
         region: region.RegionName,
         ...rest,
       },

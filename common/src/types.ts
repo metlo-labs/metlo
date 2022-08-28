@@ -255,6 +255,7 @@ export interface AWS_CONNECTION {
   keypair: string;
   destination_eni_id: string;
   source_eni_id: string;
+  source_private_ip: string;
   backend_url: string;
   remote_machine_url: string;
   keypair_id: string;

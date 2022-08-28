@@ -7,7 +7,7 @@ export async function test_ssh({
   remote_machine_url,
   ...rest
 }: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
-  var conn;
+  var conn
   try {
     conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu")
     await conn.test_connection()
@@ -50,26 +50,34 @@ export async function test_ssh({
 export async function push_files({
   keypair,
   remote_machine_url,
+  source_private_ip,
   ...rest
 }: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
-  const endpoint = "api/v1/log-request/batch";
-  let conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu");
+  const endpoint = "api/v1/log-request/batch"
+  let conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu")
   try {
-    let filepath = `${__dirname}/../generics/scripts/metlo-ingestor-${randomUUID()}.service`
+    let filepath_ingestor = `${__dirname}/../generics/scripts/metlo-ingestor-${randomUUID()}.service`
+    let filepath_rules = `${__dirname}/../generics/scripts/local-${randomUUID()}.rules`
     put_data_file(
       format(
         `${__dirname}/../generics/scripts/metlo-ingestor-template.service`,
         [`${process.env.BACKEND_URL}/${endpoint}`],
       ),
-      filepath,
+      filepath_ingestor,
+    )
+    put_data_file(
+      format(`${__dirname}/../generics/scripts/local.rules`, [
+        source_private_ip,
+      ]),
+      filepath_rules,
     )
     await conn.putfiles(
       [
         `${__dirname}/../generics/scripts/install.sh`,
         `${__dirname}/../generics/scripts/install-deps.sh`,
-        `${__dirname}/../generics/scripts/local.rules`,
+        filepath_rules,
         `${__dirname}/../generics/scripts/suricata.yaml`,
-        filepath,
+        filepath_ingestor,
       ],
       [
         "install.sh",
@@ -79,7 +87,8 @@ export async function push_files({
         "metlo-ingestor.service",
       ],
     )
-    remove_file(filepath)
+    remove_file(filepath_ingestor)
+    remove_file(filepath_rules)
     conn.disconnect()
     return {
       success: "OK",
@@ -121,11 +130,11 @@ export async function execute_commands({
   remote_machine_url,
   ...rest
 }: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
-  let conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu");
+  let conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu")
   try {
     await conn.run_command(
-      "cd ~ && chmod +x install-deps.sh && ./install-deps.sh "
-    );
+      "cd ~ && chmod +x install-deps.sh && ./install-deps.sh ",
+    )
     await conn.run_command(
       "source $HOME/.nvm/nvm.sh && cd ~ && chmod +x install.sh && ./install.sh ",
     )
