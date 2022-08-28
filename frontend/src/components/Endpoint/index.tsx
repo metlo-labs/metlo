@@ -127,9 +127,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
               <TraceList traces={endpoint.traces} uuid={uuid as string} />
             </TabPanel>
             <TabPanel p="0" h="full">
-              <AlertTab
-                apiEndpointUuid={endpoint.uuid as string}
-              />
+              <AlertTab apiEndpointUuid={endpoint.uuid as string} />
             </TabPanel>
             <TabPanel p="0" h="full">
               <TestList endpoint={endpoint} />

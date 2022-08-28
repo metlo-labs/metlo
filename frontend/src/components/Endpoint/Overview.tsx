@@ -63,7 +63,9 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
             </GridItem>
             <GridItem>
               <DataHeading>Open Alerts</DataHeading>
-              <DataAttribute>{endpoint.alerts.filter((e) => e.status === Status.OPEN).length}</DataAttribute>
+              <DataAttribute>
+                {endpoint.alerts.filter(e => e.status === Status.OPEN).length}
+              </DataAttribute>
             </GridItem>
             <GridItem>
               <DataHeading>First Detected</DataHeading>

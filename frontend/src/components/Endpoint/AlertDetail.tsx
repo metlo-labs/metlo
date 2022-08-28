@@ -133,7 +133,8 @@ const AlertDetail: React.FC<AlertDetailProps> = React.memo(
               }}
               value={resolutionMessage || ""}
               placeholder={
-                currAlert.status !== Status.RESOLVED && "Provide reason for resolving..."
+                currAlert.status !== Status.RESOLVED &&
+                "Provide reason for resolving..."
               }
               onChange={e => setResolutionMessage(e.target.value)}
             />

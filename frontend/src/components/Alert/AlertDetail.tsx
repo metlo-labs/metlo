@@ -1,16 +1,29 @@
-import { useEffect, useRef, useState } from "react";
-import { Modal, Box, Grid, GridItem, VStack, Text, Code, HStack, Badge , useColorMode, useColorModeValue, Textarea} from "@chakra-ui/react";
+import { useEffect, useRef, useState } from "react"
+import {
+  Modal,
+  Box,
+  Grid,
+  GridItem,
+  VStack,
+  Text,
+  Code,
+  HStack,
+  Badge,
+  useColorMode,
+  useColorModeValue,
+  Textarea,
+} from "@chakra-ui/react"
 import jsonMap from "json-source-map"
 import yaml from "js-yaml"
 import SourceMap from "js-yaml-source-map"
 import darkTheme from "prism-react-renderer/themes/duotoneDark"
 import lightTheme from "prism-react-renderer/themes/github"
 import Highlight, { defaultProps } from "prism-react-renderer"
-import { AlertType, SpecExtension, Status } from "@common/enums";
+import { AlertType, SpecExtension, Status } from "@common/enums"
 import { Alert } from "@common/types"
 import { getDateTimeString } from "utils"
 import { METHOD_TO_COLOR, RISK_TO_COLOR, STATUS_TO_COLOR } from "~/constants"
-import { SpecDiffContext } from "./AlertPanel";
+import { SpecDiffContext } from "./AlertPanel"
 import { TraceView } from "components/Endpoint/TraceDetail"
 
 interface AlertDetailProps {
@@ -19,7 +32,11 @@ interface AlertDetailProps {
   setResolutionMessage: React.Dispatch<React.SetStateAction<string>>
 }
 
-export const AlertDetail: React.FC<AlertDetailProps> = ({ alert, resolutionMessage, setResolutionMessage }) => {
+export const AlertDetail: React.FC<AlertDetailProps> = ({
+  alert,
+  resolutionMessage,
+  setResolutionMessage,
+}) => {
   const colorMode = useColorMode().colorMode
   const theme = useColorModeValue(lightTheme, darkTheme)
   const panelColor = useColorModeValue("#F6F8FA", "#2A2734")
@@ -31,7 +48,7 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({ alert, resolutionMessa
     scrollRef.current?.scrollIntoView()
     topDivRef.current?.scrollIntoView()
   }
-  
+
   useEffect(() => {
     executeScroll()
   }, [])
@@ -71,7 +88,9 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({ alert, resolutionMessa
       panel = (
         <HStack w="full" justifyContent="space-between">
           <Box w="50%">
-            <Text mb="2" fontWeight="semibold">Spec</Text>
+            <Text mb="2" fontWeight="semibold">
+              Spec
+            </Text>
             <Box h="670px">
               <Highlight
                 {...defaultProps}
@@ -79,7 +98,13 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({ alert, resolutionMessa
                 code={context.spec}
                 language={context.specExtension || "json"}
               >
-                {({ className, style, tokens, getLineProps, getTokenProps }) => {
+                {({
+                  className,
+                  style,
+                  tokens,
+                  getLineProps,
+                  getTokenProps,
+                }) => {
                   return (
                     <pre
                       className={className}
@@ -89,7 +114,7 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({ alert, resolutionMessa
                         padding: "8px",
                         overflowX: "auto",
                         maxHeight: "670px",
-                        overflowY: "auto"
+                        overflowY: "auto",
                       }}
                     >
                       {tokens.map((line, i) => {
@@ -137,12 +162,16 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({ alert, resolutionMessa
               </Highlight>
             </Box>
           </Box>
-          <Box w="50%" >
-            <Text fontWeight="semibold" mb="2">Differing Trace</Text>
+          <Box w="50%">
+            <Text fontWeight="semibold" mb="2">
+              Differing Trace
+            </Text>
             <Box maxH="670px" bg={panelColor} p="2" overflowY="auto">
               <VStack mb="4" h="full" w="full" alignItems="flex-start">
                 <Text fontWeight="semibold">Request Path</Text>
-                <Code rounded="md" p="2" fontSize="sm">{trace.path}</Code>
+                <Code rounded="md" p="2" fontSize="sm">
+                  {trace.path}
+                </Code>
               </VStack>
               <TraceView trace={trace} colorMode={colorMode} />
             </Box>
@@ -161,7 +190,12 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({ alert, resolutionMessa
           <GridItem>
             <VStack alignItems="flex-start">
               <Text fontWeight="semibold">Status</Text>
-              <Badge fontSize="sm" px="2" py="1" colorScheme={STATUS_TO_COLOR[alert.status]}>
+              <Badge
+                fontSize="sm"
+                px="2"
+                py="1"
+                colorScheme={STATUS_TO_COLOR[alert.status]}
+              >
                 {alert.status}
               </Badge>
             </VStack>
@@ -182,7 +216,9 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({ alert, resolutionMessa
                   fontSize="sm"
                   px="2"
                   py="1"
-                  colorScheme={METHOD_TO_COLOR[alert.apiEndpoint.method] || "gray"}
+                  colorScheme={
+                    METHOD_TO_COLOR[alert.apiEndpoint.method] || "gray"
+                  }
                 >
                   {alert.apiEndpoint.method.toUpperCase()}
                 </Badge>
@@ -202,13 +238,14 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({ alert, resolutionMessa
           </GridItem>
         </Grid>
         <VStack w="full" alignItems="flex-start">
-            <Text fontWeight="semibold">Description</Text>
-            <Code p="3" rounded="md" w="full" fontSize="sm">
-              {alert.description}
-            </Code>
-          </VStack>
+          <Text fontWeight="semibold">Description</Text>
+          <Code p="3" rounded="md" w="full" fontSize="sm">
+            {alert.description}
+          </Code>
+        </VStack>
         {panel}
-        {alert.status !== Status.IGNORED && <VStack w="full" alignItems="flex-start">
+        {alert.status !== Status.IGNORED && (
+          <VStack w="full" alignItems="flex-start">
             <Text fontWeight="semibold">Resolution Reason</Text>
             <Textarea
               disabled={alert.status === Status.RESOLVED}
@@ -218,12 +255,14 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({ alert, resolutionMessa
               }}
               value={resolutionMessage || ""}
               placeholder={
-                alert.status !== Status.RESOLVED && "Provide reason for resolving..."
+                alert.status !== Status.RESOLVED &&
+                "Provide reason for resolving..."
               }
               onChange={e => setResolutionMessage(e.target.value)}
             />
-          </VStack>}
-    </VStack>
+          </VStack>
+        )}
+      </VStack>
     </Box>
   )
 }

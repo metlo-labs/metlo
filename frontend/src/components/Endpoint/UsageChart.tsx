@@ -47,7 +47,7 @@ const EndpointUsageChart: React.FC<EndpointUsageChartProps> = React.memo(
           ticks: {
             source: "labels",
             autoSkip: true,
-            maxTicksLimit: isLargerThan440 ? 13 : 4
+            maxTicksLimit: isLargerThan440 ? 13 : 4,
           },
           time: {
             unit: "day",

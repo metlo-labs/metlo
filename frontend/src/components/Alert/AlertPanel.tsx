@@ -170,15 +170,17 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({ alert }) => {
               {getDateTimeString(alert.createdAt)}
             </Code>
           </HStack>
-          <HStack w="full" cursor="pointer" onClick={() => router.push(`/endpoint/${alert.apiEndpoint.uuid}`)}>
+          <HStack
+            w="full"
+            cursor="pointer"
+            onClick={() => router.push(`/endpoint/${alert.apiEndpoint.uuid}`)}
+          >
             <TiFlowSwitch fontSize={25} />
             <Badge
               fontSize="sm"
               px="2"
               py="1"
-              colorScheme={
-                METHOD_TO_COLOR[alert.apiEndpoint.method] || "gray"
-              }
+              colorScheme={METHOD_TO_COLOR[alert.apiEndpoint.method] || "gray"}
             >
               {alert.apiEndpoint.method}
             </Badge>

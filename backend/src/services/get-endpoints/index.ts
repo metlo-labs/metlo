@@ -107,7 +107,7 @@ export class GetEndpointsService {
         relations: {
           dataFields: true,
           openapiSpec: true,
-          alerts: true
+          alerts: true,
         },
         order: {
           dataFields: {

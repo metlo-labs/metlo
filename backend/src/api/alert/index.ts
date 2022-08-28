@@ -23,7 +23,10 @@ export const updateAlertHandler = async (
   try {
     const { alertId } = req.params
     const updateAlertParams: UpdateAlertParams = req.body
-    const updatedAlert = await AlertService.updateAlert(alertId, updateAlertParams)
+    const updatedAlert = await AlertService.updateAlert(
+      alertId,
+      updateAlertParams,
+    )
     await ApiResponseHandler.success(res, updatedAlert)
   } catch (err) {
     await ApiResponseHandler.error(res, err)

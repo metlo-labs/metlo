@@ -54,21 +54,18 @@ const JSONContentViewer = (data: string, colorMode: ColorMode) => {
   }
 }
 
-export const TraceView: React.FC<{ trace: ApiTrace, colorMode: ColorMode }> = ({ trace, colorMode }) => (
+export const TraceView: React.FC<{ trace: ApiTrace; colorMode: ColorMode }> = ({
+  trace,
+  colorMode,
+}) => (
   <VStack spacing="4" w="full" alignItems="flex-start">
     <VStack h="full" w="full" alignItems="flex-start">
       <Text fontWeight="semibold">Request Headers</Text>
-        {JSONContentViewer(
-          JSON.stringify(trace.requestHeaders || []),
-          colorMode,
-        )}
-      </VStack>
+      {JSONContentViewer(JSON.stringify(trace.requestHeaders || []), colorMode)}
+    </VStack>
     <VStack h="full" w="full" alignItems="flex-start">
       <Text fontWeight="semibold">Request Parameters</Text>
-      {JSONContentViewer(
-        JSON.stringify(trace.requestParameters),
-        colorMode,
-      )}
+      {JSONContentViewer(JSON.stringify(trace.requestParameters), colorMode)}
     </VStack>
     <VStack h="full" w="full" alignItems="flex-start">
       <Text fontWeight="semibold">Request Body</Text>
@@ -76,10 +73,7 @@ export const TraceView: React.FC<{ trace: ApiTrace, colorMode: ColorMode }> = ({
     </VStack>
     <VStack h="full" w="full" alignItems="flex-start">
       <Text fontWeight="semibold">Response Headers</Text>
-      {JSONContentViewer(
-        JSON.stringify(trace.responseHeaders),
-        colorMode,
-      )}
+      {JSONContentViewer(JSON.stringify(trace.responseHeaders), colorMode)}
     </VStack>
     <VStack w="full" alignItems="flex-start">
       <Text fontWeight="semibold">Response Body</Text>

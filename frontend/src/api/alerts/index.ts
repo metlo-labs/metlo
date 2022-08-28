@@ -45,7 +45,7 @@ export const updateAlert = async (
   try {
     const resp = await axios.put<Alert>(
       `${getAPIURL()}/alert/${alertId}`,
-      updateAlertParams
+      updateAlertParams,
     )
     if (resp.status === 200 && resp.data) {
       return resp.data

@@ -1,16 +1,31 @@
-import { FindOptionsWhere, FindManyOptions, In, FindOptionsOrder, Not } from "typeorm"
+import {
+  FindOptionsWhere,
+  FindManyOptions,
+  In,
+  FindOptionsOrder,
+  Not,
+} from "typeorm"
 import { AppDataSource } from "data-source"
 import { Alert, ApiEndpoint, ApiTrace } from "models"
-import { AlertType, SpecExtension, Status, UpdateAlertType } from "@common/enums"
+import {
+  AlertType,
+  SpecExtension,
+  Status,
+  UpdateAlertType,
+} from "@common/enums"
 import { ALERT_TYPE_TO_RISK_SCORE } from "~/constants"
-import { GetAlertParams, Alert as AlertResponse, UpdateAlertParams } from "@common/types"
+import {
+  GetAlertParams,
+  Alert as AlertResponse,
+  UpdateAlertParams,
+} from "@common/types"
 import Error409Conflict from "errors/error-409-conflict"
 import Error500InternalServer from "errors/error-500-internal-server"
 
 export class AlertService {
   static async updateAlert(
     alertId: string,
-    updateAlertParams: UpdateAlertParams
+    updateAlertParams: UpdateAlertParams,
   ): Promise<Alert> {
     const alertRepository = AppDataSource.getRepository(Alert)
     const alert = await alertRepository.findOne({
@@ -19,7 +34,7 @@ export class AlertService {
       },
       relations: {
         apiEndpoint: true,
-      }
+      },
     })
     switch (updateAlertParams.updateType) {
       case UpdateAlertType.IGNORE:
@@ -43,7 +58,8 @@ export class AlertService {
           throw new Error409Conflict("Alert is ignored and cannot be resolved.")
         }
         alert.status = Status.RESOLVED
-        alert.resolutionMessage = updateAlertParams.resolutionMessage?.trim() || null
+        alert.resolutionMessage =
+          updateAlertParams.resolutionMessage?.trim() || null
         break
       case UpdateAlertType.UNRESOLVE:
         if (alert.status !== Status.RESOLVED) {
@@ -61,14 +77,15 @@ export class AlertService {
     alertParams: GetAlertParams,
   ): Promise<[AlertResponse[], number]> {
     const alertRepository = AppDataSource.getRepository(Alert)
-    let whereConditions: FindOptionsWhere<Alert>[] | FindOptionsWhere<Alert> = {};
-    let paginationParams: FindManyOptions<Alert> = {};
-    let orderParams: FindOptionsOrder<Alert> = {};
+    let whereConditions: FindOptionsWhere<Alert>[] | FindOptionsWhere<Alert> =
+      {}
+    let paginationParams: FindManyOptions<Alert> = {}
+    let orderParams: FindOptionsOrder<Alert> = {}
 
     if (alertParams?.apiEndpointUuid) {
       whereConditions = {
         ...whereConditions,
-        apiEndpointUuid: alertParams.apiEndpointUuid
+        apiEndpointUuid: alertParams.apiEndpointUuid,
       }
     }
     if (alertParams?.alertTypes) {
@@ -86,7 +103,7 @@ export class AlertService {
     if (alertParams?.status) {
       whereConditions = {
         ...whereConditions,
-        status: In(alertParams.status)
+        status: In(alertParams.status),
       }
     }
     if (alertParams?.offset) {
@@ -103,11 +120,11 @@ export class AlertService {
     }
     if (alertParams?.order) {
       orderParams = {
-        riskScore: alertParams.order
+        riskScore: alertParams.order,
       }
     } else {
       orderParams = {
-        riskScore: "DESC"
+        riskScore: "DESC",
       }
     }
 
@@ -122,26 +139,26 @@ export class AlertService {
         ...orderParams,
         createdAt: "DESC",
       },
-    });
+    })
 
-    return alerts;
+    return alerts
   }
 
   static async getTopAlerts(): Promise<AlertResponse[]> {
     const alertRepository = AppDataSource.getRepository(Alert)
-    return await alertRepository.find({ 
+    return await alertRepository.find({
       where: {
-        status: Status.OPEN
+        status: Status.OPEN,
       },
       relations: {
-        apiEndpoint: true
+        apiEndpoint: true,
       },
       order: {
         riskScore: "DESC",
-        createdAt: "DESC"
+        createdAt: "DESC",
       },
-      take: 20
-    });
+      take: 20,
+    })
   }
 
   static async getAlert(alertId: string): Promise<AlertResponse> {

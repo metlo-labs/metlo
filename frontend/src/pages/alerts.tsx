@@ -1,8 +1,4 @@
-import {
-  Heading,
-  VStack,
-  useToast,
-} from "@chakra-ui/react"
+import { Heading, VStack, useToast } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
 import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
 import { Alert, GetAlertParams, UpdateAlertParams } from "@common/types"
@@ -10,6 +6,7 @@ import { SidebarLayoutShell } from "components/SidebarLayoutShell"
 import { AlertList } from "components/Alert/AlertList"
 import { ALERT_PAGE_LIMIT } from "~/constants"
 import { getAlerts, updateAlert } from "api/alerts"
+import { Status } from "@common/enums"
 
 const Alerts = () => {
   const [fetching, setFetching] = useState<boolean>(true)
@@ -19,7 +16,7 @@ const Alerts = () => {
   const [updating, setUpdating] = useState<boolean>(false)
   const [params, setParams] = useState<GetAlertParams>({
     riskScores: [],
-    status: [],
+    status: [Status.OPEN],
     alertTypes: [],
     offset: 0,
     limit: ALERT_PAGE_LIMIT,
@@ -48,7 +45,10 @@ const Alerts = () => {
     setParams({ ...params, offset })
   }, [page])
 
-  const handleUpdateAlert = async (alertId: string, updateAlertParams: UpdateAlertParams) => {
+  const handleUpdateAlert = async (
+    alertId: string,
+    updateAlertParams: UpdateAlertParams,
+  ) => {
     setUpdating(true)
     const resp: Alert = await updateAlert(alertId, updateAlertParams)
     if (resp) {
@@ -57,7 +57,7 @@ const Alerts = () => {
         status: "success",
         duration: 3000,
         isClosable: true,
-        position: "top"
+        position: "top",
       })
       setToggleRefetch(!toggleRefetch)
     } else {
@@ -66,7 +66,7 @@ const Alerts = () => {
         status: "error",
         duration: 5000,
         isClosable: true,
-        position: "top"
+        position: "top",
       })
     }
     setUpdating(false)
@@ -81,7 +81,18 @@ const Alerts = () => {
         <Heading px="8" pt="8" fontWeight="medium" size="xl">
           Alerts
         </Heading>
-        <AlertList alerts={alerts} handleUpdateAlert={handleUpdateAlert} updating={updating} params={params} setParams={setParams} fetching={fetching} pagination totalCount={totalCount} page={page} setPage={setPage} />
+        <AlertList
+          alerts={alerts}
+          handleUpdateAlert={handleUpdateAlert}
+          updating={updating}
+          params={params}
+          setParams={setParams}
+          fetching={fetching}
+          pagination
+          totalCount={totalCount}
+          page={page}
+          setPage={setPage}
+        />
       </VStack>
     </SidebarLayoutShell>
   )

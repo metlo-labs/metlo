@@ -44,7 +44,10 @@ interface AlertListProps {
   alerts: Alert[]
   params: GetAlertParams
   setParams: (value: React.SetStateAction<GetAlertParams>) => void
-  handleUpdateAlert: (alertId: string, updateAlertParams: UpdateAlertParams) => Promise<void>
+  handleUpdateAlert: (
+    alertId: string,
+    updateAlertParams: UpdateAlertParams,
+  ) => Promise<void>
   updating: boolean
   fetching: boolean
   pagination?: boolean
@@ -53,9 +56,20 @@ interface AlertListProps {
   setPage?: React.Dispatch<React.SetStateAction<number>>
 }
 
-export const AlertList:React.FC<AlertListProps> = ({ alerts, params, setParams, fetching, pagination, totalCount, page, setPage, handleUpdateAlert, updating }) => {
+export const AlertList: React.FC<AlertListProps> = ({
+  alerts,
+  params,
+  setParams,
+  fetching,
+  pagination,
+  totalCount,
+  page,
+  setPage,
+  handleUpdateAlert,
+  updating,
+}) => {
   const scrollDivRef = useRef(null)
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useDisclosure()
 
   const executeScroll = () => scrollDivRef.current?.scrollIntoView()
 
@@ -170,15 +184,17 @@ export const AlertList:React.FC<AlertListProps> = ({ alerts, params, setParams, 
           </AccordionButton>
           <AccordionPanel pl="30px" pb="0">
             <VStack w="full" alignItems="flex-start">
-              {Object.keys(Status).reverse().map(status => (
-                <Checkbox
-                  key={status}
-                  onChange={e => handleStatusFilter(e, status)}
-                  isChecked={params.status.includes(Status[status])}
-                >
-                  {Status[status]}
-                </Checkbox>
-              ))}
+              {Object.keys(Status)
+                .reverse()
+                .map(status => (
+                  <Checkbox
+                    key={status}
+                    onChange={e => handleStatusFilter(e, status)}
+                    isChecked={params.status.includes(Status[status])}
+                  >
+                    {Status[status]}
+                  </Checkbox>
+                ))}
             </VStack>
           </AccordionPanel>
         </AccordionItem>
@@ -198,83 +214,95 @@ export const AlertList:React.FC<AlertListProps> = ({ alerts, params, setParams, 
       </ModalContent>
     </Modal>
   )
-  
+
   return (
     <VStack h="full" overflowY="hidden" w="full" alignItems="flex-start">
       <HStack px="8" w="full" justifyContent="space-between">
-            <Box>
-              <IconButton visibility={{ base: "visible", lg: "hidden"}} aria-label="Filter Button" icon={<FiFilter />} onClick={onOpen}/>
-            </Box>
-            <HStack>
-              <Text>Sort By</Text>
-              <Select
-                defaultValue={Order.DESC}
-                w="fit-content"
-                onChange={e =>
-                  setParams({ ...params, order: e.target.value as Order })
-                }
-              >
-                <option value={Order.DESC}>Highest Risk</option>
-                <option value={Order.ASC}>Lowest Risk</option>
-              </Select>
-            </HStack>
-          </HStack>
-        <HStack h="full" overflowY="hidden" w="full" spacing={{ base: 0, lg: 4 }}>
-          <VStack
-            pl="8"
-            alignItems="flex-start"
-            alignSelf="flex-start"
-            display={{ base: "none", lg: "block"}}
-            w="400px"
-            spacing="4"
+        <Box>
+          <IconButton
+            visibility={{ base: "visible", lg: "hidden" }}
+            aria-label="Filter Button"
+            icon={<FiFilter />}
+            onClick={onOpen}
+          />
+        </Box>
+        <HStack>
+          <Text>Sort By</Text>
+          <Select
+            defaultValue={Order.DESC}
+            w="fit-content"
+            onChange={e =>
+              setParams({ ...params, order: e.target.value as Order })
+            }
           >
-            {riskFilterPanel}
-          </VStack>
-          {!fetching && alerts && alerts.length > 0 ? (
-            <VStack
-              pl={{ base: "8", lg: "0"}}
-              pr="4"
-              pb="8"
-              h="full"
-              w="full"
-              overflowY="auto"
-              spacing="4"
-              alignSelf="flex-start"
-            >
-              {alerts.map((listAlert, i) => (
-                <Box w="full" key={listAlert.uuid} ref={i === 0 ? scrollDivRef : null}>
-                  <AlertComponent alert={listAlert} handleUpdateAlert={handleUpdateAlert} updating={updating} />
-                </Box>
-              ))}
-            </VStack>
-          ) : (
-            <>
-              {!fetching && (
-                <EmptyView
-                  h="full"
-                  alignSelf="flex-start"
-                  text="No results found."
-                />
-              )}
-            </>
-          )}
-          {modal}
+            <option value={Order.DESC}>Highest Risk</option>
+            <option value={Order.ASC}>Lowest Risk</option>
+          </Select>
         </HStack>
-        {totalCount && (
-          <HStack alignSelf="flex-end" p="3" pr="70px">
-            <Text>
-              {(page - 1) * params.offset + 1}-
-              {(page - 1) * params.offset + alerts.length} of {totalCount}{" "}
-              alerts
-            </Text>
-            <PaginationComponent
-              pageSize={ALERT_PAGE_LIMIT}
-              currentPage={page}
-              setCurrentPage={setPage}
-              tableSize={totalCount}
-            />
-          </HStack>
+      </HStack>
+      <HStack h="full" overflowY="hidden" w="full" spacing={{ base: 0, lg: 4 }}>
+        <VStack
+          pl="8"
+          alignItems="flex-start"
+          alignSelf="flex-start"
+          display={{ base: "none", lg: "block" }}
+          w="400px"
+          spacing="4"
+        >
+          {riskFilterPanel}
+        </VStack>
+        {!fetching && alerts && alerts.length > 0 ? (
+          <VStack
+            pl={{ base: "8", lg: "0" }}
+            pr="4"
+            pb="8"
+            h="full"
+            w="full"
+            overflowY="auto"
+            spacing="4"
+            alignSelf="flex-start"
+          >
+            {alerts.map((listAlert, i) => (
+              <Box
+                w="full"
+                key={listAlert.uuid}
+                ref={i === 0 ? scrollDivRef : null}
+              >
+                <AlertComponent
+                  alert={listAlert}
+                  handleUpdateAlert={handleUpdateAlert}
+                  updating={updating}
+                />
+              </Box>
+            ))}
+          </VStack>
+        ) : (
+          <>
+            {!fetching && (
+              <EmptyView
+                h="full"
+                alignSelf="flex-start"
+                text="No results found."
+              />
+            )}
+          </>
         )}
+        {modal}
+      </HStack>
+      {totalCount && (
+        <HStack alignSelf="flex-end" p="3" pr="70px">
+          <Text>
+            {(page - 1) * params.offset + 1}-
+            {(page - 1) * params.offset + alerts.length} of {totalCount} alerts
+          </Text>
+          <PaginationComponent
+            pageSize={ALERT_PAGE_LIMIT}
+            currentPage={page}
+            setCurrentPage={setPage}
+            tableSize={totalCount}
+          />
+        </HStack>
+      )}
     </VStack>
   )
 }

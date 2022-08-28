@@ -3,6 +3,7 @@ import { useToast, Box } from "@chakra-ui/react"
 import { Alert, GetAlertParams, UpdateAlertParams } from "@common/types"
 import { getAlerts, updateAlert } from "api/alerts"
 import { AlertList } from "components/Alert/AlertList"
+import { Status } from "@common/enums"
 
 interface AlertTabProps {
   apiEndpointUuid: string
@@ -15,9 +16,9 @@ export const AlertTab: React.FC<AlertTabProps> = ({ apiEndpointUuid }) => {
   const [params, setParams] = useState<GetAlertParams>({
     apiEndpointUuid: apiEndpointUuid,
     riskScores: [],
-    status: [],
+    status: [Status.OPEN],
     alertTypes: [],
-    order: "DESC"
+    order: "DESC",
   })
   const [toggleRefetch, setToggleRefetch] = useState<boolean>(false)
   const toast = useToast()
@@ -32,7 +33,10 @@ export const AlertTab: React.FC<AlertTabProps> = ({ apiEndpointUuid }) => {
     fetchAlerts()
   }, [params, toggleRefetch])
 
-  const handleUpdateAlert = async (alertId: string, updateAlertParams: UpdateAlertParams) => {
+  const handleUpdateAlert = async (
+    alertId: string,
+    updateAlertParams: UpdateAlertParams,
+  ) => {
     setUpdating(true)
     const resp: Alert = await updateAlert(alertId, updateAlertParams)
     if (resp) {
@@ -41,7 +45,7 @@ export const AlertTab: React.FC<AlertTabProps> = ({ apiEndpointUuid }) => {
         status: "success",
         duration: 3000,
         isClosable: true,
-        position: "top"
+        position: "top",
       })
       setToggleRefetch(!toggleRefetch)
     } else {
@@ -50,7 +54,7 @@ export const AlertTab: React.FC<AlertTabProps> = ({ apiEndpointUuid }) => {
         status: "error",
         duration: 5000,
         isClosable: true,
-        position: "top"
+        position: "top",
       })
     }
     setUpdating(false)
@@ -58,7 +62,14 @@ export const AlertTab: React.FC<AlertTabProps> = ({ apiEndpointUuid }) => {
 
   return (
     <Box pt="4" pr="2" h="full">
-      <AlertList alerts={alerts} handleUpdateAlert={handleUpdateAlert} updating={updating} params={params} setParams={setParams} fetching={fetching} />
+      <AlertList
+        alerts={alerts}
+        handleUpdateAlert={handleUpdateAlert}
+        updating={updating}
+        params={params}
+        setParams={setParams}
+        fetching={fetching}
+      />
     </Box>
   )
 }

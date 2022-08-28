@@ -58,8 +58,11 @@ export class DataField extends BaseEntity {
     if (this.falsePositives === null || this.falsePositives === undefined) {
       this.falsePositives = Array<DataClass>()
     }
-    if (this.scannerIdentified === null || this.scannerIdentified === undefined) {
-      this.scannerIdentified = Array<DataClass>();
+    if (
+      this.scannerIdentified === null ||
+      this.scannerIdentified === undefined
+    ) {
+      this.scannerIdentified = Array<DataClass>()
     }
     if (
       dataClass === null ||
@@ -70,7 +73,7 @@ export class DataField extends BaseEntity {
     }
     this.dataClasses.push(dataClass)
     this.scannerIdentified.push(dataClass)
-    return true;
+    return true
   }
 
   updateMatches(dataClass: DataClass, matches: string[]): boolean {

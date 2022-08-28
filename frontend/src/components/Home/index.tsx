@@ -38,7 +38,10 @@ const HomePage: React.FC<HomePageProps> = React.memo(
       fetchTopAlerts()
     }, [toggleRefetch])
 
-    const handleUpdateAlert = async (alertId: string, updateAlertParams: UpdateAlertParams) => {
+    const handleUpdateAlert = async (
+      alertId: string,
+      updateAlertParams: UpdateAlertParams,
+    ) => {
       setUpdating(true)
       const resp: Alert = await updateAlert(alertId, updateAlertParams)
       if (resp) {
@@ -47,7 +50,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(
           status: "success",
           duration: 3000,
           isClosable: true,
-          position: "top"
+          position: "top",
         })
         setToggleRefetch(!toggleRefetch)
       } else {
@@ -56,7 +59,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(
           status: "error",
           duration: 5000,
           isClosable: true,
-          position: "top"
+          position: "top",
         })
       }
       setUpdating(false)
@@ -72,16 +75,22 @@ const HomePage: React.FC<HomePageProps> = React.memo(
         />
         <VStack w="full" alignItems="flex-start" spacing="4">
           <Heading fontSize="xl">Top Alerts</Heading>
-          {!fetching &&
-          <VStack w="full" spacing="4">
-            {alertList.length ? (
-              alertList.map(alert => (
-                <AlertComponent key={alert.uuid} alert={alert} updating={updating} handleUpdateAlert={handleUpdateAlert} />
-              ))
-            ) : (
-              <EmptyView text="No New Alerts!" />
-            )}
-          </VStack>}
+          {!fetching && (
+            <VStack w="full" spacing="4">
+              {alertList.length ? (
+                alertList.map(alert => (
+                  <AlertComponent
+                    key={alert.uuid}
+                    alert={alert}
+                    updating={updating}
+                    handleUpdateAlert={handleUpdateAlert}
+                  />
+                ))
+              ) : (
+                <EmptyView text="No New Alerts!" />
+              )}
+            </VStack>
+          )}
         </VStack>
       </VStack>
     )
