@@ -41,8 +41,8 @@ export const DataFieldTagList: React.FC<TagListProps> = React.memo(
 
     if (editing) {
       return (
-        <HStack>
-          <Box w="lg">
+        <HStack w="full">
+          <Box w="full">
             <Select
               value={editedTags.map(e => ({
                 label: e,

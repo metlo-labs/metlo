@@ -6,11 +6,11 @@ import {
   Badge,
   Text,
   Box,
-  StackDivider,
   Button,
   Heading,
   useColorModeValue,
 } from "@chakra-ui/react"
+import SplitPane from "react-split-pane"
 import { ImCross } from "@react-icons/all-files/im/ImCross"
 import { DateTime } from "luxon"
 import DataTable, { TableColumn } from "react-data-table-component"
@@ -138,51 +138,62 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces, uuid }) => {
       hide: 1400,
     },
   ]
-  return (
-    <HStack
-      h="full"
-      divider={<StackDivider borderWidth="2px" />}
-      spacing="0"
-      w="full"
-      alignItems="flex-start"
-    >
-      <Box w={trace ? "calc(100% - 650px)" : "full"} h="full">
-        <DataTable
-          fixedHeader={true}
-          fixedHeaderScrollHeight="100%"
-          style={rowStyles}
-          conditionalRowStyles={conditionalStyles}
-          columns={columns}
-          data={traces}
-          customStyles={getCustomStyles(colorMode.colorMode)}
-          onRowClicked={setTrace}
-          noDataComponent={<EmptyView notRounded text="No Traces!" />}
-        />
+
+  const tracePanel = trace ? (
+    <Box h="full">
+      <HStack
+        w="full"
+        justifyContent="space-between"
+        alignItems="center"
+        height="52px"
+        px="4"
+        borderBottom="1px"
+        borderColor={divColor}
+        color={headerTextColor}
+        bg={headerBg}
+      >
+        <Heading size="md">Details</Heading>
+        <Button variant="ghost" onClick={() => setTrace(undefined)}>
+          <ImCross />
+        </Button>
+      </HStack>
+      <Box h="calc(100% - 52px)">
+        <TraceDetail trace={trace} />
       </Box>
+    </Box>
+  ) : null
+
+  const tablePanel = (
+    <DataTable
+      fixedHeader={true}
+      fixedHeaderScrollHeight="100%"
+      style={rowStyles}
+      conditionalRowStyles={conditionalStyles}
+      columns={columns}
+      data={traces}
+      customStyles={getCustomStyles(colorMode.colorMode)}
+      onRowClicked={setTrace}
+      noDataComponent={<EmptyView notRounded text="No Traces!" />}
+    />
+  )
+
+  return (
+    <Box h="full" w="full" position="relative">
       {trace ? (
-        <Box w="650px" h="full">
-          <HStack
-            w="full"
-            justifyContent="space-between"
-            alignItems="center"
-            height="52px"
-            px="4"
-            borderBottom="1px"
-            borderColor={divColor}
-            color={headerTextColor}
-            bg={headerBg}
-          >
-            <Heading size="md">Details</Heading>
-            <Button variant="ghost" onClick={() => setTrace(undefined)}>
-              <ImCross />
-            </Button>
-          </HStack>
-          <Box h="calc(100% - 52px)">
-            <TraceDetail trace={trace} />
-          </Box>
-        </Box>
-      ) : null}
-    </HStack>
+        /* @ts-ignore */
+        <SplitPane
+          split="vertical"
+          minSize="0"
+          defaultSize="60%"
+          paneStyle={{ overflow: "hidden" }}
+        >
+          {tablePanel}
+          {tracePanel}
+        </SplitPane>
+      ) : (
+        tablePanel
+      )}
+    </Box>
   )
 })
 

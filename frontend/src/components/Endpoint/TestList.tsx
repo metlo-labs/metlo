@@ -13,7 +13,7 @@ interface TestListProps {
 const TestList: React.FC<TestListProps> = React.memo(({ endpoint }) => {
   if (endpoint.tests.length == 0) {
     return (
-      <EmptyView>
+      <EmptyView h="full" alignItems="flex-start" py="20">
         <VStack spacing="8">
           <Heading
             size="lg"

@@ -5,12 +5,12 @@ import {
   Badge,
   useColorModeValue,
   HStack,
-  StackDivider,
   Box,
   Heading,
   Button,
   Text,
 } from "@chakra-ui/react"
+import SplitPane from "react-split-pane"
 import { ImCross } from "@react-icons/all-files/im/ImCross"
 import DataTable, { TableColumn } from "react-data-table-component"
 import { DataField } from "@common/types"
@@ -222,15 +222,6 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
       ])
     }, [dataFieldList, uuid])
 
-    const rowNotRiskBG =
-      colorMode.colorMode == "light"
-        ? {
-            opacity: 0.6,
-          }
-        : {
-            filter: "brightness(50%)",
-          }
-
     const conditionalStyles = [
       {
         when: (row: DataField) => {
@@ -277,60 +268,70 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
       />
     )
 
-    return (
-      <HStack
-        h="full"
-        divider={<StackDivider borderWidth="2px" />}
-        spacing="0"
-        w="full"
-        alignItems="flex-start"
-      >
-        <Box w={dataField ? "calc(100% - 650px)" : "full"} h="full">
-          <DataTable
-            fixedHeader={true}
-            fixedHeaderScrollHeight="100%"
-            style={rowStyles}
-            columns={columns}
-            data={[]}
-            persistTableHead={dataFieldList.length > 0}
-            customStyles={getCustomStyles(colorMode.colorMode)}
-            noDataComponent={
-              dataFieldList.length === 0 ? (
-                <EmptyView notRounded text="No Fields!" />
-              ) : (
-                expandableTable
-              )
-            }
+    const tablePanel = (
+      <DataTable
+        fixedHeader={true}
+        fixedHeaderScrollHeight="100%"
+        style={rowStyles}
+        columns={columns}
+        data={[]}
+        persistTableHead={dataFieldList.length > 0}
+        customStyles={getCustomStyles(colorMode.colorMode)}
+        noDataComponent={
+          dataFieldList.length === 0 ? (
+            <EmptyView notRounded text="No Fields!" />
+          ) : (
+            expandableTable
+          )
+        }
+      />
+    )
+
+    const detailPanel = dataField ? (
+      <Box h="full">
+        <HStack
+          w="full"
+          justifyContent="space-between"
+          alignItems="center"
+          height="52px"
+          px="4"
+          borderBottom="1px"
+          borderColor={divColor}
+          color={headerTextColor}
+          bg={headerBg}
+        >
+          <Heading size="md">Details</Heading>
+          <Button variant="ghost" onClick={() => setDataField(undefined)}>
+            <ImCross />
+          </Button>
+        </HStack>
+        <Box h="calc(100% - 52px)">
+          <DataFieldDetail
+            dataField={dataField}
+            dataFieldList={dataFieldList}
+            setdataFieldList={setDataFieldList}
           />
         </Box>
+      </Box>
+    ) : null
+
+    return (
+      <Box h="full" w="full" position="relative">
         {dataField ? (
-          <Box w="650px" h="full">
-            <HStack
-              w="full"
-              justifyContent="space-between"
-              alignItems="center"
-              height="52px"
-              px="4"
-              borderBottom="1px"
-              borderColor={divColor}
-              color={headerTextColor}
-              bg={headerBg}
-            >
-              <Heading size="md">Details</Heading>
-              <Button variant="ghost" onClick={() => setDataField(undefined)}>
-                <ImCross />
-              </Button>
-            </HStack>
-            <Box h="calc(100% - 52px)">
-              <DataFieldDetail
-                dataField={dataField}
-                dataFieldList={dataFieldList}
-                setdataFieldList={setDataFieldList}
-              />
-            </Box>
-          </Box>
-        ) : null}
-      </HStack>
+          /* @ts-ignore */
+          <SplitPane
+            split="vertical"
+            minSize="0"
+            defaultSize="60%"
+            paneStyle={{ overflow: "hidden" }}
+          >
+            {tablePanel}
+            {detailPanel}
+          </SplitPane>
+        ) : (
+          tablePanel
+        )}
+      </Box>
     )
   },
 )
