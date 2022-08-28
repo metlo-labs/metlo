@@ -1,6 +1,6 @@
-import { Box, HStack, Input, VStack } from "@chakra-ui/react"
+import { Box, HStack, Input, VStack, Text } from "@chakra-ui/react"
 import { AuthType } from "@common/testing/enums"
-import { AuthBearerParams, Authorization, Request } from "@common/testing/types"
+import { AuthBearerParams, Authorization } from "@common/testing/types"
 import { useEffect, useState } from "react"
 
 interface basicAuthInterface {
@@ -20,15 +20,15 @@ const BearerAuth: React.FC<basicAuthInterface> = ({ evaluate }) => {
 
   return (
     <VStack w="full">
-      <HStack w="full">
-        <Box w="full">Bearer Token</Box>
-        <Box w="full">
-          <Input
-            value={bearerToken}
-            onChange={v => setBearerToken(v.target.value)}
-            placeholder={"BearerToken"}
-          />
-        </Box>
+      <HStack w="full" justifyContent="space-between">
+        <Text fontWeight="semibold">Bearer Token</Text>
+        <Input
+          w="sm"
+          bg="white"
+          value={bearerToken}
+          onChange={v => setBearerToken(v.target.value)}
+          placeholder="BearerToken"
+        />
       </HStack>
     </VStack>
   )

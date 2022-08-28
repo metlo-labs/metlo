@@ -34,8 +34,8 @@ const AuthSwitch: React.FC<AuthSwitchInterface> = React.memo(
       }
     }
     return (
-      <VStack divider={<StackDivider />}>
-        <HStack w="full">
+      <VStack divider={<StackDivider />} spacing="0" h="full">
+        <HStack w="full" px="4" py="2">
           <Box w="full">Type</Box>
           <Box w="full">
             <Select
@@ -50,7 +50,9 @@ const AuthSwitch: React.FC<AuthSwitchInterface> = React.memo(
             </Select>
           </Box>
         </HStack>
-        <Box w="full">{getAuthComponent(variant)}</Box>
+        <Box w="full" px="4" py="2" bg="secondaryBG" flexGrow="1">
+          {getAuthComponent(variant)}
+        </Box>
       </VStack>
     )
   },

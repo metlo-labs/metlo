@@ -19,11 +19,23 @@ import { statusToColor } from "../../constants"
 import { BiCheckCircle } from "@react-icons/all-files/bi/BiCheckCircle"
 import { GiCancel } from "@react-icons/all-files/gi/GiCancel"
 import DataPreview from "./dataPreview"
+import EmptyView from "components/utils/EmptyView"
 
 const Response: React.FC<{ res: Result }> = React.memo(({ res }) => {
   const tabsBG = useColorModeValue("white", "black")
   if (!res) {
-    return null
+    return (
+      <EmptyView minH="unset" h="full">
+        <Text
+          fontSize="xl"
+          fontWeight="semibold"
+          textAlign="center"
+          color="gray.400"
+        >
+          Hit Send to get a response...
+        </Text>
+      </EmptyView>
+    )
   }
   return (
     <Tabs

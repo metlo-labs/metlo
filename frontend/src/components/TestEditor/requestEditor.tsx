@@ -130,13 +130,11 @@ const RequestEditor: React.FC<RequestEditorProps> = React.memo(
                     />
                   </TabPanel>
                   <TabPanel p="0" h="full">
-                    <Box p="4">
-                      <AuthSwitch
-                        variant={authType}
-                        setVariant={setAuthType}
-                        setRequest={updateRequest}
-                      />
-                    </Box>
+                    <AuthSwitch
+                      variant={authType}
+                      setVariant={setAuthType}
+                      setRequest={updateRequest}
+                    />
                   </TabPanel>
                   <TabPanel p="0" h="full">
                     <DataPairEditor

@@ -1,4 +1,4 @@
-import { Box, HStack, Input, Select, VStack } from "@chakra-ui/react"
+import { Text, HStack, Input, Select, VStack } from "@chakra-ui/react"
 import { APIKeyAuthAddTo, AuthType } from "@common/testing/enums"
 import { AuthAPIKeyParams, Authorization } from "@common/testing/types"
 import { useEffect, useState } from "react"
@@ -28,37 +28,37 @@ const APIAuth: React.FC<apiAuthInterface> = ({ evaluate }) => {
 
   return (
     <VStack>
-      <HStack w="full">
-        <Box w="full">Key</Box>
-        <Box w="full">
-          <Input
-            value={key}
-            onChange={v => setKey(v.target.value)}
-            placeholder={"Key"}
-          />
-        </Box>
+      <HStack w="full" justifyContent="space-between" alignItems="center">
+        <Text fontWeight="semibold">Key</Text>
+        <Input
+          w="sm"
+          bg="white"
+          value={key}
+          onChange={v => setKey(v.target.value)}
+          placeholder="Key"
+        />
       </HStack>
-      <HStack w="full">
-        <Box w="full">Value</Box>
-        <Box w="full">
-          <Input
-            value={param}
-            onChange={v => setParam(v.target.value)}
-            placeholder={"Value"}
-          />
-        </Box>
+      <HStack w="full" justifyContent="space-between" alignItems="center">
+        <Text fontWeight="semibold">Value</Text>
+        <Input
+          w="sm"
+          bg="white"
+          value={param}
+          onChange={v => setParam(v.target.value)}
+          placeholder="Value"
+        />
       </HStack>
-      <HStack w="full">
-        <Box w="full">Add To</Box>
-        <Box w="full">
-          <Select
-            value={location}
-            onChange={v => setLocation(v.target.value as APIKeyAuthAddTo)}
-          >
-            <option value={APIKeyAuthAddTo.HEADERS}>Headers</option>
-            <option value={APIKeyAuthAddTo.QUERY_PARAMS}>Query Params</option>
-          </Select>
-        </Box>
+      <HStack w="full" justifyContent="space-between" alignItems="center">
+        <Text fontWeight="semibold">Add To</Text>
+        <Select
+          w="sm"
+          bg="white"
+          value={location}
+          onChange={v => setLocation(v.target.value as APIKeyAuthAddTo)}
+        >
+          <option value={APIKeyAuthAddTo.HEADERS}>Headers</option>
+          <option value={APIKeyAuthAddTo.QUERY_PARAMS}>Query Params</option>
+        </Select>
       </HStack>
     </VStack>
   )

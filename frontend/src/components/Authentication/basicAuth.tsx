@@ -1,4 +1,4 @@
-import { Box, HStack, Input, VStack } from "@chakra-ui/react"
+import { Box, HStack, Input, VStack, Text } from "@chakra-ui/react"
 import { AuthType } from "@common/testing/enums"
 import { Authorization, Request } from "@common/testing/types"
 import { useEffect, useState } from "react"
@@ -20,27 +20,27 @@ const BasicAuth: React.FC<basicAuthInterface> = ({ evaluate }) => {
   }, [userName, password, evaluate])
 
   return (
-    <VStack w="full">
-      <HStack w="full">
-        <Box w="full">User Name</Box>
-        <Box w="full">
-          <Input
-            value={userName}
-            onChange={v => setUserName(v.target.value)}
-            placeholder="User Name"
-          />
-        </Box>
+    <VStack w="full" h="full">
+      <HStack w="full" justifyContent="space-between">
+        <Text fontWeight="semibold">User Name</Text>
+        <Input
+          w="sm"
+          value={userName}
+          onChange={v => setUserName(v.target.value)}
+          placeholder="User Name"
+          bg="white"
+        />
       </HStack>
-      <HStack w="full">
-        <Box w="full">Password</Box>
-        <Box w="full">
-          <Input
-            value={password}
-            onChange={v => setPassword(v.target.value)}
-            placeholder="Password"
-            type="password"
-          />
-        </Box>
+      <HStack w="full" justifyContent="space-between">
+        <Text fontWeight="semibold">Password</Text>
+        <Input
+          w="sm"
+          value={password}
+          onChange={v => setPassword(v.target.value)}
+          placeholder="Password"
+          type="password"
+          bg="white"
+        />
       </HStack>
     </VStack>
   )
