@@ -1,4 +1,4 @@
-import { NodeSSH } from "node-ssh"
+import { NodeSSH, SSHExecCommandResponse } from "node-ssh"
 import { readFileSync, writeFileSync, openSync, unlinkSync } from "fs"
 import { format as _format } from "util"
 import retry from "async-retry"
@@ -29,38 +29,37 @@ export class SSH_CONN {
     return this.conn
   }
 
-  public async test_connection(): Promise<[boolean]> {
+  public async test_connection(): Promise<boolean> {
     // Test if we can get release version of the OS. Should be compatible with all Linux based OS
     var resp, error
     try {
       resp = await this.run_command("lsb_release -i")
-      return resp
+      return true
     } catch (err) {
       error = err
       if (err instanceof Error) {
         console.log(err)
         console.log("error in test_cmd")
       }
+      throw err
     }
-    console.log(resp)
-    return [!!resp]
   }
 
   public async run_command(command: string) {
-    var resp, error
-    resp = await retry(
+    var resp
+    resp = await retry<SSHExecCommandResponse>(
       async (f, at) => {
-        console.log(at)
-        try {
-          resp = await (await this.get_conn()).execCommand(command)
-          return resp
-        } catch (err) {
-          console.log(err)
-          console.log("error in run_cmd")
-          throw err
+        if (process.env.NODE_ENV !== "production") {
+          console.log(`${command} at ${at}`)
         }
+        resp = await (
+          await this.get_conn()
+        ).execCommand(command, {
+          execOptions: {},
+        })
+        return resp
       },
-      { retries: 10 },
+      { retries: 5 },
     )
     return resp
   }
