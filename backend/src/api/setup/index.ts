@@ -7,6 +7,7 @@ import "express-session"
 import { EC2_CONN } from "suricata_setup/aws-services/create-ec2-instance"
 import { VirtualizationType } from "@aws-sdk/client-ec2"
 import { save_connection } from "services/connections"
+import { deleteKeyFromRedis, getFromRedis } from "suricata_setup/utils"
 
 declare module "express-session" {
   interface SessionData {
@@ -27,44 +28,48 @@ export const setup_connection = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const { step, id, status, type, params } = req.body
-  if (!req.session.connection_config) {
-    req.session.connection_config = {}
-  }
-  if (!req.session.connection_config[id]) {
-    req.session.connection_config[id] = {
-      status: "STARTED",
-      id,
-      type,
-      data: { id },
-    };
-  }
+  try {
+    const { step, id, status, type, params } = req.body
+    if (!req.session.connection_config) {
+      req.session.connection_config = {}
+    }
+    if (!req.session.connection_config[id]) {
+      req.session.connection_config[id] = {
+        status: "STARTED",
+        id,
+        type,
+        data: { id },
+      }
+    }
 
-  let combined_params = {
-    ...req.session.connection_config[id].data,
-    ...params,
-    id: id,
-  };
-  let resp = await setup(step, type, combined_params);
-  req.session.connection_config[id] = {
-    ...req.session.connection_config[id],
-    ...resp,
-  }
-
-  if (resp.status === "COMPLETE") {
-    const {
-      params: { name },
-    } = req.body
-    await save_connection({
-      conn_meta: req.session.connection_config[id].data as AWS_CONNECTION,
+    let combined_params = {
+      ...req.session.connection_config[id].data,
+      ...params,
       id: id,
-      name: name,
-    })
+    }
+    let resp = await setup(step, type, combined_params)
+    req.session.connection_config[id] = {
+      ...req.session.connection_config[id],
+      ...resp,
+    }
+
+    if (resp.status === "COMPLETE") {
+      const {
+        params: { name },
+      } = req.body
+      await save_connection({
+        conn_meta: req.session.connection_config[id].data as AWS_CONNECTION,
+        id: id,
+        name: name,
+      })
+    }
+
+    delete resp.data
+
+    await ApiResponseHandler.success(res, resp)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
   }
-
-  delete resp.data
-
-  await ApiResponseHandler.success(res, resp)
 }
 
 export const aws_os_choices = async (
@@ -101,4 +106,13 @@ export const aws_instance_choices = async (
   } catch (err) {
     ApiResponseHandler.error(res, err)
   }
+}
+
+export const get_setup_state = async (req: Request, res: Response) => {
+  const { uuid } = req.params
+  let resp: STEP_RESPONSE = await getFromRedis(uuid)
+  if (["OK", "FAIL"].includes(resp.success)) {
+    await deleteKeyFromRedis(uuid)
+  }
+  ApiResponseHandler.success(res, resp)
 }

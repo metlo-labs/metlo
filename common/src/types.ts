@@ -205,6 +205,7 @@ export interface Usage {
 export interface STEP_RESPONSE {
   success: "OK" | "FAIL" | "FETCHING";
   status: "STARTED" | "COMPLETE" | "IN-PROGRESS";
+  retry_id?: string;
   next_step: STEPS;
   step_number: STEPS;
   last_completed: STEPS;

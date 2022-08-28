@@ -1,10 +1,22 @@
 import React, { useState } from "react"
-import { Text, Image, useColorMode, useDisclosure } from "@chakra-ui/react"
+import {
+  Text,
+  Image,
+  useColorMode,
+  useDisclosure,
+  Button,
+  useToast,
+  Box,
+  HStack,
+} from "@chakra-ui/react"
 import DataTable, { TableColumn } from "react-data-table-component"
 import { getCustomStyles, rowStyles } from "components/utils/TableUtils"
 import { ConnectionInfo } from "@common/types"
 import { useRouter } from "next/router"
 import ConnectionSelector from "components/ConnectionInfo/connectionSelector"
+import { DeleteIcon } from "@chakra-ui/icons"
+import axios, { AxiosError } from "axios"
+import { getAPIURL } from "~/constants"
 
 interface ConnectionListProps {
   connections: ConnectionInfo[]
@@ -24,6 +36,17 @@ const ConnectionList: React.FC<ConnectionListProps> = React.memo(
           return updatedConnection
         }
         return v
+      })
+      setConnections(newConns)
+    }
+
+    const onConnectionDelete = (deletedUUID: string) => {
+      const newConns = connections.filter(v => {
+        if (v.uuid != deletedUUID) {
+          return v
+        }
+        // Do nothing if uuid == deletedUUID
+        // That has been deleted, so filter that out
       })
       setConnections(newConns)
     }
@@ -108,6 +131,7 @@ const ConnectionList: React.FC<ConnectionListProps> = React.memo(
           setConnectionUpdated={onConnectionUpdate}
           isOpen={isOpen}
           onClose={onClose}
+          onDelete={onConnectionDelete}
         />
         <DataTable
           style={rowStyles}

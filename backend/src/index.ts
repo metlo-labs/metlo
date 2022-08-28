@@ -33,6 +33,7 @@ import { MulterSource } from "multer-source"
 import {
   aws_instance_choices,
   aws_os_choices,
+  get_setup_state,
   setup_connection,
 } from "./api/setup"
 import { getTest, listTests, runTestHandler, saveTest } from "./api/tests"
@@ -44,11 +45,14 @@ import {
   update_connection,
 } from "./api/connections"
 import runAllTests from "services/testing/runAllTests"
+import { RedisClient } from "utils/redis"
 
 dotenv.config()
 
 const app: Express = express()
 const port = process.env.PORT || 8080
+// Start singleton redis instance
+RedisClient.getInstance()
 
 app.disable("x-powered-by")
 app.use(bodyParser.json())
@@ -98,6 +102,7 @@ app.get("/api/v1/topAlerts", getTopAlertsHandler)
 app.put("/api/v1/alert/:alertId", updateAlertHandler)
 
 app.post("/api/v1/setup_connection", setup_connection)
+app.get("/api/v1/setup_connection/fetch/:uuid", get_setup_state)
 app.post("/api/v1/setup_connection/aws/os", aws_os_choices)
 app.post("/api/v1/setup_connection/aws/instances", aws_instance_choices)
 app.get("/api/v1/list_connections", list_connections)
@@ -107,7 +112,7 @@ app.get(
   get_ssh_key_for_connection_uuid,
 )
 app.post("/api/v1/update_connection", update_connection)
-app.post("/api/v1/delete_connection/:uuid", delete_connection)
+app.delete("/api/v1/delete_connection/:uuid", delete_connection)
 app.post("/api/v1/test/run", runTestHandler)
 
 app.post("/api/v1/test/save", saveTest)

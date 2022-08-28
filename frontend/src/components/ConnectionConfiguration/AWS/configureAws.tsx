@@ -14,13 +14,14 @@ import { v4 as uuidv4 } from "uuid"
 import SourceInstanceID from "./source_instance_id"
 import { STEP_RESPONSE } from "@common/types"
 import { STEP_TO_TITLE_MAP } from "@common/maps"
-import axios, { AxiosResponse, AxiosError } from "axios"
+import axios, { AxiosResponse, AxiosError, AxiosRequestConfig } from "axios"
 import { getAPIURL } from "~/constants"
 import OsSelection from "./os_selection"
 import InstanceSelection from "./instance_selection"
 import GenericStepAWS from "./genericStepAws"
 import SetupRulesFilter from "./mirrorFilters"
 import { useToast } from "@chakra-ui/react"
+import { api_call_retry } from "utils"
 interface configureAWSParams {
   selected: STEPS
   updateSelected: (x: STEPS) => void
@@ -38,7 +39,7 @@ const incrementStep = (
   setUpdating: (x: boolean) => void,
 ) => {
   axios
-    .post<Omit<STEP_RESPONSE, "data">>(`${getAPIURL()}/setup_connection`, {
+    .post<Omit<STEP_RESPONSE, "data">>(`/api/v1/setup_connection`, {
       id: id,
       params: params,
       type: ConnectionType.AWS,
@@ -58,6 +59,23 @@ const incrementStep = (
       setUpdating(false)
     })
   setUpdating(true)
+}
+
+const getRetryId = async (
+  id: string,
+  params: Record<string, any>,
+  step: STEPS,
+  onError: (err) => void,
+) => {
+  try {
+    let resp = await axios.post<Omit<STEP_RESPONSE, "data">>(
+      `/api/v1/setup_connection`,
+      { id: id, params: params, type: ConnectionType.AWS, step: step },
+    )
+    return resp.data.retry_id
+  } catch (err) {
+    onError(err)
+  }
 }
 
 const MAX_RETRY = 3
@@ -102,37 +120,41 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
     )
   }
 
-  const step_increment_function_with_retry = (
-    params: Record<string, any>,
-    step: STEPS,
-    retry_count: number,
-  ) => {
-    incrementStep(
-      id,
-      { ...params, name: name },
-      step,
-      () => updateSelected(step + 1),
-      async err => {
-        if (retry_count > MAX_RETRY) {
-          create_toast_with_message(err.data.message, step)
-          console.log(err.data.error)
+  const retrier = async ({
+    step,
+    params,
+  }: {
+    step: STEPS
+    params: Record<string, any>
+  }) => {
+    setUpdating(true)
+
+    let retry_id = await getRetryId(id, params, step, () => {})
+
+    api_call_retry({
+      url: `/api/v1/setup_connection/fetch/${retry_id}`,
+      requestParams: { params: { id, step, ...params } } as AxiosRequestConfig,
+      onAPIError: (err: AxiosError) => {
+        create_toast_with_message(err.message, step)
+      },
+      onError: (err: Error) => {
+        create_toast_with_message(err.message, step)
+      },
+      onSuccess: (resp: AxiosResponse<Omit<STEP_RESPONSE, "data">>) => {
+        if (resp.data.success === "OK") {
+          updateSelected(step + 1)
         } else {
-          console.log(
-            `Retrying step ${step} at count ${retry_count} at time ${new Date()}`,
-          )
-          await step_increment_function_with_retry(
-            params,
-            step,
-            retry_count + 1,
-          )
+          create_toast_with_message(resp.data.message, step)
+          console.log(resp.data.error)
         }
       },
-      error => {
-        create_toast_with_message(error.message as string, step)
-        console.log(error)
+      onFinally: () => {
+        setUpdating(false)
       },
-      setUpdating,
-    )
+      shouldRetry: (resp: AxiosResponse<Omit<STEP_RESPONSE, "data">>) => {
+        return resp.data.success === "FETCHING"
+      },
+    })
   }
 
   let internals = (selectedIndex: STEPS): React.ReactElement => {
@@ -191,11 +213,7 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
           <GenericStepAWS
             id={id}
             complete={async params => {
-              await step_increment_function_with_retry(
-                params,
-                STEPS.INSTANCE_IP,
-                0,
-              )
+              await step_increment_function(params, STEPS.INSTANCE_IP)
             }}
             isCurrent={selectedIndex == selected}
           />
@@ -235,11 +253,7 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
           <GenericStepAWS
             id={id}
             complete={async params => {
-              await step_increment_function_with_retry(
-                params,
-                STEPS.TEST_SSH,
-                0,
-              )
+              await retrier({ step: STEPS.TEST_SSH, params })
             }}
             isCurrent={selectedIndex == selected}
           />
@@ -248,12 +262,8 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
         return (
           <GenericStepAWS
             id={id}
-            complete={async params => {
-              await step_increment_function_with_retry(
-                params,
-                STEPS.PUSH_FILES,
-                0,
-              )
+            complete={params => {
+              retrier({ step: STEPS.PUSH_FILES, params })
             }}
             isCurrent={selectedIndex == selected}
           />
@@ -262,13 +272,13 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
         return (
           <GenericStepAWS
             id={id}
-            complete={async params => {
-              await step_increment_function_with_retry(
-                params,
-                STEPS.EXEC_COMMAND,
-                0,
+            complete={params => {
+              retrier({ step: STEPS.EXEC_COMMAND, params }).then(() =>
+                toast({
+                  title: "Mirroring setup completed!",
+                  status: "success",
+                }),
               )
-              toast({ title: "Mirroring setup completed!", status: "success" })
             }}
             isCurrent={selectedIndex == selected}
           />
