@@ -87,7 +87,7 @@ app.put(
 app.get("/api/v1/specs", getSpecListHandler)
 app.get("/api/v1/spec/:specFileName", getSpecHandler)
 
-app.post("/api/v1/data-field/:fieldId/update-classes", updateDataFieldClasses)
+app.post("/api/v1/data-field/:dataFieldId/update-classes", updateDataFieldClasses)
 
 app.get("/api/v1/alerts", getAlertsHandler)
 app.get("/api/v1/topAlerts", getTopAlertsHandler)

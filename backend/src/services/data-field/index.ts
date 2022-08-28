@@ -22,6 +22,7 @@ export class DataFieldService {
     dataField.falsePositives = dataField.scannerIdentified.filter(
       e => !dataClasses.includes(e),
     )
+    dataField.dataTag = dataField.dataClasses.length > 0 ? DataTag.PII : null
     return await dataFieldRepository.save(dataField)
   }
 
