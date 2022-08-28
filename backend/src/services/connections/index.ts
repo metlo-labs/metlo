@@ -129,10 +129,24 @@ const update_connection_for_uuid = async ({
     console.error(`Error in List Connections service: ${err}`)
     throw new Error500InternalServer(err)
   }
-}
+};
+
+const delete_connection_for_uuid = async ({ uuid }) => {
+  try {
+    let resp = AppDataSource.createQueryBuilder()
+      .delete()
+      .where("uuid = :uuid", { uuid })
+      .execute();
+    return await resp;
+  } catch (err) {
+    console.error(`Error in Delete Connections service: ${err}`);
+    throw new Error500InternalServer(err);
+  }
+};
 export {
   save_connection,
   list_connections,
   get_connection_for_uuid,
   update_connection_for_uuid,
-}
+  delete_connection_for_uuid,
+};

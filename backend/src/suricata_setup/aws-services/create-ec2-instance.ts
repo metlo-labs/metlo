@@ -25,7 +25,9 @@ import {
   AuthorizeSecurityGroupIngressCommand,
   AuthorizeSecurityGroupIngressCommandInput,
   DescribeInstancesCommand,
-} from "@aws-sdk/client-ec2"
+  TerminateInstancesCommand,
+  DeleteKeyPairCommand,
+} from "@aws-sdk/client-ec2";
 
 import { STSClient, GetCallerIdentityCommand } from "@aws-sdk/client-sts"
 
@@ -436,5 +438,19 @@ export class EC2_CONN {
     } as RunInstancesCommandInput)
     const response = await this.get_conn().send(command)
     return [response, key]
+  }
+
+  public async delete_ec2_instance(instance_id: string) {
+    let conn = this.get_conn();
+    await conn.send(
+      new TerminateInstancesCommand({ InstanceIds: [instance_id] })
+    );
+    return true;
+  }
+  
+  public async delete_keypair(keypair_id: string) {
+    let conn = this.get_conn();
+    await conn.send(new DeleteKeyPairCommand({ KeyPairId: keypair_id }));
+    return true;
   }
 }

@@ -236,21 +236,22 @@ export interface TrafficFilterRuleSpecs {
 }
 
 export interface AWS_CONNECTION {
-  secret_access_key: string
-  access_id: string
-  source_instance_id: string
-  region: string
-  ami: string
-  selected_instance_type: string
-  mirror_instance_id: string
-  mirror_target_id: string
-  mirror_filter_id: string
-  mirror_session_id: string
-  mirror_rules: Array<TrafficFilterRuleSpecs>
-  keypair: string
-  destination_eni_id: string
-  backend_url: string
-  remote_machine_url: string
+  secret_access_key: string;
+  access_id: string;
+  source_instance_id: string;
+  region: string;
+  ami: string;
+  selected_instance_type: string;
+  mirror_instance_id: string;
+  mirror_target_id: string;
+  mirror_filter_id: string;
+  mirror_session_id: string;
+  mirror_rules: Array<TrafficFilterRuleSpecs>;
+  keypair: string;
+  destination_eni_id: string;
+  source_eni_id: string;
+  backend_url: string;
+  remote_machine_url: string;
 }
 
 export interface AWS_CONNECTION_MISC {

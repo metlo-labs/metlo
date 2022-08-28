@@ -36,15 +36,16 @@ export const setup_connection = async (
       status: "STARTED",
       id,
       type,
-      data: {},
-    }
+      data: { id },
+    };
   }
 
   let combined_params = {
     ...req.session.connection_config[id].data,
     ...params,
-  }
-  let resp = await setup(step, type, combined_params)
+    id: id,
+  };
+  let resp = await setup(step, type, combined_params);
   req.session.connection_config[id] = {
     ...req.session.connection_config[id],
     ...resp,

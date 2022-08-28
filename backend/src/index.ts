@@ -37,6 +37,7 @@ import {
 } from "./api/setup"
 import { getTest, listTests, runTestHandler, saveTest } from "./api/tests"
 import {
+  delete_connection,
   get_connection_for_uuid,
   get_ssh_key_for_connection_uuid,
   list_connections,
@@ -106,6 +107,7 @@ app.get(
   get_ssh_key_for_connection_uuid,
 )
 app.post("/api/v1/update_connection", update_connection)
+app.post("/api/v1/delete_connection/:uuid", delete_connection)
 app.post("/api/v1/test/run", runTestHandler)
 
 app.post("/api/v1/test/save", saveTest)

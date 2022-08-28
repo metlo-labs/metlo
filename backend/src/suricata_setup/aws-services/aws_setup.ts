@@ -4,7 +4,6 @@ import {
   DescribeInstancesCommandInput,
   EC2Client,
 } from "@aws-sdk/client-ec2"
-import { randomUUID } from "crypto"
 import { EC2_CONN } from "./create-ec2-instance"
 import { STSClient } from "@aws-sdk/client-sts"
 import {
@@ -13,7 +12,7 @@ import {
   create_mirror_session,
   create_mirror_target,
   delete_mirror_filter,
-} from "./create-mirror"
+} from "./mirroring"
 import {
   get_network_id_for_instance,
   get_public_ip_for_network_interface,
@@ -29,7 +28,7 @@ export async function aws_key_setup({
   secret_access_key,
   region,
   ...rest
-}): Promise<STEP_RESPONSE> {
+}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
   try {
     let client = new STSClient({
       credentials: {
@@ -67,7 +66,7 @@ export async function aws_key_setup({
       error: {
         err: err,
       },
-      data: {},
+      data: { ...rest },
     }
   }
 }
@@ -78,7 +77,7 @@ export async function aws_source_identification({
   source_instance_id,
   region: _region,
   ...rest
-}): Promise<STEP_RESPONSE> {
+}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
   try {
     let client = new EC2Client({
       credentials: {
@@ -108,6 +107,9 @@ export async function aws_source_identification({
         secret_access_key: secret_access_key,
         access_id: access_id,
         source_instance_id: source_instance_id,
+        source_eni_id:
+          resp.Reservations[0].Instances[0].NetworkInterfaces[0]
+            .NetworkInterfaceId,
         region: region.RegionName,
         ...rest,
       },
@@ -139,7 +141,7 @@ export async function aws_os_selection({
   ami,
   region,
   ...rest
-}): Promise<STEP_RESPONSE> {
+}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
   try {
     let conn = new EC2_CONN(access_id, secret_access_key, region)
     let resp = await conn.image_from_ami(ami)
@@ -192,7 +194,7 @@ export async function aws_instance_selection({
   selected_instance_type,
   ami,
   ...rest
-}): Promise<STEP_RESPONSE> {
+}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
   try {
     return {
       success: "OK",
@@ -243,15 +245,12 @@ export async function aws_instance_creation({
   region,
   ami,
   selected_instance_type,
+  id,
   ...rest
-}): Promise<STEP_RESPONSE> {
+}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
   try {
     let conn = new EC2_CONN(access_id, secret_access_key, region)
-    let resp = await conn.create_new_instance(
-      ami,
-      selected_instance_type,
-      randomUUID(),
-    )
+    let resp = await conn.create_new_instance(ami, selected_instance_type, id)
     conn.disconnect()
     return {
       success: "OK",
@@ -270,7 +269,9 @@ export async function aws_instance_creation({
         keypair: resp[1].KeyMaterial,
         destination_eni_id:
           resp[0].Instances[0].NetworkInterfaces[0].NetworkInterfaceId,
+        keypair_id: resp[1].KeyPairId,
         ami,
+        id,
         ...rest,
       },
     }
@@ -291,6 +292,7 @@ export async function aws_instance_creation({
         region,
         ami,
         selected_instance_type,
+        id,
         ...rest,
       },
     }
@@ -303,7 +305,7 @@ export async function get_public_ip({
   region,
   destination_eni_id,
   ...rest
-}): Promise<STEP_RESPONSE> {
+}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
   try {
     let client = new EC2Client({
       credentials: {
@@ -324,7 +326,7 @@ export async function get_public_ip({
       error: null,
       step_number: 6,
       next_step: 7,
-      last_completed: 5,
+      last_completed: 6,
       data: {
         secret_access_key: secret_access_key,
         access_id: access_id,
@@ -360,9 +362,10 @@ export async function aws_mirror_target_creation({
   access_id,
   secret_access_key,
   region,
-  source_instance_id,
+  source_eni_id,
+  id,
   ...rest
-}): Promise<STEP_RESPONSE> {
+}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
   try {
     let client = new EC2Client({
       credentials: {
@@ -371,11 +374,7 @@ export async function aws_mirror_target_creation({
       },
       region: region,
     })
-    let resp = await create_mirror_target(
-      client,
-      await get_network_id_for_instance(client, source_instance_id),
-      randomUUID(),
-    )
+    let resp = await create_mirror_target(client, source_eni_id, id)
     client.destroy()
     return {
       success: "OK",
@@ -389,8 +388,9 @@ export async function aws_mirror_target_creation({
         secret_access_key: secret_access_key,
         access_id: access_id,
         region,
-        source_instance_id,
+        source_eni_id,
         mirror_target_id: resp.TrafficMirrorTarget.TrafficMirrorTargetId,
+        id,
         ...rest,
       },
     }
@@ -401,7 +401,7 @@ export async function aws_mirror_target_creation({
       step_number: 7,
       next_step: 8,
       last_completed: 5,
-      message: `Couldn't create a mirror target out of ${source_instance_id}`,
+      message: `Couldn't create a mirror target out of ${source_eni_id}`,
       error: {
         err: err,
       },
@@ -409,7 +409,8 @@ export async function aws_mirror_target_creation({
         secret_access_key,
         access_id,
         region,
-        source_instance_id,
+        source_eni_id,
+        id,
         ...rest,
       },
     }
@@ -421,8 +422,9 @@ export async function aws_mirror_filter_creation({
   secret_access_key,
   region,
   mirror_rules,
+  id,
   ...rest
-}): Promise<STEP_RESPONSE> {
+}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
   let client = new EC2Client({
     credentials: {
       secretAccessKey: secret_access_key,
@@ -432,7 +434,7 @@ export async function aws_mirror_filter_creation({
   })
   let filter: CreateTrafficMirrorFilterCommandOutput
   try {
-    filter = await create_mirror_filter(client, randomUUID())
+    filter = await create_mirror_filter(client, id)
   } catch (err) {
     return {
       success: "FAIL",
@@ -449,6 +451,7 @@ export async function aws_mirror_filter_creation({
         access_id,
         region,
         mirror_rules,
+        id,
         ...rest,
       },
     }
@@ -456,7 +459,7 @@ export async function aws_mirror_filter_creation({
   try {
     let _ = await create_mirror_filter_rules(
       client,
-      randomUUID(),
+      id,
       mirror_rules,
       filter.TrafficMirrorFilter.TrafficMirrorFilterId,
     )
@@ -475,6 +478,7 @@ export async function aws_mirror_filter_creation({
         region,
         mirror_rules,
         mirror_filter_id: filter.TrafficMirrorFilter.TrafficMirrorFilterId,
+        id,
         ...rest,
       },
     }
@@ -482,7 +486,7 @@ export async function aws_mirror_filter_creation({
     await delete_mirror_filter(
       client,
       filter.TrafficMirrorFilter.TrafficMirrorFilterId,
-      randomUUID(),
+      id,
     )
     return {
       success: "FAIL",
@@ -499,6 +503,7 @@ export async function aws_mirror_filter_creation({
         access_id,
         region,
         mirror_rules,
+        id,
         ...rest,
       },
     }
@@ -512,8 +517,9 @@ export async function aws_mirror_session_creation({
   destination_eni_id,
   mirror_filter_id,
   mirror_target_id,
+  id,
   ...rest
-}): Promise<STEP_RESPONSE> {
+}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
   try {
     let client = new EC2Client({
       credentials: {
@@ -524,7 +530,7 @@ export async function aws_mirror_session_creation({
     })
     let resp = await create_mirror_session(
       client,
-      randomUUID(),
+      id,
       destination_eni_id,
       mirror_filter_id,
       mirror_target_id,
@@ -546,6 +552,7 @@ export async function aws_mirror_session_creation({
         mirror_filter_id,
         mirror_target_id,
         mirror_session_id: resp.TrafficMirrorSession.TrafficMirrorSessionId,
+        id,
         ...rest,
       },
     }
@@ -567,6 +574,7 @@ export async function aws_mirror_session_creation({
         destination_eni_id,
         mirror_filter_id,
         mirror_target_id,
+        id,
         ...rest,
       },
     }
