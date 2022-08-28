@@ -93,13 +93,17 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
         <Box w="full">
           <Accordion allowToggle={true}>
             <AccordionItem border="0" w="full">
-              <AccordionButton _hover={{ bg: "transparent" }} p="0">
-                <Box mr="4" fontWeight="semibold" textAlign="left">
+              <AccordionButton _hover={{ bg: "transparent" }} p="0" mb="3">
+                <AccordionIcon mr="3" />
+                <Box fontWeight="semibold" flex="1" textAlign="left">
                   Differing Trace
                 </Box>
-                <AccordionIcon />
               </AccordionButton>
-              <AccordionPanel>
+              <AccordionPanel
+                borderRadius={4}
+                borderWidth={1}
+                bg="var(--chakra-colors-chakra-body-bg)"
+              >
                 <VStack mb="4" h="full" w="full" alignItems="flex-start">
                   <Text fontWeight="semibold">Request Path</Text>
                   <Code rounded="md" p="2" fontSize="sm">
@@ -133,6 +137,7 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
                       minHeight: "100%",
                       maxHeight: "100%",
                       overflowY: "auto",
+                      background: "var(--chakra-colors-chakra-body-bg)",
                     }}
                   >
                     {tokens.map((line, i) => {
@@ -249,6 +254,7 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
             <VStack w="full" alignItems="flex-start">
               <Text fontWeight="semibold">Resolution Reason</Text>
               <Textarea
+                bg="var(--chakra-colors-chakra-body-bg)"
                 disabled={alert.status === Status.RESOLVED}
                 _disabled={{
                   opacity: 0.7,
