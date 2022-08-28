@@ -447,10 +447,12 @@ export class EC2_CONN {
     );
     return true;
   }
-  
-  public async delete_keypair(keypair_id: string) {
+
+  public async delete_keypair(keypair_id: string, key_name: string) {
     let conn = this.get_conn();
-    await conn.send(new DeleteKeyPairCommand({ KeyPairId: keypair_id }));
+    await conn.send(
+      new DeleteKeyPairCommand({ KeyPairId: keypair_id, KeyName: key_name })
+    );
     return true;
   }
 }

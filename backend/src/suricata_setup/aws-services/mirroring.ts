@@ -10,8 +10,12 @@ import {
   EC2Client,
   DeleteTrafficMirrorFilterCommand,
   DeleteTrafficMirrorFilterCommandInput,
+  DeleteTrafficMirrorTargetCommand,
+  DeleteTrafficMirrorTargetCommandInput,
+  DeleteTrafficMirrorSessionCommand,
+  DeleteTrafficMirrorSessionCommandInput,
 } from "@aws-sdk/client-ec2"
-import { createHash, randomUUID } from "crypto"
+import { randomUUID } from "crypto"
 import { TrafficFilterRuleSpecs } from "@common/types"
 
 export async function create_mirror_target(
@@ -32,6 +36,18 @@ export async function create_mirror_target(
   return await client.send(command)
 }
 
+export async function delete_mirror_target(
+  client: EC2Client,
+  target_id: string,
+  unique_id: string,
+) {
+  let command = new DeleteTrafficMirrorTargetCommand({
+    ClientToken: unique_id,
+    TrafficMirrorTargetId: target_id,
+  } as DeleteTrafficMirrorTargetCommandInput)
+  return await client.send(command)
+}
+
 export async function create_mirror_filter(
   client: EC2Client,
   unique_id: string,
@@ -45,6 +61,18 @@ export async function create_mirror_filter(
       },
     ],
   } as CreateTrafficMirrorFilterCommandInput)
+  return await client.send(command)
+}
+
+export async function delete_mirror_filter(
+  client: EC2Client,
+  filter_id: string,
+  unique_id: string,
+) {
+  let command = new DeleteTrafficMirrorFilterCommand({
+    ClientToken: unique_id,
+    TrafficMirrorFilterId: filter_id,
+  } as DeleteTrafficMirrorFilterCommandInput)
   return await client.send(command)
 }
 
@@ -101,14 +129,14 @@ export async function create_mirror_session(
   return await client.send(command)
 }
 
-export async function delete_mirror_filter(
+export async function delete_mirror_session(
   client: EC2Client,
-  filter_id: string,
+  session_id: string,
   unique_id: string,
 ) {
-  let command = new DeleteTrafficMirrorFilterCommand({
+  let command = new DeleteTrafficMirrorSessionCommand({
     ClientToken: unique_id,
-    TrafficMirrorFilterId: filter_id,
-  } as DeleteTrafficMirrorFilterCommandInput)
+    TrafficMirrorSessionId: session_id,
+  } as DeleteTrafficMirrorSessionCommandInput)
   return await client.send(command)
 }

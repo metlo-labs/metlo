@@ -203,16 +203,16 @@ export interface Usage {
 }
 
 export interface STEP_RESPONSE {
-  success: "OK" | "FAIL"
-  status: "STARTED" | "COMPLETE" | "IN-PROGRESS"
-  next_step: STEPS
-  step_number: STEPS
-  last_completed: STEPS
-  message: string
+  success: "OK" | "FAIL" | "FETCHING";
+  status: "STARTED" | "COMPLETE" | "IN-PROGRESS";
+  next_step: STEPS;
+  step_number: STEPS;
+  last_completed: STEPS;
+  message: string;
   error?: {
-    err: string
-  }
-  data: Partial<AWS_CONNECTION & AWS_CONNECTION_MISC>
+    err: string;
+  };
+  data: CONNECTIONS_BASE & Partial<AWS_CONNECTION & AWS_CONNECTION_MISC>;
   returns?: {
     os_types?: [{ name: string; ami: string }]
     instance_types?: string[]
@@ -235,6 +235,10 @@ export interface TrafficFilterRuleSpecs {
   direction: "out" | "in"
 }
 
+export interface CONNECTIONS_BASE {
+  id: string;
+}
+
 export interface AWS_CONNECTION {
   secret_access_key: string;
   access_id: string;
@@ -252,6 +256,8 @@ export interface AWS_CONNECTION {
   source_eni_id: string;
   backend_url: string;
   remote_machine_url: string;
+  keypair_id: string;
+  keypair_name: string;
 }
 
 export interface AWS_CONNECTION_MISC {

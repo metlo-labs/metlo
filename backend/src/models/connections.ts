@@ -60,7 +60,7 @@ export class Connections extends BaseEntity {
       // Encrypt AWS access id
       let access_id_iv = generate_iv()
       let { encrypted: encrypted_access_id, tag: tag_access_id } = encrypt(
-        this.aws.secret_access_key,
+        this.aws.access_id,
         encryptionKey,
         access_id_iv,
       )

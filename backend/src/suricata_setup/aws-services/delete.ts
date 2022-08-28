@@ -50,7 +50,7 @@ export async function delete_aws_data(aws: STEP_RESPONSE["data"]) {
   }
   // Delete EC2 Keypair
   try {
-    await conn.delete_keypair(aws.keypair_id);
+    await conn.delete_keypair(aws.keypair_id, aws.keypair_name);
   } catch (err) {
     throw new Error(`Couldn't delete EC2 Keyapair ${aws.keypair}`);
   }

@@ -85,12 +85,12 @@ const delete_connection = async (req: Request, res: Response) => {
     connection.aws.secret_access_key = secret_access_key;
 
     let resp = await delete_connection_request(connection.connectionType, {
-      ...connection,
+      ...connection.aws,
       id: connection.uuid,
     });
     await delete_connection_for_uuid({ uuid: connection.uuid });
 
-    await ApiResponseHandler.success(res, resp);
+    await ApiResponseHandler.success(res, "resp");
   } catch (err) {
     await ApiResponseHandler.error(res, err);
   }

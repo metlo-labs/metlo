@@ -270,6 +270,7 @@ export async function aws_instance_creation({
         destination_eni_id:
           resp[0].Instances[0].NetworkInterfaces[0].NetworkInterfaceId,
         keypair_id: resp[1].KeyPairId,
+        keypair_name: resp[1].KeyName,
         ami,
         id,
         ...rest,
@@ -362,7 +363,7 @@ export async function aws_mirror_target_creation({
   access_id,
   secret_access_key,
   region,
-  source_eni_id,
+  destination_eni_id,
   id,
   ...rest
 }: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
@@ -373,9 +374,9 @@ export async function aws_mirror_target_creation({
         accessKeyId: access_id,
       },
       region: region,
-    })
-    let resp = await create_mirror_target(client, source_eni_id, id)
-    client.destroy()
+    });
+    let resp = await create_mirror_target(client, destination_eni_id, id);
+    client.destroy();
     return {
       success: "OK",
       status: "IN-PROGRESS",
@@ -388,7 +389,7 @@ export async function aws_mirror_target_creation({
         secret_access_key: secret_access_key,
         access_id: access_id,
         region,
-        source_eni_id,
+        destination_eni_id,
         mirror_target_id: resp.TrafficMirrorTarget.TrafficMirrorTargetId,
         id,
         ...rest,
@@ -401,7 +402,7 @@ export async function aws_mirror_target_creation({
       step_number: 7,
       next_step: 8,
       last_completed: 5,
-      message: `Couldn't create a mirror target out of ${source_eni_id}`,
+      message: `Couldn't create a mirror target out of ${destination_eni_id}`,
       error: {
         err: err,
       },
@@ -409,7 +410,7 @@ export async function aws_mirror_target_creation({
         secret_access_key,
         access_id,
         region,
-        source_eni_id,
+        destination_eni_id,
         id,
         ...rest,
       },
@@ -514,7 +515,7 @@ export async function aws_mirror_session_creation({
   access_id,
   secret_access_key,
   region,
-  destination_eni_id,
+  source_eni_id,
   mirror_filter_id,
   mirror_target_id,
   id,
@@ -531,7 +532,7 @@ export async function aws_mirror_session_creation({
     let resp = await create_mirror_session(
       client,
       id,
-      destination_eni_id,
+      source_eni_id,
       mirror_filter_id,
       mirror_target_id,
     )
@@ -548,7 +549,7 @@ export async function aws_mirror_session_creation({
         secret_access_key: secret_access_key,
         access_id: access_id,
         region,
-        destination_eni_id,
+        source_eni_id,
         mirror_filter_id,
         mirror_target_id,
         mirror_session_id: resp.TrafficMirrorSession.TrafficMirrorSessionId,
@@ -563,7 +564,7 @@ export async function aws_mirror_session_creation({
       step_number: 9,
       next_step: 10,
       last_completed: 8,
-      message: `Couldn't create a mirror session targeting ${destination_eni_id}`,
+      message: `Couldn't create a mirror session targeting ${source_eni_id}`,
       error: {
         err: err,
       },
@@ -571,7 +572,7 @@ export async function aws_mirror_session_creation({
         access_id,
         secret_access_key,
         region,
-        destination_eni_id,
+        source_eni_id,
         mirror_filter_id,
         mirror_target_id,
         id,

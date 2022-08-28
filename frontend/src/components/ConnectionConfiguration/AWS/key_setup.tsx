@@ -21,7 +21,7 @@ const KeySetup: React.FC<KeySetupInterface> = ({ complete, name, setName }) => {
       pr={4}
     >
       <GridItem colSpan={1}>
-        <Box>Name</Box>
+        <Box>Connection Name</Box>
       </GridItem>
       <GridItem colSpan={2}>
         <Box>
