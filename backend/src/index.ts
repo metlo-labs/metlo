@@ -26,7 +26,7 @@ import {
   getTopAlertsHandler,
   resolveAlertHandler,
 } from "api/alert"
-import { ignoreDataClassHandler } from "api/data-field"
+import { updateDataFieldClasses } from "api/data-field"
 import { getSummaryHandler } from "api/summary"
 import { AppDataSource } from "data-source"
 import { MulterSource } from "multer-source"
@@ -87,7 +87,7 @@ app.put(
 app.get("/api/v1/specs", getSpecListHandler)
 app.get("/api/v1/spec/:specFileName", getSpecHandler)
 
-app.put("/api/v1/data-field/:fieldId/ignore", ignoreDataClassHandler)
+app.post("/api/v1/data-field/:fieldId/update-classes", updateDataFieldClasses)
 
 app.get("/api/v1/alerts", getAlertsHandler)
 app.get("/api/v1/topAlerts", getTopAlertsHandler)

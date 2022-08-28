@@ -16,10 +16,9 @@ import {
   getMaxRiskScoreFromList,
   getRiskScores,
 } from "utils"
-import { ignoreDataClass } from "api/dataFields"
+import { updateDataFieldClasses } from "api/dataFields"
 import { DataClass, RiskScore } from "@common/enums"
-import { DataClassComponent } from "./DataClass"
-import EmptyView from "components/utils/EmptyView"
+import { DataFieldTagList } from "./DataFieldTags"
 
 interface DataFieldDetailProps {
   dataField: DataField
@@ -44,39 +43,27 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
       )
     }, [currDataField])
 
-    const handleIgnoreClick = async (ignoredDataClass: DataClass) => {
+    const handleUpdateTags = async (newTags: DataClass[]) => {
       setUpdating(true)
-      const resp: DataField = await ignoreDataClass(currDataField.uuid, {
-        dataClass: ignoredDataClass,
+      return updateDataFieldClasses(currDataField.uuid, {
+        dataClasses: newTags,
         dataPath: currDataField.dataPath,
         dataSection: currDataField.dataSection,
       })
-      if (resp) {
-        toast({
-          title: `Ignored Data Class ${ignoredDataClass}`,
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-          position: "top",
+        .then(resp => {
+          setCurrDataField(resp)
+          setdataFieldList(
+            dataFieldList.map(e => (e.uuid == resp.uuid ? resp : e)),
+          )
+          return resp
         })
-        const tempFieldList = [...dataFieldList]
-        for (let i = 0; i < tempFieldList.length; i++) {
-          if (tempFieldList[i].uuid === resp.uuid) {
-            tempFieldList[i] = resp
-          }
-        }
-        setCurrDataField(resp)
-        setdataFieldList([...tempFieldList])
-      } else {
-        toast({
-          title: `Ignoring Data Class ${ignoredDataClass} failed...`,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-          position: "top",
+        .catch(e => {
+          toast({
+            title: "Data Class Update failed...",
+            status: "error",
+          })
         })
-      }
-      setUpdating(false)
+        .finally(() => setUpdating(false))
     }
 
     return (
@@ -139,23 +126,15 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
             </GridItem>
           )}
         </Grid>
-        <VStack w="full" pt="4" spacing="4">
+        <VStack w="full" pt="4" spacing="4" alignItems="flex-start">
           <Text w="full" fontWeight="semibold">
             Sensitive Data Classes
           </Text>
-          {currDataField.dataClasses?.length > 0 ? (
-            currDataField.dataClasses.map(dataClass => (
-              <DataClassComponent
-                key={dataClass}
-                dataClass={dataClass}
-                matches={currDataField.matches[dataClass]}
-                handleIgnoreClick={handleIgnoreClick}
-                updating={updating}
-              />
-            ))
-          ) : (
-            <EmptyView text="No sensitive data detected." />
-          )}
+          <DataFieldTagList
+            tags={currDataField.dataClasses}
+            updateTags={handleUpdateTags}
+            updating={updating}
+          />
         </VStack>
       </Box>
     )

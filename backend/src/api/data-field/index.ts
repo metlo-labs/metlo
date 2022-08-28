@@ -1,18 +1,19 @@
 import { Request, Response } from "express"
 import { DataFieldService } from "services/data-field"
-import { IgnoreDataClassParams } from "@common/types"
+import { UpdateDataFieldClassesParams } from "@common/types"
 import ApiResponseHandler from "api-response-handler"
 import Error400BadRequest from "errors/error-400-bad-request"
 import { GetEndpointsService } from "services/get-endpoints"
 
-export const ignoreDataClassHandler = async (
+export const updateDataFieldClasses = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
   try {
     const { dataFieldId } = req.params
-    const { dataClass, dataPath, dataSection }: IgnoreDataClassParams = req.body
-    if (!dataClass) {
+    const { dataClasses, dataPath, dataSection }: UpdateDataFieldClassesParams =
+      req.body
+    if (!dataClasses) {
       throw new Error400BadRequest("No data class provided.")
     }
     if (!dataPath) {
@@ -21,9 +22,9 @@ export const ignoreDataClassHandler = async (
     if (!dataSection) {
       throw new Error400BadRequest("No data section provided.")
     }
-    const updatedDataField = await DataFieldService.ignoreDataClass(
+    const updatedDataField = await DataFieldService.updateDataClasses(
       dataFieldId,
-      dataClass,
+      dataClasses,
       dataPath,
       dataSection,
     )

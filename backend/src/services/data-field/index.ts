@@ -4,12 +4,11 @@ import { ApiEndpoint, ApiTrace, DataField } from "models"
 import { getDataType, getRiskScore, parsedJson } from "utils"
 import { ScannerService } from "services/scanner/scan"
 import { AppDataSource } from "data-source"
-import Error500InternalServer from "errors/error-500-internal-server"
 
 export class DataFieldService {
-  static async ignoreDataClass(
+  static async updateDataClasses(
     dataFieldId: string,
-    dataClass: DataClass,
+    dataClasses: DataClass[],
     dataPath: string,
     dataSection: DataSection,
   ) {
@@ -19,23 +18,10 @@ export class DataFieldService {
       dataPath,
       dataSection,
     })
-
-    const dataClasses = dataField.dataClasses
-    const scannerIdentified = dataField.scannerIdentified
-    if (!dataClasses.includes(dataClass)) {
-      throw new Error500InternalServer(
-        "Data class does not exist for data field",
-      )
-    }
-
-    if (scannerIdentified.includes(dataClass)) {
-      dataField.falsePositives.push(dataClass)
-    }
-    dataField.dataClasses = dataClasses.filter((item) => item !== dataClass)
-    dataField.scannerIdentified = scannerIdentified.filter((item) => item !== dataClass)
-    if (dataField.dataClasses.length === 0) {
-      dataField.dataTag = null
-    }
+    dataField.dataClasses = dataClasses
+    dataField.falsePositives = dataField.scannerIdentified.filter(
+      e => !dataClasses.includes(e),
+    )
     return await dataFieldRepository.save(dataField)
   }
 

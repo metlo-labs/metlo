@@ -13,9 +13,7 @@ interface TagListProps {
 export const TagList: React.FC<TagListProps> = React.memo(
   ({ allTags, tags, updateTags }) => {
     const [editing, setEditing] = useState(false)
-    console.log(editing)
     if (editing) {
-      console.log("hello!")
       return (
         <HStack>
           <Box w="lg">

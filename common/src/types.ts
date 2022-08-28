@@ -79,8 +79,8 @@ export interface GetAlertParams {
   limit?: number
 }
 
-export interface IgnoreDataClassParams {
-  dataClass: DataClass
+export interface UpdateDataFieldClassesParams {
+  dataClasses: DataClass[]
   dataSection: DataSection
   dataPath: string
 }
