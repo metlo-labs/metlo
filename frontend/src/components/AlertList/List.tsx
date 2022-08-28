@@ -13,6 +13,7 @@ import {
 } from "components/utils/TableUtils"
 import { Alert, ApiEndpoint } from "@common/types"
 import { getDateTimeString } from "utils"
+import { Status } from "@common/enums"
 
 const PAGE_SIZE = 10
 
@@ -64,7 +65,7 @@ const TableLoader: React.FC<TableLoaderProps> = ({
     },
     {
       name: "Resolved",
-      selector: (row: Alert) => row.resolved,
+      selector: (row: Alert) => row.status === Status.RESOLVED,
       id: "resolved",
       grow: 0,
     },
@@ -186,10 +187,10 @@ const List: React.FC<AlertTablesProps> = React.memo(
       {
         name: "Resolved",
         sortable: true,
-        selector: (row: Alert) => row.resolved,
+        selector: (row: Alert) => row.status === Status.RESOLVED,
         cell: (row: Alert) => (
           <Box data-tag="allowRowEvents" alignItems={"end"}>
-            {row.resolved ? (
+            {row.status === Status.RESOLVED ? (
               <ImCheckmark color="#93DCAC" />
             ) : (
               <ImCross color="#FDB2B2" />

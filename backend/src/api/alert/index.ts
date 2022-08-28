@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import { AlertService } from "services/alert"
-import { GetAlertParams } from "@common/types"
+import { GetAlertParams, UpdateAlertParams } from "@common/types"
 import ApiResponseHandler from "api-response-handler"
 
 export const getAlertsHandler = async (
@@ -16,18 +16,15 @@ export const getAlertsHandler = async (
   }
 }
 
-export const resolveAlertHandler = async (
+export const updateAlertHandler = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
   try {
     const { alertId } = req.params
-    const { resolutionMessage } = req.body
-    const resolvedAlert = await AlertService.resolveAlert(
-      alertId,
-      resolutionMessage,
-    )
-    await ApiResponseHandler.success(res, resolvedAlert)
+    const updateAlertParams: UpdateAlertParams = req.body
+    const updatedAlert = await AlertService.updateAlert(alertId, updateAlertParams)
+    await ApiResponseHandler.success(res, updatedAlert)
   } catch (err) {
     await ApiResponseHandler.error(res, err)
   }

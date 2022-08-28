@@ -1,5 +1,5 @@
 import axios from "axios"
-import { GetAlertParams, Alert } from "@common/types"
+import { GetAlertParams, Alert, UpdateAlertParams } from "@common/types"
 import { getAPIURL } from "~/constants"
 
 export const getAlerts = async (
@@ -34,6 +34,25 @@ export const resolveAlert = async (
     return null
   } catch (err) {
     console.error(`Error resolving alert: ${err}`)
+    return null
+  }
+}
+
+export const updateAlert = async (
+  alertId: string,
+  updateAlertParams: UpdateAlertParams,
+) => {
+  try {
+    const resp = await axios.put<Alert>(
+      `${getAPIURL()}/alert/${alertId}`,
+      updateAlertParams
+    )
+    if (resp.status === 200 && resp.data) {
+      return resp.data
+    }
+    return null
+  } catch (err) {
+    console.error(`Error updating alert: ${err}`)
     return null
   }
 }

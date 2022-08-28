@@ -1,58 +1,147 @@
-import { FindOptionsWhere } from "typeorm"
+import { FindOptionsWhere, FindManyOptions, In, FindOptionsOrder, Not } from "typeorm"
 import { AppDataSource } from "data-source"
 import { Alert, ApiEndpoint, ApiTrace } from "models"
-import { AlertType } from "@common/enums"
-import { ALERT_TYPE_TO_RISK_SCORE, RISK_SCORE_ORDER_QUERY } from "~/constants"
-import { GetAlertParams, Alert as AlertResponse } from "@common/types"
+import { AlertType, SpecExtension, Status, UpdateAlertType } from "@common/enums"
+import { ALERT_TYPE_TO_RISK_SCORE } from "~/constants"
+import { GetAlertParams, Alert as AlertResponse, UpdateAlertParams } from "@common/types"
+import Error409Conflict from "errors/error-409-conflict"
+import Error500InternalServer from "errors/error-500-internal-server"
 
 export class AlertService {
+  static async updateAlert(
+    alertId: string,
+    updateAlertParams: UpdateAlertParams
+  ): Promise<Alert> {
+    const alertRepository = AppDataSource.getRepository(Alert)
+    const alert = await alertRepository.findOne({
+      where: {
+        uuid: alertId,
+      },
+      relations: {
+        apiEndpoint: true,
+      }
+    })
+    switch (updateAlertParams.updateType) {
+      case UpdateAlertType.IGNORE:
+        if (alert.status === Status.IGNORED) {
+          throw new Error409Conflict("Alert is already being ignored.")
+        } else if (alert.status === Status.RESOLVED) {
+          throw new Error409Conflict("Alert is resolved and cannot be ignored.")
+        }
+        alert.status = Status.IGNORED
+        break
+      case UpdateAlertType.UNIGNORE:
+        if (alert.status !== Status.IGNORED) {
+          throw new Error409Conflict("Alert is currently not ignored.")
+        }
+        alert.status = Status.OPEN
+        break
+      case UpdateAlertType.RESOLVE:
+        if (alert.status === Status.RESOLVED) {
+          throw new Error409Conflict("Alert is already resolved.")
+        } else if (alert.status === Status.IGNORED) {
+          throw new Error409Conflict("Alert is ignored and cannot be resolved.")
+        }
+        alert.status = Status.RESOLVED
+        alert.resolutionMessage = updateAlertParams.resolutionMessage?.trim() || null
+        break
+      case UpdateAlertType.UNRESOLVE:
+        if (alert.status !== Status.RESOLVED) {
+          throw new Error409Conflict("Alert is currently not resolved.")
+        }
+        alert.status = Status.OPEN
+        break
+      default:
+        throw new Error500InternalServer("Unknown update type.")
+    }
+    return await alertRepository.save(alert)
+  }
+
   static async getAlerts(
     alertParams: GetAlertParams,
   ): Promise<[AlertResponse[], number]> {
     const alertRepository = AppDataSource.getRepository(Alert)
+    let whereConditions: FindOptionsWhere<Alert>[] | FindOptionsWhere<Alert> = {};
+    let paginationParams: FindManyOptions<Alert> = {};
+    let orderParams: FindOptionsOrder<Alert> = {};
 
-    let alertsQb = alertRepository
-      .createQueryBuilder("alert")
-      .leftJoinAndSelect("alert.apiEndpoint", "apiEndpoint")
-
+    if (alertParams?.apiEndpointUuid) {
+      whereConditions = {
+        ...whereConditions,
+        apiEndpointUuid: alertParams.apiEndpointUuid
+      }
+    }
     if (alertParams?.alertTypes) {
-      alertsQb = alertsQb.where("alert.type IN (:...types)", {
-        types: alertParams.alertTypes,
-      })
+      whereConditions = {
+        ...whereConditions,
+        type: In(alertParams.alertTypes),
+      }
     }
     if (alertParams?.riskScores) {
-      alertsQb = alertsQb.andWhere("alert.riskScore IN (:...scores)", {
-        scores: alertParams.riskScores,
-      })
+      whereConditions = {
+        ...whereConditions,
+        riskScore: In(alertParams.riskScores),
+      }
     }
-    if (alertParams?.resolved) {
-      alertsQb = alertsQb.andWhere("alert.resolved = :resolved", {
-        resolved: alertParams.resolved,
-      })
+    if (alertParams?.status) {
+      whereConditions = {
+        ...whereConditions,
+        status: In(alertParams.status)
+      }
     }
-    alertsQb = alertsQb
-      .orderBy(RISK_SCORE_ORDER_QUERY("alert", "riskScore"), "DESC")
-      .addOrderBy("alert.createdAt", "DESC")
     if (alertParams?.offset) {
-      alertsQb = alertsQb.offset(alertParams.offset)
+      paginationParams = {
+        ...paginationParams,
+        skip: alertParams.offset,
+      }
     }
     if (alertParams?.limit) {
-      alertsQb = alertsQb.limit(alertParams.limit)
+      paginationParams = {
+        ...paginationParams,
+        take: alertParams.limit,
+      }
+    }
+    if (alertParams?.order) {
+      orderParams = {
+        riskScore: alertParams.order
+      }
+    } else {
+      orderParams = {
+        riskScore: "DESC"
+      }
     }
 
-    return await alertsQb.getManyAndCount()
+    const alerts = await alertRepository.findAndCount({
+      where: whereConditions,
+      ...paginationParams,
+      relations: {
+        apiEndpoint: true,
+      },
+      order: {
+        status: "ASC",
+        ...orderParams,
+        createdAt: "DESC",
+      },
+    });
+
+    return alerts;
   }
 
   static async getTopAlerts(): Promise<AlertResponse[]> {
     const alertRepository = AppDataSource.getRepository(Alert)
-    return await alertRepository
-      .createQueryBuilder("alert")
-      .leftJoinAndSelect("alert.apiEndpoint", "apiEndpoint")
-      .where("alert.resolved = false")
-      .orderBy(RISK_SCORE_ORDER_QUERY("alert", "riskScore"), "DESC")
-      .addOrderBy("alert.createdAt", "DESC")
-      .limit(20)
-      .getMany()
+    return await alertRepository.find({ 
+      where: {
+        status: Status.OPEN
+      },
+      relations: {
+        apiEndpoint: true
+      },
+      order: {
+        riskScore: "DESC",
+        createdAt: "DESC"
+      },
+      take: 20
+    });
   }
 
   static async getAlert(alertId: string): Promise<AlertResponse> {
@@ -76,7 +165,7 @@ export class AlertService {
     return await alertRepository.findOneBy({
       apiEndpointUuid,
       type,
-      resolved: false,
+      status: Not(Status.RESOLVED),
       description,
     })
   }
@@ -128,6 +217,8 @@ export class AlertService {
     alertItems: Record<string, string[]>,
     apiEndpointUuid: string,
     apiTrace: ApiTrace,
+    specString: string,
+    specExtension: SpecExtension,
   ): Promise<Alert[]> {
     if (!alertItems) {
       return []
@@ -151,6 +242,8 @@ export class AlertService {
         newAlert.context = {
           pathPointer: alertItems[key],
           trace: apiTrace,
+          spec: specString,
+          specExtension,
         }
         newAlert.description = key
         alerts.push(newAlert)
@@ -165,7 +258,7 @@ export class AlertService {
   ): Promise<Alert> {
     const alertRepository = AppDataSource.getRepository(Alert)
     const existingAlert = await alertRepository.findOneBy({ uuid: alertId })
-    existingAlert.resolved = true
+    existingAlert.status = Status.RESOLVED
     existingAlert.resolutionMessage = resolutionMessage || ""
     return await alertRepository.save(existingAlert)
   }

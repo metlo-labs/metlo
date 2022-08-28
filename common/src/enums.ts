@@ -97,3 +97,16 @@ export enum TestTags {
   MASS_ASSIGNMENT = "Mass Assignment",
   SECURITY_MISCONFIGURATION = "Security Misconfiguration",
 }
+
+export enum Status {
+  RESOLVED = "Resolved",
+  IGNORED = "Ignored",
+  OPEN = "Open",
+}
+
+export enum UpdateAlertType {
+  RESOLVE = "resolve",
+  UNRESOLVE = "unresolve",
+  IGNORE = "ignore",
+  UNIGNORE = "unignore",
+}

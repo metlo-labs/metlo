@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm"
-import { AlertType, RiskScore } from "@common/enums"
+import { AlertType, RiskScore, Status } from "@common/enums"
 import { ApiEndpoint } from "models/api-endpoint"
 
 @Entity()
@@ -36,8 +36,8 @@ export class Alert extends BaseEntity {
   @UpdateDateColumn({ type: "timestamptz" })
   updatedAt: Date
 
-  @Column({ type: "boolean", default: false })
-  resolved: boolean
+  @Column({ type: "enum", enum: Status, default: Status.OPEN })
+  status: Status
 
   @Column({ nullable: true })
   resolutionMessage: string

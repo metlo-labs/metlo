@@ -16,7 +16,7 @@ import EndpointUsageChart from "./UsageChart"
 import { RISK_TO_COLOR } from "~/constants"
 import EndpointPIIChart from "./PIIChart"
 import { getDateTimeString } from "utils"
-import { DataTag } from "@common/enums"
+import { DataTag, Status } from "@common/enums"
 
 interface EndpointOverviewProps {
   endpoint: ApiEndpointDetailed
@@ -62,8 +62,8 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
               <DataAttribute>{piiFields.length}</DataAttribute>
             </GridItem>
             <GridItem>
-              <DataHeading>Alerts</DataHeading>
-              <DataAttribute>{endpoint.alerts.length}</DataAttribute>
+              <DataHeading>Open Alerts</DataHeading>
+              <DataAttribute>{endpoint.alerts.filter((e) => e.status === Status.OPEN).length}</DataAttribute>
             </GridItem>
             <GridItem>
               <DataHeading>First Detected</DataHeading>

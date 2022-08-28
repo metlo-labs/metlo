@@ -10,7 +10,9 @@ import {
   RestMethod,
   RiskScore,
   SpecExtension,
+  Status,
   STEPS,
+  UpdateAlertType,
 } from "./enums"
 import "axios"
 
@@ -72,11 +74,13 @@ export interface GetEndpointParams {
 }
 
 export interface GetAlertParams {
+  apiEndpointUuid?: string
   riskScores?: RiskScore[]
-  resolved?: boolean
+  status?: Status[]
   alertTypes?: AlertType[]
   offset?: number
   limit?: number
+  order?: "DESC" | "ASC"
 }
 
 export interface UpdateDataFieldClassesParams {
@@ -87,6 +91,11 @@ export interface UpdateDataFieldClassesParams {
 
 export interface UpdateDataFieldParams {
   isRisk: boolean
+}
+
+export interface UpdateAlertParams {
+  updateType: UpdateAlertType
+  resolutionMessage?: string
 }
 
 export type JSONValue =
@@ -121,7 +130,7 @@ export interface Alert {
   description: string
   createdAt: Date
   updatedAt: Date
-  resolved: boolean
+  status: Status
   resolutionMessage: string
   context: object
 }

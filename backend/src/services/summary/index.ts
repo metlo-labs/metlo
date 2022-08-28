@@ -1,4 +1,4 @@
-import { DataTag, RiskScore } from "@common/enums"
+import { DataTag, RiskScore, Status } from "@common/enums"
 import { Alert, ApiEndpoint, DataField } from "models"
 import { AppDataSource } from "data-source"
 import { Summary as SummaryResponse } from "@common/types"
@@ -10,9 +10,9 @@ export class SummaryService {
     const dataFieldRepository = AppDataSource.getRepository(DataField)
     const highRiskAlerts = await alertRepository.countBy({
       riskScore: RiskScore.HIGH,
-      resolved: false,
+      status: Status.OPEN,
     })
-    const newAlerts = await alertRepository.countBy({ resolved: false })
+    const newAlerts = await alertRepository.countBy({ status: Status.OPEN })
     const endpointsTracked = await apiEndpointRepository.count({})
     const piiDataFields = await dataFieldRepository.countBy({
       dataTag: DataTag.PII,

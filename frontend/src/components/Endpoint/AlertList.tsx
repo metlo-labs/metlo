@@ -20,7 +20,7 @@ import { Alert } from "@common/types"
 import { METHOD_TO_COLOR, RISK_TO_COLOR } from "~/constants"
 import { getDateTimeString } from "utils"
 import AlertDetail from "./AlertDetail"
-import { RestMethod } from "@common/enums"
+import { RestMethod, Status } from "@common/enums"
 import EmptyView from "components/utils/EmptyView"
 
 interface AlertListProps {
@@ -161,10 +161,10 @@ const AlertList: React.FC<AlertListProps> = React.memo(
       columns.push({
         name: "Resolved",
         sortable: true,
-        selector: (row: Alert) => row.resolved,
+        selector: (row: Alert) => row.status === Status.RESOLVED,
         cell: (row: Alert) => (
           <Box data-tag="allowRowEvents" alignItems={"end"}>
-            {row.resolved ? (
+            {row.status === Status.RESOLVED ? (
               <ImCheckmark color="#93DCAC" />
             ) : (
               <ImCross color="#FDB2B2" />

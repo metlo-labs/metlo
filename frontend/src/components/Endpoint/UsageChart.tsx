@@ -1,4 +1,5 @@
 import React from "react"
+import { useMediaQuery } from "@chakra-ui/react"
 import {
   Chart as ChartJS,
   LinearScale,
@@ -23,47 +24,52 @@ ChartJS.register(
   Legend,
 )
 
-export const options = {
-  responsive: true,
-  plugins: {
-    legend: {
-      display: false,
-    },
-  },
-  scales: {
-    x: {
-      type: "timeseries",
-      grid: {
-        display: false,
-      },
-      time: {
-        unit: "day",
-        tooltipFormat: "yyyy-MM-dd h:mm a",
-        displayFormats: {
-          millisecond: "h:mm a",
-          second: "h:mm a",
-          minute: "h a",
-          hour: "h a",
-        },
-      },
-    },
-    y: {
-      grid: {
-        display: false,
-      },
-      ticks: {
-        precision: 0,
-      },
-    },
-  },
-}
-
 interface EndpointUsageChartProps {
   usage: Usage[]
 }
 
 const EndpointUsageChart: React.FC<EndpointUsageChartProps> = React.memo(
   ({ usage }) => {
+    const [isLargerThan440] = useMediaQuery("(min-width: 440px)")
+    let options = {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: false,
+        },
+      },
+      scales: {
+        x: {
+          type: "timeseries",
+          grid: {
+            display: false,
+          },
+          ticks: {
+            source: "labels",
+            autoSkip: true,
+            maxTicksLimit: isLargerThan440 ? 13 : 4
+          },
+          time: {
+            unit: "day",
+            tooltipFormat: "yyyy-MM-dd h:mm a",
+            displayFormats: {
+              millisecond: "h:mm a",
+              second: "h:mm a",
+              minute: "h a",
+              hour: "h a",
+            },
+          },
+        },
+        y: {
+          grid: {
+            display: false,
+          },
+          ticks: {
+            precision: 0,
+          },
+        },
+      },
+    }
     let labels = []
     let datasets = [
       {

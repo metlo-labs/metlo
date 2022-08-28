@@ -1,4 +1,4 @@
-import { RiskScore, DataClass, DataTag } from "@common/enums"
+import { RiskScore, DataClass, DataTag, Status } from "@common/enums"
 
 export const METHOD_TO_COLOR = {
   GET: "green",
@@ -10,6 +10,12 @@ export const RISK_TO_COLOR = {
   [RiskScore.LOW]: "gray",
   [RiskScore.MEDIUM]: "orange",
   [RiskScore.HIGH]: "red",
+}
+
+export const STATUS_TO_COLOR = {
+  [Status.RESOLVED]: "green",
+  [Status.IGNORED]: "gray",
+  [Status.OPEN]: "blue",
 }
 
 export const TAG_TO_COLOR = {

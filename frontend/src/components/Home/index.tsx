@@ -1,9 +1,11 @@
-import React from "react"
-import { Box, Heading, VStack } from "@chakra-ui/react"
+import React, { useEffect, useState } from "react"
+import { Heading, useToast, VStack } from "@chakra-ui/react"
 import SummaryStats from "./SummaryStats"
-import AlertList from "components/Endpoint/AlertList"
-import { Alert } from "@common/types"
+import { Alert, UpdateAlertParams } from "@common/types"
 import EmptyView from "components/utils/EmptyView"
+import { AlertComponent } from "components/Alert/AlertComponent"
+import { updateAlert } from "api/alerts"
+import { getTopAlerts } from "api/home"
 
 interface HomePageProps {
   numHighRiskAlerts: number
@@ -21,6 +23,45 @@ const HomePage: React.FC<HomePageProps> = React.memo(
     numPIIDataDetected,
     alerts,
   }) => {
+    const [alertList, setAlertList] = useState<Alert[]>(alerts)
+    const [toggleRefetch, setToggleRefetch] = useState<boolean>(false)
+    const [fetching, setFetching] = useState<boolean>(false)
+    const [updating, setUpdating] = useState<boolean>(false)
+    const toast = useToast()
+    useEffect(() => {
+      setFetching(true)
+      const fetchTopAlerts = async () => {
+        const res = await getTopAlerts()
+        setAlertList(res)
+        setFetching(false)
+      }
+      fetchTopAlerts()
+    }, [toggleRefetch])
+
+    const handleUpdateAlert = async (alertId: string, updateAlertParams: UpdateAlertParams) => {
+      setUpdating(true)
+      const resp: Alert = await updateAlert(alertId, updateAlertParams)
+      if (resp) {
+        toast({
+          title: `Updating alert successful`,
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "top"
+        })
+        setToggleRefetch(!toggleRefetch)
+      } else {
+        toast({
+          title: `Updating Alert failed...`,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+          position: "top"
+        })
+      }
+      setUpdating(false)
+    }
+
     return (
       <VStack w="full" alignItems="flex-start" spacing="10">
         <SummaryStats
@@ -31,13 +72,16 @@ const HomePage: React.FC<HomePageProps> = React.memo(
         />
         <VStack w="full" alignItems="flex-start" spacing="4">
           <Heading fontSize="xl">Top Alerts</Heading>
-          <Box w="full" borderWidth="1px">
-            {alerts.length ? (
-              <AlertList alerts={alerts} />
+          {!fetching &&
+          <VStack w="full" spacing="4">
+            {alertList.length ? (
+              alertList.map(alert => (
+                <AlertComponent key={alert.uuid} alert={alert} updating={updating} handleUpdateAlert={handleUpdateAlert} />
+              ))
             ) : (
               <EmptyView text="No New Alerts!" />
             )}
-          </Box>
+          </VStack>}
         </VStack>
       </VStack>
     )

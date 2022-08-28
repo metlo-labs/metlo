@@ -329,6 +329,8 @@ export class SpecService {
         errorItems,
         endpoint.uuid,
         trace,
+        openApiSpec.spec,
+        openApiSpec.extension,
       )
     } catch (err) {
       console.error(`Error finding OpenAPI Spec diff: ${err}`)

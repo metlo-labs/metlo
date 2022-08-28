@@ -19,7 +19,7 @@ import {
 import { AiOutlineRight } from "@react-icons/all-files/ai/AiOutlineRight"
 import { getDateTimeString } from "utils"
 import { METHOD_TO_COLOR } from "~/constants"
-import { RestMethod } from "@common/enums"
+import { RestMethod, Status } from "@common/enums"
 import { resolveAlert } from "api/alerts"
 
 interface AlertDetailProps {
@@ -126,19 +126,19 @@ const AlertDetail: React.FC<AlertDetailProps> = React.memo(
           <VStack w="full" alignItems="flex-start">
             <Text fontWeight="semibold">Resolution Reason</Text>
             <Textarea
-              disabled={currAlert.resolved}
+              disabled={currAlert.status === Status.RESOLVED}
               _disabled={{
                 opacity: 0.7,
                 cursor: "not-allowed",
               }}
               value={resolutionMessage || ""}
               placeholder={
-                !currAlert.resolved && "Provide reason for resolving..."
+                currAlert.status !== Status.RESOLVED && "Provide reason for resolving..."
               }
               onChange={e => setResolutionMessage(e.target.value)}
             />
           </VStack>
-          {currAlert?.resolved ? (
+          {currAlert?.status === Status.RESOLVED ? (
             <Badge alignSelf="end" colorScheme="green" fontSize="lg">
               Resolved
             </Badge>

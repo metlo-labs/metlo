@@ -25,7 +25,7 @@ import { ApiEndpointDetailed, Usage } from "@common/types"
 import { METHOD_TO_COLOR } from "~/constants"
 import DataFieldList from "./DataFieldList"
 import TraceList from "./TraceList"
-import AlertList from "./AlertList"
+import { AlertTab } from "./AlertTab"
 import EndpointOverview from "./Overview"
 import TestList from "./TestList"
 
@@ -127,12 +127,8 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
               <TraceList traces={endpoint.traces} uuid={uuid as string} />
             </TabPanel>
             <TabPanel p="0" h="full">
-              <AlertList
-                alerts={endpoint.alerts}
-                method={endpoint.method}
-                path={endpoint.path}
-                uuid={uuid as string}
-                endpointPage
+              <AlertTab
+                apiEndpointUuid={endpoint.uuid as string}
               />
             </TabPanel>
             <TabPanel p="0" h="full">

@@ -24,7 +24,7 @@ import {
 import {
   getAlertsHandler,
   getTopAlertsHandler,
-  resolveAlertHandler,
+  updateAlertHandler,
 } from "api/alert"
 import { updateDataFieldClasses } from "api/data-field"
 import { getSummaryHandler } from "api/summary"
@@ -91,7 +91,7 @@ app.post("/api/v1/data-field/:dataFieldId/update-classes", updateDataFieldClasse
 
 app.get("/api/v1/alerts", getAlertsHandler)
 app.get("/api/v1/topAlerts", getTopAlertsHandler)
-app.put("/api/v1/alert/resolve/:alertId", resolveAlertHandler)
+app.put("/api/v1/alert/:alertId", updateAlertHandler)
 
 app.post("/api/v1/setup_connection", setup_connection)
 app.post("/api/v1/setup_connection/aws/os", aws_os_choices)
