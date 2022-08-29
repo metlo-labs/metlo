@@ -33,7 +33,7 @@ export function compileHost(jsonmsg: any, http_meta: Record<string, conns>) {
 export function pushAlert(resp: RESPONSE, url: string) {
   axios
     .post(url, {
-      data: resp,
+      ...resp,
     })
     .then(res => {
       console.log("Pushed up a request")
@@ -62,7 +62,7 @@ export function prepareResponse(
   const resp: RESPONSE = {
     request: {
       url: {
-        base_url: src_complete_url.href,
+        host: src_complete_url.host,
         path: src_complete_url.pathname,
         parameters: Array.from(src_complete_url.searchParams).map(
           ([key, val]) => ({ name: key, value: val }),

@@ -98,7 +98,7 @@ export interface ALERT extends COMMON {
 export interface RESPONSE {
   request: {
     url: {
-      base_url: string
+      host: string
       path: string
       parameters: Array<HEADERS>
     }
