@@ -91,7 +91,7 @@ export async function create_mirror_filter_rules(
     // console.log(hash_str);
     let command = new CreateTrafficMirrorFilterRuleCommand({
       ClientToken: randomUUID(),
-      TrafficDirection: v.direction === "out" ? "ingress" : "egress",
+      TrafficDirection: v.direction === "in" ? "ingress" : "egress",
       RuleNumber: 100,
       SourceCidrBlock: v.source_CIDR,
       DestinationCidrBlock: v.destination_CIDR,
