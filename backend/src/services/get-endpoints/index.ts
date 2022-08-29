@@ -103,6 +103,12 @@ export class GetEndpointsService {
       const apiEndpointTestRepository =
         AppDataSource.getRepository(ApiEndpointTest)
       const endpoint = await apiEndpointRepository.findOne({
+        select: {
+          alerts: {
+            uuid: true,
+            status: true,
+          }
+        },
         where: { uuid: endpointId },
         relations: {
           dataFields: true,

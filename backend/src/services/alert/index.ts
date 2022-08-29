@@ -268,15 +268,4 @@ export class AlertService {
     }
     return alerts
   }
-
-  static async resolveAlert(
-    alertId: string,
-    resolutionMessage: string,
-  ): Promise<Alert> {
-    const alertRepository = AppDataSource.getRepository(Alert)
-    const existingAlert = await alertRepository.findOneBy({ uuid: alertId })
-    existingAlert.status = Status.RESOLVED
-    existingAlert.resolutionMessage = resolutionMessage || ""
-    return await alertRepository.save(existingAlert)
-  }
 }
