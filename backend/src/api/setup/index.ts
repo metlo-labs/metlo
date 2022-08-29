@@ -29,7 +29,7 @@ export const setup_connection = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const { step, id, status, type, params } = req.body
+    const { step, id, status, name, type, params } = req.body
     if (!req.session.connection_config) {
       req.session.connection_config = {}
     }
@@ -38,7 +38,7 @@ export const setup_connection = async (
         status: "STARTED",
         id,
         type,
-        data: { id },
+        data: { id, name },
       }
     }
 
@@ -110,9 +110,14 @@ export const aws_instance_choices = async (
 
 export const get_setup_state = async (req: Request, res: Response) => {
   const { uuid } = req.params
-  let resp: STEP_RESPONSE = await getFromRedis(uuid)
-  if (["OK", "FAIL"].includes(resp.success)) {
-    await deleteKeyFromRedis(uuid)
+  try {
+    let resp: STEP_RESPONSE = await getFromRedis(uuid)
+    if (["OK", "FAIL"].includes(resp.success)) {
+      await deleteKeyFromRedis(uuid)
+    }
+    delete resp.data
+    await ApiResponseHandler.success(res, resp)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
   }
-  ApiResponseHandler.success(res, resp)
 }

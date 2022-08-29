@@ -128,12 +128,12 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
     params: Record<string, any>
   }) => {
     setUpdating(true)
-
-    let retry_id = await getRetryId(id, params, step, () => {})
+    let _params = { ...params, name: name }
+    let retry_id = await getRetryId(id, _params, step, () => {})
 
     api_call_retry({
       url: `/api/v1/setup_connection/fetch/${retry_id}`,
-      requestParams: { params: { id, step, ...params } } as AxiosRequestConfig,
+      requestParams: { params: { id, step, ..._params } } as AxiosRequestConfig,
       onAPIError: (err: AxiosError) => {
         create_toast_with_message(err.message, step)
       },

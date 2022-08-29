@@ -4,10 +4,10 @@ import {
   get_connection_for_uuid as get_connection_for_uuid_service,
   update_connection_for_uuid as update_connection_for_uuid_service,
   delete_connection_for_uuid,
-} from "services/connections";
-import ApiResponseHandler from "api-response-handler";
-import { decrypt } from "utils/encryption";
-import { delete_connection as delete_connection_request } from "suricata_setup/";
+} from "services/connections"
+import ApiResponseHandler from "api-response-handler"
+import { decrypt } from "utils/encryption"
+import { delete_connection as delete_connection_request } from "suricata_setup/"
 
 const list_connections = async (req: Request, res: Response) => {
   try {
@@ -66,35 +66,36 @@ const update_connection = async (req: Request, res: Response) => {
 }
 
 const delete_connection = async (req: Request, res: Response) => {
-  const { uuid } = req.params;
+  const { uuid } = req.params
   try {
-    const connection = await get_connection_for_uuid_service(uuid, true);
+    const connection = await get_connection_for_uuid_service(uuid, true)
     const access_key = decrypt(
       connection.aws.access_id,
       Buffer.from(process.env.ENCRYPTION_KEY, "base64"),
       Buffer.from(connection.aws_meta.access_id_iv, "base64"),
-      Buffer.from(connection.aws_meta.access_id_tag, "base64")
-    );
+      Buffer.from(connection.aws_meta.access_id_tag, "base64"),
+    )
     const secret_access_key = decrypt(
       connection.aws.secret_access_key,
       Buffer.from(process.env.ENCRYPTION_KEY, "base64"),
       Buffer.from(connection.aws_meta.secret_access_key_iv, "base64"),
-      Buffer.from(connection.aws_meta.secret_access_key_tag, "base64")
-    );
-    connection.aws.access_id = access_key;
-    connection.aws.secret_access_key = secret_access_key;
+      Buffer.from(connection.aws_meta.secret_access_key_tag, "base64"),
+    )
+    connection.aws.access_id = access_key
+    connection.aws.secret_access_key = secret_access_key
 
     let resp = await delete_connection_request(connection.connectionType, {
       ...connection.aws,
       id: connection.uuid,
-    });
-    await delete_connection_for_uuid({ uuid: connection.uuid });
+      name: connection.name,
+    })
+    await delete_connection_for_uuid({ uuid: connection.uuid })
 
-    await ApiResponseHandler.success(res, "resp");
+    await ApiResponseHandler.success(res, "resp")
   } catch (err) {
-    await ApiResponseHandler.error(res, err);
+    await ApiResponseHandler.error(res, err)
   }
-};
+}
 
 export {
   list_connections,
@@ -102,4 +103,4 @@ export {
   get_ssh_key_for_connection_uuid,
   update_connection,
   delete_connection,
-};
+}

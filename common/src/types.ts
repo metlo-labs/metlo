@@ -238,6 +238,7 @@ export interface TrafficFilterRuleSpecs {
 
 export interface CONNECTIONS_BASE {
   id: string;
+  name: string;
 }
 
 export interface AWS_CONNECTION {

@@ -15,6 +15,7 @@ import { delete_aws_data } from "./aws-services/delete"
 import { test_ssh, push_files, execute_commands } from "./ssh-services"
 import { v4 as uuidv4 } from "uuid"
 import { addToRedis, addToRedisFromPromise } from "./utils"
+import { save_connection } from "services/connections"
 
 function dummy_response(uuid, step, data) {
   const resp = {
@@ -86,7 +87,16 @@ export async function setup(
           uuid,
           execute_commands({
             ...metadata_for_step,
-          } as any),
+          } as any).then(resp => {
+            if (resp.status === "COMPLETE") {
+              save_connection({
+                id: resp.data.id,
+                name: resp.data.name,
+                conn_meta: { ...resp.data } as Required<STEP_RESPONSE["data"]>,
+              })
+            }
+            return resp
+          }),
         )
         return resp
       default:
