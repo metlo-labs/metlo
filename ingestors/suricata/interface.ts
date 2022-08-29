@@ -116,8 +116,8 @@ export interface RESPONSE {
     environment: "production"
     incoming: true
     source: string
-    source_port: number
+    sourcePort: number
     destination: string
-    destination_port: number
+    destinationPort: number
   }
 }

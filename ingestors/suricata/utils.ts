@@ -52,19 +52,19 @@ export function prepareResponse(
 ) {
   // Get source for the request
   // Compile the entire address from protocol, hostname, and url
-  let remote_complete_url = new URL(
+  let destination_url = new URL(
     alert.app_proto + "://" + alert.http.hostname + alert.http.url,
   )
   // Get destination for the request
   // Compile the entire address from protocol, source_ip
   // Source ip is a local ip, so can't be accessed from the net, only from the internal
-  let src_complete_url = new URL(alert.app_proto + "://" + alert.src_ip)
+  let source_url = new URL(alert.app_proto + "://" + alert.src_ip)
   const resp: RESPONSE = {
     request: {
       url: {
-        host: src_complete_url.host,
-        path: src_complete_url.pathname,
-        parameters: Array.from(src_complete_url.searchParams).map(
+        host: destination_url.host,
+        path: destination_url.pathname,
+        parameters: Array.from(destination_url.searchParams).map(
           ([key, val]) => ({ name: key, value: val }),
         ),
       },
@@ -73,7 +73,7 @@ export function prepareResponse(
       body: alert.http.http_request_body_printable || null,
     },
     response: {
-      url: remote_complete_url.href,
+      url: source_url.href,
       status: alert.http.status,
       headers: meta?.metadata.response_headers || [],
       body: alert.http.http_request_body_printable || null,
@@ -82,9 +82,9 @@ export function prepareResponse(
       environment: "production",
       incoming: true,
       source: alert.src_ip,
-      source_port: alert.src_port,
+      sourcePort: alert.src_port,
       destination: alert.dest_ip,
-      destination_port: alert.dest_port,
+      destinationPort: alert.dest_port,
     },
   }
   return resp
