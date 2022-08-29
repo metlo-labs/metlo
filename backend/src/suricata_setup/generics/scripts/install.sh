@@ -4,7 +4,7 @@ nvm install 17.9.1
 nvm use 17.9.1
 npm install -g yarn
 
-cd metlo-ingestor/ingestors/suricata
+cd /etc/metlo-ingestor/ingestors/suricata
 yarn install
 yarn build
 

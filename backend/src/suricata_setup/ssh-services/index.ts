@@ -53,7 +53,7 @@ export async function push_files({
   source_private_ip,
   ...rest
 }: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
-  const endpoint = "api/v1/log-request/batch"
+  const endpoint = "api/v1/log-request/single"
   let conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu")
   try {
     let filepath_ingestor = `${__dirname}/../generics/scripts/metlo-ingestor-${randomUUID()}.service`
