@@ -123,9 +123,11 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
   const retrier = async ({
     step,
     params,
+    onComplete,
   }: {
     step: STEPS
     params: Record<string, any>
+    onComplete?: () => void
   }) => {
     setUpdating(true)
     let _params = { ...params, name: name }
@@ -143,6 +145,9 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
       onSuccess: (resp: AxiosResponse<Omit<STEP_RESPONSE, "data">>) => {
         if (resp.data.success === "OK") {
           updateSelected(step + 1)
+          if (resp.data.status === "COMPLETE") {
+            onComplete()
+          }
         } else {
           create_toast_with_message(resp.data.message, step)
           console.log(resp.data.error)
@@ -273,12 +278,16 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
           <GenericStepAWS
             id={id}
             complete={params => {
-              retrier({ step: STEPS.EXEC_COMMAND, params }).then(() =>
-                toast({
-                  title: "Mirroring setup completed!",
-                  status: "success",
-                }),
-              )
+              retrier({
+                step: STEPS.EXEC_COMMAND,
+                params,
+                onComplete: () => {
+                  toast({
+                    title: "Mirroring setup completed!",
+                    status: "success",
+                  })
+                },
+              })
             }}
             isCurrent={selectedIndex == selected}
           />
