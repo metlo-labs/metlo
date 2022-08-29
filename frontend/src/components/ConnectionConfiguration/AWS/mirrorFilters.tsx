@@ -52,6 +52,14 @@ const SetupRulesFilter: React.FC<GenericStepAWSInterface> = ({
       direction: "in",
       protocol: protocols.TCP,
     },
+    {
+      destination_CIDR: "0.0.0.0/0",
+      source_CIDR: "0.0.0.0/0",
+      destination_port: "",
+      source_port: "",
+      direction: "out",
+      protocol: protocols.TCP,
+    },
   ])
   return (
     <Flex direction={"column"} gap={8}>
