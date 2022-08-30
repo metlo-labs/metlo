@@ -4,6 +4,7 @@ import {
   getDataType,
   getPathTokens,
   getRiskScore,
+  isParameter,
   isSuspectedParamater,
   parsedJson,
   parsedJsonNonNull,
@@ -354,6 +355,18 @@ export class JobsService {
               trace.responseStatus?.toString() || "default"
             let requestContentType = null
             let responseContentType = null
+            const endpointTokens = getPathTokens(endpoint.path)
+            const traceTokens = getPathTokens(trace.path)
+            for (let i = 0; i < endpointTokens.length; i++) {
+              const currToken = endpointTokens[i]
+              if (isParameter(currToken)) {
+                const key = `${currToken.slice(1, -1)}<>path`
+                parameters[key] = this.parseSchema(
+                  parameters[key] ?? {},
+                  parsedJsonNonNull(traceTokens[i], true)
+                )
+              }
+            }
             for (const requestParameter of requestParamters) {
               const key = `${requestParameter.name}<>query`
               parameters[key] = this.parseSchema(

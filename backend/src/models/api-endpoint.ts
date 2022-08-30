@@ -14,7 +14,7 @@ import { DataField } from "models/data-field"
 import { Alert } from "models/alert"
 import { OpenApiSpec } from "models/openapi-spec"
 import { DataClass, DataSection, RestMethod, RiskScore } from "@common/enums"
-import { getPathTokens } from "utils"
+import { getPathTokens, isParameter } from "utils"
 
 @Entity()
 export class ApiEndpoint extends BaseEntity {
@@ -71,7 +71,7 @@ export class ApiEndpoint extends BaseEntity {
       let numParams = 0;
       for (let i = 0; i < pathTokens.length; i++) {
         const token = pathTokens[i]
-        if (token.startsWith("{") && token.endsWith("}")) {
+        if (isParameter(token)) {
           numParams += 1
         }
       }

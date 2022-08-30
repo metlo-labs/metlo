@@ -20,7 +20,14 @@ export const isSuspectedParamater = (value: string): boolean => {
   return false
 }
 
-export const getPathTokens = (path: string) => {
+export const isParameter = (token: string): boolean => {
+  if (!token) {
+    return false
+  }
+  return token.startsWith("{") && token.endsWith("}")
+}
+
+export const getPathTokens = (path: string): string[] => {
   if (!path) {
     return []
   }
