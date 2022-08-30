@@ -20,7 +20,11 @@ const NewTest = ({ endpoint, test }) => {
       title={parsedTest.name}
       currentTab={SideNavLinkDestination.Endpoints}
     >
-      <TestEditor endpoint={parsedEndpoint} initTest={parsedTest} />
+      <TestEditor
+        endpoint={parsedEndpoint}
+        initTest={parsedTest}
+        isNewTest={false}
+      />
     </SidebarLayoutShell>
   )
 }

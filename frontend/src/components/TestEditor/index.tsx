@@ -19,25 +19,30 @@ import RequestEditor from "./requestEditor"
 import { makeNewEmptyRequest } from "./requestUtils"
 import { runTest, saveTest } from "api/tests"
 import { TagList } from "components/utils/TagList"
+import { useRouter } from "next/router"
 
 interface TestEditorProps {
   endpoint: ApiEndpointDetailed
   initTest: Test
+  isNewTest: boolean
 }
 
 interface TestEditorState {
   test: Test
   selectedRequest: number
+  modified: boolean
 }
 
 const TestEditor: React.FC<TestEditorProps> = React.memo(
-  ({ endpoint, initTest }) => {
+  ({ endpoint, initTest, isNewTest }) => {
     const [state, setState] = useState<TestEditorState>({
       test: initTest,
       selectedRequest: 0,
+      modified: false,
     })
     const [fetching, updateFetching] = useState<boolean>(false)
     const [saving, updateSaving] = useState<boolean>(false)
+    const router = useRouter()
     const toast = useToast()
 
     const selectedRequest = state.selectedRequest
@@ -60,6 +65,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
           return {
             ...state,
             test: t(state.test),
+            modified: true,
           }
         })
       },
@@ -90,6 +96,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
               ...test,
               requests: newRequests,
             },
+            modified: true,
           }
         }),
       [setState, endpoint],
@@ -113,6 +120,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
               ...test,
               requests: newRequests,
             },
+            modified: true,
           }
         }),
       [setState],
@@ -150,6 +158,9 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             title: "Saved Request",
             status: "success",
           })
+          if (isNewTest) {
+            router.push(`/endpoint/${endpoint.uuid}/test/${e.uuid}`)
+          }
         })
         .catch(err => {
           toast({
@@ -158,7 +169,10 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             status: "error",
           })
         })
-        .finally(() => updateSaving(false))
+        .finally(() => {
+          updateSaving(false)
+          setState(e => ({ ...e, modified: false }))
+        })
     }
 
     const onRunClick = () => {
@@ -219,11 +233,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
               >
                 Run
               </Button>
-              <Button
-                colorScheme="blue"
-                onClick={onSaveRequest}
-                isLoading={saving}
-              >
+              <Button onClick={onSaveRequest} isLoading={saving}>
                 Save
               </Button>
             </HStack>

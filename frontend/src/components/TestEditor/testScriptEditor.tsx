@@ -31,7 +31,11 @@ const TestScriptEditor: React.FC<TestScriptEditorProps> = React.memo(
             Tests
           </Heading>
           <HStack pr="6" color="gray.500">
-            <Button size="sm" variant="ghost">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => updateTestScript(e => "")}
+            >
               <IoMdTrash />
             </Button>
           </HStack>

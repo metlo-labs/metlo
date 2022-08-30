@@ -13,6 +13,12 @@ const ListTests: React.FC<ListTestsProps> = React.memo(
   ({ endpointUUID, tests, ...props }) => {
     const [tags, setTags] = useState<string[]>([])
     const allTags = Array.from(new Set(tests.map(e => e.tags).flat()))
+    let filteredTests = tests
+    if (tags.length > 0) {
+      filteredTests = filteredTests.filter(test =>
+        test.tags.some(e => tags.includes(e)),
+      )
+    }
     return (
       <VStack
         w="full"
@@ -30,7 +36,7 @@ const ListTests: React.FC<ListTestsProps> = React.memo(
           px="4"
           pt="4"
         />
-        <List tests={tests} />
+        <List tests={filteredTests} />
       </VStack>
     )
   },
