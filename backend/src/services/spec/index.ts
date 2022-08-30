@@ -13,7 +13,7 @@ import { ApiEndpoint, ApiTrace, DataField, OpenApiSpec, Alert } from "models"
 import Error400BadRequest from "errors/error-400-bad-request"
 import { JSONValue, OpenApiSpec as OpenApiSpecResponse } from "@common/types"
 import { AppDataSource } from "data-source"
-import { getPathRegex, parsedJsonNonNull } from "utils"
+import { getPathRegex, getPathTokens, parsedJsonNonNull } from "utils"
 import Error409Conflict from "errors/error-409-conflict"
 import {
   generateAlertMessageFromReqErrors,
@@ -282,8 +282,8 @@ export class SpecService {
       const headers = {}
       const body = parsedJsonNonNull(trace.requestBody)
       const query = {}
-      const endpointPathTokens = endpoint.path.split("/")
-      const tracePathTokens = trace.path.split("/")
+      const endpointPathTokens = getPathTokens(endpoint.path)
+      const tracePathTokens = getPathTokens(trace.path)
       const pathParams = {}
       for (let i = 0; i < endpointPathTokens.length; i++) {
         const currToken = endpointPathTokens[i]

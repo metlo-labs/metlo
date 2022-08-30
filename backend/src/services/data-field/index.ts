@@ -1,7 +1,7 @@
 import { PairObject } from "@common/types"
 import { DataClass, DataSection, DataTag, DataType } from "@common/enums"
 import { ApiEndpoint, ApiTrace, DataField } from "models"
-import { getDataType, getRiskScore, parsedJson } from "utils"
+import { getDataType, getPathTokens, getRiskScore, parsedJson } from "utils"
 import { ScannerService } from "services/scanner/scan"
 import { AppDataSource } from "data-source"
 
@@ -66,6 +66,7 @@ export class DataFieldService {
       dataField.dataType = dataType
       dataField.dataSection = dataSection
       dataField.apiEndpointUuid = apiEndpoint.uuid
+      dataField.dataClasses = []
       if (dataClass && matches?.length > 0) {
         dataField.addDataClass(dataClass)
         dataField.dataTag = DataTag.PII
@@ -234,8 +235,8 @@ export class DataFieldService {
     if (!path || !apiEndpoint?.path) {
       return
     }
-    const tracePathTokens = path.split("/")
-    const endpointPathTokens = apiEndpoint.path.split("/")
+    const tracePathTokens = getPathTokens(path)
+    const endpointPathTokens = getPathTokens(apiEndpoint.path)
     if (tracePathTokens.length !== endpointPathTokens.length) {
       return
     }

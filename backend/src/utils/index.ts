@@ -20,6 +20,17 @@ export const isSuspectedParamater = (value: string): boolean => {
   return false
 }
 
+export const getPathTokens = (path: string) => {
+  if (!path) {
+    return []
+  }
+  if (path === "/") {
+    return ["/"]
+  }
+  const tokens = path.split("/")
+  return tokens.filter((token) => token.length > 0)
+}
+
 export const getPathRegex = (path: string): string => {
   return String.raw`^${path.replace(pathParameterRegex, String.raw`/[^/]+`)}$`
 }

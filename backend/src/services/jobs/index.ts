@@ -2,6 +2,7 @@ import { FindOptionsWhere, IsNull, MoreThan, Raw } from "typeorm"
 import { v4 as uuidv4 } from "uuid"
 import {
   getDataType,
+  getPathTokens,
   getRiskScore,
   isSuspectedParamater,
   parsedJson,
@@ -158,13 +159,16 @@ export class JobsService {
               }
             }
             if (!found) {
-              const pathTokens = trace.path.split("/")
+              const pathTokens = getPathTokens(trace.path)
               let paramNum = 1
               let parameterizedPath = ""
               let pathRegex = String.raw``
               for (let j = 0; j < pathTokens.length; j++) {
                 const tokenString = pathTokens[j]
-                if (tokenString.length > 0) {
+                if (tokenString === "/") {
+                  parameterizedPath += "/"
+                  pathRegex += "/"
+                } else if (tokenString.length > 0) {
                   if (isSuspectedParamater(tokenString)) {
                     parameterizedPath += `/{param${paramNum}}`
                     pathRegex += String.raw`/[^/]+`
