@@ -107,7 +107,7 @@ export class GetEndpointsService {
           alerts: {
             uuid: true,
             status: true,
-          }
+          },
         },
         where: { uuid: endpointId },
         relations: {

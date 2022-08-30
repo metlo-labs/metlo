@@ -7,7 +7,7 @@ import {
   parsedJson,
   parsedJsonNonNull,
 } from "utils"
-import { ApiEndpoint, ApiTrace, OpenApiSpec } from "models"
+import { ApiEndpoint, ApiTrace, OpenApiSpec, Alert } from "models"
 import { AppDataSource } from "data-source"
 import { AlertType, DataType, RestMethod, SpecExtension } from "@common/enums"
 import { AlertService } from "services/alert"
@@ -127,8 +127,19 @@ export class JobsService {
               apiEndpoint,
             )
             trace.apiEndpointUuid = apiEndpoint.uuid
+            const sensitiveDataAlerts =
+              await AlertService.createSensitiveDataAlerts(
+                dataFields,
+                apiEndpoint.uuid,
+                trace,
+              )
             await DatabaseService.executeTransactions(
-              [[...dataFields], [apiEndpoint], [trace]],
+              [
+                [...dataFields],
+                [...sensitiveDataAlerts],
+                [apiEndpoint],
+                [trace],
+              ],
               [],
               true,
             )
@@ -199,6 +210,7 @@ export class JobsService {
           apiEndpoint.dataFields = []
 
           // TODO: Do something with setting sensitive data classes during iteration of traces and add auto generated open api spec for inferred endpoints
+          let sensitiveDataAlerts: Alert[] = []
           for (let i = 0; i < value.traces.length; i++) {
             const trace = value.traces[i]
             apiEndpoint.dataFields = DataFieldService.findAllDataFields(
@@ -207,6 +219,12 @@ export class JobsService {
               true,
             )
             trace.apiEndpoint = apiEndpoint
+            sensitiveDataAlerts = await AlertService.createSensitiveDataAlerts(
+              apiEndpoint.dataFields,
+              apiEndpoint.uuid,
+              trace,
+              sensitiveDataAlerts,
+            )
           }
           apiEndpoint.riskScore = getRiskScore(apiEndpoint.dataFields)
           const alert = await AlertService.createAlert(
@@ -217,6 +235,7 @@ export class JobsService {
             [
               [apiEndpoint],
               [...apiEndpoint.dataFields],
+              [...sensitiveDataAlerts],
               [alert],
               [...value.traces],
             ],
@@ -301,7 +320,7 @@ export class JobsService {
           let responses: Responses = {}
           if (paths[path]) {
             if (paths[path][method]) {
-              const specParameters = paths[path][method]["parameters"]
+              const specParameters = paths[path][method]["parameters"] ?? []
               requestBodySpec =
                 paths[path][method]["requestBody"]?.["content"] ?? {}
               responses = paths[path][method]["responses"] ?? {}

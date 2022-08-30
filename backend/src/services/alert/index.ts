@@ -6,13 +6,14 @@ import {
   Not,
 } from "typeorm"
 import { AppDataSource } from "data-source"
-import { Alert, ApiEndpoint, ApiTrace } from "models"
+import { Alert, ApiEndpoint, ApiTrace, DataField } from "models"
 import {
   AlertType,
   SpecExtension,
   Status,
   UpdateAlertType,
 } from "@common/enums"
+import { DATA_SECTION_TO_LABEL_MAP } from "@common/maps"
 import { ALERT_TYPE_TO_RISK_SCORE } from "~/constants"
 import {
   GetAlertParams,
@@ -199,7 +200,7 @@ export class AlertService {
     if (!alertDescription) {
       switch (alertType) {
         case AlertType.NEW_ENDPOINT:
-          alertDescription = `A new endpoint has been detected: ${apiEndpoint.path}`
+          alertDescription = `A new endpoint has been detected: ${apiEndpoint.path}.`
           break
         case AlertType.OPEN_API_SPEC_DIFF:
           alertDescription = `A OpenAPI Spec diff has been detected.`
@@ -228,6 +229,70 @@ export class AlertService {
     newAlert.context = context
     newAlert.description = alertDescription
     return newAlert
+  }
+
+  static existingSensitiveDataAlert(
+    sensitiveDataAlerts: Alert[],
+    apiEndpointUuid: string,
+    description: string,
+  ): boolean {
+    if (!sensitiveDataAlerts) {
+      return false
+    }
+    for (const alert of sensitiveDataAlerts) {
+      if (
+        alert.apiEndpointUuid === apiEndpointUuid &&
+        alert.description === description
+      ) {
+        return true
+      }
+    }
+    return false
+  }
+
+  static async createSensitiveDataAlerts(
+    dataFields: DataField[],
+    apiEndpointUuid: string,
+    apiTrace: ApiTrace,
+    sensitiveDataAlerts?: Alert[],
+  ): Promise<Alert[]> {
+    if (!dataFields) {
+      return []
+    }
+    let alerts: Alert[] = sensitiveDataAlerts ?? []
+    for (const dataField of dataFields) {
+      if (dataField.dataClasses) {
+        for (const dataClass of dataField.dataClasses) {
+          const description = `Sensitive data of type ${dataClass} has been detected in field ${
+            dataField.dataPath
+          } of ${DATA_SECTION_TO_LABEL_MAP[dataField.dataSection]}.`
+          const existing =
+            this.existingSensitiveDataAlert(
+              alerts,
+              apiEndpointUuid,
+              description,
+            ) ||
+            (await this.existingUnresolvedAlert(
+              apiEndpointUuid,
+              AlertType.PII_DATA_DETECTED,
+              description,
+            ))
+          if (!existing) {
+            const newAlert = new Alert()
+            newAlert.type = AlertType.PII_DATA_DETECTED
+            newAlert.riskScore =
+              ALERT_TYPE_TO_RISK_SCORE[AlertType.PII_DATA_DETECTED]
+            newAlert.apiEndpointUuid = apiEndpointUuid
+            newAlert.context = {
+              trace: apiTrace,
+            }
+            newAlert.description = description
+            alerts.push(newAlert)
+          }
+        }
+      }
+    }
+    return alerts
   }
 
   static async createSpecDiffAlerts(
