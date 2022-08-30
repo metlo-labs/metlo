@@ -81,19 +81,19 @@ export const generateAlertMessageFromReqErrors = (
     } else {
       switch (error.errorCode.split(".")[0]) {
         case "required":
-          errorMessage = `Required property '${error.path}' is missing from request ${error.location}`
+          errorMessage = `Required property '${error.path}' is missing from request ${error.location}.`
           break
         case "type":
-          errorMessage = `Property '${error.path}' ${error.message} in request ${error.location}`
+          errorMessage = `Property '${error.path}' ${error.message} in request ${error.location}.`
           break
         case "additionalProperties":
-          errorMessage = `Property '${error.path}' is present in request ${error.location} without being defined in OpenAPI Spec`
+          errorMessage = `Property '${error.path}' is present in request ${error.location} without being defined in OpenAPI Spec.`
           break
         case "format":
-          errorMessage = `Property '${error.path}' ${error.message} in request ${error.location}`
+          errorMessage = `Property '${error.path}' ${error.message} in request ${error.location}.`
           break
         default:
-          errorMessage = `${error.message}: '${error.path}' in request ${error.location}`
+          errorMessage = `${error.message}: '${error.path}' in request ${error.location}.`
           break
       }
     }
@@ -114,19 +114,19 @@ export const generateAlertMessageFromRespErrors = (
     let errorMessage = ""
     switch (error.errorCode.split(".")[0]) {
       case "required":
-        errorMessage = `Required property '${error.path}' is missing from response body`
+        errorMessage = `Required property '${error.path}' is missing from response body.`
         break
       case "type":
-        errorMessage = `Property '${error.path}' ${error.message} in response body`
+        errorMessage = `Property '${error.path}' ${error.message} in response body.`
         break
       case "additionalProperties":
-        errorMessage = `Property '${error.path}' is present in response body without being defined in OpenAPI Spec`
+        errorMessage = `Property '${error.path}' is present in response body without being defined in OpenAPI Spec.`
         break
       case "format":
-        errorMessage = `Property '${error.path}' ${error.message} in response body`
+        errorMessage = `Property '${error.path}' ${error.message} in response body.`
         break
       default:
-        errorMessage = `${error.message}: '${error.path}' in response body`
+        errorMessage = `${error.message}: '${error.path}' in response body.`
         break
     }
     res[errorMessage] = pathToResponseBody
@@ -142,7 +142,7 @@ export const getSpecRequestParameters = (
   const path = paths[endpoint.path]
   const operation = path[endpoint.method.toLowerCase()]
 
-  let parameters = operation["parameters"]
+  let parameters = operation["parameters"] ?? []
   let pathToParameters = [
     "paths",
     endpoint.path,
@@ -167,7 +167,7 @@ export const getSpecResponses = (
   const operation =
     specObject["paths"][endpoint.path][endpoint.method.toLowerCase()]
 
-  let responses = operation["responses"]
+  let responses = operation["responses"] ?? []
   let pathToResponses = [
     "paths",
     endpoint.path,

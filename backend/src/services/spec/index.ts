@@ -269,7 +269,7 @@ export class SpecService {
       const requestValidator = new OpenAPIRequestValidator({
         parameters: specRequestParameters?.value,
         requestBody: specRequestBody?.value,
-        schemas: specObject["components"]["schemas"],
+        schemas: specObject?.["components"]?.["schemas"] ?? {},
         errorTransformer: (error, ajvError) => {
           if (ajvError.params["additionalProperty"]) {
             return { ...error, path: ajvError.params["additionalProperty"] }
@@ -320,6 +320,13 @@ export class SpecService {
       const responseValidator = new OpenAPIResponseValidator({
         components: specObject["components"],
         responses: responses?.value,
+        errorTransformer: (error, ajvError) => {
+          if (ajvError.params) {
+            const keys = Object.keys(ajvError.params)
+            return { ...error, path: ajvError.params[keys[0]]}
+          }
+          return error
+        }
       })
       const traceStatusCode = trace.responseStatus
       const traceResponseBody = parsedJsonNonNull(trace.responseBody, true)
