@@ -41,6 +41,9 @@ export class LogRequestService {
           host,
         },
         relations: { dataFields: true },
+        order: {
+          numberParams: "ASC"
+        },
       })
       let dataFields: DataField[] = []
       let alerts: Alert[] = []

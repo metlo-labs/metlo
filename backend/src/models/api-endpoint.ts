@@ -1,5 +1,6 @@
 import {
   BaseEntity,
+  BeforeInsert,
   Column,
   CreateDateColumn,
   Entity,
@@ -13,6 +14,7 @@ import { DataField } from "models/data-field"
 import { Alert } from "models/alert"
 import { OpenApiSpec } from "models/openapi-spec"
 import { DataClass, DataSection, RestMethod, RiskScore } from "@common/enums"
+import { getPathTokens } from "utils"
 
 @Entity()
 export class ApiEndpoint extends BaseEntity {
@@ -33,6 +35,9 @@ export class ApiEndpoint extends BaseEntity {
 
   @Column({ nullable: false })
   host: string
+
+  @Column({ type: "integer", nullable: false, default: 0 })
+  numberParams: number
 
   @Column({ type: "integer", default: 0 })
   totalCalls: number
@@ -58,4 +63,19 @@ export class ApiEndpoint extends BaseEntity {
   @ManyToOne(() => OpenApiSpec)
   @JoinColumn()
   openapiSpec: OpenApiSpec
+
+  @BeforeInsert()
+  addNumberParams() {
+    if (this.path) {
+      const pathTokens = getPathTokens(this.path)
+      let numParams = 0;
+      for (let i = 0; i < pathTokens.length; i++) {
+        const token = pathTokens[i]
+        if (token.startsWith("{") && token.endsWith("}")) {
+          numParams += 1
+        }
+      }
+      this.numberParams = numParams
+    }
+  }
 }
