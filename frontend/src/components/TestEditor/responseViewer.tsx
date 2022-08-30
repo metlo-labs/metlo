@@ -11,7 +11,7 @@ import {
   StackDivider,
   Flex,
   useColorModeValue,
-  Box,
+  Heading,
 } from "@chakra-ui/react"
 import { Result } from "@common/testing/types"
 import { SectionHeader } from "../utils/Card"
@@ -37,6 +37,27 @@ const Response: React.FC<{ res: Result }> = React.memo(({ res }) => {
       </EmptyView>
     )
   }
+
+  let testTab = (
+    <Heading size="sm" fontWeight="semibold">
+      Test Results
+    </Heading>
+  )
+  if (res.testResults.length > 0) {
+    const successTests = res.testResults.filter(e => e.success).length
+    const successText = `(${successTests}/${res.testResults.length})`
+    const color =
+      successTests == res.testResults.length ? "green.500" : "red.500"
+    testTab = (
+      <HStack>
+        {testTab}
+        <Heading size="sm" fontWeight="semibold" color={color}>
+          {successText}
+        </Heading>
+      </HStack>
+    )
+  }
+
   return (
     <Tabs
       w="full"
@@ -56,9 +77,7 @@ const Response: React.FC<{ res: Result }> = React.memo(({ res }) => {
           <Tab>
             <SectionHeader text="Headers" />
           </Tab>
-          <Tab>
-            <SectionHeader text="Test Results" />
-          </Tab>
+          <Tab>{testTab}</Tab>
         </TabList>
         <HStack w="full" justifyContent="flex-end" pr="4">
           <Text fontSize="xs">{res.duration} ms</Text>

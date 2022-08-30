@@ -9,6 +9,20 @@ interface TestListProps {
   tests: TestDetailed[]
 }
 
+const getTestStatus = (test: TestDetailed) => {
+  if (!test.requests.every(e => e.result)) {
+    return null
+  }
+  const success = test.requests.every(
+    r =>
+      r.result && !r.result.error && r.result.testResults.every(e => e.success),
+  )
+  if (success) {
+    return <Badge colorScheme="green">Passing</Badge>
+  }
+  return <Badge colorScheme="red">Failing</Badge>
+}
+
 const TestList: React.FC<TestListProps> = React.memo(({ tests }) => {
   const router = useRouter()
   const colorMode = useColorMode()
@@ -24,6 +38,15 @@ const TestList: React.FC<TestListProps> = React.memo(({ tests }) => {
       sortable: true,
       selector: (row: TestDetailed) => row.name || "",
       id: "name",
+      grow: 1
+    },
+    {
+      name: "Status",
+      sortable: true,
+      selector: (row: TestDetailed) => row.name || "",
+      cell: (row: TestDetailed) => getTestStatus(row),
+      id: "status",
+      grow: 1
     },
     {
       name: "Tags",
@@ -37,24 +60,7 @@ const TestList: React.FC<TestListProps> = React.memo(({ tests }) => {
         </VStack>
       ),
       id: "hosts",
-    },
-    {
-      name: "Requests",
-      sortable: true,
-      selector: (row: TestDetailed) => row.tags?.join(", ") || "",
-      cell: (row: TestDetailed) => (
-        <VStack
-          alignItems="flex-start"
-          py="2"
-          overflow="hidden"
-          textOverflow="ellipsis"
-        >
-          {row.requests?.map((req, idx) => (
-            <Badge key={idx}>{req.url}</Badge>
-          ))}
-        </VStack>
-      ),
-      id: "requests",
+      grow: 2
     },
   ]
   return (

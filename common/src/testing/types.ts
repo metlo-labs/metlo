@@ -59,6 +59,7 @@ export interface Result {
   code: number
   statusText: string
   duration: number
+  error?: string
 }
 
 export interface Request {

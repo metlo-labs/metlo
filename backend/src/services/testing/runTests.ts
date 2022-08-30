@@ -42,26 +42,45 @@ const requestToItem = (e: Request, i: number) => {
 }
 
 export const mapNewmanResult = (e: NewmanRunSummary): Result[] => {
-  return e.run.executions.map((execution, i) => ({
+  return e.run.executions.map((execution, i) => {
     // @ts-ignore
-    body: execution.response.stream.toString(),
-    // @ts-ignore
-    headers: execution.response.headers.map((h: any) => ({
-      key: h.key,
-      value: h.value,
-    })),
-    // @ts-ignore
-    code: execution.response.code,
-    // @ts-ignore
-    statusText: execution.response.status,
-    // @ts-ignore
-    duration: execution.response.responseTime,
-    testResults: (execution.assertions || []).map(e => ({
-      name: e.assertion,
-      success: !e.error,
-      output: JSON.stringify(e.error, null, 4),
-    })),
-  }))
+    if (!execution.response) {
+      return {
+        body: "",
+        headers: [],
+        code: 0,
+        statusText: "",
+        duration: 0,
+        testResults: (execution.assertions || []).map(e => ({
+          name: e.assertion,
+          success: !e.error,
+          output: JSON.stringify(e.error, null, 4),
+        })),
+        // @ts-ignore
+        error: JSON.stringify(execution.requestError, null, 4),
+      }
+    }
+    return {
+      // @ts-ignore
+      body: execution.response.stream.toString(),
+      // @ts-ignore
+      headers: (execution.response || []).headers.map((h: any) => ({
+        key: h.key,
+        value: h.value,
+      })),
+      // @ts-ignore
+      code: execution.response.code,
+      // @ts-ignore
+      statusText: execution.response.status,
+      // @ts-ignore
+      duration: execution.response.responseTime,
+      testResults: (execution.assertions || []).map(e => ({
+        name: e.assertion,
+        success: !e.error,
+        output: JSON.stringify(e.error, null, 4),
+      })),
+    }
+  })
 }
 
 export const runTest = (e: Test): Promise<Result[]> => {

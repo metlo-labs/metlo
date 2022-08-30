@@ -31,6 +31,7 @@ interface TestEditorState {
   test: Test
   selectedRequest: number
   modified: boolean
+  fetchingRequests: boolean[]
 }
 
 const TestEditor: React.FC<TestEditorProps> = React.memo(
@@ -39,8 +40,8 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
       test: initTest,
       selectedRequest: 0,
       modified: false,
+      fetchingRequests: Array(initTest.requests.length).fill(false),
     })
-    const [fetching, updateFetching] = useState<boolean>(false)
     const [saving, updateSaving] = useState<boolean>(false)
     const router = useRouter()
     const toast = useToast()
@@ -90,6 +91,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
         setState(state => {
           const test = state.test
           let newRequests = [...test.requests, makeNewEmptyRequest(endpoint)]
+          let newFetchingRequests = [...state.fetchingRequests, false]
           return {
             selectedRequest: newRequests.length - 1,
             test: {
@@ -97,6 +99,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
               requests: newRequests,
             },
             modified: true,
+            fetchingRequests: newFetchingRequests,
           }
         }),
       [setState, endpoint],
@@ -114,6 +117,8 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             idx <= state.selectedRequest
               ? Math.max(state.selectedRequest - 1, 0)
               : state.selectedRequest
+          let newFetchingRequests = [...state.fetchingRequests]
+          newFetchingRequests.splice(idx, 1)
           return {
             selectedRequest: newSelectedRequest,
             test: {
@@ -121,22 +126,29 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
               requests: newRequests,
             },
             modified: true,
+            fetchingRequests: newFetchingRequests,
           }
         }),
       [setState],
     )
 
     const sendSelectedRequest = () => {
-      updateFetching(true)
+      const currSelectedReq = selectedRequest
+      setState(state => ({
+        ...state,
+        fetchingRequests: state.fetchingRequests.map((e, i) =>
+          i == currSelectedReq ? true : e,
+        ),
+      }))
       runTest({
         ...test,
-        requests: [test.requests[selectedRequest]],
+        requests: [test.requests[currSelectedReq]],
       })
         .then(res => {
           updateTest(e => ({
             ...e,
             requests: e.requests.map((req, i) =>
-              i == selectedRequest ? { ...req, result: res[0] } : req,
+              i == currSelectedReq ? { ...req, result: res[0] } : req,
             ),
           }))
         })
@@ -147,7 +159,14 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             status: "error",
           })
         })
-        .finally(() => updateFetching(false))
+        .finally(() =>
+          setState(state => ({
+            ...state,
+            fetchingRequests: state.fetchingRequests.map((e, i) =>
+              i == currSelectedReq ? false : e,
+            ),
+          })),
+        )
     }
 
     const onSaveRequest = async () => {
@@ -176,7 +195,10 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
     }
 
     const onRunClick = () => {
-      updateFetching(true)
+      setState(state => ({
+        ...state,
+        fetchingRequests: Array(state.fetchingRequests.length).fill(true),
+      }))
       runTest(test)
         .then(res => {
           updateTest(e => ({
@@ -191,7 +213,12 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             status: "error",
           })
         })
-        .finally(() => updateFetching(false))
+        .finally(() =>
+          setState(state => ({
+            ...state,
+            fetchingRequests: Array(state.fetchingRequests.length).fill(false),
+          })),
+        )
     }
 
     return (
@@ -229,7 +256,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
               <Button
                 colorScheme="blue"
                 onClick={onRunClick}
-                isLoading={fetching}
+                isLoading={state.fetchingRequests.every(e => e)}
               >
                 Run
               </Button>
@@ -247,6 +274,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
           spacing="0"
         >
           <RequestList
+            fetching={state.fetchingRequests}
             requests={test.requests}
             selectedRequest={selectedRequest}
             updateSelectedRequest={updateSelectedRequest}
@@ -257,7 +285,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
           />
           <RequestEditor
             sendSelectedRequest={sendSelectedRequest}
-            fetching={fetching}
+            fetching={state.fetchingRequests[selectedRequest]}
             request={test.requests[selectedRequest]}
             updateRequest={updateRequest}
           />
