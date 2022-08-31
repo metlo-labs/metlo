@@ -7,7 +7,7 @@ import { SidebarLayoutShell } from "components/SidebarLayoutShell"
 import { AlertList } from "components/Alert/AlertList"
 import { ALERT_PAGE_LIMIT } from "~/constants"
 import { getAlerts, updateAlert } from "api/alerts"
-import { Status } from "@common/enums"
+import { AlertType, RiskScore, Status } from "@common/enums"
 import { GetServerSideProps } from "next"
 
 const Alerts = ({ initParams, initAlerts, initTotalCount }) => {
@@ -84,7 +84,7 @@ const Alerts = ({ initParams, initAlerts, initTotalCount }) => {
             fetching={fetching}
             pagination
             totalCount={totalCount}
-            page={(params.offset / ALERT_PAGE_LIMIT) + 1}
+            page={params.offset / ALERT_PAGE_LIMIT + 1}
           />
         </Box>
       </VStack>
@@ -94,9 +94,21 @@ const Alerts = ({ initParams, initAlerts, initTotalCount }) => {
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const initParams: GetAlertParams = {
-    riskScores: [],
-    status: [Status.OPEN],
-    alertTypes: [],
+    riskScores: ((context.query.riskScores as string) || "")
+      .split(",")
+      .map(e => e.toUpperCase())
+      .filter(e => Object.keys(RiskScore).includes(e))
+      .map(e => RiskScore[e]),
+    status: ((context.query.status as string) || "open")
+      .split(",")
+      .map(e => e.toUpperCase())
+      .filter(e => Object.keys(Status).includes(e))
+      .map(e => Status[e]),
+    alertTypes: ((context.query.alertTypes as string) || "")
+      .split(",")
+      .map(e => e.toUpperCase())
+      .filter(e => Object.keys(AlertType).includes(e))
+      .map(e => AlertType[e]),
     offset: 0,
     limit: ALERT_PAGE_LIMIT,
     order: "DESC",
