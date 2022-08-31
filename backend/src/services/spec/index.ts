@@ -88,8 +88,7 @@ export class SpecService {
       const endpoint = specEndpoints[i]
       endpoint.openapiSpecName = null
     }
-    await apiEndpointRepository.save(specEndpoints)
-    await openApiSpecRepository.remove(openApiSpec)
+    await DatabaseService.executeTransactions([[...specEndpoints]], [[openApiSpec]])
   }
 
   static async uploadNewSpec(
