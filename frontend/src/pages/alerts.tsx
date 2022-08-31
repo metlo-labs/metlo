@@ -1,5 +1,6 @@
 import { Heading, VStack, useToast, Box } from "@chakra-ui/react"
-import React, { useEffect, useState } from "react"
+import superjson from "superjson"
+import React, { useState } from "react"
 import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
 import { Alert, GetAlertParams, UpdateAlertParams } from "@common/types"
 import { SidebarLayoutShell } from "components/SidebarLayoutShell"
@@ -7,43 +8,41 @@ import { AlertList } from "components/Alert/AlertList"
 import { ALERT_PAGE_LIMIT } from "~/constants"
 import { getAlerts, updateAlert } from "api/alerts"
 import { Status } from "@common/enums"
+import { GetServerSideProps } from "next"
 
-const Alerts = () => {
-  const [fetching, setFetching] = useState<boolean>(true)
-  const [alerts, setAlerts] = useState<Alert[]>([])
-  const [totalCount, setTotalCount] = useState<number>()
-  const [page, setPage] = useState(1)
+const Alerts = ({ initParams, initAlerts, initTotalCount }) => {
+  const parsedInitParams = superjson.parse<GetAlertParams>(initParams)
+  const parsedInitAlerts = superjson.parse<Alert[]>(initAlerts)
+
   const [updating, setUpdating] = useState<boolean>(false)
-  const [params, setParams] = useState<GetAlertParams>({
-    riskScores: [],
-    status: [Status.OPEN],
-    alertTypes: [],
-    offset: 0,
-    limit: ALERT_PAGE_LIMIT,
-    order: "DESC",
-  })
-  const [toggleRefetch, setToggleRefetch] = useState<boolean>(false)
+  const [fetching, setFetching] = useState<boolean>(false)
+  const [alerts, setAlerts] = useState<Alert[]>(parsedInitAlerts)
+  const [totalCount, setTotalCount] = useState<number>(initTotalCount)
+  const [params, setParamsInner] = useState<GetAlertParams>(parsedInitParams)
+
   const toast = useToast()
 
-  useEffect(() => {
+  const fetchAlerts = (fetchParams: GetAlertParams) => {
     setFetching(true)
-    const fetchAlerts = async () => {
-      const res = await getAlerts(params)
-      setAlerts(res[0])
-      setTotalCount(res[1])
-      setFetching(false)
-    }
-    fetchAlerts()
-  }, [params, toggleRefetch])
+    getAlerts(fetchParams)
+      .then(res => {
+        setAlerts(res[0])
+        setTotalCount(res[1])
+      })
+      .catch(e =>
+        toast({
+          title: "Fetching Alerts failed...",
+          status: "error",
+        }),
+      )
+      .finally(() => setFetching(false))
+  }
 
-  useEffect(() => {
-    setPage(1)
-  }, [params.riskScores, params.status, params.alertTypes])
-
-  useEffect(() => {
-    const offset = (page - 1) * ALERT_PAGE_LIMIT
-    setParams({ ...params, offset })
-  }, [page])
+  const setParams = (t: (e: GetAlertParams) => GetAlertParams) => {
+    let newParams = t(params)
+    setParamsInner(newParams)
+    fetchAlerts(newParams)
+  }
 
   const handleUpdateAlert = async (
     alertId: string,
@@ -55,18 +54,12 @@ const Alerts = () => {
       toast({
         title: `Updating alert successful`,
         status: "success",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
       })
-      setToggleRefetch(!toggleRefetch)
+      fetchAlerts(params)
     } else {
       toast({
-        title: `Updating Alert failed...`,
+        title: "Updating Alert failed...",
         status: "error",
-        duration: 5000,
-        isClosable: true,
-        position: "top",
       })
     }
     setUpdating(false)
@@ -78,7 +71,7 @@ const Alerts = () => {
       currentTab={SideNavLinkDestination.Alerts}
     >
       <VStack h="full" w="full" alignItems="flex-start">
-        <Heading px="8" pt="8" fontWeight="medium" size="xl">
+        <Heading px="8" pt="4" fontWeight="medium" size="xl">
           Alerts
         </Heading>
         <Box px="8" w="full" h="full" overflowY="hidden">
@@ -91,13 +84,33 @@ const Alerts = () => {
             fetching={fetching}
             pagination
             totalCount={totalCount}
-            page={page}
-            setPage={setPage}
+            page={(params.offset / ALERT_PAGE_LIMIT) + 1}
           />
         </Box>
       </VStack>
     </SidebarLayoutShell>
   )
+}
+
+export const getServerSideProps: GetServerSideProps = async context => {
+  const initParams: GetAlertParams = {
+    riskScores: [],
+    status: [Status.OPEN],
+    alertTypes: [],
+    offset: 0,
+    limit: ALERT_PAGE_LIMIT,
+    order: "DESC",
+  }
+  const alerts = await getAlerts(initParams)
+  const initAlerts = alerts[0]
+  const totalCount = alerts[1]
+  return {
+    props: {
+      initParams: superjson.stringify(initParams),
+      initAlerts: superjson.stringify(initAlerts),
+      initTotalCount: totalCount,
+    },
+  }
 }
 
 export default Alerts

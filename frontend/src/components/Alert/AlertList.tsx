@@ -43,7 +43,7 @@ enum Order {
 interface AlertListProps {
   alerts: Alert[]
   params: GetAlertParams
-  setParams: (value: React.SetStateAction<GetAlertParams>) => void
+  setParams: (t: (e: GetAlertParams) => GetAlertParams) => void
   handleUpdateAlert: (
     alertId: string,
     updateAlertParams: UpdateAlertParams,
@@ -53,7 +53,6 @@ interface AlertListProps {
   pagination?: boolean
   totalCount?: number
   page?: number
-  setPage?: React.Dispatch<React.SetStateAction<number>>
 }
 
 export const AlertList: React.FC<AlertListProps> = ({
@@ -64,7 +63,6 @@ export const AlertList: React.FC<AlertListProps> = ({
   pagination,
   totalCount,
   page,
-  setPage,
   handleUpdateAlert,
   updating,
 }) => {
@@ -84,15 +82,17 @@ export const AlertList: React.FC<AlertListProps> = ({
     riskScore: string,
   ) => {
     if (e.target.checked) {
-      setParams({
-        ...params,
+      setParams(oldParams => ({
+        ...oldParams,
         riskScores: [...params.riskScores, RiskScore[riskScore]],
-      })
+        offset: 0,
+      }))
     } else {
-      setParams({
-        ...params,
+      setParams(oldParams => ({
+        ...oldParams,
         riskScores: params.riskScores.filter(e => e !== RiskScore[riskScore]),
-      })
+        offset: 0,
+      }))
     }
   }
 
@@ -101,15 +101,16 @@ export const AlertList: React.FC<AlertListProps> = ({
     alertType: string,
   ) => {
     if (e.target.checked) {
-      setParams({
-        ...params,
+      setParams(oldParams => ({
+        ...oldParams,
         alertTypes: [...params.alertTypes, AlertType[alertType]],
-      })
+      }))
     } else {
-      setParams({
-        ...params,
+      setParams(oldParams => ({
+        ...oldParams,
         alertTypes: params.alertTypes.filter(e => e !== AlertType[alertType]),
-      })
+        offset: 0,
+      }))
     }
   }
 
@@ -118,12 +119,17 @@ export const AlertList: React.FC<AlertListProps> = ({
     status: string,
   ) => {
     if (e.target.checked) {
-      setParams({ ...params, status: [...params.status, Status[status]] })
+      setParams(oldParams => ({
+        ...oldParams,
+        status: [...params.status, Status[status]],
+        offset: 0,
+      }))
     } else {
-      setParams({
-        ...params,
+      setParams(oldParams => ({
+        ...oldParams,
         status: params.status.filter(e => e !== Status[status]),
-      })
+        offset: 0,
+      }))
     }
   }
 
@@ -232,7 +238,10 @@ export const AlertList: React.FC<AlertListProps> = ({
             defaultValue={Order.DESC}
             w="fit-content"
             onChange={e =>
-              setParams({ ...params, order: e.target.value as Order })
+              setParams(oldParams => ({
+                ...oldParams,
+                order: e.target.value as Order,
+              }))
             }
           >
             <option value={Order.DESC}>Highest Risk</option>
@@ -294,7 +303,12 @@ export const AlertList: React.FC<AlertListProps> = ({
           <PaginationComponent
             pageSize={ALERT_PAGE_LIMIT}
             currentPage={page}
-            setCurrentPage={setPage}
+            setCurrentPage={e =>
+              setParams(oldParams => ({
+                ...oldParams,
+                offset: (e - 1) * ALERT_PAGE_LIMIT,
+              }))
+            }
             tableSize={totalCount}
           />
         </HStack>
