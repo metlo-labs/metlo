@@ -35,7 +35,7 @@ export const getPathTokens = (path: string): string[] => {
     return ["/"]
   }
   const tokens = path.split("/")
-  return tokens.filter((token) => token.length > 0)
+  return tokens.filter(token => token.length > 0)
 }
 
 export const getPathRegex = (path: string): string => {

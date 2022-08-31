@@ -72,7 +72,18 @@ export const validateSpecSchema = (schema: any, version?: number) => {
       .replace(/\//g, ".")
       .replace(/~1/g, "/")
       .slice(1)
-    res.push(`${error.message} for field ${field}`)
+    let message = ""
+    switch (error.keyword) {
+      case "required":
+        message = `Required property '${error.params?.["missingProperty"]}' is missing from ${field}`
+        break
+      case "additionalProperties":
+        message = `Must not have additional property '${error.params?.["additionalProperty"]}' for ${field}`
+        break
+      default:
+        message = `${message} of ${field}`
+    }
+    res.push(message)
   }
   return res
 }
