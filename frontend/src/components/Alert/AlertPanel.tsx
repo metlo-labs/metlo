@@ -17,16 +17,10 @@ import darkTheme from "prism-react-renderer/themes/duotoneDark"
 import lightTheme from "prism-react-renderer/themes/github"
 import Highlight, { defaultProps } from "prism-react-renderer"
 import { AlertType, SpecExtension } from "@common/enums"
-import { Alert, ApiTrace } from "@common/types"
+import { Alert } from "@common/types"
 import { METHOD_TO_COLOR, RISK_TO_COLOR } from "~/constants"
 import { getDateTimeString } from "utils"
-
-export interface SpecDiffContext {
-  pathPointer: string[]
-  spec: string
-  specExtension: SpecExtension
-  trace: ApiTrace
-}
+import { SpecDiffContext } from "./AlertDetail"
 
 interface AlertPanelProps {
   alert: Alert

@@ -24,11 +24,21 @@ import darkTheme from "prism-react-renderer/themes/duotoneDark"
 import lightTheme from "prism-react-renderer/themes/github"
 import Highlight, { defaultProps } from "prism-react-renderer"
 import { AlertType, SpecExtension, Status } from "@common/enums"
-import { Alert } from "@common/types"
+import { Alert, ApiTrace } from "@common/types"
 import { getDateTimeString } from "utils"
 import { METHOD_TO_COLOR, STATUS_TO_COLOR } from "~/constants"
-import { SpecDiffContext } from "./AlertPanel"
-import { TraceView } from "components/Endpoint/TraceDetail"
+import TraceDetail from "components/Endpoint/TraceDetail"
+
+export interface SpecDiffContext {
+  pathPointer: string[]
+  spec: string
+  specExtension: SpecExtension
+  trace: ApiTrace
+}
+
+interface PiiDataContext {
+  trace: ApiTrace
+}
 
 interface AlertDetailProps {
   alert: Alert
@@ -60,15 +70,15 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
   switch (alert.type) {
     case AlertType.OPEN_API_SPEC_DIFF:
       let lineNumber = null
-      const context = alert.context as SpecDiffContext
-      const trace = context.trace
-      if (context.specExtension) {
-        switch (context.specExtension) {
+      const contextSpec = alert.context as SpecDiffContext
+      const traceSpec = contextSpec.trace
+      if (contextSpec.specExtension) {
+        switch (contextSpec.specExtension) {
           case SpecExtension.JSON:
-            const result = jsonMap.parse(context.spec)
+            const result = jsonMap.parse(contextSpec.spec)
             let pathKey = ""
-            for (let i = 0; i < context.pathPointer?.length; i++) {
-              let pathToken = context.pathPointer[i]
+            for (let i = 0; i < contextSpec.pathPointer?.length; i++) {
+              let pathToken = contextSpec.pathPointer[i]
               pathToken = pathToken.replaceAll("/", "~1")
               pathKey += `/${pathToken}`
             }
@@ -79,8 +89,8 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
             break
           case SpecExtension.YAML:
             const map = new SourceMap()
-            yaml.load(context.spec, { listener: map.listen() })
-            lineNumber = map.lookup(context.pathPointer).line
+            yaml.load(contextSpec.spec, { listener: map.listen() })
+            lineNumber = map.lookup(contextSpec.pathPointer).line
             if (lineNumber) {
               lineNumber -= 1
             }
@@ -104,13 +114,7 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
                 borderWidth={1}
                 bg="var(--chakra-colors-chakra-body-bg)"
               >
-                <VStack mb="4" h="full" w="full" alignItems="flex-start">
-                  <Text fontWeight="semibold">Request Path</Text>
-                  <Code rounded="md" p="2" fontSize="sm">
-                    {trace.path}
-                  </Code>
-                </VStack>
-                <TraceView trace={trace} colorMode={colorMode} />
+                <TraceDetail trace={traceSpec} alertModalView />
               </AccordionPanel>
             </AccordionItem>
           </Accordion>
@@ -122,8 +126,8 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
             <Highlight
               {...defaultProps}
               theme={theme}
-              code={context.spec}
-              language={context.specExtension || "json"}
+              code={contextSpec.spec}
+              language={contextSpec.specExtension || "json"}
             >
               {({ className, style, tokens, getLineProps, getTokenProps }) => {
                 return (
@@ -184,6 +188,25 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
               }}
             </Highlight>
           </Box>
+        </Box>
+      )
+      break
+    case AlertType.PII_DATA_DETECTED:
+      const contextPii = alert.context as PiiDataContext
+      const tracePii = contextPii.trace
+      rightPanel = (
+        <Box w="55%" h="full">
+          <VStack w="full" h="full" alignItems="flex-start">
+            <Text fontWeight="semibold">Detected Trace</Text>
+            <Box
+              overflowX="auto"
+              w="full"
+              bg="var(--chakra-colors-chakra-body-bg)"
+              h="calc(100% - 20px)"
+            >
+              <TraceDetail trace={tracePii} />
+            </Box>
+          </VStack>
         </Box>
       )
       break

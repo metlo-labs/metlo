@@ -36,7 +36,7 @@ import {
   get_setup_state,
   setup_connection,
 } from "./api/setup"
-import { getTest, listTests, runTestHandler, saveTest } from "./api/tests"
+import { getTest, runTestHandler, saveTest } from "./api/tests"
 import {
   delete_connection,
   get_connection_for_uuid,
@@ -44,7 +44,6 @@ import {
   list_connections,
   update_connection,
 } from "./api/connections"
-import runAllTests from "services/testing/runAllTests"
 import { RedisClient } from "utils/redis"
 
 dotenv.config()
@@ -116,7 +115,6 @@ app.delete("/api/v1/delete_connection/:uuid", delete_connection)
 app.post("/api/v1/test/run", runTestHandler)
 
 app.post("/api/v1/test/save", saveTest)
-app.get("/api/v1/test/list", listTests)
 app.get("/api/v1/test/list/:uuid", getTest)
 
 const main = async () => {
@@ -130,7 +128,6 @@ const main = async () => {
     app.listen(port, () => {
       console.log(`⚡️[server]: Server is running at http://localhost:${port}`)
     })
-    runAllTests()
   } catch (err) {
     console.error(`CatchBlockInsideMain: ${err}`)
   }

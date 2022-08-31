@@ -217,7 +217,7 @@ export const AlertList: React.FC<AlertListProps> = ({
 
   return (
     <VStack h="full" overflowY="hidden" w="full" alignItems="flex-start">
-      <HStack px="8" w="full" justifyContent="space-between">
+      <HStack w="full" justifyContent="space-between">
         <Box>
           <IconButton
             visibility={{ base: "visible", lg: "hidden" }}
@@ -242,7 +242,6 @@ export const AlertList: React.FC<AlertListProps> = ({
       </HStack>
       <HStack h="full" overflowY="hidden" w="full" spacing={{ base: 0, lg: 4 }}>
         <VStack
-          pl="8"
           alignItems="flex-start"
           alignSelf="flex-start"
           display={{ base: "none", lg: "block" }}
@@ -253,9 +252,6 @@ export const AlertList: React.FC<AlertListProps> = ({
         </VStack>
         {!fetching && alerts && alerts.length > 0 ? (
           <VStack
-            pl={{ base: "8", lg: "0" }}
-            pr="4"
-            pb="8"
             h="full"
             w="full"
             overflowY="auto"

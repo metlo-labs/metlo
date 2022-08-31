@@ -21,7 +21,7 @@ export const saveTest = async (req: Request, res: Response): Promise<void> => {
     test: { uuid, name, tags, requests },
     endpointUuid,
   } = req.body
-  let resp = await AppDataSource.getRepository(ApiEndpointTest)
+  let testInsert = await AppDataSource.getRepository(ApiEndpointTest)
     .createQueryBuilder()
     .insert()
     .into(ApiEndpointTest)
@@ -36,19 +36,11 @@ export const saveTest = async (req: Request, res: Response): Promise<void> => {
     })
     .orUpdate(["name", "tags", "requests"], ["uuid"])
     .execute()
-
-  await ApiResponseHandler.success(res, resp)
-}
-
-export const listTests = async (req: Request, res: Response): Promise<void> => {
-  const { uuid } = req.params
-
   let resp = await AppDataSource.getRepository(ApiEndpointTest)
-    .createQueryBuilder("test")
+    .createQueryBuilder()
     .select()
-    .leftJoinAndSelect("test.apiEndpoint", "apiEndpoint")
-    .getMany()
-
+    .where("uuid = :uuid", testInsert.identifiers[0])
+    .getOne()
   await ApiResponseHandler.success(res, resp)
 }
 

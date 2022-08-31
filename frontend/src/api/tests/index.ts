@@ -22,8 +22,9 @@ export const getTest = async (testUUID: string) => {
 }
 
 export const saveTest = async (test: Test, endpoint_uuid: string) => {
-  const resp = await axios.post<any>(`${getAPIURL()}/test/save`, {
+  const resp = await axios.post<Test>(`${getAPIURL()}/test/save`, {
     test,
     endpointUuid: endpoint_uuid,
   })
+  return resp.data
 }

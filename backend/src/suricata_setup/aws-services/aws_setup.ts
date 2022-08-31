@@ -377,9 +377,9 @@ export async function aws_mirror_target_creation({
         accessKeyId: access_id,
       },
       region: region,
-    });
-    let resp = await create_mirror_target(client, destination_eni_id, id);
-    client.destroy();
+    })
+    let resp = await create_mirror_target(client, destination_eni_id, id)
+    client.destroy()
     return {
       success: "OK",
       status: "IN-PROGRESS",

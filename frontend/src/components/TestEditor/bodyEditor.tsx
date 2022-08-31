@@ -41,7 +41,7 @@ const RequestBodyEditor: React.FC<RequestBodyProps> = React.memo(
         <Editor
           height="100%"
           width="100%"
-          defaultLanguage="javascript"
+          defaultLanguage="json"
           value={body.data as string}
           onChange={val => updateBody(e => ({ ...e, data: val }))}
           options={{

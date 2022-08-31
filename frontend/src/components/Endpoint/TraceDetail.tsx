@@ -20,6 +20,7 @@ const ReactJson = dynamic(() => import("react-json-view"), { ssr: false })
 
 interface TraceDetailProps {
   trace: ApiTrace
+  alertModalView?: boolean
 }
 
 const JSONContentViewer = (data: string, colorMode: ColorMode) => {
@@ -82,77 +83,87 @@ export const TraceView: React.FC<{ trace: ApiTrace; colorMode: ColorMode }> = ({
   </VStack>
 )
 
-const TraceDetail: React.FC<TraceDetailProps> = React.memo(({ trace }) => {
-  const colorMode = useColorMode()
-  return (
-    <Box h="full" overflowY="auto" p="4">
-      <Grid templateColumns="1fr 1fr" gap="4">
-        <GridItem colSpan={2}>
-          <VStack alignItems="flex-start">
-            <Text fontWeight="semibold">Endpoint</Text>
-            <HStack>
-              <Badge
-                fontSize="sm"
-                px="2"
-                py="1"
-                colorScheme={statusCodeToColor(trace.responseStatus) || "gray"}
-              >
-                {trace.responseStatus}
-              </Badge>
-              <Badge
-                fontSize="sm"
-                px="2"
-                py="1"
-                colorScheme={METHOD_TO_COLOR[trace.method] || "gray"}
-              >
-                {trace.method.toUpperCase()}
-              </Badge>
+const TraceDetail: React.FC<TraceDetailProps> = React.memo(
+  ({ trace, alertModalView }) => {
+    const colorMode = useColorMode()
+    return (
+      <Box
+        w="full"
+        h="full"
+        overflowY="auto"
+        p={alertModalView ? "0" : "4"}
+        wordBreak={alertModalView ? "break-word" : "initial"}
+      >
+        <Grid templateColumns="1fr 1fr" gap="4">
+          <GridItem colSpan={2}>
+            <VStack alignItems="flex-start">
+              <Text fontWeight="semibold">Endpoint</Text>
+              <HStack>
+                <Badge
+                  fontSize="sm"
+                  px="2"
+                  py="1"
+                  colorScheme={
+                    statusCodeToColor(trace.responseStatus) || "gray"
+                  }
+                >
+                  {trace.responseStatus}
+                </Badge>
+                <Badge
+                  fontSize="sm"
+                  px="2"
+                  py="1"
+                  colorScheme={METHOD_TO_COLOR[trace.method] || "gray"}
+                >
+                  {trace.method.toUpperCase()}
+                </Badge>
+                <Code p="1" fontSize="sm">
+                  {trace.path}
+                </Code>
+              </HStack>
+            </VStack>
+          </GridItem>
+          <GridItem>
+            <VStack alignItems="flex-start">
+              <Text fontWeight="semibold">Time</Text>
               <Code p="1" fontSize="sm">
-                {trace.path}
+                {getDateTimeString(trace.createdAt)}
               </Code>
-            </HStack>
-          </VStack>
-        </GridItem>
-        <GridItem>
-          <VStack alignItems="flex-start">
-            <Text fontWeight="semibold">Time</Text>
-            <Code p="1" fontSize="sm">
-              {getDateTimeString(trace.createdAt)}
-            </Code>
-          </VStack>
-        </GridItem>
-        <GridItem>
-          <VStack alignItems="flex-start">
-            <Text fontWeight="semibold">Host</Text>
-            <Code p="1" fontSize="sm">
-              {trace.host}
-            </Code>
-          </VStack>
-        </GridItem>
-        <GridItem>
-          <VStack alignItems="flex-start">
-            <Text fontWeight="semibold">Source</Text>
-            <Text
-              fontFamily="mono"
-              fontSize="sm"
-            >{`${trace.meta.source}:${trace.meta.sourcePort}`}</Text>
-          </VStack>
-        </GridItem>
-        <GridItem>
-          <VStack alignItems="flex-start">
-            <Text fontWeight="semibold">Destination</Text>
-            <Text
-              fontFamily="mono"
-              fontSize="sm"
-            >{`${trace.meta.destination}:${trace.meta.destinationPort}`}</Text>
-          </VStack>
-        </GridItem>
-      </Grid>
-      <Box pt="4">
-        <TraceView trace={trace} colorMode={colorMode.colorMode} />
+            </VStack>
+          </GridItem>
+          <GridItem>
+            <VStack alignItems="flex-start">
+              <Text fontWeight="semibold">Host</Text>
+              <Code p="1" fontSize="sm">
+                {trace.host}
+              </Code>
+            </VStack>
+          </GridItem>
+          <GridItem>
+            <VStack alignItems="flex-start">
+              <Text fontWeight="semibold">Source</Text>
+              <Text
+                fontFamily="mono"
+                fontSize="sm"
+              >{`${trace.meta.source}:${trace.meta.sourcePort}`}</Text>
+            </VStack>
+          </GridItem>
+          <GridItem>
+            <VStack alignItems="flex-start">
+              <Text fontWeight="semibold">Destination</Text>
+              <Text
+                fontFamily="mono"
+                fontSize="sm"
+              >{`${trace.meta.destination}:${trace.meta.destinationPort}`}</Text>
+            </VStack>
+          </GridItem>
+        </Grid>
+        <Box pt="4">
+          <TraceView trace={trace} colorMode={colorMode.colorMode} />
+        </Box>
       </Box>
-    </Box>
-  )
-})
+    )
+  },
+)
 
 export default TraceDetail

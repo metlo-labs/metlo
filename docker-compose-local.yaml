@@ -11,22 +11,31 @@ services:
       - db:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init_db.sql
     ports:
-    # WARNING : DB **SHOULD NEVER** BE EXPOSED IN THE PROD INSTANCE. Be careful when using the local docker compose.
-      - 5432:5432
+      # WARNING : DB **SHOULD NEVER** BE EXPOSED IN THE PROD INSTANCE. Be careful when using the local docker compose.
+      - 5431:5432
+  cache:
+    image: redis:7.0.4
+    restart: always
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    volumes:
+      - cache:/data
   backend:
     build:
       context: ./
       dockerfile: ./deploy/backend/Dockerfile
     # image: metlo/backend
     container_name: metlo-backend
+    depends_on:
+      - cache
     restart: unless-stopped
     ports:
       - 8080:8080
     environment:
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
-      #- ENCRYPTION_KEY=
-      #- BACKEND_URL=
-      #- EXPRESS_SECRET=
+      - REDIS_URL=redis://:eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81@cache:6379
+      - ENCRYPTION_KEY
+      - BACKEND_URL
+      - EXPRESS_SECRET
   jobs:
     image: metlo/jobrunner
     container_name: metlo-jobs
@@ -47,4 +56,6 @@ services:
 
 volumes:
   db:
+    driver: local
+  cache:
     driver: local

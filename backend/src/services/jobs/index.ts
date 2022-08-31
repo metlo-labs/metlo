@@ -2,12 +2,14 @@ import { FindOptionsWhere, IsNull, MoreThan, Raw } from "typeorm"
 import { v4 as uuidv4 } from "uuid"
 import {
   getDataType,
+  getPathTokens,
   getRiskScore,
+  isParameter,
   isSuspectedParamater,
   parsedJson,
   parsedJsonNonNull,
 } from "utils"
-import { ApiEndpoint, ApiTrace, OpenApiSpec } from "models"
+import { ApiEndpoint, ApiTrace, OpenApiSpec, Alert } from "models"
 import { AppDataSource } from "data-source"
 import { AlertType, DataType, RestMethod, SpecExtension } from "@common/enums"
 import { AlertService } from "services/alert"
@@ -119,6 +121,9 @@ export class JobsService {
               host: trace.host,
             },
             relations: { dataFields: true },
+            order: {
+              numberParams: "ASC",
+            },
           })
           if (apiEndpoint) {
             apiEndpoint.totalCalls += 1
@@ -127,8 +132,19 @@ export class JobsService {
               apiEndpoint,
             )
             trace.apiEndpointUuid = apiEndpoint.uuid
+            const sensitiveDataAlerts =
+              await AlertService.createSensitiveDataAlerts(
+                dataFields,
+                apiEndpoint.uuid,
+                trace,
+              )
             await DatabaseService.executeTransactions(
-              [[...dataFields], [apiEndpoint], [trace]],
+              [
+                [...dataFields],
+                [...sensitiveDataAlerts],
+                [apiEndpoint],
+                [trace],
+              ],
               [],
               true,
             )
@@ -147,13 +163,16 @@ export class JobsService {
               }
             }
             if (!found) {
-              const pathTokens = trace.path.split("/")
+              const pathTokens = getPathTokens(trace.path)
               let paramNum = 1
               let parameterizedPath = ""
               let pathRegex = String.raw``
               for (let j = 0; j < pathTokens.length; j++) {
                 const tokenString = pathTokens[j]
-                if (tokenString.length > 0) {
+                if (tokenString === "/") {
+                  parameterizedPath += "/"
+                  pathRegex += "/"
+                } else if (tokenString.length > 0) {
                   if (isSuspectedParamater(tokenString)) {
                     parameterizedPath += `/{param${paramNum}}`
                     pathRegex += String.raw`/[^/]+`
@@ -199,6 +218,7 @@ export class JobsService {
           apiEndpoint.dataFields = []
 
           // TODO: Do something with setting sensitive data classes during iteration of traces and add auto generated open api spec for inferred endpoints
+          let sensitiveDataAlerts: Alert[] = []
           for (let i = 0; i < value.traces.length; i++) {
             const trace = value.traces[i]
             apiEndpoint.dataFields = DataFieldService.findAllDataFields(
@@ -207,6 +227,12 @@ export class JobsService {
               true,
             )
             trace.apiEndpoint = apiEndpoint
+            sensitiveDataAlerts = await AlertService.createSensitiveDataAlerts(
+              apiEndpoint.dataFields,
+              apiEndpoint.uuid,
+              trace,
+              sensitiveDataAlerts,
+            )
           }
           apiEndpoint.riskScore = getRiskScore(apiEndpoint.dataFields)
           const alert = await AlertService.createAlert(
@@ -217,6 +243,7 @@ export class JobsService {
             [
               [apiEndpoint],
               [...apiEndpoint.dataFields],
+              [...sensitiveDataAlerts],
               [alert],
               [...value.traces],
             ],
@@ -241,9 +268,10 @@ export class JobsService {
       })
       const hostMap: Record<string, ApiEndpoint[]> = {}
       const specIntro = {
-        openapi: "3.0.3",
+        openapi: "3.0.0",
         info: {
           title: "OpenAPI 3.0 Spec",
+          version: "1.0.0",
           description: "An auto-generated OpenAPI 3.0 specification.",
         },
       }
@@ -301,7 +329,7 @@ export class JobsService {
           let responses: Responses = {}
           if (paths[path]) {
             if (paths[path][method]) {
-              const specParameters = paths[path][method]["parameters"]
+              const specParameters = paths[path][method]["parameters"] ?? []
               requestBodySpec =
                 paths[path][method]["requestBody"]?.["content"] ?? {}
               responses = paths[path][method]["responses"] ?? {}
@@ -327,6 +355,18 @@ export class JobsService {
               trace.responseStatus?.toString() || "default"
             let requestContentType = null
             let responseContentType = null
+            const endpointTokens = getPathTokens(endpoint.path)
+            const traceTokens = getPathTokens(trace.path)
+            for (let i = 0; i < endpointTokens.length; i++) {
+              const currToken = endpointTokens[i]
+              if (isParameter(currToken)) {
+                const key = `${currToken.slice(1, -1)}<>path`
+                parameters[key] = this.parseSchema(
+                  parameters[key] ?? {},
+                  parsedJsonNonNull(traceTokens[i], true),
+                )
+              }
+            }
             for (const requestParameter of requestParamters) {
               const key = `${requestParameter.name}<>query`
               parameters[key] = this.parseSchema(

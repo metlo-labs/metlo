@@ -77,6 +77,9 @@ export class DataField extends BaseEntity {
   }
 
   updateMatches(dataClass: DataClass, matches: string[]): boolean {
+    if (this.dataClasses === null || this.dataClasses === undefined) {
+      this.dataClasses = Array<DataClass>()
+    }
     if (
       !matches ||
       matches?.length === 0 ||

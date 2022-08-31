@@ -6,6 +6,7 @@ import Error500InternalServer from "errors/error-500-internal-server"
 import { SpecService } from "services/spec"
 import { DataFieldService } from "services/data-field"
 import { DatabaseService } from "services/database"
+import { AlertService } from "services/alert"
 
 export class LogRequestService {
   static async logRequest(traceParams: TraceParams): Promise<void> {
@@ -40,6 +41,9 @@ export class LogRequestService {
           host,
         },
         relations: { dataFields: true },
+        order: {
+          numberParams: "ASC",
+        },
       })
       let dataFields: DataField[] = []
       let alerts: Alert[] = []
@@ -52,6 +56,13 @@ export class LogRequestService {
         )
         apiTraceObj.apiEndpointUuid = apiEndpoint.uuid
         alerts = await SpecService.findOpenApiSpecDiff(apiTraceObj, apiEndpoint)
+        const sensitiveDataAlerts =
+          await AlertService.createSensitiveDataAlerts(
+            dataFields,
+            apiEndpoint.uuid,
+            apiTraceObj,
+          )
+        alerts = alerts?.concat(sensitiveDataAlerts)
         apiEndpointSave = [apiEndpoint]
       }
       await DatabaseService.executeTransactions([[apiTraceObj]], [], true)

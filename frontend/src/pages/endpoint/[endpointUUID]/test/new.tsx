@@ -27,6 +27,7 @@ const NewTest = ({ endpoint }) => {
           tags: [],
           requests: [makeNewRequest(parsedEndpoint)],
         }}
+        isNewTest={true}
       />
     </SidebarLayoutShell>
   )

@@ -27,7 +27,7 @@ import {
   DescribeInstancesCommand,
   TerminateInstancesCommand,
   DeleteKeyPairCommand,
-} from "@aws-sdk/client-ec2";
+} from "@aws-sdk/client-ec2"
 
 import { STSClient, GetCallerIdentityCommand } from "@aws-sdk/client-sts"
 
@@ -441,18 +441,18 @@ export class EC2_CONN {
   }
 
   public async delete_ec2_instance(instance_id: string) {
-    let conn = this.get_conn();
+    let conn = this.get_conn()
     await conn.send(
-      new TerminateInstancesCommand({ InstanceIds: [instance_id] })
-    );
-    return true;
+      new TerminateInstancesCommand({ InstanceIds: [instance_id] }),
+    )
+    return true
   }
 
   public async delete_keypair(keypair_id: string, key_name: string) {
-    let conn = this.get_conn();
+    let conn = this.get_conn()
     await conn.send(
-      new DeleteKeyPairCommand({ KeyPairId: keypair_id, KeyName: key_name })
-    );
-    return true;
+      new DeleteKeyPairCommand({ KeyPairId: keypair_id, KeyName: key_name }),
+    )
+    return true
   }
 }

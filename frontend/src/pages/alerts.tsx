@@ -1,4 +1,4 @@
-import { Heading, VStack, useToast } from "@chakra-ui/react"
+import { Heading, VStack, useToast, Box } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
 import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
 import { Alert, GetAlertParams, UpdateAlertParams } from "@common/types"
@@ -77,22 +77,24 @@ const Alerts = () => {
       title="Alerts"
       currentTab={SideNavLinkDestination.Alerts}
     >
-      <VStack h="full" overflowY="hidden" w="full" alignItems="flex-start">
+      <VStack h="full" w="full" alignItems="flex-start">
         <Heading px="8" pt="8" fontWeight="medium" size="xl">
           Alerts
         </Heading>
-        <AlertList
-          alerts={alerts}
-          handleUpdateAlert={handleUpdateAlert}
-          updating={updating}
-          params={params}
-          setParams={setParams}
-          fetching={fetching}
-          pagination
-          totalCount={totalCount}
-          page={page}
-          setPage={setPage}
-        />
+        <Box px="8" w="full" h="full" overflowY="hidden">
+          <AlertList
+            alerts={alerts}
+            handleUpdateAlert={handleUpdateAlert}
+            updating={updating}
+            params={params}
+            setParams={setParams}
+            fetching={fetching}
+            pagination
+            totalCount={totalCount}
+            page={page}
+            setPage={setPage}
+          />
+        </Box>
       </VStack>
     </SidebarLayoutShell>
   )

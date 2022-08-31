@@ -1,12 +1,23 @@
 import React, { useState } from "react"
-import { HStack, VStack, StackProps, Button, Text } from "@chakra-ui/react"
+import {
+  Box,
+  HStack,
+  VStack,
+  StackProps,
+  Button,
+  Text,
+  Spinner,
+} from "@chakra-ui/react"
 import { IoMdTrash } from "@react-icons/all-files/io/IoMdTrash"
 import { FiPlus } from "@react-icons/all-files/fi/FiPlus"
 import { Request } from "@common/testing/types"
 import { METHOD_TO_COLOR } from "~/constants"
+import { BiCheckCircle } from "@react-icons/all-files/bi/BiCheckCircle"
+import { GiCancel } from "@react-icons/all-files/gi/GiCancel"
 
 interface RequestListProps extends StackProps {
   requests: Request[]
+  fetching: boolean[]
   selectedRequest: number
   updateSelectedRequest: (e: number) => void
   addNewRequest: () => void
@@ -14,6 +25,7 @@ interface RequestListProps extends StackProps {
 }
 
 interface RequestItemProps {
+  fetching: boolean
   request: Request
   selectedRequest: number
   idx: number
@@ -22,7 +34,14 @@ interface RequestItemProps {
 }
 
 const RequestItem: React.FC<RequestItemProps> = React.memo(
-  ({ request, selectedRequest, idx, updateSelectedRequest, deleteRequest }) => {
+  ({
+    fetching,
+    request,
+    selectedRequest,
+    idx,
+    updateSelectedRequest,
+    deleteRequest,
+  }) => {
     const [hovered, setHover] = useState(false)
     let host = "----"
     let path = "----"
@@ -31,6 +50,19 @@ const RequestItem: React.FC<RequestItemProps> = React.memo(
       host = url.host
       path = decodeURI(url.pathname)
     } catch (e) {}
+    const hasResult = !!request.result
+    let successIndicator = null
+    if (hasResult) {
+      const success =
+        !request.result.error && request.result.testResults.every(e => e.success)
+      successIndicator = success ? <BiCheckCircle /> : <GiCancel />
+      successIndicator = (
+        <Box color={success ? "green.500" : "red.500"}>{successIndicator}</Box>
+      )
+    }
+    if (fetching) {
+      successIndicator = <Spinner size="sm" color="blue" />
+    }
     return (
       <HStack
         onClick={() => updateSelectedRequest(idx)}
@@ -44,17 +76,30 @@ const RequestItem: React.FC<RequestItemProps> = React.memo(
         px="2"
         py="4"
       >
-        <VStack alignItems="flex-start" spacing="1" overflow="hidden">
-          <HStack spacing="0" w="full">
-            <Text
-              fontSize="xs"
-              fontWeight="semibold"
-              fontFamily="mono"
-              w="10"
-              color={METHOD_TO_COLOR[request.method] || "gray"}
-            >
-              {request.method.toUpperCase()}
-            </Text>
+        <HStack>
+          {successIndicator}
+          <VStack alignItems="flex-start" spacing="1" overflow="hidden">
+            <HStack spacing="0" w="full">
+              <Text
+                fontSize="xs"
+                fontWeight="semibold"
+                fontFamily="mono"
+                w="10"
+                color={METHOD_TO_COLOR[request.method] || "gray"}
+              >
+                {request.method.toUpperCase()}
+              </Text>
+              <Text
+                fontSize="xs"
+                fontWeight="medium"
+                fontFamily="mono"
+                whiteSpace="nowrap"
+                textOverflow="ellipsis"
+                overflow="hidden"
+              >
+                {path}
+              </Text>
+            </HStack>
             <Text
               fontSize="xs"
               fontWeight="medium"
@@ -62,22 +107,12 @@ const RequestItem: React.FC<RequestItemProps> = React.memo(
               whiteSpace="nowrap"
               textOverflow="ellipsis"
               overflow="hidden"
+              color="gray.500"
             >
-              {path}
+              {host}
             </Text>
-          </HStack>
-          <Text
-            fontSize="xs"
-            fontWeight="medium"
-            fontFamily="mono"
-            whiteSpace="nowrap"
-            textOverflow="ellipsis"
-            overflow="hidden"
-            color="gray.500"
-          >
-            {host}
-          </Text>
-        </VStack>
+          </VStack>
+        </HStack>
         <Button
           hidden={!hovered}
           size="sm"
@@ -99,6 +134,7 @@ const RequestItem: React.FC<RequestItemProps> = React.memo(
 
 const RequestList: React.FC<RequestListProps> = React.memo(
   ({
+    fetching,
     requests,
     selectedRequest,
     updateSelectedRequest,
@@ -112,6 +148,7 @@ const RequestList: React.FC<RequestListProps> = React.memo(
           {requests.map((e, i) => (
             <RequestItem
               key={i}
+              fetching={fetching[i]}
               request={e}
               selectedRequest={selectedRequest}
               idx={i}

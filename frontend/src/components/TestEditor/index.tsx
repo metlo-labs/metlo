@@ -19,25 +19,31 @@ import RequestEditor from "./requestEditor"
 import { makeNewEmptyRequest } from "./requestUtils"
 import { runTest, saveTest } from "api/tests"
 import { TagList } from "components/utils/TagList"
+import { useRouter } from "next/router"
 
 interface TestEditorProps {
   endpoint: ApiEndpointDetailed
   initTest: Test
+  isNewTest: boolean
 }
 
 interface TestEditorState {
   test: Test
   selectedRequest: number
+  modified: boolean
+  fetchingRequests: boolean[]
 }
 
 const TestEditor: React.FC<TestEditorProps> = React.memo(
-  ({ endpoint, initTest }) => {
+  ({ endpoint, initTest, isNewTest }) => {
     const [state, setState] = useState<TestEditorState>({
       test: initTest,
       selectedRequest: 0,
+      modified: false,
+      fetchingRequests: Array(initTest.requests.length).fill(false),
     })
-    const [fetching, updateFetching] = useState<boolean>(false)
     const [saving, updateSaving] = useState<boolean>(false)
+    const router = useRouter()
     const toast = useToast()
 
     const selectedRequest = state.selectedRequest
@@ -60,6 +66,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
           return {
             ...state,
             test: t(state.test),
+            modified: true,
           }
         })
       },
@@ -84,12 +91,15 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
         setState(state => {
           const test = state.test
           let newRequests = [...test.requests, makeNewEmptyRequest(endpoint)]
+          let newFetchingRequests = [...state.fetchingRequests, false]
           return {
             selectedRequest: newRequests.length - 1,
             test: {
               ...test,
               requests: newRequests,
             },
+            modified: true,
+            fetchingRequests: newFetchingRequests,
           }
         }),
       [setState, endpoint],
@@ -107,28 +117,38 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             idx <= state.selectedRequest
               ? Math.max(state.selectedRequest - 1, 0)
               : state.selectedRequest
+          let newFetchingRequests = [...state.fetchingRequests]
+          newFetchingRequests.splice(idx, 1)
           return {
             selectedRequest: newSelectedRequest,
             test: {
               ...test,
               requests: newRequests,
             },
+            modified: true,
+            fetchingRequests: newFetchingRequests,
           }
         }),
       [setState],
     )
 
     const sendSelectedRequest = () => {
-      updateFetching(true)
+      const currSelectedReq = selectedRequest
+      setState(state => ({
+        ...state,
+        fetchingRequests: state.fetchingRequests.map((e, i) =>
+          i == currSelectedReq ? true : e,
+        ),
+      }))
       runTest({
         ...test,
-        requests: [test.requests[selectedRequest]],
+        requests: [test.requests[currSelectedReq]],
       })
         .then(res => {
           updateTest(e => ({
             ...e,
             requests: e.requests.map((req, i) =>
-              i == selectedRequest ? { ...req, result: res[0] } : req,
+              i == currSelectedReq ? { ...req, result: res[0] } : req,
             ),
           }))
         })
@@ -139,7 +159,14 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             status: "error",
           })
         })
-        .finally(() => updateFetching(false))
+        .finally(() =>
+          setState(state => ({
+            ...state,
+            fetchingRequests: state.fetchingRequests.map((e, i) =>
+              i == currSelectedReq ? false : e,
+            ),
+          })),
+        )
     }
 
     const onSaveRequest = async () => {
@@ -150,6 +177,9 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             title: "Saved Request",
             status: "success",
           })
+          if (isNewTest) {
+            router.push(`/endpoint/${endpoint.uuid}/test/${e.uuid}`)
+          }
         })
         .catch(err => {
           toast({
@@ -158,11 +188,17 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             status: "error",
           })
         })
-        .finally(() => updateSaving(false))
+        .finally(() => {
+          updateSaving(false)
+          setState(e => ({ ...e, modified: false }))
+        })
     }
 
     const onRunClick = () => {
-      updateFetching(true)
+      setState(state => ({
+        ...state,
+        fetchingRequests: Array(state.fetchingRequests.length).fill(true),
+      }))
       runTest(test)
         .then(res => {
           updateTest(e => ({
@@ -177,7 +213,12 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             status: "error",
           })
         })
-        .finally(() => updateFetching(false))
+        .finally(() =>
+          setState(state => ({
+            ...state,
+            fetchingRequests: Array(state.fetchingRequests.length).fill(false),
+          })),
+        )
     }
 
     return (
@@ -215,15 +256,11 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
               <Button
                 colorScheme="blue"
                 onClick={onRunClick}
-                isLoading={fetching}
+                isLoading={state.fetchingRequests.every(e => e)}
               >
                 Run
               </Button>
-              <Button
-                colorScheme="blue"
-                onClick={onSaveRequest}
-                isLoading={saving}
-              >
+              <Button onClick={onSaveRequest} isLoading={saving}>
                 Save
               </Button>
             </HStack>
@@ -237,6 +274,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
           spacing="0"
         >
           <RequestList
+            fetching={state.fetchingRequests}
             requests={test.requests}
             selectedRequest={selectedRequest}
             updateSelectedRequest={updateSelectedRequest}
@@ -247,7 +285,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
           />
           <RequestEditor
             sendSelectedRequest={sendSelectedRequest}
-            fetching={fetching}
+            fetching={state.fetchingRequests[selectedRequest]}
             request={test.requests[selectedRequest]}
             updateRequest={updateRequest}
           />
