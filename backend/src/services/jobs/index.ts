@@ -122,8 +122,8 @@ export class JobsService {
             },
             relations: { dataFields: true },
             order: {
-              numberParams: "ASC"
-            }
+              numberParams: "ASC",
+            },
           })
           if (apiEndpoint) {
             apiEndpoint.totalCalls += 1
@@ -363,7 +363,7 @@ export class JobsService {
                 const key = `${currToken.slice(1, -1)}<>path`
                 parameters[key] = this.parseSchema(
                   parameters[key] ?? {},
-                  parsedJsonNonNull(traceTokens[i], true)
+                  parsedJsonNonNull(traceTokens[i], true),
                 )
               }
             }

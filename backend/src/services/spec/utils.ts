@@ -1,7 +1,8 @@
-import { JSONValue } from "@common/types"
+import OpenAPISchemaValidator from "openapi-schema-validator"
 import { OpenAPIRequestValidatorError } from "openapi-request-validator"
 import { OpenAPIResponseValidatorError } from "openapi-response-validator"
 import { ApiEndpoint } from "models"
+import { JSONValue } from "@common/types"
 
 export interface VariableObject {
   enum?: string[]
@@ -54,6 +55,26 @@ const getPathToRequestLocation = (
 
 export const parsePathParameter = (parameterValue: string) => {
   return Number(parameterValue) ?? parameterValue
+}
+
+export const validateSpecSchema = (schema: any, version?: number) => {
+  if (!schema) {
+    return []
+  }
+  const res: string[] = []
+  const schemaValidator = new OpenAPISchemaValidator({
+    version: version ?? 3,
+  })
+  const errors = schemaValidator.validate(schema ?? ({} as any)).errors
+  for (let i = 0; i < errors.length; i++) {
+    const error = errors[i]
+    const field = error.instancePath
+      .replace(/\//g, ".")
+      .replace(/~1/g, "/")
+      .slice(1)
+    res.push(`${error.message} for field ${field}`)
+  }
+  return res
 }
 
 export const generateAlertMessageFromReqErrors = (

@@ -1,7 +1,13 @@
 import { PairObject } from "@common/types"
 import { DataClass, DataSection, DataTag, DataType } from "@common/enums"
 import { ApiEndpoint, ApiTrace, DataField } from "models"
-import { getDataType, getPathTokens, getRiskScore, isParameter, parsedJson } from "utils"
+import {
+  getDataType,
+  getPathTokens,
+  getRiskScore,
+  isParameter,
+  parsedJson,
+} from "utils"
 import { ScannerService } from "services/scanner/scan"
 import { AppDataSource } from "data-source"
 

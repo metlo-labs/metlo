@@ -13,8 +13,14 @@ import { ApiEndpoint, ApiTrace, DataField, OpenApiSpec, Alert } from "models"
 import Error400BadRequest from "errors/error-400-bad-request"
 import { JSONValue, OpenApiSpec as OpenApiSpecResponse } from "@common/types"
 import { AppDataSource } from "data-source"
-import { getPathRegex, getPathTokens, isParameter, parsedJsonNonNull } from "utils"
+import {
+  getPathRegex,
+  getPathTokens,
+  isParameter,
+  parsedJsonNonNull,
+} from "utils"
 import Error409Conflict from "errors/error-409-conflict"
+import Error422UnprocessableEntity from "errors/error-422-unprocessable-entity"
 import {
   generateAlertMessageFromReqErrors,
   generateAlertMessageFromRespErrors,
@@ -23,6 +29,7 @@ import {
   getSpecResponses,
   parsePathParameter,
   SpecValue,
+  validateSpecSchema,
 } from "./utils"
 import { AlertService } from "services/alert"
 import { DatabaseService } from "services/database"
@@ -48,6 +55,13 @@ export class SpecService {
     extension: SpecExtension,
     specString: string,
   ): Promise<void> {
+    const validationErrors = validateSpecSchema(specObject)
+    if (validationErrors.length > 0) {
+      throw new Error422UnprocessableEntity("Invalid OpenAPI Spec", {
+        message: "Invalid OpenAPI Spec",
+        errors: validationErrors,
+      })
+    }
     await this.deleteSpec(fileName)
     await this.uploadNewSpec(specObject, fileName, extension, specString)
   }
@@ -84,13 +98,19 @@ export class SpecService {
     extension: SpecExtension,
     specString: string,
   ): Promise<void> {
+    const validationErrors = validateSpecSchema(specObject)
+    if (validationErrors.length > 0) {
+      throw new Error422UnprocessableEntity("Invalid OpenAPI Spec", {
+        message: "Invalid OpenAPI Spec",
+        errors: validationErrors,
+      })
+    }
     const serversRoot: any[] = specObject["servers"]
     const paths: JSONValue = specObject["paths"]
 
     const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
     const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec)
     const apiTraceRepository = AppDataSource.getRepository(ApiTrace)
-    const dataFieldRepository = AppDataSource.getRepository(DataField)
     let existingSpec = await openApiSpecRepository.findOneBy({
       name: fileName,
     })
@@ -187,8 +207,8 @@ export class SpecService {
                 alerts: true,
               },
               order: {
-                riskScore: "ASC"
-              }
+                riskScore: "ASC",
+              },
             })
             similarEndpoints.forEach(async endpoint => {
               apiEndpoint.totalCalls += endpoint.totalCalls
@@ -326,10 +346,10 @@ export class SpecService {
         errorTransformer: (error, ajvError) => {
           if (ajvError.params) {
             const keys = Object.keys(ajvError.params)
-            return { ...error, path: ajvError.params[keys[0]]}
+            return { ...error, path: ajvError.params[keys[0]] }
           }
           return error
-        }
+        },
       })
       const traceStatusCode = trace.responseStatus
       const traceResponseBody = parsedJsonNonNull(trace.responseBody, true)

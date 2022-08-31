@@ -68,7 +68,7 @@ export class ApiEndpoint extends BaseEntity {
   addNumberParams() {
     if (this.path) {
       const pathTokens = getPathTokens(this.path)
-      let numParams = 0;
+      let numParams = 0
       for (let i = 0; i < pathTokens.length; i++) {
         const token = pathTokens[i]
         if (isParameter(token)) {

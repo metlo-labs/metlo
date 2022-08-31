@@ -1,5 +1,6 @@
 import { Response } from "express"
 import { ClientErrorTypes, ClientError } from "errors/client-errors"
+import Error422UnprocessableEntity from "errors/error-422-unprocessable-entity"
 
 export default class ApiResponseHandler {
   static async success(
@@ -17,9 +18,10 @@ export default class ApiResponseHandler {
     const errorCode =
       error &&
       ClientErrorTypes.some(cet => error instanceof cet) &&
-      [400, 401, 403, 404].includes((error as ClientError).code)
+      [400, 401, 403, 404, 409, 422].includes((error as ClientError).code)
         ? (error as ClientError).code
         : 500
-    res.status(errorCode).send(error.message)
+    const payload = (error as Error422UnprocessableEntity).paylod ?? null
+    res.status(errorCode).send(payload ?? error.message)
   }
 }

@@ -42,7 +42,7 @@ export class LogRequestService {
         },
         relations: { dataFields: true },
         order: {
-          numberParams: "ASC"
+          numberParams: "ASC",
         },
       })
       let dataFields: DataField[] = []
