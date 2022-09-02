@@ -341,5 +341,5 @@ export interface ConnectionInfo {
   updatedAt: Date;
   name: string;
   aws?: Omit<AWS_CONNECTION, "secret_access_key" | "access_id" | "keypair">;
-  gcp?: Omit<AWS_CONNECTION, "key_file">;
+  gcp?: Omit<GCP_CONNECTION, "key_file">;
 }

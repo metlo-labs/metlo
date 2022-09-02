@@ -145,6 +145,7 @@ const list_connections = async () => {
         "conn.updatedAt",
         "conn.connectionType",
         "conn.aws",
+        "conn.gcp",
       ])
       .getMany()
     return resp
