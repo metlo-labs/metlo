@@ -232,7 +232,7 @@ export interface STEP_RESPONSE<T extends ConnectionType = ConnectionType> {
   error?: {
     err: string;
   };
-  data: CONNECTIONS_BASE & Partial<SSH_INFO> & (T extends ConnectionType.AWS ? Partial<(AWS_CONNECTION & AWS_CONNECTION_MISC)> : T extends ConnectionType.GCP ?  Partial<GCP_CONNECTION & GCP_CONNECTION_MISC>:never);
+  data: CONNECTIONS_BASE &  (T extends ConnectionType.AWS ? Partial<(AWS_CONNECTION & AWS_CONNECTION_MISC & SSH_INFO)> : T extends ConnectionType.GCP ?  Partial<GCP_CONNECTION & GCP_CONNECTION_MISC>:never);
   returns?: {
     os_types?: [{ name: string; ami: string }]
     instance_types?: string[]
@@ -264,7 +264,6 @@ export interface SSH_INFO{
   keypair:string,
   username:string,
   remote_machine_url:string,
-  source_private_ip:string,
 }
 
 export interface AWS_CONNECTION {
@@ -284,6 +283,7 @@ export interface AWS_CONNECTION {
   backend_url: string;
   keypair_id: string;
   keypair_name: string;
+  source_private_ip:string,
 }
 
 export interface AWS_CONNECTION_MISC {
@@ -322,6 +322,7 @@ export interface GCP_CONNECTION {
   source_instance_url:string;
   packet_mirror_url:string;  
   source_instance_name: string;
+  source_private_ip:string,
 }
 
 export interface GCP_CONNECTION_MISC{

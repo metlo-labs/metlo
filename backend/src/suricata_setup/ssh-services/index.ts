@@ -1,6 +1,9 @@
+import { ConnectionType } from "@common/enums"
 import { STEP_RESPONSE } from "@common/types"
 import { randomUUID } from "crypto"
 import { SSH_CONN, put_data_file, format, remove_file } from "./ssh-setup"
+
+type RESPONSE = STEP_RESPONSE<ConnectionType.AWS>
 
 export async function test_ssh({
   keypair,
@@ -8,7 +11,7 @@ export async function test_ssh({
   username,
   step,
   ...rest
-}: STEP_RESPONSE["data"] & { step: number }): Promise<STEP_RESPONSE> {
+}: RESPONSE["data"] & { step: number }): Promise<RESPONSE> {
   var conn
   try {
     conn = new SSH_CONN(keypair, remote_machine_url, username)
@@ -58,7 +61,7 @@ export async function push_files({
   username,
   step,
   ...rest
-}: STEP_RESPONSE["data"] & { step: number }): Promise<STEP_RESPONSE> {
+}: RESPONSE["data"] & { step: number }): Promise<RESPONSE> {
   const endpoint = "api/v1/log-request/single"
   let conn = new SSH_CONN(keypair, remote_machine_url, username)
   try {
@@ -141,7 +144,7 @@ export async function execute_commands({
   username,
   step,
   ...rest
-}: STEP_RESPONSE["data"] & { step: number }): Promise<STEP_RESPONSE> {
+}: RESPONSE["data"] & { step: number }): Promise<RESPONSE> {
   let conn = new SSH_CONN(keypair, remote_machine_url, username)
   try {
     await conn.run_command(

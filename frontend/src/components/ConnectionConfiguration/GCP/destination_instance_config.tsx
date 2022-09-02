@@ -66,8 +66,12 @@ const SourceMigConfig: React.FC<KeySetupInterface> = ({
             value={imageTemplateURL}
             onChange={v => setImageTemplateURL(v.target.value)}
           >
-            {osChoices.map(v => {
-              return <option value={v[1]}>{v[0]}</option>
+            {osChoices.map((v, i) => {
+              return (
+                <option key={i} value={v[1]}>
+                  {v[0]}
+                </option>
+              )
             })}
           </Select>
         </Box>

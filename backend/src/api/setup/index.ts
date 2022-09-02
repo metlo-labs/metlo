@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import ApiResponseHandler from "api-response-handler"
-import { AWS_CONNECTION, STEP_RESPONSE } from "@common/types"
+import { AWS_CONNECTION, SSH_INFO, STEP_RESPONSE } from "@common/types"
 import { ConnectionType } from "@common/enums"
 import { setup } from "suricata_setup"
 import "express-session"
@@ -62,7 +62,8 @@ export const setup_connection = async (
         params: { name },
       } = req.body
       await save_connection({
-        conn_meta: req.session.connection_config[id].data as AWS_CONNECTION,
+        conn_meta: req.session.connection_config[id].data as AWS_CONNECTION &
+          SSH_INFO,
         id: id,
         name: name,
       })

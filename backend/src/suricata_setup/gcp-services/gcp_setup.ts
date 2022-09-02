@@ -798,9 +798,7 @@ export async function add_temporary_public_url({
 
 export async function test_ssh({
   key_file,
-  remote_machine_url,
   instance_url,
-  username,
   project,
   ...rest
 }: RESPONSE["data"]): Promise<RESPONSE> {
@@ -825,9 +823,7 @@ export async function test_ssh({
       error: null,
       data: {
         key_file,
-        remote_machine_url,
         instance_url,
-        username,
         project,
         ...rest,
       },
@@ -846,9 +842,7 @@ export async function test_ssh({
       },
       data: {
         key_file,
-        remote_machine_url,
         instance_url,
-        username,
         project,
         ...rest,
       },
