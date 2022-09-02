@@ -327,7 +327,6 @@ export interface GCP_CONNECTION {
 
 export interface GCP_CONNECTION_MISC{
   network_name:string;
-  temporary_public_url:string;
 }
 
 export interface ENCRYPTED_GCP_CONNECTION__META {
