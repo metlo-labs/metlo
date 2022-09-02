@@ -160,7 +160,7 @@ export class SpecService {
         serversPath = paths[path]["servers"]
       }
       const pathRegex = getPathRegex(path)
-      const methods = Object.keys(paths[path]).filter(key =>
+      const methods = Object.keys(paths[path])?.filter(key =>
         Object.values(RestMethod).includes(key.toUpperCase() as RestMethod),
       )
       for (const method of methods) {
@@ -291,15 +291,15 @@ export class SpecService {
       const specObject: JSONValue = yaml.load(openApiSpec.spec) as JSONValue
       const parsedSpec = await SwaggerParser.dereference(specObject as any)
       const specPath =
-        parsedSpec.paths?.[endpoint.path][endpoint.method.toLowerCase()]
+        parsedSpec.paths?.[endpoint.path]?.[endpoint.method.toLowerCase()]
 
       // Validate request info
       const specRequestParameters = getSpecRequestParameters(
-        specObject,
+        parsedSpec,
         endpoint,
       )
       const specRequestBody: SpecValue = {
-        path: specPath["requestBody"]
+        path: specPath?.["requestBody"]
           ? [
               "paths",
               endpoint.path,
@@ -307,7 +307,7 @@ export class SpecService {
               "requestBody",
             ]
           : [],
-        value: specPath["requestBody"],
+        value: specPath?.["requestBody"] ?? {},
       }
       const requestValidator = new OpenAPIRequestValidator({
         parameters: specRequestParameters?.value,
@@ -371,7 +371,7 @@ export class SpecService {
       const traceResponseBody = parsedJsonNonNull(trace.responseBody, true)
       const responseValidationItems: OpenAPIResponseValidatorValidationError =
         responseValidator.validateResponse(traceStatusCode, traceResponseBody)
-      const responseErrors = responseValidationItems.errors
+      const responseErrors = responseValidationItems?.errors
       const respErrorItems = generateAlertMessageFromRespErrors(
         responseErrors as AjvError[],
         responses?.path,

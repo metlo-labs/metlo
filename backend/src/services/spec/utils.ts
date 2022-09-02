@@ -210,14 +210,14 @@ export const generateAlertMessageFromRespErrors = (
 }
 
 export const getSpecRequestParameters = (
-  specObject: JSONValue,
+  specObject: OpenAPI.Document,
   endpoint: ApiEndpoint,
 ): SpecValue => {
-  const paths = specObject["paths"]
-  const path = paths[endpoint.path]
-  const operation = path[endpoint.method.toLowerCase()]
+  const paths = specObject?.["paths"]
+  const path = paths?.[endpoint.path]
+  const operation = path?.[endpoint.method.toLowerCase()]
 
-  let parameters = operation["parameters"] ?? []
+  let parameters = operation?.["parameters"] ?? []
   let pathToParameters = [
     "paths",
     endpoint.path,
@@ -225,10 +225,10 @@ export const getSpecRequestParameters = (
     "parameters",
   ]
   if (!parameters) {
-    parameters = path["parameters"]
+    parameters = path?.["parameters"]
     pathToParameters = ["paths", endpoint.path, "parameters"]
     if (!parameters) {
-      parameters = specObject["components"]["parameters"]
+      parameters = specObject?.["components"]?.["parameters"]
       pathToParameters = parameters ? ["components", "parameters"] : []
     }
   }

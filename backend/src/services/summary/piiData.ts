@@ -14,7 +14,8 @@ export const getPIIDataTypeCount = async () => {
 }
 
 export const getPIIDataTypeCountCached = async () => {
-  const cacheRes: Record<DataClass, number> | null = cache.get("PIIDataTypeCount")
+  const cacheRes: Record<DataClass, number> | null =
+    cache.get("PIIDataTypeCount")
   if (cacheRes) {
     return cacheRes
   }
