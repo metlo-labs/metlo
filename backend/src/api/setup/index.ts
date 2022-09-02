@@ -6,7 +6,6 @@ import { setup } from "suricata_setup"
 import "express-session"
 import { EC2_CONN } from "suricata_setup/aws-services/create-ec2-instance"
 import { VirtualizationType } from "@aws-sdk/client-ec2"
-import { save_connection } from "services/connections"
 import { deleteKeyFromRedis, getFromRedis } from "suricata_setup/utils"
 import {
   list_images,
