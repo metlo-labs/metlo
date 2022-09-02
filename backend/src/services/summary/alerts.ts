@@ -5,12 +5,14 @@ import cache from "memory-cache"
 
 export const getAlertTypeAgg = async () => {
   const queryRunner = AppDataSource.createQueryRunner()
+  await queryRunner.connect()
   const alertTypeAggRes: { type: AlertType; count: number }[] =
     await queryRunner.manager.query(`
     SELECT type, CAST(COUNT(*) AS INTEGER) as count
     FROM alert WHERE status = 'Open'
     GROUP BY 1
   `)
+  await queryRunner.release()
   return Object.fromEntries(alertTypeAggRes.map(e => [e.type, e.count]))
 }
 

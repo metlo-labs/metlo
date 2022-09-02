@@ -53,6 +53,7 @@ interface CountsResponse {
 
 export const getCounts = async () => {
   const queryRunner = AppDataSource.createQueryRunner()
+  await queryRunner.connect()
   const newAlertQueryRes = await queryRunner.manager.query(`
     SELECT
       CAST(COUNT(*) AS INTEGER) as count,
@@ -74,6 +75,7 @@ export const getCounts = async () => {
       FROM data_field WHERE "dataTag" = 'PII'
   `)
   const piiDataFields = piiDataFieldsQueryRes[0].count
+  await queryRunner.release()
   return {
     newAlerts,
     endpointsTracked,

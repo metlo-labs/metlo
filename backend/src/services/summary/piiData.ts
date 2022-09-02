@@ -4,12 +4,14 @@ import cache from "memory-cache"
 
 export const getPIIDataTypeCount = async () => {
   const queryRunner = AppDataSource.createQueryRunner()
+  await queryRunner.connect()
   const piiDataTypeCountRes: { type: DataClass; cnt: number }[] =
     await queryRunner.manager.query(`
     SELECT data_class as type, CAST(COUNT(*) AS INTEGER) as cnt
     FROM (SELECT UNNEST("dataClasses") as data_class FROM data_field) tbl
     GROUP BY 1
   `)
+  await queryRunner.release()
   return Object.fromEntries(piiDataTypeCountRes.map(e => [e.type, e.cnt]))
 }
 

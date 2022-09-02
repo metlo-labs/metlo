@@ -7,6 +7,7 @@ import cache from "memory-cache"
 
 export const getTopEndpoints = async () => {
   const queryRunner = AppDataSource.createQueryRunner()
+  await queryRunner.connect()
   const apiTraceRepository = AppDataSource.getRepository(ApiTrace)
   const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
   const endpointStats: {
@@ -53,6 +54,8 @@ export const getTopEndpoints = async () => {
     ),
   )
   const traceMap = _.groupBy(traces.flat(), e => e.apiEndpointUuid)
+
+  await queryRunner.release()
 
   return endpointStats.map(
     stats =>
