@@ -1,8 +1,11 @@
+import { ErrorObject } from "ajv/dist/2019"
+import { OpenAPI, OpenAPIV2, OpenAPIV3 } from "openapi-types"
 import OpenAPISchemaValidator from "openapi-schema-validator"
 import { OpenAPIRequestValidatorError } from "openapi-request-validator"
-import { OpenAPIResponseValidatorError } from "openapi-response-validator"
 import { ApiEndpoint } from "models"
 import { JSONValue } from "@common/types"
+import { getDataType } from "utils"
+import { DataType } from "@common/enums"
 
 export interface VariableObject {
   enum?: string[]
@@ -37,6 +40,17 @@ enum Location {
   BODY = "body",
 }
 
+export type AjvError = ErrorObject<string, Record<string, any>, unknown>
+
+export const getOpenAPISpecVersion = (specObject: any): number | null => {
+  if (specObject["swagger"]) {
+    return 2
+  } else if (specObject["openapi"]) {
+    return 3
+  }
+  return null
+}
+
 const getPathToRequestLocation = (
   parameters: Parameter[],
   location: Location,
@@ -57,9 +71,9 @@ export const parsePathParameter = (parameterValue: string) => {
   return Number(parameterValue) ?? parameterValue
 }
 
-export const validateSpecSchema = (schema: any, version?: number) => {
+export const validateSpecSchema = (schema: any, version?: number): string[] => {
   if (!schema) {
-    return []
+    return ["No schema defined in OpenAPI spec"]
   }
   const res: string[] = []
   const schemaValidator = new OpenAPISchemaValidator({
@@ -75,13 +89,13 @@ export const validateSpecSchema = (schema: any, version?: number) => {
     let message = ""
     switch (error.keyword) {
       case "required":
-        message = `Required property '${error.params?.["missingProperty"]}' is missing from ${field}`
+        message = `Required property '${error.params?.["missingProperty"]}' is missing from ${field}.`
         break
       case "additionalProperties":
-        message = `Must not have additional property '${error.params?.["additionalProperty"]}' for ${field}`
+        message = `Must not have additional property '${error.params?.["additionalProperty"]}' for ${field}.`
         break
       default:
-        message = `${message} of ${field}`
+        message = `${message} of ${field}.`
     }
     res.push(message)
   }
@@ -109,7 +123,7 @@ export const generateAlertMessageFromReqErrors = (
     const basePath =
       error.location === Location.BODY ? pathToRequestBody : pathToParameters
     if (!error.path) {
-      errorMessage = `${error.message} for request ${error.location}`
+      errorMessage = `${error.message} for request ${error.location}.`
     } else {
       switch (error.errorCode.split(".")[0]) {
         case "required":
@@ -135,7 +149,7 @@ export const generateAlertMessageFromReqErrors = (
 }
 
 export const generateAlertMessageFromRespErrors = (
-  errors: OpenAPIResponseValidatorError[],
+  errors: AjvError[],
   pathToResponseBody: string[],
 ): Record<string, string[]> => {
   const res = {}
@@ -143,23 +157,52 @@ export const generateAlertMessageFromRespErrors = (
     return res
   }
   errors?.forEach(error => {
-    let errorMessage = ""
-    switch (error.errorCode.split(".")[0]) {
+    let pathArray = error.instancePath.split("/")?.slice(2)
+    const defaultErrorMessage =
+      error.message[0].toUpperCase() + error.message.slice(1)
+    let errorMessage = `${defaultErrorMessage} in response body.`
+    let path = pathArray.length > 0 ? pathArray.join("/") : ""
+    switch (error.keyword) {
       case "required":
-        errorMessage = `Required property '${error.path}' is missing from response body.`
+        if (error.params?.missingProperty) {
+          path = path
+            ? `${path}/${error.params.missingProperty}`
+            : error.params.missingProperty
+        }
+        errorMessage = `Required property '${path}' is missing from response body.`
         break
       case "type":
-        errorMessage = `Property '${error.path}' ${error.message} in response body.`
+        errorMessage = `Property '${path}' ${error.message} in response body.`
         break
       case "additionalProperties":
-        errorMessage = `Property '${error.path}' is present in response body without being defined in OpenAPI Spec.`
+        if (error.params?.additionalProperty) {
+          path = path
+            ? `${path}/${error.params.additionalProperty}`
+            : error.params.additionalProperty
+        }
+        errorMessage =
+          path &&
+          `Property '${path}' is present in response body without matching any schemas/definitions in the OpenAPI Spec.`
+        break
+      case "unevaluatedProperties":
+        if (error.params?.unevaluatedProperty) {
+          path = path
+            ? `${path}/${error.params.unevaluatedProperty}`
+            : error.params.unevaluatedProperty
+        }
+        errorMessage =
+          path &&
+          `Property '${path}' is present in response body without matching any schemas/definitions in the OpenAPI Spec.`
         break
       case "format":
-        errorMessage = `Property '${error.path}' ${error.message} in response body.`
+        errorMessage = `Property '${path}' ${error.message} in response body.`
         break
       default:
-        errorMessage = `${error.message}: '${error.path}' in response body.`
+        errorMessage = `${defaultErrorMessage}: '${path}' in response body.`
         break
+    }
+    if (!path) {
+      errorMessage = `${defaultErrorMessage} in response body.`
     }
     res[errorMessage] = pathToResponseBody
   })
@@ -192,8 +235,36 @@ export const getSpecRequestParameters = (
   return { path: pathToParameters ?? [], value: parameters ?? [] }
 }
 
+export const recursiveTransformSpec = (schema: any) => {
+  const combineKeywords = ["anyOf", "allOf", "oneOf"]
+  for (const keyword of combineKeywords) {
+    if (schema[keyword]) {
+      schema["unevaluatedProperties"] = false
+      for (let i = 0; i < schema[keyword]?.length; i++) {
+        if (schema[keyword][i]) {
+          const properties = schema[keyword][i]["properties"]
+          if (properties && getDataType(properties) === DataType.OBJECT) {
+            for (const property in properties) {
+              recursiveTransformSpec(schema[keyword][i]["properties"][property])
+            }
+          }
+        }
+      }
+    }
+  }
+  if (schema["type"] === "object") {
+    schema["additionalProperties"] = false
+    const properties = schema["properties"]
+    if (properties && getDataType(properties) === DataType.OBJECT) {
+      for (const property in properties) {
+        recursiveTransformSpec(schema["properties"][property])
+      }
+    }
+  }
+}
+
 export const getSpecResponses = (
-  specObject: JSONValue,
+  specObject: OpenAPI.Document,
   endpoint: ApiEndpoint,
 ): SpecValue => {
   const operation =
@@ -210,7 +281,20 @@ export const getSpecResponses = (
     responses = specObject["components"]["responses"]
     pathToResponses = responses ? ["components", "responses"] : []
   }
-  return { path: pathToResponses ?? [], value: responses ?? [] }
+  if (responses) {
+    for (const responseStatus in responses) {
+      const content = responses[responseStatus]["content"]
+      if (content) {
+        for (const contentType in content) {
+          const schema = content[contentType]["schema"]
+          if (schema) {
+            recursiveTransformSpec(schema)
+          }
+        }
+      }
+    }
+  }
+  return { path: pathToResponses ?? [], value: responses ?? {} }
 }
 
 export const getHostFromServer = (server: ServerObject): Set<string> => {

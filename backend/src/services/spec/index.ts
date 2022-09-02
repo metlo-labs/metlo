@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid"
 import { Not } from "typeorm"
+import SwaggerParser from "@apidevtools/swagger-parser"
 import yaml from "js-yaml"
 import OpenAPIRequestValidator, {
   OpenAPIRequestValidatorError,
@@ -7,7 +8,7 @@ import OpenAPIRequestValidator, {
 import OpenAPIResponseValidator, {
   OpenAPIResponseValidatorError,
   OpenAPIResponseValidatorValidationError,
-} from "openapi-response-validator"
+} from "@leoscope/openapi-response-validator"
 import { AlertType, RestMethod, SpecExtension } from "@common/enums"
 import { ApiEndpoint, ApiTrace, DataField, OpenApiSpec, Alert } from "models"
 import Error400BadRequest from "errors/error-400-bad-request"
@@ -25,10 +26,12 @@ import {
   generateAlertMessageFromReqErrors,
   generateAlertMessageFromRespErrors,
   getHostsFromServer,
+  getOpenAPISpecVersion,
   getSpecRequestParameters,
   getSpecResponses,
   parsePathParameter,
   SpecValue,
+  AjvError,
   validateSpecSchema,
 } from "./utils"
 import { AlertService } from "services/alert"
@@ -55,8 +58,14 @@ export class SpecService {
     extension: SpecExtension,
     specString: string,
   ): Promise<void> {
+    const specVersion = getOpenAPISpecVersion(specObject)
+    if (!specVersion) {
+      throw new Error422UnprocessableEntity(
+        "Invalid OpenAPI Spec: No 'swagger' or 'openapi' field defined.",
+      )
+    }
     const validationErrors = validateSpecSchema(specObject)
-    if (validationErrors.length > 0) {
+    if (validationErrors?.length > 0) {
       throw new Error422UnprocessableEntity("Invalid OpenAPI Spec", {
         message: "Invalid OpenAPI Spec",
         errors: validationErrors,
@@ -88,7 +97,10 @@ export class SpecService {
       const endpoint = specEndpoints[i]
       endpoint.openapiSpecName = null
     }
-    await DatabaseService.executeTransactions([[...specEndpoints]], [[openApiSpec]])
+    await DatabaseService.executeTransactions(
+      [[...specEndpoints]],
+      [[openApiSpec]],
+    )
   }
 
   static async uploadNewSpec(
@@ -97,8 +109,14 @@ export class SpecService {
     extension: SpecExtension,
     specString: string,
   ): Promise<void> {
-    const validationErrors = validateSpecSchema(specObject)
-    if (validationErrors.length > 0) {
+    const specVersion = getOpenAPISpecVersion(specObject)
+    if (!specVersion) {
+      throw new Error422UnprocessableEntity(
+        "Invalid OpenAPI Spec: No 'swagger' or 'openapi' field defined.",
+      )
+    }
+    const validationErrors = validateSpecSchema(specObject, specVersion)
+    if (validationErrors?.length > 0) {
       throw new Error422UnprocessableEntity("Invalid OpenAPI Spec", {
         message: "Invalid OpenAPI Spec",
         errors: validationErrors,
@@ -209,35 +227,37 @@ export class SpecService {
                 riskScore: "ASC",
               },
             })
-            similarEndpoints.forEach(async endpoint => {
-              apiEndpoint.totalCalls += endpoint.totalCalls
-              apiEndpoint.riskScore = endpoint.riskScore
-              const traces = await apiTraceRepository.findBy({
-                apiEndpointUuid: endpoint.uuid,
-              })
-              endpoint.dataFields.forEach(dataField => {
-                dataField.apiEndpointUuid = apiEndpoint.uuid
-              })
-              traces.forEach(trace => {
-                trace.apiEndpointUuid = apiEndpoint.uuid
-              })
-              endpoint.alerts.forEach(alert => {
-                switch (alert.type) {
-                  case AlertType.NEW_ENDPOINT:
-                  case AlertType.OPEN_API_SPEC_DIFF:
-                    endpoints.alertsToRemove.push(alert)
-                    break
-                  case AlertType.PII_DATA_DETECTED:
-                  case AlertType.UNDOCUMENTED_ENDPOINT:
-                  default:
-                    alert.apiEndpointUuid = apiEndpoint.uuid
-                    endpoints.alertsToKeep.push(alert)
-                }
-              })
-              endpoints.traces.push(...traces)
-              endpoints.dataFields.push(...endpoint.dataFields)
-            })
-            endpoints.similarEndpoints.push(...similarEndpoints)
+            if (similarEndpoints) {
+              for (const endpoint of similarEndpoints) {
+                apiEndpoint.totalCalls += endpoint.totalCalls
+                apiEndpoint.riskScore = endpoint.riskScore
+                const traces = await apiTraceRepository.findBy({
+                  apiEndpointUuid: endpoint.uuid,
+                })
+                endpoint.dataFields.forEach(dataField => {
+                  dataField.apiEndpointUuid = apiEndpoint.uuid
+                })
+                traces.forEach(trace => {
+                  trace.apiEndpointUuid = apiEndpoint.uuid
+                })
+                endpoint.alerts.forEach(alert => {
+                  switch (alert.type) {
+                    case AlertType.NEW_ENDPOINT:
+                    case AlertType.OPEN_API_SPEC_DIFF:
+                      endpoints.alertsToRemove.push(alert)
+                      break
+                    case AlertType.PII_DATA_DETECTED:
+                    case AlertType.UNDOCUMENTED_ENDPOINT:
+                    default:
+                      alert.apiEndpointUuid = apiEndpoint.uuid
+                      endpoints.alertsToKeep.push(alert)
+                  }
+                })
+                endpoints.traces.push(...traces)
+                endpoints.dataFields.push(...endpoint.dataFields)
+              }
+              endpoints.similarEndpoints.push(...similarEndpoints)
+            }
           }
         }
       }
@@ -269,8 +289,9 @@ export class SpecService {
         return []
       }
       const specObject: JSONValue = yaml.load(openApiSpec.spec) as JSONValue
-      const specPath: JSONValue =
-        specObject["paths"][endpoint.path][endpoint.method.toLowerCase()]
+      const parsedSpec = await SwaggerParser.dereference(specObject as any)
+      const specPath =
+        parsedSpec.paths?.[endpoint.path][endpoint.method.toLowerCase()]
 
       // Validate request info
       const specRequestParameters = getSpecRequestParameters(
@@ -291,7 +312,7 @@ export class SpecService {
       const requestValidator = new OpenAPIRequestValidator({
         parameters: specRequestParameters?.value,
         requestBody: specRequestBody?.value,
-        schemas: specObject?.["components"]?.["schemas"] ?? {},
+        schemas: parsedSpec?.["components"]?.["schemas"] ?? {},
         errorTransformer: (error, ajvError) => {
           if (ajvError.params["additionalProperty"]) {
             return { ...error, path: ajvError.params["additionalProperty"] }
@@ -338,24 +359,21 @@ export class SpecService {
       )
 
       // Validate response info
-      const responses = getSpecResponses(specObject, endpoint)
+      const responses = getSpecResponses(parsedSpec, endpoint)
       const responseValidator = new OpenAPIResponseValidator({
         components: specObject["components"],
         responses: responses?.value,
         errorTransformer: (error, ajvError) => {
-          if (ajvError.params) {
-            const keys = Object.keys(ajvError.params)
-            return { ...error, path: ajvError.params[keys[0]] }
-          }
-          return error
+          return ajvError
         },
       })
       const traceStatusCode = trace.responseStatus
       const traceResponseBody = parsedJsonNonNull(trace.responseBody, true)
-      const responseErrors: OpenAPIResponseValidatorValidationError =
+      const responseValidationItems: OpenAPIResponseValidatorValidationError =
         responseValidator.validateResponse(traceStatusCode, traceResponseBody)
+      const responseErrors = responseValidationItems.errors
       const respErrorItems = generateAlertMessageFromRespErrors(
-        responseErrors?.errors as OpenAPIResponseValidatorError[],
+        responseErrors as AjvError[],
         responses?.path,
       )
 
@@ -369,6 +387,7 @@ export class SpecService {
       )
     } catch (err) {
       console.error(`Error finding OpenAPI Spec diff: ${err}`)
+      return []
     }
   }
 }
