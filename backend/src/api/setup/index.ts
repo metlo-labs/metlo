@@ -57,18 +57,6 @@ export const setup_connection = async (
       ...resp,
     }
 
-    if (resp.status === "COMPLETE") {
-      const {
-        params: { name },
-      } = req.body
-      await save_connection({
-        conn_meta: req.session.connection_config[id].data as AWS_CONNECTION &
-          SSH_INFO,
-        id: id,
-        name: name,
-      })
-    }
-
     delete resp.data
 
     await ApiResponseHandler.success(res, resp)
