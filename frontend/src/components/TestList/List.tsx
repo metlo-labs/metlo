@@ -38,7 +38,7 @@ const TestList: React.FC<TestListProps> = React.memo(({ tests }) => {
       sortable: true,
       selector: (row: TestDetailed) => row.name || "",
       id: "name",
-      grow: 1
+      grow: 1,
     },
     {
       name: "Status",
@@ -46,7 +46,7 @@ const TestList: React.FC<TestListProps> = React.memo(({ tests }) => {
       selector: (row: TestDetailed) => row.name || "",
       cell: (row: TestDetailed) => getTestStatus(row),
       id: "status",
-      grow: 1
+      grow: 1,
     },
     {
       name: "Tags",
@@ -60,7 +60,7 @@ const TestList: React.FC<TestListProps> = React.memo(({ tests }) => {
         </VStack>
       ),
       id: "hosts",
-      grow: 2
+      grow: 2,
     },
   ]
   return (

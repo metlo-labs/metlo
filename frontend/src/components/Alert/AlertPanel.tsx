@@ -20,7 +20,8 @@ import { AlertType, SpecExtension } from "@common/enums"
 import { Alert } from "@common/types"
 import { METHOD_TO_COLOR, RISK_TO_COLOR } from "~/constants"
 import { getDateTimeString } from "utils"
-import { SpecDiffContext } from "./AlertDetail"
+import { SpecDiffContext, SensitiveQueryParamContext } from "./AlertDetail"
+import { JSONContentViewer } from "components/Endpoint/TraceDetail"
 
 interface AlertPanelProps {
   alert: Alert
@@ -36,15 +37,15 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({ alert }) => {
   switch (alert.type) {
     case AlertType.OPEN_API_SPEC_DIFF:
       let lineNumber = null
-      const context = alert.context as SpecDiffContext
+      const contextSpec = alert.context as SpecDiffContext
       let range = 5
-      if (context.specExtension) {
-        switch (context.specExtension) {
+      if (contextSpec.specExtension) {
+        switch (contextSpec.specExtension) {
           case SpecExtension.JSON:
-            const result = jsonMap.parse(context.spec)
+            const result = jsonMap.parse(contextSpec.spec)
             let pathKey = ""
-            for (let i = 0; i < context.pathPointer?.length; i++) {
-              let pathToken = context.pathPointer[i]
+            for (let i = 0; i < contextSpec.pathPointer?.length; i++) {
+              let pathToken = contextSpec.pathPointer[i]
               pathToken = pathToken.replaceAll("/", "~1")
               pathKey += `/${pathToken}`
             }
@@ -55,8 +56,8 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({ alert }) => {
             break
           case SpecExtension.YAML:
             const map = new SourceMap()
-            yaml.load(context.spec, { listener: map.listen() })
-            lineNumber = map.lookup(context.pathPointer).line
+            yaml.load(contextSpec.spec, { listener: map.listen() })
+            lineNumber = map.lookup(contextSpec.pathPointer).line
             if (lineNumber) {
               lineNumber -= 1
             }
@@ -70,8 +71,8 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({ alert }) => {
           <Highlight
             {...defaultProps}
             theme={theme}
-            code={context.spec}
-            language={context.specExtension || "json"}
+            code={contextSpec.spec}
+            language={contextSpec.specExtension || "json"}
           >
             {({ className, style, tokens, getLineProps, getTokenProps }) => {
               tokens = tokens.filter(
@@ -131,6 +132,19 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({ alert }) => {
               )
             }}
           </Highlight>
+        </Box>
+      )
+      break
+    case AlertType.QUERY_SENSITIVE_DATA:
+      const contextSensitiveQuery = alert.context as SensitiveQueryParamContext
+      const traceSensitiveQuery = contextSensitiveQuery.trace
+      panel = (
+        <Box w="full" pb="4">
+          {JSONContentViewer(
+            JSON.stringify(traceSensitiveQuery.requestParameters),
+            colorMode,
+            3,
+          )}
         </Box>
       )
       break

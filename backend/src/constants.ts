@@ -19,6 +19,7 @@ export const ALERT_TYPE_TO_RISK_SCORE: Record<AlertType, RiskScore> = {
   [AlertType.NEW_ENDPOINT]: RiskScore.LOW,
   [AlertType.OPEN_API_SPEC_DIFF]: RiskScore.MEDIUM,
   [AlertType.PII_DATA_DETECTED]: RiskScore.HIGH,
+  [AlertType.QUERY_SENSITIVE_DATA]: RiskScore.HIGH,
   [AlertType.UNDOCUMENTED_ENDPOINT]: RiskScore.LOW,
 }
 

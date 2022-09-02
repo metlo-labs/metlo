@@ -23,7 +23,11 @@ interface TraceDetailProps {
   alertModalView?: boolean
 }
 
-const JSONContentViewer = (data: string, colorMode: ColorMode) => {
+export const JSONContentViewer = (
+  data: string,
+  colorMode: ColorMode,
+  collapsed?: number,
+) => {
   const bgColor = colorMode === "dark" ? "#4C5564" : "#EDF2F7"
   try {
     return (
@@ -34,7 +38,7 @@ const JSONContentViewer = (data: string, colorMode: ColorMode) => {
           name={false}
           indentWidth={2}
           enableClipboard={false}
-          collapsed={1}
+          collapsed={collapsed ?? 1}
           style={{
             height: "100%",
             padding: "16px",

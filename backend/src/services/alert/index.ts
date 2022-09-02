@@ -9,6 +9,7 @@ import { AppDataSource } from "data-source"
 import { Alert, ApiEndpoint, ApiTrace, DataField } from "models"
 import {
   AlertType,
+  DataSection,
   SpecExtension,
   Status,
   UpdateAlertType,
@@ -256,43 +257,74 @@ export class AlertService {
     apiTrace: ApiTrace,
     sensitiveDataAlerts?: Alert[],
   ): Promise<Alert[]> {
-    if (!dataFields) {
-      return []
-    }
-    let alerts: Alert[] = sensitiveDataAlerts ?? []
-    for (const dataField of dataFields) {
-      if (dataField.dataClasses) {
-        for (const dataClass of dataField.dataClasses) {
-          const description = `Sensitive data of type ${dataClass} has been detected in field ${
-            dataField.dataPath
-          } of ${DATA_SECTION_TO_LABEL_MAP[dataField.dataSection]}.`
-          const existing =
-            this.existingSensitiveDataAlert(
-              alerts,
-              apiEndpointUuid,
-              description,
-            ) ||
-            (await this.existingUnresolvedAlert(
-              apiEndpointUuid,
-              AlertType.PII_DATA_DETECTED,
-              description,
-            ))
-          if (!existing) {
-            const newAlert = new Alert()
-            newAlert.type = AlertType.PII_DATA_DETECTED
-            newAlert.riskScore =
-              ALERT_TYPE_TO_RISK_SCORE[AlertType.PII_DATA_DETECTED]
-            newAlert.apiEndpointUuid = apiEndpointUuid
-            newAlert.context = {
-              trace: apiTrace,
+    try {
+      if (!dataFields) {
+        return []
+      }
+      let alerts: Alert[] = sensitiveDataAlerts ?? []
+      for (const dataField of dataFields) {
+        if (dataField.dataClasses) {
+          for (const dataClass of dataField.dataClasses) {
+            const description = `Sensitive data of type ${dataClass} has been detected in field ${
+              dataField.dataPath
+            } of ${DATA_SECTION_TO_LABEL_MAP[dataField.dataSection]}.`
+            const existing =
+              this.existingSensitiveDataAlert(
+                alerts,
+                apiEndpointUuid,
+                description,
+              ) ||
+              (await this.existingUnresolvedAlert(
+                apiEndpointUuid,
+                AlertType.PII_DATA_DETECTED,
+                description,
+              ))
+            if (!existing) {
+              const newAlert = new Alert()
+              newAlert.type = AlertType.PII_DATA_DETECTED
+              newAlert.riskScore =
+                ALERT_TYPE_TO_RISK_SCORE[AlertType.PII_DATA_DETECTED]
+              newAlert.apiEndpointUuid = apiEndpointUuid
+              newAlert.context = {
+                trace: apiTrace,
+              }
+              newAlert.description = description
+              alerts.push(newAlert)
             }
-            newAlert.description = description
-            alerts.push(newAlert)
+            if (dataField.dataSection === DataSection.REQUEST_QUERY) {
+              const description = `Query Parameter ${dataField.dataPath} contains sensitive data of type ${dataClass}.`
+              const existingSensitiveQuery =
+                this.existingSensitiveDataAlert(
+                  alerts,
+                  apiEndpointUuid,
+                  description,
+                ) ||
+                (await this.existingUnresolvedAlert(
+                  apiEndpointUuid,
+                  AlertType.QUERY_SENSITIVE_DATA,
+                  description,
+                ))
+              if (!existingSensitiveQuery) {
+                const newAlert = new Alert()
+                newAlert.type = AlertType.QUERY_SENSITIVE_DATA
+                newAlert.riskScore =
+                  ALERT_TYPE_TO_RISK_SCORE[AlertType.QUERY_SENSITIVE_DATA]
+                newAlert.apiEndpointUuid = apiEndpointUuid
+                newAlert.context = {
+                  trace: apiTrace,
+                }
+                newAlert.description = description
+                alerts.push(newAlert)
+              }
+            }
           }
         }
       }
+      return alerts
+    } catch (err) {
+      console.error(`Error creating sensitive data alerts: ${err}`)
+      return []
     }
-    return alerts
   }
 
   static async createSpecDiffAlerts(
@@ -302,35 +334,40 @@ export class AlertService {
     specString: string,
     specExtension: SpecExtension,
   ): Promise<Alert[]> {
-    if (!alertItems) {
-      return []
-    }
-    if (Object.keys(alertItems)?.length === 0) {
-      return []
-    }
-    let alerts: Alert[] = []
-    for (const key in alertItems) {
-      const existing = await this.existingUnresolvedAlert(
-        apiEndpointUuid,
-        AlertType.OPEN_API_SPEC_DIFF,
-        key,
-      )
-      if (!existing) {
-        const newAlert = new Alert()
-        newAlert.type = AlertType.OPEN_API_SPEC_DIFF
-        newAlert.riskScore =
-          ALERT_TYPE_TO_RISK_SCORE[AlertType.OPEN_API_SPEC_DIFF]
-        newAlert.apiEndpointUuid = apiEndpointUuid
-        newAlert.context = {
-          pathPointer: alertItems[key],
-          trace: apiTrace,
-          spec: specString,
-          specExtension,
-        }
-        newAlert.description = key
-        alerts.push(newAlert)
+    try {
+      if (!alertItems) {
+        return []
       }
+      if (Object.keys(alertItems)?.length === 0) {
+        return []
+      }
+      let alerts: Alert[] = []
+      for (const key in alertItems) {
+        const existing = await this.existingUnresolvedAlert(
+          apiEndpointUuid,
+          AlertType.OPEN_API_SPEC_DIFF,
+          key,
+        )
+        if (!existing) {
+          const newAlert = new Alert()
+          newAlert.type = AlertType.OPEN_API_SPEC_DIFF
+          newAlert.riskScore =
+            ALERT_TYPE_TO_RISK_SCORE[AlertType.OPEN_API_SPEC_DIFF]
+          newAlert.apiEndpointUuid = apiEndpointUuid
+          newAlert.context = {
+            pathPointer: alertItems[key],
+            trace: apiTrace,
+            spec: specString,
+            specExtension,
+          }
+          newAlert.description = key
+          alerts.push(newAlert)
+        }
+      }
+      return alerts
+    } catch (err) {
+      console.error(`Error creating spec diff alerts: ${err}`)
+      return []
     }
-    return alerts
   }
 }

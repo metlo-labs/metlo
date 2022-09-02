@@ -54,7 +54,8 @@ const RequestItem: React.FC<RequestItemProps> = React.memo(
     let successIndicator = null
     if (hasResult) {
       const success =
-        !request.result.error && request.result.testResults.every(e => e.success)
+        !request.result.error &&
+        request.result.testResults.every(e => e.success)
       successIndicator = success ? <BiCheckCircle /> : <GiCancel />
       successIndicator = (
         <Box color={success ? "green.500" : "red.500"}>{successIndicator}</Box>

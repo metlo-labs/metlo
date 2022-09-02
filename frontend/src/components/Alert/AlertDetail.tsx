@@ -36,6 +36,10 @@ export interface SpecDiffContext {
   trace: ApiTrace
 }
 
+export interface SensitiveQueryParamContext {
+  trace: ApiTrace
+}
+
 interface PiiDataContext {
   trace: ApiTrace
 }
@@ -192,7 +196,10 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
       )
       break
     case AlertType.PII_DATA_DETECTED:
-      const contextPii = alert.context as PiiDataContext
+    case AlertType.QUERY_SENSITIVE_DATA:
+      const contextPii = alert.context as
+        | PiiDataContext
+        | SensitiveQueryParamContext
       const tracePii = contextPii.trace
       rightPanel = (
         <Box w="55%" h="full">
