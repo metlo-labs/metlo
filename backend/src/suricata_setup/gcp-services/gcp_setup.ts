@@ -970,7 +970,7 @@ export async function execute_commands({
       --account=${JSON.parse(key_file).client_email} \
       --tunnel-through-iap \
       --project=${project} \
-      --command="source $HOME/.nvm/nvm.sh && cd ~ && chmod +x install.sh && ./install.sh"`,
+      --command="source ~/.nvm/nvm.sh && cd ~ && chmod +x install.sh && ./install.sh"`,
     )
 
     return {

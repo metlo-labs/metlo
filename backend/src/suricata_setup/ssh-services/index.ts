@@ -151,7 +151,7 @@ export async function execute_commands({
       "cd ~ && chmod +x install-deps.sh && ./install-deps.sh ",
     )
     await conn.run_command(
-      "source $HOME/.nvm/nvm.sh && cd ~ && chmod +x install.sh && ./install.sh ",
+      "source ~/.nvm/nvm.sh && cd ~ && chmod +x install.sh && ./install.sh ",
     )
     conn.disconnect()
 
