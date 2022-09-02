@@ -4,7 +4,7 @@ import { GCP_CONN } from "./gcp_apis"
 import AsyncRetry from "async-retry"
 import { promisify } from "util"
 import { exec } from "child_process"
-import {  writeFileSync, unlinkSync } from "fs"
+import { writeFileSync, unlinkSync } from "fs"
 import {
   put_data_file,
   remove_file,
@@ -704,91 +704,6 @@ export async function packet_mirroring({
         network_url,
         forwarding_rule_url,
         source_instance_url,
-        id,
-        ...rest,
-      },
-    }
-  }
-}
-
-export async function add_temporary_public_url({
-  key_file,
-  project,
-  zone,
-  network_url,
-  network_name,
-  retry_uuid,
-  instance_url,
-  id,
-  ...rest
-}: RESPONSE["data"] & { retry_uuid: string }): Promise<RESPONSE> {
-  try {
-    let conn = new GCP_CONN(key_file, zone, project)
-    let addressName = `metlo-address-temp-${retry_uuid}`
-    let addr_info = await conn.create_new_external_address({
-      addressName: addressName,
-      network: network_name,
-    })
-    await wait_for_regional_operation(addr_info[0].latestResponse.name, conn)
-    let connectionReadyResp = await AsyncRetry(
-      async (f, at) => {
-        let resp = await conn.get_external_address({
-          addressName: addressName,
-        })
-        if (resp[0].status === "RESERVED") {
-          return resp
-        } else {
-          throw Error("Couldn't reserve address")
-        }
-      },
-      { retries: 5 },
-    )
-    const temp_ip = connectionReadyResp[0].address
-    let instance_name = instance_url.split("/").at(-1)
-    let resp = await conn.attach_external_ip({
-      instanceURL: instance_name,
-      address: temp_ip,
-    })
-    await wait_for_zonal_operation(resp[0].latestResponse.name, conn)
-    return {
-      success: "OK",
-      status: "IN-PROGRESS",
-      step_number: 12,
-      next_step: 13,
-      last_completed: 12,
-      message: "Creating GCP Address",
-      error: null,
-      retry_id: retry_uuid,
-      data: {
-        key_file,
-        zone,
-        project,
-        network_url,
-        network_name,
-        instance_url,
-        temporary_public_url: temp_ip,
-        id,
-        ...rest,
-      },
-    }
-  } catch (err) {
-    console.log(err)
-    return {
-      success: "FETCHING",
-      status: "IN-PROGRESS",
-      step_number: 12,
-      next_step: 13,
-      last_completed: 12,
-      message: "Creating GCP Address",
-      error: null,
-      retry_id: retry_uuid,
-      data: {
-        key_file,
-        zone,
-        project,
-        network_url,
-        network_name,
-        instance_url,
         id,
         ...rest,
       },
