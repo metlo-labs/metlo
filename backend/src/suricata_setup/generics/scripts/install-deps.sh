@@ -12,10 +12,10 @@ sudo mkdir /var/lib/suricata
 sudo mkdir /var/lib/suricata/rules
 
 echo "Get network interface"
-INTERFACE=$(ip link | egrep "ens[0-9]*" -o)
-sed -i "s/%s/$INTERFACE/" ~/local.rules
 sudo mv ~/local.rules /var/lib/suricata/rules/local.rules -f
 
+INTERFACE=$(ip link | egrep "ens[0-9]*" -o)
+sed -i "s/%interface/$INTERFACE/" ~/local.rules
 sudo mv ~/suricata.yaml /etc/suricata/suricata.yaml -f
 
 sudo mkdir /usr/local/nvm
@@ -24,4 +24,5 @@ sudo mkdir /etc/metlo-ingestor
 echo "CLONING INGESTOR"
 cd /etc
 sudo chmod 777 /etc/metlo-ingestor
+sudo rm -rf /etc/metlo-ingestor/*
 git clone https://github.com/metlo-labs/metlo.git metlo-ingestor
