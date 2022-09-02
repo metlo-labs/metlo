@@ -1,4 +1,7 @@
 import { Heading, VStack } from "@chakra-ui/react"
+import { GetServerSideProps } from "next"
+import superjson from "superjson"
+import Error from "next/error"
 import { useEffect, useState } from "react"
 import { ApiEndpoint, GetEndpointParams } from "@common/types"
 import EndpointList from "components/EndpointList"
@@ -8,24 +11,20 @@ import { ContentContainer } from "components/utils/ContentContainer"
 import { getEndpoints, getHosts } from "api/endpoints"
 import { ENDPOINT_PAGE_LIMIT } from "~/constants"
 
-const Endpoints = () => {
+const Endpoints = ({ initHosts }) => {
+  const hosts = superjson.parse<string[]>(initHosts)
+  if (!hosts) {
+    return <Error statusCode={500} />
+  }
   const [fetching, setFetching] = useState<boolean>(true)
   const [endpoints, setEndpoints] = useState<ApiEndpoint[]>([])
   const [totalCount, setTotalCount] = useState<number>()
-  const [hosts, setHosts] = useState<string[]>([])
   const [params, setParams] = useState<GetEndpointParams>({
     hosts: [],
     riskScores: [],
     offset: 0,
     limit: ENDPOINT_PAGE_LIMIT,
   })
-  useEffect(() => {
-    const fetchHosts = async () => {
-      const res = await getHosts()
-      setHosts(res)
-    }
-    fetchHosts()
-  }, [])
   useEffect(() => {
     const fetchEndpoints = async () => {
       const res = await getEndpoints(params)
@@ -40,9 +39,9 @@ const Endpoints = () => {
       title="Endpoints"
       currentTab={SideNavLinkDestination.Endpoints}
     >
-      <ContentContainer>
+      <ContentContainer maxContentW="100rem" px="8" py="8">
         <VStack w="full" alignItems="flex-start">
-          <Heading fontWeight="medium" size="xl" mb="8">
+          <Heading fontWeight="medium" size="lg" mb="4">
             Endpoints
           </Heading>
           <EndpointList
@@ -57,6 +56,15 @@ const Endpoints = () => {
       </ContentContainer>
     </SidebarLayoutShell>
   )
+}
+
+export const getServerSideProps: GetServerSideProps = async context => {
+  const hosts = await getHosts()
+  return {
+    props: {
+      initHosts: superjson.stringify(hosts),
+    },
+  }
 }
 
 export default Endpoints

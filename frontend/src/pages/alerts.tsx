@@ -1,4 +1,12 @@
-import { Heading, VStack, useToast, Box } from "@chakra-ui/react"
+import {
+  Heading,
+  VStack,
+  HStack,
+  Select,
+  useToast,
+  Box,
+  Text,
+} from "@chakra-ui/react"
 import superjson from "superjson"
 import React, { useState } from "react"
 import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
@@ -9,6 +17,11 @@ import { ALERT_PAGE_LIMIT } from "~/constants"
 import { getAlerts, updateAlert } from "api/alerts"
 import { AlertType, RiskScore, Status } from "@common/enums"
 import { GetServerSideProps } from "next"
+
+enum Order {
+  DESC = "DESC",
+  ASC = "ASC",
+}
 
 const Alerts = ({ initParams, initAlerts, initTotalCount }) => {
   const parsedInitParams = superjson.parse<GetAlertParams>(initParams)
@@ -70,11 +83,37 @@ const Alerts = ({ initParams, initAlerts, initTotalCount }) => {
       title="Alerts"
       currentTab={SideNavLinkDestination.Alerts}
     >
-      <VStack h="full" w="full" alignItems="flex-start">
-        <Heading px="8" pt="4" fontWeight="medium" size="xl">
-          Alerts
-        </Heading>
-        <Box px="8" w="full" h="full" overflowY="hidden">
+      <VStack
+        mx="auto"
+        maxW="100rem"
+        px="8"
+        pt="8"
+        h="full"
+        w="full"
+        alignItems="flex-start"
+      >
+        <HStack w="full" justifyContent="space-between" alignItems="flex-end" mb="4">
+          <Heading fontWeight="medium" size="lg">
+            Alerts
+          </Heading>
+          <HStack>
+            <Text>Sort By</Text>
+            <Select
+              defaultValue={Order.DESC}
+              w="fit-content"
+              onChange={e =>
+                setParams(oldParams => ({
+                  ...oldParams,
+                  order: e.target.value as Order,
+                }))
+              }
+            >
+              <option value={Order.DESC}>Highest Risk</option>
+              <option value={Order.ASC}>Lowest Risk</option>
+            </Select>
+          </HStack>
+        </HStack>
+        <Box w="full" h="full" overflowY="hidden">
           <AlertList
             alerts={alerts}
             handleUpdateAlert={handleUpdateAlert}

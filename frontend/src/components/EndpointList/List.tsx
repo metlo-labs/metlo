@@ -1,9 +1,9 @@
 import React from "react"
-import { Badge, Box, Code, useColorMode, HStack } from "@chakra-ui/react"
+import { Badge, Box, Text, useColorMode, HStack } from "@chakra-ui/react"
 import { useRouter } from "next/router"
 import EmptyView from "components/utils/EmptyView"
 import DataTable, { SortOrder, TableColumn } from "react-data-table-component"
-import { METHOD_TO_COLOR, RISK_TO_COLOR } from "~/constants"
+import { RISK_TO_COLOR } from "~/constants"
 import {
   getCustomStyles,
   rowStyles,
@@ -36,13 +36,13 @@ const TableLoader: React.FC<TableLoaderProps> = ({
   const colorMode = useColorMode()
   const loadingColumns: TableColumn<any>[] = [
     {
-      name: "Risk Score",
+      name: "Risk",
       id: "riskScore",
       grow: 1,
     },
     {
       name: "Path",
-      id: "pathMethod",
+      id: "path",
       grow: 3,
     },
     {
@@ -100,6 +100,8 @@ const List: React.FC<EndpointTablesProps> = React.memo(
     setOrdering,
     setOrderBy,
   }) => {
+    console.log(endpoints)
+
     const router = useRouter()
     const colorMode = useColorMode()
     const handlePageChange = (page: number) => {
@@ -116,7 +118,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
 
     const columns: TableColumn<ApiEndpoint>[] = [
       {
-        name: "Risk Score",
+        name: "Risk",
         sortable: true,
         selector: (row: ApiEndpoint) => row.riskScore || "",
         cell: (row: ApiEndpoint) => (
@@ -130,7 +132,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
           </Badge>
         ),
         id: "riskScore",
-        minWidth: "110px",
+        minWidth: "75px",
         grow: 0,
       },
       {
@@ -138,18 +140,17 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         sortable: true,
         selector: (row: ApiEndpoint) => row.method + row.path,
         cell: (row: ApiEndpoint) => (
-          <HStack pointerEvents="none">
-            <Badge
-              p="1"
-              colorScheme={METHOD_TO_COLOR[row.method] || "gray"}
-              fontSize="sm"
-            >
-              {row.method}
-            </Badge>
-            <Code p="1">{row.path}</Code>
+          <HStack
+            fontSize="sm"
+            spacing="4"
+            pointerEvents="none"
+            alignItems="center"
+          >
+            <Text>{row.method}</Text>
+            <Text fontFamily="mono">{row.path}</Text>
           </HStack>
         ),
-        id: "pathMethod",
+        id: "path",
         grow: 3,
       },
       {

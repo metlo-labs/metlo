@@ -11,7 +11,6 @@ import {
   AccordionButton,
   AccordionIcon,
   AccordionPanel,
-  Select,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -33,11 +32,6 @@ const RISK_SCORE_TO_LABEL: Record<RiskScore, string> = {
   [RiskScore.MEDIUM]: "Medium",
   [RiskScore.LOW]: "Low",
   [RiskScore.NONE]: "",
-}
-
-enum Order {
-  DESC = "DESC",
-  ASC = "ASC",
 }
 
 interface AlertListProps {
@@ -223,32 +217,6 @@ export const AlertList: React.FC<AlertListProps> = ({
 
   return (
     <VStack h="full" overflowY="hidden" w="full" alignItems="flex-start">
-      <HStack w="full" justifyContent="space-between">
-        <Box>
-          <IconButton
-            visibility={{ base: "visible", lg: "hidden" }}
-            aria-label="Filter Button"
-            icon={<FiFilter />}
-            onClick={onOpen}
-          />
-        </Box>
-        <HStack>
-          <Text>Sort By</Text>
-          <Select
-            defaultValue={Order.DESC}
-            w="fit-content"
-            onChange={e =>
-              setParams(oldParams => ({
-                ...oldParams,
-                order: e.target.value as Order,
-              }))
-            }
-          >
-            <option value={Order.DESC}>Highest Risk</option>
-            <option value={Order.ASC}>Lowest Risk</option>
-          </Select>
-        </HStack>
-      </HStack>
       <HStack h="full" overflowY="hidden" w="full" spacing={{ base: 0, lg: 4 }}>
         <VStack
           alignItems="flex-start"
