@@ -159,13 +159,13 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
                       }
                       return (
                         <pre
+                          key={i.toString()}
                           style={{
                             textAlign: "left",
                             margin: "1em 0",
                             padding: "0.5em",
                             overflow: "scroll",
                           }}
-                          key={i}
                           ref={i + 1 === lineNumber ? scrollRef : null}
                           {...lineProps}
                         >

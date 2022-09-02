@@ -26,7 +26,7 @@
     "js-yaml-source-map": "^0.2.2",
     "json-source-map": "^0.6.1",
     "luxon": "^3.0.1",
-    "next": "latest",
+    "next": "12.2.5",
     "parse-json": "^6.0.2",
     "prism-react-renderer": "^1.3.5",
     "react": "^18.2.0",

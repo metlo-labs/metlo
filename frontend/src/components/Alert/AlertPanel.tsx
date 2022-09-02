@@ -107,7 +107,7 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({ alert }) => {
                           padding: "0.5em",
                           overflow: "scroll",
                         }}
-                        key={i}
+                        key={i.toString()}
                         {...lineProps}
                       >
                         <span
@@ -124,7 +124,7 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({ alert }) => {
                         <span style={{ display: "table-cell" }}>
                           {line.map((token, key) => (
                             <span
-                              key={key}
+                              key={key.toString()}
                               {...getTokenProps({ token, key })}
                             />
                           ))}

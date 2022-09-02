@@ -68,7 +68,7 @@ const SourceMigConfig: React.FC<KeySetupInterface> = ({
           >
             {osChoices.map((v, i) => {
               return (
-                <option key={i} value={v[1]}>
+                <option key={i.toString()} value={v[1]}>
                   {v[0]}
                 </option>
               )

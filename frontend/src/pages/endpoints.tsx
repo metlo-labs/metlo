@@ -12,10 +12,7 @@ import { getEndpoints, getHosts } from "api/endpoints"
 import { ENDPOINT_PAGE_LIMIT } from "~/constants"
 
 const Endpoints = ({ initHosts }) => {
-  const hosts = superjson.parse<string[]>(initHosts)
-  if (!hosts) {
-    return <Error statusCode={500} />
-  }
+  const hosts = superjson.parse<string[]>(initHosts || [])
   const [fetching, setFetching] = useState<boolean>(true)
   const [endpoints, setEndpoints] = useState<ApiEndpoint[]>([])
   const [totalCount, setTotalCount] = useState<number>()
