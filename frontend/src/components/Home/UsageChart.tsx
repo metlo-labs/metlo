@@ -100,8 +100,8 @@ const UsageChart: React.FC<UsageChartProps> = React.memo(
             <Bar options={options as any} data={data} />
           </Box>
           <VStack alignItems="flex-start">
-            <Text>{usageData.last1MinCnt} Calls Per Minute</Text>
-            <Text>{usageData.last60MinCnt} Calls Last Hour</Text>
+            <Text>{usageData.last1MinCnt || 0} Calls Per Minute</Text>
+            <Text>{usageData.last60MinCnt || 0} Calls Last Hour</Text>
           </VStack>
         </HStack>
       </VStack>

@@ -84,7 +84,13 @@ const TopEndpoints: React.FC<TopEndpointProps> = React.memo(
         <Heading px="4" py="2" size="md" color="gray.800">
           Top Endpoints
         </Heading>
-        <HStack w="full" spacing="0" flexGrow="1" divider={<StackDivider />}>
+        <HStack
+          w="full"
+          spacing="0"
+          flexGrow="1"
+          divider={<StackDivider />}
+          alignItems="flex-start"
+        >
           <Box w="sm" h="full">
             <EndpointList
               endpoints={endpoints}
@@ -93,7 +99,7 @@ const TopEndpoints: React.FC<TopEndpointProps> = React.memo(
             />
           </Box>
           <Box flexGrow="1" h="full" overflow="scroll">
-            <TraceList traces={endpoint.traces} />
+            <TraceList traces={endpoint ? endpoint.traces : []} />
           </Box>
         </HStack>
       </VStack>

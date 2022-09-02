@@ -47,7 +47,11 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ summary }) => {
           h="xs"
         />
       </Stack>
-      <TopEndpoints endpoints={summary.topEndpoints} w="full" h="2xl" />
+      <TopEndpoints
+        endpoints={summary.topEndpoints}
+        w="full"
+        h={summary.topEndpoints.length > 0 ? "2xl" : "unset"}
+      />
     </VStack>
   )
 })
