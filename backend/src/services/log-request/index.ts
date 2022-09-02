@@ -56,12 +56,11 @@ export class LogRequestService {
         )
         apiTraceObj.apiEndpointUuid = apiEndpoint.uuid
         alerts = await SpecService.findOpenApiSpecDiff(apiTraceObj, apiEndpoint)
-        const sensitiveDataAlerts =
-          await AlertService.createSensitiveDataAlerts(
-            dataFields,
-            apiEndpoint.uuid,
-            apiTraceObj,
-          )
+        const sensitiveDataAlerts = await AlertService.createDataFieldAlerts(
+          dataFields,
+          apiEndpoint.uuid,
+          apiTraceObj,
+        )
         alerts = alerts?.concat(sensitiveDataAlerts)
         apiEndpointSave = [apiEndpoint]
       }

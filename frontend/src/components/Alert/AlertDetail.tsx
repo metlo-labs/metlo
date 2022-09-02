@@ -40,6 +40,10 @@ export interface SensitiveQueryParamContext {
   trace: ApiTrace
 }
 
+export interface BasicAuthenticationContext {
+  trace: ApiTrace
+}
+
 interface PiiDataContext {
   trace: ApiTrace
 }
@@ -197,9 +201,11 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
       break
     case AlertType.PII_DATA_DETECTED:
     case AlertType.QUERY_SENSITIVE_DATA:
+    case AlertType.BASIC_AUTHENTICATION_DETECTED:
       const contextPii = alert.context as
         | PiiDataContext
         | SensitiveQueryParamContext
+        | BasicAuthenticationContext
       const tracePii = contextPii.trace
       rightPanel = (
         <Box w="55%" h="full">

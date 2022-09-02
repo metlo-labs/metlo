@@ -20,7 +20,11 @@ import { AlertType, SpecExtension } from "@common/enums"
 import { Alert } from "@common/types"
 import { METHOD_TO_COLOR, RISK_TO_COLOR } from "~/constants"
 import { getDateTimeString } from "utils"
-import { SpecDiffContext, SensitiveQueryParamContext } from "./AlertDetail"
+import {
+  SpecDiffContext,
+  SensitiveQueryParamContext,
+  BasicAuthenticationContext,
+} from "./AlertDetail"
 import { JSONContentViewer } from "components/Endpoint/TraceDetail"
 
 interface AlertPanelProps {
@@ -142,6 +146,19 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({ alert }) => {
         <Box w="full" pb="4">
           {JSONContentViewer(
             JSON.stringify(traceSensitiveQuery.requestParameters),
+            colorMode,
+            3,
+          )}
+        </Box>
+      )
+      break
+    case AlertType.BASIC_AUTHENTICATION_DETECTED:
+      const contextBasicAuth = alert.context as BasicAuthenticationContext
+      const traceBasicAuthHeaders = contextBasicAuth.trace
+      panel = (
+        <Box w="full" pb="4">
+          {JSONContentViewer(
+            JSON.stringify(traceBasicAuthHeaders.requestHeaders),
             colorMode,
             3,
           )}

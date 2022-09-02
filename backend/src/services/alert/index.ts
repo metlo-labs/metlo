@@ -232,15 +232,15 @@ export class AlertService {
     return newAlert
   }
 
-  static existingSensitiveDataAlert(
-    sensitiveDataAlerts: Alert[],
+  static existingDataFieldAlert(
+    dataFieldAlerts: Alert[],
     apiEndpointUuid: string,
     description: string,
   ): boolean {
-    if (!sensitiveDataAlerts) {
+    if (!dataFieldAlerts) {
       return false
     }
-    for (const alert of sensitiveDataAlerts) {
+    for (const alert of dataFieldAlerts) {
       if (
         alert.apiEndpointUuid === apiEndpointUuid &&
         alert.description === description
@@ -251,7 +251,7 @@ export class AlertService {
     return false
   }
 
-  static async createSensitiveDataAlerts(
+  static async createDataFieldAlerts(
     dataFields: DataField[],
     apiEndpointUuid: string,
     apiTrace: ApiTrace,
@@ -261,59 +261,89 @@ export class AlertService {
       if (!dataFields) {
         return []
       }
+
       let alerts: Alert[] = sensitiveDataAlerts ?? []
       for (const dataField of dataFields) {
+        if (dataField.dataSection === DataSection.REQUEST_HEADER) {
+          const requestHeaders = apiTrace?.requestHeaders
+          const basicAuthDescription = `Basic Authentication detected in Authorization header.`
+          if (requestHeaders) {
+            let found = false
+            for (let i = 0; i < requestHeaders.length && !found; i++) {
+              const header = requestHeaders[i]
+              if (
+                header.name.toLowerCase() === "authorization" &&
+                header.value.toLowerCase().includes("basic ")
+              ) {
+                found = true
+                const existing =
+                  this.existingDataFieldAlert(
+                    alerts,
+                    apiEndpointUuid,
+                    basicAuthDescription,
+                  ) ||
+                  (await this.existingUnresolvedAlert(
+                    apiEndpointUuid,
+                    AlertType.BASIC_AUTHENTICATION_DETECTED,
+                    basicAuthDescription,
+                  ))
+                if (!existing) {
+                  const newAlert = new Alert()
+                  newAlert.type = AlertType.BASIC_AUTHENTICATION_DETECTED
+                  newAlert.riskScore =
+                    ALERT_TYPE_TO_RISK_SCORE[
+                      AlertType.BASIC_AUTHENTICATION_DETECTED
+                    ]
+                  newAlert.apiEndpointUuid = apiEndpointUuid
+                  newAlert.context = {
+                    trace: apiTrace,
+                  }
+                  newAlert.description = basicAuthDescription
+                  alerts.push(newAlert)
+                }
+              }
+            }
+          }
+        }
+
         if (dataField.dataClasses) {
           for (const dataClass of dataField.dataClasses) {
-            const description = `Sensitive data of type ${dataClass} has been detected in field ${
+            let alertsToAdd: { description: string; type: AlertType }[] = []
+
+            const description = `Sensitive data of type ${dataClass} has been detected in field '${
               dataField.dataPath
-            } of ${DATA_SECTION_TO_LABEL_MAP[dataField.dataSection]}.`
-            const existing =
-              this.existingSensitiveDataAlert(
-                alerts,
-                apiEndpointUuid,
-                description,
-              ) ||
-              (await this.existingUnresolvedAlert(
-                apiEndpointUuid,
-                AlertType.PII_DATA_DETECTED,
-                description,
-              ))
-            if (!existing) {
-              const newAlert = new Alert()
-              newAlert.type = AlertType.PII_DATA_DETECTED
-              newAlert.riskScore =
-                ALERT_TYPE_TO_RISK_SCORE[AlertType.PII_DATA_DETECTED]
-              newAlert.apiEndpointUuid = apiEndpointUuid
-              newAlert.context = {
-                trace: apiTrace,
-              }
-              newAlert.description = description
-              alerts.push(newAlert)
-            }
+            }' of ${DATA_SECTION_TO_LABEL_MAP[dataField.dataSection]}.`
+            alertsToAdd.push({ description, type: AlertType.PII_DATA_DETECTED })
+
             if (dataField.dataSection === DataSection.REQUEST_QUERY) {
-              const description = `Query Parameter ${dataField.dataPath} contains sensitive data of type ${dataClass}.`
-              const existingSensitiveQuery =
-                this.existingSensitiveDataAlert(
+              const sensitiveQueryDescription = `Query Parameter '${dataField.dataPath}' contains sensitive data of type ${dataClass}.`
+              alertsToAdd.push({
+                description: sensitiveQueryDescription,
+                type: AlertType.QUERY_SENSITIVE_DATA,
+              })
+            }
+
+            for (const alert of alertsToAdd) {
+              const existing =
+                this.existingDataFieldAlert(
                   alerts,
                   apiEndpointUuid,
-                  description,
+                  alert.description,
                 ) ||
                 (await this.existingUnresolvedAlert(
                   apiEndpointUuid,
-                  AlertType.QUERY_SENSITIVE_DATA,
-                  description,
+                  alert.type,
+                  alert.description,
                 ))
-              if (!existingSensitiveQuery) {
+              if (!existing) {
                 const newAlert = new Alert()
-                newAlert.type = AlertType.QUERY_SENSITIVE_DATA
-                newAlert.riskScore =
-                  ALERT_TYPE_TO_RISK_SCORE[AlertType.QUERY_SENSITIVE_DATA]
+                newAlert.type = alert.type
+                newAlert.riskScore = ALERT_TYPE_TO_RISK_SCORE[alert.type]
                 newAlert.apiEndpointUuid = apiEndpointUuid
                 newAlert.context = {
                   trace: apiTrace,
                 }
-                newAlert.description = description
+                newAlert.description = alert.description
                 alerts.push(newAlert)
               }
             }

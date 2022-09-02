@@ -39,7 +39,8 @@ export enum AlertType {
   PII_DATA_DETECTED = "PII Data Detected",
   OPEN_API_SPEC_DIFF = "Open API Spec Diff",
   UNDOCUMENTED_ENDPOINT = "Undocumented Endpoint",
-  QUERY_SENSITIVE_DATA = "Sensitive Data in Query Params"
+  QUERY_SENSITIVE_DATA = "Sensitive Data in Query Params",
+  BASIC_AUTHENTICATION_DETECTED = "Basic Authentication Detected"
 }
 
 export enum ConnectionType {

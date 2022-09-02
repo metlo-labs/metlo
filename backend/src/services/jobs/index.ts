@@ -133,7 +133,7 @@ export class JobsService {
             )
             trace.apiEndpointUuid = apiEndpoint.uuid
             const sensitiveDataAlerts =
-              await AlertService.createSensitiveDataAlerts(
+              await AlertService.createDataFieldAlerts(
                 dataFields,
                 apiEndpoint.uuid,
                 trace,
@@ -227,7 +227,7 @@ export class JobsService {
               true,
             )
             trace.apiEndpoint = apiEndpoint
-            sensitiveDataAlerts = await AlertService.createSensitiveDataAlerts(
+            sensitiveDataAlerts = await AlertService.createDataFieldAlerts(
               apiEndpoint.dataFields,
               apiEndpoint.uuid,
               trace,
