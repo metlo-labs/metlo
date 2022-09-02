@@ -98,7 +98,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
       .split(",")
       .filter(e => Object.values(RiskScore).includes(e as RiskScore))
       .map(e => e as RiskScore),
-    status: ((context.query.status as string) || "open")
+    status: ((context.query.status as string) || "Open")
       .split(",")
       .filter(e => Object.values(Status).includes(e as Status))
       .map(e => e as Status),
