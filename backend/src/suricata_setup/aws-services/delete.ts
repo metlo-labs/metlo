@@ -1,5 +1,6 @@
 import { EC2Client } from "@aws-sdk/client-ec2"
 import { STEP_RESPONSE } from "@common/types"
+import { ConnectionType } from "@common/enums"
 import { randomUUID } from "crypto"
 import { EC2_CONN } from "./create-ec2-instance"
 import {
@@ -8,7 +9,9 @@ import {
   delete_mirror_target,
 } from "./mirroring"
 
-export async function delete_aws_data(aws: STEP_RESPONSE["data"]) {
+export async function delete_aws_data(
+  aws: STEP_RESPONSE<ConnectionType.AWS>["data"],
+) {
   let client = new EC2Client({
     credentials: {
       accessKeyId: aws.access_id,

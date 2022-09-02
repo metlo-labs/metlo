@@ -11,8 +11,9 @@ import {
   RiskScore,
   SpecExtension,
   Status,
-  STEPS,
+  AWS_STEPS,
   UpdateAlertType,
+  GCP_STEPS,
 } from "./enums"
 import "axios"
 
@@ -220,18 +221,18 @@ export interface Usage {
   count: number
 }
 
-export interface STEP_RESPONSE {
+export interface STEP_RESPONSE<T extends ConnectionType = ConnectionType> {
   success: "OK" | "FAIL" | "FETCHING";
   status: "STARTED" | "COMPLETE" | "IN-PROGRESS";
   retry_id?: string;
-  next_step: STEPS;
-  step_number: STEPS;
-  last_completed: STEPS;
+  next_step: AWS_STEPS|GCP_STEPS;
+  step_number: AWS_STEPS|GCP_STEPS;
+  last_completed: AWS_STEPS|GCP_STEPS;
   message: string;
   error?: {
     err: string;
   };
-  data: CONNECTIONS_BASE & Partial<AWS_CONNECTION & AWS_CONNECTION_MISC>;
+  data: CONNECTIONS_BASE &  (T extends ConnectionType.AWS ? Partial<(AWS_CONNECTION & AWS_CONNECTION_MISC & SSH_INFO)> : T extends ConnectionType.GCP ?  Partial<GCP_CONNECTION & GCP_CONNECTION_MISC>:never);
   returns?: {
     os_types?: [{ name: string; ami: string }]
     instance_types?: string[]
@@ -259,6 +260,12 @@ export interface CONNECTIONS_BASE {
   name: string;
 }
 
+export interface SSH_INFO{
+  keypair:string,
+  username:string,
+  remote_machine_url:string,
+}
+
 export interface AWS_CONNECTION {
   secret_access_key: string;
   access_id: string;
@@ -271,14 +278,12 @@ export interface AWS_CONNECTION {
   mirror_filter_id: string;
   mirror_session_id: string;
   mirror_rules: Array<TrafficFilterRuleSpecs>;
-  keypair: string;
   destination_eni_id: string;
   source_eni_id: string;
-  source_private_ip: string;
   backend_url: string;
-  remote_machine_url: string;
   keypair_id: string;
   keypair_name: string;
+  source_private_ip:string,
 }
 
 export interface AWS_CONNECTION_MISC {
@@ -296,11 +301,45 @@ export interface ENCRYPTED_AWS_CONNECTION__META {
   access_id_iv: string
 }
 
+export interface GCP_CONNECTION {
+  key_file: string;
+  project: string;
+  zone: string;
+  network_url: string;
+  ip_range:string;
+  source_subnetwork_url: string;
+  firewall_rule_url:string;
+  destination_subnetwork_url: string;
+  router_url:string;
+  machine_type:string;
+  source_image:string;
+  image_template_url:string;
+  instance_url:string;
+  managed_group_url:string;
+  health_check_url:string;
+  backend_service_url:string;
+  forwarding_rule_url:string;
+  source_instance_url:string;
+  packet_mirror_url:string;  
+  source_instance_name: string;
+  source_private_ip:string,
+}
+
+export interface GCP_CONNECTION_MISC{
+  network_name:string;
+}
+
+export interface ENCRYPTED_GCP_CONNECTION__META {
+  key_file_tag: string;
+  key_file_iv: string;
+}
+
 export interface ConnectionInfo {
-  uuid: string
-  connectionType: ConnectionType
-  createdAt: Date
-  updatedAt: Date
-  name: string
-  aws?: Omit<AWS_CONNECTION, "secret_access_key" | "access_id" | "keypair">
+  uuid: string;
+  connectionType: ConnectionType;
+  createdAt: Date;
+  updatedAt: Date;
+  name: string;
+  aws?: Omit<AWS_CONNECTION, "secret_access_key" | "access_id" | "keypair">;
+  gcp?: Omit<GCP_CONNECTION, "key_file">;
 }

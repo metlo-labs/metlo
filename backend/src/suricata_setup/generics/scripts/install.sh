@@ -8,6 +8,11 @@ cd /etc/metlo-ingestor/ingestors/suricata
 yarn install
 yarn build
 
+cd ~
+# Use ~ as separator since HOME can have escapable characters which will conflict with forward-slash
+# Replace home directory to properly set nvm directory
+sed -i "s~%home~$HOME~" ~/metlo-ingestor.service
+
 echo "ADDING SERVICE"
 sudo mv ~/metlo-ingestor.service /lib/systemd/system/metlo-ingestor.service -f
 

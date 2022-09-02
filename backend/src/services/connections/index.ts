@@ -1,15 +1,15 @@
 import { ConnectionType } from "@common/enums"
-import { AWS_CONNECTION } from "@common/types"
+import { AWS_CONNECTION, GCP_CONNECTION, SSH_INFO } from "@common/types"
 import { AppDataSource } from "data-source"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { Connections } from "models"
 
-const save_connection = async ({
+const save_connection_aws = async ({
   conn_meta,
   name,
   id,
 }: {
-  conn_meta: AWS_CONNECTION
+  conn_meta: AWS_CONNECTION & SSH_INFO
   name: string
   id: string
 }) => {
@@ -52,8 +52,76 @@ const save_connection = async ({
     remote_machine_url,
     keypair_name,
     keypair_id,
-  } as AWS_CONNECTION
+  } as AWS_CONNECTION & SSH_INFO
   conn.connectionType = ConnectionType.AWS
+  conn.uuid = id
+  conn.name = name
+  try {
+    const connectionRepository = AppDataSource.getRepository(Connections)
+    await connectionRepository.save(conn)
+  } catch (err) {
+    console.error(`Error in saving connection: ${err}`)
+    throw new Error500InternalServer(err)
+  }
+}
+const save_connection_gcp = async ({
+  conn_meta,
+  name,
+  id,
+}: {
+  conn_meta: GCP_CONNECTION
+  name: string
+  id: string
+}) => {
+  const {
+    key_file,
+    project,
+    zone,
+    network_url,
+    ip_range,
+    source_subnetwork_url,
+    firewall_rule_url,
+    destination_subnetwork_url,
+    router_url,
+    machine_type,
+    source_image,
+    image_template_url,
+    instance_url,
+    managed_group_url,
+    health_check_url,
+    backend_service_url,
+    forwarding_rule_url,
+    source_instance_url,
+    packet_mirror_url,
+    source_instance_name,
+    source_private_ip,
+  } = conn_meta
+  const conn = new Connections()
+
+  conn.gcp = {
+    key_file,
+    project,
+    zone,
+    network_url,
+    ip_range,
+    source_subnetwork_url,
+    firewall_rule_url,
+    destination_subnetwork_url,
+    router_url,
+    machine_type,
+    source_image,
+    image_template_url,
+    instance_url,
+    managed_group_url,
+    health_check_url,
+    backend_service_url,
+    forwarding_rule_url,
+    source_instance_url,
+    packet_mirror_url,
+    source_instance_name,
+    source_private_ip,
+  } as GCP_CONNECTION
+  conn.connectionType = ConnectionType.GCP
   conn.uuid = id
   conn.name = name
   try {
@@ -77,6 +145,7 @@ const list_connections = async () => {
         "conn.updatedAt",
         "conn.connectionType",
         "conn.aws",
+        "conn.gcp",
       ])
       .getMany()
     return resp
@@ -149,7 +218,8 @@ const delete_connection_for_uuid = async ({ uuid }) => {
   }
 }
 export {
-  save_connection,
+  save_connection_aws,
+  save_connection_gcp,
   list_connections,
   get_connection_for_uuid,
   update_connection_for_uuid,

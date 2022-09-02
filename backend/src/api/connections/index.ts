@@ -8,13 +8,18 @@ import {
 import ApiResponseHandler from "api-response-handler"
 import { decrypt } from "utils/encryption"
 import { delete_connection as delete_connection_request } from "suricata_setup/"
+import { ConnectionType } from "@common/enums"
 
 const list_connections = async (req: Request, res: Response) => {
   try {
     const connections = (await list_connections_service()).map(v => {
-      delete v.aws.keypair
-      delete v.aws.access_id
-      delete v.aws.secret_access_key
+      if (v.connectionType === ConnectionType.AWS) {
+        delete v.aws.keypair
+        delete v.aws.access_id
+        delete v.aws.secret_access_key
+      } else if (v.connectionType === ConnectionType.GCP) {
+        delete v.gcp.key_file
+      }
       return v
     })
 

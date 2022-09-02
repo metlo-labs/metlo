@@ -7,7 +7,7 @@ interface GenericStepAWSInterface {
   isCurrent: boolean
 }
 
-const GenericStepAWS: React.FC<GenericStepAWSInterface> = ({
+const GenericStep: React.FC<GenericStepAWSInterface> = ({
   id,
   complete,
   isCurrent,
@@ -24,4 +24,4 @@ const GenericStepAWS: React.FC<GenericStepAWSInterface> = ({
   )
 }
 
-export default GenericStepAWS
+export default GenericStep

@@ -3,6 +3,7 @@ import { SidebarLayoutShell } from "components/SidebarLayoutShell"
 import { ContentContainer } from "components/utils/ContentContainer"
 import { Flex, Heading, VStack } from "@chakra-ui/react"
 import { useState } from "react"
+import ConfigureGCP from "components/ConnectionConfiguration/GCP/configureGcp"
 
 const Connections = ({}) => {
   const [selectedIndex, updateIndex] = useState(1)
@@ -14,7 +15,10 @@ const Connections = ({}) => {
             Configure Metlo connection for GCP
           </Heading>
           <Flex w={"full"} h={"full"} direction="column">
-            Coming Soon
+            <ConfigureGCP
+              selected={selectedIndex}
+              updateSelected={updateIndex}
+            />
           </Flex>
         </VStack>
       </ContentContainer>

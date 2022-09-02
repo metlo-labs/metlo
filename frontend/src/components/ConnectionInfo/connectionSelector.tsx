@@ -17,6 +17,7 @@ import { ConnectionInfo } from "@common/types"
 import axios, { AxiosError } from "axios"
 import React, { useState } from "react"
 import AWS_INFO from "./aws"
+import GCP_INFO from "./gcp"
 
 interface ConnectionSelectorInterface {
   connection?: ConnectionInfo
@@ -55,7 +56,7 @@ const DeleteButton: React.FC<{
     <Button
       colorScheme="red"
       onClick={onBtnClick}
-      disabled={deleting}
+      disabled={deleting || conn.connectionType === ConnectionType.GCP}
       px={2}
       isLoading={deleting}
     >
@@ -83,7 +84,12 @@ const ConnectionSelector: React.FC<ConnectionSelectorInterface> = ({
         />
       )
     } else if (connection.connectionType === ConnectionType.GCP) {
-      return <Box>Nothing yet for GCP</Box>
+      return (
+        <GCP_INFO
+          connection={connection}
+          setConnection={setConnectionUpdated}
+        />
+      )
     } else {
       return <Box>Invalid choice {connection.connectionType}</Box>
     }

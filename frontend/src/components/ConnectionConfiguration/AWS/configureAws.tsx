@@ -7,30 +7,29 @@ import {
   Spinner,
   Flex,
 } from "@chakra-ui/react"
-import { ConnectionType, STEPS } from "@common/enums"
+import { ConnectionType, AWS_STEPS } from "@common/enums"
 import { useState } from "react"
 import KeySetup from "./key_setup"
 import { v4 as uuidv4 } from "uuid"
 import SourceInstanceID from "./source_instance_id"
 import { STEP_RESPONSE } from "@common/types"
-import { STEP_TO_TITLE_MAP } from "@common/maps"
+import { AWS_STEP_TO_TITLE_MAP } from "@common/maps"
 import axios, { AxiosResponse, AxiosError, AxiosRequestConfig } from "axios"
-import { getAPIURL } from "~/constants"
 import OsSelection from "./os_selection"
 import InstanceSelection from "./instance_selection"
-import GenericStepAWS from "./genericStepAws"
+import GenericStep from "../common/genericStep"
 import SetupRulesFilter from "./mirrorFilters"
 import { useToast } from "@chakra-ui/react"
 import { api_call_retry } from "utils"
 interface configureAWSParams {
-  selected: STEPS
-  updateSelected: (x: STEPS) => void
+  selected: AWS_STEPS
+  updateSelected: (x: AWS_STEPS) => void
 }
 
 const incrementStep = (
   id: string,
   params: Record<string, any>,
-  step: STEPS,
+  step: AWS_STEPS,
   onStepSuccess: (
     data: AxiosResponse<Omit<STEP_RESPONSE, "data">, any>,
   ) => void,
@@ -64,7 +63,7 @@ const incrementStep = (
 const getRetryId = async (
   id: string,
   params: Record<string, any>,
-  step: STEPS,
+  step: AWS_STEPS,
   onError: (err) => void,
 ) => {
   try {
@@ -78,8 +77,6 @@ const getRetryId = async (
   }
 }
 
-const MAX_RETRY = 3
-
 const ConfigureAWS: React.FC<configureAWSParams> = ({
   selected,
   updateSelected,
@@ -88,9 +85,9 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
   const [id] = useState(uuidv4())
   const [name, setName] = useState(`Metlo-Connection-${id}`)
   const toast = useToast()
-  const create_toast_with_message = (msg: string, step: STEPS) => {
+  const create_toast_with_message = (msg: string, step: AWS_STEPS) => {
     toast({
-      title: `Encountered an error on step ${STEPS[step]}`,
+      title: `Encountered an error on step ${AWS_STEPS[step]}`,
       description: msg,
       status: "error",
       duration: 6000,
@@ -100,7 +97,7 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
 
   const step_increment_function = (
     params: Record<string, any>,
-    step: STEPS,
+    step: AWS_STEPS,
   ) => {
     let retries = 0
     incrementStep(
@@ -125,7 +122,7 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
     params,
     onComplete,
   }: {
-    step: STEPS
+    step: AWS_STEPS
     params: Record<string, any>
     onComplete?: () => void
   }) => {
@@ -162,124 +159,124 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
     })
   }
 
-  let internals = (selectedIndex: STEPS): React.ReactElement => {
+  let internals = (selectedIndex: AWS_STEPS): React.ReactElement => {
     switch (selectedIndex) {
-      case STEPS.AWS_KEY_SETUP:
+      case AWS_STEPS.AWS_KEY_SETUP:
         return (
           <KeySetup
             complete={params => {
-              step_increment_function(params, STEPS.AWS_KEY_SETUP)
+              step_increment_function(params, AWS_STEPS.AWS_KEY_SETUP)
             }}
             name={name}
             setName={setName}
           />
         )
-      case STEPS.SOURCE_INSTANCE_ID:
+      case AWS_STEPS.SOURCE_INSTANCE_ID:
         return (
           <SourceInstanceID
             complete={params => {
-              step_increment_function(params, STEPS.SOURCE_INSTANCE_ID)
+              step_increment_function(params, AWS_STEPS.SOURCE_INSTANCE_ID)
             }}
           />
         )
-      case STEPS.SELECT_OS:
+      case AWS_STEPS.SELECT_OS:
         return (
           <OsSelection
             isCurrent={selectedIndex === selected}
             complete={params => {
-              step_increment_function(params, STEPS.SELECT_OS)
+              step_increment_function(params, AWS_STEPS.SELECT_OS)
             }}
             id={id}
           />
         )
-      case STEPS.SELECT_INSTANCE_TYPE:
+      case AWS_STEPS.SELECT_INSTANCE_TYPE:
         return (
           <InstanceSelection
             id={id}
             complete={params => {
-              step_increment_function(params, STEPS.SELECT_INSTANCE_TYPE)
+              step_increment_function(params, AWS_STEPS.SELECT_INSTANCE_TYPE)
             }}
             isCurrent={selectedIndex == selected}
             setLoadingState={setUpdating}
           />
         )
-      case STEPS.CREATE_INSTANCE:
+      case AWS_STEPS.CREATE_INSTANCE:
         return (
-          <GenericStepAWS
+          <GenericStep
             id={id}
             complete={params => {
-              step_increment_function(params, STEPS.CREATE_INSTANCE)
+              step_increment_function(params, AWS_STEPS.CREATE_INSTANCE)
             }}
             isCurrent={selectedIndex == selected}
-          ></GenericStepAWS>
+          ></GenericStep>
         )
-      case STEPS.INSTANCE_IP:
+      case AWS_STEPS.INSTANCE_IP:
         return (
-          <GenericStepAWS
+          <GenericStep
             id={id}
             complete={async params => {
-              await step_increment_function(params, STEPS.INSTANCE_IP)
+              await step_increment_function(params, AWS_STEPS.INSTANCE_IP)
             }}
             isCurrent={selectedIndex == selected}
           />
         )
-      case STEPS.CREATE_MIRROR_TARGET:
+      case AWS_STEPS.CREATE_MIRROR_TARGET:
         return (
-          <GenericStepAWS
+          <GenericStep
             id={id}
             complete={params => {
-              step_increment_function(params, STEPS.CREATE_MIRROR_TARGET)
+              step_increment_function(params, AWS_STEPS.CREATE_MIRROR_TARGET)
             }}
             isCurrent={selectedIndex == selected}
-          ></GenericStepAWS>
+          ></GenericStep>
         )
-      case STEPS.CREATE_MIRROR_FILTER:
+      case AWS_STEPS.CREATE_MIRROR_FILTER:
         return (
           <SetupRulesFilter
             id={id}
             complete={params => {
-              step_increment_function(params, STEPS.CREATE_MIRROR_FILTER)
+              step_increment_function(params, AWS_STEPS.CREATE_MIRROR_FILTER)
             }}
             isCurrent={selectedIndex == selected}
           />
         )
-      case STEPS.CREATE_MIRROR_SESSION:
+      case AWS_STEPS.CREATE_MIRROR_SESSION:
         return (
-          <GenericStepAWS
+          <GenericStep
             id={id}
             complete={params => {
-              step_increment_function(params, STEPS.CREATE_MIRROR_SESSION)
+              step_increment_function(params, AWS_STEPS.CREATE_MIRROR_SESSION)
             }}
             isCurrent={selectedIndex == selected}
-          ></GenericStepAWS>
+          ></GenericStep>
         )
-      case STEPS.TEST_SSH:
+      case AWS_STEPS.TEST_SSH:
         return (
-          <GenericStepAWS
+          <GenericStep
             id={id}
             complete={async params => {
-              await retrier({ step: STEPS.TEST_SSH, params })
+              await retrier({ step: AWS_STEPS.TEST_SSH, params })
             }}
             isCurrent={selectedIndex == selected}
           />
         )
-      case STEPS.PUSH_FILES:
+      case AWS_STEPS.PUSH_FILES:
         return (
-          <GenericStepAWS
+          <GenericStep
             id={id}
             complete={params => {
-              retrier({ step: STEPS.PUSH_FILES, params })
+              retrier({ step: AWS_STEPS.PUSH_FILES, params })
             }}
             isCurrent={selectedIndex == selected}
           />
         )
-      case STEPS.EXEC_COMMAND:
+      case AWS_STEPS.EXEC_COMMAND:
         return (
-          <GenericStepAWS
+          <GenericStep
             id={id}
             complete={params => {
               retrier({
-                step: STEPS.EXEC_COMMAND,
+                step: AWS_STEPS.EXEC_COMMAND,
                 params,
                 onComplete: () => {
                   toast({
@@ -309,7 +306,7 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
               <h2>
                 <AccordionButton disabled>
                   <Box flex="1" textAlign="left">
-                    Step {i + 1}: {STEP_TO_TITLE_MAP[i + 1]}
+                    Step {i + 1}: {AWS_STEP_TO_TITLE_MAP[i + 1]}
                   </Box>
                 </AccordionButton>
               </h2>
