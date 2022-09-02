@@ -22,10 +22,9 @@ export async function api_call_retry({
   onAPIError,
   onFinally,
 }) {
-  const MAX_RETRIES = 20
+  const MAX_RETRIES = 50
   const INTERVAL = 2500
   const retries = { count: 0 }
-  let start = new Date()
   let interval_id = setInterval(async () => {
     try {
       const resp = await axios.get(url, { ...requestParams })
@@ -37,6 +36,7 @@ export async function api_call_retry({
       }
       retries.count += 1
       if (retries.count >= MAX_RETRIES) {
+        console.log("Clearing interval")
         clearInterval(interval_id)
         throw new Error(`Couldn't obtain results after ${MAX_RETRIES} retries`)
       }
@@ -45,9 +45,9 @@ export async function api_call_retry({
         if (onAPIError) {
           onAPIError(err)
         }
-        onError(err)
-        return
       }
+      onError(err)
+      clearInterval(interval_id)
     } finally {
       if (onFinally) onFinally()
     }
