@@ -1,17 +1,14 @@
 import { DataClass } from "@common/enums"
-import { AppDataSource } from "data-source"
 import cache from "memory-cache"
+import { DatabaseService } from "services/database"
 
 export const getPIIDataTypeCount = async () => {
-  const queryRunner = AppDataSource.createQueryRunner()
-  await queryRunner.connect()
   const piiDataTypeCountRes: { type: DataClass; cnt: number }[] =
-    await queryRunner.manager.query(`
-    SELECT data_class as type, CAST(COUNT(*) AS INTEGER) as cnt
-    FROM (SELECT UNNEST("dataClasses") as data_class FROM data_field) tbl
-    GROUP BY 1
-  `)
-  await queryRunner.release()
+    await DatabaseService.executeRawQueries(`
+      SELECT data_class as type, CAST(COUNT(*) AS INTEGER) as cnt
+      FROM (SELECT UNNEST("dataClasses") as data_class FROM data_field) tbl
+      GROUP BY 1
+    `)
   return Object.fromEntries(piiDataTypeCountRes.map(e => [e.type, e.cnt]))
 }
 

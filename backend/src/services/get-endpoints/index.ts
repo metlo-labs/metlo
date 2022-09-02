@@ -65,6 +65,9 @@ export class GetEndpointsService {
       const res: any[] = await Promise.all(
         endpoints[0].map(async endpoint => {
           const firstDetected = await apiTraceRepository.findOne({
+            select: {
+              createdAt: true,
+            },
             where: {
               apiEndpointUuid: endpoint.uuid,
             },
@@ -73,6 +76,9 @@ export class GetEndpointsService {
             },
           })
           const lastActive = await apiTraceRepository.findOne({
+            select: {
+              createdAt: true,
+            },
             where: {
               apiEndpointUuid: endpoint.uuid,
             },

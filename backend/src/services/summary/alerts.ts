@@ -2,17 +2,15 @@ import { Status, AlertType } from "@common/enums"
 import { AppDataSource } from "data-source"
 import { Alert } from "models"
 import cache from "memory-cache"
+import { DatabaseService } from "services/database"
 
 export const getAlertTypeAgg = async () => {
-  const queryRunner = AppDataSource.createQueryRunner()
-  await queryRunner.connect()
   const alertTypeAggRes: { type: AlertType; count: number }[] =
-    await queryRunner.manager.query(`
-    SELECT type, CAST(COUNT(*) AS INTEGER) as count
-    FROM alert WHERE status = 'Open'
-    GROUP BY 1
-  `)
-  await queryRunner.release()
+    await DatabaseService.executeRawQueries(`
+      SELECT type, CAST(COUNT(*) AS INTEGER) as count
+      FROM alert WHERE status = 'Open'
+      GROUP BY 1
+    `)
   return Object.fromEntries(alertTypeAggRes.map(e => [e.type, e.count]))
 }
 

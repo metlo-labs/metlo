@@ -3,6 +3,8 @@ import { DatabaseError } from "pg-protocol"
 import { AppDataSource } from "data-source"
 import { DatabaseModel } from "models"
 import Error500InternalServer from "errors/error-500-internal-server"
+import { getDataType } from "utils"
+import { DataType } from "@common/enums"
 
 export class DatabaseService {
   static isQueryFailedError = (
@@ -42,6 +44,30 @@ export class DatabaseService {
       }
     }
     return execute(1)
+  }
+
+  static async executeRawQueries(rawQueries: string | string[]): Promise<any> {
+    const queryRunner = AppDataSource.createQueryRunner()
+    await queryRunner.connect()
+    const isMultiple = getDataType(rawQueries) === DataType.ARRAY
+    let res = null
+    if (isMultiple) {
+      res = []
+    }
+    try {
+      if (isMultiple) {
+        for (const query of rawQueries) {
+          res.push(await queryRunner.query(query))
+        }
+      } else {
+        res = await queryRunner.query(rawQueries as string)
+      }
+    } catch (err) {
+      console.error(`Encountered error while executing raw sql query: ${err}`)
+    } finally {
+      await queryRunner.release()
+    }
+    return res
   }
 
   static async executeTransactions(
