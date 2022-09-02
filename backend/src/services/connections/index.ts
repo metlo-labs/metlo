@@ -1,5 +1,5 @@
 import { ConnectionType } from "@common/enums"
-import { AWS_CONNECTION } from "@common/types"
+import { AWS_CONNECTION, SSH_INFO } from "@common/types"
 import { AppDataSource } from "data-source"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { Connections } from "models"
@@ -9,7 +9,7 @@ const save_connection = async ({
   name,
   id,
 }: {
-  conn_meta: AWS_CONNECTION
+  conn_meta: AWS_CONNECTION & SSH_INFO
   name: string
   id: string
 }) => {
@@ -52,7 +52,7 @@ const save_connection = async ({
     remote_machine_url,
     keypair_name,
     keypair_id,
-  } as AWS_CONNECTION
+  } as AWS_CONNECTION & SSH_INFO
   conn.connectionType = ConnectionType.AWS
   conn.uuid = id
   conn.name = name

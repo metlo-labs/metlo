@@ -1,4 +1,4 @@
-import { ConnectionType, STEPS } from "@common/enums"
+import { ConnectionType, AWS_STEPS, GCP_STEPS } from "@common/enums"
 import { STEP_RESPONSE } from "@common/types"
 import {
   aws_instance_creation,
@@ -16,28 +16,58 @@ import { test_ssh, push_files, execute_commands } from "./ssh-services"
 import { v4 as uuidv4 } from "uuid"
 import { addToRedis, addToRedisFromPromise } from "./utils"
 import { save_connection } from "services/connections"
+import {
+  get_destination_subnet,
+  gcp_key_setup,
+  gcp_source_identification,
+  create_firewall_rule,
+  create_cloud_router,
+  create_mig,
+  create_health_check,
+  create_backend_service,
+  create_load_balancer,
+  packet_mirroring,
+  test_ssh as gcp_test_ssh,
+  push_files as gcp_push_files,
+  execute_commands as gcp_execute_commands,
+} from "./gcp-services/gcp_setup"
 
-function dummy_response(uuid, step, data) {
-  const resp = {
-    success: "FETCHING",
-    status: "IN-PROGRESS",
-    retry_id: uuid,
-    next_step: step,
-    step_number: step,
-    last_completed: step - 1,
-    message: `Fetching data for step ${STEPS[step]}`,
-    data: data,
-  } as STEP_RESPONSE
-  return resp
+function dummy_response(uuid, step, data, type: ConnectionType) {
+  if (type == ConnectionType.AWS) {
+    const resp = {
+      success: "FETCHING",
+      status: "IN-PROGRESS",
+      retry_id: uuid,
+      next_step: step,
+      step_number: step,
+      last_completed: step - 1,
+      message: `Fetching data for step ${AWS_STEPS[step]}`,
+      data: data,
+    } as STEP_RESPONSE<ConnectionType.AWS>
+    return resp
+  } else if (type == ConnectionType.GCP) {
+    const resp = {
+      success: "FETCHING",
+      status: "IN-PROGRESS",
+      retry_id: uuid,
+      next_step: step,
+      step_number: step,
+      last_completed: step - 1,
+      message: `Fetching data for step ${GCP_STEPS[step]}`,
+      data: data,
+    } as STEP_RESPONSE<ConnectionType.GCP>
+    return resp
+  }
 }
 
 export async function setup(
   step: number = 0,
   type: ConnectionType,
   metadata_for_step: STEP_RESPONSE["data"],
-): Promise<STEP_RESPONSE> {
+): Promise<STEP_RESPONSE<ConnectionType>> {
   var uuid, resp
   if (type == ConnectionType.AWS) {
+    type connType = STEP_RESPONSE<ConnectionType.AWS>
     switch (step) {
       case 1:
         return await aws_key_setup(metadata_for_step as any)
@@ -59,40 +89,43 @@ export async function setup(
         return await aws_mirror_session_creation(metadata_for_step as any)
       case 10:
         uuid = uuidv4()
-        resp = dummy_response(uuid, 10, metadata_for_step)
+        resp = dummy_response(uuid, 10, metadata_for_step, ConnectionType.AWS)
         await addToRedis(uuid, resp)
         addToRedisFromPromise(
           uuid,
           test_ssh({
             ...metadata_for_step,
+            step: 10,
           }),
         )
         return resp
       case 11:
         uuid = uuidv4()
-        resp = dummy_response(uuid, 11, metadata_for_step)
+        resp = dummy_response(uuid, 11, metadata_for_step, ConnectionType.AWS)
         await addToRedis(uuid, resp)
         addToRedisFromPromise(
           uuid,
           push_files({
             ...metadata_for_step,
+            step: 11,
           }),
         )
         return resp
       case 12:
         uuid = uuidv4()
-        resp = dummy_response(uuid, 12, metadata_for_step)
+        resp = dummy_response(uuid, 12, metadata_for_step, ConnectionType.AWS)
         await addToRedis(uuid, resp)
         addToRedisFromPromise(
           uuid,
           execute_commands({
             ...metadata_for_step,
+            step: 12,
           } as any).then(resp => {
             if (resp.status === "COMPLETE") {
               save_connection({
                 id: resp.data.id,
                 name: resp.data.name,
-                conn_meta: { ...resp.data } as Required<STEP_RESPONSE["data"]>,
+                conn_meta: { ...resp.data } as Required<connType["data"]>,
               })
             }
             return resp
@@ -104,17 +137,96 @@ export async function setup(
         break
     }
   } else if (type == ConnectionType.GCP) {
-    return {
-      success: "FAIL",
-      status: "COMPLETE",
-      step_number: 1,
-      next_step: 2,
-      last_completed: 1,
-      message: "Not configured yet for GCP",
-      error: {
-        err: "Not configured yet for GCP",
-      },
-      data: metadata_for_step,
+    type connType = STEP_RESPONSE<ConnectionType.GCP>
+    let metadata = metadata_for_step as connType["data"]
+    switch (step) {
+      case GCP_STEPS.GCP_KEY_SETUP:
+        return await gcp_key_setup(metadata_for_step as any)
+      case GCP_STEPS.SOURCE_INSTANCE_ID:
+        return await gcp_source_identification(metadata_for_step as any)
+      case GCP_STEPS.CREATE_DESTINATION_SUBNET:
+        uuid = uuidv4()
+        resp = await dummy_response(
+          uuid,
+          3,
+          metadata_for_step,
+          ConnectionType.GCP,
+        )
+        await addToRedis(uuid, resp)
+        addToRedisFromPromise(uuid, get_destination_subnet(metadata))
+        return resp
+      case GCP_STEPS.CREATE_FIREWALL:
+        return await create_firewall_rule(metadata_for_step as any)
+      case GCP_STEPS.CREATE_CLOUD_ROUTER:
+        return await create_cloud_router(metadata_for_step as any)
+      case GCP_STEPS.CREATE_MIG:
+        uuid = uuidv4()
+        resp = dummy_response(uuid, 6, metadata_for_step, ConnectionType.GCP)
+        await addToRedis(uuid, resp)
+        addToRedisFromPromise(uuid, create_mig(metadata_for_step))
+        return resp
+      case GCP_STEPS.CREATE_HEALTH_CHECK:
+        uuid = uuidv4()
+        resp = dummy_response(uuid, 8, metadata_for_step, ConnectionType.GCP)
+        await addToRedis(uuid, resp)
+        addToRedisFromPromise(uuid, create_health_check(metadata_for_step))
+        return resp
+      case GCP_STEPS.CREATE_BACKEND_SERVICE:
+        uuid = uuidv4()
+        resp = dummy_response(uuid, 9, metadata_for_step, ConnectionType.GCP)
+        await addToRedis(uuid, resp)
+
+        addToRedisFromPromise(uuid, create_backend_service(metadata_for_step))
+        return resp
+      case GCP_STEPS.CREATE_ILB:
+        uuid = uuidv4()
+        resp = dummy_response(uuid, 10, metadata_for_step, ConnectionType.GCP)
+        await addToRedis(uuid, resp)
+
+        addToRedisFromPromise(uuid, create_load_balancer(metadata_for_step))
+        return resp
+      case GCP_STEPS.START_PACKET_MIRRORING:
+        uuid = uuidv4()
+        resp = dummy_response(uuid, 11, metadata_for_step, ConnectionType.GCP)
+        await addToRedis(uuid, resp)
+
+        addToRedisFromPromise(uuid, packet_mirroring(metadata_for_step))
+        return resp
+      case GCP_STEPS.TEST_SSH:
+        uuid = uuidv4()
+        resp = dummy_response(
+          uuid,
+          GCP_STEPS.TEST_SSH,
+          metadata_for_step,
+          ConnectionType.GCP,
+        )
+        await addToRedis(uuid, resp)
+        addToRedisFromPromise(uuid, gcp_test_ssh(metadata_for_step))
+        return resp
+      case GCP_STEPS.PUSH_FILES:
+        uuid = uuidv4()
+        resp = dummy_response(
+          uuid,
+          GCP_STEPS.PUSH_FILES,
+          metadata_for_step,
+          ConnectionType.GCP,
+        )
+        await addToRedis(uuid, resp)
+        addToRedisFromPromise(uuid, gcp_push_files(metadata_for_step))
+        return resp
+      case GCP_STEPS.EXEC_COMMAND:
+        uuid = uuidv4()
+        resp = dummy_response(
+          uuid,
+          GCP_STEPS.EXEC_COMMAND,
+          metadata_for_step,
+          ConnectionType.GCP,
+        )
+        await addToRedis(uuid, resp)
+        addToRedisFromPromise(uuid, gcp_execute_commands(metadata_for_step))
+        return resp
+      default:
+        throw Error(`Don't have step ${step} registered`)
     }
   }
 }
@@ -124,7 +236,9 @@ export async function delete_connection(
   connection_data: STEP_RESPONSE["data"],
 ): Promise<string> {
   if (type === ConnectionType.AWS) {
-    return await delete_aws_data(connection_data)
+    return await delete_aws_data(
+      connection_data as STEP_RESPONSE<ConnectionType.AWS>["data"],
+    )
   } else if (type === ConnectionType.GCP) {
     throw new Error("GCP connections are not defined yet")
   } else {

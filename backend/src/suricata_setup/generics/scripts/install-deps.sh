@@ -10,6 +10,10 @@ sudo chmod 777 /etc/suricata-logs
 
 sudo mkdir /var/lib/suricata
 sudo mkdir /var/lib/suricata/rules
+
+echo "Get network interface"
+INTERFACE=$(ip link | egrep "ens[0-9]*" -o)
+sed -i "s/%s/$INTERFACE/" ~/local.rules
 sudo mv ~/local.rules /var/lib/suricata/rules/local.rules -f
 
 sudo mv ~/suricata.yaml /etc/suricata/suricata.yaml -f

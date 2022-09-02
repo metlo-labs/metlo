@@ -53,7 +53,7 @@ export enum SpecExtension {
   YAML = "yaml",
 }
 
-export enum STEPS {
+export enum AWS_STEPS {
   // SETUP MIRROR INSTANCE
   AWS_KEY_SETUP = 1,
   SOURCE_INSTANCE_ID = 2,
@@ -67,6 +67,22 @@ export enum STEPS {
   TEST_SSH = 10,
   PUSH_FILES = 11,
   EXEC_COMMAND = 12,
+}
+
+export enum GCP_STEPS{
+  GCP_KEY_SETUP=1, // Get key, region, network
+  SOURCE_INSTANCE_ID=2, // Get GCP Source Instance ID/Name. Also get subnet info from that
+  CREATE_DESTINATION_SUBNET=3, // Reserve an Address, use that to create subnet from that and delete address
+  CREATE_FIREWALL=4, // Create firewall targeting certain things, say tags, also create rules  
+  CREATE_CLOUD_ROUTER=5, // Includes creation of NAT
+  CREATE_MIG=6, // Create Image template and MIG in one step    
+  CREATE_HEALTH_CHECK=7, 
+  CREATE_BACKEND_SERVICE=8, // Also add health check to backend service  
+  CREATE_ILB=9,
+  START_PACKET_MIRRORING=10,  
+  TEST_SSH = 11,
+  PUSH_FILES = 12,
+  EXEC_COMMAND = 13,
 }
 
 export enum protocols {

@@ -22,13 +22,15 @@ import {
 } from "./utils"
 
 import { STEP_RESPONSE } from "@common/types"
+import { ConnectionType } from "@common/enums"
 
+type RESPONSE = STEP_RESPONSE<ConnectionType.AWS>
 export async function aws_key_setup({
   access_id,
   secret_access_key,
   region,
   ...rest
-}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
+}: RESPONSE["data"]): Promise<RESPONSE> {
   try {
     let client = new STSClient({
       credentials: {
@@ -77,7 +79,7 @@ export async function aws_source_identification({
   source_instance_id,
   region: _region,
   ...rest
-}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
+}: RESPONSE["data"]): Promise<RESPONSE> {
   try {
     let client = new EC2Client({
       credentials: {
@@ -144,7 +146,7 @@ export async function aws_os_selection({
   ami,
   region,
   ...rest
-}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
+}: RESPONSE["data"]): Promise<RESPONSE> {
   try {
     let conn = new EC2_CONN(access_id, secret_access_key, region)
     let resp = await conn.image_from_ami(ami)
@@ -163,6 +165,7 @@ export async function aws_os_selection({
         region,
         ami,
         virtualization_type: resp[0].VirtualizationType,
+        username: "ubuntu",
         ...rest,
       },
     }
@@ -197,7 +200,7 @@ export async function aws_instance_selection({
   selected_instance_type,
   ami,
   ...rest
-}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
+}: RESPONSE["data"]): Promise<RESPONSE> {
   try {
     return {
       success: "OK",
@@ -250,7 +253,7 @@ export async function aws_instance_creation({
   selected_instance_type,
   id,
   ...rest
-}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
+}: RESPONSE["data"]): Promise<RESPONSE> {
   try {
     let conn = new EC2_CONN(access_id, secret_access_key, region)
     let resp = await conn.create_new_instance(ami, selected_instance_type, id)
@@ -309,7 +312,7 @@ export async function get_public_ip({
   region,
   destination_eni_id,
   ...rest
-}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
+}: RESPONSE["data"]): Promise<RESPONSE> {
   try {
     let client = new EC2Client({
       credentials: {
@@ -369,7 +372,7 @@ export async function aws_mirror_target_creation({
   destination_eni_id,
   id,
   ...rest
-}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
+}: RESPONSE["data"]): Promise<RESPONSE> {
   try {
     let client = new EC2Client({
       credentials: {
@@ -428,7 +431,7 @@ export async function aws_mirror_filter_creation({
   mirror_rules,
   id,
   ...rest
-}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
+}: RESPONSE["data"]): Promise<RESPONSE> {
   let client = new EC2Client({
     credentials: {
       secretAccessKey: secret_access_key,
@@ -523,7 +526,7 @@ export async function aws_mirror_session_creation({
   mirror_target_id,
   id,
   ...rest
-}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
+}: RESPONSE["data"]): Promise<RESPONSE> {
   try {
     let client = new EC2Client({
       credentials: {

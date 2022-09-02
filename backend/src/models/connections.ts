@@ -8,7 +8,11 @@ import {
   BeforeInsert,
 } from "typeorm"
 import { ConnectionType } from "@common/enums"
-import { AWS_CONNECTION, ENCRYPTED_AWS_CONNECTION__META } from "@common/types"
+import {
+  AWS_CONNECTION,
+  ENCRYPTED_AWS_CONNECTION__META,
+  SSH_INFO,
+} from "@common/types"
 import { encrypt, generate_iv } from "utils/encryption"
 
 @Entity()
@@ -29,7 +33,7 @@ export class Connections extends BaseEntity {
   name: string
 
   @Column({ nullable: true, type: "jsonb" })
-  aws?: AWS_CONNECTION
+  aws?: AWS_CONNECTION & SSH_INFO
 
   @Column({ nullable: true, type: "jsonb" })
   aws_meta?: ENCRYPTED_AWS_CONNECTION__META

@@ -29,6 +29,8 @@ import { MulterSource } from "multer-source"
 import {
   aws_instance_choices,
   aws_os_choices,
+  gcp_instance_choices,
+  gcp_os_choices,
   get_setup_state,
   setup_connection,
 } from "./api/setup"
@@ -99,6 +101,8 @@ app.post("/api/v1/setup_connection", setup_connection)
 app.get("/api/v1/setup_connection/fetch/:uuid", get_setup_state)
 app.post("/api/v1/setup_connection/aws/os", aws_os_choices)
 app.post("/api/v1/setup_connection/aws/instances", aws_instance_choices)
+app.post("/api/v1/setup_connection/gcp/os", gcp_os_choices)
+app.post("/api/v1/setup_connection/gcp/instances", gcp_instance_choices)
 app.get("/api/v1/list_connections", list_connections)
 app.get("/api/v1/list_connections/:uuid", get_connection_for_uuid)
 app.get(

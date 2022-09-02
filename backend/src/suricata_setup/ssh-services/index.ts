@@ -5,24 +5,27 @@ import { SSH_CONN, put_data_file, format, remove_file } from "./ssh-setup"
 export async function test_ssh({
   keypair,
   remote_machine_url,
+  username,
+  step,
   ...rest
-}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
+}: STEP_RESPONSE["data"] & { step: number }): Promise<STEP_RESPONSE> {
   var conn
   try {
-    conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu")
+    conn = new SSH_CONN(keypair, remote_machine_url, username)
     await conn.test_connection()
     conn.disconnect()
     return {
       success: "OK",
       status: "IN-PROGRESS",
-      step_number: 10,
-      next_step: 11,
-      last_completed: 10,
+      step_number: step,
+      next_step: step + 1,
+      last_completed: step,
       message: "Testing SSH connection to remote machine.",
       error: null,
       data: {
         keypair,
         remote_machine_url,
+        username,
         ...rest,
       },
     }
@@ -31,9 +34,9 @@ export async function test_ssh({
     return {
       success: "FAIL",
       status: "IN-PROGRESS",
-      step_number: 10,
-      next_step: 11,
-      last_completed: 9,
+      step_number: step,
+      next_step: step,
+      last_completed: step - 1,
       message: `Couldn't connect to ssh. Please check if key was constructed`,
       error: {
         err: err,
@@ -41,6 +44,7 @@ export async function test_ssh({
       data: {
         keypair,
         remote_machine_url,
+        username,
         ...rest,
       },
     }
@@ -51,10 +55,12 @@ export async function push_files({
   keypair,
   remote_machine_url,
   source_private_ip,
+  username,
+  step,
   ...rest
-}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
+}: STEP_RESPONSE["data"] & { step: number }): Promise<STEP_RESPONSE> {
   const endpoint = "api/v1/log-request/single"
-  let conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu")
+  let conn = new SSH_CONN(keypair, remote_machine_url, username)
   try {
     let filepath_ingestor = `${__dirname}/../generics/scripts/metlo-ingestor-${randomUUID()}.service`
     let filepath_rules = `${__dirname}/../generics/scripts/local-${randomUUID()}.rules`
@@ -93,14 +99,16 @@ export async function push_files({
     return {
       success: "OK",
       status: "IN-PROGRESS",
-      step_number: 11,
-      next_step: 12,
-      last_completed: 11,
+      step_number: step,
+      next_step: step + 1,
+      last_completed: step,
       message: "Pushed configuration files to remote machine",
       error: null,
       data: {
         keypair,
         remote_machine_url,
+        username,
+        source_private_ip,
         ...rest,
       },
     }
@@ -109,9 +117,9 @@ export async function push_files({
     return {
       success: "FAIL",
       status: "IN-PROGRESS",
-      step_number: 11,
-      next_step: 12,
-      last_completed: 10,
+      step_number: step,
+      next_step: step,
+      last_completed: step - 1,
       message: `Couldn't push configuration files to remote machine`,
       error: {
         err: err,
@@ -119,6 +127,8 @@ export async function push_files({
       data: {
         keypair,
         remote_machine_url,
+        username,
+        source_private_ip,
         ...rest,
       },
     }
@@ -128,9 +138,11 @@ export async function push_files({
 export async function execute_commands({
   keypair,
   remote_machine_url,
+  username,
+  step,
   ...rest
-}: STEP_RESPONSE["data"]): Promise<STEP_RESPONSE> {
-  let conn = new SSH_CONN(keypair, remote_machine_url, "ubuntu")
+}: STEP_RESPONSE["data"] & { step: number }): Promise<STEP_RESPONSE> {
+  let conn = new SSH_CONN(keypair, remote_machine_url, username)
   try {
     await conn.run_command(
       "cd ~ && chmod +x install-deps.sh && ./install-deps.sh ",
@@ -143,14 +155,15 @@ export async function execute_commands({
     return {
       success: "OK",
       status: "COMPLETE",
-      step_number: 12,
-      next_step: null,
-      last_completed: 12,
+      step_number: step,
+      next_step: step + 1,
+      last_completed: step,
       message: "Executed configuration files on remote machine succesfully",
       error: null,
       data: {
         keypair,
         remote_machine_url,
+        username,
         ...rest,
       },
     }
@@ -159,9 +172,9 @@ export async function execute_commands({
     return {
       success: "FAIL",
       status: "IN-PROGRESS",
-      step_number: 12,
-      next_step: null,
-      last_completed: 11,
+      step_number: step,
+      next_step: step,
+      last_completed: step - 1,
       message: `Couldn't exec commands to install things`,
       error: {
         err: err,
@@ -169,6 +182,7 @@ export async function execute_commands({
       data: {
         keypair,
         remote_machine_url,
+        username,
         ...rest,
       },
     }
