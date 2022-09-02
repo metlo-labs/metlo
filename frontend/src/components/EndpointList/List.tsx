@@ -100,8 +100,6 @@ const List: React.FC<EndpointTablesProps> = React.memo(
     setOrdering,
     setOrderBy,
   }) => {
-    console.log(endpoints)
-
     const router = useRouter()
     const colorMode = useColorMode()
     const handlePageChange = (page: number) => {
