@@ -1,27 +1,24 @@
-import { DataTag, RiskScore, Status } from "@common/enums"
-import { Alert, ApiEndpoint, DataField } from "models"
-import { AppDataSource } from "data-source"
 import { Summary as SummaryResponse } from "@common/types"
+import { getAlertTypeAggCached, getTopAlertsCached } from "./alerts"
+import { getTopEndpointsCached } from "./endpoints"
+import { getPIIDataTypeCountCached } from "./piiData"
+import { getCountsCached, getUsageStatsCached } from "./usageStats"
 
 export class SummaryService {
   static async getSummaryData(): Promise<SummaryResponse> {
-    const alertRepository = AppDataSource.getRepository(Alert)
-    const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
-    const dataFieldRepository = AppDataSource.getRepository(DataField)
-    const highRiskAlerts = await alertRepository.countBy({
-      riskScore: RiskScore.HIGH,
-      status: Status.OPEN,
-    })
-    const newAlerts = await alertRepository.countBy({ status: Status.OPEN })
-    const endpointsTracked = await apiEndpointRepository.count({})
-    const piiDataFields = await dataFieldRepository.countBy({
-      dataTag: DataTag.PII,
-    })
+    const topEndpoints = await getTopEndpointsCached()
+    const alertTypeCount = await getAlertTypeAggCached()
+    const topAlerts = await getTopAlertsCached()
+    const piiDataTypeCount = await getPIIDataTypeCountCached()
+    const usageStats = await getUsageStatsCached()
+    const counts = await getCountsCached()
     return {
-      highRiskAlerts,
-      newAlerts,
-      endpointsTracked,
-      piiDataFields,
+      piiDataTypeCount: piiDataTypeCount as any,
+      alertTypeCount: alertTypeCount as any,
+      topAlerts,
+      topEndpoints,
+      usageStats,
+      ...counts,
     }
   }
 }

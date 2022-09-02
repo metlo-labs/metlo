@@ -8,8 +8,8 @@
     "format": "prettier --write './src/**/*.{ts,tsx}'"
   },
   "dependencies": {
-    "@chakra-ui/icons": "^2.0.6",
     "@atlaskit/pagination": "^14.1.10",
+    "@chakra-ui/icons": "^2.0.6",
     "@chakra-ui/react": "^2.2.1",
     "@chakra-ui/theme-tools": "^2.0.7",
     "@emotion/react": "^11.9.0",

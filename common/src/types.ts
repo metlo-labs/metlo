@@ -190,11 +190,29 @@ export interface Connection {
   type: ConnectionType
 }
 
+export interface EndpointAndUsage extends ApiEndpointDetailed {
+  last30MinCnt: number
+  last5MinCnt: number
+  last1MinCnt: number
+}
+
+export interface UsageStats {
+  dailyUsage: {day: string, cnt: number}[]
+  last1MinCnt: number
+  last60MinCnt: number
+}
+
 export interface Summary {
   highRiskAlerts: number
   newAlerts: number
   endpointsTracked: number
   piiDataFields: number
+  hostCount: number
+  piiDataTypeCount: Map<DataClass, number>
+  alertTypeCount: Map<AlertType, number>
+  topAlerts: Alert[]
+  topEndpoints: EndpointAndUsage[]
+  usageStats: UsageStats
 }
 
 export interface Usage {

@@ -32,15 +32,3 @@ export const updateAlertHandler = async (
     await ApiResponseHandler.error(res, err)
   }
 }
-
-export const getTopAlertsHandler = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  try {
-    const topAlerts = await AlertService.getTopAlerts()
-    await ApiResponseHandler.success(res, topAlerts)
-  } catch (err) {
-    await ApiResponseHandler.error(res, err)
-  }
-}

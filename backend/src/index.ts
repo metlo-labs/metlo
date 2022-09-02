@@ -21,11 +21,7 @@ import {
   updateSpecHandler,
   uploadNewSpecHandler,
 } from "api/spec"
-import {
-  getAlertsHandler,
-  getTopAlertsHandler,
-  updateAlertHandler,
-} from "api/alert"
+import { getAlertsHandler, updateAlertHandler } from "api/alert"
 import { updateDataFieldClasses } from "api/data-field"
 import { getSummaryHandler } from "api/summary"
 import { AppDataSource } from "data-source"
@@ -97,7 +93,6 @@ app.post(
 )
 
 app.get("/api/v1/alerts", getAlertsHandler)
-app.get("/api/v1/topAlerts", getTopAlertsHandler)
 app.put("/api/v1/alert/:alertId", updateAlertHandler)
 
 app.post("/api/v1/setup_connection", setup_connection)

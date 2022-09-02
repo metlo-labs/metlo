@@ -1,100 +1,55 @@
-import React, { useEffect, useState } from "react"
-import { Heading, useToast, VStack } from "@chakra-ui/react"
+import React from "react"
+import { Stack, VStack } from "@chakra-ui/react"
 import SummaryStats from "./SummaryStats"
-import { Alert, UpdateAlertParams } from "@common/types"
-import EmptyView from "components/utils/EmptyView"
-import { AlertComponent } from "components/Alert/AlertComponent"
-import { updateAlert } from "api/alerts"
-import { getTopAlerts } from "api/home"
+import { Summary } from "@common/types"
+import AggPIIChart from "./AggPIIChart"
+import AlertActions from "./AlertActions"
+import UsageChart from "./UsageChart"
+import LatestAlerts from "./LatestAlerts"
+import TopEndpoints from "./TopEndpoints"
 
 interface HomePageProps {
-  numHighRiskAlerts: number
-  numAlerts: number
-  numEndpoints: number
-  numPIIDataDetected: number
-  alerts: Alert[]
+  summary: Summary
 }
 
-const HomePage: React.FC<HomePageProps> = React.memo(
-  ({
-    numHighRiskAlerts,
-    numAlerts,
-    numEndpoints,
-    numPIIDataDetected,
-    alerts,
-  }) => {
-    const [alertList, setAlertList] = useState<Alert[]>(alerts)
-    const [toggleRefetch, setToggleRefetch] = useState<boolean>(false)
-    const [fetching, setFetching] = useState<boolean>(false)
-    const [updating, setUpdating] = useState<boolean>(false)
-    const toast = useToast()
-    useEffect(() => {
-      setFetching(true)
-      const fetchTopAlerts = async () => {
-        const res = await getTopAlerts()
-        setAlertList(res)
-        setFetching(false)
-      }
-      fetchTopAlerts()
-    }, [toggleRefetch])
-
-    const handleUpdateAlert = async (
-      alertId: string,
-      updateAlertParams: UpdateAlertParams,
-    ) => {
-      setUpdating(true)
-      const resp: Alert = await updateAlert(alertId, updateAlertParams)
-      if (resp) {
-        toast({
-          title: `Updating alert successful`,
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-          position: "top",
-        })
-        setToggleRefetch(!toggleRefetch)
-      } else {
-        toast({
-          title: `Updating Alert failed...`,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-          position: "top",
-        })
-      }
-      setUpdating(false)
-    }
-
-    return (
-      <VStack w="full" alignItems="flex-start" spacing="10">
-        <SummaryStats
-          numHighRiskAlerts={numHighRiskAlerts}
-          numAlerts={numAlerts}
-          numEndpoints={numEndpoints}
-          numPIIDataDetected={numPIIDataDetected}
+const HomePage: React.FC<HomePageProps> = React.memo(({ summary }) => {
+  return (
+    <VStack w="full" alignItems="flex-start" spacing="4">
+      <SummaryStats
+        hostCount={summary.hostCount}
+        numHighRiskAlerts={summary.highRiskAlerts}
+        numAlerts={summary.newAlerts}
+        numEndpoints={summary.endpointsTracked}
+        numPIIDataDetected={summary.piiDataFields}
+      />
+      <Stack direction={{ base: "column", xl: "row" }} w="full" spacing="4">
+        <AlertActions
+          totalAlerts={summary.newAlerts}
+          alertTypeCount={summary.alertTypeCount}
+          w={{ base: "full", xl: "50%" }}
+          h="xs"
         />
-        <VStack w="full" alignItems="flex-start" spacing="4">
-          <Heading fontSize="xl">Top Alerts</Heading>
-          {!fetching && (
-            <VStack w="full" spacing="4">
-              {alertList.length ? (
-                alertList.map(alert => (
-                  <AlertComponent
-                    key={alert.uuid}
-                    alert={alert}
-                    updating={updating}
-                    handleUpdateAlert={handleUpdateAlert}
-                  />
-                ))
-              ) : (
-                <EmptyView text="No New Alerts!" />
-              )}
-            </VStack>
-          )}
-        </VStack>
-      </VStack>
-    )
-  },
-)
+        <LatestAlerts
+          alerts={summary.topAlerts}
+          w={{ base: "full", xl: "50%" }}
+          h="xs"
+        />
+      </Stack>
+      <Stack direction={{ base: "column", xl: "row" }} w="full" spacing="4">
+        <UsageChart
+          usageData={summary.usageStats}
+          w={{ base: "full", xl: "50%" }}
+          h="xs"
+        />
+        <AggPIIChart
+          piiDataTypeCount={summary.piiDataTypeCount}
+          w={{ base: "full", xl: "50%" }}
+          h="xs"
+        />
+      </Stack>
+      <TopEndpoints endpoints={summary.topEndpoints} w="full" h="2xl" />
+    </VStack>
+  )
+})
 
 export default HomePage

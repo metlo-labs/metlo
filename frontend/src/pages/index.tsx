@@ -1,31 +1,22 @@
-import { Heading, VStack } from "@chakra-ui/react"
 import { GetServerSideProps } from "next"
 import superjson from "superjson"
-import { getSummary, getTopAlerts } from "api/home"
-import { Summary, Alert } from "@common/types"
+import { getSummary } from "api/home"
+import { Summary } from "@common/types"
+import Error from "next/error"
 import HomePage from "components/Home"
 import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
 import { SidebarLayoutShell } from "components/SidebarLayoutShell"
 import { ContentContainer } from "components/utils/ContentContainer"
 
-const Index = ({ summary, topAlerts }) => {
+const Index = ({ summary }) => {
   const parsedSummary = superjson.parse<Summary>(summary)
-  const parsedTopAlerts = superjson.parse<Alert[]>(topAlerts)
+  if (!parsedSummary) {
+    return <Error statusCode={500} />
+  }
   return (
     <SidebarLayoutShell title="Home" currentTab={SideNavLinkDestination.Home}>
-      <ContentContainer>
-        <VStack w="full" alignItems="flex-start">
-          <Heading fontWeight="medium" size="xl" mb="8">
-            Home
-          </Heading>
-          <HomePage
-            numHighRiskAlerts={parsedSummary.highRiskAlerts}
-            numAlerts={parsedSummary.newAlerts}
-            numEndpoints={parsedSummary.endpointsTracked}
-            numPIIDataDetected={parsedSummary.piiDataFields}
-            alerts={parsedTopAlerts}
-          />
-        </VStack>
+      <ContentContainer maxContentW="100rem" px="8" py="8">
+        <HomePage summary={parsedSummary} />
       </ContentContainer>
     </SidebarLayoutShell>
   )
@@ -33,11 +24,9 @@ const Index = ({ summary, topAlerts }) => {
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const summary = await getSummary()
-  const topAlerts = await getTopAlerts()
   return {
     props: {
       summary: superjson.stringify(summary),
-      topAlerts: superjson.stringify(topAlerts),
     },
   }
 }

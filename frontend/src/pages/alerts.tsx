@@ -96,19 +96,16 @@ export const getServerSideProps: GetServerSideProps = async context => {
   const initParams: GetAlertParams = {
     riskScores: ((context.query.riskScores as string) || "")
       .split(",")
-      .map(e => e.toUpperCase())
-      .filter(e => Object.keys(RiskScore).includes(e))
-      .map(e => RiskScore[e]),
+      .filter(e => Object.values(RiskScore).includes(e as RiskScore))
+      .map(e => e as RiskScore),
     status: ((context.query.status as string) || "open")
       .split(",")
-      .map(e => e.toUpperCase())
-      .filter(e => Object.keys(Status).includes(e))
-      .map(e => Status[e]),
+      .filter(e => Object.values(Status).includes(e as Status))
+      .map(e => e as Status),
     alertTypes: ((context.query.alertTypes as string) || "")
       .split(",")
-      .map(e => e.toUpperCase())
-      .filter(e => Object.keys(AlertType).includes(e))
-      .map(e => AlertType[e]),
+      .filter(e => Object.values(AlertType).includes(e as AlertType))
+      .map(e => e as AlertType),
     offset: 0,
     limit: ALERT_PAGE_LIMIT,
     order: "DESC",

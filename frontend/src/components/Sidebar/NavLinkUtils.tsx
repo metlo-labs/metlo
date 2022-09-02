@@ -2,7 +2,8 @@ import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch"
 import { FaHome } from "@react-icons/all-files/fa/FaHome"
 import { FaShareAlt } from "@react-icons/all-files/fa/FaShareAlt"
 import { FaBell } from "@react-icons/all-files/fa/FaBell"
-import { BiTestTube } from "@react-icons/all-files/bi/BiTestTube"
+import { AiFillLock } from "@react-icons/all-files/ai/AiFillLock"
+import { AiFillSecurityScan } from "@react-icons/all-files/ai/AiFillSecurityScan"
 import { AiFillApi } from "@react-icons/all-files/ai/AiFillApi"
 import { IconType } from "@react-icons/all-files/lib"
 
@@ -12,6 +13,8 @@ export enum SideNavLinkDestination {
   Alerts,
   Specs,
   Connections,
+  SensitiveData,
+  Vulnerabilities,
 }
 
 export const sideNavDestinationToLabel: (
@@ -22,6 +25,10 @@ export const sideNavDestinationToLabel: (
       return "Home"
     case SideNavLinkDestination.Endpoints:
       return "Endpoints"
+    case SideNavLinkDestination.SensitiveData:
+      return "Sensitive Data"
+    case SideNavLinkDestination.Vulnerabilities:
+      return "Vulnerabilities"
     case SideNavLinkDestination.Alerts:
       return "Alerts"
     case SideNavLinkDestination.Specs:
@@ -41,6 +48,10 @@ export const sideNavDestinationToIcon: (
       return FaHome
     case SideNavLinkDestination.Endpoints:
       return TiFlowSwitch
+    case SideNavLinkDestination.SensitiveData:
+      return AiFillLock
+    case SideNavLinkDestination.Vulnerabilities:
+      return AiFillSecurityScan
     case SideNavLinkDestination.Alerts:
       return FaBell
     case SideNavLinkDestination.Specs:
@@ -60,6 +71,10 @@ export const sideNavDestinationToHref: (
       return "/"
     case SideNavLinkDestination.Endpoints:
       return "/endpoints"
+    case SideNavLinkDestination.SensitiveData:
+      return "/sensitive-data"
+    case SideNavLinkDestination.Vulnerabilities:
+      return "/vulnerabilities"
     case SideNavLinkDestination.Alerts:
       return "/alerts"
     case SideNavLinkDestination.Specs:

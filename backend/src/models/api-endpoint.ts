@@ -13,7 +13,7 @@ import {
 import { DataField } from "models/data-field"
 import { Alert } from "models/alert"
 import { OpenApiSpec } from "models/openapi-spec"
-import { DataClass, DataSection, RestMethod, RiskScore } from "@common/enums"
+import { RestMethod, RiskScore } from "@common/enums"
 import { getPathTokens, isParameter } from "utils"
 
 @Entity()
