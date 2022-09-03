@@ -57,8 +57,8 @@ export function prepareResponse(
   )
   // Get destination for the request
   // Compile the entire address from protocol, source_ip
-  // Source ip is a local ip, so can't be accessed from the net, only from the internal
-  let source_url = new URL(alert.app_proto + "://" + alert.src_ip)
+  // Destional ip is a source ip in this case, since this alert is processed at response sending time. 
+  let source_url = new URL(alert.app_proto + "://" + alert.dest_ip)
   const resp: RESPONSE = {
     request: {
       url: {
