@@ -126,7 +126,9 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
           </Box>
         </Stack>
         <InputGroup>
-          <InputLeftElement pointerEvents="none" children={<GoSearch />} />
+          <InputLeftElement pointerEvents="none">
+            <GoSearch />
+          </InputLeftElement>
           <Input
             onChange={e => setSearchQuery(e.target.value)}
             w={{ base: "full", lg: "xs" }}

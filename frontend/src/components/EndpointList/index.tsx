@@ -44,7 +44,7 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
           <List
             endpoints={endpoints}
             totalCount={totalCount}
-            currentPage={1}
+            currentPage={params.offset / ENDPOINT_PAGE_LIMIT + 1}
             setCurrentPage={setCurrentPage}
             fetching={fetching}
             setOrdering={(e: "ASC" | "DESC") => {}}
