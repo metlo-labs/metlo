@@ -70,6 +70,8 @@ export interface TraceParams {
 export interface GetEndpointParams {
   hosts?: string[]
   riskScores?: RiskScore[]
+  dataClasses?: DataClass[]
+  searchQuery?: string
   offset?: number
   limit?: number
 }
@@ -156,6 +158,7 @@ export interface ApiEndpoint {
   path: string
   createdAt: Date
   updatedAt: Date
+  dataFields: DataField[]
   firstDetected?: Date
   lastActive?: Date
   host: string
@@ -167,7 +170,6 @@ export interface ApiEndpoint {
 }
 
 export interface ApiEndpointDetailed extends ApiEndpoint {
-  dataFields: DataField[]
   openapiSpec: OpenApiSpec
   alerts: Alert[]
   traces: ApiTrace[]

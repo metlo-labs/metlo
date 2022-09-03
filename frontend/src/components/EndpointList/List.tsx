@@ -1,16 +1,19 @@
 import React from "react"
-import { Badge, Box, Text, useColorMode, HStack } from "@chakra-ui/react"
+import { Badge, Box, Text, useColorMode, HStack, Tag } from "@chakra-ui/react"
 import { useRouter } from "next/router"
 import EmptyView from "components/utils/EmptyView"
-import DataTable, { SortOrder, TableColumn } from "react-data-table-component"
-import { RISK_TO_COLOR } from "~/constants"
+import dynamic from "next/dynamic"
+import { SortOrder, TableColumn } from "react-data-table-component"
+import { DATA_CLASS_TO_RISK_SCORE, RISK_TO_COLOR } from "~/constants"
 import {
   getCustomStyles,
   rowStyles,
   SkeletonCell,
 } from "components/utils/TableUtils"
 import { ApiEndpoint } from "@common/types"
-import { getDateTimeString } from "utils"
+import { getDateTimeRelative, getDateTimeString } from "utils"
+
+const DataTable = dynamic(() => import("react-data-table-component"), { ssr: false })
 
 const PAGE_SIZE = 10
 
@@ -46,9 +49,9 @@ const TableLoader: React.FC<TableLoaderProps> = ({
       grow: 3,
     },
     {
-      name: "Environment",
-      id: "environment",
-      grow: 1,
+      name: "Sensitive Data Classes",
+      id: "dataClasses",
+      grow: 3,
     },
     {
       name: "Host",
@@ -67,7 +70,7 @@ const TableLoader: React.FC<TableLoaderProps> = ({
     },
   ].map(e => ({
     ...e,
-    sortable: true,
+    sortable: false,
     cell: (row: ApiEndpoint) => <SkeletonCell />,
   }))
 
@@ -102,9 +105,6 @@ const List: React.FC<EndpointTablesProps> = React.memo(
   }) => {
     const router = useRouter()
     const colorMode = useColorMode()
-    const handlePageChange = (page: number) => {
-      setCurrentPage(page)
-    }
 
     const handleSort = (
       column: TableColumn<ApiEndpoint>,
@@ -117,7 +117,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
     const columns: TableColumn<ApiEndpoint>[] = [
       {
         name: "Risk",
-        sortable: true,
+        sortable: false,
         selector: (row: ApiEndpoint) => row.riskScore || "",
         cell: (row: ApiEndpoint) => (
           <Badge
@@ -135,7 +135,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
       },
       {
         name: "Path",
-        sortable: true,
+        sortable: false,
         selector: (row: ApiEndpoint) => row.method + row.path,
         cell: (row: ApiEndpoint) => (
           <HStack
@@ -152,15 +152,33 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         grow: 3,
       },
       {
+        name: "Sensitive Data Classes",
+        sortable: false,
+        cell: (row: ApiEndpoint) => {
+          let dataClassSet = new Set<string>()
+          row.dataFields.forEach((dataField) => dataClassSet = new Set([...dataClassSet, ...dataField.dataClasses]))
+          return (
+            <Box>
+              {Array.from(dataClassSet).map((e) => (
+                <Tag p="1" m="2px" fontSize="xx-small" key={e} colorScheme={RISK_TO_COLOR[DATA_CLASS_TO_RISK_SCORE[e]]}>
+                  {e}
+                </Tag>
+              ))}
+            </Box>
+          )
+        },
+        grow: 2
+      },
+      {
         name: "Host",
-        sortable: true,
+        sortable: false,
         selector: (row: ApiEndpoint) => row.host || "",
         id: "host",
-        grow: 3,
+        grow: 2,
       },
       {
         name: "First Detected",
-        sortable: true,
+        sortable: false,
         selector: (row: ApiEndpoint) =>
           getDateTimeString(row.firstDetected) || "N/A",
         id: "firstDetected",
@@ -168,9 +186,9 @@ const List: React.FC<EndpointTablesProps> = React.memo(
       },
       {
         name: "Last Active",
-        sortable: true,
+        sortable: false,
         selector: (row: ApiEndpoint) =>
-          getDateTimeString(row.lastActive) || "N/A",
+          getDateTimeRelative(row.lastActive) || "N/A",
         id: "lastActive",
         grow: 1.5,
       },
@@ -189,9 +207,9 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         paginationComponentOptions={{ noRowsPerPage: true }}
         paginationTotalRows={totalCount}
         paginationServer
-        onChangePage={handlePageChange}
+        onChangePage={setCurrentPage}
         progressPending={fetching}
-        progressComponent={
+                progressComponent={
           <TableLoader currentPage={currentPage} totalCount={totalCount} />
         }
         columns={columns}

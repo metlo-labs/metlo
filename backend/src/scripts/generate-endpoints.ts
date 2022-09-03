@@ -8,9 +8,9 @@ const main = async () => {
     return
   }
   console.log("AppDataSource Initialized...")
-  console.log("Generating Endpoints...")
+  console.log("Generating Endpoints and OpenAPI Spec Files...")
   await JobsService.generateEndpointsFromTraces()
-  console.log("Finished generating Endpoints")
+  console.log("Finished generating Endpoints and OpenAPI Spec Files.")
 }
 
 main()

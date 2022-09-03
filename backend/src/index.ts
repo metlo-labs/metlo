@@ -52,7 +52,8 @@ const port = process.env.PORT || 8080
 RedisClient.getInstance()
 
 app.disable("x-powered-by")
-app.use(bodyParser.json())
+app.use(express.json({ limit: "50mb" }))
+app.use(express.urlencoded({ limit: "50mb", extended: true }))
 app.use(
   session({
     resave: false,

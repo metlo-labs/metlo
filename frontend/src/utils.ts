@@ -1,6 +1,5 @@
 import { DataClass, RiskScore } from "@common/enums"
 import axios, { AxiosError } from "axios"
-import { getTime } from "date-fns"
 import { DateTime } from "luxon"
 import { DATA_CLASS_TO_RISK_SCORE, RISK_SCORE_ORDER } from "./constants"
 
@@ -9,6 +8,13 @@ export const getDateTimeString = (date: Date) => {
     return DateTime.fromISO(date.toString()).toLocaleString(
       DateTime.DATETIME_MED,
     )
+  }
+  return null
+}
+
+export const getDateTimeRelative = (date: Date) => {
+  if (date) {
+    return DateTime.fromISO(date.toString()).toRelative()
   }
   return null
 }

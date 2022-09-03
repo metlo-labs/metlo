@@ -126,6 +126,7 @@ export class JobsService {
             },
           })
           if (apiEndpoint) {
+            apiEndpoint.updateDates(trace.createdAt)
             apiEndpoint.totalCalls += 1
             const dataFields = DataFieldService.findAllDataFields(
               trace,
@@ -227,6 +228,7 @@ export class JobsService {
               true,
             )
             trace.apiEndpoint = apiEndpoint
+            apiEndpoint.updateDates(trace.createdAt)
             sensitiveDataAlerts = await AlertService.createDataFieldAlerts(
               apiEndpoint.dataFields,
               apiEndpoint.uuid,
@@ -252,6 +254,7 @@ export class JobsService {
           )
         }
       }
+      console.log("Finished Generating Endpoints.")
       await this.generateOpenApiSpec()
     } catch (err) {
       console.error(`Encountered error while generating endpoints: ${err}`)
@@ -259,6 +262,7 @@ export class JobsService {
   }
 
   static async generateOpenApiSpec(): Promise<void> {
+    console.log("Generating OpenAPI Spec Files...")
     try {
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
       const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec)
@@ -449,8 +453,7 @@ export class JobsService {
         }
         spec.spec = JSON.stringify(openApiSpec, null, 2)
         spec.extension = SpecExtension.JSON
-        await openApiSpecRepository.save(spec)
-        await apiEndpointRepository.save(endpoints)
+        await DatabaseService.executeTransactions([[spec], [...endpoints]], [], true)
       }
     } catch (err) {
       console.error(`Encountered error while generating OpenAPI specs: ${err}`)

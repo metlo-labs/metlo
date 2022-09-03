@@ -15,6 +15,7 @@ import { Alert } from "models/alert"
 import { OpenApiSpec } from "models/openapi-spec"
 import { RestMethod, RiskScore } from "@common/enums"
 import { getPathTokens, isParameter } from "utils"
+import { ApiTrace } from "./api-trace"
 
 @Entity()
 export class ApiEndpoint extends BaseEntity {
@@ -32,6 +33,12 @@ export class ApiEndpoint extends BaseEntity {
 
   @UpdateDateColumn({ type: "timestamptz" })
   updatedAt: Date
+
+  @Column({ type: "timestamptz", nullable: true })
+  firstDetected: Date
+
+  @Column({ type: "timestamptz", nullable: true })
+  lastActive: Date
 
   @Column({ nullable: false })
   host: string
@@ -76,6 +83,22 @@ export class ApiEndpoint extends BaseEntity {
         }
       }
       this.numberParams = numParams
+    }
+  }
+
+  updateDates(traceCreatedDate: Date) {
+    if (!this.firstDetected) {
+      this.firstDetected = traceCreatedDate
+    }
+    if (!this.lastActive) {
+      this.lastActive = traceCreatedDate
+    }
+
+    if (traceCreatedDate < this.firstDetected) {
+      this.firstDetected = traceCreatedDate
+    }
+    if (traceCreatedDate > this.lastActive) {
+      this.lastActive = traceCreatedDate
     }
   }
 }

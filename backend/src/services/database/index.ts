@@ -46,7 +46,7 @@ export class DatabaseService {
     return execute(1)
   }
 
-  static async executeRawQueries(rawQueries: string | string[]): Promise<any> {
+  static async executeRawQueries(rawQueries: string | string[], parameters?: any[][]): Promise<any> {
     const queryRunner = AppDataSource.createQueryRunner()
     await queryRunner.connect()
     const isMultiple = getDataType(rawQueries) === DataType.ARRAY
@@ -56,11 +56,12 @@ export class DatabaseService {
     }
     try {
       if (isMultiple) {
-        for (const query of rawQueries) {
-          res.push(await queryRunner.query(query))
+        for (let i = 0; i < rawQueries?.length; i++) {
+          const query = rawQueries[i]
+          res.push(await queryRunner.query(query, parameters?.[i] ?? []))
         }
       } else {
-        res = await queryRunner.query(rawQueries as string)
+        res = await queryRunner.query(rawQueries as string, parameters?.[0] ?? [])
       }
     } catch (err) {
       console.error(`Encountered error while executing raw sql query: ${err}`)
@@ -85,7 +86,7 @@ export class DatabaseService {
         const item = saveItems[i]
         const chunkSize =
           item.length > chunkBatch ? item.length / chunkBatch : chunkBatch
-        const fn = () => queryRunner.manager.save(item, { chunk: chunkSize })
+        const fn = () => queryRunner.manager.save(item, { chunk: chunkBatch })
         if (retry) {
           await this.retryTypeormTransaction(fn, 5)
         } else {
@@ -96,7 +97,7 @@ export class DatabaseService {
         const item = removeItems[i]
         const chunkSize =
           item.length > chunkBatch ? item.length / chunkBatch : chunkBatch
-        const fn = () => queryRunner.manager.remove(item, { chunk: chunkSize })
+        const fn = () => queryRunner.manager.remove(item, { chunk: chunkBatch })
         if (retry) {
           await this.retryTypeormTransaction(fn, 5)
         } else {

@@ -12,8 +12,9 @@ const main = async () => {
   console.log("AppDataSource Initialized...")
 
   schedule.scheduleJob("0 * * * *", () => {
-    console.log("Generating Endpoints...")
+    console.log("Generating Endpoints and OpenAPI Spec Files...")
     JobsService.generateEndpointsFromTraces()
+    console.log("Finished generating Endpoints and OpenAPI Spec Files.")
   })
 
   schedule.scheduleJob("30 * * * *", () => {

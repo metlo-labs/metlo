@@ -239,6 +239,7 @@ export class SpecService {
                 })
                 traces.forEach(trace => {
                   trace.apiEndpointUuid = apiEndpoint.uuid
+                  apiEndpoint.updateDates(trace.createdAt)
                 })
                 endpoint.alerts.forEach(alert => {
                   switch (alert.type) {

@@ -11,6 +11,7 @@ import {
 } from "@chakra-ui/react"
 import { Alert } from "@common/types"
 import { alertTypeToIcon } from "components/Alert/utils"
+import EmptyView from "components/utils/EmptyView"
 
 interface LatestAlertsProps extends StackProps {
   alerts: Alert[]
@@ -61,10 +62,13 @@ const LatestAlerts: React.FC<LatestAlertsProps> = React.memo(
             <a>View All Alerts →</a>
           </Link>
         </HStack>
-        <VStack
+        {alerts.length === 0 ? (
+          <EmptyView text="No New Alerts." />
+        ) : (
+<VStack
           alignItems="flex-start"
           py="2"
-          overflow="scroll"
+          overflow="auto"
           w="full"
           divider={<StackDivider />}
         >
@@ -72,6 +76,8 @@ const LatestAlerts: React.FC<LatestAlertsProps> = React.memo(
             <AlertItem alertItem={e} key={e.uuid}></AlertItem>
           ))}
         </VStack>
+        )}
+        
       </VStack>
     )
   },

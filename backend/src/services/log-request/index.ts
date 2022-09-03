@@ -49,7 +49,10 @@ export class LogRequestService {
       let alerts: Alert[] = []
       let apiEndpointSave: ApiEndpoint[] = []
       if (apiEndpoint) {
+        const currDate = new Date()
         apiEndpoint.totalCalls += 1
+        apiTraceObj.createdAt = currDate
+        apiEndpoint.updateDates(currDate)
         dataFields = DataFieldService.findAllDataFields(
           apiTraceObj,
           apiEndpoint,

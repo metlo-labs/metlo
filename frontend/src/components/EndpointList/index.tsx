@@ -4,13 +4,13 @@ import { ApiEndpoint, GetEndpointParams } from "@common/types"
 import EndpointFilters from "./Filters"
 import List from "./List"
 import { ENDPOINT_PAGE_LIMIT } from "~/constants"
-import { RiskScore } from "@common/enums"
+import { DataClass, RiskScore } from "@common/enums"
 
 interface EndpointListProps {
   fetching: boolean
   endpoints: ApiEndpoint[]
   totalCount: number
-  setParams: React.Dispatch<React.SetStateAction<GetEndpointParams>>
+  setParams: (t: (e: GetEndpointParams) => GetEndpointParams) => void
   params: GetEndpointParams
   hosts: string[]
 }
@@ -18,8 +18,10 @@ interface EndpointListProps {
 const EndpointList: React.FC<EndpointListProps> = React.memo(
   ({ endpoints, fetching, totalCount, params, setParams, hosts }) => {
     const setCurrentPage = (page: number) => {
-      const offset = (page - 1) * ENDPOINT_PAGE_LIMIT
-      setParams({ ...params, offset })
+      setParams(oldParams => ({
+        ...oldParams,
+        offset: (page - 1) * ENDPOINT_PAGE_LIMIT
+      }))
     }
     return (
       <VStack
@@ -33,14 +35,11 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
         <Box p="4" borderBottom="1px" borderColor="inherit" w="full">
           <EndpointFilters
             hostList={hosts}
-            riskList={[
-              RiskScore.NONE,
-              RiskScore.LOW,
-              RiskScore.MEDIUM,
-              RiskScore.HIGH,
-            ]}
+            riskList={Object.values(RiskScore)}
+            dataClassesList={
+              Object.values(DataClass)
+            }
             setParams={setParams}
-            params={params}
           />
         </Box>
         <Box w="full">

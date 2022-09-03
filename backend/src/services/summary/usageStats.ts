@@ -79,11 +79,11 @@ export const getCounts = async () => {
       endpointsTrackedQuery,
       piiDataFieldsQuery,
     ])
-  const newAlerts = newAlertQueryRes[0].count
-  const highRiskAlerts = newAlertQueryRes[0].high_risk_count
-  const endpointsTracked = endpointsTrackedQueryRes[0].endpoint_count
-  const hostCount = endpointsTrackedQueryRes[0].host_count
-  const piiDataFields = piiDataFieldsQueryRes[0].count
+  const newAlerts = newAlertQueryRes[0].count ?? 0
+  const highRiskAlerts = newAlertQueryRes[0].high_risk_count ?? 0
+  const endpointsTracked = endpointsTrackedQueryRes[0].endpoint_count ?? 0
+  const hostCount = endpointsTrackedQueryRes[0].host_count ?? 0
+  const piiDataFields = piiDataFieldsQueryRes[0].count ?? 0
   return {
     newAlerts,
     endpointsTracked,

@@ -7,10 +7,10 @@ import {
   Usage as UsageResponse,
 } from "@common/types"
 import Error500InternalServer from "errors/error-500-internal-server"
-import { RISK_SCORE_ORDER_QUERY } from "~/constants"
 import { Test } from "@common/testing/types"
 import Error404NotFound from "errors/error-404-not-found"
 import { getRiskScore } from "utils"
+import { FindOptionsWhere, In, Like, Raw } from "typeorm"
 
 export class GetEndpointsService {
   static async updateEndpointRiskScore(
@@ -34,8 +34,60 @@ export class GetEndpointsService {
   ): Promise<[ApiEndpointResponse[], number]> {
     try {
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
-      const apiTraceRepository = AppDataSource.getRepository(ApiTrace)
+      let whereConditions: FindOptionsWhere<ApiEndpoint> = {}
 
+      if (getEndpointParams?.hosts) {
+        whereConditions = {
+          ...whereConditions,
+          host: In(getEndpointParams.hosts)
+        }
+      }
+      if (getEndpointParams?.riskScores) {
+        whereConditions = {
+          ...whereConditions,
+          riskScore: In(getEndpointParams.riskScores)
+        }
+      }
+      if (getEndpointParams?.dataClasses) {
+        whereConditions = {
+          ...whereConditions,
+          dataFields: {
+            dataClasses: Raw(alias => `${alias} && :filteredClasses`, {
+              filteredClasses: getEndpointParams.dataClasses
+            })
+          }
+        }
+      }
+      if (getEndpointParams?.searchQuery) {
+        whereConditions = {
+          ...whereConditions,
+          path: Like(`%${getEndpointParams.searchQuery}%`)
+        }
+      }
+
+      return await apiEndpointRepository.findAndCount({
+        select: {
+          dataFields: {
+            uuid: true,
+            dataClasses: true,
+          }
+        },
+        where: whereConditions,
+        relations: {
+          dataFields: true
+        },
+        order: {
+          riskScore: "DESC",
+          lastActive: "DESC"
+        },
+        skip: getEndpointParams?.offset ?? 0,
+        take: getEndpointParams?.limit ?? 10,
+      })
+      /*const endpointsQuery = `
+        SELECT endpoints.*, fields.uuid, DISTINCT(fields."dataClasses")
+        FROM api_endpoint endpoints
+        LEFT JOIN data_field fields ON fields."apiEndpointUuid" = endpoints.uuid
+      `
       let endpointsQb = apiEndpointRepository.createQueryBuilder("endpoint")
 
       if (getEndpointParams?.hosts) {
@@ -49,10 +101,7 @@ export class GetEndpointsService {
           { scores: getEndpointParams.riskScores },
         )
       }
-      endpointsQb = endpointsQb.orderBy(
-        RISK_SCORE_ORDER_QUERY("endpoint", "riskScore"),
-        "DESC",
-      )
+      endpointsQb = endpointsQb.orderBy("endpoint.riskScore", "DESC").addOrderBy("endpoint.lastActive", "DESC", "NULLS LAST")
       if (getEndpointParams?.offset) {
         endpointsQb = endpointsQb.offset(getEndpointParams.offset)
       }
@@ -61,39 +110,7 @@ export class GetEndpointsService {
       }
 
       const endpoints = await endpointsQb.getManyAndCount()
-
-      const res: any[] = await Promise.all(
-        endpoints[0].map(async endpoint => {
-          const firstDetected = await apiTraceRepository.findOne({
-            select: {
-              createdAt: true,
-            },
-            where: {
-              apiEndpointUuid: endpoint.uuid,
-            },
-            order: {
-              createdAt: "ASC",
-            },
-          })
-          const lastActive = await apiTraceRepository.findOne({
-            select: {
-              createdAt: true,
-            },
-            where: {
-              apiEndpointUuid: endpoint.uuid,
-            },
-            order: {
-              createdAt: "DESC",
-            },
-          })
-          return {
-            ...endpoint,
-            firstDetected: firstDetected?.createdAt,
-            lastActive: lastActive?.createdAt,
-          }
-        }),
-      )
-      return [res, endpoints[1]]
+      return endpoints*/
     } catch (err) {
       console.error(`Error in Get Endpoints service: ${err}`)
       throw new Error500InternalServer(err)
@@ -137,6 +154,9 @@ export class GetEndpointsService {
         take: 100,
       })
       const firstDetected = await apiTraceRepository.findOne({
+        select: {
+          createdAt: true,
+        },
         where: {
           apiEndpointUuid: endpoint.uuid,
         },
@@ -145,6 +165,9 @@ export class GetEndpointsService {
         },
       })
       const lastActive = await apiTraceRepository.findOne({
+        select: {
+          createdAt: true,
+        },
         where: {
           apiEndpointUuid: endpoint.uuid,
         },

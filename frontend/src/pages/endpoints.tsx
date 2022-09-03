@@ -1,9 +1,9 @@
 import { Heading, VStack } from "@chakra-ui/react"
-import { GetServerSideProps } from "next"
 import superjson from "superjson"
-import Error from "next/error"
-import { useEffect, useState } from "react"
+import { useState } from "react"
+import { GetServerSideProps } from "next"
 import { ApiEndpoint, GetEndpointParams } from "@common/types"
+import { DataClass, RiskScore } from "@common/enums"
 import EndpointList from "components/EndpointList"
 import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
 import { SidebarLayoutShell } from "components/SidebarLayoutShell"
@@ -11,26 +11,33 @@ import { ContentContainer } from "components/utils/ContentContainer"
 import { getEndpoints, getHosts } from "api/endpoints"
 import { ENDPOINT_PAGE_LIMIT } from "~/constants"
 
-const Endpoints = ({ initHosts }) => {
-  const hosts = superjson.parse<string[]>(initHosts || [])
-  const [fetching, setFetching] = useState<boolean>(true)
-  const [endpoints, setEndpoints] = useState<ApiEndpoint[]>([])
-  const [totalCount, setTotalCount] = useState<number>()
-  const [params, setParams] = useState<GetEndpointParams>({
-    hosts: [],
-    riskScores: [],
-    offset: 0,
-    limit: ENDPOINT_PAGE_LIMIT,
-  })
-  useEffect(() => {
-    const fetchEndpoints = async () => {
-      const res = await getEndpoints(params)
+const Endpoints = ({ initParams, initEndpoints, initTotalCount, hosts }) => {
+  const parsedInitParams = superjson.parse<GetEndpointParams>(initParams)
+  const parsedInitEndpoints = superjson.parse<ApiEndpoint[]>(initEndpoints)
+  const parsedHosts = superjson.parse<string[]>(hosts ?? [])
+
+  const [fetching, setFetching] = useState<boolean>(false)
+  const [endpoints, setEndpoints] = useState<ApiEndpoint[]>(parsedInitEndpoints)
+  const [totalCount, setTotalCount] = useState<number>(initTotalCount)
+  const [params, setParamsInner] = useState<GetEndpointParams>(parsedInitParams)
+
+  const fetchEndpoints = (fetchParams: GetEndpointParams) => {
+    setFetching(true)
+    const fetch = async () => {
+      const res = await getEndpoints(fetchParams)
       setEndpoints(res[0])
       setTotalCount(res[1])
       setFetching(false)
     }
-    fetchEndpoints()
-  }, [params])
+    fetch()
+  }
+
+  const setParams = (t: (e: GetEndpointParams) => GetEndpointParams) => {
+    let newParams = t(params)
+    setParamsInner(newParams)
+    fetchEndpoints(newParams)
+  }
+
   return (
     <SidebarLayoutShell
       title="Endpoints"
@@ -42,7 +49,7 @@ const Endpoints = ({ initHosts }) => {
             Endpoints
           </Heading>
           <EndpointList
-            hosts={hosts}
+            hosts={parsedHosts}
             endpoints={endpoints}
             fetching={fetching}
             params={params}
@@ -56,11 +63,33 @@ const Endpoints = ({ initHosts }) => {
 }
 
 export const getServerSideProps: GetServerSideProps = async context => {
-  const hosts = await getHosts()
+  const initParams: GetEndpointParams = {
+    riskScores: ((context.query.riskScores as string) || "")
+      .split(",")
+      .filter(e => Object.values(RiskScore).includes(e as RiskScore))
+      .map(e => e as RiskScore),
+    hosts: ((context.query.hosts as string) || null)
+      ?.split(",") ?? [],
+    dataClasses: ((context.query.dataClasses as string) || "")
+      .split(",")
+      .filter(e => Object.values(DataClass).includes(e as DataClass))
+      .map(e => e as DataClass),
+    offset: 0,
+    searchQuery: "",
+    limit: ENDPOINT_PAGE_LIMIT,
+  }
+  const hostsPromise = getHosts()
+  const endpointsPromise = getEndpoints(initParams)
+  const [hosts, endpoints] = await Promise.all([hostsPromise, endpointsPromise])
+  const initEndpoints = endpoints[0]
+  const totalCount = endpoints[1]
   return {
     props: {
-      initHosts: superjson.stringify(hosts),
-    },
+      initParams: superjson.stringify(initParams),
+      initEndpoints: superjson.stringify(initEndpoints),
+      initTotalCount: totalCount,
+      hosts: superjson.stringify(hosts)
+    }
   }
 }
 
