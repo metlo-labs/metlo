@@ -92,7 +92,12 @@ const Alerts = ({ initParams, initAlerts, initTotalCount }) => {
         w="full"
         alignItems="flex-start"
       >
-        <HStack w="full" justifyContent="space-between" alignItems="flex-end" mb="4">
+        <HStack
+          w="full"
+          justifyContent="space-between"
+          alignItems="flex-end"
+          mb="4"
+        >
           <Heading fontWeight="medium" size="lg">
             Alerts
           </Heading>

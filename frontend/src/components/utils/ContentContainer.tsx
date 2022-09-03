@@ -14,7 +14,13 @@ export const ContentContainer: React.FC<ContentContainerProps> = React.memo(
     const bg = useColorModeValue("rgb(252, 252, 252)", "black")
     return (
       <Box w="full" bg={bg} h="full">
-        <Box mx="auto" maxW={maxContentW || "7xl"} px={px || "8"} py={py || "8"} h={height}>
+        <Box
+          mx="auto"
+          maxW={maxContentW || "7xl"}
+          px={px || "8"}
+          py={py || "8"}
+          h={height}
+        >
           {children}
         </Box>
       </Box>

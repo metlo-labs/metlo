@@ -23,7 +23,13 @@ const SummaryStatValue: React.FC<{ value: number; title: string }> = React.memo(
 )
 
 const SummaryStats: React.FC<SummaryStatsProps> = React.memo(
-  ({ hostCount, numHighRiskAlerts, numAlerts, numEndpoints, numPIIDataDetected }) => {
+  ({
+    hostCount,
+    numHighRiskAlerts,
+    numAlerts,
+    numEndpoints,
+    numPIIDataDetected,
+  }) => {
     return (
       <HStack
         w="full"

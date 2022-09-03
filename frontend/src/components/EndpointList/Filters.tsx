@@ -1,5 +1,13 @@
 import React, { useState } from "react"
-import { Stack, Box, Text, VStack, Input, InputGroup, InputLeftElement } from "@chakra-ui/react"
+import {
+  Stack,
+  Box,
+  Text,
+  VStack,
+  Input,
+  InputGroup,
+  InputLeftElement,
+} from "@chakra-ui/react"
 import { Select } from "chakra-react-select"
 import { GoSearch } from "@react-icons/all-files/go/GoSearch"
 import { GetEndpointParams } from "@common/types"
@@ -38,7 +46,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
     return (
       <VStack spacing="6">
         <Stack direction={{ base: "column", lg: "row" }} spacing="4" w="full">
-          <Box w={{ base: "full", lg: "xs"}} zIndex="1003">
+          <Box w={{ base: "full", lg: "xs" }} zIndex="1003">
             <FilterHeader title="Host" />
             <Select
               value={
@@ -64,7 +72,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
               }
             />
           </Box>
-          <Box w={{ base: "full", lg: "xs"}} zIndex="1002">
+          <Box w={{ base: "full", lg: "xs" }} zIndex="1002">
             <FilterHeader title="Risk Score" />
             <Select
               value={
@@ -90,7 +98,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
               }
             />
           </Box>
-          <Box w={{ base: "full", lg: "xs"}} zIndex="1001">
+          <Box w={{ base: "full", lg: "xs" }} zIndex="1001">
             <FilterHeader title="Sensitive Data Class" />
             <Select
               value={
@@ -119,7 +127,12 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
         </Stack>
         <InputGroup>
           <InputLeftElement pointerEvents="none" children={<GoSearch />} />
-          <Input onChange={(e) => setSearchQuery(e.target.value)} w={{ base: "full", lg: "xs"}} type="text" placeholder="Search for endpoint..." />
+          <Input
+            onChange={e => setSearchQuery(e.target.value)}
+            w={{ base: "full", lg: "xs" }}
+            type="text"
+            placeholder="Search for endpoint..."
+          />
         </InputGroup>
       </VStack>
     )

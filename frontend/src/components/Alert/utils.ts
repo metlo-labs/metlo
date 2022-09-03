@@ -14,7 +14,7 @@ export const alertTypeToIcon: (
     case AlertType.NEW_ENDPOINT:
       return TiFlowSwitch
     case AlertType.PII_DATA_DETECTED:
-      return AiFillLock 
+      return AiFillLock
     default:
       return FaBell
   }

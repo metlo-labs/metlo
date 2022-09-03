@@ -65,19 +65,18 @@ const LatestAlerts: React.FC<LatestAlertsProps> = React.memo(
         {alerts.length === 0 ? (
           <EmptyView text="No New Alerts." />
         ) : (
-<VStack
-          alignItems="flex-start"
-          py="2"
-          overflow="auto"
-          w="full"
-          divider={<StackDivider />}
-        >
-          {alerts.map(e => (
-            <AlertItem alertItem={e} key={e.uuid}></AlertItem>
-          ))}
-        </VStack>
+          <VStack
+            alignItems="flex-start"
+            py="2"
+            overflow="auto"
+            w="full"
+            divider={<StackDivider />}
+          >
+            {alerts.map(e => (
+              <AlertItem alertItem={e} key={e.uuid}></AlertItem>
+            ))}
+          </VStack>
         )}
-        
       </VStack>
     )
   },

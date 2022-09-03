@@ -20,7 +20,7 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
     const setCurrentPage = (page: number) => {
       setParams(oldParams => ({
         ...oldParams,
-        offset: (page - 1) * ENDPOINT_PAGE_LIMIT
+        offset: (page - 1) * ENDPOINT_PAGE_LIMIT,
       }))
     }
     return (
@@ -36,9 +36,7 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
           <EndpointFilters
             hostList={hosts}
             riskList={Object.values(RiskScore)}
-            dataClassesList={
-              Object.values(DataClass)
-            }
+            dataClassesList={Object.values(DataClass)}
             setParams={setParams}
           />
         </Box>

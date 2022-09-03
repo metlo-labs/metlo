@@ -39,13 +39,13 @@ export class GetEndpointsService {
       if (getEndpointParams?.hosts) {
         whereConditions = {
           ...whereConditions,
-          host: In(getEndpointParams.hosts)
+          host: In(getEndpointParams.hosts),
         }
       }
       if (getEndpointParams?.riskScores) {
         whereConditions = {
           ...whereConditions,
-          riskScore: In(getEndpointParams.riskScores)
+          riskScore: In(getEndpointParams.riskScores),
         }
       }
       if (getEndpointParams?.dataClasses) {
@@ -53,15 +53,15 @@ export class GetEndpointsService {
           ...whereConditions,
           dataFields: {
             dataClasses: Raw(alias => `${alias} && :filteredClasses`, {
-              filteredClasses: getEndpointParams.dataClasses
-            })
-          }
+              filteredClasses: getEndpointParams.dataClasses,
+            }),
+          },
         }
       }
       if (getEndpointParams?.searchQuery) {
         whereConditions = {
           ...whereConditions,
-          path: Like(`%${getEndpointParams.searchQuery}%`)
+          path: Like(`%${getEndpointParams.searchQuery}%`),
         }
       }
 
@@ -70,15 +70,15 @@ export class GetEndpointsService {
           dataFields: {
             uuid: true,
             dataClasses: true,
-          }
+          },
         },
         where: whereConditions,
         relations: {
-          dataFields: true
+          dataFields: true,
         },
         order: {
           riskScore: "DESC",
-          lastActive: "DESC"
+          lastActive: "DESC",
         },
         skip: getEndpointParams?.offset ?? 0,
         take: getEndpointParams?.limit ?? 10,

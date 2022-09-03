@@ -43,7 +43,10 @@ interface EndpointPIIChartProps {
 
 const EndpointPIIChart: React.FC<EndpointPIIChartProps> = React.memo(
   ({ piiFields }) => {
-    const headerColor = useColorModeValue("rgb(102, 105, 117)", "rgb(116, 120, 138)")
+    const headerColor = useColorModeValue(
+      "rgb(102, 105, 117)",
+      "rgb(116, 120, 138)",
+    )
     const textColor = useColorModeValue("#000", "#FFF")
     let dataClassToCount = {}
     piiFields

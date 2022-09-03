@@ -22,7 +22,15 @@ import {
 import "chartjs-adapter-date-fns"
 import { UsageStats } from "@common/types"
 
-ChartJS.register(CategoryScale, TimeSeriesScale, LinearScale, BarElement, Title, Tooltip, Legend)
+ChartJS.register(
+  CategoryScale,
+  TimeSeriesScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+)
 
 interface UsageChartProps extends StackProps {
   usageData: UsageStats

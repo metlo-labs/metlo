@@ -46,7 +46,10 @@ export class DatabaseService {
     return execute(1)
   }
 
-  static async executeRawQueries(rawQueries: string | string[], parameters?: any[][]): Promise<any> {
+  static async executeRawQueries(
+    rawQueries: string | string[],
+    parameters?: any[][],
+  ): Promise<any> {
     const queryRunner = AppDataSource.createQueryRunner()
     await queryRunner.connect()
     const isMultiple = getDataType(rawQueries) === DataType.ARRAY
@@ -61,7 +64,10 @@ export class DatabaseService {
           res.push(await queryRunner.query(query, parameters?.[i] ?? []))
         }
       } else {
-        res = await queryRunner.query(rawQueries as string, parameters?.[0] ?? [])
+        res = await queryRunner.query(
+          rawQueries as string,
+          parameters?.[0] ?? [],
+        )
       }
     } catch (err) {
       console.error(`Encountered error while executing raw sql query: ${err}`)

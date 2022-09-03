@@ -123,7 +123,9 @@ export const generateAlertMessageFromReqErrors = (
     const basePath =
       error.location === Location.BODY ? pathToRequestBody : pathToParameters
     if (!error.path) {
-      errorMessage = `${error.message} for request${error.location ? ` ${error.location}` : ""}.`
+      errorMessage = `${error.message} for request${
+        error.location ? ` ${error.location}` : ""
+      }.`
     } else {
       switch (error.errorCode.split(".")[0]) {
         case "required":

@@ -68,8 +68,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
       .split(",")
       .filter(e => Object.values(RiskScore).includes(e as RiskScore))
       .map(e => e as RiskScore),
-    hosts: ((context.query.hosts as string) || null)
-      ?.split(",") ?? [],
+    hosts: ((context.query.hosts as string) || null)?.split(",") ?? [],
     dataClasses: ((context.query.dataClasses as string) || "")
       .split(",")
       .filter(e => Object.values(DataClass).includes(e as DataClass))
@@ -88,8 +87,8 @@ export const getServerSideProps: GetServerSideProps = async context => {
       initParams: superjson.stringify(initParams),
       initEndpoints: superjson.stringify(initEndpoints),
       initTotalCount: totalCount,
-      hosts: superjson.stringify(hosts)
-    }
+      hosts: superjson.stringify(hosts),
+    },
   }
 }
 

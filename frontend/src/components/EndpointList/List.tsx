@@ -13,7 +13,9 @@ import {
 import { ApiEndpoint } from "@common/types"
 import { getDateTimeRelative, getDateTimeString } from "utils"
 
-const DataTable = dynamic(() => import("react-data-table-component"), { ssr: false })
+const DataTable = dynamic(() => import("react-data-table-component"), {
+  ssr: false,
+})
 
 const PAGE_SIZE = 10
 
@@ -156,18 +158,30 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         sortable: false,
         cell: (row: ApiEndpoint) => {
           let dataClassSet = new Set<string>()
-          row.dataFields.forEach((dataField) => dataClassSet = new Set([...dataClassSet, ...dataField.dataClasses]))
+          row.dataFields.forEach(
+            dataField =>
+              (dataClassSet = new Set([
+                ...dataClassSet,
+                ...dataField.dataClasses,
+              ])),
+          )
           return (
             <Box>
-              {Array.from(dataClassSet).map((e) => (
-                <Tag p="1" m="2px" fontSize="xx-small" key={e} colorScheme={RISK_TO_COLOR[DATA_CLASS_TO_RISK_SCORE[e]]}>
+              {Array.from(dataClassSet).map(e => (
+                <Tag
+                  p="1"
+                  m="2px"
+                  fontSize="xx-small"
+                  key={e}
+                  colorScheme={RISK_TO_COLOR[DATA_CLASS_TO_RISK_SCORE[e]]}
+                >
                   {e}
                 </Tag>
               ))}
             </Box>
           )
         },
-        grow: 2
+        grow: 2,
       },
       {
         name: "Host",
@@ -209,7 +223,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         paginationServer
         onChangePage={setCurrentPage}
         progressPending={fetching}
-                progressComponent={
+        progressComponent={
           <TableLoader currentPage={currentPage} totalCount={totalCount} />
         }
         columns={columns}
