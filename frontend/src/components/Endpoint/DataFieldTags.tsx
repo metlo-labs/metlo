@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { Select } from "chakra-react-select"
 import { DataField } from "@common/types"
-import { HStack, Tag, Button, Box } from "@chakra-ui/react"
+import { HStack, Tag, Button, Box, Wrap, WrapItem } from "@chakra-ui/react"
 import { FiPlus } from "@react-icons/all-files/fi/FiPlus"
 import { HiPencil } from "@react-icons/all-files/hi/HiPencil"
 import { DataClass } from "@common/enums"
@@ -20,6 +20,7 @@ export const DataFieldTagList: React.FC<TagListProps> = React.memo(
     const [editedTags, setEditedTags] = useState(tags)
 
     useEffect(() => {
+      setEditing(false)
       setEditedTags(tags)
     }, [tags])
 
@@ -69,21 +70,32 @@ export const DataFieldTagList: React.FC<TagListProps> = React.memo(
           >
             Save
           </Button>
+          <Button rounded="sm" size="sm" onClick={() => setEditing(false)}>
+            Cancel
+          </Button>
         </HStack>
       )
     }
     return (
-      <HStack>
-        {editedTags.map((e, i) => (
-          <Tag key={i} colorScheme={RISK_TO_COLOR[DATA_CLASS_TO_RISK_SCORE[e]]}>
-            {e}
-          </Tag>
-        ))}
+      <HStack h="full">
+        <Wrap h="full">
+          {editedTags.map((e, i) => (
+            <WrapItem key={i}>
+              <Tag
+                p="2"
+                colorScheme={RISK_TO_COLOR[DATA_CLASS_TO_RISK_SCORE[e]]}
+              >
+                {e}
+              </Tag>
+            </WrapItem>
+          ))}
+        </Wrap>
         <Button
           variant="link"
           leftIcon={editedTags.length > 0 ? <HiPencil /> : <FiPlus />}
           onClick={() => setEditing(true)}
           color="gray.500"
+          h="full"
         >
           {editedTags.length > 0 ? "Edit" : "Add Data Classes"}
         </Button>
