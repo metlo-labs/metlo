@@ -43,12 +43,12 @@ import {
   update_connection,
 } from "./api/connections"
 import { RedisClient } from "utils/redis"
+import { getSensitiveDataSummaryHandler } from "api/data-field/sensitive-data"
 
 dotenv.config()
 
 const app: Express = express()
 const port = process.env.PORT || 8080
-// Start singleton redis instance
 RedisClient.getInstance()
 
 app.disable("x-powered-by")
@@ -75,6 +75,7 @@ app.post("/api/v1/log-request/single", logRequestSingleHandler)
 app.post("/api/v1/log-request/batch", logRequestBatchHandler)
 
 app.get("/api/v1/summary", getSummaryHandler)
+app.get("/api/v1/sensitive-data-summary", getSensitiveDataSummaryHandler)
 app.get("/api/v1/endpoints/hosts", getHostsHandler)
 app.get("/api/v1/endpoints", getEndpointsHandler)
 app.get("/api/v1/endpoint/:endpointId", getEndpointHandler)

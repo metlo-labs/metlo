@@ -3,10 +3,10 @@ import superjson from "superjson"
 import { getSummary } from "api/home"
 import { Summary } from "@common/types"
 import Error from "next/error"
-import HomePage from "components/Home"
 import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
 import { SidebarLayoutShell } from "components/SidebarLayoutShell"
 import { ContentContainer } from "components/utils/ContentContainer"
+import HomePage from "components/Home"
 
 const Index = ({ summary }) => {
   const parsedSummary = superjson.parse<Summary>(summary)

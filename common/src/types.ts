@@ -67,6 +67,12 @@ export interface TraceParams {
   meta: Meta
 }
 
+export interface GetSensitiveDataAggParams {
+  hosts?: string[]
+  riskScores?: RiskScore[]
+  locations?: DataSection[]
+}
+
 export interface GetEndpointParams {
   hosts?: string[]
   riskScores?: RiskScore[]
@@ -221,6 +227,21 @@ export interface Summary {
 export interface Usage {
   date: Date
   count: number
+}
+
+export interface PIIDataClassAggItem {
+  dataClass: DataClass
+  risk: RiskScore
+  count: number
+  numEndpoints: number
+  numHosts: number
+}
+
+export interface SensitiveDataSummary {
+  piiDataTypeCount: Map<DataClass, number>
+  piiItems: PIIDataClassAggItem[]
+  totalPIIFields: number
+  totalEndpoints: number
 }
 
 export interface STEP_RESPONSE<T extends ConnectionType = ConnectionType> {
