@@ -1,7 +1,8 @@
 import { DataClass, RiskScore } from "@common/enums"
 import axios, { AxiosError } from "axios"
 import { DateTime } from "luxon"
-import { DATA_CLASS_TO_RISK_SCORE, RISK_SCORE_ORDER } from "./constants"
+import { RISK_SCORE_ORDER } from "./constants"
+import { DATA_CLASS_TO_RISK_SCORE } from "@common/maps"
 
 export const getDateTimeString = (date: Date) => {
   if (date) {

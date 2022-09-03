@@ -5,7 +5,8 @@ import { HStack, Tag, Button, Box } from "@chakra-ui/react"
 import { FiPlus } from "@react-icons/all-files/fi/FiPlus"
 import { HiPencil } from "@react-icons/all-files/hi/HiPencil"
 import { DataClass } from "@common/enums"
-import { DATA_CLASS_TO_RISK_SCORE, RISK_TO_COLOR } from "~/constants"
+import { DATA_CLASS_TO_RISK_SCORE } from "@common/maps"
+import { RISK_TO_COLOR } from "~/constants"
 
 interface TagListProps {
   updating: boolean

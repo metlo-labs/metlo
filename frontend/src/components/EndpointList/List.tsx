@@ -1,10 +1,19 @@
 import React from "react"
-import { Badge, Box, Text, useColorMode, HStack, Tag } from "@chakra-ui/react"
+import {
+  Badge,
+  Box,
+  Text,
+  useColorMode,
+  HStack,
+  Tag,
+  Tooltip,
+} from "@chakra-ui/react"
 import { useRouter } from "next/router"
 import EmptyView from "components/utils/EmptyView"
 import dynamic from "next/dynamic"
 import { SortOrder, TableColumn } from "react-data-table-component"
-import { DATA_CLASS_TO_RISK_SCORE, RISK_TO_COLOR } from "~/constants"
+import { RISK_TO_COLOR } from "~/constants"
+import { DATA_CLASS_TO_RISK_SCORE } from "@common/maps"
 import {
   getCustomStyles,
   rowStyles,
@@ -203,6 +212,14 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         sortable: false,
         selector: (row: ApiEndpoint) =>
           getDateTimeRelative(row.lastActive) || "N/A",
+        cell: (row: ApiEndpoint) => (
+          <Tooltip
+            placement="top"
+            label={getDateTimeString(row.lastActive) || "N/A"}
+          >
+            {getDateTimeRelative(row.lastActive) || "N/A"}
+          </Tooltip>
+        ),
         id: "lastActive",
         grow: 1.5,
       },

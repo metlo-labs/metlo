@@ -1,4 +1,4 @@
-import { DataSection, AWS_STEPS, GCP_STEPS } from "./enums"
+import { DataSection, AWS_STEPS, GCP_STEPS, DataClass, RiskScore, AlertType } from "./enums"
 
 export const AWS_NEXT_STEP: Record<AWS_STEPS, AWS_STEPS | null> = {
   [AWS_STEPS.AWS_KEY_SETUP]: AWS_STEPS.SOURCE_INSTANCE_ID,
@@ -54,4 +54,27 @@ export const DATA_SECTION_TO_LABEL_MAP: Record<DataSection, string> = {
   [DataSection.REQUEST_BODY]: "Request Body",
   [DataSection.RESPONSE_HEADER]: "Response Headers",
   [DataSection.RESPONSE_BODY]: "Response Body",
+}
+
+export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass | "", RiskScore> = {
+  [DataClass.ADDRESS]: RiskScore.HIGH,
+  [DataClass.EMAIL]: RiskScore.MEDIUM,
+  [DataClass.CREDIT_CARD]: RiskScore.HIGH,
+  [DataClass.SSN]: RiskScore.HIGH,
+  [DataClass.PHONE_NUMBER]: RiskScore.MEDIUM,
+  [DataClass.IP_ADDRESS]: RiskScore.MEDIUM,
+  [DataClass.DOB]: RiskScore.MEDIUM,
+  [DataClass.VIN]: RiskScore.LOW,
+  [DataClass.COORDINATE]: RiskScore.MEDIUM,
+  [DataClass.DL_NUMBER]: RiskScore.MEDIUM,
+  "": RiskScore.NONE,
+}
+
+export const ALERT_TYPE_TO_RISK_SCORE: Record<AlertType, RiskScore> = {
+  [AlertType.NEW_ENDPOINT]: RiskScore.LOW,
+  [AlertType.OPEN_API_SPEC_DIFF]: RiskScore.MEDIUM,
+  [AlertType.PII_DATA_DETECTED]: RiskScore.HIGH,
+  [AlertType.QUERY_SENSITIVE_DATA]: RiskScore.HIGH,
+  [AlertType.UNDOCUMENTED_ENDPOINT]: RiskScore.LOW,
+  [AlertType.BASIC_AUTHENTICATION_DETECTED]: RiskScore.MEDIUM,
 }

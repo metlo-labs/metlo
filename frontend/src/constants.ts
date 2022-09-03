@@ -29,19 +29,6 @@ export const RISK_SCORE_ORDER: Record<RiskScore, number> = {
   [RiskScore.NONE]: 0,
 }
 
-export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass | "", RiskScore> = {
-  [DataClass.ADDRESS]: RiskScore.HIGH,
-  [DataClass.EMAIL]: RiskScore.MEDIUM,
-  [DataClass.CREDIT_CARD]: RiskScore.HIGH,
-  [DataClass.SSN]: RiskScore.HIGH,
-  [DataClass.PHONE_NUMBER]: RiskScore.MEDIUM,
-  [DataClass.IP_ADDRESS]: RiskScore.MEDIUM,
-  [DataClass.DOB]: RiskScore.MEDIUM,
-  [DataClass.VIN]: RiskScore.LOW,
-  [DataClass.COORDINATE]: RiskScore.MEDIUM,
-  [DataClass.DL_NUMBER]: RiskScore.MEDIUM,
-  "": RiskScore.NONE,
-}
 export const statusToColor = (statusCode: number) => {
   if (statusCode >= 200 && statusCode < 300) {
     return "green"

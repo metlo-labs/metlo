@@ -15,7 +15,7 @@ import {
   UpdateAlertType,
 } from "@common/enums"
 import { DATA_SECTION_TO_LABEL_MAP } from "@common/maps"
-import { ALERT_TYPE_TO_RISK_SCORE } from "~/constants"
+import { ALERT_TYPE_TO_RISK_SCORE } from "@common/maps"
 import {
   GetAlertParams,
   Alert as AlertResponse,
