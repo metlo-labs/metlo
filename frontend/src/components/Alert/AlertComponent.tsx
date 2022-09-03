@@ -150,7 +150,7 @@ export const AlertComponent: React.FC<AlertComponentProps> = ({
           </ModalBody>
           {alert.status !== Status.IGNORED && (
             <ModalFooter>
-              {alert.status !== Status.RESOLVED ? (
+              {alert.status !== Status.RESOLVED && (
                 <Button
                   isLoading={updating}
                   leftIcon={<FiCheckCircle />}
@@ -163,19 +163,6 @@ export const AlertComponent: React.FC<AlertComponentProps> = ({
                   }
                 >
                   Resolve
-                </Button>
-              ) : (
-                <Button
-                  isLoading={updating}
-                  leftIcon={<AiOutlineExclamationCircle fontSize="20px" />}
-                  colorScheme="red"
-                  onClick={() =>
-                    handleUpdateAlert(alert.uuid, {
-                      updateType: UpdateAlertType.UNRESOLVE,
-                    })
-                  }
-                >
-                  Unresolve
                 </Button>
               )}
             </ModalFooter>

@@ -265,8 +265,9 @@ export const AlertList: React.FC<AlertListProps> = ({
       {totalCount && (
         <HStack alignSelf="flex-end" p="3" pr="70px">
           <Text>
-            {(page - 1) * params.offset + 1}-
-            {(page - 1) * params.offset + alerts.length} of {totalCount} alerts
+            {(page - 1) * ALERT_PAGE_LIMIT + 1}-
+            {(page - 1) * ALERT_PAGE_LIMIT + alerts.length} of {totalCount}{" "}
+            alerts
           </Text>
           <PaginationComponent
             pageSize={ALERT_PAGE_LIMIT}

@@ -298,8 +298,9 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
                 }}
                 value={resolutionMessage || ""}
                 placeholder={
-                  alert.status !== Status.RESOLVED &&
-                  "Provide reason for resolving..."
+                  alert.status !== Status.RESOLVED
+                    ? "Provide reason for resolving..."
+                    : ""
                 }
                 onChange={e => setResolutionMessage(e.target.value)}
               />
