@@ -15,7 +15,7 @@ echo "Get network interface"
 sudo mv ~/local.rules /var/lib/suricata/rules/local.rules -f
 
 INTERFACE=$(ip link | egrep "ens[0-9]*" -o)
-sed -i "s/%interface/$INTERFACE/" ~/local.rules
+sed -i "s/%interface/$INTERFACE/" ~/suricata.yaml
 sudo mv ~/suricata.yaml /etc/suricata/suricata.yaml -f
 
 sudo mkdir /usr/local/nvm

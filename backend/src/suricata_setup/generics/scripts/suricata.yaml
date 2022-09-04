@@ -687,7 +687,7 @@ af-packet:
 
 # Cross platform libpcap capture support
 pcap:
-  - interface: ens5
+  - interface: %interface
     # On Linux, pcap will try to use mmap'ed capture and will use "buffer-size"
     # as total memory used by the ring. So set this to something bigger
     # than 1% of your bandwidth.
