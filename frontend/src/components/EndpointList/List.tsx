@@ -52,7 +52,7 @@ const TableLoader: React.FC<TableLoaderProps> = ({
     {
       name: "Risk",
       id: "riskScore",
-      grow: 1,
+      grow: 0.5,
     },
     {
       name: "Path",
@@ -62,27 +62,27 @@ const TableLoader: React.FC<TableLoaderProps> = ({
     {
       name: "Sensitive Data Classes",
       id: "dataClasses",
-      grow: 3,
+      grow: 2,
     },
     {
       name: "Host",
       id: "host",
-      grow: 1,
+      grow: 2,
     },
     {
       name: "First Detected",
       id: "firstDetected",
-      grow: 2,
+      grow: 1.5,
     },
     {
       name: "Last Active",
       id: "lastActive",
-      grow: 2,
+      grow: 1.5,
     },
   ].map(e => ({
     ...e,
     sortable: false,
-    cell: (row: ApiEndpoint) => <SkeletonCell />,
+    cell: () => <SkeletonCell />,
   }))
 
   return (
@@ -142,7 +142,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         ),
         id: "riskScore",
         minWidth: "75px",
-        grow: 0,
+        grow: 0.5,
       },
       {
         name: "Path",

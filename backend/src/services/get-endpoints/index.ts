@@ -1,3 +1,4 @@
+import { FindOptionsWhere, In, ILike, Raw } from "typeorm"
 import { AppDataSource } from "data-source"
 import { ApiEndpoint, ApiEndpointTest, ApiTrace } from "models"
 import {
@@ -10,7 +11,6 @@ import Error500InternalServer from "errors/error-500-internal-server"
 import { Test } from "@common/testing/types"
 import Error404NotFound from "errors/error-404-not-found"
 import { getRiskScore } from "utils"
-import { FindOptionsWhere, In, Like, Raw } from "typeorm"
 
 export class GetEndpointsService {
   static async updateEndpointRiskScore(
@@ -61,7 +61,7 @@ export class GetEndpointsService {
       if (getEndpointParams?.searchQuery) {
         whereConditions = {
           ...whereConditions,
-          path: Like(`%${getEndpointParams.searchQuery}%`),
+          path: ILike(`%${getEndpointParams.searchQuery}%`),
         }
       }
 
@@ -83,34 +83,6 @@ export class GetEndpointsService {
         skip: getEndpointParams?.offset ?? 0,
         take: getEndpointParams?.limit ?? 10,
       })
-      /*const endpointsQuery = `
-        SELECT endpoints.*, fields.uuid, DISTINCT(fields."dataClasses")
-        FROM api_endpoint endpoints
-        LEFT JOIN data_field fields ON fields."apiEndpointUuid" = endpoints.uuid
-      `
-      let endpointsQb = apiEndpointRepository.createQueryBuilder("endpoint")
-
-      if (getEndpointParams?.hosts) {
-        endpointsQb = endpointsQb.where("endpoint.host IN (:...hosts)", {
-          hosts: getEndpointParams.hosts,
-        })
-      }
-      if (getEndpointParams?.riskScores) {
-        endpointsQb = endpointsQb.andWhere(
-          "endpoint.riskScore IN (:...scores)",
-          { scores: getEndpointParams.riskScores },
-        )
-      }
-      endpointsQb = endpointsQb.orderBy("endpoint.riskScore", "DESC").addOrderBy("endpoint.lastActive", "DESC", "NULLS LAST")
-      if (getEndpointParams?.offset) {
-        endpointsQb = endpointsQb.offset(getEndpointParams.offset)
-      }
-      if (getEndpointParams?.limit) {
-        endpointsQb = endpointsQb.limit(getEndpointParams.limit)
-      }
-
-      const endpoints = await endpointsQb.getManyAndCount()
-      return endpoints*/
     } catch (err) {
       console.error(`Error in Get Endpoints service: ${err}`)
       throw new Error500InternalServer(err)
@@ -153,28 +125,6 @@ export class GetEndpointsService {
         order: { createdAt: "DESC" },
         take: 100,
       })
-      const firstDetected = await apiTraceRepository.findOne({
-        select: {
-          createdAt: true,
-        },
-        where: {
-          apiEndpointUuid: endpoint.uuid,
-        },
-        order: {
-          createdAt: "ASC",
-        },
-      })
-      const lastActive = await apiTraceRepository.findOne({
-        select: {
-          createdAt: true,
-        },
-        where: {
-          apiEndpointUuid: endpoint.uuid,
-        },
-        order: {
-          createdAt: "DESC",
-        },
-      })
       const tests = await apiEndpointTestRepository.find({
         where: { apiEndpoint: { uuid: endpointId } },
       })
@@ -182,8 +132,6 @@ export class GetEndpointsService {
         ...endpoint,
         traces: [...traces],
         tests: tests as Array<Test>,
-        firstDetected: firstDetected?.createdAt,
-        lastActive: lastActive?.createdAt,
       }
     } catch (err) {
       console.error(`Error in Get Endpoints service: ${err}`)
