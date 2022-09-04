@@ -10,7 +10,7 @@ export type ClientError =
   | Error409Conflict
   | Error422UnprocessableEntity
   | Error401Unauthorized
-  
+
 export const ClientErrorTypes = [
   Error400BadRequest,
   Error404NotFound,
