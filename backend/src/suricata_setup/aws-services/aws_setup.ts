@@ -14,9 +14,7 @@ import {
   delete_mirror_filter,
 } from "./mirroring"
 import {
-  get_network_id_for_instance,
   get_public_ip_for_network_interface,
-  list_all_instances,
   match_av_to_region,
   verifyIdentity,
 } from "./utils"

@@ -11,6 +11,8 @@ import {
   format,
 } from "suricata_setup/ssh-services/ssh-setup"
 import path from "path"
+import { AppDataSource } from "data-source"
+import { ApiKey } from "models"
 
 const promiseExec = promisify(exec)
 
@@ -775,6 +777,10 @@ export async function push_files({
 }: RESPONSE["data"]): Promise<RESPONSE> {
   const endpoint = "api/v1/log-request/single"
   const instance_name = instance_url.split("/").at(-1)
+  let api_key = await AppDataSource.getRepository(ApiKey).save(
+    ApiKey.create({ name: `Metlo-collector-${id}` }),
+  )
+
   try {
     let filepath_ingestor_out = path.normalize(
       `${__dirname}/../generics/scripts/metlo-ingestor-${id}.service`,
@@ -790,7 +796,10 @@ export async function push_files({
     )
 
     put_data_file(
-      format(filepath_ingestor_in, [`${process.env.BACKEND_URL}/${endpoint}`]),
+      format(filepath_ingestor_in, [
+        `${process.env.BACKEND_URL}/${endpoint}`,
+        api_key.apiKey,
+      ]),
       filepath_ingestor_out,
     )
     put_data_file(

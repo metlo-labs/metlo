@@ -1,6 +1,8 @@
 import { ConnectionType } from "@common/enums"
 import { STEP_RESPONSE } from "@common/types"
 import { randomUUID } from "crypto"
+import { AppDataSource } from "data-source"
+import { ApiKey } from "models"
 import { SSH_CONN, put_data_file, format, remove_file } from "./ssh-setup"
 
 type RESPONSE = STEP_RESPONSE<ConnectionType.AWS>
@@ -60,17 +62,21 @@ export async function push_files({
   source_private_ip,
   username,
   step,
+  id,
   ...rest
 }: RESPONSE["data"] & { step: number }): Promise<RESPONSE> {
   const endpoint = "api/v1/log-request/single"
   let conn = new SSH_CONN(keypair, remote_machine_url, username)
+  let api_key = await AppDataSource.getRepository(ApiKey).save(
+    ApiKey.create({ name: `Metlo-collector-${id}` }),
+  )
   try {
     let filepath_ingestor = `${__dirname}/../generics/scripts/metlo-ingestor-${randomUUID()}.service`
     let filepath_rules = `${__dirname}/../generics/scripts/local-${randomUUID()}.rules`
     put_data_file(
       format(
         `${__dirname}/../generics/scripts/metlo-ingestor-template.service`,
-        [`${process.env.BACKEND_URL}/${endpoint}`],
+        [`${process.env.BACKEND_URL}/${endpoint}`, api_key.apiKey],
       ),
       filepath_ingestor,
     )
@@ -108,6 +114,7 @@ export async function push_files({
       message: "Pushed configuration files to remote machine",
       error: null,
       data: {
+        id,
         keypair,
         remote_machine_url,
         username,
@@ -128,6 +135,7 @@ export async function push_files({
         err: err,
       },
       data: {
+        id,
         keypair,
         remote_machine_url,
         username,
