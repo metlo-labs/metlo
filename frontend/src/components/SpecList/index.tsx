@@ -32,11 +32,18 @@ const APISpecList: React.FC<APISpecListProps> = React.memo(({ apiSpecs }) => {
       await uploadSpec(file)
       router.reload()
     } catch (err) {
+      const errMessage = err.response.data?.message
+      const title = errMessage
+        ? `Upload Failed: ${errMessage}`
+        : "Upload Failed..."
+      const errors = err.response.data?.errors
+      const description = errors ? errors.join(" ") : err.response.data
       toast({
-        title: "Upload Failed...",
-        description: err.response.data,
+        title,
+        size: "xl",
+        description,
         status: "error",
-        duration: 8000,
+        duration: 100000,
         isClosable: true,
         position: "top",
       })

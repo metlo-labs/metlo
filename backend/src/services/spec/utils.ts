@@ -82,6 +82,8 @@ export const validateSpecSchema = (schema: any, version?: number): string[] => {
   const errors = schemaValidator.validate(schema ?? ({} as any)).errors
   for (let i = 0; i < errors.length; i++) {
     const error = errors[i]
+    const defaultErrorMessage =
+      error.message[0].toUpperCase() + error.message.slice(1)
     const field = error.instancePath
       .replace(/\//g, ".")
       .replace(/~1/g, "/")
@@ -89,13 +91,17 @@ export const validateSpecSchema = (schema: any, version?: number): string[] => {
     let message = ""
     switch (error.keyword) {
       case "required":
-        message = `Required property '${error.params?.["missingProperty"]}' is missing from ${field}.`
+        message = `Required property '${
+          error.params?.["missingProperty"]
+        }' is missing${field ? ` from ${field}` : ""}.`
         break
       case "additionalProperties":
-        message = `Must not have additional property '${error.params?.["additionalProperty"]}' for ${field}.`
+        message = `Must not have additional property '${
+          error.params?.["additionalProperty"]
+        }'${field ? ` for ${field}` : ""}.`
         break
       default:
-        message = `${message} of ${field}.`
+        message = `${defaultErrorMessage}${field ? ` for '${field}'` : ""}.`
     }
     res.push(message)
   }
@@ -119,11 +125,13 @@ export const generateAlertMessageFromReqErrors = (
       error.location as Location,
       errorField,
     )
+    const defaultErrorMessage =
+      error.message[0].toUpperCase() + error.message.slice(1)
     let errorMessage = ""
     const basePath =
       error.location === Location.BODY ? pathToRequestBody : pathToParameters
     if (!error.path) {
-      errorMessage = `${error.message} for request${
+      errorMessage = `${defaultErrorMessage} for request${
         error.location ? ` ${error.location}` : ""
       }.`
     } else {
@@ -141,7 +149,7 @@ export const generateAlertMessageFromReqErrors = (
           errorMessage = `Property '${error.path}' ${error.message} in request ${error.location}.`
           break
         default:
-          errorMessage = `${error.message}: '${error.path}' in request ${error.location}.`
+          errorMessage = `${defaultErrorMessage}: '${error.path}' in request ${error.location}.`
           break
       }
     }

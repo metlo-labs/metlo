@@ -7,6 +7,7 @@ import { getCustomStyles, rowStyles } from "components/utils/TableUtils"
 import { OpenApiSpec } from "@common/types"
 import { SpecExtension } from "@common/enums"
 import { getDateTimeString } from "utils"
+import EmptyView from "components/utils/EmptyView"
 
 interface SpecListProps {
   apiSpecs: OpenApiSpec[]
@@ -67,6 +68,7 @@ const SpecList: React.FC<SpecListProps> = React.memo(({ apiSpecs }) => {
       data={apiSpecs}
       onRowClicked={onRowClicked}
       customStyles={getCustomStyles(colorMode.colorMode)}
+      noDataComponent={<EmptyView text="No specs uploaded." />}
     />
   )
 })

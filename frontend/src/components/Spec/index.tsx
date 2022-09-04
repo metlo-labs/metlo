@@ -40,9 +40,16 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
       await updateSpec(spec.name, file)
       router.reload()
     } catch (err) {
+      const errMessage = err.response.data?.message
+      const title = errMessage
+        ? `Upload Failed: ${errMessage}`
+        : "Upload Failed..."
+      const errors = err.response.data?.errors
+      const description = errors ? errors.join(" ") : err.response.data
       toast({
-        title: "Update Failed...",
-        description: err.response.data,
+        title,
+        size: "xl",
+        description,
         status: "error",
         duration: 8000,
         isClosable: true,
