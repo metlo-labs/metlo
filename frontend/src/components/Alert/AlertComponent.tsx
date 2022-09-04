@@ -51,7 +51,7 @@ export const AlertComponent: React.FC<AlertComponentProps> = ({
   }
 
   return (
-    <Box w="full">
+    <Box w="full" id={`alert-${alert.uuid}`}>
       <Box
         borderTopRadius={2}
         w="full"

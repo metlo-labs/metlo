@@ -1,37 +1,44 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useToast, Box } from "@chakra-ui/react"
 import { Alert, GetAlertParams, UpdateAlertParams } from "@common/types"
 import { getAlerts, updateAlert } from "api/alerts"
 import { AlertList } from "components/Alert/AlertList"
-import { Status } from "@common/enums"
 
 interface AlertTabProps {
-  apiEndpointUuid: string
+  initAlertParams: GetAlertParams
+  initAlerts: Alert[]
 }
 
-export const AlertTab: React.FC<AlertTabProps> = ({ apiEndpointUuid }) => {
-  const [alerts, setAlerts] = useState<Alert[]>([])
-  const [fetching, setFetching] = useState<boolean>(true)
+export const AlertTab: React.FC<AlertTabProps> = ({
+  initAlertParams,
+  initAlerts,
+}) => {
+  const [alerts, setAlerts] = useState<Alert[]>(initAlerts)
+  const [fetching, setFetching] = useState<boolean>(false)
   const [updating, setUpdating] = useState<boolean>(false)
-  const [params, setParams] = useState<GetAlertParams>({
-    apiEndpointUuid: apiEndpointUuid,
-    riskScores: [],
-    status: [Status.OPEN],
-    alertTypes: [],
-    order: "DESC",
-  })
-  const [toggleRefetch, setToggleRefetch] = useState<boolean>(false)
+  const [params, setParamsInner] = useState<GetAlertParams>(initAlertParams)
   const toast = useToast()
 
-  useEffect(() => {
+  const fetchAlerts = (fetchParams: GetAlertParams) => {
     setFetching(true)
-    const fetchAlerts = async () => {
-      const res = await getAlerts(params)
-      setAlerts(res[0])
-      setFetching(false)
-    }
-    fetchAlerts()
-  }, [params, toggleRefetch])
+    getAlerts(fetchParams)
+      .then(res => {
+        setAlerts(res[0])
+      })
+      .catch(e =>
+        toast({
+          title: "Fetching Alerts failed...",
+          status: "error",
+        }),
+      )
+      .finally(() => setFetching(false))
+  }
+
+  const setParams = (t: (e: GetAlertParams) => GetAlertParams) => {
+    let newParams = t(params)
+    setParamsInner(newParams)
+    fetchAlerts(newParams)
+  }
 
   const handleUpdateAlert = async (
     alertId: string,
@@ -43,18 +50,12 @@ export const AlertTab: React.FC<AlertTabProps> = ({ apiEndpointUuid }) => {
       toast({
         title: `Updating alert successful`,
         status: "success",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
       })
-      setToggleRefetch(!toggleRefetch)
+      fetchAlerts(params)
     } else {
       toast({
-        title: `Updating Alert failed...`,
+        title: "Updating Alert failed...",
         status: "error",
-        duration: 5000,
-        isClosable: true,
-        position: "top",
       })
     }
     setUpdating(false)

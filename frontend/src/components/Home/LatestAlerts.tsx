@@ -20,16 +20,20 @@ interface LatestAlertsProps extends StackProps {
 const AlertItem: React.FC<{ alertItem: Alert }> = React.memo(
   ({ alertItem }) => {
     return (
-      <HStack px="4">
-        <Icon as={alertTypeToIcon(alertItem.type)} boxSize="20px" />
-        <VStack alignItems="flex-start" spacing="1">
-          <Text>{alertItem.type}</Text>
-          <HStack>
-            <Text fontSize="sm">{alertItem.apiEndpoint.host}</Text>
-            <Text fontSize="sm">{alertItem.apiEndpoint.path}</Text>
-          </HStack>
-        </VStack>
-      </HStack>
+      <Link
+        href={`/endpoint/${alertItem.apiEndpointUuid}?tab=alerts#alert-${alertItem.uuid}`}
+      >
+        <HStack px="4" cursor="pointer">
+          <Icon as={alertTypeToIcon(alertItem.type)} boxSize="20px" />
+          <VStack alignItems="flex-start" spacing="1">
+            <Text>{alertItem.type}</Text>
+            <HStack>
+              <Text fontSize="sm">{alertItem.apiEndpoint.host}</Text>
+              <Text fontSize="sm">{alertItem.apiEndpoint.path}</Text>
+            </HStack>
+          </VStack>
+        </HStack>
+      </Link>
     )
   },
 )
