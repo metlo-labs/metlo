@@ -9,6 +9,7 @@ import {
   Session,
   Connections,
   ApiEndpointTest,
+  ApiKey,
 } from "models"
 
 export const AppDataSource: DataSource = new DataSource({
@@ -24,6 +25,7 @@ export const AppDataSource: DataSource = new DataSource({
     Session,
     Connections,
     ApiEndpointTest,
+    ApiKey,
   ],
   migrations: [],
   logging: false,

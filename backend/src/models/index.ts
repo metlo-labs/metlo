@@ -6,6 +6,7 @@ import { Alert } from "models/alert"
 import { Session } from "models/sessions"
 import { Connections } from "./connections"
 import { ApiEndpointTest } from "./api-endpoint-test"
+import { ApiKey } from "./keys"
 
 export type DatabaseModel =
   | ApiEndpoint
@@ -16,6 +17,7 @@ export type DatabaseModel =
   | Session
   | Connections
   | ApiEndpointTest
+  | ApiKey
 
 export {
   ApiEndpoint,
@@ -26,4 +28,5 @@ export {
   Session,
   Connections,
   ApiEndpointTest,
+  ApiKey,
 }

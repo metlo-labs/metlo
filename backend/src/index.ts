@@ -5,10 +5,6 @@ import { TypeormStore } from "connect-typeorm"
 import session from "express-session"
 import { Session as SessionModel } from "models"
 import {
-  logRequestBatchHandler,
-  logRequestSingleHandler,
-} from "api/log-request"
-import {
   getEndpointHandler,
   getEndpointsHandler,
   getHostsHandler,
@@ -71,8 +67,10 @@ app.get("/api/v1", (req: Request, res: Response) => {
   res.send("OK")
 })
 
-app.post("/api/v1/log-request/single", logRequestSingleHandler)
-app.post("/api/v1/log-request/batch", logRequestBatchHandler)
+// Collector Endpoints moved to Collector Source.
+
+// app.post("/api/v1/log-request/single", logRequestSingleHandler)
+// app.post("/api/v1/log-request/batch", logRequestBatchHandler)
 
 app.get("/api/v1/summary", getSummaryHandler)
 app.get("/api/v1/sensitive-data-summary", getSensitiveDataSummaryHandler)
