@@ -29,10 +29,12 @@ export const getCustomStyles = (
         color: textColor,
         minHeight: "64px",
         fontWeight: "500",
-        "&:hover": hover ? {
-          cursor: "pointer",
-          background: subTable ? hoverRowColorSubtable : hoverRowColor,
-        }: undefined,
+        "&:hover": hover
+          ? {
+              cursor: "pointer",
+              background: subTable ? hoverRowColorSubtable : hoverRowColor,
+            }
+          : undefined,
       },
     },
     headRow: {

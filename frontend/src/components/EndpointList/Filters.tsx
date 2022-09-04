@@ -16,11 +16,10 @@ import { useDebounce } from "hooks/use-debounce"
 import { useEffect } from "react"
 
 interface EndpointFilterProps {
-  host?: string
-  riskScore?: string
   hostList: string[]
   riskList: string[]
   dataClassesList: string[]
+  params: GetEndpointParams
   setParams: (t: (e: GetEndpointParams) => GetEndpointParams) => void
 }
 
@@ -31,7 +30,7 @@ const FilterHeader: React.FC<{ title: string }> = React.memo(({ title }) => (
 ))
 
 const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
-  ({ host, hostList, riskScore, riskList, dataClassesList, setParams }) => {
+  ({ hostList, riskList, dataClassesList, params, setParams }) => {
     const [searchQuery, setSearchQuery] = useState("")
     const debouncedSearchQuery = useDebounce(searchQuery, 500)
 
@@ -50,10 +49,8 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
             <FilterHeader title="Host" />
             <Select
               value={
-                host && {
-                  label: host,
-                  value: host,
-                }
+                params &&
+                params?.hosts?.map(host => ({ label: host, value: host }))
               }
               isMulti={true}
               size="sm"
@@ -76,10 +73,11 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
             <FilterHeader title="Risk Score" />
             <Select
               value={
-                riskScore && {
-                  label: riskScore,
-                  value: riskScore,
-                }
+                params &&
+                params?.riskScores?.map(risk => ({
+                  label: risk as string,
+                  value: risk as string,
+                }))
               }
               isMulti={true}
               size="sm"
@@ -101,11 +99,12 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
           <Box w={{ base: "full", lg: "xs" }} zIndex="1001">
             <FilterHeader title="Sensitive Data Class" />
             <Select
-              value={
-                riskScore && {
-                  label: riskScore,
-                  value: riskScore,
-                }
+              defaultValue={
+                params &&
+                params?.dataClasses?.map(dataClass => ({
+                  label: dataClass as string,
+                  value: dataClass as string,
+                }))
               }
               isMulti={true}
               size="sm"

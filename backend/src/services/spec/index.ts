@@ -248,7 +248,8 @@ export class SpecService {
                       endpoints.alertsToRemove.push(alert)
                       break
                     case AlertType.PII_DATA_DETECTED:
-                    case AlertType.UNDOCUMENTED_ENDPOINT:
+                    case AlertType.QUERY_SENSITIVE_DATA:
+                    case AlertType.BASIC_AUTHENTICATION_DETECTED:
                     default:
                       alert.apiEndpointUuid = apiEndpoint.uuid
                       endpoints.alertsToKeep.push(alert)

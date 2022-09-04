@@ -64,7 +64,7 @@ const SensitiveDataPage: React.FC<SensitiveDataPageProps> = React.memo(
             totalEndpoints={summary.totalEndpoints}
           />
           <Box w="full" borderTop="1px" borderColor="inherit">
-            <List items={summary.piiItems} />
+            <List items={summary.piiItems} params={params} />
           </Box>
         </VStack>
       </ContentContainer>

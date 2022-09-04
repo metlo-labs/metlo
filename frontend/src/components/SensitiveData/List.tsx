@@ -1,11 +1,12 @@
 import React from "react"
 import dynamic from "next/dynamic"
-import { Badge, useColorMode } from "@chakra-ui/react"
+import { useRouter } from "next/router"
+import { Badge, useColorMode, Wrap, WrapItem } from "@chakra-ui/react"
 import EmptyView from "components/utils/EmptyView"
 import { TableColumn } from "react-data-table-component"
 import { RISK_TO_COLOR } from "~/constants"
 import { getCustomStyles, rowStyles } from "components/utils/TableUtils"
-import { PIIDataClassAggItem } from "@common/types"
+import { PIIDataClassAggItem, GetSensitiveDataAggParams } from "@common/types"
 const DataTable = dynamic(() => import("react-data-table-component"), {
   ssr: false,
 })
@@ -14,10 +15,12 @@ const PAGE_SIZE = 10
 
 interface PIITableProps {
   items: PIIDataClassAggItem[]
+  params: GetSensitiveDataAggParams
 }
 
-const List: React.FC<PIITableProps> = React.memo(({ items }) => {
+const List: React.FC<PIITableProps> = React.memo(({ items, params }) => {
   const colorMode = useColorMode()
+  const router = useRouter()
   const columns: TableColumn<PIIDataClassAggItem>[] = [
     {
       name: "Data Class",
@@ -51,6 +54,35 @@ const List: React.FC<PIITableProps> = React.memo(({ items }) => {
       name: "Endpoints",
       sortable: true,
       selector: (row: PIIDataClassAggItem) => row.numEndpoints,
+      cell: (row: PIIDataClassAggItem) => (
+        <Wrap
+          onClick={() =>
+            router.push({
+              pathname: "/endpoints",
+              query: {
+                dataClasses: row.dataClass,
+                hosts: params.hosts.join(","),
+              },
+            })
+          }
+          display="flex"
+          alignItems="center"
+          h="full"
+          pr="5"
+          className="my-box"
+          cursor="pointer"
+          _hover={{
+            fontWeight: "bold",
+            transform: "scale(1.2)",
+            WebkitTransition: "transform 0.3s ease-in-out",
+          }}
+        >
+          <WrapItem sx={{ ".my-box:hover &": { textDecoration: "underline" } }}>
+            {row.numEndpoints}
+          </WrapItem>
+          <WrapItem fontSize="sm">→</WrapItem>
+        </Wrap>
+      ),
       id: "numEndpoints",
     },
     {

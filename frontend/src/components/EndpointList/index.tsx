@@ -37,6 +37,7 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
             hostList={hosts}
             riskList={Object.values(RiskScore)}
             dataClassesList={Object.values(DataClass)}
+            params={params}
             setParams={setParams}
           />
         </Box>
