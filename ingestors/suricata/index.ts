@@ -10,6 +10,7 @@ var connections: Record<number, net.Socket> = {}
 var http_meta: Record<string, conns> = {}
 
 var url = ""
+var api_key = ""
 // Our socket
 var SOCKETFILE = ""
 
@@ -47,7 +48,7 @@ function createServer(socket: string) {
                 let meta = http_meta[alert.flow_id].metas.shift()
                 if (meta) {
                   let resp = prepareResponse(alert, meta)
-                  pushAlert(resp, url)
+                  pushAlert(resp, url, api_key)
                 }
               }
             } catch (err) {
@@ -78,11 +79,13 @@ function main() {
     .description("Basic CLI app to ingest data from suricata on AWS")
   program
     .requiredOption("-u, --url <url>", "URL for the webhook destination")
+    .requiredOption("-k, --key <api_key>", "API Key for the webhook destination")
     .requiredOption("-s, --socket <socket_path>", "Socket file path")
   program.parse(process.argv)
   let options = program.opts()
   if (new URL(options.url)) {
     url = options.url
+    api_key = options.key
     SOCKETFILE = options.socket
   }
 

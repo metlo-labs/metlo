@@ -30,11 +30,11 @@ export function compileHost(jsonmsg: any, http_meta: Record<string, conns>) {
   }
 }
 
-export function pushAlert(resp: RESPONSE, url: string) {
+export function pushAlert(resp: RESPONSE, url: string, api_key: string) {
   axios
     .post(url, {
       ...resp,
-    })
+    }, { headers: { "Authorization": api_key } })
     .then(res => {
       console.log("Pushed up a request")
     })
