@@ -12,6 +12,8 @@
     "dev-jobs": "nodemon -r tsconfig-paths/register src/jobs.ts",
     "start": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register dist/index.js",
     "start-jobs": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register dist/jobs.js",
+    "dev-collector": "nodemon -r tsconfig-paths/register src/collector_src/index.ts",    
+    "start-collector": "TS_NODE_BASEURL=./dist/collector_src node -r tsconfig-paths/register dist/collector_src/index.js",    
     "sync-endpoints": "ts-node -r tsconfig-paths/register src/scripts/generate-endpoints.ts",
     "format": "prettier --write './src/**/*.{ts,tsx}'"
   },

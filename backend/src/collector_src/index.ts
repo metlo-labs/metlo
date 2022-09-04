@@ -6,6 +6,7 @@ import {
   logRequestBatchHandler,
   logRequestSingleHandler,
 } from "collector_src/log-request"
+import { verify_api_key } from "./utils"
 
 dotenv.config()
 
@@ -18,7 +19,7 @@ app.use(bodyParser.json())
 app.get("/api/v1", (req: Request, res: Response) => {
   res.send("OK")
 })
-
+app.use(verify_api_key)
 app.post("/api/v1/log-request/single", logRequestSingleHandler)
 app.post("/api/v1/log-request/batch", logRequestBatchHandler)
 
