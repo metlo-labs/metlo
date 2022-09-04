@@ -6,7 +6,9 @@ import { TableStyles } from "react-data-table-component"
 export const getCustomStyles = (
   colorMode: ColorMode,
   subTable?: boolean,
+  hover?: boolean,
 ): TableStyles => {
+  hover = hover == undefined ? true : false
   const headerBg =
     colorMode == "light" ? "rgb(252, 252, 252)" : "rgb(17, 19, 23)"
   const headerTextColor =
@@ -27,10 +29,10 @@ export const getCustomStyles = (
         color: textColor,
         minHeight: "64px",
         fontWeight: "500",
-        "&:hover": {
+        "&:hover": hover ? {
           cursor: "pointer",
           background: subTable ? hoverRowColorSubtable : hoverRowColor,
-        },
+        }: undefined,
       },
     },
     headRow: {

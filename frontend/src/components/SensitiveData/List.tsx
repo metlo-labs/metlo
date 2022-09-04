@@ -73,7 +73,7 @@ const List: React.FC<PIITableProps> = React.memo(({ items }) => {
         paginationPerPage={PAGE_SIZE}
         columns={columns}
         data={items}
-        customStyles={getCustomStyles(colorMode.colorMode)}
+        customStyles={getCustomStyles(colorMode.colorMode, false, true)}
         pagination
       />
     )
