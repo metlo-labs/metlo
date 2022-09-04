@@ -62,6 +62,7 @@ export class LogRequestService {
         const sensitiveDataAlerts = await AlertService.createDataFieldAlerts(
           dataFields,
           apiEndpoint.uuid,
+          apiEndpoint.path,
           apiTraceObj,
         )
         alerts = alerts?.concat(sensitiveDataAlerts)

@@ -7,6 +7,8 @@ import {
   Badge,
   HStack,
   Code,
+  Wrap,
+  WrapItem,
 } from "@chakra-ui/react"
 import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch"
 import { useRouter } from "next/router"
@@ -17,6 +19,7 @@ import darkTheme from "prism-react-renderer/themes/duotoneDark"
 import lightTheme from "prism-react-renderer/themes/github"
 import Highlight, { defaultProps } from "prism-react-renderer"
 import { AlertType, SpecExtension } from "@common/enums"
+import { getPathTokens } from "@common/utils"
 import { Alert } from "@common/types"
 import { METHOD_TO_COLOR, RISK_TO_COLOR } from "~/constants"
 import { getDateTimeString } from "utils"
@@ -24,6 +27,7 @@ import {
   SpecDiffContext,
   SensitiveQueryParamContext,
   BasicAuthenticationContext,
+  SensitivePathParamContext,
 } from "./AlertDetail"
 import { JSONContentViewer } from "components/Endpoint/TraceDetail"
 
@@ -162,6 +166,32 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({ alert }) => {
             colorMode,
             3,
           )}
+        </Box>
+      )
+      break
+    case AlertType.PATH_SENSITIVE_DATA:
+      const contextSensitivePath = alert.context as SensitivePathParamContext
+      const tracePath = contextSensitivePath.trace.path
+      const tokenIdx = contextSensitivePath.pathTokenIdx
+      const tracePathTokens = getPathTokens(tracePath)
+      panel = (
+        <Box w="full" pb="4">
+          <Code fontSize="lg" rounded="md" textTransform="none" p="3">
+            <Wrap spacing="2">
+              {tracePathTokens.map((token, idx) => (
+                <WrapItem key={idx}>
+                  <Text mr="2">/</Text>
+                  {idx === tokenIdx ? (
+                    <Badge colorScheme="red" fontSize="lg">
+                      {token}
+                    </Badge>
+                  ) : (
+                    <Text>{token}</Text>
+                  )}
+                </WrapItem>
+              ))}
+            </Wrap>
+          </Code>
         </Box>
       )
       break

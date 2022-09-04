@@ -14,8 +14,8 @@ import { DataField } from "models/data-field"
 import { Alert } from "models/alert"
 import { OpenApiSpec } from "models/openapi-spec"
 import { RestMethod, RiskScore } from "@common/enums"
-import { getPathTokens, isParameter } from "utils"
-import { ApiTrace } from "./api-trace"
+import { isParameter } from "utils"
+import { getPathTokens } from "@common/utils"
 
 @Entity()
 export class ApiEndpoint extends BaseEntity {

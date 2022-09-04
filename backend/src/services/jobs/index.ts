@@ -2,7 +2,6 @@ import { FindOptionsWhere, IsNull, MoreThan, Raw } from "typeorm"
 import { v4 as uuidv4 } from "uuid"
 import {
   getDataType,
-  getPathTokens,
   getRiskScore,
   isParameter,
   isSuspectedParamater,
@@ -12,6 +11,7 @@ import {
 import { ApiEndpoint, ApiTrace, OpenApiSpec, Alert } from "models"
 import { AppDataSource } from "data-source"
 import { AlertType, DataType, RestMethod, SpecExtension } from "@common/enums"
+import { getPathTokens } from "@common/utils"
 import { AlertService } from "services/alert"
 import { DataFieldService } from "services/data-field"
 import { DatabaseService } from "services/database"
@@ -137,6 +137,7 @@ export class JobsService {
               await AlertService.createDataFieldAlerts(
                 dataFields,
                 apiEndpoint.uuid,
+                apiEndpoint.path,
                 trace,
               )
             await DatabaseService.executeTransactions(
@@ -232,6 +233,7 @@ export class JobsService {
             sensitiveDataAlerts = await AlertService.createDataFieldAlerts(
               apiEndpoint.dataFields,
               apiEndpoint.uuid,
+              apiEndpoint.path,
               trace,
               sensitiveDataAlerts,
             )

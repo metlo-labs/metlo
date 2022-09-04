@@ -75,5 +75,6 @@ export const ALERT_TYPE_TO_RISK_SCORE: Record<AlertType, RiskScore> = {
   [AlertType.OPEN_API_SPEC_DIFF]: RiskScore.MEDIUM,
   [AlertType.PII_DATA_DETECTED]: RiskScore.HIGH,
   [AlertType.QUERY_SENSITIVE_DATA]: RiskScore.HIGH,
+  [AlertType.PATH_SENSITIVE_DATA]: RiskScore.HIGH,
   [AlertType.BASIC_AUTHENTICATION_DETECTED]: RiskScore.MEDIUM,
 }

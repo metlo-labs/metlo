@@ -21,7 +21,12 @@ const Endpoint = ({ endpoint, usage, alerts, initAlertParams }) => {
       title="Endpoint"
       currentTab={SideNavLinkDestination.Endpoints}
     >
-      <EndpointPage endpoint={parsedEndpoint} usage={parsedUsage} alerts={parsedAlerts} initAlertParams={initAlertParams} />
+      <EndpointPage
+        endpoint={parsedEndpoint}
+        usage={parsedUsage}
+        alerts={parsedAlerts}
+        initAlertParams={initAlertParams}
+      />
     </SidebarLayoutShell>
   )
 }

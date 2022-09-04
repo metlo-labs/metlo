@@ -39,6 +39,7 @@ export enum AlertType {
   PII_DATA_DETECTED = "PII Data Detected",
   OPEN_API_SPEC_DIFF = "Open API Spec Diff",
   QUERY_SENSITIVE_DATA = "Sensitive Data in Query Params",
+  PATH_SENSITIVE_DATA = "Sensitive Data in Path Params",
   BASIC_AUTHENTICATION_DETECTED = "Basic Authentication Detected"
 }
 

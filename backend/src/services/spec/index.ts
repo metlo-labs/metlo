@@ -13,13 +13,9 @@ import { AlertType, RestMethod, SpecExtension } from "@common/enums"
 import { ApiEndpoint, ApiTrace, DataField, OpenApiSpec, Alert } from "models"
 import Error400BadRequest from "errors/error-400-bad-request"
 import { JSONValue, OpenApiSpec as OpenApiSpecResponse } from "@common/types"
+import { getPathTokens } from "@common/utils"
 import { AppDataSource } from "data-source"
-import {
-  getPathRegex,
-  getPathTokens,
-  isParameter,
-  parsedJsonNonNull,
-} from "utils"
+import { getPathRegex, isParameter, parsedJsonNonNull } from "utils"
 import Error409Conflict from "errors/error-409-conflict"
 import Error422UnprocessableEntity from "errors/error-422-unprocessable-entity"
 import {

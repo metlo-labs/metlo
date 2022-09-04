@@ -44,6 +44,11 @@ export interface BasicAuthenticationContext {
   trace: ApiTrace
 }
 
+export interface SensitivePathParamContext {
+  trace: ApiTrace
+  pathTokenIdx: number
+}
+
 interface PiiDataContext {
   trace: ApiTrace
 }
@@ -202,6 +207,7 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
     case AlertType.PII_DATA_DETECTED:
     case AlertType.QUERY_SENSITIVE_DATA:
     case AlertType.BASIC_AUTHENTICATION_DETECTED:
+    case AlertType.PATH_SENSITIVE_DATA:
       const contextPii = alert.context as
         | PiiDataContext
         | SensitiveQueryParamContext
