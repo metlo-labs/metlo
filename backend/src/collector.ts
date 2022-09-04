@@ -6,7 +6,7 @@ import {
   logRequestBatchHandler,
   logRequestSingleHandler,
 } from "collector_src/log-request"
-import { verify_api_key } from "./utils"
+import { verify_api_key } from "./collector_src/utils"
 
 dotenv.config()
 
