@@ -6,12 +6,11 @@ import {
   logRequestBatchHandler,
   logRequestSingleHandler,
 } from "collector_src/log-request"
-import { CollectorDataSource } from "./collector-data-source"
 
 dotenv.config()
 
 const app: Express = express()
-const port = process.env.PORT || 8080
+const port = process.env.PORT || 8081
 
 app.disable("x-powered-by")
 app.use(bodyParser.json())
@@ -25,7 +24,7 @@ app.post("/api/v1/log-request/batch", logRequestBatchHandler)
 
 const main = async () => {
   try {
-    const datasource = await CollectorDataSource.initialize()
+    const datasource = await AppDataSource.initialize()
     console.log(
       `Is AppDataSource Initialized? ${
         datasource.isInitialized ? "Yes" : "No"
