@@ -3,6 +3,7 @@ import { Stack, Box, Text } from "@chakra-ui/react"
 import { Select } from "chakra-react-select"
 import { GetSensitiveDataAggParams } from "@common/types"
 import { DataSection, RiskScore } from "@common/enums"
+import { DATA_SECTION_TO_LABEL_MAP } from "@common/maps"
 
 interface SensitiveDataFilterProps {
   hosts?: string[]
@@ -84,7 +85,7 @@ const SensitiveDataFilters: React.FC<SensitiveDataFilterProps> = React.memo(
             value={
               locations
                 ? locations.map(location => ({
-                    label: location,
+                    label: DATA_SECTION_TO_LABEL_MAP[location],
                     value: location,
                   }))
                 : undefined
@@ -92,7 +93,7 @@ const SensitiveDataFilters: React.FC<SensitiveDataFilterProps> = React.memo(
             isMulti={true}
             size="sm"
             options={Object.values(DataSection).map(e => ({
-              label: e,
+              label: DATA_SECTION_TO_LABEL_MAP[e],
               value: e,
             }))}
             placeholder="Filter by location..."
@@ -100,7 +101,7 @@ const SensitiveDataFilters: React.FC<SensitiveDataFilterProps> = React.memo(
             onChange={e =>
               setParams(params => ({
                 ...params,
-                locations: e.map(location => location.label as DataSection),
+                locations: e.map(location => location.value as DataSection),
               }))
             }
           />
