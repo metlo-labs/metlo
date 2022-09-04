@@ -47,7 +47,7 @@ const SourceMigConfig: React.FC<KeySetupInterface> = ({
           console.warn(err)
         })
     }
-  }, [isSelected])
+  }, [isSelected, id, toast])
 
   return (
     <Grid

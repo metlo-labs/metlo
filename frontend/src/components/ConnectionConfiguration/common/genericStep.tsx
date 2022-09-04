@@ -16,7 +16,8 @@ const GenericStep: React.FC<GenericStepAWSInterface> = ({
     if (isCurrent) {
       complete({})
     }
-  }, [isCurrent])
+  }, [isCurrent, complete])
+  
   return (
     <Flex w={"full"} h={"full"} justify={"center"} mt={8}>
       <Spinner size={"xl"} />

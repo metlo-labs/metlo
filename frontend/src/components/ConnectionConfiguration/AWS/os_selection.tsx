@@ -41,7 +41,8 @@ const OsSelection: React.FC<KeySetupInterface> = ({
         })
         .catch(err => {})
     }
-  }, [isCurrent])
+  }, [isCurrent, id])
+  
   if (OSChoices != null) {
     return (
       <Grid

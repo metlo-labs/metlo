@@ -42,6 +42,7 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
     })
 
   const toast = useToast()
+  
   useEffect(() => {
     if (isCurrent) {
       setLoadingState(true)
@@ -66,7 +67,8 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
         })
         .finally(() => setLoadingState(false))
     }
-  }, [selectedInstanceSpecs, isCurrent])
+  }, [selectedInstanceSpecs, toast, isCurrent, id, setLoadingState])
+
   if (instances != null) {
     return (
       <Grid
