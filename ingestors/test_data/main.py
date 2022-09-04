@@ -2,6 +2,7 @@ import argparse
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urljoin
 import time
+from urllib.request import HTTPBasicAuthHandler
 
 import requests
 
@@ -17,7 +18,7 @@ PRODUCER_MAP = {
 PRODUCERS = PRODUCER_MAP.values()
 
 
-def run(backend):
+def run(backend, api_key):
     while True:
         print("Tick")
 
@@ -28,18 +29,25 @@ def run(backend):
                 continue
             data_points = producer.get_data_points(current_time)
             if data_points:
-                print(f'Producer {k} emitted {len(data_points)} data points.')
+                print(f"Producer {k} emitted {len(data_points)} data points.")
             if not data_points:
                 continue
-            path = '/api/v1/log-request/single' if len(data_points) == 1 else '/api/v1/log-request/batch'
+            path = (
+                "/api/v1/log-request/single"
+                if len(data_points) == 1
+                else "/api/v1/log-request/batch"
+            )
             body = data_points[0] if len(data_points) == 1 else data_points
-            requests.post(urljoin(backend, path), json=body)
+            requests.post(
+                urljoin(backend, path), json=body, headers={"authorization": api_key}
+            )
 
         time.sleep(tick_length.total_seconds())
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-b', '--metlo_backend', required=True)
+    parser.add_argument("-b", "--metlo_backend", required=True)
+    parser.add_argument("-key", "--api_key", required=True)
     args = parser.parse_args()
-    run(args.metlo_backend)
+    run(args.metlo_backend, args.api_key)
