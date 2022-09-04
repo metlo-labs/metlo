@@ -6,6 +6,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  Generated,
 } from "typeorm"
 
 @Entity()
@@ -16,8 +17,8 @@ export class ApiKey extends BaseEntity {
   @Column({ type: "text" })
   name: string
 
-  @Index({ unique: true })
-  @Column({ type: "uuid", nullable: false })
+  @Column({ type: "uuid", nullable: false, unique: true })
+  @Generated("uuid")
   apiKey: string
 
   @CreateDateColumn({ type: "timestamptz" })
