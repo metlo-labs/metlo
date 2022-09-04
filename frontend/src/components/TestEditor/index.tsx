@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { ApiEndpointDetailed } from "@common/types"
 import { TestTags } from "@common/enums"
 import { Request, Test } from "@common/testing/types"
@@ -220,6 +220,16 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
           })),
         )
     }
+
+    useEffect(() => {
+      const keyDownHandler = (e: KeyboardEvent) => {
+        if (e.code == "Enter" && e.metaKey) {
+          sendSelectedRequest()
+        }
+      }
+      document.addEventListener("keydown", keyDownHandler)
+      return () => document.removeEventListener("keydown", keyDownHandler)
+    }, [sendSelectedRequest])
 
     return (
       <VStack
