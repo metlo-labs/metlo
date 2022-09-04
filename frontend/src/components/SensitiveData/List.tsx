@@ -56,31 +56,27 @@ const List: React.FC<PIITableProps> = React.memo(({ items, params }) => {
       selector: (row: PIIDataClassAggItem) => row.numEndpoints,
       cell: (row: PIIDataClassAggItem) => (
         <Wrap
-          onClick={() =>
-            router.push({
-              pathname: "/endpoints",
-              query: {
-                dataClasses: row.dataClass,
-                hosts: params.hosts.join(","),
-              },
-            })
-          }
           display="flex"
           alignItems="center"
           h="full"
           pr="5"
           className="my-box"
           cursor="pointer"
-          _hover={{
-            fontWeight: "bold",
-            transform: "scale(1.2)",
-            WebkitTransition: "transform 0.3s ease-in-out",
-          }}
         >
-          <WrapItem sx={{ ".my-box:hover &": { textDecoration: "underline" } }}>
-            {row.numEndpoints}
+          <WrapItem>{row.numEndpoints}</WrapItem>
+          <WrapItem
+            onClick={() =>
+              router.push({
+                pathname: "/endpoints",
+                query: {
+                  dataClasses: row.dataClass,
+                  hosts: params.hosts.join(","),
+                },
+              })
+            }
+          >
+            View All →
           </WrapItem>
-          <WrapItem fontSize="sm">→</WrapItem>
         </Wrap>
       ),
       id: "numEndpoints",

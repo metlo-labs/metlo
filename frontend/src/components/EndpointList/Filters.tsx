@@ -12,8 +12,8 @@ import { Select } from "chakra-react-select"
 import { GoSearch } from "@react-icons/all-files/go/GoSearch"
 import { GetEndpointParams } from "@common/types"
 import { DataClass, RiskScore } from "@common/enums"
-import { useDebounce } from "hooks/use-debounce"
 import { useEffect } from "react"
+import debounce from "lodash/debounce"
 
 interface EndpointFilterProps {
   hostList: string[]
@@ -31,16 +31,14 @@ const FilterHeader: React.FC<{ title: string }> = React.memo(({ title }) => (
 
 const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
   ({ hostList, riskList, dataClassesList, params, setParams }) => {
-    const [searchQuery, setSearchQuery] = useState("")
-    const debouncedSearchQuery = useDebounce(searchQuery, 500)
-
-    useEffect(() => {
+    const setSearchQuery = (val: string) => {
       setParams(oldParams => ({
         ...oldParams,
-        searchQuery: debouncedSearchQuery,
+        searchQuery: val,
         offset: 0,
       }))
-    }, [debouncedSearchQuery])
+    }
+    const debounceSearch = debounce(setSearchQuery, 500)
 
     return (
       <VStack spacing="6">
@@ -129,7 +127,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
             <GoSearch />
           </InputLeftElement>
           <Input
-            onChange={e => setSearchQuery(e.target.value)}
+            onChange={e => debounceSearch(e.target.value)}
             w={{ base: "full", lg: "xs" }}
             type="text"
             placeholder="Search for endpoint..."

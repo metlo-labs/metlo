@@ -44,7 +44,7 @@ const Endpoints = ({ initParams, initEndpoints, initTotalCount, hosts }) => {
       currentTab={SideNavLinkDestination.Endpoints}
     >
       <ContentContainer maxContentW="100rem" px="8" py="8">
-        <VStack w="full" alignItems="flex-start">
+        <VStack w="full" alignItems="flex-start" spacing="0">
           <Heading fontWeight="medium" size="lg" mb="4">
             Endpoints
           </Heading>
