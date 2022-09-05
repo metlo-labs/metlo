@@ -9,7 +9,6 @@ import {
   Text,
   InputGroup,
   Button,
-  Box,
   useToast,
 } from "@chakra-ui/react"
 import { AiFillApi } from "@react-icons/all-files/ai/AiFillApi"
@@ -17,7 +16,7 @@ import darkTheme from "prism-react-renderer/themes/duotoneDark"
 import lightTheme from "prism-react-renderer/themes/github"
 import Highlight, { defaultProps } from "prism-react-renderer"
 import { OpenApiSpec } from "@common/types"
-import { updateSpec } from "api/apiSpecs"
+import { deleteSpec, updateSpec } from "api/apiSpecs"
 
 interface SpecPageProps {
   spec: OpenApiSpec
@@ -29,6 +28,7 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
   const router = useRouter()
   const toast = useToast()
   const [fetching, setFetching] = useState<boolean>(false)
+  const [deleting, setDeleting] = useState<boolean>(false)
   const handleClick = () => inputRef.current?.click()
   const handleSubmission = async (evt: React.ChangeEvent<HTMLInputElement>) => {
     setFetching(true)
@@ -58,6 +58,22 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
     }
     setFetching(false)
   }
+  const handleDelete = async (evt: React.MouseEvent<HTMLDivElement>) => {
+    setDeleting(true)
+    try {
+      await deleteSpec(spec.name)
+      router.push("/specs")
+    } catch (err) {
+      console.log(err)
+      toast({
+        title: `Couldn't Delete Spec ${spec.name}`,
+        description: "See the console for more details",
+      })
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   const headerColor = useColorModeValue(
     "rgb(179, 181, 185)",
     "rgb(91, 94, 109)",
@@ -75,7 +91,13 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
           </NextLink>
           <Heading>{spec.name}</Heading>
         </VStack>
-        <Box marginLeft="auto">
+
+        <HStack marginLeft="auto">
+          <InputGroup onClick={handleDelete}>
+            <Button colorScheme="red" isLoading={deleting}>
+              Delete Spec
+            </Button>
+          </InputGroup>
           <InputGroup onChange={handleSubmission} onClick={handleClick}>
             <input
               type="file"
@@ -89,7 +111,7 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
               Update Spec
             </Button>
           </InputGroup>
-        </Box>
+        </HStack>
       </HStack>
       <Highlight
         {...defaultProps}

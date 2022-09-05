@@ -41,3 +41,8 @@ export const getSpec = async (name: string) => {
   const resp = await axios.get<OpenApiSpec>(`${getAPIURL()}/spec/${name}`)
   return resp.data
 }
+
+export const deleteSpec = async (name: string) => {
+  const resp = await axios.delete<OpenApiSpec>(`/api/v1/spec/${name}`)
+  return resp.data
+}
