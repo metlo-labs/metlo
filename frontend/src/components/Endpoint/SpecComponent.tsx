@@ -114,10 +114,7 @@ const SpecComponent: React.FC<SpecComponentProps> = ({ endpoint }) => {
           />
         </HStack>
       </HStack>
-      <Box
-        overflowY={{ base: "unset", lg: "scroll" }}
-        h={{ base: "unset", lg: "calc(100% - 60px)" }}
-      >
+      <Box overflowY="auto" h={{ base: "700px", lg: "calc(100% - 60px)" }}>
         <Highlight
           {...defaultProps}
           theme={theme}
@@ -159,10 +156,11 @@ const SpecComponent: React.FC<SpecComponentProps> = ({ endpoint }) => {
                   </span>
                   <span style={{ display: "table-cell" }}>
                     {line.map((token, key) => {
-                      const color =
+                      const matchedString =
                         searchQuery && token.content.includes(searchQuery)
-                          ? "var(--chakra-colors-orange-100)"
-                          : "transparent"
+                      const color = matchedString
+                        ? "var(--chakra-colors-orange-100)"
+                        : "transparent"
                       return (
                         <div
                           key={key}
