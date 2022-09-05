@@ -98,6 +98,7 @@ export const AlertList: React.FC<AlertListProps> = ({
       setParams(oldParams => ({
         ...oldParams,
         alertTypes: [...params.alertTypes, AlertType[alertType]],
+        offset: 0,
       }))
     } else {
       setParams(oldParams => ({
