@@ -1,6 +1,7 @@
 import React from "react"
 import Link from "next/link"
 import {
+  Button,
   StackProps,
   HStack,
   StackDivider,
@@ -25,7 +26,7 @@ const Action: React.FC<AlertAction> = React.memo(
   ({ alertTypeCount, alertTypes, description }) => {
     return (
       <HStack spacing="8">
-        <Text fontSize="xl" fontWeight="semibold">
+        <Text fontSize="xl" fontWeight="semibold" w="8">
           {alertTypes.map(e => alertTypeCount[e] || 0).reduce((a, b) => a + b)}
         </Text>
         <VStack alignItems="flex-start">
@@ -58,19 +59,19 @@ const AlertActions: React.FC<AlertActionsProps> = React.memo(
         <Heading px="4" size="md" color="gray.800">
           Action Items
         </Heading>
-        <HStack px="4" pt="2" spacing="12">
+        <HStack px="8" pt="2" spacing="20" h="full" w="full">
           <VStack>
-            <Text fontSize="xl" fontWeight="semibold">
+            <Text fontSize="2xl" fontWeight="semibold">
               {totalAlerts}
             </Text>
-            <Text fontSize="md" fontWeight="medium">
-              Unresolved Alerts
+            <Text fontSize="md" fontWeight="medium" pb="2">
+              Total Unresolved Alerts
             </Text>
             <Link href={encodeURI(`/alerts`)}>
-              <a>View All Alerts →</a>
+              <Button>View All Alerts →</Button>
             </Link>
           </VStack>
-          <VStack alignItems="flex-start">
+          <VStack alignItems="flex-start" spacing="6">
             <Action
               alertTypeCount={alertTypeCount}
               alertTypes={[AlertType.NEW_ENDPOINT]}

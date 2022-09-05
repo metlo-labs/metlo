@@ -1,4 +1,5 @@
 import React from "react"
+import Link from "next/link"
 import {
   Chart as ChartJS,
   ArcElement,
@@ -13,6 +14,7 @@ import {
   Grid,
   GridItem,
   Text,
+  Button,
   VStack,
   Box,
   Heading,
@@ -83,7 +85,9 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
                 </GridItem>
               ))}
             </Grid>
-            <Text pt="4">View Sensitive Data Dashboard →</Text>
+            <Link href="/sensitive-data">
+              <Button mt="4">View Sensitive Data Dashboard →</Button>
+            </Link>
           </VStack>
         </HStack>
       </VStack>
