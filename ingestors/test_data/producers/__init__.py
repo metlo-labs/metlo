@@ -8,6 +8,7 @@ from producers.ecommerce.add_product_to_cart import EcommerceAddProductToCartPro
 from producers.ecommerce.register import EcommerceRegisterProducer
 from producers.paymentprocessor.add_billing import PaymentProcessorAddBillingProducer
 from producers.paymentprocessor.get_billing import PaymentProcessorGetBillingProducer
+from producers.paymentprocessor.add_charge import PaymentProcessorAddChargeProducer
 from producers.paymentprocessor.get_user import PaymentProcessorGetUserProducer
 from producers.paymentprocessor.new_user import PaymentProcessorUserProducer
 from producers.paymentprocessor.user_verify import PaymentProcessorUserVerifyProducer
@@ -27,4 +28,5 @@ PRODUCER_CLS_MAP = {
     "payment_processor_get_user": PaymentProcessorGetUserProducer,
     "payment_processor_add_billing": PaymentProcessorAddBillingProducer,
     "payment_processor_get_billing": PaymentProcessorGetBillingProducer,
+    "payment_processor_add_charge": PaymentProcessorAddChargeProducer,
 }
