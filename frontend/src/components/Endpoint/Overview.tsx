@@ -1,22 +1,15 @@
 import React from "react"
 import { ApiEndpointDetailed, Usage } from "@common/types"
-import {
-  Box,
-  Badge,
-  Grid,
-  GridItem,
-  Stack,
-  useColorModeValue,
-} from "@chakra-ui/react"
-import Highlight, { defaultProps } from "prism-react-renderer"
-import darkTheme from "prism-react-renderer/themes/duotoneDark"
-import lightTheme from "prism-react-renderer/themes/github"
+import { Box, Badge, Grid, GridItem, Stack } from "@chakra-ui/react"
+import dynamic from "next/dynamic"
 import { DataAttribute, DataHeading } from "components/utils/Card"
 import EndpointUsageChart from "./UsageChart"
 import { RISK_TO_COLOR } from "~/constants"
 import EndpointPIIChart from "./PIIChart"
 import { getDateTimeString } from "utils"
 import { DataTag, Status } from "@common/enums"
+
+const SpecComponent = dynamic(() => import("./SpecComponent"), { ssr: false })
 
 interface EndpointOverviewProps {
   endpoint: ApiEndpointDetailed
@@ -25,10 +18,10 @@ interface EndpointOverviewProps {
 
 const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
   ({ endpoint, usage }) => {
-    const theme = useColorModeValue(lightTheme, darkTheme)
     const piiFields = endpoint.dataFields.filter(
       field => field.dataTag === DataTag.PII,
     )
+
     return (
       <Stack
         direction={{ base: "column", lg: "row" }}
@@ -95,61 +88,7 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
             ) : null}
           </Grid>
         </Box>
-        <Box
-          w={{ base: "full", lg: "50%" }}
-          overflowY={{ base: "unset", lg: "scroll" }}
-          h={{ base: "unset", lg: "full" }}
-        >
-          <Highlight
-            {...defaultProps}
-            theme={theme}
-            code={endpoint?.openapiSpec?.spec || "No spec."}
-            language={endpoint?.openapiSpec?.extension || "yaml"}
-          >
-            {({ className, style, tokens, getLineProps, getTokenProps }) => (
-              <pre
-                className={className}
-                style={{
-                  ...style,
-                  fontSize: "14px",
-                  padding: "8px",
-                  overflowX: "scroll",
-                  minHeight: "100%",
-                }}
-              >
-                {tokens.map((line, i) => (
-                  <pre
-                    style={{
-                      textAlign: "left",
-                      margin: "1em 0",
-                      padding: "0.5em",
-                      overflow: "scroll",
-                    }}
-                    key={i}
-                    {...getLineProps({ line, key: i })}
-                  >
-                    <span
-                      style={{
-                        display: "table-cell",
-                        textAlign: "right",
-                        paddingRight: "1em",
-                        userSelect: "none",
-                        opacity: "0.5",
-                      }}
-                    >
-                      {i + 1}
-                    </span>
-                    <span style={{ display: "table-cell" }}>
-                      {line.map((token, key) => (
-                        <span key={key} {...getTokenProps({ token, key })} />
-                      ))}
-                    </span>
-                  </pre>
-                ))}
-              </pre>
-            )}
-          </Highlight>
-        </Box>
+        <SpecComponent endpoint={endpoint} />
       </Stack>
     )
   },

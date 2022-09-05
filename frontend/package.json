@@ -21,6 +21,7 @@
     "chart.js": "^3.9.1",
     "chartjs-adapter-date-fns": "^2.0.0",
     "date-fns": "^2.29.1",
+    "file-saver": "^2.0.5",
     "framer-motion": "^6.3.0",
     "js-yaml": "^4.1.0",
     "js-yaml-source-map": "^0.2.2",
@@ -39,9 +40,11 @@
     "react-split-pane": "^0.1.92",
     "styled-components": "^5.3.5",
     "superjson": "^1.9.1",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "yaml": "^2.1.1"
   },
   "devDependencies": {
+    "@types/file-saver": "^2.0.5",
     "@types/js-yaml": "^4.0.5",
     "@types/luxon": "^3.0.0",
     "@types/node": "^18.7.0",

@@ -23,7 +23,13 @@ const AlertItem: React.FC<{ alertItem: Alert }> = React.memo(
       <Link
         href={`/endpoint/${alertItem.apiEndpointUuid}?tab=alerts#alert-${alertItem.uuid}`}
       >
-        <HStack py="2" px="4" cursor="pointer" _hover={{ bg: "gray.50" }} w="full">
+        <HStack
+          py="2"
+          px="4"
+          cursor="pointer"
+          _hover={{ bg: "gray.50" }}
+          w="full"
+        >
           <Icon as={alertTypeToIcon(alertItem.type)} boxSize="20px" />
           <VStack alignItems="flex-start" spacing="1">
             <Text>{alertItem.type}</Text>
