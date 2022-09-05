@@ -19,6 +19,7 @@ import {
   StackDivider,
 } from "@chakra-ui/react"
 import { DataClass } from "@common/enums"
+import { PIE_BACKGROUND_COLORS, PIE_BORDER_COLORS } from "~/constants"
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
@@ -31,29 +32,13 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
     const data = Object.values(piiDataTypeCount)
     const labels = Object.keys(piiDataTypeCount)
     const totalFields = data.reduce((curr, a) => curr + a, 0)
-    const backgroundColor = [
-      "rgba(255, 99, 132, 0.8)",
-      "rgba(54, 162, 235, 0.8)",
-      "rgba(255, 206, 86, 0.8)",
-      "rgba(75, 192, 192, 0.8)",
-      "rgba(153, 102, 255, 0.8)",
-      "rgba(255, 159, 64, 0.8)",
-    ]
-    const borderColor = [
-      "rgba(255, 99, 132, 1)",
-      "rgba(54, 162, 235, 1)",
-      "rgba(255, 206, 86, 1)",
-      "rgba(75, 192, 192, 1)",
-      "rgba(153, 102, 255, 1)",
-      "rgba(255, 159, 64, 1)",
-    ]
     const chartData = {
       labels,
       datasets: [
         {
           data,
-          backgroundColor,
-          borderColor,
+          backgroundColor: PIE_BACKGROUND_COLORS,
+          borderColor: PIE_BORDER_COLORS,
           borderWidth: 1,
         },
       ],
@@ -92,7 +77,7 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
               {labels.map((e, i) => (
                 <GridItem key={i}>
                   <HStack>
-                    <Box bg={backgroundColor[i]} px="2" py="1" />
+                    <Box bg={PIE_BACKGROUND_COLORS[i]} px="2" py="1" />
                     <Text fontSize="sm">{e}</Text>
                   </HStack>
                 </GridItem>
