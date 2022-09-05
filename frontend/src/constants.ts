@@ -1,5 +1,31 @@
 import { RiskScore, DataClass, DataTag, Status } from "@common/enums"
 
+export const PIE_BACKGROUND_COLORS = [
+  "rgba(255, 99, 132, 0.8)",
+  "rgba(54, 162, 235, 0.8)",
+  "rgba(255, 206, 86, 0.8)",
+  "rgba(75, 192, 192, 0.8)",
+  "rgba(153, 102, 255, 0.8)",
+  "rgba(255, 159, 64, 0.8)",
+  "rgba(122, 147, 123, 0.8)",
+  "rgba(221, 118, 58, 0.8)",
+  "rgba(180, 215, 174, 0.8)",
+  "rgba(221, 200, 165, 0.8)",
+]
+
+export const PIE_BORDER_COLORS = [
+  "rgba(255, 99, 132, 1)",
+  "rgba(54, 162, 235, 1)",
+  "rgba(255, 206, 86, 1)",
+  "rgba(75, 192, 192, 1)",
+  "rgba(153, 102, 255, 1)",
+  "rgba(255, 159, 64, 1)",
+  "rgba(122, 147, 123, 1)",
+  "rgba(221, 118, 58, 1)",
+  "rgba(180, 215, 174, 1)",
+  "rgba(221, 200, 165, 1)",
+]
+
 export const METHOD_TO_COLOR = {
   GET: "green",
   POST: "orange",

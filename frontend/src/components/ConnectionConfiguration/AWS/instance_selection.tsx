@@ -42,7 +42,7 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
     })
 
   const toast = useToast()
-  
+
   useEffect(() => {
     if (isCurrent) {
       setLoadingState(true)

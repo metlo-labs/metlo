@@ -10,6 +10,7 @@ import { LayoutPosition } from "chart.js/types/layout"
 import { Doughnut } from "react-chartjs-2"
 import { DataField } from "@common/types"
 import { useColorModeValue } from "@chakra-ui/react"
+import { PIE_BACKGROUND_COLORS, PIE_BORDER_COLORS } from "~/constants"
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 ChartJS.register({
@@ -61,22 +62,8 @@ const EndpointPIIChart: React.FC<EndpointPIIChartProps> = React.memo(
       datasets: [
         {
           data: Object.values(dataClassToCount),
-          backgroundColor: [
-            "rgba(255, 99, 132, 0.8)",
-            "rgba(54, 162, 235, 0.8)",
-            "rgba(255, 206, 86, 0.8)",
-            "rgba(75, 192, 192, 0.8)",
-            "rgba(153, 102, 255, 0.8)",
-            "rgba(255, 159, 64, 0.8)",
-          ],
-          borderColor: [
-            "rgba(255, 99, 132, 1)",
-            "rgba(54, 162, 235, 1)",
-            "rgba(255, 206, 86, 1)",
-            "rgba(75, 192, 192, 1)",
-            "rgba(153, 102, 255, 1)",
-            "rgba(255, 159, 64, 1)",
-          ],
+          backgroundColor: PIE_BACKGROUND_COLORS,
+          borderColor: PIE_BORDER_COLORS,
           borderWidth: 1,
         },
       ],
