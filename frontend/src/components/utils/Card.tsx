@@ -16,7 +16,7 @@ export const DataHeading: React.FC<DataHeadingProps> = React.memo(
   ({ children, ...props }) => {
     const color = useColorModeValue("rgb(102, 105, 117)", "rgb(116, 120, 138)")
     return (
-      <Text fontSize="md" fontWeight="medium" color={color} pb="2" {...props}>
+      <Text fontSize="sm" fontWeight="medium" color={color} pb="1" {...props}>
         {children}
       </Text>
     )
@@ -29,7 +29,7 @@ export const DataAttribute: React.FC<DataAttributeProps> = React.memo(
   ({ children, ...props }) => {
     const color = useColorModeValue("black", "white")
     return (
-      <Text fontWeight="bold" color={color} overflowWrap="anywhere" {...props}>
+      <Text color={color} overflowWrap="anywhere" {...props}>
         {children}
       </Text>
     )
