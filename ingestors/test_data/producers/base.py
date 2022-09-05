@@ -1,6 +1,8 @@
 from typing import List
 from datetime import datetime, timedelta
 from random import random
+from faker import Faker
+from faker.providers import internet
 
 
 class BaseProducer:
@@ -9,6 +11,8 @@ class BaseProducer:
 
     def __init__(self, tick_length: timedelta):
         self.tick_length = tick_length
+        self.fake = Faker()
+        self.fake.add_provider(internet)
 
     def should_emit(self, time: datetime) -> bool:
         emit_probability = self.tick_length / self.avg_emit_delta

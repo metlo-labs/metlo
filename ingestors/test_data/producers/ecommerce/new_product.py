@@ -2,14 +2,9 @@ from datetime import datetime, timedelta
 from typing import List
 from uuid import uuid4
 import json
-from random import choice, randint
-from faker import Faker
-from faker.providers import internet
+from random import randint
 
-fake = Faker()
-fake.add_provider(internet)
-
-
+from producers.utils import get_auth_header, get_meta, JSON_HEADER
 from producers.base import BaseProducer
 
 
@@ -20,12 +15,14 @@ class EcommerceMakeProductProducer(BaseProducer):
     def get_data_points_helper(self) -> dict:
         resp_body = {
             "ok": True,
-            "cart_uuid": str(uuid4()),
+            "productUuid": str(uuid4()),
             "msg": "New Product Created..."
         }
         req_body = {
             "name": "Test Product",
-            "owner_name": fake.name(),
+            "productName": self.fake.word(),
+            "productDescription": self.fake.sentence(),
+            "warehouseAddress": self.fake.address(),
             "price": randint(100, 1000),
         }
         return {
@@ -35,28 +32,16 @@ class EcommerceMakeProductProducer(BaseProducer):
                     "path": "/product",
                     "parameters": []
                 },
-                "headers": [],
+                "headers": [get_auth_header()],
                 "method": "POST",
                 "body": json.dumps(req_body),
             },
             "response": {
                 "status": 200,
-                "headers": [
-                    {
-                        "name": "content-type",
-                        "value": "application/json; charset=utf-8",
-                    },
-                ],
+                "headers": [JSON_HEADER],
                 "body": json.dumps(resp_body),
             },
-            "meta": {
-                "environment": "production",
-                "incoming": True,
-                "source": fake.ipv4(),
-                "sourcePort": choice(range(10000, 20000)),
-                "destination": "76.47.25.189",
-                "destinationPort": 443,
-            },
+            "meta": get_meta(),
         }
 
     def get_data_points(self, time: datetime) -> List[dict]:

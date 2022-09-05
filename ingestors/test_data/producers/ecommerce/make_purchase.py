@@ -2,14 +2,9 @@ from datetime import datetime, timedelta
 from typing import List
 from uuid import uuid4
 import json
-from random import choices, choice
-from faker import Faker
-from faker.providers import internet
+from random import choices
 
-fake = Faker()
-fake.add_provider(internet)
-
-
+from producers.utils import get_auth_header, get_meta, JSON_HEADER
 from producers.base import BaseProducer
 
 
@@ -19,28 +14,20 @@ class EcommerceMakePurchaseProducer(BaseProducer):
 
     def get_data_points_helper(self) -> dict:
         cart_uuid = str(uuid4())
+        ccn = self.fake.credit_card_number()
         responses = [
             {
                 "status": 200,
-                "headers": [
-                    {
-                        "name": "content-type",
-                        "value": "application/json; charset=utf-8",
-                    },
-                ],
+                "headers": [JSON_HEADER],
                 "body": json.dumps({
                     "ok": True,
-                    "msg": "Completed Purchase."
+                    "msg": "Completed Purchase.",
+                    "ccn": ccn
                 }),
             },
             {
                 "status": 500,
-                "headers": [
-                    {
-                        "name": "content-type",
-                        "value": "application/json; charset=utf-8",
-                    },
-                ],
+                "headers": [JSON_HEADER],
                 "body": json.dumps({
                     "ok": False,
                     "msg": "Failed to completed purchase."
@@ -49,10 +36,11 @@ class EcommerceMakePurchaseProducer(BaseProducer):
         ]
         req_body = {
             "cart_uuid": cart_uuid,
-            "name": fake.name(),
-            "ccn": fake.credit_card_number(),
-            "cc_exp": fake.credit_card_expire(),
-            "cc_code": fake.credit_card_security_code(),
+            "name": self.fake.name(),
+            "ccn": ccn,
+            "cc_exp": self.fake.credit_card_expire(),
+            "cc_code": self.fake.credit_card_security_code(),
+            "address": self.fake.address(),
         }
         return {
             "request": {
@@ -61,19 +49,12 @@ class EcommerceMakePurchaseProducer(BaseProducer):
                     "path": f"/cart/{cart_uuid}/purchase",
                     "parameters": []
                 },
-                "headers": [],
+                "headers": [get_auth_header()],
                 "method": "POST",
                 "body": json.dumps(req_body),
             },
             "response": choices(responses, [5, 1], k=1)[0], 
-            "meta": {
-                "environment": "production",
-                "incoming": True,
-                "source": fake.ipv4(),
-                "sourcePort": choice(range(10000, 20000)),
-                "destination": "76.47.25.189",
-                "destinationPort": 443,
-            },
+            "meta": get_meta(),
         }
 
     def get_data_points(self, time: datetime) -> List[dict]:
