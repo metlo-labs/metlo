@@ -19,6 +19,20 @@ services:
     command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
     volumes:
       - cache:/data
+  ingestor:
+    build:
+      context: ./
+      dockerfile: ./deploy/backend/Dockerfile
+    command: yarn start-collector
+    # image: metlo/backend
+    container_name: metlo-ingestor
+    depends_on:
+      - cache
+    restart: unless-stopped
+    ports:
+      - 8081:8081
+    environment:
+      - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
   backend:
     build:
       context: ./
@@ -27,15 +41,14 @@ services:
     container_name: metlo-backend
     depends_on:
       - cache
-    restart: unless-stopped
-    ports:
-      - 8080:8080
+    restart: unless-stopped    
     environment:
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
       - REDIS_URL=redis://:eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81@cache:6379
-      - ENCRYPTION_KEY
-      - BACKEND_URL
-      - EXPRESS_SECRET
+      - ENCRYPTION_KEY=AB3IBTaL80Ytjw6ZjbiU+AM1d+Mgp37MR1/1S2fekrU=
+      ###  BACKEND_URL should point to externally accessible url for ingestor  ###
+      - BACKEND_URL=http://localhost:8081
+      - EXPRESS_SECRET=617f8d1a-7a48-4053-a845-d9eae66e0bbe
   jobs:
     image: metlo/jobrunner
     container_name: metlo-jobs

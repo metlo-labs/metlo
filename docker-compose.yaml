@@ -10,6 +10,17 @@ services:
     volumes:
       - db:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init_db.sql
+  ingestor:
+    image: metlo/backend      
+    command: yarn start-collector
+    container_name: metlo-ingestor
+    depends_on:
+      - cache
+    restart: unless-stopped
+    ports:
+      - 8081:8081
+    environment:
+      - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
   cache:
     image: redis:7.0.4
     restart: always
@@ -28,7 +39,8 @@ services:
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
       - REDIS_URL=redis://:eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81@cache:6379
       #- ENCRYPTION_KEY=
-      #- BACKEND_URL=
+      ###  BACKEND_URL should point to externally accessible url for ingestor  ###
+      #- BACKEND_URL= 
       #- EXPRESS_SECRET=
   jobs:
     image: metlo/jobrunner
