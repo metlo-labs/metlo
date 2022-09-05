@@ -433,7 +433,7 @@ export class AlertService {
           newAlert.apiEndpointUuid = alertProp[0].uuid
           newAlert.context = {
             tested_against: `${alertProp[1].host}/${alertProp[1].path}`,
-            trace_uuid: alertProp[1].uuid,
+            trace: alertProp[1],
           }
           newAlert.description = alertProp[2]
           alerts.push(newAlert)
