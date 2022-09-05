@@ -12,3 +12,17 @@ export const updateDataFieldClasses = async (
   )
   return resp.data
 }
+
+export const deleteDataField = async (fieldId: string): Promise<DataField> => {
+  try {
+    const resp = await axios.delete<DataField>(
+      `${getAPIURL()}/data-field/${fieldId}`,
+    )
+    if (resp.status === 200 && resp.data) {
+      return resp.data
+    }
+    return null
+  } catch (err) {
+    return null
+  }
+}

@@ -38,3 +38,21 @@ export const updateDataFieldClasses = async (
     await ApiResponseHandler.error(res, err)
   }
 }
+
+export const deleteDataFieldHandler = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { dataFieldId } = req.params
+    const removedDataField = await DataFieldService.deleteDataField(dataFieldId)
+    if (removedDataField) {
+      await GetEndpointsService.updateEndpointRiskScore(
+        removedDataField.apiEndpointUuid,
+      )
+    }
+    await ApiResponseHandler.success(res, removedDataField)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}

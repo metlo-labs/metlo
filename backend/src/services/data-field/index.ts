@@ -5,8 +5,23 @@ import { getDataType, getRiskScore, isParameter, parsedJson } from "utils"
 import { getPathTokens } from "@common/utils"
 import { ScannerService } from "services/scanner/scan"
 import { AppDataSource } from "data-source"
+import Error404NotFound from "errors/error-404-not-found"
 
 export class DataFieldService {
+  static async deleteDataField(dataFieldId: string): Promise<DataField> {
+    const dataFieldRepository = AppDataSource.getRepository(DataField)
+    const dataField = await dataFieldRepository.findOneBy({ uuid: dataFieldId })
+    const fieldUuid = dataField.uuid
+    if (!dataField) {
+      throw new Error404NotFound("DataField for provided id not found.")
+    }
+    await dataFieldRepository.remove(dataField)
+    return {
+      ...dataField,
+      uuid: fieldUuid,
+    } as DataField
+  }
+
   static async updateDataClasses(
     dataFieldId: string,
     dataClasses: DataClass[],

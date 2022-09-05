@@ -8,6 +8,7 @@ import {
   Code,
   Badge,
   useToast,
+  Button,
 } from "@chakra-ui/react"
 import { DataField } from "@common/types"
 import { RISK_TO_COLOR, TAG_TO_COLOR } from "~/constants"
@@ -16,7 +17,7 @@ import {
   getMaxRiskScoreFromList,
   getRiskScores,
 } from "utils"
-import { updateDataFieldClasses } from "api/dataFields"
+import { deleteDataField, updateDataFieldClasses } from "api/dataFields"
 import { DataClass, RiskScore } from "@common/enums"
 import { DataFieldTagList } from "./DataFieldTags"
 
@@ -24,10 +25,11 @@ interface DataFieldDetailProps {
   dataField: DataField
   dataFieldList: DataField[]
   setdataFieldList: React.Dispatch<React.SetStateAction<DataField[]>>
+  setDataField: (value: React.SetStateAction<DataField>) => void
 }
 
 const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
-  ({ dataField, dataFieldList, setdataFieldList }) => {
+  ({ dataField, dataFieldList, setdataFieldList, setDataField }) => {
     const [currDataField, setCurrDataField] = useState<DataField>(dataField)
     const [updating, setUpdating] = useState<boolean>(false)
     const [riskScore, setRiskScore] = useState<RiskScore>()
@@ -42,6 +44,30 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
         getMaxRiskScoreFromList(getRiskScores(currDataField.dataClasses)),
       )
     }, [currDataField])
+
+    const handleDeleteDataField = async () => {
+      setUpdating(true)
+      const res = await deleteDataField(currDataField.uuid)
+      if (res) {
+        toast({
+          title: `Removed Data Field ${currDataField.dataPath}`,
+          status: "success",
+          duration: 3000,
+          position: "top",
+        })
+        setdataFieldList(dataFieldList.filter(e => e.uuid !== res.uuid))
+        setDataField(undefined)
+      } else {
+        toast({
+          title: "Data Field Deletion failed...",
+          status: "error",
+          isClosable: true,
+          duration: 5000,
+          position: "top",
+        })
+      }
+      setUpdating(false)
+    }
 
     const handleUpdateTags = async (newTags: DataClass[]) => {
       setUpdating(true)
@@ -61,6 +87,7 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
           toast({
             title: "Data Class Update failed...",
             status: "error",
+            position: "top",
           })
         })
         .finally(() => setUpdating(false))
@@ -136,6 +163,15 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
             updating={updating}
           />
         </VStack>
+        <Box pt="4" textAlign="end">
+          <Button
+            colorScheme="red"
+            isLoading={updating}
+            onClick={handleDeleteDataField}
+          >
+            Delete
+          </Button>
+        </Box>
       </Box>
     )
   },

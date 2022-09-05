@@ -310,6 +310,7 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
             dataField={dataField}
             dataFieldList={dataFieldList}
             setdataFieldList={setDataFieldList}
+            setDataField={setDataField}
           />
         </Box>
       </Box>
