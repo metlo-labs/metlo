@@ -15,6 +15,7 @@ import { getPathTokens } from "@common/utils"
 import { AlertService } from "services/alert"
 import { DataFieldService } from "services/data-field"
 import { DatabaseService } from "services/database"
+import axios from "axios"
 
 interface GenerateEndpoint {
   parameterizedPath: string
@@ -463,6 +464,61 @@ export class JobsService {
       }
     } catch (err) {
       console.error(`Encountered error while generating OpenAPI specs: ${err}`)
+    }
+  }
+
+  static async monitorEndpointForHSTS(): Promise<void> {
+    try {
+      const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
+      const apiTraceRepository = AppDataSource.getRepository(ApiTrace)
+      const alertsRepository = AppDataSource.getRepository(Alert)
+
+      const alertableData: Array<[ApiEndpoint, ApiTrace, string]> = []
+
+      for (const endpoint of await apiEndpointRepository
+        .createQueryBuilder()
+        .getMany()) {
+        const latest_trace_for_endpoint = await apiTraceRepository.findOne({
+          where: { apiEndpointUuid: endpoint.uuid },
+          order: { createdAt: "DESC" },
+        })
+        if (
+          !latest_trace_for_endpoint.responseHeaders.find(v =>
+            v.name.includes("Strict-Transport-Security"),
+          )
+        ) {
+          // Trace doesn't contain HSTS header. Test url with OPTIONS request
+          // to the the host/path
+          try {
+            let options_req = await axios.options(
+              new URL(
+                `${latest_trace_for_endpoint.host}/${latest_trace_for_endpoint.path}`,
+              ).href,
+            )
+            if (
+              Object.keys(options_req.headers).includes(
+                "Strict-Transport-Security",
+              )
+            ) {
+              alertableData.push([
+                endpoint,
+                latest_trace_for_endpoint,
+                `Found endpoint possibly missing SSL on ${endpoint.path}`,
+              ])
+            }
+          } catch (err) {
+            console.log(
+              `Couldn't perform OPTIONS request for endpoint ${endpoint.host}/${endpoint.path}`,
+            )
+          }
+        }
+      }
+      let alerts = await AlertService.createMissingHSTSAlert(alertableData)
+      await alertsRepository.save(alerts)
+    } catch (err) {
+      console.error(
+        `Encountered error while looking for HSTS enabled endpoints : ${err}`,
+      )
     }
   }
 }

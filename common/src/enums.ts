@@ -40,7 +40,8 @@ export enum AlertType {
   OPEN_API_SPEC_DIFF = "Open API Spec Diff",
   QUERY_SENSITIVE_DATA = "Sensitive Data in Query Params",
   PATH_SENSITIVE_DATA = "Sensitive Data in Path Params",
-  BASIC_AUTHENTICATION_DETECTED = "Basic Authentication Detected"
+  BASIC_AUTHENTICATION_DETECTED = "Basic Authentication Detected",
+  UNSECURED_ENDPOINT_DETECTED = "Enpoint not secured by SSL",
 }
 
 export enum ConnectionType {
@@ -69,17 +70,17 @@ export enum AWS_STEPS {
   EXEC_COMMAND = 12,
 }
 
-export enum GCP_STEPS{
-  GCP_KEY_SETUP=1, // Get key, region, network
-  SOURCE_INSTANCE_ID=2, // Get GCP Source Instance ID/Name. Also get subnet info from that
-  CREATE_DESTINATION_SUBNET=3, // Reserve an Address, use that to create subnet from that and delete address
-  CREATE_FIREWALL=4, // Create firewall targeting certain things, say tags, also create rules  
-  CREATE_CLOUD_ROUTER=5, // Includes creation of NAT
-  CREATE_MIG=6, // Create Image template and MIG in one step    
-  CREATE_HEALTH_CHECK=7, 
-  CREATE_BACKEND_SERVICE=8, // Also add health check to backend service  
-  CREATE_ILB=9,
-  START_PACKET_MIRRORING=10,  
+export enum GCP_STEPS {
+  GCP_KEY_SETUP = 1, // Get key, region, network
+  SOURCE_INSTANCE_ID = 2, // Get GCP Source Instance ID/Name. Also get subnet info from that
+  CREATE_DESTINATION_SUBNET = 3, // Reserve an Address, use that to create subnet from that and delete address
+  CREATE_FIREWALL = 4, // Create firewall targeting certain things, say tags, also create rules
+  CREATE_CLOUD_ROUTER = 5, // Includes creation of NAT
+  CREATE_MIG = 6, // Create Image template and MIG in one step
+  CREATE_HEALTH_CHECK = 7,
+  CREATE_BACKEND_SERVICE = 8, // Also add health check to backend service
+  CREATE_ILB = 9,
+  START_PACKET_MIRRORING = 10,
   TEST_SSH = 11,
   PUSH_FILES = 12,
   EXEC_COMMAND = 13,

@@ -1,4 +1,11 @@
-import { DataSection, AWS_STEPS, GCP_STEPS, DataClass, RiskScore, AlertType } from "./enums"
+import {
+  DataSection,
+  AWS_STEPS,
+  GCP_STEPS,
+  DataClass,
+  RiskScore,
+  AlertType,
+} from "./enums"
 
 export const AWS_NEXT_STEP: Record<AWS_STEPS, AWS_STEPS | null> = {
   [AWS_STEPS.AWS_KEY_SETUP]: AWS_STEPS.SOURCE_INSTANCE_ID,
@@ -35,7 +42,7 @@ export const GCP_STEP_TO_TITLE_MAP: Record<GCP_STEPS, string> = {
   [GCP_STEPS.SOURCE_INSTANCE_ID]: "GCP Mirrored Instance Sselection",
   [GCP_STEPS.CREATE_DESTINATION_SUBNET]: "Destination Subnet Creation",
   [GCP_STEPS.CREATE_FIREWALL]: "GCP Firewall creation",
-  [GCP_STEPS.CREATE_CLOUD_ROUTER]: "GCP Cloud Router Creation for Collector",  
+  [GCP_STEPS.CREATE_CLOUD_ROUTER]: "GCP Cloud Router Creation for Collector",
   [GCP_STEPS.CREATE_MIG]: "GCP Collector Instance Creation",
   // [GCP_STEPS.PUSH_KEY]: "SSH Key Creation",
   [GCP_STEPS.CREATE_HEALTH_CHECK]: "Collector Health Check Creation",
@@ -77,4 +84,5 @@ export const ALERT_TYPE_TO_RISK_SCORE: Record<AlertType, RiskScore> = {
   [AlertType.QUERY_SENSITIVE_DATA]: RiskScore.HIGH,
   [AlertType.PATH_SENSITIVE_DATA]: RiskScore.HIGH,
   [AlertType.BASIC_AUTHENTICATION_DETECTED]: RiskScore.MEDIUM,
+  [AlertType.UNSECURED_ENDPOINT_DETECTED]: RiskScore.HIGH,
 }
