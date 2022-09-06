@@ -41,7 +41,7 @@ export enum AlertType {
   QUERY_SENSITIVE_DATA = "Sensitive Data in Query Params",
   PATH_SENSITIVE_DATA = "Sensitive Data in Path Params",
   BASIC_AUTHENTICATION_DETECTED = "Basic Authentication Detected",
-  UNSECURED_ENDPOINT_DETECTED = "Enpoint not secured by SSL",
+  UNSECURED_ENDPOINT_DETECTED = "Endpoint not secured by SSL",
 }
 
 export enum ConnectionType {

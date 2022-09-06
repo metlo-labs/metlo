@@ -59,6 +59,10 @@ interface AlertDetailProps {
   setResolutionMessage: React.Dispatch<React.SetStateAction<string>>
 }
 
+interface MissingHSTSContext {
+  trace: ApiTrace
+}
+
 export const AlertDetail: React.FC<AlertDetailProps> = ({
   alert,
   resolutionMessage,
@@ -229,6 +233,24 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
         </Box>
       )
       break
+    case AlertType.UNSECURED_ENDPOINT_DETECTED:
+      const contextHSTS = alert.context as MissingHSTSContext
+      return (
+        //
+        <Box w="55%" h="full">
+          <VStack w="full" h="full" alignItems="flex-start">
+            <Text fontWeight="semibold">Detected Trace</Text>
+            <Box
+              overflowX="auto"
+              w="full"
+              bg="var(--chakra-colors-chakra-body-bg)"
+              h="calc(100% - 20px)"
+            >
+              <TraceDetail trace={contextHSTS.trace} />
+            </Box>
+          </VStack>
+        </Box>
+      )
     default:
   }
 

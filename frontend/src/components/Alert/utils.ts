@@ -2,6 +2,7 @@ import { FaBell } from "@react-icons/all-files/fa/FaBell"
 import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch"
 import { AiFillApi } from "@react-icons/all-files/ai/AiFillApi"
 import { AiFillLock } from "@react-icons/all-files/ai/AiFillLock"
+import { BsShieldLockFill } from "@react-icons/all-files/bs/BsShieldLockFill"
 import { AlertType } from "@common/enums"
 import { IconType } from "@react-icons/all-files/lib"
 
@@ -15,6 +16,8 @@ export const alertTypeToIcon: (
       return TiFlowSwitch
     case AlertType.PII_DATA_DETECTED:
       return AiFillLock
+    case AlertType.UNSECURED_ENDPOINT_DETECTED:
+      return BsShieldLockFill
     default:
       return FaBell
   }

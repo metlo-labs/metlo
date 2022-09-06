@@ -195,6 +195,10 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({ alert }) => {
         </Box>
       )
       break
+    case AlertType.UNSECURED_ENDPOINT_DETECTED:
+      // Unsecured Endpoint doesn't have any specific panel
+      panel = <Box></Box>
+      break
     default:
       panel = <Box></Box>
   }
