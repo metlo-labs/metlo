@@ -109,9 +109,14 @@ export const AlertComponent: React.FC<AlertComponentProps> = ({
           </Button>
         </HStack>
       </VStack>
-      <Modal isCentered isOpen={isOpen} onClose={closeModal}>
+      <Modal
+        size={{ base: "full", md: "initial" }}
+        isCentered
+        isOpen={isOpen}
+        onClose={closeModal}
+      >
         <ModalOverlay />
-        <ModalContent maxW="70%" h="85%">
+        <ModalContent w={{ md: "90%", lg: "70%" }} h="85%">
           <ModalHeader mr="30px">
             <HStack w="full" justifyContent="space-between">
               <HStack>
