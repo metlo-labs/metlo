@@ -3,7 +3,6 @@ import Head from "next/head"
 import { Box, HStack } from "@chakra-ui/react"
 import SideNavBar from "./Sidebar"
 import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
-import { DarkModeSwitch } from "components/utils/DarkModeSwitch"
 
 interface SidebarLayoutShellProps {
   title?: string
@@ -23,7 +22,6 @@ export const SidebarLayoutShell: React.FC<SidebarLayoutShellProps> = React.memo(
         <SideNavBar currentTab={currentTab} />
         <Box h="100vh" flex="1" overflowY="auto">
           {children}
-          <DarkModeSwitch />
         </Box>
       </HStack>
     )
