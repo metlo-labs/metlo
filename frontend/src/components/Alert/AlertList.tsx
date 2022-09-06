@@ -44,6 +44,7 @@ interface AlertListProps {
   ) => Promise<void>
   updating: boolean
   fetching: boolean
+  hosts?: string[]
   pagination?: boolean
   totalCount?: number
   page?: number
@@ -56,6 +57,7 @@ export const AlertList: React.FC<AlertListProps> = ({
   fetching,
   pagination,
   totalCount,
+  hosts,
   page,
   handleUpdateAlert,
   updating,
@@ -70,6 +72,25 @@ export const AlertList: React.FC<AlertListProps> = ({
       executeScroll()
     }
   }, [alerts, pagination])
+
+  const handleHostFilter = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    host: string,
+  ) => {
+    if (e.target.checked) {
+      setParams(oldParams => ({
+        ...oldParams,
+        hosts: [...params.hosts, host],
+        offset: 0,
+      }))
+    } else {
+      setParams(oldParams => ({
+        ...oldParams,
+        hosts: params.hosts.filter(e => e !== host),
+        offset: 0,
+      }))
+    }
+  }
 
   const handleRiskScoreFilter = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -129,7 +150,7 @@ export const AlertList: React.FC<AlertListProps> = ({
   }
 
   const riskFilterPanel = (
-    <Accordion defaultIndex={[0, 1, 2]} w="full" allowToggle allowMultiple>
+    <Accordion defaultIndex={[0, 1, 2, 3]} w="full" allowToggle allowMultiple>
       <VStack pb="4" borderBottomWidth={1} spacing="8">
         <AccordionItem border="0" w="full">
           <AccordionButton _hover={{ bg: "transparent" }} p="0">
@@ -176,6 +197,29 @@ export const AlertList: React.FC<AlertListProps> = ({
             </VStack>
           </AccordionPanel>
         </AccordionItem>
+        {hosts && (
+          <AccordionItem border="0" w="full">
+            <AccordionButton _hover={{ bg: "transparent" }} p="0">
+              <AccordionIcon mr="10px" />
+              <Box fontWeight="semibold" flex="1" textAlign="left">
+                HOSTS
+              </Box>
+            </AccordionButton>
+            <AccordionPanel pl="30px" pb="0">
+              <VStack w="full" alignItems="flex-start">
+                {hosts.map(host => (
+                  <Checkbox
+                    key={host}
+                    onChange={e => handleHostFilter(e, host)}
+                    isChecked={params.hosts.includes(host)}
+                  >
+                    {host}
+                  </Checkbox>
+                ))}
+              </VStack>
+            </AccordionPanel>
+          </AccordionItem>
+        )}
         <AccordionItem border="0" w="full">
           <AccordionButton _hover={{ bg: "transparent" }} p="0">
             <AccordionIcon mr="10px" />
@@ -224,6 +268,7 @@ export const AlertList: React.FC<AlertListProps> = ({
           alignSelf="flex-start"
           display={{ base: "none", lg: "block" }}
           w="400px"
+          maxW="400px"
           spacing="4"
         >
           {riskFilterPanel}

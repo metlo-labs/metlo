@@ -17,15 +17,17 @@ import { ALERT_PAGE_LIMIT } from "~/constants"
 import { getAlerts, updateAlert } from "api/alerts"
 import { AlertType, RiskScore, Status } from "@common/enums"
 import { GetServerSideProps } from "next"
+import { getHosts } from "api/endpoints"
 
 enum Order {
   DESC = "DESC",
   ASC = "ASC",
 }
 
-const Alerts = ({ initParams, initAlerts, initTotalCount }) => {
+const Alerts = ({ initParams, initAlerts, initTotalCount, initHosts }) => {
   const parsedInitParams = superjson.parse<GetAlertParams>(initParams)
   const parsedInitAlerts = superjson.parse<Alert[]>(initAlerts)
+  const parsedHosts = superjson.parse<string[]>(initHosts ?? [])
 
   const [updating, setUpdating] = useState<boolean>(false)
   const [fetching, setFetching] = useState<boolean>(false)
@@ -128,6 +130,7 @@ const Alerts = ({ initParams, initAlerts, initTotalCount }) => {
             fetching={fetching}
             pagination
             totalCount={totalCount}
+            hosts={parsedHosts}
             page={params.offset / ALERT_PAGE_LIMIT + 1}
           />
         </Box>
@@ -150,18 +153,23 @@ export const getServerSideProps: GetServerSideProps = async context => {
       .split(",")
       .filter(e => Object.values(AlertType).includes(e as AlertType))
       .map(e => e as AlertType),
+    hosts: ((context.query.hosts as string) || null)?.split(",") ?? [],
     offset: 0,
     limit: ALERT_PAGE_LIMIT,
     order: "DESC",
   }
-  const alerts = await getAlerts(initParams)
+  const hostsPromise = getHosts()
+  const alertsPromise = getAlerts(initParams)
+  const [hosts, alerts] = await Promise.all([hostsPromise, alertsPromise])
   const initAlerts = alerts[0]
   const totalCount = alerts[1]
+  const initHosts = hosts
   return {
     props: {
       initParams: superjson.stringify(initParams),
       initAlerts: superjson.stringify(initAlerts),
       initTotalCount: totalCount,
+      initHosts: superjson.stringify(initHosts),
     },
   }
 }

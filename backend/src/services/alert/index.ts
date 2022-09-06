@@ -103,6 +103,14 @@ export class AlertService {
         riskScore: In(alertParams.riskScores),
       }
     }
+    if (alertParams?.hosts) {
+      whereConditions = {
+        ...whereConditions,
+        apiEndpoint: {
+          host: In(alertParams.hosts),
+        },
+      }
+    }
     if (alertParams?.status) {
       whereConditions = {
         ...whereConditions,

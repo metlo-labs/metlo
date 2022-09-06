@@ -87,6 +87,7 @@ export interface GetAlertParams {
   riskScores?: RiskScore[]
   status?: Status[]
   alertTypes?: AlertType[]
+  hosts?: string[]
   offset?: number
   limit?: number
   order?: "DESC" | "ASC"
