@@ -145,7 +145,7 @@ const SpecComponent: React.FC<SpecComponentProps> = ({ endpoint }) => {
                   </span>
                   <span style={{ display: "table-cell" }}>
                     {line.map((token, key) => (
-                      <span {...getTokenProps({ token, key })} />
+                      <span key={key} {...getTokenProps({ token, key })} />
                     ))}
                   </span>
                 </pre>

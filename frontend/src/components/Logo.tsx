@@ -10,7 +10,7 @@ export const Logo = React.memo((props: BoxProps) => {
   )
   return (
     <Box {...props}>
-      <Image height="36" width="127" src={imageSrc} />
+      <Image alt="logo-image" height="36" width="127" src={imageSrc} />
     </Box>
   )
 })
@@ -18,7 +18,7 @@ export const Logo = React.memo((props: BoxProps) => {
 export const SmLogo = React.memo((props: BoxProps) => {
   return (
     <Box {...props}>
-      <Image height="30" width="30" src="/metlo_logo.svg" />
+      <Image alt="logo-image" height="30" width="30" src="/metlo_logo.svg" />
     </Box>
   )
 })
