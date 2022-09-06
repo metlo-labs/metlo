@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -57,5 +58,6 @@ export class ApiTrace extends BaseEntity {
 
   @ManyToOne(() => ApiEndpoint)
   @JoinColumn()
+  @Index()
   apiEndpoint: ApiEndpoint
 }
