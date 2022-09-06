@@ -205,7 +205,7 @@ export const AlertList: React.FC<AlertListProps> = ({
                 HOSTS
               </Box>
             </AccordionButton>
-            <AccordionPanel pl="30px" pb="0">
+            <AccordionPanel pl="30px" pb="0" wordBreak="break-all">
               <VStack w="full" alignItems="flex-start">
                 {hosts.map(host => (
                   <Checkbox
@@ -267,8 +267,9 @@ export const AlertList: React.FC<AlertListProps> = ({
           alignItems="flex-start"
           alignSelf="flex-start"
           display={{ base: "none", lg: "block" }}
-          w="400px"
-          maxW="400px"
+          minW="300px"
+          w="300px"
+          maxW="300px"
           spacing="4"
         >
           {riskFilterPanel}
@@ -309,7 +310,7 @@ export const AlertList: React.FC<AlertListProps> = ({
         {modal}
       </HStack>
       {totalCount && (
-        <HStack alignSelf="flex-end" p="3" pr="70px">
+        <HStack alignSelf="flex-end" py="3">
           <Text>
             {(page - 1) * ALERT_PAGE_LIMIT + 1}-
             {(page - 1) * ALERT_PAGE_LIMIT + alerts.length} of {totalCount}{" "}
