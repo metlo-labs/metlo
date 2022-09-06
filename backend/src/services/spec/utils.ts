@@ -1,9 +1,8 @@
 import { ErrorObject } from "ajv/dist/2019"
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from "openapi-types"
 import OpenAPISchemaValidator from "openapi-schema-validator"
-import { OpenAPIRequestValidatorError } from "openapi-request-validator"
+import { OpenAPIRequestValidatorError } from "@leoscope/openapi-request-validator"
 import { ApiEndpoint } from "models"
-import { JSONValue } from "@common/types"
 import { getDataType } from "utils"
 import { DataType } from "@common/enums"
 
@@ -109,7 +108,7 @@ export const validateSpecSchema = (schema: any, version?: number): string[] => {
 }
 
 export const generateAlertMessageFromReqErrors = (
-  errors: OpenAPIRequestValidatorError[],
+  errors: AjvError[],
   pathToParameters: string[],
   pathToRequestBody: string[],
   parameters: Parameter[],
@@ -119,40 +118,66 @@ export const generateAlertMessageFromReqErrors = (
     return res
   }
   errors?.forEach(error => {
-    const errorField = error.path?.split(".")[0]
-    const tempPath = getPathToRequestLocation(
-      parameters,
-      error.location as Location,
-      errorField,
-    )
+    const basePath =
+      error["location"] === Location.BODY ? pathToRequestBody : pathToParameters
+    let pathArray = error.instancePath.split("/")?.slice(2)
     const defaultErrorMessage =
       error.message[0].toUpperCase() + error.message.slice(1)
-    let errorMessage = ""
-    const basePath =
-      error.location === Location.BODY ? pathToRequestBody : pathToParameters
-    if (!error.path) {
-      errorMessage = `${defaultErrorMessage} for request${
-        error.location ? ` ${error.location}` : ""
-      }.`
-    } else {
-      switch (error.errorCode.split(".")[0]) {
-        case "required":
-          errorMessage = `Required property '${error.path}' is missing from request ${error.location}.`
-          break
-        case "type":
-          errorMessage = `Property '${error.path}' ${error.message} in request ${error.location}.`
-          break
-        case "additionalProperties":
-          errorMessage = `Property '${error.path}' is present in request ${error.location} without being defined in OpenAPI Spec.`
-          break
-        case "format":
-          errorMessage = `Property '${error.path}' ${error.message} in request ${error.location}.`
-          break
-        default:
-          errorMessage = `${defaultErrorMessage}: '${error.path}' in request ${error.location}.`
-          break
-      }
+    let errorMessage = `${defaultErrorMessage} in request${
+      error["location"] ? ` ${error["location"]}` : ""
+    }.`
+    let path = pathArray.length > 0 ? pathArray.join("/") : ""
+    switch (error.keyword) {
+      case "required":
+        if (error.params?.missingProperty) {
+          path = path
+            ? `${path}/${error.params.missingProperty}`
+            : error.params.missingProperty
+        }
+        errorMessage = `Required property '${path}' is missing from request ${error["location"]}.`
+        break
+      case "type":
+        errorMessage = `Property '${path}' ${error.message} in request ${error["location"]}.`
+        break
+      case "additionalProperties":
+        if (error.params?.additionalProperty) {
+          path = path
+            ? `${path}/${error.params.additionalProperty}`
+            : error.params.additionalProperty
+        }
+        errorMessage =
+          path &&
+          `Property '${path}' is present in request ${error["location"]} without matching any schemas/definitions in the OpenAPI Spec.`
+        break
+      case "unevaluatedProperties":
+        if (error.params?.unevaluatedProperty) {
+          path = path
+            ? `${path}/${error.params.unevaluatedProperty}`
+            : error.params.unevaluatedProperty
+        }
+        errorMessage =
+          path &&
+          `Property '${path}' is present in request ${error["location"]} without matching any schemas/definitions in the OpenAPI Spec.`
+        break
+      case "format":
+        errorMessage = `Property '${path}' ${error.message} in request ${error["location"]}.`
+        break
+      default:
+        errorMessage = `${defaultErrorMessage}: '${path}' in request ${error["location"]}.`
+        break
     }
+    if (!path) {
+      errorMessage = `${defaultErrorMessage} in ${error["location"]}.`
+    }
+    if (!error["location"]) {
+      errorMessage = `${defaultErrorMessage} in request.`
+    }
+    const errorField = path?.split("/")[0]
+    const tempPath = getPathToRequestLocation(
+      parameters,
+      error["location"] as Location,
+      errorField,
+    )
     res[errorMessage] = [...basePath, ...tempPath]
   })
   return res
@@ -305,6 +330,36 @@ export const getSpecResponses = (
     }
   }
   return { path: pathToResponses ?? [], value: responses ?? {} }
+}
+
+export const getSpecRequestBody = (
+  specObject: OpenAPI.Document,
+  endpoint: ApiEndpoint,
+): SpecValue => {
+  const operation =
+    specObject?.paths?.[endpoint.path]?.[endpoint.method.toLowerCase()]
+
+  let requestBody = operation?.["requestBody"]
+  let pathToRequestBody = null
+
+  if (requestBody) {
+    const content = requestBody["content"]
+    pathToRequestBody = [
+      "paths",
+      endpoint.path,
+      endpoint.method.toLowerCase(),
+      "requestBody",
+    ]
+    if (content) {
+      for (const contentType in content) {
+        const schema = content?.[contentType]?.["schema"]
+        if (schema) {
+          recursiveTransformSpec(schema)
+        }
+      }
+    }
+  }
+  return { path: pathToRequestBody ?? [], value: requestBody ?? {} }
 }
 
 export const getHostFromServer = (server: ServerObject): Set<string> => {

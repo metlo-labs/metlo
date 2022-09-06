@@ -804,6 +804,18 @@
   resolved "https://registry.yarnpkg.com/@jsdevtools/ono/-/ono-7.1.3.tgz#9df03bbd7c696a5c58885c34aa06da41c8543796"
   integrity sha512-4JQNk+3mVzK3xh2rqd6RB4J46qUR19azEHBneZyTZM+c456qOrbbM/5xcR8huNCCcbVt7+UmizG6GuUvPvKUYg==
 
+"@leoscope/openapi-request-validator@^12.0.2":
+  version "12.0.2"
+  resolved "https://registry.yarnpkg.com/@leoscope/openapi-request-validator/-/openapi-request-validator-12.0.2.tgz#2d4138285a2ff77bf54c046825d0697bb3544708"
+  integrity sha512-lW0hfRCJ0/7JONP4Vd5AhcpLDpnz0PC6Q/BpxXzAR2UrY3Gw9Yyiwx1pEKte73zpOrwP/KT5Grm6HDKUCuZflA==
+  dependencies:
+    ajv "^8.3.0"
+    ajv-formats "^2.1.0"
+    content-type "^1.0.4"
+    openapi-jsonschema-parameters "^12.0.2"
+    openapi-types "^12.0.2"
+    ts-log "^2.1.4"
+
 "@leoscope/openapi-response-validator@^12.0.3":
   version "12.0.3"
   resolved "https://registry.yarnpkg.com/@leoscope/openapi-response-validator/-/openapi-response-validator-12.0.3.tgz#1900f2bc81d03c9c08a7a0b3d4457f638df28586"
@@ -3113,24 +3125,12 @@ once@^1.3.0, once@^1.4.0:
   dependencies:
     wrappy "1"
 
-openapi-jsonschema-parameters@^12.0.0:
-  version "12.0.0"
-  resolved "https://registry.yarnpkg.com/openapi-jsonschema-parameters/-/openapi-jsonschema-parameters-12.0.0.tgz#25e0ad6741fb1507eedd2f36ff790564cbdd4891"
-  integrity sha512-OqPabvo3qEUpgG2blD+CqAUNC+/RNYsUKEqY3vSAu2syxrabRNxtaagLhA5WdieVQPLFuOlSX13TFUu8R/+kbA==
+openapi-jsonschema-parameters@^12.0.2:
+  version "12.0.2"
+  resolved "https://registry.yarnpkg.com/openapi-jsonschema-parameters/-/openapi-jsonschema-parameters-12.0.2.tgz#6cae44ad560db2eb1fdfc13c52db4bcde6d4f19c"
+  integrity sha512-JzPqPBNSO4SItVJwhmBBKQfNEXkfavgz7lToOHNwTl6MEskWDUMm0jl7s+eLZM3jxz6Vj/o0/VlcecmFJcX88w==
   dependencies:
-    openapi-types "^12.0.0"
-
-openapi-request-validator@^12.0.0:
-  version "12.0.0"
-  resolved "https://registry.yarnpkg.com/openapi-request-validator/-/openapi-request-validator-12.0.0.tgz#f5323969b0f9a7e633598c3ead91a606f8f6bcf4"
-  integrity sha512-z0K3fRViKbamg80RJgNLzLZik2QBvXVfHgtpK4nGlTQ7qgn06PApFzF1Arc4Fb3aAB26BFBQGzjrojT58XjA3A==
-  dependencies:
-    ajv "^8.3.0"
-    ajv-formats "^2.1.0"
-    content-type "^1.0.4"
-    openapi-jsonschema-parameters "^12.0.0"
-    openapi-types "^12.0.0"
-    ts-log "^2.1.4"
+    openapi-types "^12.0.2"
 
 openapi-schema-validator@^12.0.0:
   version "12.0.0"
@@ -3146,6 +3146,11 @@ openapi-types@^12.0.0:
   version "12.0.0"
   resolved "https://registry.yarnpkg.com/openapi-types/-/openapi-types-12.0.0.tgz#458a99d048f9eae1c067e15d56a8bfb3726041f1"
   integrity sha512-6Wd9k8nmGQHgCbehZCP6wwWcfXcvinhybUTBatuhjRsCxUIujuYFZc9QnGeae75CyHASewBtxs0HX/qwREReUw==
+
+openapi-types@^12.0.2:
+  version "12.0.2"
+  resolved "https://registry.yarnpkg.com/openapi-types/-/openapi-types-12.0.2.tgz#b752ab0a463c594fd7e3142e0e5983a9645503f6"
+  integrity sha512-GuTo7FyZjOIWVhIhQSWJVaws6A82sWIGyQogxxYBYKZ0NBdyP2CYSIgOwFfSB+UVoPExk/YzFpyYitHS8KVZtA==
 
 optionator@^0.8.1:
   version "0.8.3"
