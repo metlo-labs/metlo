@@ -42,7 +42,8 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
             <GridItem>
               <DataHeading>Risk Score</DataHeading>
               <Badge
-                p="1"
+                py="1"
+                px="2"
                 fontSize="sm"
                 colorScheme={RISK_TO_COLOR[endpoint.riskScore]}
                 pointerEvents="none"
