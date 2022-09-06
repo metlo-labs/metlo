@@ -73,12 +73,14 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
                 {getDateTimeString(endpoint.lastActive) || "N/A"}
               </DataAttribute>
             </GridItem>
-            <GridItem w="100%" colSpan={2}>
-              <DataHeading>Usage</DataHeading>
-              <Box maxW="lg">
-                <EndpointUsageChart usage={usage} />
-              </Box>
-            </GridItem>
+            {usage.length > 0 && (
+              <GridItem w="100%" colSpan={2}>
+                <DataHeading>Usage</DataHeading>
+                <Box maxW="lg">
+                  <EndpointUsageChart usage={usage} />
+                </Box>
+              </GridItem>
+            )}
             {piiFields.length > 0 ? (
               <GridItem w="100%" colSpan={2}>
                 <DataHeading>PII Data</DataHeading>

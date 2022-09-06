@@ -82,6 +82,7 @@ const EndpointPIIChart: React.FC<EndpointPIIChartProps> = React.memo(
       plugins: {
         legend: {
           position: "top" as LayoutPosition,
+          onClick: e => {},
         },
       },
     } as ChartOptions
