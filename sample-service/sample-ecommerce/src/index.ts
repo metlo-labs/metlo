@@ -11,6 +11,7 @@ import {
   purchaseCartHandler,
 } from "api/cart"
 import { createNewProductHandler, getProductHandler } from "api/product"
+import { hashString } from "utils"
 
 dotenv.config()
 
@@ -47,6 +48,19 @@ app.post("/cart/:cartUuid/purchase", purchaseCartHandler)
 
 app.post("/product/new", createNewProductHandler)
 
+const initializeUser = async () => {
+  const user = AppDataSource.getRepository(User).create()
+  user.firstName = process.env.FIRST_NAME
+  user.lastName = process.env.LAST_NAME
+  user.email = process.env.EMAIL
+  user.hashedPassword = await hashString(process.env.PASSWORD)
+  user.dob = process.env.DOB
+  user.apiKey = process.env.API_KEY
+  user.phoneNumber = process.env.PHONE_NUMBER
+  user.address = process.env.ADDRESS
+  await user.save()
+}
+
 const main = async () => {
   try {
     const datasource = await AppDataSource.initialize()
@@ -55,6 +69,7 @@ const main = async () => {
         datasource.isInitialized ? "Yes" : "No"
       }`,
     )
+    await initializeUser()
     app.listen(port, () => {
       console.log(`⚡️[server]: Server is running at http://localhost:${port}`)
     })
