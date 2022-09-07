@@ -2,6 +2,8 @@ import {
   CreateTrafficMirrorFilterCommandOutput,
   DescribeInstancesCommand,
   DescribeInstancesCommandInput,
+  DescribeNetworkInterfacesCommand,
+  DescribeNetworkInterfacesCommandInput,
   EC2Client,
 } from "@aws-sdk/client-ec2"
 import { EC2_CONN } from "./create-ec2-instance"
@@ -20,7 +22,7 @@ import {
 } from "./utils"
 
 import { STEP_RESPONSE } from "@common/types"
-import { ConnectionType } from "@common/enums"
+import { AWS_SOURCE_TYPE, ConnectionType } from "@common/enums"
 
 type RESPONSE = STEP_RESPONSE<ConnectionType.AWS>
 export async function aws_key_setup({
@@ -74,7 +76,8 @@ export async function aws_key_setup({
 export async function aws_source_identification({
   access_id,
   secret_access_key,
-  source_instance_id,
+  source_type,
+  mirror_source_id,
   region: _region,
   ...rest
 }: RESPONSE["data"]): Promise<RESPONSE> {
@@ -86,14 +89,39 @@ export async function aws_source_identification({
       },
       region: _region,
     })
-    let command = new DescribeInstancesCommand({
-      InstanceIds: [source_instance_id],
-    } as DescribeInstancesCommandInput)
-    let resp = await client.send(command)
-    let region = await match_av_to_region(
-      client,
-      resp.Reservations[0].Instances[0].Placement.AvailabilityZone,
-    )
+    var region, source_eni_id, source_private_ip
+    if (source_type === AWS_SOURCE_TYPE.INSTANCE) {
+      let command = new DescribeInstancesCommand({
+        InstanceIds: [mirror_source_id],
+      } as DescribeInstancesCommandInput)
+
+      let resp = await client.send(command)
+      region = await match_av_to_region(
+        client,
+        resp.Reservations[0].Instances[0].Placement.AvailabilityZone,
+      )
+      source_eni_id =
+        resp.Reservations[0].Instances[0].NetworkInterfaces[0]
+          .NetworkInterfaceId
+      source_private_ip =
+        resp.Reservations[0].Instances[0].NetworkInterfaces[0].PrivateIpAddress
+    } else if (source_type === AWS_SOURCE_TYPE.NETWORK_INTERFACE) {
+      let command = new DescribeNetworkInterfacesCommand({
+        NetworkInterfaceIds: [mirror_source_id],
+      } as DescribeNetworkInterfacesCommandInput)
+
+      let resp = await client.send(command)
+      region = await match_av_to_region(
+        client,
+        resp.NetworkInterfaces[0].AvailabilityZone,
+      )
+      source_eni_id = resp.NetworkInterfaces[0].NetworkInterfaceId
+      source_private_ip = resp.NetworkInterfaces[0].PrivateIpAddress
+    } else {
+      throw new Error(
+        `Couldn't find information about source_type : ${source_type}`,
+      )
+    }
     client.destroy()
     return {
       success: "OK",
@@ -104,16 +132,13 @@ export async function aws_source_identification({
       message: "Verfied EC2 data mirror instance",
       error: null,
       data: {
-        secret_access_key: secret_access_key,
-        access_id: access_id,
-        source_instance_id: source_instance_id,
-        source_eni_id:
-          resp.Reservations[0].Instances[0].NetworkInterfaces[0]
-            .NetworkInterfaceId,
-        source_private_ip:
-          resp.Reservations[0].Instances[0].NetworkInterfaces[0]
-            .PrivateIpAddress,
+        secret_access_key,
+        access_id,
+        mirror_source_id,
+        source_type,
         region: region.RegionName,
+        source_eni_id: source_eni_id,
+        source_private_ip: source_private_ip,
         ...rest,
       },
     }

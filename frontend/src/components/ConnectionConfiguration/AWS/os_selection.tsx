@@ -23,16 +23,14 @@ const OsSelection: React.FC<KeySetupInterface> = ({
   isCurrent,
 }) => {
   const [os_choice, set_choice] = useState("")
-  const [OSChoices, setOSChoices] = useState<Array<[string, string]>>(null)
+  const [OSChoices, setOSChoices] = useState<Array<[string, string]>>(null)  
+
   useEffect(() => {
     if (isCurrent) {
       axios
-        .post<Array<[string, string]>>(
-          `${getAPIURL()}/setup_connection/aws/os`,
-          {
-            id: id,
-          },
-        )
+        .post<Array<[string, string]>>(`/api/v1/setup_connection/aws/os`, {
+          id: id,
+        })
         .then(res => {
           setOSChoices(res.data)
           if (res.data.length > 0) {

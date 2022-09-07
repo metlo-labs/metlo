@@ -58,7 +58,7 @@ const AWS_INFO: React.FC<AWS_INFOInterface> = ({
 
   const onDownloadClick = (fileName, uuid) => {
     axios
-      .get<{ sshkey: string }>(`${getAPIURL()}/list_connections/${uuid}/sshkey`)
+      .get<{ sshkey: string }>(`/api/v1/list_connections/${uuid}/sshkey`)
       .then(v => {
         const element = document.createElement("a")
         const file = new Blob([v.data.sshkey], {

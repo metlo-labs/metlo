@@ -11,7 +11,7 @@ import { ConnectionType, AWS_STEPS } from "@common/enums"
 import { useState } from "react"
 import KeySetup from "./key_setup"
 import { v4 as uuidv4 } from "uuid"
-import SourceInstanceID from "./source_instance_id"
+import SelectMirrorSource from "./select_source"
 import { STEP_RESPONSE } from "@common/types"
 import { AWS_STEP_TO_TITLE_MAP } from "@common/maps"
 import axios, { AxiosResponse, AxiosError, AxiosRequestConfig } from "axios"
@@ -99,12 +99,13 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
     params: Record<string, any>,
     step: AWS_STEPS,
   ) => {
-    let retries = 0
     incrementStep(
       id,
       { ...params, name: name },
       step,
-      () => updateSelected(step + 1),
+      () => {
+        updateSelected(step + 1)
+      },
       err => {
         create_toast_with_message(err.data.message, step)
         console.log(err.data.error)
@@ -164,8 +165,8 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
       case AWS_STEPS.AWS_KEY_SETUP:
         return (
           <KeySetup
-            complete={params => {
-              step_increment_function(params, AWS_STEPS.AWS_KEY_SETUP)
+            complete={async params => {
+              await step_increment_function(params, AWS_STEPS.AWS_KEY_SETUP)
             }}
             name={name}
             setName={setName}
@@ -173,9 +174,12 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
         )
       case AWS_STEPS.SOURCE_INSTANCE_ID:
         return (
-          <SourceInstanceID
-            complete={params => {
-              step_increment_function(params, AWS_STEPS.SOURCE_INSTANCE_ID)
+          <SelectMirrorSource
+            complete={async params => {
+              await step_increment_function(
+                params,
+                AWS_STEPS.SOURCE_INSTANCE_ID,
+              )
             }}
           />
         )
@@ -183,8 +187,8 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
         return (
           <OsSelection
             isCurrent={selectedIndex === selected}
-            complete={params => {
-              step_increment_function(params, AWS_STEPS.SELECT_OS)
+            complete={async params => {
+              await step_increment_function(params, AWS_STEPS.SELECT_OS)
             }}
             id={id}
           />
@@ -193,8 +197,11 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
         return (
           <InstanceSelection
             id={id}
-            complete={params => {
-              step_increment_function(params, AWS_STEPS.SELECT_INSTANCE_TYPE)
+            complete={async params => {
+              await step_increment_function(
+                params,
+                AWS_STEPS.SELECT_INSTANCE_TYPE,
+              )
             }}
             isCurrent={selectedIndex == selected}
             setLoadingState={setUpdating}
@@ -204,11 +211,11 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
         return (
           <GenericStep
             id={id}
-            complete={params => {
-              step_increment_function(params, AWS_STEPS.CREATE_INSTANCE)
+            complete={async params => {
+              await step_increment_function(params, AWS_STEPS.CREATE_INSTANCE)
             }}
             isCurrent={selectedIndex == selected}
-          ></GenericStep>
+          />
         )
       case AWS_STEPS.INSTANCE_IP:
         return (
@@ -224,8 +231,11 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
         return (
           <GenericStep
             id={id}
-            complete={params => {
-              step_increment_function(params, AWS_STEPS.CREATE_MIRROR_TARGET)
+            complete={async params => {
+              await step_increment_function(
+                params,
+                AWS_STEPS.CREATE_MIRROR_TARGET,
+              )
             }}
             isCurrent={selectedIndex == selected}
           ></GenericStep>
@@ -234,8 +244,11 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
         return (
           <SetupRulesFilter
             id={id}
-            complete={params => {
-              step_increment_function(params, AWS_STEPS.CREATE_MIRROR_FILTER)
+            complete={async params => {
+              await step_increment_function(
+                params,
+                AWS_STEPS.CREATE_MIRROR_FILTER,
+              )
             }}
             isCurrent={selectedIndex == selected}
           />
@@ -244,8 +257,11 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
         return (
           <GenericStep
             id={id}
-            complete={params => {
-              step_increment_function(params, AWS_STEPS.CREATE_MIRROR_SESSION)
+            complete={async params => {
+              await step_increment_function(
+                params,
+                AWS_STEPS.CREATE_MIRROR_SESSION,
+              )
             }}
             isCurrent={selectedIndex == selected}
           ></GenericStep>

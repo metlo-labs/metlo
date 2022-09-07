@@ -16,7 +16,8 @@ const save_connection_aws = async ({
   const {
     access_id,
     secret_access_key,
-    source_instance_id,
+    mirror_source_id,
+    source_type,
     region,
     ami,
     selected_instance_type,
@@ -37,7 +38,8 @@ const save_connection_aws = async ({
   conn.aws = {
     access_id,
     secret_access_key,
-    source_instance_id,
+    mirror_source_id,
+    source_type,
     region,
     ami,
     selected_instance_type,

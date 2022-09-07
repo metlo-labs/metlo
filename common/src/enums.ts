@@ -137,3 +137,8 @@ export enum UpdateAlertType {
   IGNORE = "ignore",
   UNIGNORE = "unignore",
 }
+
+export enum AWS_SOURCE_TYPE {
+  INSTANCE,
+  NETWORK_INTERFACE,
+}
