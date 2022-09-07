@@ -142,3 +142,9 @@ export enum AWS_SOURCE_TYPE {
   INSTANCE,
   NETWORK_INTERFACE,
 }
+
+export enum GCP_SOURCE_TYPE {
+  INSTANCE,
+  SUBNET,
+  TAG,
+}
