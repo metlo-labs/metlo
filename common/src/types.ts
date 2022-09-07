@@ -73,6 +73,11 @@ export interface GetSensitiveDataAggParams {
   locations?: DataSection[]
 }
 
+export interface GetVulnerabilityAggParams {
+  hosts?: string[]
+  riskScores?: RiskScore[]
+}
+
 export interface GetEndpointParams {
   hosts?: string[]
   riskScores?: RiskScore[]
@@ -242,6 +247,21 @@ export interface SensitiveDataSummary {
   piiDataTypeCount: Map<DataClass, number>
   piiItems: PIIDataClassAggItem[]
   totalPIIFields: number
+  totalEndpoints: number
+}
+
+export interface VulnerabilityAggItem {
+  type: AlertType
+  risk: RiskScore
+  count: number
+  numEndpoints: number
+  numHosts: number
+}
+
+export interface VulnerabilitySummary {
+  vulnerabilityTypeCount: Map<AlertType, number>
+  vulnerabilityItems: VulnerabilityAggItem[]
+  totalVulnerabilities: number
   totalEndpoints: number
 }
 

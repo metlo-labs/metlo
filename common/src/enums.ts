@@ -44,6 +44,14 @@ export enum AlertType {
   UNSECURED_ENDPOINT_DETECTED = "Endpoint not secured by SSL",
 }
 
+export const VULNERABILITY_ALERT_TYPES = [
+  AlertType.OPEN_API_SPEC_DIFF,
+  AlertType.QUERY_SENSITIVE_DATA,
+  AlertType.PATH_SENSITIVE_DATA,
+  AlertType.BASIC_AUTHENTICATION_DETECTED,
+  AlertType.UNSECURED_ENDPOINT_DETECTED,
+]
+
 export enum ConnectionType {
   AWS = "AWS",
   GCP = "GCP",

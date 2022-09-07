@@ -40,6 +40,7 @@ import {
 } from "./api/connections"
 import { RedisClient } from "utils/redis"
 import { getSensitiveDataSummaryHandler } from "api/data-field/sensitive-data"
+import { getVulnerabilitySummaryHandler } from "api/alert/vulnerability"
 
 dotenv.config()
 
@@ -74,6 +75,7 @@ app.get("/api/v1", (req: Request, res: Response) => {
 
 app.get("/api/v1/summary", getSummaryHandler)
 app.get("/api/v1/sensitive-data-summary", getSensitiveDataSummaryHandler)
+app.get("/api/v1/vulnerability-summary", getVulnerabilitySummaryHandler)
 app.get("/api/v1/endpoints/hosts", getHostsHandler)
 app.get("/api/v1/endpoints", getEndpointsHandler)
 app.get("/api/v1/endpoint/:endpointId", getEndpointHandler)
