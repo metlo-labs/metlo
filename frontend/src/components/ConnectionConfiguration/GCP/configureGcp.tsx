@@ -17,7 +17,7 @@ import { useToast } from "@chakra-ui/react"
 import { api_call_retry } from "utils"
 import GenericStep from "../common/genericStep"
 import KeySetup from "./key_setup"
-import SourceInstanceID from "./source_instance_id"
+import SelectMirrorSourceGCP from "./select_source"
 import SourceMigConfig from "./destination_instance_config"
 interface configureAWSParams {
   selected: GCP_STEPS
@@ -143,9 +143,11 @@ const ConfigureGCP: React.FC<configureAWSParams> = ({
         } as AxiosRequestConfig,
         onAPIError: (err: AxiosError) => {
           create_toast_with_message(err.message, step)
+          setUpdating(false)
         },
         onError: (err: Error) => {
           create_toast_with_message(err.message, step)
+          setUpdating(false)
         },
         onSuccess: (resp: AxiosResponse<connData>) => {
           if (resp.data.success === "OK") {
@@ -157,10 +159,9 @@ const ConfigureGCP: React.FC<configureAWSParams> = ({
             create_toast_with_message(resp.data.message, step)
             console.log(resp.data.error)
           }
-        },
-        onFinally: () => {
           setUpdating(false)
         },
+        onFinally: () => {},
         shouldRetry: (resp: AxiosResponse<connData>) => {
           return resp.data.success === "FETCHING"
         },
@@ -184,7 +185,7 @@ const ConfigureGCP: React.FC<configureAWSParams> = ({
         )
       case GCP_STEPS.SOURCE_INSTANCE_ID:
         return (
-          <SourceInstanceID
+          <SelectMirrorSourceGCP
             complete={params => {
               step_increment_function(params, GCP_STEPS.SOURCE_INSTANCE_ID)
             }}

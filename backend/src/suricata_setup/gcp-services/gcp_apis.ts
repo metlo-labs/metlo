@@ -87,6 +87,15 @@ export class GCP_CONN {
     return resp
   }
 
+  public async list_instances() {
+    let conn = new InstancesClient({ credentials: this.keyfile })
+    const resp = conn.list({
+      project: this.project,
+      zone: this.zone,
+    })
+    return resp
+  }
+
   public async get_subnet_information({ subnetName }) {
     let conn = new SubnetworksClient({ credentials: this.keyfile })
     const resp = conn.get({
@@ -498,7 +507,9 @@ export class GCP_CONN {
   public async start_packet_mirroring({
     name,
     networkURL,
-    mirroredInstanceURL,
+    mirroredInstanceURLs = [],
+    mirroredSubnetURLS = [],
+    mirroredTagURLs = [],
     loadBalancerURL,
   }) {
     let conn = new PacketMirroringsClient({ credentials: this.keyfile })
@@ -513,11 +524,13 @@ export class GCP_CONN {
           url: networkURL,
         },
         mirroredResources: {
-          instances: [
-            {
-              url: mirroredInstanceURL,
-            },
-          ],
+          instances: mirroredInstanceURLs.map(url => ({
+            url,
+          })),
+          subnetworks: mirroredSubnetURLS.map(url => ({
+            url,
+          })),
+          tags: mirroredTagURLs,
         },
         region: this.region,
       },

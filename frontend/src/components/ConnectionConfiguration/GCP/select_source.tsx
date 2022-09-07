@@ -9,16 +9,17 @@ import {
   Input,
   VStack,
 } from "@chakra-ui/react"
-import { AWS_SOURCE_TYPE } from "@common/enums"
+import { GCP_SOURCE_TYPE } from "@common/enums"
 import { useState } from "react"
 
 interface KeySetupInterface {
   complete: (params: Record<string, any>) => void
 }
 
-const SelectMirrorSourceAWS: React.FC<KeySetupInterface> = ({ complete }) => {
-  const [instanceID, setInstanceId] = useState("")
-  const [networkInterfaceID, setNetworkInterfaceID] = useState<string>("")
+const SelectMirrorSourceGCP: React.FC<KeySetupInterface> = ({ complete }) => {
+  const [instanceName, setInstanceName] = useState("")
+  const [subnetwork, setSubnetwork] = useState("")
+  const [tag, setTag] = useState("")
 
   return (
     <VStack
@@ -28,13 +29,13 @@ const SelectMirrorSourceAWS: React.FC<KeySetupInterface> = ({ complete }) => {
           borderBottomWidth={"0px"}
           wrap={"nowrap"}
           border={"none"}
+          m={2}
         >
           <Divider color={"chakra-border-color"} />
           <Box>OR</Box>
           <Divider color={"chakra-border-color"} />
         </HStack>
       }
-      w={"full"}
     >
       <Grid
         templateColumns="repeat(3, 1fr)"
@@ -45,13 +46,13 @@ const SelectMirrorSourceAWS: React.FC<KeySetupInterface> = ({ complete }) => {
         w={"full"}
       >
         <GridItem colSpan={1}>
-          <Box>EC2 Source Instance ID</Box>
+          <Box>Source Compute Instance Name</Box>
         </GridItem>
         <GridItem colSpan={2}>
           <Box>
             <Input
-              onChange={e => setInstanceId(e.target.value)}
-              value={instanceID}
+              onChange={e => setInstanceName(e.target.value)}
+              value={instanceName}
             />
           </Box>
         </GridItem>
@@ -60,11 +61,11 @@ const SelectMirrorSourceAWS: React.FC<KeySetupInterface> = ({ complete }) => {
             <Button
               onClick={() =>
                 complete({
-                  mirror_source_id: instanceID,
-                  source_type: AWS_SOURCE_TYPE.NETWORK_INTERFACE,
+                  mirror_source_value: [instanceName],
+                  source_type: GCP_SOURCE_TYPE.INSTANCE,
                 })
               }
-              disabled={!instanceID}
+              disabled={!instanceName}
             >
               Next Step
             </Button>
@@ -80,13 +81,13 @@ const SelectMirrorSourceAWS: React.FC<KeySetupInterface> = ({ complete }) => {
         w={"full"}
       >
         <GridItem colSpan={1}>
-          <Box>EC2 Network Interface ID</Box>
+          <Box>Source Subnet Name</Box>
         </GridItem>
         <GridItem colSpan={2}>
           <Box>
             <Input
-              onChange={e => setNetworkInterfaceID(e.target.value)}
-              value={networkInterfaceID}
+              onChange={e => setSubnetwork(e.target.value)}
+              value={subnetwork}
             />
           </Box>
         </GridItem>
@@ -95,11 +96,43 @@ const SelectMirrorSourceAWS: React.FC<KeySetupInterface> = ({ complete }) => {
             <Button
               onClick={() =>
                 complete({
-                  mirror_source_id: networkInterfaceID,
-                  source_type: AWS_SOURCE_TYPE.NETWORK_INTERFACE,
+                  mirror_source_value: [subnetwork],
+                  source_type: GCP_SOURCE_TYPE.SUBNET,
                 })
               }
-              disabled={!networkInterfaceID}
+              disabled={!subnetwork}
+            >
+              Next Step
+            </Button>
+          </Flex>
+        </GridItem>
+      </Grid>
+      <Grid
+        templateColumns="repeat(3, 1fr)"
+        templateRows="repeat(2,1fr)"
+        gap={4}
+        py={4}
+        pr={4}
+        w={"full"}
+      >
+        <GridItem colSpan={1}>
+          <Box>Source Network Tag Names</Box>
+        </GridItem>
+        <GridItem colSpan={2}>
+          <Box>
+            <Input onChange={e => setTag(e.target.value)} value={tag} />
+          </Box>
+        </GridItem>
+        <GridItem w={"full"} colSpan={3}>
+          <Flex justifyContent={"flex-end"} my={4}>
+            <Button
+              onClick={() =>
+                complete({
+                  mirror_source_value: [tag],
+                  source_type: GCP_SOURCE_TYPE.TAG,
+                })
+              }
+              disabled={!tag}
             >
               Next Step
             </Button>
@@ -109,4 +142,4 @@ const SelectMirrorSourceAWS: React.FC<KeySetupInterface> = ({ complete }) => {
     </VStack>
   )
 }
-export default SelectMirrorSourceAWS
+export default SelectMirrorSourceGCP

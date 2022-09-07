@@ -64,29 +64,31 @@ export async function setup(
   step: number = 0,
   type: ConnectionType,
   metadata_for_step: STEP_RESPONSE["data"],
-): Promise<STEP_RESPONSE<ConnectionType>> {
+): Promise<STEP_RESPONSE> {
   var uuid, resp
   if (type == ConnectionType.AWS) {
     type connType = STEP_RESPONSE<ConnectionType.AWS>
+    const metadata =
+      metadata_for_step as STEP_RESPONSE<ConnectionType.AWS>["data"]
     switch (step) {
       case 1:
-        return await aws_key_setup(metadata_for_step as any)
+        return await aws_key_setup(metadata)
       case 2:
-        return await aws_source_identification(metadata_for_step as any)
+        return await aws_source_identification(metadata)
       case 3:
-        return await aws_os_selection(metadata_for_step as any)
+        return await aws_os_selection(metadata)
       case 4:
-        return await aws_instance_selection(metadata_for_step as any)
+        return await aws_instance_selection(metadata)
       case 5:
-        return await aws_instance_creation(metadata_for_step as any)
+        return await aws_instance_creation(metadata)
       case 6:
-        return await get_public_ip(metadata_for_step as any)
+        return await get_public_ip(metadata)
       case 7:
-        return await aws_mirror_target_creation(metadata_for_step as any)
+        return await aws_mirror_target_creation(metadata)
       case 8:
-        return await aws_mirror_filter_creation(metadata_for_step as any)
+        return await aws_mirror_filter_creation(metadata)
       case 9:
-        return await aws_mirror_session_creation(metadata_for_step as any)
+        return await aws_mirror_session_creation(metadata)
       case 10:
         uuid = uuidv4()
         resp = dummy_response(uuid, 10, metadata_for_step, ConnectionType.AWS)
@@ -94,7 +96,7 @@ export async function setup(
         addToRedisFromPromise(
           uuid,
           test_ssh({
-            ...metadata_for_step,
+            ...metadata,
             step: 10,
           }),
         )
@@ -106,7 +108,7 @@ export async function setup(
         addToRedisFromPromise(
           uuid,
           push_files({
-            ...metadata_for_step,
+            ...metadata,
             step: 11,
           }),
         )
@@ -118,7 +120,7 @@ export async function setup(
         addToRedisFromPromise(
           uuid,
           execute_commands({
-            ...metadata_for_step,
+            ...metadata,
             step: 12,
           } as any).then(resp => {
             if (resp.status === "COMPLETE") {
@@ -137,71 +139,66 @@ export async function setup(
         break
     }
   } else if (type == ConnectionType.GCP) {
-    type connType = STEP_RESPONSE<ConnectionType.GCP>
-    let metadata = metadata_for_step as connType["data"]
+    let metadata =
+      metadata_for_step as STEP_RESPONSE<ConnectionType.GCP>["data"]
     switch (step) {
       case GCP_STEPS.GCP_KEY_SETUP:
-        return await gcp_key_setup(metadata_for_step as any)
+        return await gcp_key_setup(metadata)
       case GCP_STEPS.SOURCE_INSTANCE_ID:
-        return await gcp_source_identification(metadata_for_step as any)
+        return await gcp_source_identification(metadata)
       case GCP_STEPS.CREATE_DESTINATION_SUBNET:
         uuid = uuidv4()
-        resp = await dummy_response(
-          uuid,
-          3,
-          metadata_for_step,
-          ConnectionType.GCP,
-        )
+        resp = await dummy_response(uuid, 3, metadata, ConnectionType.GCP)
         await addToRedis(uuid, resp)
         addToRedisFromPromise(uuid, get_destination_subnet(metadata))
         return resp
       case GCP_STEPS.CREATE_FIREWALL:
-        return await create_firewall_rule(metadata_for_step as any)
+        return await create_firewall_rule(metadata)
       case GCP_STEPS.CREATE_CLOUD_ROUTER:
-        return await create_cloud_router(metadata_for_step as any)
+        return await create_cloud_router(metadata)
       case GCP_STEPS.CREATE_MIG:
         uuid = uuidv4()
-        resp = dummy_response(uuid, 6, metadata_for_step, ConnectionType.GCP)
+        resp = dummy_response(uuid, 6, metadata, ConnectionType.GCP)
         await addToRedis(uuid, resp)
-        addToRedisFromPromise(uuid, create_mig(metadata_for_step))
+        addToRedisFromPromise(uuid, create_mig(metadata))
         return resp
       case GCP_STEPS.CREATE_HEALTH_CHECK:
         uuid = uuidv4()
-        resp = dummy_response(uuid, 8, metadata_for_step, ConnectionType.GCP)
+        resp = dummy_response(uuid, 8, metadata, ConnectionType.GCP)
         await addToRedis(uuid, resp)
-        addToRedisFromPromise(uuid, create_health_check(metadata_for_step))
+        addToRedisFromPromise(uuid, create_health_check(metadata))
         return resp
       case GCP_STEPS.CREATE_BACKEND_SERVICE:
         uuid = uuidv4()
-        resp = dummy_response(uuid, 9, metadata_for_step, ConnectionType.GCP)
+        resp = dummy_response(uuid, 9, metadata, ConnectionType.GCP)
         await addToRedis(uuid, resp)
 
-        addToRedisFromPromise(uuid, create_backend_service(metadata_for_step))
+        addToRedisFromPromise(uuid, create_backend_service(metadata))
         return resp
       case GCP_STEPS.CREATE_ILB:
         uuid = uuidv4()
-        resp = dummy_response(uuid, 10, metadata_for_step, ConnectionType.GCP)
+        resp = dummy_response(uuid, 10, metadata, ConnectionType.GCP)
         await addToRedis(uuid, resp)
 
-        addToRedisFromPromise(uuid, create_load_balancer(metadata_for_step))
+        addToRedisFromPromise(uuid, create_load_balancer(metadata))
         return resp
       case GCP_STEPS.START_PACKET_MIRRORING:
         uuid = uuidv4()
-        resp = dummy_response(uuid, 11, metadata_for_step, ConnectionType.GCP)
+        resp = dummy_response(uuid, 11, metadata, ConnectionType.GCP)
         await addToRedis(uuid, resp)
 
-        addToRedisFromPromise(uuid, packet_mirroring(metadata_for_step))
+        addToRedisFromPromise(uuid, packet_mirroring(metadata))
         return resp
       case GCP_STEPS.TEST_SSH:
         uuid = uuidv4()
         resp = dummy_response(
           uuid,
           GCP_STEPS.TEST_SSH,
-          metadata_for_step,
+          metadata,
           ConnectionType.GCP,
         )
         await addToRedis(uuid, resp)
-        addToRedisFromPromise(uuid, gcp_test_ssh(metadata_for_step))
+        addToRedisFromPromise(uuid, gcp_test_ssh(metadata))
         return resp
       case GCP_STEPS.PUSH_FILES:
         uuid = uuidv4()
@@ -212,7 +209,7 @@ export async function setup(
           ConnectionType.GCP,
         )
         await addToRedis(uuid, resp)
-        addToRedisFromPromise(uuid, gcp_push_files(metadata_for_step))
+        addToRedisFromPromise(uuid, gcp_push_files(metadata))
         return resp
       case GCP_STEPS.EXEC_COMMAND:
         uuid = uuidv4()
@@ -225,12 +222,14 @@ export async function setup(
         await addToRedis(uuid, resp)
         addToRedisFromPromise(
           uuid,
-          gcp_execute_commands(metadata_for_step).then(resp => {
+          gcp_execute_commands(metadata).then(resp => {
             if (resp.status === "COMPLETE") {
               save_connection_gcp({
                 id: resp.data.id,
                 name: resp.data.name,
-                conn_meta: { ...resp.data } as Required<connType["data"]>,
+                conn_meta: {
+                  ...resp.data,
+                } as Required<STEP_RESPONSE<ConnectionType.GCP>["data"]>,
               })
             }
             return resp

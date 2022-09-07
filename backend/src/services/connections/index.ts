@@ -95,7 +95,8 @@ const save_connection_gcp = async ({
     forwarding_rule_url,
     source_instance_url,
     packet_mirror_url,
-    source_instance_name,
+    mirror_source_value,
+    source_type,
     source_private_ip,
   } = conn_meta
   const conn = new Connections()
@@ -120,7 +121,8 @@ const save_connection_gcp = async ({
     forwarding_rule_url,
     source_instance_url,
     packet_mirror_url,
-    source_instance_name,
+    mirror_source_value,
+    source_type,
     source_private_ip,
   } as GCP_CONNECTION
   conn.connectionType = ConnectionType.GCP

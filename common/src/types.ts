@@ -15,6 +15,7 @@ import {
   UpdateAlertType,
   GCP_STEPS,
   AWS_SOURCE_TYPE,
+  GCP_SOURCE_TYPE,
 } from "./enums"
 import "axios"
 
@@ -372,7 +373,8 @@ export interface GCP_CONNECTION {
   forwarding_rule_url: string
   source_instance_url: string
   packet_mirror_url: string
-  source_instance_name: string
+  mirror_source_value: [string]
+  source_type: GCP_SOURCE_TYPE
   source_private_ip: string
 }
 

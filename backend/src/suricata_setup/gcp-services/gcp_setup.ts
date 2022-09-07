@@ -1,5 +1,5 @@
 import { MachineSpecifications, STEP_RESPONSE } from "@common/types"
-import { ConnectionType, GCP_STEPS } from "@common/enums"
+import { ConnectionType, GCP_SOURCE_TYPE, GCP_STEPS } from "@common/enums"
 import { GCP_CONN } from "./gcp_apis"
 import AsyncRetry from "async-retry"
 import { promisify } from "util"
@@ -81,12 +81,37 @@ export async function gcp_source_identification({
   key_file,
   zone,
   project,
-  source_instance_name,
+  mirror_source_value,
+  source_type,
   ...rest
 }: RESPONSE["data"]): Promise<STEP_RESPONSE<ConnectionType.GCP>> {
   try {
     let conn = new GCP_CONN(key_file, zone, project)
-    let resp = await conn.get_instance(source_instance_name)
+    var source_private_ip, source_subnetwork_url, source_instance_url
+    if (source_type === GCP_SOURCE_TYPE.INSTANCE) {
+      let resp = await conn.get_instance(mirror_source_value[0])
+      source_private_ip = resp[0].networkInterfaces[0].networkIP
+      source_subnetwork_url = resp[0].networkInterfaces[0].subnetwork
+      source_instance_url = resp[0].selfLink
+    } else if (source_type === GCP_SOURCE_TYPE.SUBNET) {
+      let resp = await conn.get_subnet_information({
+        subnetName: mirror_source_value[0],
+      })
+      source_private_ip = resp[0].ipCidrRange
+      source_subnetwork_url = resp[0].selfLink
+      source_instance_url = resp[0].selfLink
+    } else if (source_type === GCP_SOURCE_TYPE.TAG) {
+      let resp = await conn.list_instances()
+
+      if (!resp[0].find(v => v.tags.items.includes(mirror_source_value[0]))) {
+        throw new Error(
+          `No instances with tag ${mirror_source_value[0]} found in zone ${zone}`,
+        )
+      }
+      source_private_ip = "0.0.0.0/0" // Allow any since filtering is done on tags by gcp
+      source_subnetwork_url = ""
+      source_instance_url = ""
+    }
     return {
       success: "OK",
       status: "IN-PROGRESS",
@@ -99,10 +124,11 @@ export async function gcp_source_identification({
         key_file,
         zone,
         project,
-        source_instance_name,
-        source_private_ip: resp[0].networkInterfaces[0].networkIP,
-        source_subnetwork_url: resp[0].networkInterfaces[0].subnetwork,
-        source_instance_url: resp[0].selfLink,
+        mirror_source_value,
+        source_type,
+        source_private_ip,
+        source_subnetwork_url,
+        source_instance_url,
         ...rest,
       },
     }
@@ -310,7 +336,6 @@ export async function create_cloud_router({
       // @ts-ignore
       router_url = new_router[0].latestResponse.targetLink
     }
-    ;("https://www.googleapis.com/compute/v1/projects/metlo-crypto/regions/us-west1/subnetworks/metlo-subnet-3e63bb14-bdb4-4c6d-bc41-31512ca50ad2")
     return {
       success: "OK",
       status: "IN-PROGRESS",
@@ -653,19 +678,46 @@ export async function packet_mirroring({
   network_url,
   forwarding_rule_url,
   source_instance_url,
+  mirror_source_value,
+  source_type,
   id,
   ...rest
 }: RESPONSE["data"]): Promise<RESPONSE> {
   try {
     let conn = new GCP_CONN(key_file, zone, project)
     const packet_mirror_name = `metlo-packet-mirroring-${id}`
-    let resp = await conn.start_packet_mirroring({
-      networkURL: network_url,
-      name: packet_mirror_name,
-      mirroredInstanceURL: source_instance_url,
-      loadBalancerURL: forwarding_rule_url,
-    })
-    await wait_for_regional_operation(resp[0].latestResponse.name, conn)
+    var packet_mirror_url
+    if (source_type === GCP_SOURCE_TYPE.INSTANCE) {
+      let resp = await conn.start_packet_mirroring({
+        networkURL: network_url,
+        name: packet_mirror_name,
+        mirroredInstanceURLs: [source_instance_url],
+        loadBalancerURL: forwarding_rule_url,
+      })
+      packet_mirror_url = (
+        await wait_for_regional_operation(resp[0].latestResponse.name, conn)
+      )[0].targetLink
+    } else if (source_type === GCP_SOURCE_TYPE.SUBNET) {
+      let resp = await conn.start_packet_mirroring({
+        networkURL: network_url,
+        name: packet_mirror_name,
+        mirroredSubnetURLS: [source_instance_url],
+        loadBalancerURL: forwarding_rule_url,
+      })
+      packet_mirror_url = (
+        await wait_for_regional_operation(resp[0].latestResponse.name, conn)
+      )[0].targetLink
+    } else if (source_type === GCP_SOURCE_TYPE.TAG) {
+      let resp = await conn.start_packet_mirroring({
+        networkURL: network_url,
+        name: packet_mirror_name,
+        mirroredTagURLs: mirror_source_value,
+        loadBalancerURL: forwarding_rule_url,
+      })
+      packet_mirror_url = (
+        await wait_for_regional_operation(resp[0].latestResponse.name, conn)
+      )[0].targetLink
+    }
     return {
       success: "OK",
       status: "IN-PROGRESS",
@@ -681,8 +733,9 @@ export async function packet_mirroring({
         network_url,
         forwarding_rule_url,
         source_instance_url,
-        //@ts-ignore
-        packet_mirror_url: resp[0].latestResponse.targetLink,
+        mirror_source_value,
+        source_type,
+        packet_mirror_url,
         id,
         ...rest,
       },
@@ -706,6 +759,8 @@ export async function packet_mirroring({
         network_url,
         forwarding_rule_url,
         source_instance_url,
+        mirror_source_value,
+        source_type,
         id,
         ...rest,
       },

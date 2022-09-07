@@ -11,7 +11,7 @@ import { ConnectionType, AWS_STEPS } from "@common/enums"
 import { useState } from "react"
 import KeySetup from "./key_setup"
 import { v4 as uuidv4 } from "uuid"
-import SelectMirrorSource from "./select_source"
+import SelectMirrorSourceAWS from "./select_source"
 import { STEP_RESPONSE } from "@common/types"
 import { AWS_STEP_TO_TITLE_MAP } from "@common/maps"
 import axios, { AxiosResponse, AxiosError, AxiosRequestConfig } from "axios"
@@ -136,9 +136,11 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
       requestParams: { params: { id, step, ..._params } } as AxiosRequestConfig,
       onAPIError: (err: AxiosError) => {
         create_toast_with_message(err.message, step)
+        setUpdating(false)
       },
       onError: (err: Error) => {
         create_toast_with_message(err.message, step)
+        setUpdating(false)
       },
       onSuccess: (resp: AxiosResponse<Omit<STEP_RESPONSE, "data">>) => {
         if (resp.data.success === "OK") {
@@ -150,10 +152,9 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
           create_toast_with_message(resp.data.message, step)
           console.log(resp.data.error)
         }
-      },
-      onFinally: () => {
         setUpdating(false)
       },
+      onFinally: () => {},
       shouldRetry: (resp: AxiosResponse<Omit<STEP_RESPONSE, "data">>) => {
         return resp.data.success === "FETCHING"
       },
@@ -174,7 +175,7 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
         )
       case AWS_STEPS.SOURCE_INSTANCE_ID:
         return (
-          <SelectMirrorSource
+          <SelectMirrorSourceAWS
             complete={async params => {
               await step_increment_function(
                 params,

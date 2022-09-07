@@ -14,7 +14,7 @@ import {
   Button,
   useToast,
 } from "@chakra-ui/react"
-import { ConnectionType } from "@common/enums"
+import { ConnectionType, GCP_SOURCE_TYPE } from "@common/enums"
 import { ConnectionInfo } from "@common/types"
 import axios from "axios"
 import { useState } from "react"
@@ -24,6 +24,23 @@ import { EditableControls } from "../utils/EditableControls"
 interface GCP_INFOInterface {
   connection: ConnectionInfo
   setConnection: (updatedConnection: ConnectionInfo) => void
+}
+
+function resolve_mirror_source_id(source_type: GCP_SOURCE_TYPE) {
+  if (source_type === GCP_SOURCE_TYPE.INSTANCE) {
+    return ({ zone, region, project, source_instance_url }) =>
+      `https://console.cloud.google.com/compute/instancesDetail/zones/${zone}/instances/${source_instance_url
+        .split("/")
+        .at(-1)}?project=${project}`
+  } else if (source_type === GCP_SOURCE_TYPE.SUBNET) {
+    return ({ zone, region, project, source_instance_url }) =>
+      `https://console.cloud.google.com/networking/subnetworks/details/${region}/${source_instance_url
+        .split("/")
+        .at(-1)}?project=${project}`
+  } else if (source_type === GCP_SOURCE_TYPE.TAG) {
+    return ({ zone, region, project, source_instance_url }) =>
+      `https://console.cloud.google.com/compute/instances?project=${project}`
+  }
 }
 
 const GCP_INFO: React.FC<GCP_INFOInterface> = ({
@@ -75,6 +92,9 @@ const GCP_INFO: React.FC<GCP_INFOInterface> = ({
         toast({ title: "Couldn't download ssh key file", description: err })
       })
   }
+
+  const data = connection.gcp as Required<typeof connection.gcp>
+
   return (
     <Grid w={"full"} gridTemplateColumns={"repeat(4,1fr)"} gap={6}>
       <GridItem colStart={1} alignSelf={"center"}>
@@ -124,14 +144,15 @@ const GCP_INFO: React.FC<GCP_INFOInterface> = ({
       <GridItem colStart={2} colSpan={3} alignSelf={"center"}>
         <Flex alignSelf={"center"} gap={2} w={"full"}>
           <Box alignSelf={"center"} w={"full"} fontWeight="bold">
-            {connection.gcp.source_instance_name.split("/").at(-1)}
+            {connection.gcp.mirror_source_value[0].split("/").at(-1)}
           </Box>
           <Link
-            href={`https://console.cloud.google.com/compute/instancesDetail/zones/${
-              connection.gcp.zone
-            }/instances/${connection.gcp.source_instance_name
-              .split("/")
-              .at(-1)}?project=${connection.gcp.project}`}
+            href={resolve_mirror_source_id(connection.gcp.source_type)({
+              zone: data.zone,
+              region: data.zone.substring(0, data.zone.length - 2),
+              project: data.project,
+              source_instance_url: data.source_instance_url,
+            })}
             target="_blank"
           >
             <Button aria-label="See on aws" bg={"transparent"} p={0}>
