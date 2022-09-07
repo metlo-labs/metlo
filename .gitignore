@@ -10,3 +10,6 @@ __pycache__
 *-test.json
 *-test.yaml
 *-test.yml
+
+# VS Code files
+.vscode/*
