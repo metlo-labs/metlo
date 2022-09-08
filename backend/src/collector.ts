@@ -68,7 +68,7 @@ const populateBlockFields = async () => {
           blockFieldEntry.host = host
           blockFieldEntry.method = DisableRestMethod.ALL
           blockFieldEntry.path = "/"
-          blockFieldEntry.pathRegex = "^\/[0-9a-zA-Z\/]*$"
+          blockFieldEntry.pathRegex = "^\/.*$"
           blockFieldEntry.disabledPaths = allDisablePaths
           hostEntries.push(blockFieldEntry)
         }
