@@ -139,6 +139,19 @@ const GCP_INFO: React.FC<GCP_INFOInterface> = ({
         </Flex>
       </GridItem>
       <GridItem colStart={1} alignSelf={"center"}>
+        Source Type
+      </GridItem>
+      <GridItem colStart={2} colSpan={3} alignSelf={"center"}>
+        <Flex alignSelf={"center"} gap={2} w={"full"}>
+          <Box alignSelf={"center"} w={"full"} fontWeight="bold">
+            {GCP_SOURCE_TYPE[connection.gcp.source_type].at(0).toUpperCase() +
+              GCP_SOURCE_TYPE[connection.gcp.source_type]
+                .slice(1)
+                .toLowerCase()}
+          </Box>
+        </Flex>
+      </GridItem>
+      <GridItem colStart={1} alignSelf={"center"}>
         Mirror Source
       </GridItem>
       <GridItem colStart={2} colSpan={3} alignSelf={"center"}>
