@@ -40,37 +40,49 @@ const populateBlockFields = async () => {
     if (blockFieldsDoc) {
       for (const host in blockFieldsDoc) {
         const hostEntries: BlockFields[] = []
-        const hostEntry = blockFieldsDoc[host]
+        const hostObj = blockFieldsDoc[host]
         let allDisablePaths = []
-        if (hostEntry) {
-          if (hostEntry["ALL"]) {
-            allDisablePaths = hostEntry["ALL"]["disable_paths"]
+        if (hostObj) {
+          if (hostObj["ALL"]) {
+            allDisablePaths = hostObj["ALL"]["disable_paths"] ?? []
+            const blockFieldEntry = BlockFields.create()
+            blockFieldEntry.host = host
+            blockFieldEntry.method = DisableRestMethod.ALL
+            blockFieldEntry.path = "/"
+            blockFieldEntry.pathRegex = "^/.*$"
+            blockFieldEntry.disabledPaths = allDisablePaths
+            hostEntries.push(blockFieldEntry)
           }
-          for (const endpoint in hostEntry) {
+          for (const endpoint in hostObj) {
             if (endpoint && endpoint !== "ALL") {
-              for (const method in hostEntry[endpoint]) {
+              let endpointDisablePaths = allDisablePaths
+              if (hostObj[endpoint]["ALL"]) {
+                endpointDisablePaths = endpointDisablePaths?.concat(
+                  hostObj[endpoint]["ALL"]["disable_paths"] ?? [],
+                )
                 const blockFieldEntry = BlockFields.create()
                 blockFieldEntry.host = host
-                blockFieldEntry.method = DisableRestMethod[method]
+                blockFieldEntry.method = DisableRestMethod.ALL
                 blockFieldEntry.pathRegex = getPathRegex(endpoint)
                 blockFieldEntry.path = endpoint
-                blockFieldEntry.disabledPaths =
-                  hostEntry[endpoint][method]?.["disable_paths"]?.concat(
-                    allDisablePaths,
-                  )
+                blockFieldEntry.disabledPaths = endpointDisablePaths
                 hostEntries.push(blockFieldEntry)
+              }
+              for (const method in hostObj[endpoint]) {
+                if (method && method !== "ALL") {
+                  const blockFieldEntry = BlockFields.create()
+                  blockFieldEntry.host = host
+                  blockFieldEntry.method = DisableRestMethod[method]
+                  blockFieldEntry.pathRegex = getPathRegex(endpoint)
+                  blockFieldEntry.path = endpoint
+                  blockFieldEntry.disabledPaths = endpointDisablePaths?.concat(
+                    hostObj[endpoint][method]?.["disable_paths"] ?? [],
+                  )
+                  hostEntries.push(blockFieldEntry)
+                }
               }
             }
           }
-        }
-        if (hostEntries?.length === 0 && allDisablePaths.length > 0) {
-          const blockFieldEntry = BlockFields.create()
-          blockFieldEntry.host = host
-          blockFieldEntry.method = DisableRestMethod.ALL
-          blockFieldEntry.path = "/"
-          blockFieldEntry.pathRegex = "^\/.*$"
-          blockFieldEntry.disabledPaths = allDisablePaths
-          hostEntries.push(blockFieldEntry)
         }
         entriesToAdd = entriesToAdd.concat(hostEntries)
       }

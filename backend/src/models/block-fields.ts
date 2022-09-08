@@ -34,9 +34,14 @@ export class BlockFields extends BaseEntity {
 
   @BeforeInsert()
   addNumberParams() {
+    let numParams = 0
+    if (this.pathRegex === "^/.*$") {
+      numParams += 1000
+    } else if (this.method === DisableRestMethod.ALL) {
+      numParams += 500
+    }
     if (this.path) {
       const pathTokens = getPathTokens(this.path)
-      let numParams = 0
       for (let i = 0; i < pathTokens.length; i++) {
         const token = pathTokens[i]
         if (isParameter(token)) {
