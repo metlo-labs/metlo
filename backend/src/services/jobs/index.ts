@@ -1,4 +1,4 @@
-import { FindOptionsWhere, IsNull, MoreThan, Raw } from "typeorm"
+import { FindOptionsWhere, IsNull, MoreThan, Not, Raw } from "typeorm"
 import { v4 as uuidv4 } from "uuid"
 import {
   getDataType,
@@ -99,6 +99,18 @@ export class JobsService {
     }
     bodySpec[nonNullKey] = {
       schema: this.parseSchema(bodySpec[nonNullKey].schema, parsedBody),
+    }
+  }
+
+  static async clearApiTraces(): Promise<void> {
+    try {
+      const apiTraceRepository = AppDataSource.getRepository(ApiTrace)
+      const traces = await apiTraceRepository.findBy({
+        apiEndpointUuid: Not(IsNull()),
+      })
+      await DatabaseService.executeTransactions([], [traces], true)
+    } catch (err) {
+      console.error(`Encountered error while clearing trace data: ${err}`)
     }
   }
 

@@ -11,22 +11,29 @@ const main = async () => {
   }
   console.log("AppDataSource Initialized...")
 
-  schedule.scheduleJob("*/20 * * * *", () => {
+  schedule.scheduleJob("*/20 * * * *", async () => {
     console.log("Generating Endpoints and OpenAPI Spec Files...")
-    JobsService.generateEndpointsFromTraces()
+    await JobsService.generateEndpointsFromTraces()
     console.log("Finished generating Endpoints and OpenAPI Spec Files.")
   })
 
   // Offset by 15 minutes past every 4th hour, so that there isn't any excess database slowdown
-  schedule.scheduleJob("15 */4 * * *", () => {
+  schedule.scheduleJob("15 */4 * * *", async () => {
     console.log("Generating Alerts for Unsecured Endpoints")
-    JobsService.monitorEndpointForHSTS()
+    await JobsService.monitorEndpointForHSTS()
     console.log("Finished generating alerts for Unsecured Endpoints.")
   })
 
-  schedule.scheduleJob("30 * * * *", () => {
+  schedule.scheduleJob("30 * * * *", async () => {
     console.log("Running Tests...")
-    runAllTests()
+    await runAllTests()
+    console.log("Finished running tests.")
+  })
+
+  schedule.scheduleJob("0 * * * *", async () => {
+    console.log("Clearing Api Trace data...")
+    await JobsService.clearApiTraces()
+    console.log("Finished clearing Api Trace data.")
   })
 
   process.on("SIGINT", () => {
