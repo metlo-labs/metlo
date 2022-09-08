@@ -154,12 +154,7 @@ export class JobsService {
                 trace,
               )
             await DatabaseService.executeTransactions(
-              [
-                [...dataFields],
-                [...sensitiveDataAlerts],
-                [apiEndpoint],
-                [trace],
-              ],
+              [dataFields, sensitiveDataAlerts, [apiEndpoint], [trace]],
               [],
               true,
             )
@@ -259,10 +254,10 @@ export class JobsService {
           await DatabaseService.executeTransactions(
             [
               [apiEndpoint],
-              [...apiEndpoint.dataFields],
-              [...sensitiveDataAlerts],
+              apiEndpoint.dataFields,
+              sensitiveDataAlerts,
               [alert],
-              [...value.traces],
+              value.traces,
             ],
             [],
             true,
@@ -468,11 +463,7 @@ export class JobsService {
         }
         spec.spec = JSON.stringify(openApiSpec, null, 2)
         spec.extension = SpecExtension.JSON
-        await DatabaseService.executeTransactions(
-          [[spec], [...endpoints]],
-          [],
-          true,
-        )
+        await DatabaseService.executeTransactions([[spec], endpoints], [], true)
       }
     } catch (err) {
       console.error(`Encountered error while generating OpenAPI specs: ${err}`)
