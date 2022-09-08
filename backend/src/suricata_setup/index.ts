@@ -31,6 +31,7 @@ import {
   push_files as gcp_push_files,
   execute_commands as gcp_execute_commands,
 } from "./gcp-services/gcp_setup"
+import { delete_gcp_data } from "./gcp-services/delete"
 
 function dummy_response(uuid, step, data, type: ConnectionType) {
   if (type == ConnectionType.AWS) {
@@ -245,13 +246,17 @@ export async function setup(
 export async function delete_connection(
   type: ConnectionType,
   connection_data: STEP_RESPONSE["data"],
-): Promise<string> {
+): Promise<void> {
   if (type === ConnectionType.AWS) {
-    return await delete_aws_data(
+    let _ = await delete_aws_data(
       connection_data as STEP_RESPONSE<ConnectionType.AWS>["data"],
     )
+    return
   } else if (type === ConnectionType.GCP) {
-    throw new Error("GCP connections are not defined yet")
+    let _ = await delete_gcp_data(
+      connection_data as STEP_RESPONSE<ConnectionType.GCP>["data"],
+    )
+    return
   } else {
     throw new Error(`No data for type ${type}`)
   }

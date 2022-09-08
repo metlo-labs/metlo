@@ -137,7 +137,7 @@ const ConfigureGCP: React.FC<configureAWSParams> = ({
     if (retry_id) {
       console.log("Attempting to fetch")
       api_call_retry({
-        url: `/api/v1/setup_connection/fetch/${retry_id}`,
+        url: `/api/v1/long_running/${retry_id}`,
         requestParams: {
           params: { id, step, ..._params },
         } as AxiosRequestConfig,

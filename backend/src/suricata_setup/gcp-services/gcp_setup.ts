@@ -271,7 +271,7 @@ export async function create_firewall_rule({
         network_url,
         ip_range,
         //@ts-ignore
-        firewall_url: resp[0].latestResponse.targetLink,
+        firewall_rule_url: resp[0].latestResponse.targetLink,
         id,
         ...rest,
       },
@@ -989,7 +989,7 @@ export async function execute_commands({
   }
 }
 
-async function wait_for_global_operation(operation_id, conn: GCP_CONN) {
+export async function wait_for_global_operation(operation_id, conn: GCP_CONN) {
   return await AsyncRetry(
     async (f, at) => {
       let resp = await conn.get_global_operation_status(operation_id)
@@ -1003,7 +1003,10 @@ async function wait_for_global_operation(operation_id, conn: GCP_CONN) {
   )
 }
 
-async function wait_for_regional_operation(operation_id, conn: GCP_CONN) {
+export async function wait_for_regional_operation(
+  operation_id,
+  conn: GCP_CONN,
+) {
   return await AsyncRetry(
     async (f, at) => {
       let resp = await conn.get_regional_operation_status(operation_id)
@@ -1018,7 +1021,7 @@ async function wait_for_regional_operation(operation_id, conn: GCP_CONN) {
   )
 }
 
-async function wait_for_zonal_operation(operation_id, conn: GCP_CONN) {
+export async function wait_for_zonal_operation(operation_id, conn: GCP_CONN) {
   return await AsyncRetry(
     async (f, at) => {
       let resp = await conn.get_zonal_operation_status(operation_id)

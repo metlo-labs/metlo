@@ -106,6 +106,51 @@ export class GCP_CONN {
     return resp
   }
 
+  public async get_address_information({ addressName }) {
+    const resp = new GlobalAddressesClient({ credentials: this.keyfile }).get({
+      project: this.project,
+      address: addressName,
+    })
+    return resp
+  }
+
+  public async list_routers() {
+    let conn = new RoutersClient({ credentials: this.keyfile })
+    return conn.list({ region: this.region, project: this.project })
+  }
+
+  public async list_nats({ router }) {
+    let conn = new RoutersClient({ credentials: this.keyfile })
+    return conn.getNatMappingInfo({
+      router,
+      region: this.region,
+      project: this.project,
+    })
+  }
+
+  public async list_instance_for_group({ managedGroupName }) {
+    let conn = new InstanceGroupManagersClient({ credentials: this.keyfile })
+    return conn.listManagedInstances({
+      instanceGroupManager: managedGroupName,
+      zone: this.zone,
+      project: this.project,
+    })
+  }
+
+  public async list_machine_images({ project, filters }) {
+    let conn = new ImagesClient({ credentials: this.keyfile })
+    return conn.list({ project: project, filter: filters })
+  }
+
+  public async list_machine_types({ filters }) {
+    let conn = new MachineTypesClient({ credentials: this.keyfile })
+    return conn.list({
+      project: this.project,
+      zone: this.zone,
+      filter: filters,
+    })
+  }
+
   public async create_new_subnet({ name, ipCidr, network }) {
     let conn = new SubnetworksClient({ credentials: this.keyfile })
     return conn.insert({
@@ -117,14 +162,6 @@ export class GCP_CONN {
         name,
       },
     })
-  }
-
-  public async get_address_information({ addressName }) {
-    const resp = new GlobalAddressesClient({ credentials: this.keyfile }).get({
-      project: this.project,
-      address: addressName,
-    })
-    return resp
   }
 
   public async create_new_internal_address({
@@ -143,84 +180,6 @@ export class GCP_CONN {
         purpose: "VPC_PEERING",
         network,
       },
-    })
-    return resp
-  }
-
-  public async create_new_external_address({ addressName, network }) {
-    const conn = new AddressesClient({ credentials: this.keyfile })
-    let resp = conn.insert({
-      project: this.project,
-      region: this.region,
-      addressResource: {
-        region: this.region,
-        name: addressName,
-        addressType: "EXTERNAL",
-        network,
-      },
-    })
-    return resp
-  }
-
-  public async get_external_address({ addressName }) {
-    let conn = new AddressesClient({ credentials: this.keyfile })
-    return conn.get({
-      project: this.project,
-      address: addressName,
-      region: this.region,
-    })
-  }
-
-  public async attach_external_ip({ instanceURL, address }) {
-    let conn = new InstancesClient({ credentials: this.keyfile })
-    let instance = await conn.get({
-      zone: this.zone,
-      project: this.project,
-      instance: instanceURL,
-    })
-    return conn.addAccessConfig({
-      zone: this.zone,
-      project: this.project,
-      instance: instanceURL,
-      networkInterface: instance[0].networkInterfaces[0].name,
-      accessConfigResource: {
-        natIP: address,
-        name: `${instance[0].name}-EX_ADDR`,
-      },
-    })
-  }
-
-  public async detach_external_ip({ instanceURL }) {
-    let conn = new InstancesClient({ credentials: this.keyfile })
-    let instance = await conn.get({
-      zone: this.zone,
-      project: this.project,
-      instance: instanceURL,
-    })
-
-    return conn.deleteAccessConfig({
-      zone: this.zone,
-      project: this.project,
-      instance: instanceURL,
-      networkInterface: instance[0].networkInterfaces[0].name,
-      accessConfig: `${instance[0].name}-EX_ADDR`,
-    })
-  }
-
-  public async describe_new_address({ addressName }) {
-    const conn = new GlobalAddressesClient({ credentials: this.keyfile })
-    let resp = conn.get({
-      project: this.project,
-      address: addressName,
-    })
-    return resp
-  }
-
-  public async delete_new_address({ addressName }) {
-    const conn = new GlobalAddressesClient({ credentials: this.keyfile })
-    let resp = conn.delete({
-      project: this.project,
-      address: addressName,
     })
     return resp
   }
@@ -245,20 +204,6 @@ export class GCP_CONN {
           },
         ],
       },
-    })
-  }
-
-  public async list_routers() {
-    let conn = new RoutersClient({ credentials: this.keyfile })
-    return conn.list({ region: this.region, project: this.project })
-  }
-
-  public async list_nats({ router }) {
-    let conn = new RoutersClient({ credentials: this.keyfile })
-    return conn.getNatMappingInfo({
-      router,
-      region: this.region,
-      project: this.project,
     })
   }
 
@@ -385,15 +330,6 @@ export class GCP_CONN {
     })
   }
 
-  public async list_instance_for_group({ managedGroupName }) {
-    let conn = new InstanceGroupManagersClient({ credentials: this.keyfile })
-    return conn.listManagedInstances({
-      instanceGroupManager: managedGroupName,
-      zone: this.zone,
-      project: this.project,
-    })
-  }
-
   public async create_instance({ instanceGroupURL, instance_name }) {
     let conn = new InstanceGroupManagersClient({ credentials: this.keyfile })
     return conn.createInstances({
@@ -402,39 +338,6 @@ export class GCP_CONN {
       instanceGroupManager: instanceGroupURL,
       instanceGroupManagersCreateInstancesRequestResource: {
         instances: [{ name: instance_name }],
-      },
-    })
-  }
-
-  public async add_key({ username, publicKey, instance }) {
-    let conn = new InstancesClient({ credentials: this.keyfile })
-    let project_metadata = await conn.get({
-      project: this.project,
-      instance: instance,
-      zone: this.zone,
-    })
-    let project_fingerprint = project_metadata[0].metadata.fingerprint
-
-    let project_meta_without_ssh = project_metadata[0].metadata.items.filter(
-      v => v.key !== "ssh-keys",
-    )
-
-    let ssh_keys = project_metadata[0].metadata.items.find(
-      v => v.key === "ssh-keys",
-    )
-    return conn.setMetadata({
-      instance,
-      zone: this.zone,
-      project: this.project,
-      metadataResource: {
-        fingerprint: project_fingerprint,
-        items: [
-          ...project_meta_without_ssh,
-          {
-            key: "ssh-keys",
-            value: `${ssh_keys.value}\n${username}:${publicKey}`,
-          },
-        ],
       },
     })
   }
@@ -460,25 +363,6 @@ export class GCP_CONN {
       },
     })
   }
-
-  // public async add_backend({
-  //   backendServiceName,
-  //   managedGroupURL,
-  //   healthCheckURL,
-  // }) {
-  //   let conn = new RegionBackendServicesClient({ credentials: this.keyfile })
-  //   return await conn.update({
-  //     project: this.project,
-  //     region: this.region,
-  //     backendService: backendServiceName,
-  //     backendServiceResource: {
-  //       region: this.region,
-  //       backends: [{ group: managedGroupURL }],
-  //       healthChecks: healthCheckURL ? [healthCheckURL] : [],
-  //       loadBalancingScheme: "INTERNAL",
-  //     },
-  //   })
-  // }
 
   public async create_forwarding_rule({
     name,
@@ -537,17 +421,102 @@ export class GCP_CONN {
     })
   }
 
-  public async list_machine_images({ project, filters }) {
-    let conn = new ImagesClient({ credentials: this.keyfile })
-    return conn.list({ project: project, filter: filters })
+  public async delete_subnet({ subnetURL }) {
+    let conn = new SubnetworksClient({ credentials: this.keyfile })
+    return conn.delete({
+      project: this.project,
+      region: this.region,
+      subnetwork: subnetURL,
+    })
   }
 
-  public async list_machine_types({ filters }) {
-    let conn = new MachineTypesClient({ credentials: this.keyfile })
-    return conn.list({
+  public async delete_new_address({ addressName }) {
+    const conn = new GlobalAddressesClient({ credentials: this.keyfile })
+    let resp = conn.delete({
+      project: this.project,
+      address: addressName,
+    })
+    return resp
+  }
+
+  public async delete_firewall_rule({ firewallURL }) {
+    const conn = new FirewallsClient({ credentials: this.keyfile })
+    return conn.delete({
+      project: this.project,
+      firewall: firewallURL,
+    })
+  }
+
+  public async delete_router({ routerURL }) {
+    let conn = new RoutersClient({ credentials: this.keyfile })
+    return conn.delete({
+      project: this.project,
+      region: this.region,
+      router: routerURL,
+    })
+  }
+
+  public async delete_health_check({ healthCheckURL }) {
+    let conn = new HealthChecksClient({ credentials: this.keyfile })
+    return conn.delete({
+      project: this.project,
+      healthCheck: healthCheckURL,
+    })
+  }
+
+  public async delete_image_template({ templateURL }) {
+    let conn = new InstanceTemplatesClient({ credentials: this.keyfile })
+    return conn.delete({
+      project: this.project,
+      instanceTemplate: templateURL,
+    })
+  }
+
+  public async delete_instance_manager({ managerURL }) {
+    let conn = new InstanceGroupManagersClient({ credentials: this.keyfile })
+    return conn.delete({
       project: this.project,
       zone: this.zone,
-      filter: filters,
+      instanceGroupManager: managerURL,
+    })
+  }
+
+  public async delete_instance({ instanceGroupURL, instanceURL }) {
+    let conn = new InstanceGroupManagersClient({ credentials: this.keyfile })
+    return conn.deleteInstances({
+      project: this.project,
+      zone: this.zone,
+      instanceGroupManager: instanceGroupURL,
+      instanceGroupManagersDeleteInstancesRequestResource: {
+        instances: [instanceURL],
+      },
+    })
+  }
+
+  public async delete_backend_service({ backendServiceURL }) {
+    let conn = new RegionBackendServicesClient({ credentials: this.keyfile })
+    return conn.delete({
+      project: this.project,
+      region: this.region,
+      backendService: backendServiceURL,
+    })
+  }
+
+  public async delete_forwarding_rule({ forwardingRuleURL }) {
+    let conn = new ForwardingRulesClient({ credentials: this.keyfile })
+    return conn.delete({
+      region: this.region,
+      project: this.project,
+      forwardingRule: forwardingRuleURL,
+    })
+  }
+
+  public async stop_packet_mirroring({ packetMirroringURL }) {
+    let conn = new PacketMirroringsClient({ credentials: this.keyfile })
+    return conn.delete({
+      project: this.project,
+      region: this.region,
+      packetMirroring: packetMirroringURL,
     })
   }
 }

@@ -144,18 +144,23 @@ export const gcp_instance_choices = async (
   }
 }
 
-export const get_setup_state = async (req: Request, res: Response) => {
+export const get_long_running_state = async (req: Request, res: Response) => {
   const { uuid } = req.params
   try {
     let resp: STEP_RESPONSE = await getFromRedis(uuid)
     if (["OK", "FAIL"].includes(resp.success)) {
       await deleteKeyFromRedis(uuid)
     }
-    req.session.connection_config[resp.data.id] = {
-      ...req.session.connection_config[resp.data.id],
-      ...resp,
+    try {
+      // try to add things to connection cache if they exist
+      req.session.connection_config[resp.data.id] = {
+        ...req.session.connection_config[resp.data.id],
+        ...resp,
+      }
+      delete resp.data
+    } catch {
+      // pass
     }
-    delete resp.data
     await ApiResponseHandler.success(res, resp)
   } catch (err) {
     await ApiResponseHandler.error(res, err)

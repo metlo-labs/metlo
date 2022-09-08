@@ -10,12 +10,14 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
+  Status,
   useToast,
 } from "@chakra-ui/react"
 import { ConnectionType } from "@common/enums"
 import { ConnectionInfo } from "@common/types"
-import axios, { AxiosError } from "axios"
+import axios, { AxiosError, AxiosResponse } from "axios"
 import React, { useState } from "react"
+import { api_call_retry } from "utils"
 import AWS_INFO from "./aws"
 import GCP_INFO from "./gcp"
 
@@ -27,36 +29,92 @@ interface ConnectionSelectorInterface {
   onDelete: (uuid: string) => void
 }
 
+const getRetryId = async (id: string, onError: (err) => void) => {
+  try {
+    let resp = await axios.delete<{ uuid: string }>(
+      `/api/v1/delete_connection/${id}`,
+    )
+    return resp.data.uuid
+  } catch (err) {
+    onError(err)
+  }
+}
+
 const DeleteButton: React.FC<{
   conn: ConnectionInfo
   onDelete: (uuid: string) => void
 }> = ({ conn, onDelete }) => {
   const [deleting, setDeleting] = useState(false)
   const toast = useToast()
-  const onBtnClick = () => {
-    setDeleting(true)
-    axios
-      .delete(`/api/v1/delete_connection/${conn.uuid}`)
-      .then(() => {
-        toast({ title: `Deleted connection ${conn.name}` })
-        onDelete(conn.uuid)
-      })
-      .catch((err: AxiosError<Error>) => {
-        console.log(err)
-        toast({
-          title: `Couldn't Delete connection ${conn.name}`,
-          description: "See console for additional details",
-        })
-      })
-      .finally(() => {
-        setDeleting(false)
-      })
+  const create_toast_with_message = (msg: string) => {
+    console.log(msg)
+    toast({
+      title: `Encountered an error on while deleting`,
+      description: msg,
+      status: "error",
+      duration: 6000,
+      isClosable: true,
+    })
   }
+  const onBtnClick = async () => {
+    await retrier({
+      id: conn.uuid,
+      onComplete: () => {
+        onDelete(conn.uuid)
+      },
+    })
+  }
+
+  const retrier = async ({
+    id,
+    onComplete,
+  }: {
+    id: string
+    onComplete?: () => void
+  }) => {
+    setDeleting(true)
+    let retry_id = await getRetryId(id, err => {
+      console.log(err)
+      create_toast_with_message(err.message)
+    })
+
+    if (retry_id) {
+      console.log("Attempting to fetch")
+      api_call_retry({
+        url: `/api/v1/long_running/${retry_id}`,
+        requestParams: {},
+        onAPIError: (err: AxiosError<{ success: string; error: string }>) => {
+          create_toast_with_message(err.response.data.error)
+          setDeleting(false)
+        },
+        onError: (err: Error) => {
+          create_toast_with_message(err.message)
+          setDeleting(false)
+        },
+        onSuccess: (resp: AxiosResponse<{ success: string }>) => {
+          if (resp.data.success == "OK") {
+            onComplete()
+          } else {
+            create_toast_with_message("Failed to delete connection")
+          }
+          setDeleting(false)
+        },
+        onFinally: () => {},
+        shouldRetry: (resp: AxiosResponse<{ success: string }>) => {
+          return resp.data.success === "FETCHING"
+        },
+      })
+    } else {
+      create_toast_with_message("Couldn't attempt to fetch")
+      console.log("Couldn't attempt to fetch")
+    }
+  }
+
   return (
     <Button
       colorScheme="red"
       onClick={onBtnClick}
-      disabled={deleting || conn.connectionType === ConnectionType.GCP}
+      disabled={deleting}
       px={2}
       isLoading={deleting}
     >

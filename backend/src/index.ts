@@ -27,7 +27,7 @@ import {
   aws_os_choices,
   gcp_instance_choices,
   gcp_os_choices,
-  get_setup_state,
+  get_long_running_state,
   setup_connection,
 } from "./api/setup"
 import { getTest, runTestHandler, saveTest } from "./api/tests"
@@ -101,7 +101,7 @@ app.get("/api/v1/alerts", getAlertsHandler)
 app.put("/api/v1/alert/:alertId", updateAlertHandler)
 
 app.post("/api/v1/setup_connection", setup_connection)
-app.get("/api/v1/setup_connection/fetch/:uuid", get_setup_state)
+app.get("/api/v1/long_running/:uuid", get_long_running_state)
 app.post("/api/v1/setup_connection/aws/os", aws_os_choices)
 app.post("/api/v1/setup_connection/aws/instances", aws_instance_choices)
 app.post("/api/v1/setup_connection/gcp/os", gcp_os_choices)

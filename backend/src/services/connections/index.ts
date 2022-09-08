@@ -66,6 +66,7 @@ const save_connection_aws = async ({
     throw new Error500InternalServer(err)
   }
 }
+
 const save_connection_gcp = async ({
   conn_meta,
   name,
@@ -172,9 +173,11 @@ const get_connection_for_uuid = async (
       "conn.updatedAt",
       "conn.connectionType",
       "conn.aws",
+      "conn.gcp",
     ]
     if (with_metadata) {
       selects.push("conn.aws_meta")
+      selects.push("conn.gcp_meta")
     }
     let resp = connectionRepository
       .createQueryBuilder("conn")
