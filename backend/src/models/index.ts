@@ -7,6 +7,7 @@ import { Session } from "models/sessions"
 import { Connections } from "./connections"
 import { ApiEndpointTest } from "./api-endpoint-test"
 import { ApiKey } from "./keys"
+import { BlockFields } from "./block-fields"
 
 export type DatabaseModel =
   | ApiEndpoint
@@ -18,6 +19,7 @@ export type DatabaseModel =
   | Connections
   | ApiEndpointTest
   | ApiKey
+  | BlockFields
 
 export {
   ApiEndpoint,
@@ -29,4 +31,5 @@ export {
   Connections,
   ApiEndpointTest,
   ApiKey,
+  BlockFields,
 }

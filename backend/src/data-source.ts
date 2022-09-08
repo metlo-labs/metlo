@@ -10,6 +10,7 @@ import {
   Connections,
   ApiEndpointTest,
   ApiKey,
+  BlockFields,
 } from "models"
 
 export const AppDataSource: DataSource = new DataSource({
@@ -26,6 +27,7 @@ export const AppDataSource: DataSource = new DataSource({
     Connections,
     ApiEndpointTest,
     ApiKey,
+    BlockFields,
   ],
   migrations: [],
   logging: false,

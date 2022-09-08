@@ -10,6 +10,19 @@ export enum RestMethod {
   TRACE = "TRACE",
 }
 
+export enum DisableRestMethod {
+  GET = "GET",
+  HEAD = "HEAD",
+  POST = "POST",
+  PUT = "PUT",
+  PATCH = "PATCH",
+  DELETE = "DELETE",
+  CONNECT = "CONNECT",
+  OPTIONS = "OPTIONS",
+  TRACE = "TRACE",
+  ALL = "ALL",
+}
+
 export enum DataClass {
   EMAIL = "Email",
   CREDIT_CARD = "Credit Card Number",

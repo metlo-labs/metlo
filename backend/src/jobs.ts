@@ -11,7 +11,7 @@ const main = async () => {
   }
   console.log("AppDataSource Initialized...")
 
-  schedule.scheduleJob("0 * * * *", () => {
+  schedule.scheduleJob("*/20 * * * *", () => {
     console.log("Generating Endpoints and OpenAPI Spec Files...")
     JobsService.generateEndpointsFromTraces()
     console.log("Finished generating Endpoints and OpenAPI Spec Files.")
@@ -19,9 +19,9 @@ const main = async () => {
 
   // Offset by 15 minutes past every 4th hour, so that there isn't any excess database slowdown
   schedule.scheduleJob("15 */4 * * *", () => {
-    console.log("Generating Endpoints and OpenAPI Spec Files...")
+    console.log("Generating Alerts for Unsecured Endpoints")
     JobsService.monitorEndpointForHSTS()
-    console.log("Finished generating Endpoints and OpenAPI Spec Files.")
+    console.log("Finished generating alerts for Unsecured Endpoints.")
   })
 
   schedule.scheduleJob("30 * * * *", () => {
