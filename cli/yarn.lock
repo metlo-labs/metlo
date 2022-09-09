@@ -56,15 +56,6 @@
     "@types/yargs" "^17.0.8"
     chalk "^4.0.0"
 
-"@metlo/testing@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.0.1.tgz#9c224970304fa465b6bbf9d7e2f9634aec104a77"
-  integrity sha512-XkgCNfYPG8GlnRMeXbW2K+fj1F+m5SoO+yx62knJxAwzYRoSZiwI0x87axCyMT2twt4+1wbxEvtExs0O6fOMyA==
-  dependencies:
-    axios "^0.27.2"
-    expect "^29.0.2"
-    vm2 "^3.9.11"
-
 "@jridgewell/resolve-uri@^3.0.3":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@jridgewell/resolve-uri/-/resolve-uri-3.1.0.tgz#2203b118c157721addfe69d47b70465463066d78"
@@ -82,6 +73,15 @@
   dependencies:
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
+
+"@metlo/testing@^0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.0.1.tgz#9c224970304fa465b6bbf9d7e2f9634aec104a77"
+  integrity sha512-XkgCNfYPG8GlnRMeXbW2K+fj1F+m5SoO+yx62knJxAwzYRoSZiwI0x87axCyMT2twt4+1wbxEvtExs0O6fOMyA==
+  dependencies:
+    axios "^0.27.2"
+    expect "^29.0.2"
+    vm2 "^3.9.11"
 
 "@sinclair/typebox@^0.24.1":
   version "0.24.39"
@@ -143,6 +143,11 @@
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/@types/stack-utils/-/stack-utils-2.0.1.tgz#20f18294f797f2209b5f65c8e3b5c8e8261d127c"
   integrity sha512-Hl219/BT5fLAaz6NDkSuhzasy49dwQS/DSdu4MdggFB8zcXv7vflBI3xp7FEmkmdDkBUI2bPUNeMttp2knYdxw==
+
+"@types/valid-url@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@types/valid-url/-/valid-url-1.0.3.tgz#a124389fb953559c7f889795a98620e91adb3687"
+  integrity sha512-+33x29mg+ecU88ODdWpqaie2upIuRkhujVLA7TuJjM823cNMbeggfI6NhxewaRaRF8dy+g33e4uIg/m5Mb3xDQ==
 
 "@types/yargs-parser@*":
   version "21.0.0"
@@ -738,6 +743,11 @@ v8-compile-cache-lib@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/v8-compile-cache-lib/-/v8-compile-cache-lib-3.0.1.tgz#6336e8d71965cb3d35a1bbb7868445a7c05264bf"
   integrity sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==
+
+valid-url@^1.0.9:
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/valid-url/-/valid-url-1.0.9.tgz#1c14479b40f1397a75782f115e4086447433a200"
+  integrity sha512-QQDsV8OnSf5Uc30CKSwG9lnhMPe6exHtTXLRYX8uMwKENy640pU+2BgBL0LRbDh/eYRahNCS7aewCx0wf3NYVA==
 
 vm2@^3.9.11:
   version "3.9.11"
