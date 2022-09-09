@@ -22,7 +22,7 @@
   "license": "ISC",
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.1.0",
-    "@aws-sdk/client-ec2": "^3.142.0",
+    "@aws-sdk/client-ec2": "^3.153.0",
     "@aws-sdk/client-pricing": "^3.142.0",
     "@google-cloud/compute": "^3.4.0",
     "@leoscope/openapi-request-validator": "^12.0.2",
