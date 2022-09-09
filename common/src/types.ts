@@ -1,4 +1,3 @@
-import { Test } from "./testing/types"
 import {
   AlertType,
   ConnectionType,
@@ -17,6 +16,7 @@ import {
   AWS_SOURCE_TYPE,
   GCP_SOURCE_TYPE,
 } from "./enums"
+import { Test, Request as TestRequest } from "@metlo/testing"
 import "axios"
 
 export interface Meta {
@@ -188,6 +188,14 @@ export interface ApiEndpointDetailed extends ApiEndpoint {
   alerts: Alert[]
   traces: ApiTrace[]
   tests: Test[]
+}
+
+export interface TestDetailed {
+  uuid: string
+  name: string
+  tags: string[]
+  requests: TestRequest[]
+  apiEndpoint: ApiEndpoint
 }
 
 export interface OpenApiSpec {

@@ -1,6 +1,6 @@
 import { AppDataSource } from "data-source"
 import { ApiEndpointTest } from "models"
-import { runTest } from "./runTests"
+import { runTest } from "@metlo/testing"
 
 export const runAllTests = async (): Promise<void> => {
   const testRepository = AppDataSource.getRepository(ApiEndpointTest)

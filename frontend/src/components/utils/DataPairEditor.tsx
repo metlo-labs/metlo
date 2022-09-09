@@ -1,5 +1,5 @@
 import React from "react"
-import { DataPair } from "@common/testing/types"
+import { DataPair } from "@metlo/testing"
 import { IoMdTrash } from "@react-icons/all-files/io/IoMdTrash"
 import { HiPlus } from "@react-icons/all-files/hi/HiPlus"
 import {

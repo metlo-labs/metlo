@@ -7,7 +7,7 @@ import TestEditor from "components/TestEditor"
 import { ApiEndpointDetailed } from "@common/types"
 import { getTest } from "api/tests"
 import { getEndpoint } from "api/endpoints"
-import { Test } from "@common/testing/types"
+import { Test } from "@metlo/testing"
 
 const NewTest = ({ endpoint, test }) => {
   const parsedTest = superjson.parse(test) as Test | null

@@ -8,7 +8,7 @@ import {
   Usage as UsageResponse,
 } from "@common/types"
 import Error500InternalServer from "errors/error-500-internal-server"
-import { Test } from "@common/testing/types"
+import { Test } from "@metlo/testing"
 import Error404NotFound from "errors/error-404-not-found"
 import { getRiskScore } from "utils"
 

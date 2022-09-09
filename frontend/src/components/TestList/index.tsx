@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { StackProps, VStack } from "@chakra-ui/react"
 import List from "./List"
-import { TestDetailed } from "@common/testing/types"
+import { TestDetailed } from "@common/types"
 import TestFilters from "./Filters"
 
 interface ListTestsProps extends StackProps {

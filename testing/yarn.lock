@@ -49,15 +49,6 @@
     "@types/yargs" "^17.0.8"
     chalk "^4.0.0"
 
-"@metlo/testing@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.0.1.tgz#9c224970304fa465b6bbf9d7e2f9634aec104a77"
-  integrity sha512-XkgCNfYPG8GlnRMeXbW2K+fj1F+m5SoO+yx62knJxAwzYRoSZiwI0x87axCyMT2twt4+1wbxEvtExs0O6fOMyA==
-  dependencies:
-    axios "^0.27.2"
-    expect "^29.0.2"
-    vm2 "^3.9.11"
-
 "@sinclair/typebox@^0.24.1":
   version "0.24.39"
   resolved "https://registry.yarnpkg.com/@sinclair/typebox/-/typebox-0.24.39.tgz#21d0c56c295a00e391e20a88a48c11d4a1210ac5"
@@ -419,10 +410,15 @@ to-regex-range@^5.0.1:
   dependencies:
     is-number "^7.0.0"
 
+tslib@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.4.0.tgz#7cecaa7f073ce680a05847aa77be941098f36dc3"
+  integrity sha512-d6xOpEDfsi2CZVlPQzGeux8XMwLT9hssAsaPYExaQMuYskwb+x1x7J371tWlbBdWHroy99KnVB6qIkUbs5X3UQ==
+
 typescript@^4.7.4:
-  version "4.7.4"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.7.4.tgz#1a88596d1cf47d59507a1bcdfb5b9dfe4d488235"
-  integrity sha512-C0WQT0gezHuw6AdY1M2jxUO83Rjf0HP7Sk1DtXj6j1EwkQNZrHAg2XPWlq62oqEhYvONq5pkC2Y9oPljWToLmQ==
+  version "4.8.3"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.8.3.tgz#d59344522c4bc464a65a730ac695007fdb66dd88"
+  integrity sha512-goMHfm00nWPa8UvR/CPSvykqf6dVV8x/dp0c5mFTMTIu0u0FlGWRioyy7Nn0PGAdHxpJZnuO/ut+PpQ8UiHAig==
 
 vm2@^3.9.11:
   version "3.9.11"

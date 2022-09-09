@@ -7,8 +7,7 @@ import {
   useColorModeValue,
   VStack,
 } from "@chakra-ui/react"
-import { RequestBody } from "@common/testing/types"
-import { RequestBodyType } from "@common/testing/enums"
+import { RequestBody, RequestBodyType } from "@metlo/testing"
 import Editor from "@monaco-editor/react"
 
 interface RequestBodyProps {

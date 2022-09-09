@@ -1,6 +1,10 @@
 import { Text, HStack, Input, Select, VStack } from "@chakra-ui/react"
-import { APIKeyAuthAddTo, AuthType } from "@common/testing/enums"
-import { AuthAPIKeyParams, Authorization } from "@common/testing/types"
+import {
+  APIKeyAuthAddTo,
+  AuthType,
+  AuthAPIKeyParams,
+  Authorization,
+} from "@metlo/testing"
 import { useEffect, useState } from "react"
 
 interface apiAuthInterface {

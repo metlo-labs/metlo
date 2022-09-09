@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react"
 import { IoMdTrash } from "@react-icons/all-files/io/IoMdTrash"
 import { FiPlus } from "@react-icons/all-files/fi/FiPlus"
-import { Request } from "@common/testing/types"
+import { Request } from "@metlo/testing"
 import { METHOD_TO_COLOR } from "~/constants"
 import { BiCheckCircle } from "@react-icons/all-files/bi/BiCheckCircle"
 import { GiCancel } from "@react-icons/all-files/gi/GiCancel"

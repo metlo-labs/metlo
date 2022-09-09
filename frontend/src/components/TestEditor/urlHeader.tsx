@@ -1,6 +1,6 @@
 import React from "react"
 import { Input, HStack, Button, Box, useColorModeValue } from "@chakra-ui/react"
-import { Request } from "@common/testing/types"
+import { Request } from "@metlo/testing"
 import Select from "react-select"
 import { RestMethod } from "@common/enums"
 import { getMethodSelectStyles } from "./styles"

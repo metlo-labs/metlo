@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react"
 import { ApiEndpointDetailed } from "@common/types"
 import { TestTags } from "@common/enums"
-import { Request, Test } from "@common/testing/types"
+import { Request, Test } from "@metlo/testing"
 import {
   Button,
   Editable,

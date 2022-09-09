@@ -4,7 +4,7 @@ import { ApiEndpointDetailed } from "@common/types"
 import EmptyView from "../utils/EmptyView"
 import { Button, Heading, VStack } from "@chakra-ui/react"
 import ListTests from "../TestList"
-import { TestDetailed } from "@common/testing/types"
+import { TestDetailed } from "@common/types"
 
 interface TestListProps {
   endpoint: ApiEndpointDetailed

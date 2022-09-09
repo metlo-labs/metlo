@@ -13,7 +13,7 @@ import {
   useColorModeValue,
   Heading,
 } from "@chakra-ui/react"
-import { Result } from "@common/testing/types"
+import { Result } from "@metlo/testing"
 import { SectionHeader } from "../utils/Card"
 import { statusToColor } from "../../constants"
 import { BiCheckCircle } from "@react-icons/all-files/bi/BiCheckCircle"

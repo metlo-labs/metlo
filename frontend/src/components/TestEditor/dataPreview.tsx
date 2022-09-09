@@ -7,7 +7,7 @@ import {
   useColorModeValue,
   Code,
 } from "@chakra-ui/react"
-import { Result } from "@common/testing/types"
+import { Result } from "@metlo/testing"
 import { useState } from "react"
 import Editor from "@monaco-editor/react"
 

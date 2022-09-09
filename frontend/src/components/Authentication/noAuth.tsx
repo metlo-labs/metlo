@@ -1,7 +1,6 @@
-import { Box, Input, Select } from "@chakra-ui/react"
-import { APIKeyAuthAddTo, AuthType } from "@common/testing/enums"
-import { Authorization, Request } from "@common/testing/types"
-import { useEffect, useState } from "react"
+import { Box } from "@chakra-ui/react"
+import { useEffect } from "react"
+import { Authorization, AuthType } from "@metlo/testing"
 import EmptyView from "../utils/EmptyView"
 
 interface apiAuthInterface {
@@ -19,7 +18,7 @@ const NoAuth: React.FC<apiAuthInterface> = ({ evaluate }) => {
 
   return (
     <Box>
-      <EmptyView text={"This request does not use any authorization"} />
+      <EmptyView text="This request does not use any authorization" />
     </Box>
   )
 }

@@ -8,14 +8,13 @@ import {
   TabPanels,
   TabPanel,
 } from "@chakra-ui/react"
-import { Request } from "@common/testing/types"
+import { Request, AuthType } from "@metlo/testing"
 import { SectionHeader } from "../utils/Card"
 import DataPairEditor from "../utils/DataPairEditor"
 import RequestBodyEditor from "./bodyEditor"
 import TestScriptEditor from "./testScriptEditor"
 import Response from "./responseViewer"
 import AuthSwitch from "../Authentication/authSwitch"
-import { AuthType } from "@common/testing/enums"
 import SplitPane from "react-split-pane"
 import URLHeader from "./urlHeader"
 

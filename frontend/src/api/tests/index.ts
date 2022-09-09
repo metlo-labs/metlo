@@ -1,6 +1,7 @@
 import axios from "axios"
 import { getAPIURL } from "~/constants"
-import { TestDetailed, Test, Result } from "@common/testing/types"
+import { Test, Result } from "@metlo/testing"
+import { TestDetailed } from "@common/types"
 
 export const runTest = async (test: Test) => {
   const resp = await axios.post<Result[]>(`${getAPIURL()}/test/run`, {

@@ -1,6 +1,5 @@
 import { Box, HStack, Input, VStack, Text } from "@chakra-ui/react"
-import { AuthType } from "@common/testing/enums"
-import { AuthBearerParams, Authorization } from "@common/testing/types"
+import { AuthType, Authorization, AuthBearerParams } from "@metlo/testing"
 import { useEffect, useState } from "react"
 
 interface basicAuthInterface {

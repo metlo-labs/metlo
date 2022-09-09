@@ -1,6 +1,5 @@
 import { Box, HStack, Select, StackDivider, VStack } from "@chakra-ui/react"
-import { AuthType } from "@common/testing/enums"
-import { Authorization, Request } from "@common/testing/types"
+import { AuthType, Authorization, Request } from "@metlo/testing"
 import React, { useCallback } from "react"
 import APIAuth from "./apiKey"
 import BasicAuth from "./basicAuth"

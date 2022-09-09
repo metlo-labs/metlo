@@ -1,6 +1,4 @@
-import { ApiEndpoint } from "../types"
-import { RestMethod } from "../enums"
-import { APIKeyAuthAddTo, AuthType, RequestBodyType } from "./enums"
+import { APIKeyAuthAddTo, AuthType, RequestBodyType, RestMethod } from "./enums"
 
 export interface AuthAPIKeyParams {
   key: string
@@ -79,12 +77,4 @@ export interface Test {
   name: string
   tags: string[]
   requests: Request[]
-}
-
-export interface TestDetailed {
-  uuid: string
-  name: string
-  tags: string[]
-  requests: Request[]
-  apiEndpoint: ApiEndpoint
 }

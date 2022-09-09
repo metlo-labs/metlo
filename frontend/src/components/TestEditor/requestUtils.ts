@@ -3,12 +3,10 @@ import {
   AuthBasicAuthParams,
   AuthBearerParams,
   Request,
-} from "@common/testing/types"
-import {
   APIKeyAuthAddTo,
   AuthType,
   RequestBodyType,
-} from "@common/testing/enums"
+} from "@metlo/testing"
 import { ApiEndpoint } from "@common/types"
 import axios, { AxiosError, AxiosRequestConfig } from "axios"
 import { RestMethod } from "@common/enums"

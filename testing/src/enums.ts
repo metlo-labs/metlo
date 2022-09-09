@@ -15,3 +15,15 @@ export enum RequestBodyType {
   JSON = "JSON",
   FORM_DATA = "Form Data",
 }
+
+export enum RestMethod {
+  GET = "GET",
+  HEAD = "HEAD",
+  POST = "POST",
+  PUT = "PUT",
+  PATCH = "PATCH",
+  DELETE = "DELETE",
+  CONNECT = "CONNECT",
+  OPTIONS = "OPTIONS",
+  TRACE = "TRACE",
+}

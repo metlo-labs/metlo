@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import ApiResponseHandler from "api-response-handler"
-import { runTest } from "services/testing/runTests"
+import { runTest } from "@metlo/testing"
 import { AppDataSource } from "data-source"
 import { ApiEndpointTest } from "models"
 
