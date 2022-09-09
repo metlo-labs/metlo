@@ -126,12 +126,12 @@ export const generateAlertMessageFromReqErrors = (
     let errorMessage = `${defaultErrorMessage} in request${
       error["location"] ? ` ${error["location"]}` : ""
     }.`
-    let path = pathArray.length > 0 ? pathArray.join("/") : ""
+    let path = pathArray.length > 0 ? pathArray.join(".") : ""
     switch (error.keyword) {
       case "required":
         if (error.params?.missingProperty) {
           path = path
-            ? `${path}/${error.params.missingProperty}`
+            ? `${path}.${error.params.missingProperty}`
             : error.params.missingProperty
         }
         errorMessage = `Required property '${path}' is missing from request ${error["location"]}.`
@@ -142,7 +142,7 @@ export const generateAlertMessageFromReqErrors = (
       case "additionalProperties":
         if (error.params?.additionalProperty) {
           path = path
-            ? `${path}/${error.params.additionalProperty}`
+            ? `${path}.${error.params.additionalProperty}`
             : error.params.additionalProperty
         }
         errorMessage =
@@ -152,7 +152,7 @@ export const generateAlertMessageFromReqErrors = (
       case "unevaluatedProperties":
         if (error.params?.unevaluatedProperty) {
           path = path
-            ? `${path}/${error.params.unevaluatedProperty}`
+            ? `${path}.${error.params.unevaluatedProperty}`
             : error.params.unevaluatedProperty
         }
         errorMessage =
@@ -172,7 +172,7 @@ export const generateAlertMessageFromReqErrors = (
     if (!error["location"]) {
       errorMessage = `${defaultErrorMessage} in request.`
     }
-    const errorField = path?.split("/")[0]
+    const errorField = path?.split(".")[0]
     const tempPath = getPathToRequestLocation(
       parameters,
       error["location"] as Location,
@@ -196,12 +196,12 @@ export const generateAlertMessageFromRespErrors = (
     const defaultErrorMessage =
       error.message[0].toUpperCase() + error.message.slice(1)
     let errorMessage = `${defaultErrorMessage} in response body.`
-    let path = pathArray.length > 0 ? pathArray.join("/") : ""
+    let path = pathArray.length > 0 ? pathArray.join(".") : ""
     switch (error.keyword) {
       case "required":
         if (error.params?.missingProperty) {
           path = path
-            ? `${path}/${error.params.missingProperty}`
+            ? `${path}.${error.params.missingProperty}`
             : error.params.missingProperty
         }
         errorMessage = `Required property '${path}' is missing from response body.`
@@ -212,7 +212,7 @@ export const generateAlertMessageFromRespErrors = (
       case "additionalProperties":
         if (error.params?.additionalProperty) {
           path = path
-            ? `${path}/${error.params.additionalProperty}`
+            ? `${path}.${error.params.additionalProperty}`
             : error.params.additionalProperty
         }
         errorMessage =
@@ -222,7 +222,7 @@ export const generateAlertMessageFromRespErrors = (
       case "unevaluatedProperties":
         if (error.params?.unevaluatedProperty) {
           path = path
-            ? `${path}/${error.params.unevaluatedProperty}`
+            ? `${path}.${error.params.unevaluatedProperty}`
             : error.params.unevaluatedProperty
         }
         errorMessage =
