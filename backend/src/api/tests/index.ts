@@ -66,9 +66,8 @@ export const listTests = async (req: Request, res: Response): Promise<void> => {
       .createQueryBuilder("test")
       .select()
       .leftJoinAndSelect(
-        ApiEndpoint,
+        "test.apiEndpoint",
         "endpoint",
-        "test.apiEndpointUuid = endpoint.uuid",
       )
     if (hostname) {
       resp = await partial_resp
