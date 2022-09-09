@@ -33,7 +33,7 @@ export class LogRequestService {
       apiTraceObj.responseBody = responseBody
       apiTraceObj.meta = traceParams?.meta
 
-      await BlockFieldsService.removeBlockedFields(apiTraceObj)
+      await BlockFieldsService.redactBlockedFields(apiTraceObj)
       /** Update existing endpoint record if exists */
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
       const apiEndpoint = await apiEndpointRepository.findOne({
