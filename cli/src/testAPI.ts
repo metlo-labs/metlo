@@ -1,7 +1,7 @@
 import axios from "axios"
 import { getConfig } from "./utils"
 
-import { Test, runTest } from "@akshays/testing"
+import { Test, runTest } from "@metlo/testing"
 
 interface testAPIArgs {
   host: string
