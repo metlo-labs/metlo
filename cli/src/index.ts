@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { program } from "commander"
 import init from "./init"
 import testAPI from "./testAPI"
