@@ -1,0 +1,26 @@
+{
+  "name": "metlo",
+  "version": "0.0.0",
+  "license": "MIT",
+  "bin": {
+    "metlo": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "format": "prettier --write './src/**/*.{ts,tsx}'"
+  },
+  "devDependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/node": "^18.7.16",
+    "prettier": "^2.7.1",
+    "tslib": "^2.4.0",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "@akshays/testing": "^0.0.15",
+    "axios": "^0.27.2",
+    "commander": "^9.4.0",
+    "dotenv": "^16.0.2"
+  }
+}
