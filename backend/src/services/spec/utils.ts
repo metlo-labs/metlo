@@ -39,6 +39,13 @@ enum Location {
   BODY = "body",
 }
 
+const LOCATION_TO_DATA_SECTION_LABEL: Record<Location, string> = {
+  [Location.QUERY]: "req.query",
+  [Location.HEADERS]: "req.headers",
+  [Location.BODY]: "req.body",
+  [Location.PATH]: "",
+}
+
 export type AjvError = ErrorObject<string, Record<string, any>, unknown>
 
 export const getOpenAPISpecVersion = (specObject: any): number | null => {
@@ -112,6 +119,7 @@ export const generateAlertMessageFromReqErrors = (
   pathToParameters: string[],
   pathToRequestBody: string[],
   parameters: Parameter[],
+  disabledPaths: string[],
 ): Record<string, string[]> => {
   const res = {}
   if (!errors) {
@@ -127,6 +135,10 @@ export const generateAlertMessageFromReqErrors = (
       error["location"] ? ` ${error["location"]}` : ""
     }.`
     let path = pathArray.length > 0 ? pathArray.join(".") : ""
+    let ignoreError = false
+    const isDisabledPath = disabledPaths.includes(
+      `${LOCATION_TO_DATA_SECTION_LABEL[error["location"]]}.${path}`,
+    )
     switch (error.keyword) {
       case "required":
         if (error.params?.missingProperty) {
@@ -137,6 +149,9 @@ export const generateAlertMessageFromReqErrors = (
         errorMessage = `Required property '${path}' is missing from request ${error["location"]}.`
         break
       case "type":
+        if (isDisabledPath) {
+          ignoreError = true
+        }
         errorMessage = `Property '${path}' ${error.message} in request ${error["location"]}.`
         break
       case "additionalProperties":
@@ -160,6 +175,9 @@ export const generateAlertMessageFromReqErrors = (
           `Property '${path}' is present in request ${error["location"]} without matching any schemas/definitions in the OpenAPI Spec.`
         break
       case "format":
+        if (isDisabledPath) {
+          ignoreError = true
+        }
         errorMessage = `Property '${path}' ${error.message} in request ${error["location"]}.`
         break
       default:
@@ -178,7 +196,10 @@ export const generateAlertMessageFromReqErrors = (
       error["location"] as Location,
       errorField,
     )
-    res[errorMessage] = [...basePath, ...tempPath]
+
+    if (!ignoreError) {
+      res[errorMessage] = [...basePath, ...tempPath]
+    }
   })
   return res
 }
@@ -186,6 +207,7 @@ export const generateAlertMessageFromReqErrors = (
 export const generateAlertMessageFromRespErrors = (
   errors: AjvError[],
   pathToResponseBody: string[],
+  disabledPaths: string[],
 ): Record<string, string[]> => {
   const res = {}
   if (!errors) {
@@ -197,6 +219,8 @@ export const generateAlertMessageFromRespErrors = (
       error.message[0].toUpperCase() + error.message.slice(1)
     let errorMessage = `${defaultErrorMessage} in response body.`
     let path = pathArray.length > 0 ? pathArray.join(".") : ""
+    let ignoreError = false
+    const isDisabledPath = disabledPaths.includes(`res.body.${path}`)
     switch (error.keyword) {
       case "required":
         if (error.params?.missingProperty) {
@@ -207,6 +231,9 @@ export const generateAlertMessageFromRespErrors = (
         errorMessage = `Required property '${path}' is missing from response body.`
         break
       case "type":
+        if (isDisabledPath) {
+          ignoreError = true
+        }
         errorMessage = `Property '${path}' ${error.message} in response body.`
         break
       case "additionalProperties":
@@ -230,6 +257,9 @@ export const generateAlertMessageFromRespErrors = (
           `Property '${path}' is present in response body without matching any schemas/definitions in the OpenAPI Spec.`
         break
       case "format":
+        if (isDisabledPath) {
+          ignoreError = true
+        }
         errorMessage = `Property '${path}' ${error.message} in response body.`
         break
       default:
@@ -239,7 +269,10 @@ export const generateAlertMessageFromRespErrors = (
     if (!path) {
       errorMessage = `${defaultErrorMessage} in response body.`
     }
-    res[errorMessage] = pathToResponseBody
+
+    if (!ignoreError) {
+      res[errorMessage] = pathToResponseBody
+    }
   })
   return res
 }

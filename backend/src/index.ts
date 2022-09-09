@@ -117,9 +117,8 @@ app.delete("/api/v1/delete_connection/:uuid", delete_connection)
 app.post("/api/v1/test/run", runTestHandler)
 
 app.post("/api/v1/test/save", saveTest)
-app.get("/api/v1/test/list",listTests)
+app.get("/api/v1/test/list", listTests)
 app.get("/api/v1/test/list/:uuid", getTest)
-
 
 const main = async () => {
   try {
