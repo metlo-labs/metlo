@@ -10,6 +10,7 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
+    "dev": "nodemon -r tsconfig-paths/register src/index.ts init",
     "format": "prettier --write './src/**/*.{ts,tsx}'"
   },
   "devDependencies": {
@@ -23,6 +24,10 @@
     "@metlo/testing": "^0.0.1",
     "axios": "^0.27.2",
     "commander": "^9.4.0",
-    "dotenv": "^16.0.2"
+    "dotenv": "^16.0.2",
+    "enquirer": "^2.3.6",
+    "nodemon": "^2.0.19",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.1.0"
   }
 }
