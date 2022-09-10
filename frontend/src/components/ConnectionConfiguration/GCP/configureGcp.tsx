@@ -305,6 +305,11 @@ const ConfigureGCP: React.FC<configureAWSParams> = ({
               retrier({
                 step: GCP_STEPS.EXEC_COMMAND,
                 params,
+                onComplete: () =>
+                  toast({
+                    title: "Mirroring setup completed!",
+                    status: "success",
+                  }),
               })
             }}
             isCurrent={GCP_STEPS.EXEC_COMMAND == selected}

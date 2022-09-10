@@ -1,6 +1,5 @@
 import { STEP_RESPONSE } from "@common/types"
 import { ConnectionType } from "@common/enums"
-import { randomUUID } from "crypto"
 import { GCP_CONN } from "./gcp_apis"
 import {
   wait_for_zonal_operation as await_zonal,

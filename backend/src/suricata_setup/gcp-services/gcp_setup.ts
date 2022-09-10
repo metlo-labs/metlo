@@ -30,6 +30,7 @@ export async function gcp_key_setup({
   try {
     let conn = new GCP_CONN(key_file, zone, project)
     await conn.test_connection()
+    await conn.get_zone({ zone })
     let network_resp = await conn.get_networks({ name: network_name })
 
     const file = writeFileSync(fileName, key_file, { flag: "w" })
@@ -55,7 +56,7 @@ export async function gcp_key_setup({
       },
     }
   } catch (err) {
-    console.log(err)
+    console.log(err.message)
     return {
       success: "FAIL",
       status: "IN-PROGRESS",
@@ -63,9 +64,9 @@ export async function gcp_key_setup({
       next_step: 2,
       last_completed: 0,
       message:
-        "Couldn't verify GCP Credentials. Please verify that access id and secret access key are correct.",
+        "Couldn't verify GCP Credentials. Please verify that credentials are correct.",
       error: {
-        err: JSON.stringify(err),
+        err: err.message,
       },
       data: {
         id,
@@ -73,7 +74,11 @@ export async function gcp_key_setup({
       },
     }
   } finally {
-    unlinkSync(fileName)
+    try {
+      unlinkSync(fileName)
+    } catch {
+      // pass
+    }
   }
 }
 
@@ -143,7 +148,7 @@ export async function gcp_source_identification({
       message:
         "Couldn't verify mirroring source presence in region/zone. Please verify name and zone .",
       error: {
-        err: JSON.stringify(err),
+        err: err.message,
       },
       data: { key_file, zone, project, ...rest },
     }
@@ -231,7 +236,7 @@ export async function get_destination_subnet({
       last_completed: 2,
       message: "Couldn't create subnet",
       error: {
-        err: JSON.stringify(err),
+        err: err.message,
       },
       data: { key_file, project, zone, network_url, id, ...rest },
     }
@@ -286,7 +291,7 @@ export async function create_firewall_rule({
       last_completed: 3,
       message: "Couldn't create firewall rule.",
       error: {
-        err: JSON.stringify(err),
+        err: err.message,
       },
       data: { key_file, zone, project, network_url, ip_range, id, ...rest },
     }
@@ -342,7 +347,7 @@ export async function create_cloud_router({
       step_number: 5,
       next_step: 6,
       last_completed: 5,
-      message: "Creating GCP Address",
+      message: "Created cloud router",
       error: null,
       data: {
         key_file,
@@ -364,9 +369,9 @@ export async function create_cloud_router({
       step_number: 5,
       next_step: 5,
       last_completed: 4,
-      message: "Couldn't create firewall rule.",
+      message: "Couldn't create cloud router.",
       error: {
-        err: JSON.stringify(err),
+        err: err.message,
       },
       data: {
         key_file,
@@ -395,6 +400,9 @@ export async function create_mig({
 }: RESPONSE["data"]): Promise<RESPONSE> {
   try {
     let conn = new GCP_CONN(key_file, zone, project)
+    // Check for machine type :
+    await conn.get_machine_types({ machineType: machine_type })
+
     const imageTemplateName = `metlo-image-${id}`
     let image_resp = await conn.create_image_template({
       machineType: machine_type,
@@ -407,9 +415,6 @@ export async function create_mig({
       image_resp[0].latestResponse.name,
       conn,
     )
-
-    // const imgUrl =
-    //   "https://www.googleapis.com/compute/v1/projects/metlo-crypto/global/instanceTemplates/metlo-image-98c897b9-9660-4176-a986-9c60fde2bc11"
 
     const instanceGroupName = `metlo-mig-${id}`
     let instance_manager = await conn.create_instance_manager({
@@ -433,7 +438,7 @@ export async function create_mig({
       step_number: 5,
       next_step: 6,
       last_completed: 5,
-      message: "Creating GCP Address",
+      message: "Created Managed instance Group",
       error: null,
       data: {
         key_file,
@@ -460,9 +465,9 @@ export async function create_mig({
       step_number: 5,
       next_step: 5,
       last_completed: 4,
-      message: "Couldn't create firewall rule.",
+      message: "Couldn't create Managed Instance Group.",
       error: {
-        err: JSON.stringify(err),
+        err: err.message,
       },
       data: {
         key_file,
@@ -499,7 +504,7 @@ export async function create_health_check({
       step_number: 8,
       next_step: 9,
       last_completed: 8,
-      message: "Creating GCP Keypair",
+      message: "Creating GCP Health Check for ilb",
       error: null,
       data: {
         key_file,
@@ -519,9 +524,9 @@ export async function create_health_check({
       step_number: 8,
       next_step: 8,
       last_completed: 7,
-      message: "Couldn't add ssh-keys",
+      message: "Couldn't create gcp health check for ilb",
       error: {
-        err: JSON.stringify(err),
+        err: err.message,
       },
       data: {
         key_file,
@@ -561,7 +566,7 @@ export async function create_backend_service({
       step_number: 9,
       next_step: 10,
       last_completed: 9,
-      message: "Creating GCP Keypair",
+      message: "Created GCP backend service",
       error: null,
       data: {
         key_file,
@@ -585,9 +590,9 @@ export async function create_backend_service({
       step_number: 9,
       next_step: 9,
       last_completed: 8,
-      message: "Couldn't add ssh-keys",
+      message: "Couldn't create gcp backend service",
       error: {
-        err: JSON.stringify(err),
+        err: err.message,
       },
       data: {
         key_file,
@@ -630,7 +635,7 @@ export async function create_load_balancer({
       step_number: 10,
       next_step: 11,
       last_completed: 10,
-      message: "Creating GCP Keypair",
+      message: "Creating gcp forwarding rule",
       error: null,
       data: {
         key_file,
@@ -653,9 +658,9 @@ export async function create_load_balancer({
       step_number: 10,
       next_step: 10,
       last_completed: 9,
-      message: "Couldn't add ssh-keys",
+      message: "Couldn't create gcp forwarding rule",
       error: {
-        err: JSON.stringify(err),
+        err: err.message,
       },
       data: {
         key_file,
@@ -724,7 +729,7 @@ export async function packet_mirroring({
       step_number: 11,
       next_step: 12,
       last_completed: 11,
-      message: "Creating GCP Keypair",
+      message: "Starting GCP packet mirroring",
       error: null,
       data: {
         key_file,
@@ -748,9 +753,9 @@ export async function packet_mirroring({
       step_number: 11,
       next_step: 11,
       last_completed: 10,
-      message: "Couldn't add ssh-keys",
+      message: "Couldn't start gcp packet mirroring",
       error: {
-        err: JSON.stringify(err),
+        err: err.message,
       },
       data: {
         key_file,
@@ -810,7 +815,7 @@ export async function test_ssh({
       last_completed: GCP_STEPS.TEST_SSH - 1,
       message: `Couldn't connect to ssh. Please check if key was constructed`,
       error: {
-        err: JSON.stringify(err),
+        err: err.message,
       },
       data: {
         key_file,
@@ -913,7 +918,7 @@ export async function push_files({
       last_completed: GCP_STEPS.PUSH_FILES - 1,
       message: `Couldn't push configuration files to remote machine`,
       error: {
-        err: JSON.stringify(err),
+        err: err.message,
       },
       data: {
         key_file,
@@ -977,7 +982,7 @@ export async function execute_commands({
       last_completed: GCP_STEPS.EXEC_COMMAND - 1,
       message: `Couldn't exec commands to install things`,
       error: {
-        err: JSON.stringify(err),
+        err: err.message,
       },
       data: {
         instance_url,

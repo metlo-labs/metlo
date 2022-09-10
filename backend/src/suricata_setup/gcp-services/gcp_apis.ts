@@ -43,9 +43,9 @@ export class GCP_CONN {
     conn.initialize()
   }
 
-  public async list_zones() {
+  public async get_zone({ zone }) {
     let conn = new ZonesClient({ credentials: this.keyfile })
-    return conn.list()
+    return conn.get({ zone, project: this.project })
   }
 
   public async get_networks({ name }) {
@@ -148,6 +148,15 @@ export class GCP_CONN {
       project: this.project,
       zone: this.zone,
       filter: filters,
+    })
+  }
+
+  public async get_machine_types({ machineType }) {
+    let conn = new MachineTypesClient({ credentials: this.keyfile })
+    return conn.get({
+      project: this.project,
+      zone: this.zone,
+      machineType,
     })
   }
 

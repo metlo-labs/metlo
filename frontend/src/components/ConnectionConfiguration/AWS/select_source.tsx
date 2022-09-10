@@ -61,7 +61,7 @@ const SelectMirrorSourceAWS: React.FC<KeySetupInterface> = ({ complete }) => {
               onClick={() =>
                 complete({
                   mirror_source_id: instanceID,
-                  source_type: AWS_SOURCE_TYPE.NETWORK_INTERFACE,
+                  source_type: AWS_SOURCE_TYPE.INSTANCE,
                 })
               }
               disabled={!instanceID}
