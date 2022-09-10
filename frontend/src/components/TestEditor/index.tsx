@@ -298,6 +298,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
                 Save
               </Button>
               <Button
+                hidden={isNewTest}
                 onClick={onDeleteClick}
                 isLoading={saving}
                 colorScheme={"red"}
