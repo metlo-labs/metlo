@@ -4,7 +4,7 @@ import Error401Unauthorized from "errors/error-401-unauthorized"
 import { NextFunction, Request, Response } from "express"
 import { ApiKey } from "models"
 
-export async function verify_api_key(
+export async function verifyApiKeyMiddleware(
   req: Request,
   res: Response,
   next: NextFunction,

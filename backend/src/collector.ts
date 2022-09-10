@@ -7,7 +7,7 @@ import {
   logRequestBatchHandler,
   logRequestSingleHandler,
 } from "collector_src/log-request"
-import { verify_api_key } from "./collector_src/utils"
+import { verifyApiKeyMiddleware } from "middleware/verify-api-key-middleware"
 import { BlockFields } from "models"
 import { getPathRegex } from "utils"
 import { DisableRestMethod } from "@common/enums"
@@ -27,7 +27,7 @@ app.get("/api/v1", (req: Request, res: Response) => {
   res.send("OK")
 })
 
-app.use(verify_api_key)
+app.use(verifyApiKeyMiddleware)
 app.use(bodyParserMiddleware)
 
 app.post("/api/v1/log-request/single", logRequestSingleHandler)
