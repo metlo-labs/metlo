@@ -1167,6 +1167,11 @@
   resolved "https://registry.yarnpkg.com/@types/validator/-/validator-13.7.5.tgz#96ad8c50d441c8c86a639efccc4d8d9d5d9cd5ea"
   integrity sha512-9rQHeAqz6Jw3gDhttkmWetoriW5FPbxylv/6h6mXtaj2NKRcOvOmvfcswVdLVpbuy10NrO486K3lCoLgoIhiIA==
 
+"@types/whatwg-mimetype@^2.1.1":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@types/whatwg-mimetype/-/whatwg-mimetype-2.1.1.tgz#1b7b7aecaa3695209fd2f3a808dd5729973a52fa"
+  integrity sha512-ojnf89qt5AWnqsjyPqMLN8uVaxm5x23vxNQ1me6EPBOdJe1YYuIZUzg809MZUG8UU6HKhkr6ah4fi2WUvD0DFw==
+
 "@types/yargs-parser@*":
   version "21.0.0"
   resolved "https://registry.yarnpkg.com/@types/yargs-parser/-/yargs-parser-21.0.0.tgz#0c60e537fa790f5f9472ed2776c2b71ec117351b"
@@ -3029,6 +3034,11 @@ packet-reader@1.0.0:
   resolved "https://registry.yarnpkg.com/packet-reader/-/packet-reader-1.0.0.tgz#9238e5480dedabacfe1fe3f2771063f164157d74"
   integrity sha512-HAKu/fG3HpHFO0AA8WE8q2g+gBJaZ9MG7fcKk+IJPLTGAD6Psw4443l+9DGRbOIh3/aXr7Phy0TjilYivJo5XQ==
 
+parse-multipart-data@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/parse-multipart-data/-/parse-multipart-data-1.4.0.tgz#864c93b7cb2675bb4e5e69c956de7a42b8ab0910"
+  integrity sha512-CoF9FXHi6ICz/VFPjunENhVtT8yKi9FtkkmDqCbjyJ2R2GSYZys56e+DiueFFdncWyvttQz1yUxVcXiRvGEPiA==
+
 parse5-htmlparser2-tree-adapter@^6.0.0:
   version "6.0.1"
   resolved "https://registry.yarnpkg.com/parse5-htmlparser2-tree-adapter/-/parse5-htmlparser2-tree-adapter-6.0.1.tgz#2cdf9ad823321140370d4dbf5d3e92c7c8ddc6e6"
@@ -3876,6 +3886,11 @@ webidl-conversions@^3.0.0:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/webidl-conversions/-/webidl-conversions-3.0.1.tgz#24534275e2a7bc6be7bc86611cc16ae0a5654871"
   integrity sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==
+
+whatwg-mimetype@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/whatwg-mimetype/-/whatwg-mimetype-3.0.0.tgz#5fa1a7623867ff1af6ca3dc72ad6b8a4208beba7"
+  integrity sha512-nt+N2dzIutVRxARx1nghPKGv1xHikU7HKdfafKkLNLindmPU/ch3U31NOCGGA/dmPcmb1VlofO0vnKAcsm0o/Q==
 
 whatwg-url@^5.0.0:
   version "5.0.0"

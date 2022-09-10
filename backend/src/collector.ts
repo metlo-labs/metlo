@@ -12,6 +12,7 @@ import { BlockFields } from "models"
 import { getPathRegex } from "utils"
 import { DisableRestMethod } from "@common/enums"
 import { DatabaseService } from "services/database"
+import { bodyParserMiddleware } from "middleware/body-parser-middleware"
 
 dotenv.config()
 
@@ -25,7 +26,10 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }))
 app.get("/api/v1", (req: Request, res: Response) => {
   res.send("OK")
 })
+
 app.use(verify_api_key)
+app.use(bodyParserMiddleware)
+
 app.post("/api/v1/log-request/single", logRequestSingleHandler)
 app.post("/api/v1/log-request/batch", logRequestBatchHandler)
 
