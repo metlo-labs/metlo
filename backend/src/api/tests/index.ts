@@ -2,7 +2,7 @@ import { Request, Response } from "express"
 import ApiResponseHandler from "api-response-handler"
 import { runTest } from "@metlo/testing"
 import { AppDataSource } from "data-source"
-import { ApiEndpoint, ApiEndpointTest } from "models"
+import { ApiEndpointTest } from "models"
 
 export const runTestHandler = async (
   req: Request,
@@ -65,10 +65,7 @@ export const listTests = async (req: Request, res: Response): Promise<void> => {
     let partial_resp = AppDataSource.getRepository(ApiEndpointTest)
       .createQueryBuilder("test")
       .select()
-      .leftJoinAndSelect(
-        "test.apiEndpoint",
-        "endpoint",
-      )
+      .leftJoinAndSelect("test.apiEndpoint", "endpoint")
     if (hostname) {
       resp = await partial_resp
         .where("endpoint.host = :hostname", { hostname })

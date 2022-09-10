@@ -7,8 +7,9 @@ import {
   useColorModeValue,
   VStack,
 } from "@chakra-ui/react"
-import { RequestBody, RequestBodyType } from "@metlo/testing"
+import { RequestBody, RequestBodyType, DataPair } from "@metlo/testing"
 import Editor from "@monaco-editor/react"
+import DataPairEditor from "components/utils/DataPairEditor"
 
 interface RequestBodyProps {
   body: RequestBody
@@ -53,7 +54,17 @@ const RequestBodyEditor: React.FC<RequestBodyProps> = React.memo(
         />
       )
     } else if (body.type == RequestBodyType.FORM_DATA) {
-      editor = null
+      editor = (
+        <Box w="full" h="full" bg="white">
+          <DataPairEditor
+            title="Form Data"
+            pairs={body.data as DataPair[]}
+            updatePairs={t =>
+              updateBody(e => ({ ...e, data: t(e.data as DataPair[]) }))
+            }
+          />
+        </Box>
+      )
     }
 
     return (

@@ -1,35 +1,11 @@
 import { Text, HStack, Input, Select, VStack } from "@chakra-ui/react"
-import {
-  APIKeyAuthAddTo,
-  AuthType,
-  AuthAPIKeyParams,
-  Authorization,
-} from "@metlo/testing"
-import { useEffect, useState } from "react"
+import { APIKeyAuthAddTo, AuthAPIKeyParams } from "@metlo/testing"
 
 interface apiAuthInterface {
-  evaluate: (v: () => Authorization) => void
+  params: AuthAPIKeyParams
+  setParams: (t: (e: AuthAPIKeyParams) => AuthAPIKeyParams) => void
 }
-const APIAuth: React.FC<apiAuthInterface> = ({ evaluate }) => {
-  const [key, setKey] = useState("")
-  const [param, setParam] = useState("")
-  const [location, setLocation] = useState<APIKeyAuthAddTo>(
-    APIKeyAuthAddTo.HEADERS,
-  )
-
-  useEffect(() => {
-    evaluate(() => {
-      return {
-        type: AuthType.API_KEY,
-        params: {
-          key: key,
-          value: param,
-          add_to: location,
-        } as AuthAPIKeyParams,
-      }
-    })
-  }, [location, key, param, evaluate])
-
+const APIAuth: React.FC<apiAuthInterface> = ({ params, setParams }) => {
   return (
     <VStack>
       <HStack w="full" justifyContent="space-between" alignItems="center">
@@ -37,8 +13,8 @@ const APIAuth: React.FC<apiAuthInterface> = ({ evaluate }) => {
         <Input
           w="sm"
           bg="white"
-          value={key}
-          onChange={v => setKey(v.target.value)}
+          value={params.key}
+          onChange={v => setParams(e => ({ ...e, key: v.target.value }))}
           placeholder="Key"
         />
       </HStack>
@@ -47,8 +23,8 @@ const APIAuth: React.FC<apiAuthInterface> = ({ evaluate }) => {
         <Input
           w="sm"
           bg="white"
-          value={param}
-          onChange={v => setParam(v.target.value)}
+          value={params.value}
+          onChange={v => setParams(e => ({ ...e, value: v.target.value }))}
           placeholder="Value"
         />
       </HStack>
@@ -57,8 +33,13 @@ const APIAuth: React.FC<apiAuthInterface> = ({ evaluate }) => {
         <Select
           w="sm"
           bg="white"
-          value={location}
-          onChange={v => setLocation(v.target.value as APIKeyAuthAddTo)}
+          value={params.add_to}
+          onChange={v =>
+            setParams(e => ({
+              ...e,
+              add_to: v.target.value as APIKeyAuthAddTo,
+            }))
+          }
         >
           <option value={APIKeyAuthAddTo.HEADERS}>Headers</option>
           <option value={APIKeyAuthAddTo.QUERY_PARAMS}>Query Params</option>

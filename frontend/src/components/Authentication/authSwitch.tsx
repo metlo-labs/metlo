@@ -1,35 +1,90 @@
 import { Box, HStack, Select, StackDivider, VStack } from "@chakra-ui/react"
-import { AuthType, Authorization, Request } from "@metlo/testing"
-import React, { useCallback } from "react"
+import {
+  AuthType,
+  Authorization,
+  Request,
+  AuthAPIKeyParams,
+  AuthBasicAuthParams,
+  AuthBearerParams,
+  APIKeyAuthAddTo,
+} from "@metlo/testing"
+import React from "react"
 import APIAuth from "./apiKey"
 import BasicAuth from "./basicAuth"
 import BearerAuth from "./bearerAuth"
 import NoAuth from "./noAuth"
 
+const getDefaultParams = (type: AuthType) => {
+  switch (type) {
+    case AuthType.API_KEY:
+      return {
+        key: "",
+        value: "",
+        add_to: APIKeyAuthAddTo.HEADERS,
+      } as AuthAPIKeyParams
+    case AuthType.BASIC_AUTH:
+      return {
+        username: "",
+        password: "",
+      } as AuthBasicAuthParams
+    case AuthType.BEARER:
+      return {
+        bearer_token: "",
+      } as AuthBearerParams
+    case AuthType.NO_AUTH:
+      return {}
+  }
+}
+const DEFAULT_AUTH: Authorization = {
+  type: AuthType.NO_AUTH,
+  params: {},
+}
+
 interface AuthSwitchInterface {
-  variant: AuthType
-  setVariant: (value: AuthType) => void
+  auth?: Authorization
   setRequest: (t: (e: Request) => Request) => void
 }
 
 const AuthSwitch: React.FC<AuthSwitchInterface> = React.memo(
-  ({ variant, setVariant, setRequest }) => {
-    const onAuthParamsChange = useCallback(
-      (v: () => Authorization) => {
-        setRequest(request => ({ ...request, authorization: v() }))
-      },
-      [setRequest],
-    )
-    const getAuthComponent = (auth: AuthType) => {
-      switch (auth) {
+  ({ auth, setRequest }) => {
+    auth = auth || DEFAULT_AUTH
+    const updateAuth = (t: (e: Authorization) => Authorization) => {
+      setRequest(e => ({
+        ...e,
+        authorization: t(e.authorization || DEFAULT_AUTH),
+      }))
+    }
+    const updateAuthParams = (t: (e: any) => any) => {
+      updateAuth(e => ({
+        ...e,
+        params: t(e.params),
+      }))
+    }
+    const getAuthComponent = (authType: AuthType) => {
+      switch (authType) {
         case AuthType.API_KEY:
-          return <APIAuth evaluate={onAuthParamsChange} />
+          return (
+            <APIAuth
+              params={auth.params as AuthAPIKeyParams}
+              setParams={updateAuthParams}
+            />
+          )
         case AuthType.BASIC_AUTH:
-          return <BasicAuth evaluate={onAuthParamsChange} />
+          return (
+            <BasicAuth
+              params={auth.params as AuthBasicAuthParams}
+              setParams={updateAuthParams}
+            />
+          )
         case AuthType.NO_AUTH:
-          return <NoAuth evaluate={onAuthParamsChange} />
+          return <NoAuth />
         case AuthType.BEARER:
-          return <BearerAuth evaluate={onAuthParamsChange} />
+          return (
+            <BearerAuth
+              params={auth.params as AuthBearerParams}
+              setParams={updateAuthParams}
+            />
+          )
       }
     }
     return (
@@ -38,8 +93,14 @@ const AuthSwitch: React.FC<AuthSwitchInterface> = React.memo(
           <Box w="full">Type</Box>
           <Box w="full">
             <Select
-              value={variant}
-              onChange={v => setVariant(v.target.value as AuthType)}
+              value={auth.type}
+              onChange={v =>
+                updateAuth(e => ({
+                  ...e,
+                  type: v.target.value as AuthType,
+                  params: getDefaultParams(v.target.value as AuthType),
+                }))
+              }
             >
               {Object.values(AuthType).map((v, i) => (
                 <option value={v} key={i}>
@@ -50,7 +111,7 @@ const AuthSwitch: React.FC<AuthSwitchInterface> = React.memo(
           </Box>
         </HStack>
         <Box w="full" px="4" py="2" bg="secondaryBG" flexGrow="1">
-          {getAuthComponent(variant)}
+          {getAuthComponent(auth.type)}
         </Box>
       </VStack>
     )

@@ -74,10 +74,10 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@metlo/testing@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.0.1.tgz#9c224970304fa465b6bbf9d7e2f9634aec104a77"
-  integrity sha512-XkgCNfYPG8GlnRMeXbW2K+fj1F+m5SoO+yx62knJxAwzYRoSZiwI0x87axCyMT2twt4+1wbxEvtExs0O6fOMyA==
+"@metlo/testing@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.0.2.tgz#0bdbc1e776ed06c16bcd4ba4945d252f58cc06ef"
+  integrity sha512-9Zuv651aYiH/hWkWc30bedHKl3NbS22Keiyackdnor8/jkzywbt0mEbcdCLb09emlZKMlf++kSSHrk+a6sIZWw==
   dependencies:
     axios "^0.27.2"
     expect "^29.0.2"

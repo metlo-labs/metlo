@@ -1,4 +1,7 @@
-module.exports = {
+const withBundleAnalyzer = require("@next/bundle-analyzer")({
+  enabled: process.env.ANALYZE === "true",
+})
+module.exports = withBundleAnalyzer({
   async rewrites() {
     var backendURL = process.env.BACKEND_URL || "http://localhost:8080"
     return [
@@ -29,4 +32,4 @@ module.exports = {
     }
     return config
   },
-}
+})

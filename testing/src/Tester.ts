@@ -1,5 +1,5 @@
 import { AxiosResponse, AxiosRequestConfig } from "axios"
-import { TestResult } from "types"
+import { TestResult } from "./types"
 
 interface TestContext {
   request: AxiosRequestConfig

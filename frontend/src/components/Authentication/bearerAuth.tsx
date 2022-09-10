@@ -3,20 +3,10 @@ import { AuthType, Authorization, AuthBearerParams } from "@metlo/testing"
 import { useEffect, useState } from "react"
 
 interface basicAuthInterface {
-  evaluate: (v: () => Authorization) => void
+  params: AuthBearerParams
+  setParams: (t: (e: AuthBearerParams) => AuthBearerParams) => void
 }
-const BearerAuth: React.FC<basicAuthInterface> = ({ evaluate }) => {
-  const [bearerToken, setBearerToken] = useState("")
-
-  useEffect(() => {
-    evaluate(() => {
-      return {
-        type: AuthType.BEARER,
-        params: { bearer_token: bearerToken } as AuthBearerParams,
-      }
-    })
-  }, [bearerToken, evaluate])
-
+const BearerAuth: React.FC<basicAuthInterface> = ({ params, setParams }) => {
   return (
     <VStack w="full">
       <HStack w="full" justifyContent="space-between">
@@ -24,8 +14,10 @@ const BearerAuth: React.FC<basicAuthInterface> = ({ evaluate }) => {
         <Input
           w="sm"
           bg="white"
-          value={bearerToken}
-          onChange={v => setBearerToken(v.target.value)}
+          value={params.bearer_token}
+          onChange={v =>
+            setParams(e => ({ ...e, bearer_token: v.target.value }))
+          }
           placeholder="BearerToken"
         />
       </HStack>

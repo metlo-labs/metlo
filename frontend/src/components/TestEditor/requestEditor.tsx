@@ -27,7 +27,6 @@ interface RequestEditorProps {
 
 const RequestEditor: React.FC<RequestEditorProps> = React.memo(
   ({ request, fetching, sendSelectedRequest, updateRequest }) => {
-    const [authType, setAuthType] = useState<AuthType>(AuthType.NO_AUTH)
     return (
       <Box flexGrow="1" h="full">
         <Box w="full" height="full" position="relative">
@@ -82,8 +81,7 @@ const RequestEditor: React.FC<RequestEditorProps> = React.memo(
                   </TabPanel>
                   <TabPanel p="0" h="full">
                     <AuthSwitch
-                      variant={authType}
-                      setVariant={setAuthType}
+                      auth={request.authorization}
                       setRequest={updateRequest}
                     />
                   </TabPanel>
