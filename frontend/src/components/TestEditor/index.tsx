@@ -47,7 +47,7 @@ const DeleteModal = ({ testName, onDelete, isDeleting, isOpen, onClose }) => {
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Modal Title</ModalHeader>
+        <ModalHeader>Delete Endpoint Test</ModalHeader>
         <ModalCloseButton />
         <ModalBody>{`Do you want to delete ${testName}`}</ModalBody>
 
