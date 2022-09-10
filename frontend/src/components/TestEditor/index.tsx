@@ -8,7 +8,15 @@ import {
   EditableInput,
   EditablePreview,
   HStack,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   StackDivider,
+  useDisclosure,
   useToast,
   VStack,
 } from "@chakra-ui/react"
@@ -34,6 +42,28 @@ interface TestEditorState {
   fetchingRequests: boolean[]
 }
 
+const DeleteModal = ({ testName, onDelete, isDeleting, isOpen, onClose }) => {
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>Modal Title</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>{`Do you want to delete ${testName}`}</ModalBody>
+
+        <ModalFooter>
+          <Button colorScheme="blue" mr={3} onClick={onClose}>
+            Close
+          </Button>
+          <Button colorScheme={"red"} onClick={onDelete} isLoading={isDeleting}>
+            Delete
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  )
+}
+
 const TestEditor: React.FC<TestEditorProps> = React.memo(
   ({ endpoint, initTest, isNewTest }) => {
     const [state, setState] = useState<TestEditorState>({
@@ -42,6 +72,11 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
       modified: false,
       fetchingRequests: Array(initTest.requests.length).fill(false),
     })
+    const {
+      isOpen,
+      onOpen: onDeleteOpen,
+      onClose: onDeleteClose,
+    } = useDisclosure()
     const [saving, updateSaving] = useState<boolean>(false)
     const router = useRouter()
     const toast = useToast()
@@ -245,6 +280,8 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
         )
     }
 
+    const confirmDelete = () => {}
+
     useEffect(() => {
       const keyDownHandler = (e: KeyboardEvent) => {
         if (e.code == "Enter" && e.metaKey) {
@@ -256,83 +293,92 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
     }, [sendSelectedRequest])
 
     return (
-      <VStack
-        w="full"
-        alignItems="flex-start"
-        spacing="0"
-        h="100vh"
-        overflow="hidden"
-        divider={<StackDivider />}
-      >
-        <VStack alignItems="flex-start" px="6" pt="4" w="full">
-          <TestEditorHeader endpoint={endpoint} />
-          <HStack justifyContent="space-between" w="full" pb="4">
-            <VStack alignItems="flex-start" spacing="0">
-              <HStack alignItems="center">
-                <HiPencil size="22" />
-                <Editable
-                  value={test.name}
-                  onChange={name => updateTest(e => ({ ...e, name }))}
-                  fontSize="2xl"
-                  fontWeight="semibold"
+      <>
+        <VStack
+          w="full"
+          alignItems="flex-start"
+          spacing="0"
+          h="100vh"
+          overflow="hidden"
+          divider={<StackDivider />}
+        >
+          <VStack alignItems="flex-start" px="6" pt="4" w="full">
+            <TestEditorHeader endpoint={endpoint} />
+            <HStack justifyContent="space-between" w="full" pb="4">
+              <VStack alignItems="flex-start" spacing="0">
+                <HStack alignItems="center">
+                  <HiPencil size="22" />
+                  <Editable
+                    value={test.name}
+                    onChange={name => updateTest(e => ({ ...e, name }))}
+                    fontSize="2xl"
+                    fontWeight="semibold"
+                  >
+                    <EditablePreview />
+                    <EditableInput />
+                  </Editable>
+                </HStack>
+                <TagList
+                  allTags={Object.values(TestTags)}
+                  tags={test.tags}
+                  updateTags={tags => updateTest(e => ({ ...e, tags }))}
+                />
+              </VStack>
+              <HStack>
+                <Button
+                  colorScheme="blue"
+                  onClick={onRunClick}
+                  isLoading={state.fetchingRequests.every(e => e)}
                 >
-                  <EditablePreview />
-                  <EditableInput />
-                </Editable>
+                  Run
+                </Button>
+                <Button onClick={onSaveRequest} isLoading={saving}>
+                  Save
+                </Button>
+                <Button
+                  hidden={isNewTest}
+                  onClick={onDeleteOpen}
+                  isLoading={saving}
+                  colorScheme={"red"}
+                >
+                  Delete
+                </Button>
               </HStack>
-              <TagList
-                allTags={Object.values(TestTags)}
-                tags={test.tags}
-                updateTags={tags => updateTest(e => ({ ...e, tags }))}
-              />
-            </VStack>
-            <HStack>
-              <Button
-                colorScheme="blue"
-                onClick={onRunClick}
-                isLoading={state.fetchingRequests.every(e => e)}
-              >
-                Run
-              </Button>
-              <Button onClick={onSaveRequest} isLoading={saving}>
-                Save
-              </Button>
-              <Button
-                hidden={isNewTest}
-                onClick={onDeleteClick}
-                isLoading={saving}
-                colorScheme={"red"}
-              >
-                Delete
-              </Button>
             </HStack>
+          </VStack>
+          <HStack
+            flex="1"
+            overflow="hidden"
+            w="full"
+            divider={<StackDivider />}
+            spacing="0"
+          >
+            <RequestList
+              fetching={state.fetchingRequests}
+              requests={test.requests}
+              selectedRequest={selectedRequest}
+              updateSelectedRequest={updateSelectedRequest}
+              addNewRequest={addNewRequest}
+              deleteRequest={deleteRequest}
+              h="full"
+              w={{ base: "52", xl: "72" }}
+            />
+            <RequestEditor
+              sendSelectedRequest={sendSelectedRequest}
+              fetching={state.fetchingRequests[selectedRequest]}
+              request={test.requests[selectedRequest]}
+              updateRequest={updateRequest}
+            />
           </HStack>
         </VStack>
-        <HStack
-          flex="1"
-          overflow="hidden"
-          w="full"
-          divider={<StackDivider />}
-          spacing="0"
-        >
-          <RequestList
-            fetching={state.fetchingRequests}
-            requests={test.requests}
-            selectedRequest={selectedRequest}
-            updateSelectedRequest={updateSelectedRequest}
-            addNewRequest={addNewRequest}
-            deleteRequest={deleteRequest}
-            h="full"
-            w={{ base: "52", xl: "72" }}
-          />
-          <RequestEditor
-            sendSelectedRequest={sendSelectedRequest}
-            fetching={state.fetchingRequests[selectedRequest]}
-            request={test.requests[selectedRequest]}
-            updateRequest={updateRequest}
-          />
-        </HStack>
-      </VStack>
+        <DeleteModal
+          testName={test.name}
+          onDelete={onDeleteClick}
+          isDeleting={state.fetchingRequests.some(e => e)}
+          isOpen={isOpen}
+          onClose={onDeleteClose}
+        />
+      </>
     )
   },
 )
