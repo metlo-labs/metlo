@@ -22,6 +22,11 @@ export const getTest = async (testUUID: string) => {
   return resp
 }
 
+export const deleteTest = async (testUUID: string) => {
+  const resp = await axios.delete(`${getAPIURL()}/test/${testUUID}/delete`)
+  return resp
+}
+
 export const saveTest = async (test: Test, endpoint_uuid: string) => {
   const resp = await axios.post<Test>(`${getAPIURL()}/test/save`, {
     test,

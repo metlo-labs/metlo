@@ -79,3 +79,23 @@ export const listTests = async (req: Request, res: Response): Promise<void> => {
     await ApiResponseHandler.error(res, err)
   }
 }
+
+export const deleteTest = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const { uuid } = req.params
+
+  try {
+    let resp = await AppDataSource.getRepository(ApiEndpointTest)
+      .createQueryBuilder()
+      .delete()
+      .from(ApiEndpointTest)
+      .where("uuid = :uuid", { uuid })
+      .execute()
+
+    await ApiResponseHandler.success(res, resp)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}

@@ -30,7 +30,13 @@ import {
   get_long_running_state,
   setup_connection,
 } from "./api/setup"
-import { getTest, listTests, runTestHandler, saveTest } from "./api/tests"
+import {
+  deleteTest,
+  getTest,
+  listTests,
+  runTestHandler,
+  saveTest,
+} from "./api/tests"
 import {
   delete_connection,
   get_connection_for_uuid,
@@ -114,11 +120,12 @@ app.get(
 )
 app.post("/api/v1/update_connection", update_connection)
 app.delete("/api/v1/delete_connection/:uuid", delete_connection)
-app.post("/api/v1/test/run", runTestHandler)
 
+app.post("/api/v1/test/run", runTestHandler)
 app.post("/api/v1/test/save", saveTest)
 app.get("/api/v1/test/list", listTests)
 app.get("/api/v1/test/list/:uuid", getTest)
+app.delete("/api/v1/test/:uuid/delete", deleteTest)
 
 const main = async () => {
   try {

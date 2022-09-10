@@ -17,7 +17,7 @@ import TestEditorHeader from "./header"
 import RequestList from "./requestsList"
 import RequestEditor from "./requestEditor"
 import { makeNewEmptyRequest } from "./requestUtils"
-import { runTest, saveTest } from "api/tests"
+import { deleteTest, runTest, saveTest } from "api/tests"
 import { TagList } from "components/utils/TagList"
 import { useRouter } from "next/router"
 
@@ -221,6 +221,30 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
         )
     }
 
+    const onDeleteClick = () => {
+      setState(state => ({
+        ...state,
+        fetchingRequests: Array(state.fetchingRequests.length).fill(true),
+      }))
+      deleteTest(test.uuid)
+        .then(res => {
+          router.push(`/endpoint/${endpoint.uuid}`)
+        })
+        .catch(err => {
+          toast({
+            title: "Error Deleting Test",
+            description: err.message,
+            status: "error",
+          })
+        })
+        .finally(() =>
+          setState(state => ({
+            ...state,
+            fetchingRequests: Array(state.fetchingRequests.length).fill(false),
+          })),
+        )
+    }
+
     useEffect(() => {
       const keyDownHandler = (e: KeyboardEvent) => {
         if (e.code == "Enter" && e.metaKey) {
@@ -272,6 +296,13 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
               </Button>
               <Button onClick={onSaveRequest} isLoading={saving}>
                 Save
+              </Button>
+              <Button
+                onClick={onDeleteClick}
+                isLoading={saving}
+                colorScheme={"red"}
+              >
+                Delete
               </Button>
             </HStack>
           </HStack>
