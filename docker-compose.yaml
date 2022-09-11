@@ -21,6 +21,8 @@ services:
       - 8081:8081
     environment:
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
+    volumes:
+      - ./block_fields.yaml:/usr/src/app/backend/block_fields.yaml
   cache:
     image: redis:7.0.4
     restart: always
