@@ -33,6 +33,8 @@ docker-compose up
 
 Now visit [http://localhost:8000](http://localhost:8000)
 
+See our [Docs](https://docs.metlo.com/docs) for an in-depth walk-throughs on how to set up Metlo in your cloud environment. You can join our [Slack community](https://metlo.com/slack) if you need help or just want to chat!
+
 ## Features
 ### Endpoint Discovery
 * Undocumented, legacy and shadow API endpoints are an unknown and unprotected attack surface.
@@ -43,8 +45,10 @@ Now visit [http://localhost:8000](http://localhost:8000)
 
 ### API Testing
 * Metlo’s suite of automated tests and our security testing framework let you find vulnerabilities in development.
-* Metlo’s built in testing framework helps you get to 100% Security Coverage on your highest risk APIs
-* Metlo integrates directly with your CI/CD
+* Our built in testing framework helps you get to 100% Security Coverage on your highest risk APIs
+* Integrates directly with your CI/CD
+
+![Testing Screenshot](https://storage.googleapis.com/metlo-security-public-images/testing_framework.png)
 
 ### Protection
 * After an API vulnerability is discovered, intruders can quickly start the process of extracting sensitive data. Metlo alerts your security team as soon as anomalous API usage patterns are detected.
