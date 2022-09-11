@@ -15,7 +15,7 @@ program
   .command("test")
   .description("Run Metlo API tests against a specified host.")
   .requiredOption("-h, --host <string>", "The production host in Metlo.")
-  .requiredOption(
+  .option(
     "-t, --target <string>",
     "The host to run tests against against.",
   )

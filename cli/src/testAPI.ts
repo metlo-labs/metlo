@@ -6,7 +6,7 @@ import { Test, runTest, TestResult, Result } from "@metlo/testing"
 
 interface testAPIArgs {
   host: string
-  target: string
+  target?: string
 }
 
 interface APIEndpoint {
@@ -30,14 +30,22 @@ const getTests = async (args: testAPIArgs): Promise<TestResponse[]> => {
 const testAPI = async (args: testAPIArgs) => {
   try {
     const tests = await getTests(args)
-    const outputs = await Promise.all(tests.map(runTest))
+    const outputs = await Promise.all(
+      tests.map(t => {
+        let envVars = new Map<string, string>()
+        envVars.set("baseUrl", args.target || `https://${t.apiEndpoint.host}`)
+        return runTest(t, envVars)
+      }),
+    )
     const testWithOutputs: [TestResponse, Result[]][] = outputs.map((e, i) => [
       tests[i],
       e,
     ])
     let headerToFailures = new Map<string, TestResult[]>()
     testWithOutputs.forEach(([test, results]) => {
-      const name = `${chalk.red(test.name)}\n${test.apiEndpoint.method} ${test.apiEndpoint.path}`
+      const name = `${chalk.red(test.name)}\n${test.apiEndpoint.method} ${
+        test.apiEndpoint.path
+      }`
       const failureResults = results
         .flatMap(e => e.testResults)
         .filter(e => !e.success)

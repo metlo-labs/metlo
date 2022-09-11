@@ -14,6 +14,7 @@ import {
 } from "./types"
 import MetloTester from "./Tester"
 import { APIKeyAuthAddTo, AuthType, RequestBodyType } from "./enums"
+import { processTemplate } from "./utils"
 
 export {
   Test,
@@ -29,9 +30,12 @@ export {
 } from "./types"
 export { APIKeyAuthAddTo, AuthType, RequestBodyType } from "./enums"
 
-const makeAxiosRequestConfig = (request: Request): AxiosRequestConfig => {
+const makeAxiosRequestConfig = (
+  request: Request,
+  envVars: Map<string, string>,
+): AxiosRequestConfig => {
   let requestConfig = {
-    url: request.url,
+    url: processTemplate(request.url, envVars),
     method: request.method,
     headers: Object.fromEntries(request.headers.map(e => [e.key, e.value])),
     params: {},
@@ -87,8 +91,11 @@ const makeAxiosRequestConfig = (request: Request): AxiosRequestConfig => {
   return requestConfig
 }
 
-export const runRequest = async (request: Request): Promise<Result> => {
-  let requestConfig = makeAxiosRequestConfig(request)
+export const runRequest = async (
+  request: Request,
+  envVars: Map<string, string>,
+): Promise<Result> => {
+  let requestConfig = makeAxiosRequestConfig(request, envVars)
   try {
     const start = Date.now()
     const response = await axios(requestConfig)
@@ -129,10 +136,14 @@ export const runRequest = async (request: Request): Promise<Result> => {
   }
 }
 
-export const runTest = async (test: Test): Promise<Result[]> => {
+export const runTest = async (
+  test: Test,
+  envVars?: Map<string, string>,
+): Promise<Result[]> => {
   let output: Result[] = []
+  envVars = envVars || new Map<string, string>()
   for (let i = 0; i < test.requests.length; i++) {
-    const res = await runRequest(test.requests[i])
+    const res = await runRequest(test.requests[i], envVars)
     output.push(res)
   }
   return output

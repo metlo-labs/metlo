@@ -3,9 +3,10 @@ import { getAPIURL } from "~/constants"
 import { Test, Result } from "@metlo/testing"
 import { TestDetailed } from "@common/types"
 
-export const runTest = async (test: Test) => {
+export const runTest = async (test: Test, endpointUuid: string) => {
   const resp = await axios.post<Result[]>(`${getAPIURL()}/test/run`, {
     test,
+    endpointUuid,
   })
   return resp.data
 }

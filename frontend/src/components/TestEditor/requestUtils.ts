@@ -90,7 +90,7 @@ export const sendRequest = (r: Request) => {
 
 export const makeNewRequest = (parsedEndpoint: ApiEndpoint) => ({
   method: parsedEndpoint.method,
-  url: `http://${parsedEndpoint.host}${parsedEndpoint.path}`,
+  url: `{{baseUrl}}${parsedEndpoint.path}`,
   params: [],
   headers: [],
   body: {
@@ -100,9 +100,9 @@ export const makeNewRequest = (parsedEndpoint: ApiEndpoint) => ({
   tests: "",
 })
 
-export const makeNewEmptyRequest = (parsedEndpoint: ApiEndpoint) => ({
+export const makeNewEmptyRequest = () => ({
   method: RestMethod.GET,
-  url: `http://${parsedEndpoint.host}`,
+  url: "{{baseUrl}}",
   params: [],
   headers: [],
   body: {

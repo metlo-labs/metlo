@@ -1,6 +1,6 @@
 {
   "name": "metlo",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,17 +20,17 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "@metlo/testing": "^0.0.2",
+    "@metlo/testing": "^0.0.3",
     "@types/valid-url": "^1.0.3",
     "axios": "^0.27.2",
+    "chalk": "^4.1.2",
     "commander": "^9.4.0",
     "dotenv": "^16.0.2",
     "enquirer": "^2.3.6",
     "nodemon": "^2.0.19",
-    "tslib": "^2.4.0",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.1.0",
-    "valid-url": "^1.0.9",
-    "chalk": "^4.1.2"
+    "tslib": "^2.4.0",
+    "valid-url": "^1.0.9"
   }
 }

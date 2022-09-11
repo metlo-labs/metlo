@@ -3,13 +3,18 @@ import ApiResponseHandler from "api-response-handler"
 import { runTest } from "@metlo/testing"
 import { AppDataSource } from "data-source"
 import { ApiEndpointTest } from "models"
+import { GetEndpointsService } from "services/get-endpoints"
 
 export const runTestHandler = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
   try {
-    const testRes = await runTest(req.body.test)
+    const { test, endpointUuid } = req.body
+    const endpoint = await GetEndpointsService.getEndpoint(endpointUuid)
+    let envVars = new Map<string, string>()
+    envVars.set("baseUrl", `https://${endpoint.host}`)
+    const testRes = await runTest(test, envVars)
     await ApiResponseHandler.success(res, testRes)
   } catch (err) {
     await ApiResponseHandler.error(res, err)

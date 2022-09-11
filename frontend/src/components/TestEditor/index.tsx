@@ -125,7 +125,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
       () =>
         setState(state => {
           const test = state.test
-          let newRequests = [...test.requests, makeNewEmptyRequest(endpoint)]
+          let newRequests = [...test.requests, makeNewEmptyRequest()]
           let newFetchingRequests = [...state.fetchingRequests, false]
           return {
             selectedRequest: newRequests.length - 1,
@@ -175,10 +175,13 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
           i == currSelectedReq ? true : e,
         ),
       }))
-      runTest({
-        ...test,
-        requests: [test.requests[currSelectedReq]],
-      })
+      runTest(
+        {
+          ...test,
+          requests: [test.requests[currSelectedReq]],
+        },
+        endpoint.uuid,
+      )
         .then(res => {
           updateTest(e => ({
             ...e,
@@ -234,7 +237,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
         ...state,
         fetchingRequests: Array(state.fetchingRequests.length).fill(true),
       }))
-      runTest(test)
+      runTest(test, endpoint.uuid)
         .then(res => {
           updateTest(e => ({
             ...e,
@@ -279,8 +282,6 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
           })),
         )
     }
-
-    const confirmDelete = () => {}
 
     useEffect(() => {
       const keyDownHandler = (e: KeyboardEvent) => {
@@ -354,6 +355,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             spacing="0"
           >
             <RequestList
+              endpointHost={endpoint.host}
               fetching={state.fetchingRequests}
               requests={test.requests}
               selectedRequest={selectedRequest}

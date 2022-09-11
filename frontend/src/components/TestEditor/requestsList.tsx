@@ -16,6 +16,7 @@ import { BiCheckCircle } from "@react-icons/all-files/bi/BiCheckCircle"
 import { GiCancel } from "@react-icons/all-files/gi/GiCancel"
 
 interface RequestListProps extends StackProps {
+  endpointHost: string
   requests: Request[]
   fetching: boolean[]
   selectedRequest: number
@@ -25,6 +26,7 @@ interface RequestListProps extends StackProps {
 }
 
 interface RequestItemProps {
+  endpointHost: string
   fetching: boolean
   request: Request
   selectedRequest: number
@@ -33,9 +35,17 @@ interface RequestItemProps {
   deleteRequest: (e: number) => void
 }
 
+export const processTemplate = (base: string, envVars: Map<string, string>) => {
+  for (let [key, value] of envVars) {
+    base = base.replace(`{{${key}}}`, value)
+  }
+  return base
+}
+
 const RequestItem: React.FC<RequestItemProps> = React.memo(
   ({
     fetching,
+    endpointHost,
     request,
     selectedRequest,
     idx,
@@ -46,7 +56,10 @@ const RequestItem: React.FC<RequestItemProps> = React.memo(
     let host = "----"
     let path = "----"
     try {
-      const url = new URL(request.url)
+      let envVars = new Map<string, string>()
+      envVars.set("baseUrl", `https://${endpointHost}`)
+      const urlStr = processTemplate(request.url, envVars)
+      const url = new URL(urlStr)
       host = url.host
       path = decodeURI(url.pathname)
     } catch (e) {}
@@ -135,6 +148,7 @@ const RequestItem: React.FC<RequestItemProps> = React.memo(
 
 const RequestList: React.FC<RequestListProps> = React.memo(
   ({
+    endpointHost,
     fetching,
     requests,
     selectedRequest,
@@ -149,6 +163,7 @@ const RequestList: React.FC<RequestListProps> = React.memo(
           {requests.map((e, i) => (
             <RequestItem
               key={i}
+              endpointHost={endpointHost}
               fetching={fetching[i]}
               request={e}
               selectedRequest={selectedRequest}
