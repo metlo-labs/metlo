@@ -1,9 +1,8 @@
 import express, { Express, Request, Response } from "express"
 import dotenv from "dotenv"
-import bodyParser from "body-parser"
 import { TypeormStore } from "connect-typeorm"
 import session from "express-session"
-import { Session as SessionModel } from "models"
+import { InstanceSettings, Session as SessionModel } from "models"
 import {
   getEndpointHandler,
   getEndpointsHandler,
@@ -74,11 +73,6 @@ app.get("/api/v1", (req: Request, res: Response) => {
   res.send("OK")
 })
 
-// Collector Endpoints moved to Collector Source.
-
-// app.post("/api/v1/log-request/single", logRequestSingleHandler)
-// app.post("/api/v1/log-request/batch", logRequestBatchHandler)
-
 app.get("/api/v1/summary", getSummaryHandler)
 app.get("/api/v1/sensitive-data-summary", getSensitiveDataSummaryHandler)
 app.get("/api/v1/vulnerability-summary", getVulnerabilitySummaryHandler)
@@ -127,6 +121,16 @@ app.get("/api/v1/test/list", listTests)
 app.get("/api/v1/test/list/:uuid", getTest)
 app.delete("/api/v1/test/:uuid/delete", deleteTest)
 
+const initInstanceSettings = async () => {
+  const settingRepository = AppDataSource.getRepository(InstanceSettings)
+  const numSettings = await settingRepository.count()
+  if (numSettings == 0) {
+    console.log("Initializing Instance Settings")
+    const setting = new InstanceSettings()
+    await settingRepository.save(setting)
+  }
+}
+
 const main = async () => {
   try {
     const datasource = await AppDataSource.initialize()
@@ -135,6 +139,7 @@ const main = async () => {
         datasource.isInitialized ? "Yes" : "No"
       }`,
     )
+    await initInstanceSettings()
     app.listen(port, () => {
       console.log(`⚡️[server]: Server is running at http://localhost:${port}`)
     })

@@ -8,6 +8,7 @@ import { Connections } from "./connections"
 import { ApiEndpointTest } from "./api-endpoint-test"
 import { ApiKey } from "./keys"
 import { BlockFields } from "./block-fields"
+import { InstanceSettings } from "./instance-settings"
 
 export type DatabaseModel =
   | ApiEndpoint
@@ -20,6 +21,7 @@ export type DatabaseModel =
   | ApiEndpointTest
   | ApiKey
   | BlockFields
+  | InstanceSettings
 
 export {
   ApiEndpoint,
@@ -32,4 +34,5 @@ export {
   ApiEndpointTest,
   ApiKey,
   BlockFields,
+  InstanceSettings,
 }

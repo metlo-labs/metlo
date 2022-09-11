@@ -11,6 +11,7 @@ import {
   ApiEndpointTest,
   ApiKey,
   BlockFields,
+  InstanceSettings,
 } from "models"
 
 export const AppDataSource: DataSource = new DataSource({
@@ -28,6 +29,7 @@ export const AppDataSource: DataSource = new DataSource({
     ApiEndpointTest,
     ApiKey,
     BlockFields,
+    InstanceSettings,
   ],
   migrations: [],
   logging: false,
