@@ -33,7 +33,7 @@ docker-compose up
 
 Now visit [http://localhost:8000](http://localhost:8000)
 
-See our [Docs](https://docs.metlo.com/docs) for an in-depth walk-throughs on how to set up Metlo in your cloud environment. You can join our [Slack community](https://metlo.com/slack) if you need help or just want to chat!
+See our [Docs](https://docs.metlo.com/docs) for an in-depth walk-throughs on how to set up Metlo in your cloud environment. You can also join our [Slack community](https://metlo.com/slack) if you need help or just want to chat!
 
 ## Features
 ### Endpoint Discovery
@@ -67,7 +67,7 @@ $ yarn watch
 **2. Start the Frontend**
 
 ```bash
-$ cd backend
+$ cd frontend
 $ yarn install
 $ yarn dev
 ```
@@ -78,4 +78,11 @@ $ yarn dev
 $ cd backend
 $ yarn install
 $ yarn dev
+```
+
+**4. Start the Job Runner**
+
+```bash
+$ cd backend
+$ yarn dev-jobs
 ```
