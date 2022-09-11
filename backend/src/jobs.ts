@@ -2,6 +2,7 @@ import schedule from "node-schedule"
 import { AppDataSource } from "data-source"
 import { JobsService } from "services/jobs"
 import runAllTests from "services/testing/runAllTests"
+import { logAggregatedStats } from "services/logging"
 
 const main = async () => {
   const datasource = await AppDataSource.initialize()
@@ -34,6 +35,12 @@ const main = async () => {
     console.log("Clearing Api Trace data...")
     await JobsService.clearApiTraces()
     console.log("Finished clearing Api Trace data.")
+  })
+
+  schedule.scheduleJob("0 */6 * * *", async () => {
+    console.log("Logging Aggregated Stats...")
+    await logAggregatedStats()
+    console.log("Finished Logging Aggregated Stats.")
   })
 
   process.on("SIGINT", () => {
