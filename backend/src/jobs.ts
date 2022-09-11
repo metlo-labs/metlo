@@ -37,11 +37,15 @@ const main = async () => {
     console.log("Finished clearing Api Trace data.")
   })
 
-  schedule.scheduleJob("0 */6 * * *", async () => {
-    console.log("Logging Aggregated Stats...")
-    await logAggregatedStats()
-    console.log("Finished Logging Aggregated Stats.")
-  })
+  if ((process.env.DISABLE_LOGGING_STATS || "false").toLowerCase() == "false") {
+    schedule.scheduleJob("0 */6 * * *", async () => {
+      console.log("Logging Aggregated Stats...")
+      await logAggregatedStats()
+      console.log("Finished Logging Aggregated Stats.")
+    })
+  } else {
+    console.log("Logging Aggregated Stats Disabled...")
+  }
 
   process.on("SIGINT", () => {
     schedule.gracefulShutdown().then(() => process.exit(0))
