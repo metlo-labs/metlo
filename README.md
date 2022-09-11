@@ -22,6 +22,8 @@
 * Proactively test your APIs before they go into production.
 * Detect API attacks in real time.
 
+![Homepage Screenshot](https://storage.googleapis.com/metlo-security-public-images/metlo_homepage.png)
+
 ## Quick start
 ```bash
 git clone https://github.com/metlo-labs/metlo.git
@@ -37,11 +39,10 @@ Now visit [http://localhost:8000](http://localhost:8000)
 * Metlo scans network traffic and creates an inventory of every single endpoint in your API.
 * Each endpoint is scanned for PII data and given a risk score.
 
-![Discovery Screenshot](https://storage.googleapis.com/metlo-security-public-images/discovery.png)
+![Discovery Screenshot](https://storage.googleapis.com/metlo-security-public-images/endpoint_inventory.png)
 
 ### API Testing
-* Don’t wait for an attack to discover API vulnerabilities. Metlo’s suite of automated tests and our security testing framework let you find vulnerabilities in development.
-* Our DAST scans your API’s for the most common security vulnerabilities.
+* Metlo’s suite of automated tests and our security testing framework let you find vulnerabilities in development.
 * Metlo’s built in testing framework helps you get to 100% Security Coverage on your highest risk APIs
 * Metlo integrates directly with your CI/CD
 
