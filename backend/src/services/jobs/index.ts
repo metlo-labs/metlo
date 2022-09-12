@@ -1,4 +1,4 @@
-import { FindOptionsWhere, IsNull, MoreThan, Not, Raw } from "typeorm"
+import { FindOptionsWhere, IsNull, LessThan, MoreThan, Not, Raw } from "typeorm"
 import { v4 as uuidv4 } from "uuid"
 import {
   getDataType,
@@ -105,8 +105,10 @@ export class JobsService {
   static async clearApiTraces(): Promise<void> {
     try {
       const apiTraceRepository = AppDataSource.getRepository(ApiTrace)
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
       const traces = await apiTraceRepository.findBy({
         apiEndpointUuid: Not(IsNull()),
+        createdAt: LessThan(oneHourAgo),
       })
       await DatabaseService.executeTransactions([], [traces], true)
     } catch (err) {
