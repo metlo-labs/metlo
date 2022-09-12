@@ -50,7 +50,7 @@ See our [Docs](https://docs.metlo.com/docs) for an in-depth walk-throughs on how
 
 ![Testing Screenshot](https://storage.googleapis.com/metlo-security-public-images/testing_framework.png)
 
-### Protection
+### Protection (Coming Soon)
 * After an API vulnerability is discovered, intruders can quickly start the process of extracting sensitive data. Metlo alerts your security team as soon as anomalous API usage patterns are detected.
 * Our ML Algorithms build a model for baseline API behavior. Any deviation from this baseline is surfaced as soon as possible.
 * Metlo’s UI gives you full context around any attack to help quickly fix the vulnerability.
