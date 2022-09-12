@@ -40,16 +40,16 @@ services:
     environment:
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
       - REDIS_URL=redis://:eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81@cache:6379
-      #- ENCRYPTION_KEY=
-      ###  BACKEND_URL should point to externally accessible url for ingestor  ###
-      #- BACKEND_URL= 
-      #- EXPRESS_SECRET=
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - BACKEND_URL=${BACKEND_URL}
+      - EXPRESS_SECRET=${EXPRESS_SECRET}
   jobs:
     image: metlo/jobrunner
     container_name: metlo-jobs
     restart: unless-stopped
     environment:
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
+      - DISABLE_LOGGING_STATS=${DISABLE_LOGGING_STATS}
   frontend:
     image: metlo/frontend
     container_name: metlo-frontend
