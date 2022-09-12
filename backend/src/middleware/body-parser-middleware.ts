@@ -3,7 +3,8 @@ import yaml from "js-yaml"
 import { parse } from "parse-multipart-data"
 import MIMEType from "whatwg-mimetype"
 import { TraceParams } from "@common/types"
-import { parsedJsonNonNull } from "utils"
+import { getDataType, parsedJsonNonNull } from "utils"
+import { DataType } from "@common/enums"
 
 const getParsedBodyString = (
   bodyString: string,
@@ -43,44 +44,74 @@ export const bodyParserMiddleware = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const traceParams: TraceParams = req.body
-  const requestHeaders = traceParams.request?.headers ?? []
-  const responseHeaders = traceParams.response?.headers ?? []
-  let requestBodyContentType = null
-  let responseBodyContentType = null
-  requestHeaders.forEach(header => {
-    if (header.name.toLowerCase() === "content-type") {
-      requestBodyContentType = header.value
+  let traceParamsList: TraceParams[] = req.body
+  const dataType = getDataType(req.body)
+  if (dataType !== DataType.ARRAY) {
+    traceParamsList = [req.body]
+  }
+  traceParamsList.forEach((traceParams, idx) => {
+    const requestHeaders = traceParams.request?.headers ?? []
+    const responseHeaders = traceParams.response?.headers ?? []
+    let requestBodyContentType = null
+    let responseBodyContentType = null
+
+    requestHeaders.forEach(header => {
+      if (header.name.toLowerCase() === "content-type") {
+        requestBodyContentType = header.value
+      }
+    })
+    responseHeaders.forEach(header => {
+      if (header.name.toLowerCase() === "content-type") {
+        responseBodyContentType = header.value
+      }
+    })
+
+    if (requestBodyContentType) {
+      const reqMimeType = new MIMEType(requestBodyContentType)
+      const parsedBodyString = getParsedBodyString(
+        traceParams?.request?.body,
+        reqMimeType?.subtype,
+        reqMimeType?.parameters,
+      )
+      if (dataType === DataType.ARRAY) {
+        req.body[idx].request.body = parsedBodyString
+      } else {
+        req.body.request.body = parsedBodyString
+      }
+    } else {
+      const parsedBodyString =
+        JSON.stringify(parsedJsonNonNull(traceParams?.request?.body, true)) ??
+        traceParams?.request?.body
+      if (dataType === DataType.ARRAY) {
+        req.body[idx].request.body = parsedBodyString
+      } else {
+        req.body.request.body = parsedBodyString
+      }
+    }
+
+    if (responseBodyContentType) {
+      const resMimeType = new MIMEType(responseBodyContentType)
+      const parsedBodyString = getParsedBodyString(
+        traceParams?.response?.body,
+        resMimeType?.subtype,
+        resMimeType?.parameters,
+      )
+      if (dataType === DataType.ARRAY) {
+        req.body[idx].response.body = parsedBodyString
+      } else {
+        req.body.response.body = parsedBodyString
+      }
+    } else {
+      const parsedBodyString =
+        JSON.stringify(parsedJsonNonNull(traceParams?.response?.body, true)) ??
+        traceParams?.response?.body
+      if (dataType === DataType.ARRAY) {
+        req.body[idx].response.body = parsedBodyString
+      } else {
+        req.body.response.body = parsedBodyString
+      }
     }
   })
-  responseHeaders.forEach(header => {
-    if (header.name.toLowerCase() === "content-type") {
-      responseBodyContentType = header.value
-    }
-  })
-  if (requestBodyContentType) {
-    const reqMimeType = new MIMEType(requestBodyContentType)
-    req.body.request.body = getParsedBodyString(
-      traceParams?.request.body,
-      reqMimeType.subtype,
-      reqMimeType.parameters,
-    )
-  } else {
-    req.body.request.body =
-      JSON.stringify(parsedJsonNonNull(traceParams?.request?.body, true)) ??
-      traceParams?.request?.body
-  }
-  if (responseBodyContentType) {
-    const resMimeType = new MIMEType(responseBodyContentType)
-    req.body.response.body = getParsedBodyString(
-      traceParams?.response?.body,
-      resMimeType.subtype,
-      resMimeType.parameters,
-    )
-  } else {
-    req.body.response.body =
-      JSON.stringify(parsedJsonNonNull(traceParams?.response?.body, true)) ??
-      traceParams?.response?.body
-  }
+
   next()
 }
