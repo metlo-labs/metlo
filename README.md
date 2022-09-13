@@ -64,7 +64,16 @@ m.test("Test Status Code Unauthorized", () => {
 })
 ```
 
-## We're Hiring
+## Why Metlo?
+
+Most businesses have adopted public facing APIs to power their websites and apps.
+This has dramatically increased the attack surface for your business.
+There’s been a 200% increase in API security breaches in just the last year with the APIs of companies like Uber, Meta, Experian and Just Dial leaking millions of records.
+It's obvious that tools are needed to help security teams make APIs more secure but there's no *great* solution on the market.
+
+Some solutions require you to go through sales calls to even try the product while others have you to send all your API traffic to their own cloud. **Metlo is the first Open Source API security platform that you can self host, and get started for free right away!**
+
+## We're Hiring!
 
 We would love for you to come help us make Metlo better. [Come join us at Metlo!](mailto:akshay@metlo.com)
 
