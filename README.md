@@ -45,14 +45,28 @@ See our [Docs](https://docs.metlo.com/docs) for an in-depth walk-throughs on how
 * Undocumented, legacy and shadow API endpoints are an unknown and unprotected attack surface.
 * Metlo scans network traffic and creates an inventory of every single endpoint in your API.
 * Each endpoint is scanned for PII data and given a risk score.
-* Metlo’s suite of automated tests and our security testing framework let you find vulnerabilities in development.
-* Our built in testing framework helps you get to 100% Security Coverage on your highest risk APIs
-* Integrates directly with your CI/CD
+* Metlo’s suite of automated tests and our security testing framework let you find vulnerabilities in production and development.
+* Get Alerts for issues like unauthenticated endpoints returning sensitive data, No HSTS headers, PII data in URL params, Open API Spec Diffs and more.
+* Integrates directly with your CI/CD.
 * Our ML Algorithms build a model for baseline API behavior. Any deviation from this baseline is surfaced as soon as possible. (Coming Soon)
 * Metlo’s UI gives you full context around any attack to help quickly fix the vulnerability. (Coming Soon)
 
 ## Testing
 ![Testing Screenshot](https://storage.googleapis.com/metlo-security-public-images/testing.png)
+
+For tests that we can't autogenerate, our built in testing framework helps you get to **100% Security Coverage on your highest risk APIs.** You can build requests in an http editor and write javascript assertions to make sure your API is working as intendend.
+
+For example the following checks if an API returns a `401`:
+
+```javascript
+m.test("Test Status Code Unauthorized", () => {
+    expect(m.response.status).toBe(401)
+})
+```
+
+## We're Hiring
+
+We would love for you to come help us make Metlo better. [Come join us at Metlo!](mailto:akshay@metlo.com)
 
 ## Development
 
