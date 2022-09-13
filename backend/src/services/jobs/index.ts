@@ -529,16 +529,18 @@ export class JobsService {
             v.name.includes("Strict-Transport-Security"),
           )
         ) {
-          // Trace doesn't contain HSTS header. Test url with OPTIONS request
-          // to the the host/path
           try {
             let options_req = await axios.options(
               new URL(
-                `${latest_trace_for_endpoint.host}/${latest_trace_for_endpoint.path}`,
+                `http://${latest_trace_for_endpoint.host}${latest_trace_for_endpoint.path}`,
               ).href,
+              {
+                validateStatus: code => true,
+              },
             )
+            console.log(options_req.headers)
             if (
-              Object.keys(options_req.headers).includes(
+              !Object.keys(options_req.headers).includes(
                 "Strict-Transport-Security",
               )
             ) {
@@ -550,7 +552,7 @@ export class JobsService {
             }
           } catch (err) {
             console.log(
-              `Couldn't perform OPTIONS request for endpoint ${endpoint.host}/${endpoint.path}`,
+              `Couldn't perform OPTIONS request for endpoint ${endpoint.host}${endpoint.path}: ${err.message}`,
             )
           }
         }
