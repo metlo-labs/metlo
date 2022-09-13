@@ -76,6 +76,10 @@ Some solutions require you to go through sales calls to even try the product whi
 
 We would love for you to come help us make Metlo better. [Come join us at Metlo!](mailto:akshay@metlo.com)
 
+## Open-source vs. paid
+
+This repo is entirely MIT licensed. Features like user management, user roles and attack protection require an enterprise license. [Contact us](mailto:shri@metlo.com) for more information.
+
 ## Development
 
 **1. Build the Common Modules**
