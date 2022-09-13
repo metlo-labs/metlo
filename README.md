@@ -42,14 +42,13 @@ See our [Docs](https://docs.metlo.com/docs) for an in-depth walk-throughs on how
 ## Features
 ![walkthrough](https://storage.googleapis.com/metlo-security-public-images/walkthrough.gif)
 
-* Undocumented, legacy and shadow API endpoints are an unknown and unprotected attack surface.
-* Metlo scans network traffic and creates an inventory of every single endpoint in your API.
-* Each endpoint is scanned for PII data and given a risk score.
-* Metlo’s suite of automated tests and our security testing framework let you find vulnerabilities in production and development.
-* Get Alerts for issues like unauthenticated endpoints returning sensitive data, No HSTS headers, PII data in URL params, Open API Spec Diffs and more.
-* Integrates directly with your CI/CD.
-* Our ML Algorithms build a model for baseline API behavior. Any deviation from this baseline is surfaced as soon as possible. (Coming Soon)
-* Metlo’s UI gives you full context around any attack to help quickly fix the vulnerability. (Coming Soon)
+* **Endpoint Discovery** - Metlo scans network traffic and creates an inventory of every single endpoint in your API.
+* **Sensitive Data Scannning** - Each endpoint is scanned for PII data and given a risk score.
+* **Vulnerability Discovery** - Get Alerts for issues like unauthenticated endpoints returning sensitive data, No HSTS headers, PII data in URL params, Open API Spec Diffs and more
+* **API Security Testing** - Build security tests directly in Metlo with a simple HTTP Request editor and javascript assertions.
+* **CI/CD Integration** - Integrate with your CI/CD to find issues in development and staging.
+* **Attack Detection** - Our ML Algorithms build a model for baseline API behavior. Any deviation from this baseline is surfaced to your security team as soon as possible. (Coming Soon)
+* **Attack Context** - Metlo’s UI gives you full context around any attack to help quickly fix the vulnerability. (Coming Soon)
 
 ## Testing
 ![Testing Screenshot](https://storage.googleapis.com/metlo-security-public-images/testing.png)
