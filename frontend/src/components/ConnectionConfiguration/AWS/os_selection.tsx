@@ -23,7 +23,7 @@ const OsSelection: React.FC<KeySetupInterface> = ({
   isCurrent,
 }) => {
   const [os_choice, set_choice] = useState("")
-  const [OSChoices, setOSChoices] = useState<Array<[string, string]>>(null)  
+  const [OSChoices, setOSChoices] = useState<Array<[string, string]>>(null)
 
   useEffect(() => {
     if (isCurrent) {

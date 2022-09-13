@@ -50,6 +50,12 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
         legend: {
           display: false,
         },
+        tooltip: {
+          caretSize: 0,
+          bodyFont: {
+            size: 11,
+          },
+        },
       },
     } as ChartOptions
     return (
@@ -94,10 +100,11 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
           </VStack>
         </VStack>
         <HStack spacing="12" flexGrow="1" alignItems="center" p="4" h="full">
-          <Box w="44">
+          <Box w="220px">
             <Doughnut options={options} data={chartData} />
           </Box>
           <VStack
+            display={{ base: "none", md: "inherit" }}
             flexGrow="1"
             alignItems="flex-start"
             spacing="4"
