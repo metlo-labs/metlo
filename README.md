@@ -25,9 +25,10 @@
 * Proactively test your APIs before they go into production.
 * Detect API attacks in real time.
 
-![Homepage Screenshot](https://storage.googleapis.com/metlo-security-public-images/metlo_homepage.png)
+## Get started for free!
 
-## Quick start
+Run the following in your cloud environment:
+
 ```bash
 git clone https://github.com/metlo-labs/metlo.git
 cd metlo
@@ -39,24 +40,19 @@ Now visit [http://localhost:8000](http://localhost:8000)
 See our [Docs](https://docs.metlo.com/docs) for an in-depth walk-throughs on how to set up Metlo in your cloud environment. You can also join our [Slack community](https://metlo.com/slack) if you need help or just want to chat!
 
 ## Features
-### Endpoint Discovery
+![walkthrough](https://storage.googleapis.com/metlo-security-public-images/walkthrough.gif)
+
 * Undocumented, legacy and shadow API endpoints are an unknown and unprotected attack surface.
 * Metlo scans network traffic and creates an inventory of every single endpoint in your API.
 * Each endpoint is scanned for PII data and given a risk score.
-
-![Discovery Screenshot](https://storage.googleapis.com/metlo-security-public-images/endpoint_inventory.png)
-
-### API Testing
 * Metlo’s suite of automated tests and our security testing framework let you find vulnerabilities in development.
 * Our built in testing framework helps you get to 100% Security Coverage on your highest risk APIs
 * Integrates directly with your CI/CD
+* Our ML Algorithms build a model for baseline API behavior. Any deviation from this baseline is surfaced as soon as possible. (Coming Soon)
+* Metlo’s UI gives you full context around any attack to help quickly fix the vulnerability. (Coming Soon)
 
-![Testing Screenshot](https://storage.googleapis.com/metlo-security-public-images/testing_framework.png)
-
-### Protection (Coming Soon)
-* After an API vulnerability is discovered, intruders can quickly start the process of extracting sensitive data. Metlo alerts your security team as soon as anomalous API usage patterns are detected.
-* Our ML Algorithms build a model for baseline API behavior. Any deviation from this baseline is surfaced as soon as possible.
-* Metlo’s UI gives you full context around any attack to help quickly fix the vulnerability.
+## Testing
+![Testing Screenshot](https://storage.googleapis.com/metlo-security-public-images/testing.png)
 
 ## Development
 
