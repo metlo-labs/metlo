@@ -1,6 +1,11 @@
 import { FindOptionsWhere, In, ILike, Raw } from "typeorm"
 import { AppDataSource } from "data-source"
-import { ApiEndpoint, ApiEndpointTest, ApiTrace } from "models"
+import {
+  AggregateTraceData,
+  ApiEndpoint,
+  ApiEndpointTest,
+  ApiTrace,
+} from "models"
 import {
   GetEndpointParams,
   ApiEndpoint as ApiEndpointResponse,
@@ -156,12 +161,13 @@ export class GetEndpointsService {
 
   static async getUsage(endpointId: string): Promise<UsageResponse[]> {
     try {
-      const apiTraceRepository = AppDataSource.getRepository(ApiTrace)
-      const usage = await apiTraceRepository
+      const aggregateTraceDataRepo =
+        AppDataSource.getRepository(AggregateTraceData)
+      const usage = await aggregateTraceDataRepo
         .createQueryBuilder("trace")
         .select([
           `DATE_TRUNC('day', "createdAt") AS date`,
-          `COUNT(uuid) AS count`,
+          `SUM("numCalls") AS count`,
         ])
         .where(`"apiEndpointUuid" = :id`, { id: endpointId })
         .groupBy(`DATE_TRUNC('day', "createdAt")`)

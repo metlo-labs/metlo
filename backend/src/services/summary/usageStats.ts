@@ -6,8 +6,8 @@ export const getUsageStats = async () => {
   const statsQuery = `
     SELECT
       DATE_TRUNC('day', traces."createdAt") as day,
-      COUNT(*) as cnt
-    FROM api_trace traces
+      SUM(traces."numCalls") as cnt
+    FROM aggregate_trace_data traces
     WHERE traces."createdAt" > (NOW() - INTERVAL '15 days')
     GROUP BY 1
     ORDER BY 1

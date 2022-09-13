@@ -124,7 +124,7 @@ export class JobsService {
       })
       const tracesByEndpointPromise = queryRunner.manager
         .createQueryBuilder(ApiTrace, "trace")
-        .select(['"apiEndpointUuid"', "COUNT(*) as numTraces"])
+        .select(['"apiEndpointUuid"', 'COUNT(*) as "numTraces"'])
         .where('"apiEndpointUuid" IS NOT NULL')
         .andWhere('"createdAt" < :oneHourAgo', { oneHourAgo })
         .groupBy('"apiEndpointUuid"')
