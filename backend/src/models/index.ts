@@ -9,6 +9,7 @@ import { ApiEndpointTest } from "./api-endpoint-test"
 import { ApiKey } from "./keys"
 import { BlockFields } from "./block-fields"
 import { InstanceSettings } from "./instance-settings"
+import { AggregateTraceData } from "./aggregate-trace-data"
 
 export type DatabaseModel =
   | ApiEndpoint
@@ -22,6 +23,7 @@ export type DatabaseModel =
   | ApiKey
   | BlockFields
   | InstanceSettings
+  | AggregateTraceData
 
 export {
   ApiEndpoint,
@@ -35,4 +37,5 @@ export {
   ApiKey,
   BlockFields,
   InstanceSettings,
+  AggregateTraceData,
 }

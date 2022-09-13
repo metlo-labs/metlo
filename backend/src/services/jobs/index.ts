@@ -8,7 +8,13 @@ import {
   parsedJson,
   parsedJsonNonNull,
 } from "utils"
-import { ApiEndpoint, ApiTrace, OpenApiSpec, Alert } from "models"
+import {
+  ApiEndpoint,
+  ApiTrace,
+  OpenApiSpec,
+  Alert,
+  AggregateTraceData,
+} from "models"
 import { AppDataSource } from "data-source"
 import { AlertType, DataType, RestMethod, SpecExtension } from "@common/enums"
 import { getPathTokens } from "@common/utils"
@@ -103,16 +109,47 @@ export class JobsService {
   }
 
   static async clearApiTraces(): Promise<void> {
+    const queryRunner = AppDataSource.createQueryRunner()
+    await queryRunner.connect()
     try {
-      const apiTraceRepository = AppDataSource.getRepository(ApiTrace)
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
-      const traces = await apiTraceRepository.findBy({
-        apiEndpointUuid: Not(IsNull()),
-        createdAt: LessThan(oneHourAgo),
+      const tracesPromise = queryRunner.manager.find(ApiTrace, {
+        select: {
+          uuid: true,
+        },
+        where: {
+          apiEndpointUuid: Not(IsNull()),
+          createdAt: LessThan(oneHourAgo),
+        },
       })
-      await DatabaseService.executeTransactions([], [traces], true)
+      const tracesByEndpointPromise = queryRunner.manager
+        .createQueryBuilder(ApiTrace, "trace")
+        .select(['"apiEndpointUuid"', "COUNT(*) as numTraces"])
+        .where('"apiEndpointUuid" IS NOT NULL')
+        .andWhere('"createdAt" < :oneHourAgo', { oneHourAgo })
+        .groupBy('"apiEndpointUuid"')
+        .getRawMany()
+      const [traces, tracesByEndpoint] = await Promise.all([
+        tracesPromise,
+        tracesByEndpointPromise,
+      ])
+      await queryRunner.release()
+      const aggregateTraces: AggregateTraceData[] = []
+      tracesByEndpoint.forEach(data => {
+        const newAggregateEntry = new AggregateTraceData()
+        newAggregateEntry.apiEndpointUuid = data.apiEndpointUuid
+        newAggregateEntry.numCalls = data.numTraces
+        aggregateTraces.push(newAggregateEntry)
+      })
+      await DatabaseService.executeTransactions(
+        [aggregateTraces],
+        [traces],
+        true,
+      )
     } catch (err) {
       console.error(`Encountered error while clearing trace data: ${err}`)
+    } finally {
+      await queryRunner?.release()
     }
   }
 

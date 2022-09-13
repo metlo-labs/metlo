@@ -5,8 +5,13 @@ import { AppDataSource } from "data-source"
 import { Alert } from "models"
 import { DatabaseService } from "services/database"
 
-const generateAlert = async (alertType: string, apiEndpointUuid: string, description: string, context: any) => {
-  try{
+const generateAlert = async (
+  alertType: string,
+  apiEndpointUuid: string,
+  description: string,
+  context: any,
+) => {
+  try {
     const newAlert = new Alert()
     newAlert.apiEndpointUuid = apiEndpointUuid
     newAlert.type = AlertType[alertType]
