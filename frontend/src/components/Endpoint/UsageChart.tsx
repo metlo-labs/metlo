@@ -33,6 +33,10 @@ const EndpointUsageChart: React.FC<EndpointUsageChartProps> = React.memo(
     const [isLargerThan440] = useMediaQuery("(min-width: 440px)")
     let options = {
       responsive: true,
+      interaction: {
+        mode: "nearest",
+        intersect: false,
+      },
       plugins: {
         legend: {
           display: false,
@@ -51,7 +55,7 @@ const EndpointUsageChart: React.FC<EndpointUsageChartProps> = React.memo(
           },
           time: {
             unit: "day",
-            tooltipFormat: "yyyy-MM-dd h:mm a",
+            tooltipFormat: "yyyy-MM-dd",
             displayFormats: {
               millisecond: "h:mm a",
               second: "h:mm a",

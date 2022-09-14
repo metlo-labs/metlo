@@ -40,6 +40,10 @@ const UsageChart: React.FC<UsageChartProps> = React.memo(
   ({ usageData, ...props }) => {
     const options = {
       responsive: true,
+      interaction: {
+        mode: "nearest",
+        intersect: false,
+      },
       plugins: {
         legend: {
           display: false,
@@ -57,7 +61,7 @@ const UsageChart: React.FC<UsageChartProps> = React.memo(
           },
           time: {
             unit: "day",
-            tooltipFormat: "yyyy-MM-dd h:mm a",
+            tooltipFormat: "yyyy-MM-dd",
             displayFormats: {
               millisecond: "h:mm a",
               second: "h:mm a",
