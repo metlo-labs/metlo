@@ -165,12 +165,9 @@ export class GetEndpointsService {
         AppDataSource.getRepository(AggregateTraceData)
       const usage = await aggregateTraceDataRepo
         .createQueryBuilder("trace")
-        .select([
-          `DATE_TRUNC('day', "createdAt") AS date`,
-          `SUM("numCalls") AS count`,
-        ])
+        .select([`DATE_TRUNC('day', hour) AS date`, `SUM("numCalls") AS count`])
         .where(`"apiEndpointUuid" = :id`, { id: endpointId })
-        .groupBy(`DATE_TRUNC('day', "createdAt")`)
+        .groupBy(`DATE_TRUNC('day', hour)`)
         .orderBy(`date`, "ASC")
         .getRawMany()
       return usage as UsageResponse[]

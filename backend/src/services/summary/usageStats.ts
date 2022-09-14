@@ -5,10 +5,10 @@ import { DatabaseService } from "services/database"
 export const getUsageStats = async () => {
   const statsQuery = `
     SELECT
-      DATE_TRUNC('day', traces."createdAt") as day,
+      DATE_TRUNC('day', traces.hour) as day,
       SUM(traces."numCalls") as cnt
     FROM aggregate_trace_data traces
-    WHERE traces."createdAt" > (NOW() - INTERVAL '15 days')
+    WHERE traces.hour > (NOW() - INTERVAL '15 days')
     GROUP BY 1
     ORDER BY 1
   `

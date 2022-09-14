@@ -64,10 +64,7 @@ export class DatabaseService {
           res.push(await queryRunner.query(query, parameters?.[i] ?? []))
         }
       } else {
-        res = await queryRunner.query(
-          rawQueries as string,
-          parameters?.[0] ?? [],
-        )
+        res = await queryRunner.query(rawQueries as string, parameters ?? [])
       }
     } catch (err) {
       console.error(`Encountered error while executing raw sql query: ${err}`)

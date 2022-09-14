@@ -1,5 +1,6 @@
 import { FindOptionsWhere, IsNull, LessThan, MoreThan, Not, Raw } from "typeorm"
 import { v4 as uuidv4 } from "uuid"
+import { DateTime } from "luxon"
 import {
   getDataType,
   getRiskScore,
@@ -112,7 +113,8 @@ export class JobsService {
     const queryRunner = AppDataSource.createQueryRunner()
     await queryRunner.connect()
     try {
-      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+      const now = DateTime.now().startOf("hour")
+      const oneHourAgo = now.minus({ hours: 1 }).toJSDate()
       const tracesPromise = queryRunner.manager.find(ApiTrace, {
         select: {
           uuid: true,
@@ -124,28 +126,49 @@ export class JobsService {
       })
       const tracesByEndpointPromise = queryRunner.manager
         .createQueryBuilder(ApiTrace, "trace")
-        .select(['"apiEndpointUuid"', 'COUNT(*) as "numTraces"'])
+        .select([
+          '"apiEndpointUuid"',
+          `DATE_TRUNC('hour', "createdAt") as hour`,
+          'COUNT(*) as "numTraces"',
+        ])
         .where('"apiEndpointUuid" IS NOT NULL')
         .andWhere('"createdAt" < :oneHourAgo', { oneHourAgo })
         .groupBy('"apiEndpointUuid"')
+        .addGroupBy("hour")
         .getRawMany()
       const [traces, tracesByEndpoint] = await Promise.all([
         tracesPromise,
         tracesByEndpointPromise,
       ])
       await queryRunner.release()
-      const aggregateTraces: AggregateTraceData[] = []
+
+      const parameters: any[] = []
+      const argArray: string[] = []
+      let argNumber = 1
       tracesByEndpoint.forEach(data => {
-        const newAggregateEntry = new AggregateTraceData()
-        newAggregateEntry.apiEndpointUuid = data.apiEndpointUuid
-        newAggregateEntry.numCalls = data.numTraces
-        aggregateTraces.push(newAggregateEntry)
+        parameters.push(
+          uuidv4(),
+          data.numTraces,
+          data.hour,
+          data.apiEndpointUuid,
+        )
+        argArray.push(
+          `($${argNumber++}, $${argNumber++}, $${argNumber++}, $${argNumber++})`,
+        )
       })
-      await DatabaseService.executeTransactions(
-        [aggregateTraces],
-        [traces],
-        true,
-      )
+
+      const argString = argArray.join(",")
+      const insertQuery = `
+        INSERT INTO aggregate_trace_data ("uuid", "numCalls", "hour", "apiEndpointUuid")
+        VALUES ${argString}
+        ON CONFLICT ON CONSTRAINT unique_constraint
+        DO UPDATE SET "numCalls" = EXCLUDED."numCalls" + aggregate_trace_data."numCalls";
+      `
+
+      await DatabaseService.executeTransactions([], [traces], true)
+      if (parameters.length > 0) {
+        await DatabaseService.executeRawQueries(insertQuery, parameters)
+      }
     } catch (err) {
       console.error(`Encountered error while clearing trace data: ${err}`)
     } finally {

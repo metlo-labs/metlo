@@ -1,15 +1,16 @@
 import {
   BaseEntity,
   Column,
-  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
 } from "typeorm"
 import { ApiEndpoint } from "./api-endpoint"
 
 @Entity()
+@Unique("unique_constraint", ["apiEndpoint", "hour"])
 export class AggregateTraceData extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
@@ -17,8 +18,8 @@ export class AggregateTraceData extends BaseEntity {
   @Column()
   numCalls: number
 
-  @CreateDateColumn({ type: "timestamptz" })
-  createdAt: Date
+  @Column({ type: "timestamptz" })
+  hour: Date
 
   @Column()
   apiEndpointUuid: string
