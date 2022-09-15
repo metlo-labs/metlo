@@ -224,6 +224,16 @@ const delete_connection_for_uuid = async ({ uuid }) => {
     throw new Error500InternalServer(err)
   }
 }
+
+const get_num_connections = async (): Promise<number> => {
+  try {
+    return await AppDataSource.getRepository(Connections).count()
+  } catch (err) {
+    console.error(`Error in Get Num Connections service: ${err}`)
+    throw new Error500InternalServer(err)
+  }
+}
+
 export {
   save_connection_aws,
   save_connection_gcp,
@@ -231,4 +241,5 @@ export {
   get_connection_for_uuid,
   update_connection_for_uuid,
   delete_connection_for_uuid,
+  get_num_connections
 }

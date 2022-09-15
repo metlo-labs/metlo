@@ -238,6 +238,7 @@ export interface Summary {
   topAlerts: Alert[]
   topEndpoints: EndpointAndUsage[]
   usageStats: UsageStats
+  numConnections: number
 }
 
 export interface Usage {
