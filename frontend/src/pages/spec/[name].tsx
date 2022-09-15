@@ -1,10 +1,10 @@
 import { GetServerSideProps } from "next"
 import ErrorPage from "next/error"
-import { SideNavLinkDestination } from "../../components/Sidebar/NavLinkUtils"
-import { SidebarLayoutShell } from "../../components/SidebarLayoutShell"
-import { getSpec } from "../../api/apiSpecs"
-import SpecPage from "../../components/Spec"
 import superjson from "superjson"
+import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
+import { SidebarLayoutShell } from "components/SidebarLayoutShell"
+import { getSpec } from "api/apiSpecs"
+import SpecPage from "components/Spec"
 import { OpenApiSpec } from "@common/types"
 import { ContentContainer } from "components/utils/ContentContainer"
 
@@ -23,7 +23,7 @@ const Spec = ({ spec }) => {
 }
 
 export const getServerSideProps: GetServerSideProps = async context => {
-  const spec = await getSpec(context.query.name as string)
+  const spec = await getSpec(encodeURIComponent(context.query.name as string))
   return { props: { spec: superjson.stringify(spec) } }
 }
 

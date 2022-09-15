@@ -32,7 +32,7 @@ const SpecList: React.FC<SpecListProps> = React.memo(({ apiSpecs }) => {
     row: OpenApiSpec,
     e: React.MouseEvent<Element, MouseEvent>,
   ) => {
-    router.push(`/spec/${row.name}`)
+    router.push(`/spec/${encodeURIComponent(row.name)}`)
   }
   const columns: TableColumn<OpenApiSpec>[] = [
     {
