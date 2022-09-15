@@ -30,11 +30,15 @@ export const JSONContentViewer = (
 ) => {
   const bgColor = colorMode === "dark" ? "#4C5564" : "#EDF2F7"
   try {
+    const parsedData = JSON.parse(data)
+    if (typeof parsedData !== "object" && !Array.isArray(parsedData)) {
+      throw new Error()
+    }
     return (
       <Box w="full" h="full" rounded="md" bgColor={bgColor}>
         <ReactJson
           theme={colorMode === "dark" ? "summerfruit" : "summerfruit:inverted"}
-          src={JSON.parse(data)}
+          src={parsedData}
           name={false}
           indentWidth={2}
           enableClipboard={false}
