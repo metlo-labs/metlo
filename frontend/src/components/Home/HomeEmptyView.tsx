@@ -8,15 +8,15 @@ export const HomeEmptyView: React.FC<{}> = () => {
     <Box
       bg="secondaryBG"
       w="full"
-      h="calc(100vh - 4rem)"
+      h="100vh"
       display="flex"
       alignItems="center"
       justifyContent="center"
     >
       <VStack spacing="4">
-        <Logo />
-        <Heading size="2xl">Welcome to Metlo</Heading>
-        <DataHeading fontSize="lg">Add a connection to get started</DataHeading>
+        <Logo imageHeight="72" imageWidth="254" />
+        <Heading size="2xl" pt="4" fontWeight="semibold">Welcome to Metlo</Heading>
+        <DataHeading fontSize="lg" pb="4">Add a connection to get started</DataHeading>
         <Button
           leftIcon={<FiPlus />}
           colorScheme="blue"

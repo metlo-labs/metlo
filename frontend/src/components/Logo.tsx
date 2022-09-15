@@ -3,17 +3,24 @@ import Image from "next/image"
 
 import { useColorModeValue, BoxProps, Box } from "@chakra-ui/react"
 
-export const Logo = React.memo((props: BoxProps) => {
-  const imageSrc = useColorModeValue(
-    "/metlo_logo_horiz.svg",
-    "/metlo_logo_horiz_negative.svg",
-  )
-  return (
-    <Box {...props}>
-      <Image alt="logo-image" height="36" width="127" src={imageSrc} />
-    </Box>
-  )
-})
+interface LogoProps extends BoxProps {
+  imageHeight?: string
+  imageWidth?: string
+}
+
+export const Logo: React.FC<LogoProps> = React.memo(
+  ({ imageHeight, imageWidth, ...props }) => {
+    const imageSrc = useColorModeValue(
+      "/metlo_logo_horiz.svg",
+      "/metlo_logo_horiz_negative.svg",
+    )
+    return (
+      <Box {...props}>
+        <Image alt="logo-image" height={imageHeight || "36"} width={imageWidth || "127"} src={imageSrc} />
+      </Box>
+    )
+  },
+)
 
 export const SmLogo = React.memo((props: BoxProps) => {
   return (

@@ -7,16 +7,12 @@ import AlertActions from "./AlertActions"
 import UsageChart from "./UsageChart"
 import LatestAlerts from "./LatestAlerts"
 import TopEndpoints from "./TopEndpoints"
-import { HomeEmptyView } from "./HomeEmptyView"
 
 interface HomePageProps {
   summary: Summary
 }
 
 const HomePage: React.FC<HomePageProps> = React.memo(({ summary }) => {
-  if (summary.numConnections === 0) {
-    return <HomeEmptyView />
-  }
   return (
     <VStack w="full" alignItems="flex-start" spacing="4">
       <SummaryStats
