@@ -15,8 +15,12 @@ export const HomeEmptyView: React.FC<{}> = () => {
     >
       <VStack spacing="4">
         <Logo imageHeight="72" imageWidth="254" />
-        <Heading size="2xl" pt="4" fontWeight="semibold">Welcome to Metlo</Heading>
-        <DataHeading fontSize="lg" pb="4">Add a connection to get started</DataHeading>
+        <Heading size="2xl" pt="4" fontWeight="semibold">
+          Welcome to Metlo
+        </Heading>
+        <DataHeading fontSize="lg" pb="4">
+          Add a connection to get started
+        </DataHeading>
         <Button
           leftIcon={<FiPlus />}
           colorScheme="blue"

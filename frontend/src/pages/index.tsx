@@ -21,7 +21,7 @@ const Index = ({ summary }) => {
   )
   if (parsedSummary.numConnections === 0) {
     page = (
-      <ContentContainer maxContentW="100rem" px="0" py="0">
+      <ContentContainer maxContentW="full" px="0" py="0">
         <HomeEmptyView />
       </ContentContainer>
     )

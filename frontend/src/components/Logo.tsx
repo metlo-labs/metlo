@@ -16,7 +16,12 @@ export const Logo: React.FC<LogoProps> = React.memo(
     )
     return (
       <Box {...props}>
-        <Image alt="logo-image" height={imageHeight || "36"} width={imageWidth || "127"} src={imageSrc} />
+        <Image
+          alt="logo-image"
+          height={imageHeight || "36"}
+          width={imageWidth || "127"}
+          src={imageSrc}
+        />
       </Box>
     )
   },
