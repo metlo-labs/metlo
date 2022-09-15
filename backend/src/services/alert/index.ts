@@ -73,7 +73,8 @@ export class AlertService {
       default:
         throw new Error500InternalServer("Unknown update type.")
     }
-    return await alertRepository.save(alert)
+    await alertRepository.update({ uuid: alertId }, alert)
+    return alert
   }
 
   static async getAlerts(

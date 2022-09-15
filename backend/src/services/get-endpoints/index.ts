@@ -31,7 +31,8 @@ export class GetEndpointsService {
       },
     })
     apiEndpoint.riskScore = getRiskScore(apiEndpoint.dataFields)
-    return await apiEndpointRepository.save(apiEndpoint)
+    await apiEndpointRepository.update({ uuid: apiEndpointUuid }, { riskScore: apiEndpoint.riskScore })
+    return apiEndpoint
   }
 
   static async getEndpoints(
