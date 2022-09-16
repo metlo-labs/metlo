@@ -320,7 +320,7 @@ export const recursiveTransformSpec = (schema: any) => {
       }
     }
   }
-  if (schema["type"] === "object") {
+  if (schema["type"] === "object" || typeof schema["properties"] === "object") {
     schema["additionalProperties"] = false
     const properties = schema["properties"]
     if (properties && getDataType(properties) === DataType.OBJECT) {

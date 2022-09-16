@@ -6,6 +6,13 @@ import { TraceParams } from "@common/types"
 import { getDataType, parsedJsonNonNull } from "utils"
 import { DataType } from "@common/enums"
 
+const parseData = (data: string) => {
+  if (!data) {
+    return ""
+  }
+  return parsedJsonNonNull(data, true)
+}
+
 const getParsedBodyString = (
   bodyString: string,
   mimeSubtype: string,
@@ -24,7 +31,9 @@ const getParsedBodyString = (
         const boundary = mimeParameters.get("boundary")
         const parts = parse(bodyBuffer, boundary)
         const formMap = {}
-        parts.forEach(part => (formMap[part.name] = part.data?.toString()))
+        parts.forEach(
+          part => (formMap[part.name] = parseData(part.data?.toString())),
+        )
         return JSON.stringify(formMap)
       case "plain":
         return bodyString
