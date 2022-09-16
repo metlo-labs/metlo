@@ -22,12 +22,12 @@ import { getSummaryHandler } from "api/summary"
 import { AppDataSource } from "data-source"
 import { MulterSource } from "multer-source"
 import {
-  aws_instance_choices,
-  aws_os_choices,
-  gcp_instance_choices,
-  gcp_os_choices,
-  get_long_running_state,
-  setup_connection,
+  awsInstanceChoices,
+  awsOsChoices,
+  gcpInstanceChoices,
+  gcpOsChoices,
+  getLongRunningState,
+  setupConnection,
 } from "./api/setup"
 import {
   deleteTest,
@@ -37,11 +37,11 @@ import {
   saveTest,
 } from "./api/tests"
 import {
-  delete_connection,
-  get_connection_for_uuid,
-  get_ssh_key_for_connection_uuid,
-  list_connections,
-  update_connection,
+  deleteConnection,
+  getConnectionForUuid,
+  getSshKeyForConnectionUuid,
+  listConnections,
+  updateConnection,
 } from "./api/connections"
 import { RedisClient } from "utils/redis"
 import { getSensitiveDataSummaryHandler } from "api/data-field/sensitive-data"
@@ -100,20 +100,17 @@ app.delete("/api/v1/data-field/:dataFieldId", deleteDataFieldHandler)
 app.get("/api/v1/alerts", getAlertsHandler)
 app.put("/api/v1/alert/:alertId", updateAlertHandler)
 
-app.post("/api/v1/setup_connection", setup_connection)
-app.get("/api/v1/long_running/:uuid", get_long_running_state)
-app.post("/api/v1/setup_connection/aws/os", aws_os_choices)
-app.post("/api/v1/setup_connection/aws/instances", aws_instance_choices)
-app.post("/api/v1/setup_connection/gcp/os", gcp_os_choices)
-app.post("/api/v1/setup_connection/gcp/instances", gcp_instance_choices)
-app.get("/api/v1/list_connections", list_connections)
-app.get("/api/v1/list_connections/:uuid", get_connection_for_uuid)
-app.get(
-  "/api/v1/list_connections/:uuid/sshkey",
-  get_ssh_key_for_connection_uuid,
-)
-app.post("/api/v1/update_connection", update_connection)
-app.delete("/api/v1/delete_connection/:uuid", delete_connection)
+app.post("/api/v1/setup_connection", setupConnection)
+app.get("/api/v1/long_running/:uuid", getLongRunningState)
+app.post("/api/v1/setup_connection/aws/os", awsOsChoices)
+app.post("/api/v1/setup_connection/aws/instances", awsInstanceChoices)
+app.post("/api/v1/setup_connection/gcp/os", gcpOsChoices)
+app.post("/api/v1/setup_connection/gcp/instances", gcpInstanceChoices)
+app.get("/api/v1/list_connections", listConnections)
+app.get("/api/v1/list_connections/:uuid", getConnectionForUuid)
+app.get("/api/v1/list_connections/:uuid/sshkey", getSshKeyForConnectionUuid)
+app.post("/api/v1/update_connection", updateConnection)
+app.delete("/api/v1/delete_connection/:uuid", deleteConnection)
 
 app.post("/api/v1/test/run", runTestHandler)
 app.post("/api/v1/test/save", saveTest)

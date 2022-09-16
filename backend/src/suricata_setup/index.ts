@@ -15,7 +15,7 @@ import { delete_aws_data } from "./aws-services/delete"
 import { test_ssh, push_files, execute_commands } from "./ssh-services"
 import { v4 as uuidv4 } from "uuid"
 import { addToRedis, addToRedisFromPromise } from "./utils"
-import { save_connection_aws, save_connection_gcp } from "services/connections"
+import { ConnectionsService } from "services/connections"
 import {
   get_destination_subnet,
   gcp_key_setup,
@@ -125,7 +125,7 @@ export async function setup(
             step: 12,
           } as any).then(resp => {
             if (resp.status === "COMPLETE") {
-              save_connection_aws({
+              ConnectionsService.saveConnectionAws({
                 id: resp.data.id,
                 name: resp.data.name,
                 conn_meta: { ...resp.data } as Required<connType["data"]>,
@@ -225,7 +225,7 @@ export async function setup(
           uuid,
           gcp_execute_commands(metadata).then(resp => {
             if (resp.status === "COMPLETE") {
-              save_connection_gcp({
+              ConnectionsService.saveConnectionGcp({
                 id: resp.data.id,
                 name: resp.data.name,
                 conn_meta: {

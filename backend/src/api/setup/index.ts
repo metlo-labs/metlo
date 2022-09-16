@@ -27,7 +27,7 @@ declare module "express-session" {
   }
 }
 
-export const setup_connection = async (
+export const setupConnection = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
@@ -64,7 +64,7 @@ export const setup_connection = async (
   }
 }
 
-export const aws_os_choices = async (
+export const awsOsChoices = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
@@ -78,7 +78,7 @@ export const aws_os_choices = async (
   ])
 }
 
-export const gcp_os_choices = async (
+export const gcpOsChoices = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
@@ -95,7 +95,7 @@ export const gcp_os_choices = async (
   }
 }
 
-export const aws_instance_choices = async (
+export const awsInstanceChoices = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
@@ -117,8 +117,7 @@ export const aws_instance_choices = async (
     ApiResponseHandler.error(res, err)
   }
 }
-
-export const gcp_instance_choices = async (
+export const gcpInstanceChoices = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
@@ -145,7 +144,7 @@ export const gcp_instance_choices = async (
   }
 }
 
-export const get_long_running_state = async (req: Request, res: Response) => {
+export const getLongRunningState = async (req: Request, res: Response) => {
   const { uuid } = req.params
   try {
     let resp: STEP_RESPONSE = await getFromRedis(uuid)
