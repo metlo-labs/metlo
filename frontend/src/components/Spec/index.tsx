@@ -51,7 +51,7 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
         size: "xl",
         description,
         status: "error",
-        duration: 8000,
+        duration: 1000000,
         isClosable: true,
         position: "top",
       })

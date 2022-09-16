@@ -1,10 +1,10 @@
 import { ErrorObject } from "ajv/dist/2019"
-import { OpenAPI, OpenAPIV2, OpenAPIV3 } from "openapi-types"
+import { OpenAPI } from "openapi-types"
 import OpenAPISchemaValidator from "openapi-schema-validator"
-import { OpenAPIRequestValidatorError } from "@leoscope/openapi-request-validator"
 import { ApiEndpoint } from "models"
 import { getDataType } from "utils"
 import { DataType } from "@common/enums"
+import Error422UnprocessableEntity from "errors/error-422-unprocessable-entity"
 
 export interface VariableObject {
   enum?: string[]
@@ -128,13 +128,13 @@ export const generateAlertMessageFromReqErrors = (
   errors?.forEach(error => {
     const basePath =
       error["location"] === Location.BODY ? pathToRequestBody : pathToParameters
-    let pathArray = error.instancePath.split("/")?.slice(2)
+    let pathArray = error.instancePath?.split("/")?.slice(2)
     const defaultErrorMessage =
       error.message[0].toUpperCase() + error.message.slice(1)
     let errorMessage = `${defaultErrorMessage} in request${
       error["location"] ? ` ${error["location"]}` : ""
     }.`
-    let path = pathArray.length > 0 ? pathArray.join(".") : ""
+    let path = pathArray?.length > 0 ? pathArray.join(".") : ""
     let ignoreError = false
     const isDisabledPath = disabledPaths.includes(
       `${LOCATION_TO_DATA_SECTION_LABEL[error["location"]]}.${path}`,
@@ -214,11 +214,11 @@ export const generateAlertMessageFromRespErrors = (
     return res
   }
   errors?.forEach(error => {
-    let pathArray = error.instancePath.split("/")?.slice(2)
+    let pathArray = error.instancePath?.split("/")?.slice(2)
     const defaultErrorMessage =
       error.message[0].toUpperCase() + error.message.slice(1)
     let errorMessage = `${defaultErrorMessage} in response body.`
-    let path = pathArray.length > 0 ? pathArray.join(".") : ""
+    let path = pathArray?.length > 0 ? pathArray.join(".") : ""
     let ignoreError = false
     const isDisabledPath = disabledPaths.includes(`res.body.${path}`)
     switch (error.keyword) {
@@ -433,11 +433,41 @@ export const getHostFromServer = (server: ServerObject): Set<string> => {
   return hosts
 }
 
-export const getHostsFromServer = (servers: ServerObject[]): Set<string> => {
+export const getServersV3 = (
+  specObject: any,
+  path: string,
+  method: string,
+): ServerObject[] => {
+  return (
+    specObject?.["paths"]?.[path]?.[method]?.["servers"] ??
+    specObject?.["paths"]?.[path]?.["servers"] ??
+    specObject?.["servers"] ??
+    []
+  )
+}
+
+export const getHostsV3 = (servers: ServerObject[]): Set<string> => {
   let hosts: Set<string> = new Set()
   for (const server of servers) {
     const currServerHosts = getHostFromServer(server)
     hosts = new Set([...hosts, ...currServerHosts])
+  }
+  return hosts
+}
+
+export const getHostsV2 = (specObject: any): Set<string> => {
+  const host: string = specObject?.["host"]
+  const basePath: string = specObject?.["basePath"]
+  const schemes: string[] = specObject?.["schemes"]
+  if (!host) {
+    throw new Error422UnprocessableEntity("No host found in spec file.")
+  }
+  const baseHost = `${host}${basePath ?? ""}`.trim()
+  let hosts: Set<string> = new Set()
+  if (schemes && schemes.length > 0) {
+    schemes?.forEach(scheme => hosts.add(`${scheme}://${baseHost}`))
+  } else {
+    hosts.add(baseHost)
   }
   return hosts
 }

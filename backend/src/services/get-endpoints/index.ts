@@ -31,7 +31,10 @@ export class GetEndpointsService {
       },
     })
     apiEndpoint.riskScore = getRiskScore(apiEndpoint.dataFields)
-    await apiEndpointRepository.update({ uuid: apiEndpointUuid }, { riskScore: apiEndpoint.riskScore })
+    await apiEndpointRepository.update(
+      { uuid: apiEndpointUuid },
+      { riskScore: apiEndpoint.riskScore },
+    )
     return apiEndpoint
   }
 

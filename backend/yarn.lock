@@ -851,10 +851,10 @@
   resolved "https://registry.yarnpkg.com/@jsdevtools/ono/-/ono-7.1.3.tgz#9df03bbd7c696a5c58885c34aa06da41c8543796"
   integrity sha512-4JQNk+3mVzK3xh2rqd6RB4J46qUR19azEHBneZyTZM+c456qOrbbM/5xcR8huNCCcbVt7+UmizG6GuUvPvKUYg==
 
-"@leoscope/openapi-request-validator@^12.0.2":
-  version "12.0.2"
-  resolved "https://registry.yarnpkg.com/@leoscope/openapi-request-validator/-/openapi-request-validator-12.0.2.tgz#2d4138285a2ff77bf54c046825d0697bb3544708"
-  integrity sha512-lW0hfRCJ0/7JONP4Vd5AhcpLDpnz0PC6Q/BpxXzAR2UrY3Gw9Yyiwx1pEKte73zpOrwP/KT5Grm6HDKUCuZflA==
+"@leoscope/openapi-request-validator@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@leoscope/openapi-request-validator/-/openapi-request-validator-1.0.0.tgz#c627e38a0d352c376d81075eace9ccd4a138e5e5"
+  integrity sha512-Gvzm0zBzeCo4LFuzcz73DE/T5cekzU82V1u0eOC3OL9ZUHamgi1eOLUg6+7bmK1PDkVXb2YH4kRoqtnCUgMSJA==
   dependencies:
     ajv "^8.3.0"
     ajv-formats "^2.1.0"
@@ -863,13 +863,13 @@
     openapi-types "^12.0.2"
     ts-log "^2.1.4"
 
-"@leoscope/openapi-response-validator@^12.0.3":
-  version "12.0.3"
-  resolved "https://registry.yarnpkg.com/@leoscope/openapi-response-validator/-/openapi-response-validator-12.0.3.tgz#1900f2bc81d03c9c08a7a0b3d4457f638df28586"
-  integrity sha512-sVD6TqTt5OTJNLryMARIRBh3DlPpXezkswuxxIamHt+PBQzBRHJ8G3OcHpLeL9sSodRIZVJmVpvDONHLeaCoFw==
+"@leoscope/openapi-response-validator@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@leoscope/openapi-response-validator/-/openapi-response-validator-1.0.2.tgz#a618021606bf32e7819e1ca9497b69565f07a994"
+  integrity sha512-kTe0VtB6T20/SlGWxgq6yOFp/u4iZ3VDD7GOewHHzCaB0ceHdYFkWzARX71aKhrXWk1GeD8+ZlT9oXzZwsT9Ag==
   dependencies:
-    ajv "^8.3.0"
-    openapi-types "^12.0.0"
+    ajv "^8.4.0"
+    openapi-types "^12.0.2"
 
 "@metlo/testing@^0.0.3":
   version "0.0.3"
@@ -1243,7 +1243,7 @@ ajv-formats@^2.0.2, ajv-formats@^2.1.0:
   dependencies:
     ajv "^8.0.0"
 
-ajv@^8.0.0, ajv@^8.1.0, ajv@^8.3.0, ajv@^8.6.3:
+ajv@^8.0.0, ajv@^8.1.0, ajv@^8.3.0, ajv@^8.4.0, ajv@^8.6.3:
   version "8.11.0"
   resolved "https://registry.yarnpkg.com/ajv/-/ajv-8.11.0.tgz#977e91dd96ca669f54a11e23e378e33b884a565f"
   integrity sha512-wGgprdCvMalC0BztXvitD2hC04YffAvtsUn93JbGXYLAtCUO4xd17mCCZQxUOItiBwZvJScWo8NIvQMQ71rdpg==

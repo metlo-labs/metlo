@@ -241,5 +241,5 @@ export {
   get_connection_for_uuid,
   update_connection_for_uuid,
   delete_connection_for_uuid,
-  get_num_connections
+  get_num_connections,
 }

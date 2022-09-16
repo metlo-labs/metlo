@@ -2,16 +2,19 @@ import { v4 as uuidv4 } from "uuid"
 import { Not } from "typeorm"
 import SwaggerParser from "@apidevtools/swagger-parser"
 import yaml from "js-yaml"
-import OpenAPIRequestValidator, {
-  OpenAPIRequestValidatorError,
-} from "@leoscope/openapi-request-validator"
+import OpenAPIRequestValidator from "@leoscope/openapi-request-validator"
 import OpenAPIResponseValidator, {
-  OpenAPIResponseValidatorError,
   OpenAPIResponseValidatorValidationError,
 } from "@leoscope/openapi-response-validator"
 import { AlertType, RestMethod, SpecExtension } from "@common/enums"
-import { ApiEndpoint, ApiTrace, DataField, OpenApiSpec, Alert, AggregateTraceData } from "models"
-import Error400BadRequest from "errors/error-400-bad-request"
+import {
+  ApiEndpoint,
+  ApiTrace,
+  DataField,
+  OpenApiSpec,
+  Alert,
+  AggregateTraceData,
+} from "models"
 import { JSONValue, OpenApiSpec as OpenApiSpecResponse } from "@common/types"
 import { getPathTokens } from "@common/utils"
 import { AppDataSource } from "data-source"
@@ -21,7 +24,6 @@ import Error422UnprocessableEntity from "errors/error-422-unprocessable-entity"
 import {
   generateAlertMessageFromReqErrors,
   generateAlertMessageFromRespErrors,
-  getHostsFromServer,
   getOpenAPISpecVersion,
   getSpecRequestParameters,
   getSpecResponses,
@@ -30,6 +32,9 @@ import {
   AjvError,
   validateSpecSchema,
   getSpecRequestBody,
+  getHostsV3,
+  getServersV3,
+  getHostsV2,
 } from "./utils"
 import { AlertService } from "services/alert"
 import { DatabaseService } from "services/database"
@@ -119,13 +124,13 @@ export class SpecService {
         errors: validationErrors,
       })
     }
-    const serversRoot: any[] = specObject["servers"]
     const paths: JSONValue = specObject["paths"]
 
     const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
     const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec)
     const apiTraceRepository = AppDataSource.getRepository(ApiTrace)
-    const aggregateTraceDataRepository = AppDataSource.getRepository(AggregateTraceData)
+    const aggregateTraceDataRepository =
+      AppDataSource.getRepository(AggregateTraceData)
 
     let existingSpec = await openApiSpecRepository.findOneBy({
       name: fileName,
@@ -156,23 +161,19 @@ export class SpecService {
     }
     let specHosts: Set<string> = new Set()
     for (const path of pathKeys) {
-      let serversPath = serversRoot
-      if (paths[path]["servers"]) {
-        serversPath = paths[path]["servers"]
-      }
       const pathRegex = getPathRegex(path)
       const methods = Object.keys(paths[path])?.filter(key =>
         Object.values(RestMethod).includes(key.toUpperCase() as RestMethod),
       )
       for (const method of methods) {
-        let serversMethod = serversPath
-        if (paths[path][method]["servers"]) {
-          serversMethod = paths[path][method]["servers"]
+        let hosts: Set<string> = new Set()
+        const servers = getServersV3(specObject, path, method)
+        if (!servers || servers?.length === 0) {
+          throw new Error422UnprocessableEntity(
+            "No servers found in spec file.",
+          )
         }
-        if (!serversMethod) {
-          throw new Error400BadRequest("No servers found in spec file.")
-        }
-        const hosts = getHostsFromServer(serversMethod)
+        hosts = getHostsV3(servers)
         specHosts = new Set([...specHosts, ...hosts])
         for (const host of hosts) {
           // For exact endpoint match
@@ -233,9 +234,11 @@ export class SpecService {
                 const traces = await apiTraceRepository.findBy({
                   apiEndpointUuid: endpoint.uuid,
                 })
-                const aggregateData = await aggregateTraceDataRepository.findBy({
-                  apiEndpointUuid: endpoint.uuid
-                })
+                const aggregateData = await aggregateTraceDataRepository.findBy(
+                  {
+                    apiEndpointUuid: endpoint.uuid,
+                  },
+                )
                 endpoint.dataFields.forEach(dataField => {
                   dataField.apiEndpointUuid = apiEndpoint.uuid
                 })
@@ -243,7 +246,9 @@ export class SpecService {
                   trace.apiEndpointUuid = apiEndpoint.uuid
                   apiEndpoint.updateDates(trace.createdAt)
                 })
-                aggregateData.forEach(data => data.apiEndpointUuid = apiEndpoint.uuid)
+                aggregateData.forEach(
+                  data => (data.apiEndpointUuid = apiEndpoint.uuid),
+                )
                 endpoint.alerts.forEach(alert => {
                   switch (alert.type) {
                     case AlertType.NEW_ENDPOINT:
@@ -369,9 +374,17 @@ export class SpecService {
         },
       })
       const traceStatusCode = trace.responseStatus
+      const resHeaders = trace.responseHeaders.reduce(
+        (obj, item) => ((obj[item.name] = item.value), obj),
+        {},
+      )
       const traceResponseBody = parsedJsonNonNull(trace.responseBody, true)
       const responseValidationItems: OpenAPIResponseValidatorValidationError =
-        responseValidator.validateResponse(traceStatusCode, traceResponseBody)
+        responseValidator.validateResponse(
+          traceStatusCode,
+          traceResponseBody,
+          resHeaders,
+        )
       const responseErrors = responseValidationItems?.errors
       const respErrorItems = generateAlertMessageFromRespErrors(
         responseErrors as AjvError[],
