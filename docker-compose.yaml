@@ -43,6 +43,7 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - BACKEND_URL=${BACKEND_URL}
       - EXPRESS_SECRET=${EXPRESS_SECRET}
+      - SESSION_SECRET=${EXPRESS_SECRET}
   jobs:
     image: metlo/jobrunner
     container_name: metlo-jobs
