@@ -117,6 +117,7 @@ export const awsInstanceChoices = async (
     ApiResponseHandler.error(res, err)
   }
 }
+
 export const gcpInstanceChoices = async (
   req: Request,
   res: Response,
