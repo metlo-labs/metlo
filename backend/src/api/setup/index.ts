@@ -106,8 +106,8 @@ export const aws_instance_choices = async (
       .data as STEP_RESPONSE<ConnectionType.AWS>["data"]
     let conn = new EC2_CONN(access_id, secret_access_key, region)
     let choices = await conn.get_valid_types(
-      virtualization_type as VirtualizationType,
       specs,
+      virtualization_type as VirtualizationType,
     )
     await ApiResponseHandler.success(
       res,
@@ -117,6 +117,7 @@ export const aws_instance_choices = async (
     ApiResponseHandler.error(res, err)
   }
 }
+
 export const gcp_instance_choices = async (
   req: Request,
   res: Response,

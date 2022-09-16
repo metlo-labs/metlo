@@ -89,28 +89,28 @@ export async function aws_source_identification({
       },
       region: _region,
     })
-    var region, source_eni_id, source_private_ip
-    if (source_type === AWS_SOURCE_TYPE.INSTANCE) {
-      let command = new DescribeInstancesCommand({
-        InstanceIds: [mirror_source_id],
-      } as DescribeInstancesCommandInput)
 
-      let resp = await client.send(command)
+    let ec2_conn = new EC2_CONN(access_id, secret_access_key, region)
+    let all_valid_types = await ec2_conn.get_valid_types(undefined, undefined)
+
+    var region, source_eni_id, source_private_ip, instance_type
+    if (source_type === AWS_SOURCE_TYPE.INSTANCE) {
+
+      let resp = await ec2_conn.describe_instance(mirror_source_id)
+
+      instance_type = resp.Reservations[0].Instances[0].InstanceType
       region = await match_av_to_region(
         client,
         resp.Reservations[0].Instances[0].Placement.AvailabilityZone,
       )
-      source_eni_id =
-        resp.Reservations[0].Instances[0].NetworkInterfaces[0]
-          .NetworkInterfaceId
-      source_private_ip =
-        resp.Reservations[0].Instances[0].NetworkInterfaces[0].PrivateIpAddress
-    } else if (source_type === AWS_SOURCE_TYPE.NETWORK_INTERFACE) {
-      let command = new DescribeNetworkInterfacesCommand({
-        NetworkInterfaceIds: [mirror_source_id],
-      } as DescribeNetworkInterfacesCommandInput)
+      source_eni_id = resp.Reservations[0].Instances[0].NetworkInterfaces[0].NetworkInterfaceId
+      source_private_ip = resp.Reservations[0].Instances[0].NetworkInterfaces[0].PrivateIpAddress
 
-      let resp = await client.send(command)
+    } else if (source_type === AWS_SOURCE_TYPE.NETWORK_INTERFACE) {
+      let resp = await ec2_conn.describe_interface(mirror_source_id)
+      let instance_type_resp = (await ec2_conn.describe_instance(resp.NetworkInterfaces[0].Attachment.InstanceId))
+
+      instance_type = instance_type_resp.Reservations[0].Instances[0].InstanceType
       region = await match_av_to_region(
         client,
         resp.NetworkInterfaces[0].AvailabilityZone,
@@ -122,6 +122,30 @@ export async function aws_source_identification({
         `Couldn't find information about source_type : ${source_type}`,
       )
     }
+
+
+    if (!(all_valid_types.map(v => v.InstanceType).includes(instance_type))) {
+      return {
+        success: "FAIL",
+        status: "IN-PROGRESS",
+        step_number: 2,
+        next_step: 3,
+        last_completed: 1,
+        message: `AWS EC2 instance type ${instance_type} does not support mirroring traffic.
+        Supported instances listed at https://aws.amazon.com/about-aws/whats-new/2021/02/amazon-vpc-traffic-mirroring-supported-select-non-nitro-instance-types/`,
+        error: {
+          err: `Source instance type doesn't support mirroring.
+          Supported instances listed at https://aws.amazon.com/about-aws/whats-new/2021/02/amazon-vpc-traffic-mirroring-supported-select-non-nitro-instance-types/`,
+        },
+        data: {
+          secret_access_key: secret_access_key,
+          access_id: access_id,
+          region: _region,
+          ...rest,
+        },
+      }
+    }
+
     client.destroy()
     return {
       success: "OK",
@@ -143,6 +167,7 @@ export async function aws_source_identification({
       },
     }
   } catch (err) {
+    console.log(err)
     return {
       success: "FAIL",
       status: "IN-PROGRESS",

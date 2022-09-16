@@ -27,6 +27,7 @@ import {
   DescribeInstancesCommand,
   TerminateInstancesCommand,
   DeleteKeyPairCommand,
+  DescribeNetworkInterfacesCommand,
 } from "@aws-sdk/client-ec2"
 
 import { STSClient, GetCallerIdentityCommand } from "@aws-sdk/client-sts"
@@ -230,6 +231,13 @@ export class EC2_CONN {
     return resp
   }
 
+  public async describe_interface(ec2_interface_id) {
+    let resp = await this.get_conn().send(
+      new DescribeNetworkInterfacesCommand({ NetworkInterfaceIds: [ec2_interface_id] }),
+    )
+    return resp
+  }
+
   public async image_from_ami(ami: string) {
     const input: DescribeImagesCommandInput = {
       Filters: [
@@ -250,18 +258,18 @@ export class EC2_CONN {
   }
 
   public async get_valid_types(
-    vtx_type: VirtualizationType,
-    specs: MachineSpecifications,
+    specs?: MachineSpecifications,
+    vtx_type?: VirtualizationType,
   ): Promise<Array<InstanceTypeInfoFromInstanceRequirements>> {
     let command = new GetInstanceTypesFromInstanceRequirementsCommand({
       ArchitectureTypes: ["x86_64"],
-      VirtualizationTypes: [vtx_type],
+      VirtualizationTypes: vtx_type ? [vtx_type] : ["hvm", "paravirtual"],
       InstanceRequirements: {
-        VCpuCount: { Min: specs.minCpu, Max: specs.maxCpu },
-        MemoryMiB: {
+        VCpuCount: specs ? { Min: specs.minCpu, Max: specs.maxCpu } : { Min: 0 },
+        MemoryMiB: specs ? {
           Min: specs.minMem * 1024,
           Max: specs.maxMem ? specs.maxMem * 1024 : null,
-        },
+        } : { Min: 0 },
         InstanceGenerations: ["current"],
         BurstablePerformance: "included",
         BareMetal: "included",
