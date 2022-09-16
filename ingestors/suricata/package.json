@@ -10,7 +10,7 @@
     "commander": "^9.4.0",
     "ts-node": "^10.9.1",
     "tsc": "^2.0.4",
-    "typescript": "^4.7.4"
+    "typescript": "^4.8.2"
   },
   "devDependencies": {
     "prettier": "^2.7.1"
