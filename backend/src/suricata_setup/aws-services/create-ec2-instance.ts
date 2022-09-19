@@ -233,7 +233,9 @@ export class EC2_CONN {
 
   public async describe_interface(ec2_interface_id) {
     let resp = await this.get_conn().send(
-      new DescribeNetworkInterfacesCommand({ NetworkInterfaceIds: [ec2_interface_id] }),
+      new DescribeNetworkInterfacesCommand({
+        NetworkInterfaceIds: [ec2_interface_id],
+      }),
     )
     return resp
   }
@@ -265,11 +267,15 @@ export class EC2_CONN {
       ArchitectureTypes: ["x86_64"],
       VirtualizationTypes: vtx_type ? [vtx_type] : ["hvm", "paravirtual"],
       InstanceRequirements: {
-        VCpuCount: specs ? { Min: specs.minCpu, Max: specs.maxCpu } : { Min: 0 },
-        MemoryMiB: specs ? {
-          Min: specs.minMem * 1024,
-          Max: specs.maxMem ? specs.maxMem * 1024 : null,
-        } : { Min: 0 },
+        VCpuCount: specs
+          ? { Min: specs.minCpu, Max: specs.maxCpu }
+          : { Min: 0 },
+        MemoryMiB: specs
+          ? {
+              Min: specs.minMem * 1024,
+              Max: specs.maxMem ? specs.maxMem * 1024 : null,
+            }
+          : { Min: 0 },
         InstanceGenerations: ["current"],
         BurstablePerformance: "included",
         BareMetal: "included",

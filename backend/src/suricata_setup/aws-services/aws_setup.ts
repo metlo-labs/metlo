@@ -95,7 +95,6 @@ export async function aws_source_identification({
 
     var region, source_eni_id, source_private_ip, instance_type
     if (source_type === AWS_SOURCE_TYPE.INSTANCE) {
-
       let resp = await ec2_conn.describe_instance(mirror_source_id)
 
       instance_type = resp.Reservations[0].Instances[0].InstanceType
@@ -103,14 +102,19 @@ export async function aws_source_identification({
         client,
         resp.Reservations[0].Instances[0].Placement.AvailabilityZone,
       )
-      source_eni_id = resp.Reservations[0].Instances[0].NetworkInterfaces[0].NetworkInterfaceId
-      source_private_ip = resp.Reservations[0].Instances[0].NetworkInterfaces[0].PrivateIpAddress
-
+      source_eni_id =
+        resp.Reservations[0].Instances[0].NetworkInterfaces[0]
+          .NetworkInterfaceId
+      source_private_ip =
+        resp.Reservations[0].Instances[0].NetworkInterfaces[0].PrivateIpAddress
     } else if (source_type === AWS_SOURCE_TYPE.NETWORK_INTERFACE) {
       let resp = await ec2_conn.describe_interface(mirror_source_id)
-      let instance_type_resp = (await ec2_conn.describe_instance(resp.NetworkInterfaces[0].Attachment.InstanceId))
+      let instance_type_resp = await ec2_conn.describe_instance(
+        resp.NetworkInterfaces[0].Attachment.InstanceId,
+      )
 
-      instance_type = instance_type_resp.Reservations[0].Instances[0].InstanceType
+      instance_type =
+        instance_type_resp.Reservations[0].Instances[0].InstanceType
       region = await match_av_to_region(
         client,
         resp.NetworkInterfaces[0].AvailabilityZone,
@@ -123,8 +127,7 @@ export async function aws_source_identification({
       )
     }
 
-
-    if (!(all_valid_types.map(v => v.InstanceType).includes(instance_type))) {
+    if (!all_valid_types.map(v => v.InstanceType).includes(instance_type)) {
       return {
         success: "FAIL",
         status: "IN-PROGRESS",
