@@ -115,16 +115,13 @@ export class JobsService {
     try {
       const now = DateTime.now().startOf("hour")
       const oneHourAgo = now.minus({ hours: 1 }).toJSDate()
-      const tracesPromise = queryRunner.manager.find(ApiTrace, {
-        select: {
-          uuid: true,
-        },
-        where: {
-          apiEndpointUuid: Not(IsNull()),
-          createdAt: LessThan(oneHourAgo),
-        },
-      })
-      const tracesByEndpointPromise = queryRunner.manager
+      const deleteTracesQb = queryRunner.manager
+        .createQueryBuilder()
+        .delete()
+        .from(ApiTrace)
+        .where('"apiEndpointUuid" IS NOT NULL')
+        .andWhere('"createdAt" < :oneHourAgo', { oneHourAgo })
+      const tracesByEndpoint = await queryRunner.manager
         .createQueryBuilder(ApiTrace, "trace")
         .select([
           '"apiEndpointUuid"',
@@ -136,10 +133,7 @@ export class JobsService {
         .groupBy('"apiEndpointUuid"')
         .addGroupBy("hour")
         .getRawMany()
-      const [traces, tracesByEndpoint] = await Promise.all([
-        tracesPromise,
-        tracesByEndpointPromise,
-      ])
+      await deleteTracesQb.execute()
       await queryRunner.release()
 
       const parameters: any[] = []
@@ -164,8 +158,6 @@ export class JobsService {
         ON CONFLICT ON CONSTRAINT unique_constraint
         DO UPDATE SET "numCalls" = EXCLUDED."numCalls" + aggregate_trace_data."numCalls";
       `
-
-      await DatabaseService.executeTransactions([], [traces], true)
       if (parameters.length > 0) {
         await DatabaseService.executeRawQueries(insertQuery, parameters)
       }
