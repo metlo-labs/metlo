@@ -54,10 +54,12 @@
     "pg": "^8.7.3",
     "pg-protocol": "^1.5.0",
     "reflect-metadata": "^0.1.13",
+    "swagger2openapi": "^7.0.8",
     "typeorm": "^0.3.7",
     "uuid": "^8.3.2",
     "validator": "^13.7.0",
     "whatwg-mimetype": "^3.0.0",
+    "yaml": "^2.1.1",
     "yargs": "^17.5.1"
   },
   "devDependencies": {

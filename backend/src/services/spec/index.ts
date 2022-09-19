@@ -1,7 +1,9 @@
 import { v4 as uuidv4 } from "uuid"
 import { Not } from "typeorm"
 import SwaggerParser from "@apidevtools/swagger-parser"
+import Converter from "swagger2openapi"
 import yaml from "js-yaml"
+import YAML from "yaml"
 import OpenAPIRequestValidator from "@leoscope/openapi-request-validator"
 import OpenAPIResponseValidator, {
   OpenAPIResponseValidatorValidationError,
@@ -34,12 +36,12 @@ import {
   getSpecRequestBody,
   getHostsV3,
   getServersV3,
-  getHostsV2,
 } from "./utils"
 import { AlertService } from "services/alert"
 import { DatabaseService } from "services/database"
 import Error404NotFound from "errors/error-404-not-found"
 import { BlockFieldsService } from "services/block-fields"
+import Error500InternalServer from "errors/error-500-internal-server"
 
 export class SpecService {
   static async getSpec(specName: string): Promise<OpenApiSpecResponse> {
@@ -124,6 +126,23 @@ export class SpecService {
         errors: validationErrors,
       })
     }
+    if (specVersion === 2) {
+      const convertedSpec = await Converter.convertObj(specObject, {})
+      if (!convertedSpec?.openapi) {
+        throw new Error500InternalServer(
+          "Unable to convert swagger spec to OpenAPI V3.",
+        )
+      }
+      specObject = convertedSpec.openapi
+      if (extension === SpecExtension.YAML) {
+        const doc = new YAML.Document()
+        doc.contents = specObject as any
+        specString = doc.toString()
+      } else {
+        specString = JSON.stringify(specObject, null, 2)
+      }
+    }
+
     const paths: JSONValue = specObject["paths"]
 
     const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
