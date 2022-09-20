@@ -1,0 +1,9 @@
+docker run --rm -d --name kong-demo \
+  -p "8000-8001:8000-8001" \
+  -e "KONG_ADMIN_LISTEN=0.0.0.0:8001" \
+  -e "KONG_PROXY_LISTEN=0.0.0.0:8000" \
+  -e "KONG_DATABASE=off" \
+  -e "KONG_PLUGINS=bundled,go-hello" \
+  -e "KONG_PLUGINSERVER_NAMES=go-hello" \
+  -e "KONG_PLUGINSERVER_GO_HELLO_QUERY_CMD=go-hello -dump" \
+  kong:2.8.1-alpine

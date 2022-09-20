@@ -1,0 +1,17 @@
+_format_version: "2.1"
+_transform: true
+
+services:
+  - name: first-demo
+    url: https://httpbin.org/anything
+    routes:
+      - name: first-demo-route
+        paths:
+          - /demo
+
+plugins:
+  - config:
+      api_key: abcd-1234
+      metlo_collector_url: https://eoene6b90uzny1h.m.pipedream.net
+    enabled: true
+    name: go-hello
