@@ -23,6 +23,7 @@ export class AuthenticationConfigService {
     let sessionMeta: SessionMeta = {
       authenticationProvided: false,
       authType: authConfig.authType,
+      authenticationSuccessful: successfulAuth,
     } as SessionMeta
     requestHeaders.forEach(header => {
       switch (authConfig.authType) {
@@ -95,6 +96,43 @@ export class AuthenticationConfigService {
           }
           break
         case AuthType.JWT:
+          const jwtHeader = authConfig.headerKey ?? ""
+          if (header.name.toLowerCase() === jwtHeader.toLowerCase()) {
+            const { encrypted, tag } = encrypt(
+              header.value,
+              encryptionKey,
+              keypairIv,
+            )
+            sessionMeta = {
+              authenticationProvided: true,
+              authenticationSuccessful: successfulAuth,
+              authType: authConfig.authType,
+              uniqueSession: {
+                key: encrypted,
+                iv: keypairIv.toString("base64"),
+                tag: tag.toString("base64"),
+              },
+            }
+            const decodedPayload = JSON.parse(
+              Buffer.from(
+                header.value?.split(".")?.[1] ?? "",
+                "base64",
+              )?.toString() || "{}",
+            )
+            if (authConfig.jwtUserPath) {
+              const jwtUser = authConfig.jwtUserPath
+                .split(".")
+                .reduce((o, k) => {
+                  return o && o[k]
+                }, decodedPayload)
+              if (jwtUser && typeof jwtUser === "string") {
+                sessionMeta = {
+                  ...sessionMeta,
+                  user: jwtUser,
+                }
+              }
+            }
+          }
           break
         default:
       }
