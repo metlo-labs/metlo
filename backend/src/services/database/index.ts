@@ -68,6 +68,8 @@ export class DatabaseService {
       }
     } catch (err) {
       console.error(`Encountered error while executing raw sql query: ${err}`)
+      await queryRunner.rollbackTransaction()
+      throw new Error500InternalServer(err)
     } finally {
       await queryRunner.release()
     }

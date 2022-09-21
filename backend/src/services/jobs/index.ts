@@ -115,54 +115,122 @@ export class JobsService {
     try {
       const now = DateTime.now().startOf("hour")
       const oneHourAgo = now.minus({ hours: 1 }).toJSDate()
+
       const deleteTracesQb = queryRunner.manager
         .createQueryBuilder()
         .delete()
         .from(ApiTrace)
         .where('"apiEndpointUuid" IS NOT NULL')
         .andWhere('"createdAt" < :oneHourAgo', { oneHourAgo })
-      const tracesByEndpoint = await queryRunner.manager
-        .createQueryBuilder(ApiTrace, "trace")
-        .select([
-          '"apiEndpointUuid"',
-          `DATE_TRUNC('hour', "createdAt") as hour`,
-          'COUNT(*) as "numTraces"',
-        ])
-        .where('"apiEndpointUuid" IS NOT NULL')
-        .andWhere('"createdAt" < :oneHourAgo', { oneHourAgo })
-        .groupBy('"apiEndpointUuid"')
-        .addGroupBy("hour")
-        .getRawMany()
-      await deleteTracesQb.execute()
-      await queryRunner.release()
 
+      const tracesBySecondStatus = `
+        WITH traces_by_second_status AS (
+          SELECT
+            "apiEndpointUuid",
+            DATE_TRUNC('second', traces."createdAt") as second,
+            "responseStatus" as status,
+            COUNT(*) as "numTraces"
+          FROM api_trace traces
+          WHERE
+            "apiEndpointUuid" IS NOT NULL
+            AND "createdAt" < $1
+          GROUP BY 1, 2, 3
+        )
+      `
+      const tracesByMinuteStatus = `
+        traces_by_minute_status AS (
+          SELECT
+            "apiEndpointUuid",
+            DATE_TRUNC('minute', second) as minute,
+            status,
+            SUM("numTraces") as "numTraces"
+          FROM traces_by_second_status
+          GROUP BY 1, 2, 3
+        )
+      `
+      const tracesByMinute = `
+        traces_by_minute AS (
+          SELECT
+            "apiEndpointUuid",
+            DATE_TRUNC('minute', second) as minute,
+            MAX("numTraces") as "maxRPS",
+            MIN("numTraces") as "minRPS",
+            AVG("numTraces") as "meanRPS",
+            SUM("numTraces") as "numTraces",
+            COUNT(*) as num_secs_with_data
+          FROM traces_by_second_status
+          GROUP BY 1, 2
+        )
+      `
+      const minuteCountByStatusCode = `
+        minute_count_by_status_code AS (
+          SELECT
+            "apiEndpointUuid",
+            minute,
+            replace(
+              array_to_string(array_agg(json_build_object(status, "numTraces")), ''),
+              '}{',
+              ', '
+            )::json AS "countByStatusCode"
+          FROM traces_by_minute_status
+          GROUP BY 1, 2
+        )
+      `
+      const aggregateTracesDataQuery = `
+        ${tracesBySecondStatus},
+        ${tracesByMinuteStatus},
+        ${tracesByMinute},
+        ${minuteCountByStatusCode}
+        SELECT
+          traces."apiEndpointUuid",
+          traces.minute,
+          traces."maxRPS",
+          CASE WHEN traces.num_secs_with_data < 60 THEN 0 ELSE traces."minRPS" END as "minRPS",
+          traces."meanRPS",
+          traces."numTraces",
+          status_code_map."countByStatusCode"
+        FROM traces_by_minute traces
+        JOIN minute_count_by_status_code status_code_map ON
+          traces.minute = status_code_map.minute AND traces."apiEndpointUuid" = status_code_map."apiEndpointUuid"
+      `
+
+      const aggregateTracesData: any[] = await queryRunner.query(
+        aggregateTracesDataQuery,
+        [oneHourAgo],
+      )
       const parameters: any[] = []
       const argArray: string[] = []
       let argNumber = 1
-      tracesByEndpoint.forEach(data => {
+      aggregateTracesData.forEach(data => {
         parameters.push(
           uuidv4(),
           data.numTraces,
-          data.hour,
+          data.minute,
+          data.maxRPS,
+          data.minRPS,
+          data.meanRPS,
+          data.countByStatusCode,
           data.apiEndpointUuid,
         )
         argArray.push(
-          `($${argNumber++}, $${argNumber++}, $${argNumber++}, $${argNumber++})`,
+          `($${argNumber++}, $${argNumber++}, $${argNumber++}, $${argNumber++}, $${argNumber++}, $${argNumber++}, $${argNumber++}, $${argNumber++})`,
         )
       })
 
       const argString = argArray.join(",")
       const insertQuery = `
-        INSERT INTO aggregate_trace_data ("uuid", "numCalls", "hour", "apiEndpointUuid")
+        INSERT INTO aggregate_trace_data ("uuid", "numCalls", "minute", "maxRPS", "minRPS", "meanRPS", "countByStatusCode", "apiEndpointUuid")
         VALUES ${argString}
         ON CONFLICT ON CONSTRAINT unique_constraint
         DO UPDATE SET "numCalls" = EXCLUDED."numCalls" + aggregate_trace_data."numCalls";
       `
+      await deleteTracesQb.execute()
       if (parameters.length > 0) {
-        await DatabaseService.executeRawQueries(insertQuery, parameters)
+        await queryRunner.query(insertQuery, parameters)
       }
     } catch (err) {
       console.error(`Encountered error while clearing trace data: ${err}`)
+      await queryRunner.rollbackTransaction()
     } finally {
       await queryRunner?.release()
     }

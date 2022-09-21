@@ -10,6 +10,9 @@ export class AuthenticationConfigService {
     const authConfig = await authConfigRepo.findOneBy({
       host: apiTrace.host,
     })
+    if (!authConfig) {
+      return
+    }
     const key = process.env.ENCRYPTION_KEY
     const encryptionKey = Buffer.from(key, "base64")
     const keypairIv = generate_iv()

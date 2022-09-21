@@ -10,7 +10,7 @@ import {
 import { ApiEndpoint } from "./api-endpoint"
 
 @Entity()
-@Unique("unique_constraint", ["apiEndpoint", "hour"])
+@Unique("unique_constraint", ["apiEndpoint", "minute"])
 export class AggregateTraceData extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
@@ -19,7 +19,19 @@ export class AggregateTraceData extends BaseEntity {
   numCalls: number
 
   @Column({ type: "timestamptz" })
-  hour: Date
+  minute: Date
+
+  @Column()
+  maxRPS: number
+
+  @Column()
+  minRPS: number
+
+  @Column({ type: "numeric" })
+  meanRPS: number
+
+  @Column({ type: "jsonb", default: {} })
+  countByStatusCode: Record<string, number>
 
   @Column()
   apiEndpointUuid: string
