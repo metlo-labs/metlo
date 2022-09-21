@@ -15,6 +15,7 @@ import {
   GCP_STEPS,
   AWS_SOURCE_TYPE,
   GCP_SOURCE_TYPE,
+  AuthType,
 } from "./enums"
 import { Test, Request as TestRequest } from "@metlo/testing"
 import "axios"
@@ -25,6 +26,18 @@ export interface Meta {
   sourcePort: string
   destination: string
   destinationPort: string
+}
+
+export interface SessionMeta {
+  authenticationProvided: boolean
+  authenticationSuccessful?: boolean
+  authType: AuthType
+  uniqueSession?: {
+    key: string
+    iv: string
+    tag: string
+  }
+  user?: string
 }
 
 export interface PairObject {

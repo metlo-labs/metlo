@@ -8,6 +8,7 @@ import { DataFieldService } from "services/data-field"
 import { DatabaseService } from "services/database"
 import { AlertService } from "services/alert"
 import { BlockFieldsService } from "services/block-fields"
+import { AuthenticationConfigService } from "services/authentication-config"
 
 export class LogRequestService {
   static async logRequest(traceParams: TraceParams): Promise<void> {
@@ -34,6 +35,7 @@ export class LogRequestService {
       apiTraceObj.meta = traceParams?.meta
 
       await BlockFieldsService.redactBlockedFields(apiTraceObj)
+      await AuthenticationConfigService.setSessionMetadata(apiTraceObj)
       /** Update existing endpoint record if exists */
       const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
       const apiEndpoint = await apiEndpointRepository.findOne({

@@ -13,6 +13,7 @@ import {
   BlockFields,
   InstanceSettings,
   AggregateTraceData,
+  AuthenticationConfig,
 } from "models"
 
 export const AppDataSource: DataSource = new DataSource({
@@ -32,6 +33,7 @@ export const AppDataSource: DataSource = new DataSource({
     BlockFields,
     InstanceSettings,
     AggregateTraceData,
+    AuthenticationConfig,
   ],
   migrations: [],
   logging: false,

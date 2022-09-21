@@ -8,9 +8,9 @@ import {
   logRequestSingleHandler,
 } from "collector_src/log-request"
 import { verifyApiKeyMiddleware } from "middleware/verify-api-key-middleware"
-import { BlockFields } from "models"
+import { AuthenticationConfig, BlockFields } from "models"
 import { getPathRegex } from "utils"
-import { DisableRestMethod } from "@common/enums"
+import { AuthType, DisableRestMethod } from "@common/enums"
 import { DatabaseService } from "services/database"
 import { bodyParserMiddleware } from "middleware/body-parser-middleware"
 
@@ -35,12 +35,13 @@ app.post("/api/v1/log-request/batch", logRequestBatchHandler)
 
 const populateBlockFields = async () => {
   try {
-    const blockFieldsDoc: object = yaml.load(
-      fs.readFileSync("./block_fields.yaml", "utf-8"),
+    const metloConfig: object = yaml.load(
+      fs.readFileSync("./metlo-config.yaml", "utf-8"),
     ) as object
     const blockFieldsRepo = AppDataSource.getRepository(BlockFields)
     const removeEntries = await blockFieldsRepo.find()
     let entriesToAdd: BlockFields[] = []
+    const blockFieldsDoc = metloConfig["blockFields"]
     if (blockFieldsDoc) {
       for (const host in blockFieldsDoc) {
         const hostEntries: BlockFields[] = []
@@ -97,7 +98,50 @@ const populateBlockFields = async () => {
       false,
     )
   } catch (err) {
-    console.error(`Error loading block fields yaml: ${err}`)
+    console.error(`Error in populating metlo config blockFields: ${err}`)
+  }
+}
+
+const populateAuthentication = async () => {
+  const key = process.env.ENCRYPTION_KEY
+  if (!key) {
+    console.error(`No ENCRYPTION_KEY found. Cannot set authentication config.`)
+    return
+  }
+  const queryRunner = AppDataSource.createQueryRunner()
+  await queryRunner.connect()
+  try {
+    const metloConfig: object = yaml.load(
+      fs.readFileSync("./metlo-config.yaml", "utf-8"),
+    ) as object
+    const authConfigDoc = metloConfig["authentication"]
+    const authConfigEntries: AuthenticationConfig[] = []
+    if (authConfigDoc) {
+      authConfigDoc.forEach(item => {
+        const newConfig = new AuthenticationConfig()
+        newConfig.host = item.host
+        newConfig.authType = item.authType as AuthType
+        if (item.headerKey) newConfig.headerKey = item.headerKey
+        if (item.jwtUserPath) newConfig.jwtUserPath = item.jwtUserPath
+        if (item.cookieName) newConfig.cookieName = item.cookieName
+        authConfigEntries.push(newConfig)
+      })
+    }
+    const deleteQb = queryRunner.manager
+      .createQueryBuilder()
+      .delete()
+      .from(AuthenticationConfig)
+    const addQb = queryRunner.manager
+      .createQueryBuilder()
+      .insert()
+      .into(AuthenticationConfig)
+      .values(authConfigEntries)
+    await deleteQb.execute()
+    await addQb.execute()
+  } catch (err) {
+    console.error(`Error in populating metlo config authentication: ${err}`)
+  } finally {
+    await queryRunner?.release()
   }
 }
 
@@ -112,7 +156,7 @@ const main = async () => {
     app.listen(port, () => {
       console.log(`⚡️[server]: Server is running at http://localhost:${port}`)
     })
-    await populateBlockFields()
+    await Promise.all([populateBlockFields(), populateAuthentication()])
   } catch (err) {
     console.error(`CatchBlockInsideMain: ${err}`)
   }

@@ -10,6 +10,7 @@ import { ApiKey } from "./keys"
 import { BlockFields } from "./block-fields"
 import { InstanceSettings } from "./instance-settings"
 import { AggregateTraceData } from "./aggregate-trace-data"
+import { AuthenticationConfig } from "./authentication-config"
 
 export type DatabaseModel =
   | ApiEndpoint
@@ -24,6 +25,7 @@ export type DatabaseModel =
   | BlockFields
   | InstanceSettings
   | AggregateTraceData
+  | AuthenticationConfig
 
 export {
   ApiEndpoint,
@@ -38,4 +40,5 @@ export {
   BlockFields,
   InstanceSettings,
   AggregateTraceData,
+  AuthenticationConfig,
 }

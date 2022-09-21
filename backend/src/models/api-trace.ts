@@ -8,7 +8,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm"
-import { Meta, PairObject } from "@common/types"
+import { Meta, PairObject, SessionMeta } from "@common/types"
 import { RestMethod } from "@common/enums"
 import { ApiEndpoint } from "models/api-endpoint"
 
@@ -52,6 +52,9 @@ export class ApiTrace extends BaseEntity {
 
   @Column({ type: "jsonb", nullable: true })
   meta: Meta
+
+  @Column({ type: "jsonb", default: {} })
+  sessionMeta: SessionMeta
 
   @Column({ nullable: true })
   apiEndpointUuid: string

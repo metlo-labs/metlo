@@ -151,6 +151,13 @@ export enum UpdateAlertType {
   UNIGNORE = "unignore",
 }
 
+export enum AuthType {
+  BASIC = "basic",
+  HEADER = "header",
+  JWT = "jwt",
+  SESSION_COOKIE = "session_cookie",
+}
+
 export enum AWS_SOURCE_TYPE {
   INSTANCE,
   NETWORK_INTERFACE,

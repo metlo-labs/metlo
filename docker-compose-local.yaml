@@ -34,7 +34,7 @@ services:
     environment:
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
     volumes:
-      - ./block_fields.yaml:/usr/src/app/backend/block_fields.yaml
+      - ./metlo-config.yaml:/usr/src/app/backend/metlo-config.yaml
   backend:
     build:
       context: ./

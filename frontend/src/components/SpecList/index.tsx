@@ -43,7 +43,7 @@ const APISpecList: React.FC<APISpecListProps> = React.memo(({ apiSpecs }) => {
         size: "xl",
         description,
         status: "error",
-        duration: 100000,
+        duration: 1000000,
         isClosable: true,
         position: "top",
       })
