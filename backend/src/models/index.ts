@@ -9,8 +9,9 @@ import { ApiEndpointTest } from "./api-endpoint-test"
 import { ApiKey } from "./keys"
 import { BlockFields } from "./block-fields"
 import { InstanceSettings } from "./instance-settings"
-import { AggregateTraceData } from "./aggregate-trace-data"
+import { AggregateTraceDataMinutely } from "./aggregate-trace-data-minutely"
 import { AuthenticationConfig } from "./authentication-config"
+import { AggregateTraceDataHourly } from "./aggregate-trace-data-hourly"
 
 export type DatabaseModel =
   | ApiEndpoint
@@ -24,8 +25,9 @@ export type DatabaseModel =
   | ApiKey
   | BlockFields
   | InstanceSettings
-  | AggregateTraceData
+  | AggregateTraceDataMinutely
   | AuthenticationConfig
+  | AggregateTraceDataHourly
 
 export {
   ApiEndpoint,
@@ -39,6 +41,7 @@ export {
   ApiKey,
   BlockFields,
   InstanceSettings,
-  AggregateTraceData,
+  AggregateTraceDataMinutely,
   AuthenticationConfig,
+  AggregateTraceDataHourly,
 }

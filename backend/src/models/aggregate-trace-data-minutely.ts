@@ -10,8 +10,8 @@ import {
 import { ApiEndpoint } from "./api-endpoint"
 
 @Entity()
-@Unique("unique_constraint", ["apiEndpoint", "minute"])
-export class AggregateTraceData extends BaseEntity {
+@Unique("unique_constraint_minutely", ["apiEndpoint", "minute"])
+export class AggregateTraceDataMinutely extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
 

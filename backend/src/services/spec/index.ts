@@ -15,7 +15,8 @@ import {
   DataField,
   OpenApiSpec,
   Alert,
-  AggregateTraceData,
+  AggregateTraceDataMinutely,
+  AggregateTraceDataHourly,
 } from "models"
 import { JSONValue, OpenApiSpec as OpenApiSpecResponse } from "@common/types"
 import { getPathTokens } from "@common/utils"
@@ -148,8 +149,12 @@ export class SpecService {
     const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
     const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec)
     const apiTraceRepository = AppDataSource.getRepository(ApiTrace)
-    const aggregateTraceDataRepository =
-      AppDataSource.getRepository(AggregateTraceData)
+    const aggregateTraceDataMinutelyRepository = AppDataSource.getRepository(
+      AggregateTraceDataMinutely,
+    )
+    const aggregateTraceDataHourlyRepository = AppDataSource.getRepository(
+      AggregateTraceDataHourly,
+    )
 
     let existingSpec = await openApiSpecRepository.findOneBy({
       name: fileName,
@@ -165,7 +170,8 @@ export class SpecService {
       similarEndpoints: ApiEndpoint[]
       apiEndpoints: ApiEndpoint[]
       traces: ApiTrace[]
-      aggregateData: AggregateTraceData[]
+      aggregateDataMinutely: AggregateTraceDataMinutely[]
+      aggregateDataHourly: AggregateTraceDataHourly[]
       dataFields: DataField[]
       alertsToKeep: Alert[]
       alertsToRemove: Alert[]
@@ -173,7 +179,8 @@ export class SpecService {
       similarEndpoints: [],
       apiEndpoints: [],
       traces: [],
-      aggregateData: [],
+      aggregateDataMinutely: [],
+      aggregateDataHourly: [],
       dataFields: [],
       alertsToKeep: [],
       alertsToRemove: [],
@@ -253,11 +260,14 @@ export class SpecService {
                 const traces = await apiTraceRepository.findBy({
                   apiEndpointUuid: endpoint.uuid,
                 })
-                const aggregateData = await aggregateTraceDataRepository.findBy(
-                  {
+                const aggregateDataMinutely =
+                  await aggregateTraceDataMinutelyRepository.findBy({
                     apiEndpointUuid: endpoint.uuid,
-                  },
-                )
+                  })
+                const aggregateDataHourly =
+                  await aggregateTraceDataHourlyRepository.findBy({
+                    apiEndpointUuid: endpoint.uuid,
+                  })
                 endpoint.dataFields.forEach(dataField => {
                   dataField.apiEndpointUuid = apiEndpoint.uuid
                 })
@@ -265,7 +275,10 @@ export class SpecService {
                   trace.apiEndpointUuid = apiEndpoint.uuid
                   apiEndpoint.updateDates(trace.createdAt)
                 })
-                aggregateData.forEach(
+                aggregateDataMinutely.forEach(
+                  data => (data.apiEndpointUuid = apiEndpoint.uuid),
+                )
+                aggregateDataHourly.forEach(
                   data => (data.apiEndpointUuid = apiEndpoint.uuid),
                 )
                 endpoint.alerts.forEach(alert => {
@@ -283,7 +296,8 @@ export class SpecService {
                   }
                 })
                 endpoints.traces.push(...traces)
-                endpoints.aggregateData.push(...aggregateData)
+                endpoints.aggregateDataMinutely.push(...aggregateDataMinutely)
+                endpoints.aggregateDataHourly.push(...aggregateDataHourly)
                 endpoints.dataFields.push(...endpoint.dataFields)
               }
               endpoints.similarEndpoints.push(...similarEndpoints)
@@ -298,7 +312,8 @@ export class SpecService {
         [existingSpec],
         endpoints.apiEndpoints,
         endpoints.traces,
-        endpoints.aggregateData,
+        endpoints.aggregateDataMinutely,
+        endpoints.aggregateDataHourly,
         endpoints.dataFields,
         endpoints.alertsToKeep,
       ],

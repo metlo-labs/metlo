@@ -7,7 +7,7 @@ export const getUsageStats = async () => {
     SELECT
       DATE_TRUNC('day', traces.hour) as day,
       SUM(traces."numCalls") as cnt
-    FROM aggregate_trace_data traces
+    FROM aggregate_trace_data_hourly traces
     WHERE traces.hour > (NOW() - INTERVAL '15 days')
     GROUP BY 1
     ORDER BY 1

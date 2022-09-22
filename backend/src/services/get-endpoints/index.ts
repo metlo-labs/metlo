@@ -1,10 +1,10 @@
 import { FindOptionsWhere, In, ILike, Raw } from "typeorm"
 import { AppDataSource } from "data-source"
 import {
-  AggregateTraceData,
   ApiEndpoint,
   ApiEndpointTest,
   ApiTrace,
+  AggregateTraceDataHourly,
 } from "models"
 import {
   GetEndpointParams,
@@ -165,8 +165,9 @@ export class GetEndpointsService {
 
   static async getUsage(endpointId: string): Promise<UsageResponse[]> {
     try {
-      const aggregateTraceDataRepo =
-        AppDataSource.getRepository(AggregateTraceData)
+      const aggregateTraceDataRepo = AppDataSource.getRepository(
+        AggregateTraceDataHourly,
+      )
       const usage = await aggregateTraceDataRepo
         .createQueryBuilder("trace")
         .select([`DATE_TRUNC('day', hour) AS date`, `SUM("numCalls") AS count`])

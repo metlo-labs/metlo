@@ -9,13 +9,7 @@ import {
   parsedJson,
   parsedJsonNonNull,
 } from "utils"
-import {
-  ApiEndpoint,
-  ApiTrace,
-  OpenApiSpec,
-  Alert,
-  AggregateTraceData,
-} from "models"
+import { ApiEndpoint, ApiTrace, OpenApiSpec, Alert } from "models"
 import { AppDataSource } from "data-source"
 import { AlertType, DataType, RestMethod, SpecExtension } from "@common/enums"
 import { getPathTokens } from "@common/utils"
@@ -123,6 +117,18 @@ export class JobsService {
         .where('"apiEndpointUuid" IS NOT NULL')
         .andWhere('"createdAt" < :oneHourAgo', { oneHourAgo })
 
+      const aggregateTracesDataHourlyQb = await queryRunner.manager
+        .createQueryBuilder(ApiTrace, "trace")
+        .select([
+          '"apiEndpointUuid"',
+          `DATE_TRUNC('hour', "createdAt") as hour`,
+          'COUNT(*) as "numTraces"',
+        ])
+        .where('"apiEndpointUuid" IS NOT NULL')
+        .andWhere('"createdAt" < :oneHourAgo', { oneHourAgo })
+        .groupBy('"apiEndpointUuid"')
+        .addGroupBy("hour")
+
       const tracesBySecondStatus = `
         WITH traces_by_second_status AS (
           SELECT
@@ -176,7 +182,7 @@ export class JobsService {
           GROUP BY 1, 2
         )
       `
-      const aggregateTracesDataQuery = `
+      const aggregateTracesDataMinutelyQuery = `
         ${tracesBySecondStatus},
         ${tracesByMinuteStatus},
         ${tracesByMinute},
@@ -194,15 +200,15 @@ export class JobsService {
           traces.minute = status_code_map.minute AND traces."apiEndpointUuid" = status_code_map."apiEndpointUuid"
       `
 
-      const aggregateTracesData: any[] = await queryRunner.query(
-        aggregateTracesDataQuery,
+      const aggregateTracesDataMinutely: any[] = await queryRunner.query(
+        aggregateTracesDataMinutelyQuery,
         [oneHourAgo],
       )
-      const parameters: any[] = []
-      const argArray: string[] = []
+      const parametersMinutely: any[] = []
+      const argArrayMinutely: string[] = []
       let argNumber = 1
-      aggregateTracesData.forEach(data => {
-        parameters.push(
+      aggregateTracesDataMinutely.forEach(data => {
+        parametersMinutely.push(
           uuidv4(),
           data.numTraces,
           data.minute,
@@ -212,21 +218,48 @@ export class JobsService {
           data.countByStatusCode,
           data.apiEndpointUuid,
         )
-        argArray.push(
+        argArrayMinutely.push(
           `($${argNumber++}, $${argNumber++}, $${argNumber++}, $${argNumber++}, $${argNumber++}, $${argNumber++}, $${argNumber++}, $${argNumber++})`,
         )
       })
 
-      const argString = argArray.join(",")
-      const insertQuery = `
-        INSERT INTO aggregate_trace_data ("uuid", "numCalls", "minute", "maxRPS", "minRPS", "meanRPS", "countByStatusCode", "apiEndpointUuid")
-        VALUES ${argString}
-        ON CONFLICT ON CONSTRAINT unique_constraint
-        DO UPDATE SET "numCalls" = EXCLUDED."numCalls" + aggregate_trace_data."numCalls";
+      const aggregateTracesDataHourly =
+        await aggregateTracesDataHourlyQb.getRawMany()
+      const parametersHourly: any[] = []
+      const argArrayHourly: string[] = []
+      argNumber = 1
+      aggregateTracesDataHourly.forEach(data => {
+        parametersHourly.push(
+          uuidv4(),
+          data.numTraces,
+          data.hour,
+          data.apiEndpointUuid,
+        )
+        argArrayHourly.push(
+          `($${argNumber++}, $${argNumber++}, $${argNumber++}, $${argNumber++})`,
+        )
+      })
+
+      const argStringMinutely = argArrayMinutely.join(",")
+      const insertQueryMinutely = `
+        INSERT INTO aggregate_trace_data_minutely ("uuid", "numCalls", "minute", "maxRPS", "minRPS", "meanRPS", "countByStatusCode", "apiEndpointUuid")
+        VALUES ${argStringMinutely}
+        ON CONFLICT ON CONSTRAINT unique_constraint_minutely
+        DO UPDATE SET "numCalls" = EXCLUDED."numCalls" + aggregate_trace_data_minutely."numCalls";
+      `
+      const argStringHourly = argArrayHourly.join(",")
+      const insertQueryHourly = `
+        INSERT INTO aggregate_trace_data_hourly ("uuid", "numCalls", "hour", "apiEndpointUuid")
+        VALUES ${argStringHourly}
+        ON CONFLICT ON CONSTRAINT unique_constraint_hourly
+        DO UPDATE SET "numCalls" = EXCLUDED."numCalls" + aggregate_trace_data_hourly."numCalls";
       `
       await deleteTracesQb.execute()
-      if (parameters.length > 0) {
-        await queryRunner.query(insertQuery, parameters)
+      if (parametersMinutely.length > 0) {
+        await queryRunner.query(insertQueryMinutely, parametersMinutely)
+      }
+      if (parametersHourly.length > 0) {
+        await queryRunner.query(insertQueryHourly, parametersHourly)
       }
     } catch (err) {
       console.error(`Encountered error while clearing trace data: ${err}`)

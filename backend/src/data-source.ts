@@ -12,8 +12,9 @@ import {
   ApiKey,
   BlockFields,
   InstanceSettings,
-  AggregateTraceData,
+  AggregateTraceDataMinutely,
   AuthenticationConfig,
+  AggregateTraceDataHourly,
 } from "models"
 
 export const AppDataSource: DataSource = new DataSource({
@@ -32,8 +33,9 @@ export const AppDataSource: DataSource = new DataSource({
     ApiKey,
     BlockFields,
     InstanceSettings,
-    AggregateTraceData,
+    AggregateTraceDataMinutely,
     AuthenticationConfig,
+    AggregateTraceDataHourly,
   ],
   migrations: [],
   logging: false,
