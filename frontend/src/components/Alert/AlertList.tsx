@@ -271,6 +271,8 @@ export const AlertList: React.FC<AlertListProps> = ({
           w="300px"
           maxW="300px"
           spacing="4"
+          overflowY="auto"
+          h="full"
         >
           {riskFilterPanel}
         </VStack>
