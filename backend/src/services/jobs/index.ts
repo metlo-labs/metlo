@@ -106,6 +106,7 @@ export class JobsService {
   static async clearApiTraces(): Promise<void> {
     const queryRunner = AppDataSource.createQueryRunner()
     await queryRunner.connect()
+    await queryRunner.startTransaction()
     try {
       const now = DateTime.now().startOf("hour")
       const oneHourAgo = now.minus({ hours: 1 }).toJSDate()
@@ -243,9 +244,7 @@ export class JobsService {
       const argStringMinutely = argArrayMinutely.join(",")
       const insertQueryMinutely = `
         INSERT INTO aggregate_trace_data_minutely ("uuid", "numCalls", "minute", "maxRPS", "minRPS", "meanRPS", "countByStatusCode", "apiEndpointUuid")
-        VALUES ${argStringMinutely}
-        ON CONFLICT ON CONSTRAINT unique_constraint_minutely
-        DO UPDATE SET "numCalls" = EXCLUDED."numCalls" + aggregate_trace_data_minutely."numCalls";
+        VALUES ${argStringMinutely};
       `
       const argStringHourly = argArrayHourly.join(",")
       const insertQueryHourly = `
@@ -261,6 +260,7 @@ export class JobsService {
       if (parametersHourly.length > 0) {
         await queryRunner.query(insertQueryHourly, parametersHourly)
       }
+      await queryRunner.commitTransaction()
     } catch (err) {
       console.error(`Encountered error while clearing trace data: ${err}`)
       await queryRunner.rollbackTransaction()

@@ -52,6 +52,7 @@ export class DatabaseService {
   ): Promise<any> {
     const queryRunner = AppDataSource.createQueryRunner()
     await queryRunner.connect()
+    await queryRunner.startTransaction()
     const isMultiple = getDataType(rawQueries) === DataType.ARRAY
     let res = null
     if (isMultiple) {
@@ -66,6 +67,7 @@ export class DatabaseService {
       } else {
         res = await queryRunner.query(rawQueries as string, parameters ?? [])
       }
+      await queryRunner.commitTransaction()
     } catch (err) {
       console.error(`Encountered error while executing raw sql query: ${err}`)
       await queryRunner.rollbackTransaction()
