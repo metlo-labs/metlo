@@ -94,10 +94,10 @@ export class ApiEndpoint extends BaseEntity {
       this.lastActive = traceCreatedDate
     }
 
-    if (traceCreatedDate < this.firstDetected) {
+    if (traceCreatedDate && traceCreatedDate < this.firstDetected) {
       this.firstDetected = traceCreatedDate
     }
-    if (traceCreatedDate > this.lastActive) {
+    if (traceCreatedDate && traceCreatedDate > this.lastActive) {
       this.lastActive = traceCreatedDate
     }
   }
