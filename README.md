@@ -37,7 +37,7 @@ docker-compose up
 
 Now visit [http://localhost:8000](http://localhost:8000)
 
-See our [Docs](https://docs.metlo.com/docs) for an in-depth walk-throughs on how to set up Metlo in your cloud environment. You can also join our [Slack community](https://metlo.com/slack) if you need help or just want to chat!
+See our [Docs](https://docs.metlo.com/docs) for an in-depth walk-throughs on how to set up Metlo in your cloud environment. You can also join our [Discord community](https://discord.com/invite/rQVAaX7S) if you need help or just want to chat!
 
 ## Features
 ![walkthrough](https://storage.googleapis.com/metlo-security-public-images/walkthrough.gif)
