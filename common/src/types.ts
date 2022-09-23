@@ -185,7 +185,6 @@ export interface ApiEndpoint {
   firstDetected?: Date
   lastActive?: Date
   host: string
-  totalCalls: number
   method: RestMethod
   owner: string
   riskScore: RiskScore

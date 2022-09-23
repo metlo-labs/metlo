@@ -46,9 +46,6 @@ export class ApiEndpoint extends BaseEntity {
   @Column({ type: "integer", nullable: false, default: 0 })
   numberParams: number
 
-  @Column({ type: "integer", default: 0 })
-  totalCalls: number
-
   @Column({ type: "enum", enum: RestMethod })
   method: RestMethod
 

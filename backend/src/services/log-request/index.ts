@@ -73,7 +73,6 @@ export class LogRequestService {
         }
         if (!skip) {
           const currDate = new Date()
-          apiEndpoint.totalCalls += 1
           apiTraceObj.createdAt = currDate
           apiEndpoint.updateDates(currDate)
           dataFields = DataFieldService.findAllDataFields(

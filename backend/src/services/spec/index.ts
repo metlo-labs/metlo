@@ -259,7 +259,6 @@ export class SpecService {
             apiEndpoint.pathRegex = pathRegex
             apiEndpoint.method = methodEnum
             apiEndpoint.host = host
-            apiEndpoint.totalCalls = 0
             apiEndpoint.openapiSpec = existingSpec
             apiEndpoint.addNumberParams()
             created = true

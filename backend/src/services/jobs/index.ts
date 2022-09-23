@@ -295,7 +295,6 @@ export class JobsService {
           })
           if (apiEndpoint) {
             apiEndpoint.updateDates(trace.createdAt)
-            apiEndpoint.totalCalls += 1
             const dataFields = DataFieldService.findAllDataFields(
               trace,
               apiEndpoint,
@@ -377,7 +376,6 @@ export class JobsService {
           apiEndpoint.path = value.parameterizedPath
           apiEndpoint.pathRegex = value.regex
           apiEndpoint.host = value.traces[0].host
-          apiEndpoint.totalCalls = value.traces.length
           apiEndpoint.method = value.traces[0].method
           apiEndpoint.owner = value.traces[0].owner
           apiEndpoint.dataFields = []
