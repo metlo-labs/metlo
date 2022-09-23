@@ -2,7 +2,7 @@ import { AuthType } from "@common/enums"
 import { SessionMeta } from "@common/types"
 import { AppDataSource } from "data-source"
 import { ApiTrace, AuthenticationConfig } from "models"
-import { encrypt, generate_iv } from "utils/encryption"
+import { encryptEcb } from "utils/encryption"
 
 export class AuthenticationConfigService {
   static async setSessionMetadata(apiTrace: ApiTrace) {
@@ -14,8 +14,6 @@ export class AuthenticationConfigService {
       return
     }
     const key = process.env.ENCRYPTION_KEY
-    const encryptionKey = Buffer.from(key, "base64")
-    const keypairIv = generate_iv()
 
     const requestHeaders = apiTrace.requestHeaders
     const successfulAuth =
@@ -35,20 +33,12 @@ export class AuthenticationConfigService {
             const decodedUser = Buffer.from(encodedValue, "base64")
               ?.toString()
               ?.split(":")[0]
-            const { encrypted, tag } = encrypt(
-              encodedValue,
-              encryptionKey,
-              keypairIv,
-            )
+            const encrypted = encryptEcb(encodedValue, key)
             sessionMeta = {
               authenticationProvided: true,
               authenticationSuccessful: successfulAuth,
               authType: authConfig.authType,
-              uniqueSession: {
-                key: encrypted,
-                iv: keypairIv.toString("base64"),
-                tag: tag.toString("base64"),
-              },
+              uniqueSessionKey: encrypted,
               user: decodedUser,
             }
           }
@@ -57,20 +47,12 @@ export class AuthenticationConfigService {
           const authHeader = authConfig.headerKey ?? ""
           if (header.name.toLowerCase() === authHeader.toLowerCase()) {
             const headerValue = header.value
-            const { encrypted, tag } = encrypt(
-              headerValue,
-              encryptionKey,
-              keypairIv,
-            )
+            const encrypted = encryptEcb(headerValue, key)
             sessionMeta = {
               authenticationProvided: true,
               authenticationSuccessful: successfulAuth,
               authType: authConfig.authType,
-              uniqueSession: {
-                key: encrypted,
-                iv: keypairIv.toString("base64"),
-                tag: tag.toString("base64"),
-              },
+              uniqueSessionKey: encrypted,
             }
           }
           break
@@ -78,40 +60,24 @@ export class AuthenticationConfigService {
           const cookieName = authConfig?.cookieName ?? ""
           if (header.name.toLowerCase() === cookieName.toLowerCase()) {
             const cookieValue = header.value
-            const { encrypted, tag } = encrypt(
-              cookieValue,
-              encryptionKey,
-              keypairIv,
-            )
+            const encrypted = encryptEcb(cookieValue, key)
             sessionMeta = {
               authenticationProvided: true,
               authenticationSuccessful: successfulAuth,
               authType: authConfig.authType,
-              uniqueSession: {
-                key: encrypted,
-                iv: keypairIv.toString("base64"),
-                tag: tag.toString("base64"),
-              },
+              uniqueSessionKey: encrypted,
             }
           }
           break
         case AuthType.JWT:
           const jwtHeader = authConfig.headerKey ?? ""
           if (header.name.toLowerCase() === jwtHeader.toLowerCase()) {
-            const { encrypted, tag } = encrypt(
-              header.value,
-              encryptionKey,
-              keypairIv,
-            )
+            const encrypted = encryptEcb(header.value, key)
             sessionMeta = {
               authenticationProvided: true,
               authenticationSuccessful: successfulAuth,
               authType: authConfig.authType,
-              uniqueSession: {
-                key: encrypted,
-                iv: keypairIv.toString("base64"),
-                tag: tag.toString("base64"),
-              },
+              uniqueSessionKey: encrypted,
             }
             const decodedPayload = JSON.parse(
               Buffer.from(

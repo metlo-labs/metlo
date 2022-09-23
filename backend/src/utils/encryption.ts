@@ -1,6 +1,7 @@
 import crypto from "crypto"
 
 const algorithm = "aes-256-gcm"
+const ecbAlgorithm = "des-ecb"
 
 /**  encrypts ascii/utf-8 text into a base64-encoded string */
 const encrypt = (
@@ -12,6 +13,14 @@ const encrypt = (
   let enc = cipher.update(text, "utf8", "base64")
   enc += cipher.final("base64")
   return { encrypted: enc, tag: cipher.getAuthTag() }
+}
+
+export const encryptEcb = (text: string, key: string): string => {
+  const keyBuffer = Buffer.from(key, "base64").subarray(0, 8)
+  const cipher = crypto.createCipheriv(ecbAlgorithm, keyBuffer, null)
+  let enc = cipher.update(text, "utf8", "base64")
+  enc += cipher.final("base64")
+  return enc
 }
 
 /**  decrypt decodes base64-encoded ciphertext into a utf8-encoded string */

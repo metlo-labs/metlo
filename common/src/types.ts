@@ -30,13 +30,9 @@ export interface Meta {
 
 export interface SessionMeta {
   authenticationProvided: boolean
-  authenticationSuccessful?: boolean
+  authenticationSuccessful: boolean
   authType: AuthType
-  uniqueSession?: {
-    key: string
-    iv: string
-    tag: string
-  }
+  uniqueSessionKey?: string
   user?: string
 }
 
