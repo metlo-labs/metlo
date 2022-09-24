@@ -17,15 +17,15 @@ const getParsedBodyString = (
   bodyString: string,
   mimeSubtype: string,
   mimeParameters: Map<string, string>,
-): string => {
+): any => {
   try {
     switch (mimeSubtype) {
       case "yaml":
         const yamlObj = yaml.load(bodyString)
-        return JSON.stringify(yamlObj)
+        return yamlObj ?? bodyString
       case "x-www-form-urlencoded":
         const entries = Object.fromEntries(new URLSearchParams(bodyString))
-        return JSON.stringify(entries)
+        return entries ?? bodyString
       case "form-data":
         const bodyBuffer = Buffer.from(bodyString)
         const boundary = mimeParameters.get("boundary")
@@ -34,13 +34,12 @@ const getParsedBodyString = (
         parts.forEach(
           part => (formMap[part.name] = parseData(part.data?.toString())),
         )
-        return JSON.stringify(formMap)
+        return formMap ?? bodyString
       case "plain":
-        return bodyString
       case "binary":
       case "json":
       default:
-        return JSON.stringify(parsedJsonNonNull(bodyString, true))
+        return bodyString
     }
   } catch (err) {
     console.error(`Encountered error while parsing body string: ${err}`)
@@ -88,13 +87,10 @@ export const bodyParserMiddleware = async (
         req.body.request.body = parsedBodyString
       }
     } else {
-      const parsedBodyString =
-        JSON.stringify(parsedJsonNonNull(traceParams?.request?.body, true)) ??
-        traceParams?.request?.body
       if (dataType === DataType.ARRAY) {
-        req.body[idx].request.body = parsedBodyString
+        req.body[idx].request.body = traceParams?.request?.body
       } else {
-        req.body.request.body = parsedBodyString
+        req.body.request.body = traceParams?.request?.body
       }
     }
 
@@ -111,13 +107,10 @@ export const bodyParserMiddleware = async (
         req.body.response.body = parsedBodyString
       }
     } else {
-      const parsedBodyString =
-        JSON.stringify(parsedJsonNonNull(traceParams?.response?.body, true)) ??
-        traceParams?.response?.body
       if (dataType === DataType.ARRAY) {
-        req.body[idx].response.body = parsedBodyString
+        req.body[idx].response.body = traceParams?.response?.body
       } else {
-        req.body.response.body = parsedBodyString
+        req.body.response.body = traceParams?.response?.body
       }
     }
   })
