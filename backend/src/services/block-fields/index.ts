@@ -20,8 +20,20 @@ export class BlockFieldsService {
     })
   }
 
-  static isContained(arr: string[], str: string) {
-    return arr.some(e => e.toLowerCase() === str.toLowerCase())
+  static isContained(arr: string[], str: string): {fully: boolean, partially: boolean } {
+    let res = { fully: false, partially: false }
+    const strLower = str.toLowerCase()
+    arr.forEach(e => {
+      const entryLower = e.toLowerCase()
+      if (entryLower === strLower) {
+        res["fully"] = true
+        res["partially"] = true
+        return res
+      } else if (entryLower.includes(strLower)) {
+        res["partially"] = true
+      }
+    })
+    return res
   }
 
   static recursiveParseBody(
@@ -35,17 +47,24 @@ export class BlockFieldsService {
     const path = dataPath ? `${dataSection}.${dataPath}` : dataSection
     if (dataType === DataType.OBJECT) {
       for (const key in jsonBody) {
-        let tempRedacted = false
-        if (redacted || this.isContained(disabledPaths, `${path}.${key}`)) {
-          tempRedacted = true
+        const contained = this.isContained(disabledPaths, `${path}.${key}`)
+        if (redacted || contained.fully) {
+          jsonBody[key] = this.recursiveParseBody(
+            `${dataPath}.${key}`,
+            dataSection,
+            jsonBody[key],
+            disabledPaths,
+            true,
+          )
+        } else if (contained.partially) {
+          jsonBody[key] = this.recursiveParseBody(
+            `${dataPath}.${key}`,
+            dataSection,
+            jsonBody[key],
+            disabledPaths,
+            false,
+          )
         }
-        jsonBody[key] = this.recursiveParseBody(
-          `${dataPath}.${key}`,
-          dataSection,
-          jsonBody[key],
-          disabledPaths,
-          tempRedacted,
-        )
       }
     } else if (dataType === DataType.ARRAY) {
       ;(jsonBody as any[]).forEach((item, idx) => {
@@ -74,8 +93,11 @@ export class BlockFieldsService {
     if (!body) {
       return
     }
+    if (!disabledPaths || disabledPaths?.length === 0) {
+      return body
+    }
     let redacted = false
-    if (this.isContained(disabledPaths, dataSection)) {
+    if (this.isContained(disabledPaths, dataSection).fully) {
       redacted = true
     }
     let jsonBody = parsedJson(body)
@@ -83,20 +105,28 @@ export class BlockFieldsService {
       const dataType = getDataType(jsonBody)
       if (dataType === DataType.OBJECT) {
         for (let key in jsonBody) {
-          let tempRedacted = false
+          const contained = this.isContained(disabledPaths, `${dataSection}.${key}`)
           if (
             redacted ||
-            this.isContained(disabledPaths, `${dataSection}.${key}`)
+            contained.fully
           ) {
-            tempRedacted = true
+            jsonBody[key] = this.recursiveParseBody(
+              key,
+              dataSection,
+              jsonBody[key],
+              disabledPaths,
+              true,
+            )
+          } else if (contained.partially) {
+            jsonBody[key] = this.recursiveParseBody(
+              key,
+              dataSection,
+              jsonBody[key],
+              disabledPaths,
+              false,
+            )
           }
-          jsonBody[key] = this.recursiveParseBody(
-            key,
-            dataSection,
-            jsonBody[key],
-            disabledPaths,
-            tempRedacted,
-          )
+
         }
       } else if (dataType === DataType.ARRAY) {
         ;(jsonBody as any[]).forEach((item, idx) => {
@@ -129,21 +159,30 @@ export class BlockFieldsService {
     if (!data) {
       return data
     }
+    if (!disabledPaths || disabledPaths?.length === 0) {
+      return data
+    }
     let redacted = false
-    if (this.isContained(disabledPaths, dataSection)) {
+    if (this.isContained(disabledPaths, dataSection).fully) {
       redacted = true
     }
-    return data.map(item => ({
-      name: item.name,
-      value: this.recursiveParseBody(
-        item.name,
-        dataSection,
-        parsedJsonNonNull(item.value, true),
-        disabledPaths,
-        redacted ||
-          this.isContained(disabledPaths, `${dataSection}.${item.name}`),
-      ),
-    }))
+    return data.map(item => {
+      const contained = this.isContained(disabledPaths, `${dataSection}.${item.name}`)
+      if (!redacted && !contained.fully && !contained.partially) {
+        return item
+      }
+
+      return ({
+        name: item.name,
+        value: this.recursiveParseBody(
+          item.name,
+          dataSection,
+          parsedJsonNonNull(item.value, true),
+          disabledPaths,
+          redacted || contained.fully,
+        ),
+      })
+    })
   }
 
   static async redactBlockedFields(apiTrace: ApiTrace) {
@@ -153,27 +192,27 @@ export class BlockFieldsService {
       const validRequestParams = this.redactBlockedFieldsPairObject(
         apiTrace.requestParameters,
         "req.query",
-        disabledPaths,
+        disabledPaths.filter(e => e.includes("req.query")),
       )
       const validRequestHeaders = this.redactBlockedFieldsPairObject(
         apiTrace.requestHeaders,
         "req.headers",
-        disabledPaths,
+        disabledPaths.filter(e => e.includes("req.headers")),
       )
       const validRequestBody = this.redactBlockedFieldsBodyData(
         apiTrace.requestBody,
         "req.body",
-        disabledPaths,
+        disabledPaths.filter(e => e.includes("req.body")),
       )
       const validResponseHeaders = this.redactBlockedFieldsPairObject(
         apiTrace.responseHeaders,
         "res.headers",
-        disabledPaths,
+        disabledPaths.filter(e => e.includes("res.headers")),
       )
       const validResponseBody = this.redactBlockedFieldsBodyData(
         apiTrace.responseBody,
         "res.body",
-        disabledPaths,
+        disabledPaths.filter(e => e.includes("res.body")),
       )
 
       apiTrace.requestParameters = validRequestParams
