@@ -110,6 +110,7 @@ const populateAuthentication = async () => {
   }
   const queryRunner = AppDataSource.createQueryRunner()
   await queryRunner.connect()
+  await queryRunner.startTransaction()
   try {
     const metloConfig: object = yaml.load(
       fs.readFileSync("./metlo-config.yaml", "utf-8"),
@@ -138,8 +139,10 @@ const populateAuthentication = async () => {
       .values(authConfigEntries)
     await deleteQb.execute()
     await addQb.execute()
+    await queryRunner.commitTransaction()
   } catch (err) {
     console.error(`Error in populating metlo config authentication: ${err}`)
+    await queryRunner.rollbackTransaction()
   } finally {
     await queryRunner?.release()
   }
