@@ -30,7 +30,7 @@ export const JSONContentViewer = (
 ) => {
   const bgColor = colorMode === "dark" ? "#4C5564" : "#EDF2F7"
   try {
-    const parsedData = JSON.parse(data)
+    const parsedData = JSON.parse(data ?? "{}")
     if (typeof parsedData !== "object" && !Array.isArray(parsedData)) {
       throw new Error()
     }

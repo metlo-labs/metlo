@@ -70,7 +70,14 @@ export const DataFieldTagList: React.FC<TagListProps> = React.memo(
           >
             Save
           </Button>
-          <Button rounded="sm" size="sm" onClick={() => setEditing(false)}>
+          <Button
+            rounded="sm"
+            size="sm"
+            onClick={() => {
+              setEditing(false)
+              setEditedTags(tags)
+            }}
+          >
             Cancel
           </Button>
         </HStack>
