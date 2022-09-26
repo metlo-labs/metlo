@@ -98,7 +98,7 @@ const TopEndpoints: React.FC<TopEndpointProps> = React.memo(
               selectedEndpoint={selectedEndpoint}
             />
           </Box>
-          <Box flexGrow="1" h="full" overflow="scroll">
+          <Box flexGrow="1" h="full">
             <TraceList traces={endpoint ? endpoint.traces : []} />
           </Box>
         </HStack>

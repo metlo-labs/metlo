@@ -191,7 +191,17 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces, uuid }) => {
           {tracePanel}
         </SplitPane>
       ) : (
-        tablePanel
+        <Box
+          display="flex"
+          flex={1}
+          height="100%"
+          position="absolute"
+          outline="none"
+          overflow="hidden"
+          w="full"
+        >
+          {tablePanel}
+        </Box>
       )}
     </Box>
   )
