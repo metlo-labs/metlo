@@ -46,6 +46,7 @@ import {
 import { RedisClient } from "utils/redis"
 import { getSensitiveDataSummaryHandler } from "api/data-field/sensitive-data"
 import { getVulnerabilitySummaryHandler } from "api/alert/vulnerability"
+import { getAttacksHandler } from "api/attacks"
 
 dotenv.config()
 
@@ -117,6 +118,8 @@ app.post("/api/v1/test/save", saveTest)
 app.get("/api/v1/test/list", listTests)
 app.get("/api/v1/test/list/:uuid", getTest)
 app.delete("/api/v1/test/:uuid/delete", deleteTest)
+
+app.get("/api/v1/attacks", getAttacksHandler)
 
 const initInstanceSettings = async () => {
   const settingRepository = AppDataSource.getRepository(InstanceSettings)

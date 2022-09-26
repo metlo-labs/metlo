@@ -5,6 +5,7 @@ import { FaBell } from "@react-icons/all-files/fa/FaBell"
 import { AiFillLock } from "@react-icons/all-files/ai/AiFillLock"
 import { AiFillSecurityScan } from "@react-icons/all-files/ai/AiFillSecurityScan"
 import { AiFillApi } from "@react-icons/all-files/ai/AiFillApi"
+import { HiShieldCheck } from "@react-icons/all-files/hi/HiShieldCheck"
 import { IconType } from "@react-icons/all-files/lib"
 
 export enum SideNavLinkDestination {
@@ -15,6 +16,7 @@ export enum SideNavLinkDestination {
   Connections,
   SensitiveData,
   Vulnerabilities,
+  Protection,
 }
 
 export const sideNavDestinationToLabel: (
@@ -35,6 +37,8 @@ export const sideNavDestinationToLabel: (
       return "API Specs"
     case SideNavLinkDestination.Connections:
       return "Connections"
+    case SideNavLinkDestination.Protection:
+      return "Protection"
     default:
       throw Error(`No value mapped for ${dest}`)
   }
@@ -58,6 +62,8 @@ export const sideNavDestinationToIcon: (
       return AiFillApi
     case SideNavLinkDestination.Connections:
       return FaShareAlt
+    case SideNavLinkDestination.Protection:
+      return HiShieldCheck
     default:
       throw Error(`No value mapped for ${dest}`)
   }
@@ -81,6 +87,8 @@ export const sideNavDestinationToHref: (
       return "/specs"
     case SideNavLinkDestination.Connections:
       return "/connections"
+    case SideNavLinkDestination.Protection:
+      return "/protection"
     default:
       throw Error(`No value mapped for ${dest}`)
   }

@@ -89,6 +89,11 @@ export interface GetVulnerabilityAggParams {
   riskScores?: RiskScore[]
 }
 
+export interface GetAttackParams {
+  offset?: number
+  limit?: number
+}
+
 export interface GetEndpointParams {
   hosts?: string[]
   riskScores?: RiskScore[]

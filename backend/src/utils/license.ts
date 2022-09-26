@@ -29,6 +29,6 @@ export const hasValidLicense = async (): Promise<boolean> => {
     return cacheRes
   }
   const valid = await hasValidLicenseInner()
-  cache.put("license", valid, 6 * 60 * 60 * 1000)
+  cache.put("hasValidLicense", valid, 6 * 60 * 60 * 1000)
   return valid
 }

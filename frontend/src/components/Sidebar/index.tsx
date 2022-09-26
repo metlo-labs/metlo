@@ -61,6 +61,10 @@ const SideNavBar: React.FC<SideNavBarProps> = React.memo(({ currentTab }) => {
           isActive={currentTab === SideNavLinkDestination.Vulnerabilities}
         />
         <SideNavLink
+          destination={SideNavLinkDestination.Protection}
+          isActive={currentTab === SideNavLinkDestination.Protection}
+        />
+        <SideNavLink
           destination={SideNavLinkDestination.Alerts}
           isActive={currentTab === SideNavLinkDestination.Alerts}
         />
