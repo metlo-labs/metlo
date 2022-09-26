@@ -119,6 +119,7 @@ export enum DataType {
   BOOLEAN = "boolean",
   OBJECT = "object",
   ARRAY = "array",
+  UNKNOWN = "unknown"
 }
 
 export enum DataSection {

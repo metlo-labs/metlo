@@ -6,11 +6,17 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  Unique,
 } from "typeorm"
 import { DataClass, DataTag, DataType, DataSection } from "@common/enums"
 import { ApiEndpoint } from "models/api-endpoint"
 
 @Entity()
+@Unique("unique_constraint_data_field", [
+  "dataSection",
+  "dataPath",
+  "apiEndpointUuid",
+])
 export class DataField extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
@@ -39,7 +45,7 @@ export class DataField extends BaseEntity {
   @UpdateDateColumn({ type: "timestamptz" })
   updatedAt: Date
 
-  @Column({ nullable: false })
+  @Column({ nullable: false, default: "" })
   dataPath: string
 
   @Column({ type: "jsonb", nullable: false, default: {} })
@@ -76,16 +82,11 @@ export class DataField extends BaseEntity {
     return true
   }
 
-  updateMatches(dataClass: DataClass, matches: string[]): boolean {
+  updateMatches(dataClass: DataClass, match: string): boolean {
     if (this.dataClasses === null || this.dataClasses === undefined) {
       this.dataClasses = Array<DataClass>()
     }
-    if (
-      !matches ||
-      matches?.length === 0 ||
-      dataClass === null ||
-      !this.dataClasses.includes(dataClass)
-    ) {
+    if (!match || dataClass === null || !this.dataClasses.includes(dataClass)) {
       return false
     }
 
@@ -100,14 +101,12 @@ export class DataField extends BaseEntity {
       this.matches[dataClass] = []
     }
 
-    for (const match of matches) {
-      if (this.matches[dataClass].length >= 10) {
-        break
-      }
-      if (!this.matches[dataClass].includes(match)) {
-        this.matches[dataClass].push(match)
-        updated = true
-      }
+    if (this.matches[dataClass].length >= 10) {
+      return updated
+    }
+    if (!this.matches[dataClass].includes(match)) {
+      this.matches[dataClass].push(match)
+      updated = true
     }
     return updated
   }

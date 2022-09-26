@@ -8,6 +8,9 @@ import { AppDataSource } from "data-source"
 import Error404NotFound from "errors/error-404-not-found"
 
 export class DataFieldService {
+  static dataFields: Record<string, DataField>
+  static updatedFields: Record<string, DataField>
+
   static async deleteDataField(dataFieldId: string): Promise<DataField> {
     const dataFieldRepository = AppDataSource.getRepository(DataField)
     const dataField = await dataFieldRepository.findOneBy({ uuid: dataFieldId })
@@ -42,69 +45,48 @@ export class DataFieldService {
     return await dataFieldRepository.save(dataField)
   }
 
-  static existingDataField(
-    dataFields: DataField[],
-    dataPath: string,
-    dataSection: DataSection,
-  ) {
-    for (let i = 0; i < dataFields?.length; i++) {
-      const dataField = dataFields[i]
-      if (
-        dataField.dataPath === dataPath &&
-        dataField.dataSection === dataSection
-      ) {
-        return i
-      }
-    }
-    return null
-  }
-
   static saveDataField(
     dataClass: DataClass,
     dataPath: string,
     dataSection: DataSection,
     apiEndpoint: ApiEndpoint,
-    matches: string[],
+    match: string,
     dataValue: any,
-    dataFields: DataField[],
-    updatedFields: DataField[],
   ): void {
-    const existingDataFieldIdx = this.existingDataField(
-      dataFields,
-      dataPath,
-      dataSection,
-    )
+    const existingMatch = `${dataSection}.${dataPath}`
     const dataType = getDataType(dataValue)
-
-    if (existingDataFieldIdx === null) {
+    if (!this.dataFields[existingMatch]) {
       const dataField = new DataField()
-      dataField.dataPath = dataPath
+      dataField.dataPath = dataPath ?? ""
       dataField.dataType = dataType
       dataField.dataSection = dataSection
       dataField.apiEndpointUuid = apiEndpoint.uuid
       dataField.dataClasses = []
-      if (dataClass && matches?.length > 0) {
+      if (dataClass && match?.length > 0) {
         dataField.addDataClass(dataClass)
         dataField.dataTag = DataTag.PII
-        dataField.updateMatches(dataClass, matches)
+        dataField.updateMatches(dataClass, match)
       }
-      dataFields.push(dataField)
-      updatedFields.push(dataField)
+      this.dataFields[existingMatch] = dataField
+      this.updatedFields[existingMatch] = dataField
     } else {
-      const existingDataField = dataFields[existingDataFieldIdx]
+      const existingDataField = this.dataFields[existingMatch]
       let updated = false
       updated = existingDataField.addDataClass(dataClass)
-      updated = existingDataField.updateMatches(dataClass, matches) || updated
+      updated = existingDataField.updateMatches(dataClass, match) || updated
       if (updated) {
         existingDataField.dataTag = DataTag.PII
       }
 
-      if (existingDataField.dataType !== dataType) {
+      if (
+        existingDataField.dataType !== dataType &&
+        dataType !== DataType.UNKNOWN
+      ) {
         existingDataField.dataType = dataType
         updated = true
       }
       if (updated) {
-        updatedFields.push(existingDataField)
+        this.updatedFields[existingMatch] = existingDataField
       }
     }
   }
@@ -114,32 +96,8 @@ export class DataFieldService {
     dataSection: DataSection,
     jsonBody: any,
     apiEndpoint: ApiEndpoint,
-    dataFields: DataField[],
-    updatedFields: DataField[],
   ): void {
-    if (getDataType(jsonBody) === DataType.OBJECT) {
-      for (const key in jsonBody) {
-        this.recursiveParseJson(
-          `${dataPathPrefix}.${key}`,
-          dataSection,
-          jsonBody[key],
-          apiEndpoint,
-          dataFields,
-          updatedFields,
-        )
-      }
-    } else if (getDataType(jsonBody) === DataType.ARRAY) {
-      for (const item of jsonBody) {
-        this.recursiveParseJson(
-          dataPathPrefix,
-          dataSection,
-          item,
-          apiEndpoint,
-          dataFields,
-          updatedFields,
-        )
-      }
-    } else {
+    if (Object(jsonBody) !== jsonBody) {
       const matches = ScannerService.scan(jsonBody)
       const matchesKeys = Object.keys(matches)
       if (matchesKeys?.length > 0) {
@@ -152,8 +110,6 @@ export class DataFieldService {
             apiEndpoint,
             matches[match],
             jsonBody,
-            dataFields,
-            updatedFields,
           )
         }
       } else {
@@ -162,10 +118,27 @@ export class DataFieldService {
           dataPathPrefix,
           dataSection,
           apiEndpoint,
-          [],
+          null,
           jsonBody,
-          dataFields,
-          updatedFields,
+        )
+      }
+    } else if (jsonBody && Array.isArray(jsonBody)) {
+      let l = jsonBody.length
+      for (let i = 0; i < l; i++) {
+        this.recursiveParseJson(
+          dataPathPrefix,
+          dataSection,
+          jsonBody[i],
+          apiEndpoint,
+        )
+      }
+    } else if (typeof jsonBody === DataType.OBJECT) {
+      for (const key in jsonBody) {
+        this.recursiveParseJson(
+          dataPathPrefix ? dataPathPrefix + "." + key : key,
+          dataSection,
+          jsonBody[key],
+          apiEndpoint,
         )
       }
     }
@@ -175,47 +148,26 @@ export class DataFieldService {
     dataSection: DataSection,
     body: string,
     apiEndpoint: ApiEndpoint,
-    dataFields: DataField[],
-    updatedFields: DataField[],
   ): void {
     if (!body) {
       return
     }
     const jsonBody = parsedJson(body)
     if (jsonBody) {
-      const dataType = getDataType(jsonBody)
-      if (dataType === DataType.OBJECT) {
+      if (Array.isArray(jsonBody)) {
+        const l = jsonBody.length
+        for (let i = 0; i < l; i++) {
+          this.recursiveParseJson(null, dataSection, jsonBody[i], apiEndpoint)
+        }
+      } else if (typeof jsonBody === DataType.OBJECT) {
         for (let key in jsonBody) {
-          this.recursiveParseJson(
-            key,
-            dataSection,
-            jsonBody[key],
-            apiEndpoint,
-            dataFields,
-            updatedFields,
-          )
+          this.recursiveParseJson(key, dataSection, jsonBody[key], apiEndpoint)
         }
-      } else if (dataType === DataType.ARRAY) {
-        for (let item of jsonBody) {
-          this.recursiveParseJson(
-            "",
-            dataSection,
-            item,
-            apiEndpoint,
-            dataFields,
-            updatedFields,
-          )
-        }
+      } else {
+        this.recursiveParseJson(null, dataSection, jsonBody, apiEndpoint)
       }
     } else {
-      this.recursiveParseJson(
-        "",
-        dataSection,
-        body,
-        apiEndpoint,
-        dataFields,
-        updatedFields,
-      )
+      this.recursiveParseJson(null, dataSection, body, apiEndpoint)
     }
   }
 
@@ -223,8 +175,6 @@ export class DataFieldService {
     dataSection: DataSection,
     data: PairObject[],
     apiEndpoint: ApiEndpoint,
-    dataFields: DataField[],
-    updatedFields: DataField[],
   ): void {
     if (data) {
       for (const item of data) {
@@ -235,19 +185,12 @@ export class DataFieldService {
           dataSection,
           jsonBody ?? item.value,
           apiEndpoint,
-          dataFields,
-          updatedFields,
         )
       }
     }
   }
 
-  static findPathDataFields(
-    path: string,
-    apiEndpoint: ApiEndpoint,
-    dataFields: DataField[],
-    updatedFields: DataField[],
-  ): void {
+  static findPathDataFields(path: string, apiEndpoint: ApiEndpoint): void {
     if (!path || !apiEndpoint?.path) {
       return
     }
@@ -264,8 +207,6 @@ export class DataFieldService {
           DataSection.REQUEST_PATH,
           tracePathTokens[i],
           apiEndpoint,
-          dataFields,
-          updatedFields,
         )
       }
     }
@@ -276,53 +217,44 @@ export class DataFieldService {
     apiEndpoint: ApiEndpoint,
     returnAllFields?: boolean,
   ): DataField[] {
-    const dataFields: DataField[] = apiEndpoint.dataFields ?? []
-    const updatedFields: DataField[] = []
-    this.findPathDataFields(
-      apiTrace.path,
-      apiEndpoint,
-      dataFields,
-      updatedFields,
-    )
+    this.dataFields = apiEndpoint.dataFields.reduce((obj, item) => {
+      return {
+        ...obj,
+        [`${item.dataSection}.${item.dataPath}`]: item,
+      }
+    }, {})
+    this.updatedFields = {}
+    this.findPathDataFields(apiTrace.path, apiEndpoint)
     this.findPairObjectDataFields(
       DataSection.REQUEST_QUERY,
       apiTrace.requestParameters,
       apiEndpoint,
-      dataFields,
-      updatedFields,
     )
     this.findPairObjectDataFields(
       DataSection.REQUEST_HEADER,
       apiTrace.requestHeaders,
       apiEndpoint,
-      dataFields,
-      updatedFields,
     )
     this.findPairObjectDataFields(
       DataSection.RESPONSE_HEADER,
       apiTrace.responseHeaders,
       apiEndpoint,
-      dataFields,
-      updatedFields,
     )
     this.findBodyDataFields(
       DataSection.REQUEST_BODY,
       apiTrace.requestBody,
       apiEndpoint,
-      dataFields,
-      updatedFields,
     )
     this.findBodyDataFields(
       DataSection.RESPONSE_BODY,
       apiTrace.responseBody,
       apiEndpoint,
-      dataFields,
-      updatedFields,
     )
+    const res = Object.values(this.dataFields)
     if (returnAllFields) {
-      return dataFields
+      return res
     }
-    apiEndpoint.riskScore = getRiskScore(dataFields)
-    return updatedFields
+    apiEndpoint.riskScore = getRiskScore(res)
+    return Object.values(this.updatedFields)
   }
 }

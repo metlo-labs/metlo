@@ -24,8 +24,8 @@ const DATA_CLASS_REGEX_MAP = new Map<DataClass, RegExp>([
 ])
 
 export class ScannerService {
-  static scan(text: any): Record<DataClass, string[]> {
-    const res: Record<DataClass, string[]> = {} as Record<DataClass, string[]>
+  static scan(text: any): Record<DataClass, string> {
+    const res: Record<DataClass, string> = {} as Record<DataClass, string>
     let convertedText: string
     try {
       convertedText = text.toString()
@@ -33,9 +33,9 @@ export class ScannerService {
       return res
     }
     DATA_CLASS_REGEX_MAP.forEach((exp, dataClass) => {
-      const matches = convertedText.match(exp)
-      if (matches?.length > 0) {
-        res[dataClass] = matches
+      const match = exp.exec(convertedText)
+      if (match?.length > 0) {
+        res[dataClass] = match[0]
       }
     })
     return res

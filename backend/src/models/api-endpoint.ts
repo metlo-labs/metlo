@@ -1,6 +1,5 @@
 import {
   BaseEntity,
-  BeforeInsert,
   Column,
   CreateDateColumn,
   Entity,
@@ -68,7 +67,6 @@ export class ApiEndpoint extends BaseEntity {
   @JoinColumn()
   openapiSpec: OpenApiSpec
 
-  @BeforeInsert()
   addNumberParams() {
     if (this.path) {
       const pathTokens = getPathTokens(this.path)

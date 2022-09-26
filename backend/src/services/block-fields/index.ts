@@ -20,7 +20,10 @@ export class BlockFieldsService {
     })
   }
 
-  static isContained(arr: string[], str: string): {fully: boolean, partially: boolean } {
+  static isContained(
+    arr: string[],
+    str: string,
+  ): { fully: boolean; partially: boolean } {
     let res = { fully: false, partially: false }
     const strLower = str.toLowerCase()
     arr.forEach(e => {
@@ -105,11 +108,11 @@ export class BlockFieldsService {
       const dataType = getDataType(jsonBody)
       if (dataType === DataType.OBJECT) {
         for (let key in jsonBody) {
-          const contained = this.isContained(disabledPaths, `${dataSection}.${key}`)
-          if (
-            redacted ||
-            contained.fully
-          ) {
+          const contained = this.isContained(
+            disabledPaths,
+            `${dataSection}.${key}`,
+          )
+          if (redacted || contained.fully) {
             jsonBody[key] = this.recursiveParseBody(
               key,
               dataSection,
@@ -126,7 +129,6 @@ export class BlockFieldsService {
               false,
             )
           }
-
         }
       } else if (dataType === DataType.ARRAY) {
         ;(jsonBody as any[]).forEach((item, idx) => {
@@ -167,12 +169,15 @@ export class BlockFieldsService {
       redacted = true
     }
     return data.map(item => {
-      const contained = this.isContained(disabledPaths, `${dataSection}.${item.name}`)
+      const contained = this.isContained(
+        disabledPaths,
+        `${dataSection}.${item.name}`,
+      )
       if (!redacted && !contained.fully && !contained.partially) {
         return item
       }
 
-      return ({
+      return {
         name: item.name,
         value: this.recursiveParseBody(
           item.name,
@@ -181,7 +186,7 @@ export class BlockFieldsService {
           disabledPaths,
           redacted || contained.fully,
         ),
-      })
+      }
     })
   }
 
