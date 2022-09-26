@@ -217,9 +217,9 @@ export class BlockFieldsService {
 
       apiTrace.requestParameters = validRequestParams
       apiTrace.requestHeaders = validRequestHeaders
-      apiTrace.requestBody = JSON.stringify(validRequestBody)
+      apiTrace.requestBody = validRequestBody
       apiTrace.responseHeaders = validResponseHeaders
-      apiTrace.responseBody = JSON.stringify(validResponseBody)
+      apiTrace.responseBody = validResponseBody
     }
   }
 }
