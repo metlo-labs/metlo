@@ -9,7 +9,7 @@ const tracesBySecondStatus = `
     WHERE
       "apiEndpointUuid" IS NOT NULL
       AND analyzed = TRUE
-      AND "createdAt" < $1
+      AND "createdAt" <= $1
     GROUP BY 1, 2, 3
   )
 `
@@ -57,15 +57,32 @@ export const aggregateTracesDataMinutelyQuery = `
   ${tracesByMinuteStatus},
   ${tracesByMinute},
   ${minuteCountByStatusCode}
+  INSERT INTO aggregate_trace_data_minutely ("apiEndpointUuid", "minute", "maxRPS", "minRPS", "meanRPS", "numCalls", "countByStatusCode")
   SELECT
     traces."apiEndpointUuid",
     traces.minute,
     traces."maxRPS",
     CASE WHEN traces.num_secs_with_data < 60 THEN 0 ELSE traces."minRPS" END as "minRPS",
     traces."meanRPS",
-    traces."numTraces",
+    traces."numTraces" as "numCalls",
     status_code_map."countByStatusCode"
   FROM traces_by_minute traces
   JOIN minute_count_by_status_code status_code_map ON
     traces.minute = status_code_map.minute AND traces."apiEndpointUuid" = status_code_map."apiEndpointUuid"
+`
+
+export const aggregateTracesDataHourlyQuery = `
+  INSERT INTO aggregate_trace_data_hourly ("apiEndpointUuid", "hour", "numCalls")
+  SELECT
+    "apiEndpointUuid",
+    DATE_TRUNC('hour', "createdAt") as hour,
+    COUNT(*) as "numCalls"
+  FROM api_trace traces
+  WHERE
+    "apiEndpointUuid" IS NOT NULL
+    AND analyzed = TRUE
+    AND "createdAt" <= $1
+  GROUP BY 1, 2
+  ON CONFLICT ON CONSTRAINT unique_constraint_hourly
+  DO UPDATE SET "numCalls" = EXCLUDED."numCalls" + aggregate_trace_data_hourly."numCalls"
 `

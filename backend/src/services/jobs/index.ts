@@ -24,7 +24,7 @@ import { DataFieldService } from "services/data-field"
 import { DatabaseService } from "services/database"
 import axios from "axios"
 import { SpecService } from "services/spec"
-import { aggregateTracesDataMinutelyQuery } from "./queries"
+import { aggregateTracesDataHourlyQuery, aggregateTracesDataMinutelyQuery } from "./queries"
 
 interface GenerateEndpoint {
   parameterizedPath: string
@@ -258,88 +258,29 @@ export class JobsService {
       const now = DateTime.now().startOf("hour")
       const oneHourAgo = now.minus({ hours: 1 }).toJSDate()
 
-      const deleteTracesQb = queryRunner.manager
+      const maxTimeRes = await queryRunner.manager
         .createQueryBuilder()
-        .delete()
-        .from(ApiTrace)
+        .select([`MAX("createdAt") as "maxTime"`])
+        .from(ApiTrace, "traces")
         .where('"apiEndpointUuid" IS NOT NULL')
         .andWhere("analyzed = TRUE")
         .andWhere('"createdAt" < :oneHourAgo', { oneHourAgo })
+        .getRawOne()
+      const maxTime: Date = maxTimeRes?.maxTime ?? null
 
-      const aggregateTracesDataHourlyQb = await queryRunner.manager
-        .createQueryBuilder(ApiTrace, "trace")
-        .select([
-          '"apiEndpointUuid"',
-          `DATE_TRUNC('hour', "createdAt") as hour`,
-          'COUNT(*) as "numTraces"',
-        ])
-        .where('"apiEndpointUuid" IS NOT NULL')
-        .andWhere("analyzed = TRUE")
-        .andWhere('"createdAt" < :oneHourAgo', { oneHourAgo })
-        .groupBy('"apiEndpointUuid"')
-        .addGroupBy("hour")
-
-      const aggregateTracesDataMinutely: any[] = await queryRunner.query(
-        aggregateTracesDataMinutelyQuery,
-        [oneHourAgo],
-      )
-      const parametersMinutely: any[] = []
-      const argArrayMinutely: string[] = []
-      let argNumber = 1
-      aggregateTracesDataMinutely.forEach(data => {
-        parametersMinutely.push(
-          uuidv4(),
-          data.numTraces,
-          data.minute,
-          data.maxRPS,
-          data.minRPS,
-          data.meanRPS,
-          data.countByStatusCode,
-          data.apiEndpointUuid,
-        )
-        argArrayMinutely.push(
-          `($${argNumber++}, $${argNumber++}, $${argNumber++}, $${argNumber++}, $${argNumber++}, $${argNumber++}, $${argNumber++}, $${argNumber++})`,
-        )
-      })
-
-      const aggregateTracesDataHourly =
-        await aggregateTracesDataHourlyQb.getRawMany()
-      const parametersHourly: any[] = []
-      const argArrayHourly: string[] = []
-      argNumber = 1
-      aggregateTracesDataHourly.forEach(data => {
-        parametersHourly.push(
-          uuidv4(),
-          data.numTraces,
-          data.hour,
-          data.apiEndpointUuid,
-        )
-        argArrayHourly.push(
-          `($${argNumber++}, $${argNumber++}, $${argNumber++}, $${argNumber++})`,
-        )
-      })
-
-      const argStringMinutely = argArrayMinutely.join(",")
-      const insertQueryMinutely = `
-        INSERT INTO aggregate_trace_data_minutely ("uuid", "numCalls", "minute", "maxRPS", "minRPS", "meanRPS", "countByStatusCode", "apiEndpointUuid")
-        VALUES ${argStringMinutely};
-      `
-      const argStringHourly = argArrayHourly.join(",")
-      const insertQueryHourly = `
-        INSERT INTO aggregate_trace_data_hourly ("uuid", "numCalls", "hour", "apiEndpointUuid")
-        VALUES ${argStringHourly}
-        ON CONFLICT ON CONSTRAINT unique_constraint_hourly
-        DO UPDATE SET "numCalls" = EXCLUDED."numCalls" + aggregate_trace_data_hourly."numCalls";
-      `
-      await queryRunner.startTransaction()
-      await deleteTracesQb.execute()
-      if (parametersMinutely.length > 0) {
-        await queryRunner.query(insertQueryMinutely, parametersMinutely)
+      if (maxTime) {
+        await queryRunner.startTransaction()
+        await queryRunner.query(aggregateTracesDataMinutelyQuery, [maxTime])
+        await queryRunner.query(aggregateTracesDataHourlyQuery, [maxTime])
+        await queryRunner.manager
+          .createQueryBuilder()
+          .delete()
+          .from(ApiTrace)
+          .where('"apiEndpointUuid" IS NOT NULL')
+          .andWhere("analyzed = TRUE")
+          .andWhere('"createdAt" <= :maxTime', { maxTime }).execute()
+        await queryRunner.commitTransaction()
       }
-      if (parametersHourly.length > 0) {
-        await queryRunner.query(insertQueryHourly, parametersHourly)
-      }
-      await queryRunner.commitTransaction()
     } catch (err) {
       console.error(`Encountered error while clearing trace data: ${err}`)
       await queryRunner.rollbackTransaction()
