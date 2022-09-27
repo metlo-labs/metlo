@@ -117,3 +117,6 @@ export const parsedJsonNonNull = (
     return {}
   }
 }
+
+export const inSandboxMode =
+  (process.env.SANDBOX_MODE || "false").toLowerCase() == "true"

@@ -44,6 +44,7 @@ services:
       - BACKEND_URL=${BACKEND_URL}
       - EXPRESS_SECRET=${EXPRESS_SECRET}
       - SESSION_SECRET=${EXPRESS_SECRET}
+      - SANDBOX_MODE=${SANDBOX_MODE}
   jobs:
     image: metlo/jobrunner
     container_name: metlo-jobs

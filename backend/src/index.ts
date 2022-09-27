@@ -1,5 +1,7 @@
-import express, { Express, Request, Response } from "express"
 import dotenv from "dotenv"
+dotenv.config()
+
+import express, { Express, Request, Response } from "express"
 import { TypeormStore } from "connect-typeorm"
 import session from "express-session"
 import { InstanceSettings, Session as SessionModel } from "models"
@@ -47,8 +49,7 @@ import { RedisClient } from "utils/redis"
 import { getSensitiveDataSummaryHandler } from "api/data-field/sensitive-data"
 import { getVulnerabilitySummaryHandler } from "api/alert/vulnerability"
 import { getAttacksHandler } from "api/attacks"
-
-dotenv.config()
+import { inSandboxMode } from "utils"
 
 const app: Express = express()
 const port = process.env.PORT || 8080
@@ -69,6 +70,14 @@ app.use(
     secret: process.env.EXPRESS_SECRET,
   }),
 )
+app.use(async (req, res, next) => {
+  if (inSandboxMode && req.method != "GET") {
+    res.status(401).send("Not enabled in sandbox mode...")
+    return
+  } else {
+    next()
+  }
+})
 
 app.get("/api/v1", (req: Request, res: Response) => {
   res.send("OK")
