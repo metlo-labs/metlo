@@ -309,7 +309,7 @@ export const recursiveTransformSpec = (schema: any) => {
   const combineKeywords = ["anyOf", "allOf", "oneOf"]
   for (const keyword of combineKeywords) {
     if (schema[keyword]) {
-      schema["unevaluatedProperties"] = false
+      if (!schema["unevaluatedProperties"]) schema["unevaluatedProperties"] = false
       for (let i = 0; i < schema[keyword]?.length; i++) {
         if (schema[keyword][i]) {
           const properties = schema[keyword][i]["properties"]
@@ -325,7 +325,7 @@ export const recursiveTransformSpec = (schema: any) => {
   const isPropertyObject = typeof schema["properties"] === "object"
   const isItemsObject = typeof schema["items"] === "object"
   if (schema["type"] === "object" || isPropertyObject) {
-    schema["additionalProperties"] = false
+    if(!schema["additionalProperties"]) schema["additionalProperties"] = false
     const properties = schema["properties"]
     if (properties && isPropertyObject) {
       for (const property in properties) {

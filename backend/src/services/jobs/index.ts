@@ -64,6 +64,14 @@ export class JobsService {
   static parseSchema(bodySchema: BodySchema, parsedBody: any) {
     const dataType = getDataType(parsedBody)
     if (dataType === DataType.OBJECT) {
+      if (Object.keys(parsedBody).length === 0) {
+        bodySchema = {
+          type: DataType.OBJECT,
+          properties: {
+            ...bodySchema?.properties
+          }
+        }
+      }
       for (let property in parsedBody) {
         bodySchema = {
           type: DataType.OBJECT,
@@ -78,11 +86,27 @@ export class JobsService {
       }
       return bodySchema
     } else if (dataType === DataType.ARRAY) {
-      bodySchema = {
-        type: DataType.ARRAY,
-        items: this.parseSchema(bodySchema?.items, parsedBody[0] ?? ""),
+      const l = parsedBody.length
+      if (l === 0) {
+        bodySchema = {
+          type: DataType.ARRAY,
+          items: {
+            ...bodySchema?.items
+          }
+        }
+      }
+      for (let i = 0; i < l; i++) {
+        bodySchema = {
+          type: DataType.ARRAY,
+          items: this.parseSchema(bodySchema?.items, parsedBody[i] ?? ""),
+        }
       }
       return bodySchema
+    } else if (dataType === DataType.UNKNOWN) {
+      return {
+        type: dataType,
+        nullable: true
+      }
     } else {
       return {
         type: dataType,
