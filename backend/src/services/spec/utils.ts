@@ -129,8 +129,9 @@ export const generateAlertMessageFromReqErrors = (
     const basePath =
       error["location"] === Location.BODY ? pathToRequestBody : pathToParameters
     let pathArray = error.instancePath?.split("/")?.slice(2)
+    const message = error.message
     const defaultErrorMessage =
-      error.message[0].toUpperCase() + error.message.slice(1)
+      message[0].toUpperCase() + message.slice(1, message[message.length - 1] === "." ? -1 : message.length)
     let errorMessage = `${defaultErrorMessage} in request${
       error["location"] ? ` ${error["location"]}` : ""
     }.`
@@ -185,7 +186,7 @@ export const generateAlertMessageFromReqErrors = (
         break
     }
     if (!path) {
-      errorMessage = `${defaultErrorMessage} in ${error["location"]}.`
+      errorMessage = `${defaultErrorMessage} in request ${error["location"]}.`
     }
     if (!error["location"]) {
       errorMessage = `${defaultErrorMessage} in request.`
@@ -215,8 +216,9 @@ export const generateAlertMessageFromRespErrors = (
   }
   errors?.forEach(error => {
     let pathArray = error.instancePath?.split("/")?.slice(2)
+    const message = error.message
     const defaultErrorMessage =
-      error.message[0].toUpperCase() + error.message.slice(1)
+      message[0].toUpperCase() + message.slice(1, message[message.length - 1] === "." ? -1 : message.length)
     let errorMessage = `${defaultErrorMessage} in response body.`
     let path = pathArray?.length > 0 ? pathArray.join(".") : ""
     let ignoreError = false
@@ -320,13 +322,20 @@ export const recursiveTransformSpec = (schema: any) => {
       }
     }
   }
-  if (schema["type"] === "object" || typeof schema["properties"] === "object") {
+  const isPropertyObject = typeof schema["properties"] === "object"
+  const isItemsObject = typeof schema["items"] === "object"
+  if (schema["type"] === "object" || isPropertyObject) {
     schema["additionalProperties"] = false
     const properties = schema["properties"]
-    if (properties && getDataType(properties) === DataType.OBJECT) {
+    if (properties && isPropertyObject) {
       for (const property in properties) {
         recursiveTransformSpec(schema["properties"][property])
       }
+    }
+  } else if (schema["type"] === "array" || isItemsObject) {
+    const items = schema["items"]
+    if (items && isItemsObject) {
+      recursiveTransformSpec(schema["items"])
     }
   }
 }
