@@ -1,7 +1,0 @@
-version: "3.9"
-services:
-  suricata-metlo:
-    image: suricata-alpine
-    environment:
-      METLO_ADDR: http://www.example.com
-      METLO_KEY: 1234
