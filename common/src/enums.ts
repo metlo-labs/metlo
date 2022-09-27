@@ -67,7 +67,10 @@ export const VULNERABILITY_ALERT_TYPES = [
 
 export enum AttackType {
   HIGH_USAGE_SENSITIVE_ENDPOINT = "High Usage on Sensitive Endpoint",
-  ANOMOLOUS_USAGE = "Anomolous Usage",
+  HIGH_ERROR_RATE = "High Error Rate",
+  ANOMALOUS_CALL_ORDER = "Anomalous Call Order",
+  UNAUTHENTICATED_ACCESS = "Unauthenticated Access",
+  BOLA = "Broken Object Level Authorization",
 }
 
 export enum ConnectionType {
