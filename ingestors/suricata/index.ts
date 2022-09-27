@@ -128,4 +128,6 @@ function main() {
   process.on("SIGINT", cleanup)
 }
 
+process.title = "METLO"
+
 main()
