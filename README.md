@@ -32,7 +32,7 @@ Run the following in your cloud environment:
 ```bash
 git clone https://github.com/metlo-labs/metlo.git
 cd metlo
-docker-compose up
+ENCRYPTION_KEY="some random string" EXPRESS_SECRET="some random string" docker-compose up
 ```
 
 Now visit [http://localhost:8000](http://localhost:8000)
