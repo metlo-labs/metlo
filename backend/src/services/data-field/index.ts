@@ -50,7 +50,6 @@ export class DataFieldService {
     dataPath: string,
     dataSection: DataSection,
     apiEndpoint: ApiEndpoint,
-    match: string,
     dataValue: any,
   ): void {
     const existingMatch = `${dataSection}.${dataPath}`
@@ -62,10 +61,9 @@ export class DataFieldService {
       dataField.dataSection = dataSection
       dataField.apiEndpointUuid = apiEndpoint.uuid
       dataField.dataClasses = []
-      if (dataClass && match?.length > 0) {
+      if (dataClass) {
         dataField.addDataClass(dataClass)
         dataField.dataTag = DataTag.PII
-        dataField.updateMatches(dataClass, match)
       }
       this.dataFields[existingMatch] = dataField
       this.updatedFields[existingMatch] = dataField
@@ -73,7 +71,6 @@ export class DataFieldService {
       const existingDataField = this.dataFields[existingMatch]
       let updated = false
       updated = existingDataField.addDataClass(dataClass)
-      updated = existingDataField.updateMatches(dataClass, match) || updated
       if (updated) {
         existingDataField.dataTag = DataTag.PII
       }
@@ -99,16 +96,14 @@ export class DataFieldService {
   ): void {
     if (Object(jsonBody) !== jsonBody) {
       const matches = ScannerService.scan(jsonBody)
-      const matchesKeys = Object.keys(matches)
-      if (matchesKeys?.length > 0) {
-        for (const match of matchesKeys) {
-          const matchDataClass = match as DataClass
+      const l = matches.length
+      if (l > 0) {
+        for (let i = 0; i < l; i++) {
           this.saveDataField(
-            matchDataClass,
+            matches[i],
             dataPathPrefix,
             dataSection,
             apiEndpoint,
-            matches[match],
             jsonBody,
           )
         }
@@ -118,7 +113,6 @@ export class DataFieldService {
           dataPathPrefix,
           dataSection,
           apiEndpoint,
-          null,
           jsonBody,
         )
       }
