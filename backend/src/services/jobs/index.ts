@@ -1,4 +1,5 @@
 import {
+  FindManyOptions,
   FindOptionsWhere,
   IsNull,
   LessThanOrEqual,
@@ -93,15 +94,11 @@ export class JobsService {
     let parsedBody = parsedJson(bodyString)
     let nonNullKey: string
     if (!parsedBody && bodyString) {
-      nonNullKey = key || "text/plain"
+      nonNullKey = key || "default"
       parsedBody = bodyString
     } else if (parsedBody) {
-      const dataType = getDataType(parsedBody)
       nonNullKey =
-        key ||
-        (dataType === DataType.OBJECT || dataType === DataType.ARRAY
-          ? "application/json"
-          : "text/plain")
+        key || "default"
     } else {
       return
     }
@@ -117,25 +114,14 @@ export class JobsService {
     const queryRunner = AppDataSource.createQueryRunner()
     await queryRunner.connect()
     try {
-      let traces = await queryRunner.manager
+      const qb = queryRunner.manager
         .createQueryBuilder()
-        .select([
-          "uuid",
-          "path",
-          '"createdAt"',
-          '"requestParameters"',
-          '"requestHeaders"',
-          '"requestBody"',
-          '"responseHeaders"',
-          '"responseBody"',
-          '"apiEndpointUuid"',
-        ])
         .from(ApiTrace, "traces")
         .where(`"apiEndpointUuid" IS NOT NULL`)
         .andWhere("analyzed = FALSE")
         .orderBy('"createdAt"', "ASC")
         .limit(5000)
-        .getRawMany()
+      let traces = await qb.getRawMany()
 
       while (traces && traces.length > 0) {
         for (const trace of traces) {
@@ -223,25 +209,7 @@ export class JobsService {
             await queryRunner.commitTransaction()
           }
         }
-        traces = await queryRunner.manager
-          .createQueryBuilder()
-          .select([
-            "uuid",
-            "path",
-            '"createdAt"',
-            '"requestParameters"',
-            '"requestHeaders"',
-            '"requestBody"',
-            '"responseHeaders"',
-            '"responseBody"',
-            '"apiEndpointUuid"',
-          ])
-          .from(ApiTrace, "traces")
-          .where(`"apiEndpointUuid" IS NOT NULL`)
-          .andWhere("analyzed = FALSE")
-          .orderBy('"createdAt"', "ASC")
-          .limit(5000)
-          .getRawMany()
+        traces = await qb.getRawMany()
       }
     } catch (err) {
       console.error(`Encountered error while analyzing traces: ${err}`)
@@ -294,7 +262,7 @@ export class JobsService {
     await queryRunner.connect()
     try {
       const currTime = new Date()
-      let traces = await queryRunner.manager.find(ApiTrace, {
+      const tracesFindOptions: FindManyOptions<ApiTrace> = {
         select: {
           uuid: true,
           path: true,
@@ -310,7 +278,8 @@ export class JobsService {
           createdAt: "ASC",
         },
         take: 1000,
-      })
+      }
+      let traces = await queryRunner.manager.find(ApiTrace, tracesFindOptions)
       while (traces && traces?.length > 0) {
         const regexToTracesMap: Record<string, GenerateEndpoint> = {}
         for (let i = 0; i < traces.length; i++) {
@@ -464,23 +433,7 @@ export class JobsService {
           )
           await queryRunner.commitTransaction()
         }
-        traces = await queryRunner.manager.find(ApiTrace, {
-          select: {
-            uuid: true,
-            path: true,
-            method: true,
-            host: true,
-            createdAt: true,
-          },
-          where: {
-            apiEndpointUuid: IsNull(),
-            createdAt: LessThanOrEqual(currTime),
-          },
-          order: {
-            createdAt: "ASC",
-          },
-          take: 1000,
-        })
+        traces = await queryRunner.manager.find(ApiTrace, tracesFindOptions)
       }
       console.log("Finished Generating Endpoints.")
       await this.generateOpenApiSpec()
