@@ -15,6 +15,7 @@ import {
   AggregateTraceDataMinutely,
   AuthenticationConfig,
   AggregateTraceDataHourly,
+  Attack,
 } from "models"
 
 export const AppDataSource: DataSource = new DataSource({
@@ -36,6 +37,7 @@ export const AppDataSource: DataSource = new DataSource({
     AggregateTraceDataMinutely,
     AuthenticationConfig,
     AggregateTraceDataHourly,
+    Attack,
   ],
   migrations: [],
   logging: false,

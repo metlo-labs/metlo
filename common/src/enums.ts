@@ -65,6 +65,11 @@ export const VULNERABILITY_ALERT_TYPES = [
   AlertType.UNSECURED_ENDPOINT_DETECTED,
 ]
 
+export enum AttackType {
+  HIGH_USAGE_SENSITIVE_ENDPOINT = "High Usage on Sensitive Endpoint",
+  ANOMOLOUS_USAGE = "Anomolous Usage",
+}
+
 export enum ConnectionType {
   AWS = "AWS",
   GCP = "GCP",

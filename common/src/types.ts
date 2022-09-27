@@ -16,6 +16,7 @@ import {
   AWS_SOURCE_TYPE,
   GCP_SOURCE_TYPE,
   AuthType,
+  AttackType,
 } from "./enums"
 import { Test, Request as TestRequest } from "@metlo/testing"
 import "axios"
@@ -90,6 +91,7 @@ export interface GetVulnerabilityAggParams {
 }
 
 export interface GetAttackParams {
+  riskScores?: RiskScore[]
   offset?: number
   limit?: number
 }
@@ -287,6 +289,37 @@ export interface VulnerabilitySummary {
   vulnerabilityItems: VulnerabilityAggItem[]
   totalVulnerabilities: number
   totalEndpoints: number
+}
+
+export interface AttackMeta {
+  averageRPS?: number
+  currentRPS?: number
+}
+
+export interface Attack {
+  uuid: string
+  createdAt: Date
+  riskScore: RiskScore
+  attackType: AttackType
+  description: string
+  metadata: AttackMeta
+  startTime: Date
+  endTime: Date
+
+  uniqueSessionKey: string
+  sourceIP: string
+  apiEndpointUuid: string
+  apiEndpoint: ApiEndpoint
+
+  resolved: boolean
+  snoozed: boolean
+  snoozeHours: number
+}
+
+export interface AttackResponse {
+  attacks: Attack[]
+  totalAttacks: number
+  validLicense: boolean
 }
 
 export interface STEP_RESPONSE<T extends ConnectionType = ConnectionType> {
