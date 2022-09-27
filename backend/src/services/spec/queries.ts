@@ -48,9 +48,9 @@ export const insertAggregateMinutelyQuery = `
     SELECT
         minute,
         SUM("numCalls") as "numCalls",
-        MAX("maxRPS") as "maxRPS",
-        MIN("minRPS") as "minRPS",
-        AVG("meanRPS") as "meanRPS"
+        SUM("maxRPS") as "maxRPS",
+        SUM("minRPS") as "minRPS",
+        SUM("meanRPS") as "meanRPS"
     FROM "aggregate_trace_data_minutely"
     WHERE "apiEndpointUuid" = ANY($1)
     GROUP BY minute
