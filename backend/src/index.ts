@@ -50,6 +50,7 @@ import { getSensitiveDataSummaryHandler } from "api/data-field/sensitive-data"
 import { getVulnerabilitySummaryHandler } from "api/alert/vulnerability"
 import { getAttacksHandler } from "api/attacks"
 import { inSandboxMode } from "utils"
+import { createKey, listKeys } from "api/keys"
 
 const app: Express = express()
 const port = process.env.PORT || 8080
@@ -130,6 +131,9 @@ app.delete("/api/v1/test/:uuid/delete", deleteTest)
 
 app.get("/api/v1/attacks", getAttacksHandler)
 
+app.get("/api/v1/keys/list", listKeys)
+app.post("/api/v1/keys/create", createKey)
+
 const initInstanceSettings = async () => {
   const settingRepository = AppDataSource.getRepository(InstanceSettings)
   const numSettings = await settingRepository.count()
@@ -144,8 +148,7 @@ const main = async () => {
   try {
     const datasource = await AppDataSource.initialize()
     console.log(
-      `Is AppDataSource Initialized? ${
-        datasource.isInitialized ? "Yes" : "No"
+      `Is AppDataSource Initialized? ${datasource.isInitialized ? "Yes" : "No"
       }`,
     )
     await initInstanceSettings()
