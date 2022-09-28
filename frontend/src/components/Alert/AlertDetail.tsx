@@ -211,12 +211,14 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
     case AlertType.PII_DATA_DETECTED:
     case AlertType.QUERY_SENSITIVE_DATA:
     case AlertType.BASIC_AUTHENTICATION_DETECTED:
+    case AlertType.UNSECURED_ENDPOINT_DETECTED:
     case AlertType.PATH_SENSITIVE_DATA:
-      const contextPii = alert.context as
+      const context = alert.context as
         | PiiDataContext
         | SensitiveQueryParamContext
         | BasicAuthenticationContext
-      const tracePii = contextPii.trace
+        | MissingHSTSContext
+      const trace = context.trace
       rightPanel = (
         <Box w="55%" h="full">
           <VStack w="full" h="full" alignItems="flex-start">
@@ -227,30 +229,12 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
               bg="var(--chakra-colors-chakra-body-bg)"
               h="calc(100% - 20px)"
             >
-              <TraceDetail trace={tracePii} />
+              <TraceDetail trace={trace} />
             </Box>
           </VStack>
         </Box>
       )
       break
-    case AlertType.UNSECURED_ENDPOINT_DETECTED:
-      const contextHSTS = alert.context as MissingHSTSContext
-      return (
-        //
-        <Box w="55%" h="full">
-          <VStack w="full" h="full" alignItems="flex-start">
-            <Text fontWeight="semibold">Detected Trace</Text>
-            <Box
-              overflowX="auto"
-              w="full"
-              bg="var(--chakra-colors-chakra-body-bg)"
-              h="calc(100% - 20px)"
-            >
-              <TraceDetail trace={contextHSTS.trace} />
-            </Box>
-          </VStack>
-        </Box>
-      )
     default:
   }
 
