@@ -9,6 +9,5 @@ export const createApiKey = (keyName: string): [ApiKey, string] => {
     const formattedKey = `metlo.${b64Key}`
 
     const newKey = ApiKey.create({ name: keyName, apiKeyHash: hasher(formattedKey), keyIdentifier: b64Key.slice(0, 4) })
-    console.log(hasher(b64Key))
     return [newKey, formattedKey]
 }
