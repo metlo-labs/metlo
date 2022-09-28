@@ -2,7 +2,7 @@ import { Request, Response } from "express"
 import ApiResponseHandler from "api-response-handler"
 import { hasValidLicense } from "utils/license"
 import { getAttacks } from "services/attacks"
-import { GetAttackParams } from "@common/types"
+import { AttackResponse, GetAttackParams } from "@common/types"
 
 export const getAttacksHandler = async (
   req: Request,
@@ -15,8 +15,10 @@ export const getAttacksHandler = async (
       await ApiResponseHandler.success(res, {
         validLicense,
         attacks: [],
+        attackTypeCount: {},
+        totalEndpoints: 0,
         totalAttacks: 0,
-      })
+      } as AttackResponse)
       return
     }
     const attackResp = await getAttacks(getAttackParams)

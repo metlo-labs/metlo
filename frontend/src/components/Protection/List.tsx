@@ -53,7 +53,7 @@ const TableLoader: React.FC<TableLoaderProps> = ({
     {
       name: "Host",
       id: "host",
-      grow: 1,
+      grow: 1.5,
     },
     {
       name: "Start Time",
@@ -142,7 +142,7 @@ export const List: React.FC<AttackTableProps> = React.memo(
         sortable: false,
         selector: (row: Attack) => row.host,
         id: "host",
-        grow: 1,
+        grow: 1.5,
       },
       {
         name: "Start Time",

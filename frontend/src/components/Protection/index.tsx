@@ -35,6 +35,7 @@ export const ProtectionPage: React.FC<ProtectionPageProps> = React.memo(
             status: "error",
             duration: 5000,
             isClosable: true,
+            position: "top"
           }),
         )
         .finally(() => setFetching(false))
