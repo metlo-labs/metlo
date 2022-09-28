@@ -1,0 +1,99 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: metlo-kind
+nodes:
+- role: control-plane
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "ingress-ready=true"
+  extraPortMappings:
+  - containerPort: 80
+    hostPort: 80
+    protocol: TCP
+  - containerPort: 443
+    hostPort: 443
+    protocol: TCPapiVersion: apps/v1
+---
+kind: DaemonSet
+metadata:
+  name: metlo-daemonset-pod
+spec:
+  selector:
+    matchLabels:
+      name: metlo-app
+  template:
+    metadata:
+      labels:
+        name: metlo-app
+    spec:
+      containers:
+        - name: suricata-daemon
+          image: metlo/suricata-daemon
+          imagePullPolicy: Never
+          securityContext:
+            privileged: true
+          env:
+          - name: METLO_ADDR
+            value: <INSERT METLO COLLECTOR URL HERE>
+          - name: METLO_KEY
+            value: <INSERT METLO API KEY HERE>
+      nodeSelector:
+        app: metlo-app
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kubernetes-dashboardapiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kubernetes-dashboardkind: Pod
+apiVersion: v1
+metadata:
+  name: metlo-app
+  labels:
+    app: metlo-app
+spec:
+  containers:
+  - name: metlo-app
+    image: hashicorp/http-echo:0.2.3
+    args:
+    - "-text=Hello World! This is a Metlo Kubernetes with kind App"
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: metlo-service
+spec:
+  selector:
+    app: metlo-app
+  ports:
+  # Default port used by the image
+  - port: 5678
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: metlo-ingress
+spec:
+  rules:
+  - http:
+      paths:
+      - pathType: Prefix
+        path: "/metlo"
+        backend:
+          service:
+            name: metlo-service
+            port:
+              number: 5678

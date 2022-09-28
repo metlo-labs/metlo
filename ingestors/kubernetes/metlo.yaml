@@ -1,0 +1,25 @@
+kind: DaemonSet
+metadata:
+  name: metlo-daemonset-pod
+spec:
+  selector:
+    matchLabels:
+      name: metlo-app
+  template:
+    metadata:
+      labels:
+        name: metlo-app
+    spec:
+      containers:
+        - name: suricata-daemon
+          image: metlo/suricata-daemon
+          imagePullPolicy: Never
+          securityContext:
+            privileged: true
+          env:
+            - name: METLO_ADDR
+              value: <INSERT METLO COLLECTOR URL HERE>
+            - name: METLO_KEY
+              value: <INSERT METLO API KEY HERE>
+      nodeSelector:
+        app: metlo-app
