@@ -25,7 +25,10 @@ import { DataFieldService } from "services/data-field"
 import { DatabaseService } from "services/database"
 import axios from "axios"
 import { SpecService } from "services/spec"
-import { aggregateTracesDataHourlyQuery, aggregateTracesDataMinutelyQuery } from "./queries"
+import {
+  aggregateTracesDataHourlyQuery,
+  aggregateTracesDataMinutelyQuery,
+} from "./queries"
 
 interface GenerateEndpoint {
   parameterizedPath: string
@@ -68,8 +71,8 @@ export class JobsService {
         bodySchema = {
           type: DataType.OBJECT,
           properties: {
-            ...bodySchema?.properties
-          }
+            ...bodySchema?.properties,
+          },
         }
       }
       for (let property in parsedBody) {
@@ -91,8 +94,8 @@ export class JobsService {
         bodySchema = {
           type: DataType.ARRAY,
           items: {
-            ...bodySchema?.items
-          }
+            ...bodySchema?.items,
+          },
         }
       }
       for (let i = 0; i < l; i++) {
@@ -105,7 +108,7 @@ export class JobsService {
     } else if (dataType === DataType.UNKNOWN) {
       return {
         type: dataType,
-        nullable: true
+        nullable: true,
       }
     } else {
       return {
@@ -121,8 +124,7 @@ export class JobsService {
       nonNullKey = key || "default"
       parsedBody = bodyString
     } else if (parsedBody) {
-      nonNullKey =
-        key || "default"
+      nonNullKey = key || "default"
     } else {
       return
     }
@@ -270,7 +272,8 @@ export class JobsService {
           .from(ApiTrace)
           .where('"apiEndpointUuid" IS NOT NULL')
           .andWhere("analyzed = TRUE")
-          .andWhere('"createdAt" <= :maxTime', { maxTime }).execute()
+          .andWhere('"createdAt" <= :maxTime', { maxTime })
+          .execute()
         await queryRunner.commitTransaction()
       }
     } catch (err) {
