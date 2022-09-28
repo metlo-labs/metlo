@@ -41,5 +41,4 @@ export const AppDataSource: DataSource = new DataSource({
   ],
   migrations: [],
   logging: false,
-  maxQueryExecutionTime: 100,
 })
