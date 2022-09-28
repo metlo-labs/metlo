@@ -15,6 +15,7 @@
     "dev-collector": "nodemon -r tsconfig-paths/register src/collector.ts",
     "start-collector": "TS_NODE_BASEURL=./dist/ node -r tsconfig-paths/register dist/collector.js",
     "sync-endpoints": "ts-node -r tsconfig-paths/register src/scripts/generate-endpoints.ts",
+    "generate-attacks": "ts-node -r tsconfig-paths/register src/scripts/generate-attacks.ts",
     "generate-alerts": "ts-node -r tsconfig-paths/register src/scripts/generate-alerts.ts",
     "format": "prettier --write './src/**/*.{ts,tsx}'"
   },

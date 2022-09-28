@@ -71,3 +71,4 @@ export const getAPIURL = () => {
 
 export const ENDPOINT_PAGE_LIMIT = 10
 export const ALERT_PAGE_LIMIT = 10
+export const ATTACK_PAGE_LIMIT = 10

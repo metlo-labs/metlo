@@ -91,6 +91,7 @@ export interface GetVulnerabilityAggParams {
 }
 
 export interface GetAttackParams {
+  hosts?: string[]
   riskScores?: RiskScore[]
   offset?: number
   limit?: number
@@ -310,6 +311,7 @@ export interface Attack {
   sourceIP: string
   apiEndpointUuid: string
   apiEndpoint: ApiEndpoint
+  host: string
 
   resolved: boolean
   snoozed: boolean
@@ -317,8 +319,10 @@ export interface Attack {
 }
 
 export interface AttackResponse {
+  attackTypeCount: Record<AttackType, number>
   attacks: Attack[]
   totalAttacks: number
+  totalEndpoints: number
   validLicense: boolean
 }
 

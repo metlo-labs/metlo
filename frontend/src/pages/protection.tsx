@@ -5,13 +5,17 @@ import { SidebarLayoutShell } from "components/SidebarLayoutShell"
 import { ContentContainer } from "components/utils/ContentContainer"
 import { getAttacks } from "api/attacks"
 import { ProtectionEmptyView } from "components/Protection/ProtectionEmptyView"
+import { ProtectionPage } from "components/Protection"
+import { AttackResponse } from "@common/types"
+import { getHosts } from "api/endpoints"
 
-const Protection = ({ validLicense, attacks }) => {
-  const parsedAttacks = superjson.parse<any>(attacks)
+const Protection = ({ attacksResponse, hosts }) => {
+  const parsedAttacks = superjson.parse<AttackResponse>(attacksResponse)
+  const parsedHosts = superjson.parse<string[]>(hosts)
   let page = (
-    <ContentContainer maxContentW="100rem" px="8" py="8"></ContentContainer>
+    <ProtectionPage initAttackResponse={parsedAttacks} hosts={parsedHosts} />
   )
-  if (!validLicense) {
+  if (!parsedAttacks?.validLicense) {
     page = (
       <ContentContainer maxContentW="full" px="0" py="0">
         <ProtectionEmptyView />
@@ -29,11 +33,16 @@ const Protection = ({ validLicense, attacks }) => {
 }
 
 export const getServerSideProps: GetServerSideProps = async context => {
-  const { attacks, validLicense } = await getAttacks({})
+  const attacksPromise = getAttacks({})
+  const hostsPromise = getHosts()
+  const [hosts, attacksResponse] = await Promise.all([
+    hostsPromise,
+    attacksPromise,
+  ])
   return {
     props: {
-      validLicense,
-      attacks: superjson.stringify(attacks),
+      attacksResponse: superjson.stringify(attacksResponse),
+      hosts: superjson.stringify(hosts),
     },
   }
 }

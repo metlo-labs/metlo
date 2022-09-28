@@ -5,6 +5,7 @@ import {
   DataClass,
   RiskScore,
   AlertType,
+  AttackType,
 } from "./enums"
 
 export const AWS_NEXT_STEP: Record<AWS_STEPS, AWS_STEPS | null> = {
@@ -85,4 +86,12 @@ export const ALERT_TYPE_TO_RISK_SCORE: Record<AlertType, RiskScore> = {
   [AlertType.PATH_SENSITIVE_DATA]: RiskScore.HIGH,
   [AlertType.BASIC_AUTHENTICATION_DETECTED]: RiskScore.MEDIUM,
   [AlertType.UNSECURED_ENDPOINT_DETECTED]: RiskScore.HIGH,
+}
+
+export const ATTACK_TYPE_TO_RISK_SCORE: Record<AttackType, RiskScore> = {
+  [AttackType.HIGH_ERROR_RATE]: RiskScore.HIGH,
+  [AttackType.ANOMALOUS_CALL_ORDER]: RiskScore.MEDIUM,
+  [AttackType.BOLA]: RiskScore.HIGH,
+  [AttackType.HIGH_USAGE_SENSITIVE_ENDPOINT]: RiskScore.HIGH,
+  [AttackType.UNAUTHENTICATED_ACCESS]: RiskScore.HIGH,
 }

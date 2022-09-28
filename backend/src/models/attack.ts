@@ -43,6 +43,9 @@ export class Attack extends BaseEntity {
   @Column({ type: "text", nullable: true })
   uniqueSessionKey: string
 
+  @Column()
+  host: string
+
   @Column({ nullable: true })
   sourceIP: string
 
