@@ -1,5 +1,6 @@
 import { ConnectionType } from "@common/enums"
 import { STEP_RESPONSE } from "@common/types"
+import { createApiKey } from "api/keys/service"
 import { randomUUID } from "crypto"
 import { AppDataSource } from "data-source"
 import { ApiKey } from "models"
@@ -67,8 +68,9 @@ export async function push_files({
 }: RESPONSE["data"] & { step: number }): Promise<RESPONSE> {
   const endpoint = "api/v1/log-request/single"
   let conn = new SSH_CONN(keypair, remote_machine_url, username)
+  let [key, raw] = createApiKey(`Metlo-collector-${id}`)
   let api_key = await AppDataSource.getRepository(ApiKey).save(
-    ApiKey.create({ name: `Metlo-collector-${id}` }),
+    key
   )
   try {
     let filepath_ingestor = `${__dirname}/../generics/scripts/metlo-ingestor-${randomUUID()}.service`
@@ -76,7 +78,7 @@ export async function push_files({
     put_data_file(
       format(
         `${__dirname}/../generics/scripts/metlo-ingestor-template.service`,
-        [`${process.env.BACKEND_URL}/${endpoint}`, api_key.apiKey],
+        [`${process.env.BACKEND_URL}/${endpoint}`, raw],
       ),
       filepath_ingestor,
     )

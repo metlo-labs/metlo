@@ -3,6 +3,7 @@ import { AppDataSource } from "data-source"
 import Error401Unauthorized from "errors/error-401-unauthorized"
 import { NextFunction, Request, Response } from "express"
 import { ApiKey } from "models"
+import { hasher } from "utils/hash"
 
 export async function verifyApiKeyMiddleware(
   req: Request,
@@ -10,9 +11,11 @@ export async function verifyApiKeyMiddleware(
   next: NextFunction,
 ) {
   try {
+    let hashKey = hasher(req.headers.authorization)
+    console.log(hashKey)
     await AppDataSource.getRepository(ApiKey)
       .createQueryBuilder("key")
-      .where("key.apiKey = :api_key", { api_key: req.headers.authorization })
+      .where("key.apiKeyHash = :hash", { hash: hashKey })
       .getOneOrFail()
     next()
   } catch (err) {

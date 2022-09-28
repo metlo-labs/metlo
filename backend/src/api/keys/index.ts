@@ -3,13 +3,17 @@ import { Request, Response } from "express"
 import { AppDataSource } from "data-source"
 import { ApiKey } from "models"
 import Error404NotFound from "errors/error-404-not-found"
+import crypto from "crypto"
+import { hasher } from "utils/hash"
+import { createApiKey } from "./service"
+import Error400BadRequest from "errors/error-400-bad-request"
 
 export const listKeys = async (
     req: Request,
     res: Response,
 ): Promise<void> => {
     const keys = await AppDataSource.getRepository(ApiKey).find()
-    return ApiResponseHandler.success(res, keys.map((v) => "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx" + v.apiKey.slice(-4)))
+    return ApiResponseHandler.success(res, keys.map((v) => "metlo." + v.keyIdentifier))
 }
 
 export const createKey = async (
@@ -17,12 +21,16 @@ export const createKey = async (
     res: Response,
 ): Promise<void> => {
     const { name: keyName } = req.body
-    const newKey = ApiKey.create({ name: keyName })
-    const key = await AppDataSource.getRepository(ApiKey).save(
-        newKey,
+    const key_exists = await AppDataSource.getRepository(ApiKey).countBy({ name: keyName })
+    if (key_exists) {
+        return ApiResponseHandler.error(res, new Error400BadRequest(`Can not create key with name ${keyName}`))
+    }
+    const [key, rawKey] = createApiKey(keyName)
+    await AppDataSource.getRepository(ApiKey).save(
+        key,
     )
     return ApiResponseHandler.success(res, {
-        apiKey: key.apiKey
+        apiKey: rawKey
     })
 }
 
@@ -43,7 +51,7 @@ export const deleteKey = async (
         return ApiResponseHandler.success(res, {
             "status": "OK"
         })
-    } else {        
+    } else {
         return ApiResponseHandler.error(res, new Error404NotFound(`Did not find any matching keys for ${keyName}`))
     }
 
