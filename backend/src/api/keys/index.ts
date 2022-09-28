@@ -3,8 +3,6 @@ import { Request, Response } from "express"
 import { AppDataSource } from "data-source"
 import { ApiKey } from "models"
 import Error404NotFound from "errors/error-404-not-found"
-import crypto from "crypto"
-import { hasher } from "utils/hash"
 import { createApiKey } from "./service"
 import Error400BadRequest from "errors/error-400-bad-request"
 
@@ -24,6 +22,9 @@ export const createKey = async (
     const key_exists = await AppDataSource.getRepository(ApiKey).countBy({ name: keyName })
     if (key_exists) {
         return ApiResponseHandler.error(res, new Error400BadRequest(`Can not create key with name ${keyName}`))
+    }
+    if (!keyName) {
+        return ApiResponseHandler.error(res, new Error400BadRequest(`Key name is required.`))
     }
     const [key, rawKey] = createApiKey(keyName)
     await AppDataSource.getRepository(ApiKey).save(
