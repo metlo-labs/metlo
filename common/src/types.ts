@@ -326,6 +326,12 @@ export interface AttackResponse {
   validLicense: boolean
 }
 
+export interface AttackDetailResponse {
+  attack: Attack
+  traces: ApiTrace[]
+  validLicense: boolean
+}
+
 export interface STEP_RESPONSE<T extends ConnectionType = ConnectionType> {
   success: "OK" | "FAIL" | "FETCHING"
   status: "STARTED" | "COMPLETE" | "IN-PROGRESS"

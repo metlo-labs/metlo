@@ -1,5 +1,9 @@
 import axios from "axios"
-import { AttackResponse, GetAttackParams } from "@common/types"
+import {
+  AttackDetailResponse,
+  AttackResponse,
+  GetAttackParams,
+} from "@common/types"
 import { getAPIURL } from "~/constants"
 
 export const getAttacks = async (
@@ -8,5 +12,14 @@ export const getAttacks = async (
   const resp = await axios.get<AttackResponse>(`${getAPIURL()}/attacks`, {
     params,
   })
+  return resp.data
+}
+
+export const getAttack = async (
+  attackId: string,
+): Promise<AttackDetailResponse> => {
+  const resp = await axios.get<AttackDetailResponse>(
+    `${getAPIURL()}/attack/${attackId}`,
+  )
   return resp.data
 }

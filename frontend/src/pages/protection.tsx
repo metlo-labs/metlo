@@ -4,7 +4,9 @@ import { getAttacks } from "api/attacks"
 import { getHosts } from "api/endpoints"
 import ProtectionContent from "enterprise/pages/protection"
 
-const Protection = ({ attacksResponse, hosts }) => <ProtectionContent attacksResponse={attacksResponse} hosts={hosts} />
+const Protection = ({ attacksResponse, hosts }) => (
+  <ProtectionContent attacksResponse={attacksResponse} hosts={hosts} />
+)
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const attacksPromise = getAttacks({})

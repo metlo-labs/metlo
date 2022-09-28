@@ -78,10 +78,10 @@ export const AggAttackChart: React.FC<AggAttackChartProps> = React.memo(
             justifyContent="center"
           >
             <Text fontSize="xl" fontWeight="semibold" rounded="md">
-              {totalAttacks}
+              {data.reduce((partialSum, a) => partialSum + a, 0)}
             </Text>
             <Text fontSize="sm" fontWeight="medium">
-              Attacks
+              Open Attacks
             </Text>
           </VStack>
           <VStack

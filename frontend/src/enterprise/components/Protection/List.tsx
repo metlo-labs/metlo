@@ -177,9 +177,12 @@ export const List: React.FC<AttackTableProps> = React.memo(
           paginationPerPage={ATTACK_PAGE_LIMIT}
           columns={columns}
           data={items}
-          customStyles={getCustomStyles(colorMode.colorMode, false, true)}
+          customStyles={getCustomStyles(colorMode.colorMode)}
           paginationDefaultPage={currentPage}
           pagination
+          onRowClicked={(row: Attack, e) =>
+            router.push(`/protection/${row.uuid}`)
+          }
         />
       )
     }

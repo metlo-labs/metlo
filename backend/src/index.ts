@@ -48,7 +48,7 @@ import {
 import { RedisClient } from "utils/redis"
 import { getSensitiveDataSummaryHandler } from "api/data-field/sensitive-data"
 import { getVulnerabilitySummaryHandler } from "api/alert/vulnerability"
-import { getAttacksHandler } from "api/attacks"
+import { getAttackHandler, getAttacksHandler } from "api/attacks"
 import { inSandboxMode } from "utils"
 import { createKey, deleteKey, listKeys } from "api/keys"
 
@@ -130,6 +130,7 @@ app.get("/api/v1/test/list/:uuid", getTest)
 app.delete("/api/v1/test/:uuid/delete", deleteTest)
 
 app.get("/api/v1/attacks", getAttacksHandler)
+app.get("/api/v1/attack/:attackId", getAttackHandler)
 
 app.get("/api/v1/keys/list", listKeys)
 app.post("/api/v1/keys/create", createKey)
