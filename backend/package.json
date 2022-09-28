@@ -16,7 +16,6 @@
     "start-collector": "TS_NODE_BASEURL=./dist/ node -r tsconfig-paths/register dist/collector.js",
     "sync-endpoints": "ts-node -r tsconfig-paths/register src/scripts/generate-endpoints.ts",
     "generate-alerts": "ts-node -r tsconfig-paths/register src/scripts/generate-alerts.ts",
-    "add-api-key": "ts-node -r tsconfig-paths/register src/scripts/generate_key.ts",
     "format": "prettier --write './src/**/*.{ts,tsx}'"
   },
   "keywords": [],
