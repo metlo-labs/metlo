@@ -13,7 +13,7 @@ export class ApiKey extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
 
-  @Column({ type: "text" })
+  @Column({ type: "text", unique: true })
   name: string
 
   @Column({ type: "uuid", nullable: false, unique: true })

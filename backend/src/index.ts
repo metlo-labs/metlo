@@ -50,7 +50,7 @@ import { getSensitiveDataSummaryHandler } from "api/data-field/sensitive-data"
 import { getVulnerabilitySummaryHandler } from "api/alert/vulnerability"
 import { getAttacksHandler } from "api/attacks"
 import { inSandboxMode } from "utils"
-import { createKey, listKeys } from "api/keys"
+import { createKey, deleteKey, listKeys } from "api/keys"
 
 const app: Express = express()
 const port = process.env.PORT || 8080
@@ -133,6 +133,7 @@ app.get("/api/v1/attacks", getAttacksHandler)
 
 app.get("/api/v1/keys/list", listKeys)
 app.post("/api/v1/keys/create", createKey)
+app.delete("/api/v1/keys/:name/delete", deleteKey)
 
 const initInstanceSettings = async () => {
   const settingRepository = AppDataSource.getRepository(InstanceSettings)
