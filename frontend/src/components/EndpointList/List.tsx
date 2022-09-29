@@ -52,7 +52,7 @@ const TableLoader: React.FC<TableLoaderProps> = ({
     {
       name: "Risk",
       id: "riskScore",
-      grow: 0.5,
+      grow: 1,
     },
     {
       name: "Path",
@@ -142,7 +142,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         ),
         id: "riskScore",
         minWidth: "75px",
-        grow: 0.5,
+        grow: 1,
       },
       {
         name: "Path",
@@ -190,6 +190,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
             </Box>
           )
         },
+        id: "dataClasses",
         grow: 2,
       },
       {
