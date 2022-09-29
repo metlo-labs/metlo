@@ -5,6 +5,8 @@ import { ImCross } from "@react-icons/all-files/im/ImCross"
 import DataTable, { TableColumn } from "react-data-table-component"
 import { HiShieldCheck } from "@react-icons/all-files/hi/HiShieldCheck"
 import { FiCheckCircle } from "@react-icons/all-files/fi/FiCheckCircle"
+import { FiClock } from "@react-icons/all-files/fi/FiClock"
+import { ChevronDownIcon } from "@chakra-ui/icons"
 import {
   Badge,
   Box,
@@ -15,6 +17,10 @@ import {
   GridItem,
   Heading,
   HStack,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
   Text,
   VStack,
 } from "@chakra-ui/react"
@@ -251,11 +257,28 @@ export const AttackDetailPage: React.FC<AttackDetailPageProps> = React.memo(
               )}
             </HStack>
             {!attack.resolved && (
-              <Box>
+              <HStack>
+                <Menu>
+                  <MenuButton
+                    as={Button}
+                    border="1px"
+                    leftIcon={<FiClock />}
+                    rightIcon={<ChevronDownIcon />}
+                  >
+                    Snooze
+                  </MenuButton>
+                  <MenuList>
+                    <MenuItem>1 hr</MenuItem>
+                    <MenuItem>4 hrs</MenuItem>
+                    <MenuItem>8 hrs</MenuItem>
+                    <MenuItem>24 hrs</MenuItem>
+                    <MenuItem>Other...</MenuItem>
+                  </MenuList>
+                </Menu>
                 <Button leftIcon={<FiCheckCircle />} colorScheme="green">
                   Resolve
                 </Button>
-              </Box>
+              </HStack>
             )}
           </HStack>
         </VStack>
