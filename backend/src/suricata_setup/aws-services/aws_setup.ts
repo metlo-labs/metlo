@@ -90,7 +90,7 @@ export async function aws_source_identification({
       region: _region,
     })
 
-    let ec2_conn = new EC2_CONN(access_id, secret_access_key, region)
+    let ec2_conn = new EC2_CONN(access_id, secret_access_key, _region)
     let all_valid_types = await ec2_conn.get_valid_types(undefined, undefined)
 
     var region, source_eni_id, source_private_ip, instance_type
@@ -179,7 +179,7 @@ export async function aws_source_identification({
       last_completed: 1,
       message: "Couldn't verify EC2 source instance for mirroring traffic",
       error: {
-        err: err,
+        err: JSON.stringify(err),
       },
       data: {
         secret_access_key: secret_access_key,

@@ -76,7 +76,7 @@ export function prepareResponse(
       url: source_url.href,
       status: alert.http.status,
       headers: meta?.metadata.response_headers || [],
-      body: alert.http.http_request_body_printable || null,
+      body: alert.http.http_response_body_printable || null,
     },
     meta: {
       environment: "production",
