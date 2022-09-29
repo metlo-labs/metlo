@@ -44,7 +44,11 @@ import Error404NotFound from "errors/error-404-not-found"
 import { BlockFieldsService } from "services/block-fields"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { RISK_SCORE_ORDER } from "~/constants"
-import { insertDataFieldQuery, insertAggregateHourlyQuery, insertAggregateMinutelyQuery } from "./queries"
+import {
+  insertDataFieldQuery,
+  insertAggregateHourlyQuery,
+  insertAggregateMinutelyQuery,
+} from "./queries"
 
 interface EndpointsMap {
   endpoint: ApiEndpoint
@@ -343,7 +347,10 @@ export class SpecService {
             })
 
           await updateTracesQb.execute()
-          await queryRunner.query(insertDataFieldQuery, [similarEndpointUuids, item.endpoint.uuid])
+          await queryRunner.query(insertDataFieldQuery, [
+            similarEndpointUuids,
+            item.endpoint.uuid,
+          ])
           await deleteDataFieldsQb.execute()
           await updateAlertsQb.execute()
           await deleteAlertsQb.execute()

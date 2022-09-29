@@ -1,9 +1,7 @@
 import {
   FindManyOptions,
-  FindOptionsWhere,
   IsNull,
   LessThanOrEqual,
-  MoreThan,
   Raw,
 } from "typeorm"
 import { v4 as uuidv4 } from "uuid"
@@ -121,10 +119,10 @@ export class JobsService {
     let parsedBody = parsedJson(bodyString)
     let nonNullKey: string
     if (!parsedBody && bodyString) {
-      nonNullKey = key || "default"
+      nonNullKey = key || "*/*"
       parsedBody = bodyString
     } else if (parsedBody) {
-      nonNullKey = key || "default"
+      nonNullKey = key || "*/*"
     } else {
       return
     }
@@ -481,6 +479,7 @@ export class JobsService {
       const nonSpecEndpoints = await apiEndpointRepository.findBy({
         openapiSpecName: IsNull(),
       })
+      const currTime = new Date()
       const hostMap: Record<string, ApiEndpoint[]> = {}
       const specIntro = {
         openapi: "3.0.0",
@@ -526,19 +525,15 @@ export class JobsService {
           const paths = openApiSpec["paths"]
           const path = endpoint.path
           const method = endpoint.method.toLowerCase()
-          let whereConditions: FindOptionsWhere<ApiTrace> = {
-            apiEndpointUuid: endpoint.uuid,
-          }
+          const tracesQb = apiTraceRepository.createQueryBuilder().where('"apiEndpointUuid" = :id', { id: endpoint.uuid })
           if (spec.updatedAt) {
-            whereConditions = {
-              createdAt: MoreThan(spec.updatedAt),
-              ...whereConditions,
-            }
+            tracesQb.andWhere('"createdAt" > :updated', { updated: spec.updatedAt })
+            tracesQb.andWhere('"createdAt" <= :curr', { curr: currTime })
+          } else {
+            tracesQb.andWhere('"createdAt" <= :curr', { curr: currTime })
           }
-          const traces = await apiTraceRepository.find({
-            where: { ...whereConditions },
-            order: { createdAt: "ASC" },
-          })
+          const traces = await tracesQb.orderBy('"createdAt"', "ASC").getMany()
+
           let parameters: Record<string, BodySchema> = {}
           let requestBodySpec: BodyContent = {}
           let responses: Responses = {}
@@ -560,6 +555,7 @@ export class JobsService {
               [method]: {},
             }
           }
+
           for (const trace of traces) {
             const requestParamters = trace.requestParameters
             const requestHeaders = trace.requestHeaders
@@ -663,6 +659,7 @@ export class JobsService {
           endpoint.openapiSpec = spec
         }
         spec.spec = JSON.stringify(openApiSpec, null, 2)
+        spec.updatedAt = currTime
         spec.extension = SpecExtension.JSON
         await DatabaseService.executeTransactions([[spec], endpoints], [], true)
       }
