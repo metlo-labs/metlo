@@ -1,6 +1,7 @@
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: metlo-daemonset-pod
+  name: metlo-app
 spec:
   selector:
     matchLabels:
@@ -10,6 +11,12 @@ spec:
       labels:
         name: metlo-app
     spec:
+      hostNetwork: true
+      tolerations:
+        # this toleration is to have the daemonset runnable on master nodes
+        # remove it if your masters can't run pods
+        - key: node-role.kubernetes.io/master
+          effect: NoSchedule
       containers:
         - name: suricata-daemon
           image: metlo/suricata-daemon

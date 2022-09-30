@@ -8,8 +8,8 @@ RUN apk add --no-cache grep procps git suricata=$VERSION
 
 WORKDIR /app
 
-ADD ../../../deploy/suricata-daemon suricata-daemon
-ADD ../../../ingestors/suricata metlo-ingestor
+ADD ../../deploy/suricata-daemon suricata-daemon
+ADD ../../ingestors/suricata metlo-ingestor
 
 RUN chmod +x /app/suricata-daemon/entrypoint.sh
 
@@ -35,4 +35,4 @@ RUN cd /etc/metlo-ingestor/ingestors/suricata && \
 # WORKDIR /var/lib/suricata/rules
 
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/app/suricata-daemon/entrypoint.sh"]
