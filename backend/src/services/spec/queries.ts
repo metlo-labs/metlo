@@ -1,3 +1,15 @@
+export const deleteOpenAPISpecDiffAlerts = `
+  DELETE
+  FROM alert
+  WHERE type = 'Open API Spec Diff'
+  AND "apiEndpointUuid" IN (
+    SELECT
+      uuid
+    FROM api_endpoint
+    WHERE "openapiSpecName" = $1
+  )
+`
+
 export const insertDataFieldQuery = `
   WITH arr_aggs as (
     SELECT

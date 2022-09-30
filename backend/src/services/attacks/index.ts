@@ -1,5 +1,9 @@
 import { In, FindOptionsWhere } from "typeorm"
-import { AttackDetailResponse, AttackResponse, GetAttackParams } from "@common/types"
+import {
+  AttackDetailResponse,
+  AttackResponse,
+  GetAttackParams,
+} from "@common/types"
 import { AppDataSource } from "data-source"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { Attack, ApiTrace } from "models"
@@ -13,20 +17,20 @@ export class AttackService {
     try {
       const attackDetail = await queryRunner.manager.findOne(Attack, {
         where: {
-          uuid: attackId
+          uuid: attackId,
         },
         relations: {
-          apiEndpoint: true
-        }
+          apiEndpoint: true,
+        },
       })
       const traces = await queryRunner.manager.find(ApiTrace, {
-        take: 50
+        take: 50,
       })
 
       return {
         attack: attackDetail,
         traces: traces,
-        validLicense: true
+        validLicense: true,
       }
     } catch (err) {
       console.error(`Error getting attack: ${err}`)
@@ -36,7 +40,9 @@ export class AttackService {
     }
   }
 
-  static async getAttacks(getAttackParams: GetAttackParams): Promise<AttackResponse> {
+  static async getAttacks(
+    getAttackParams: GetAttackParams,
+  ): Promise<AttackResponse> {
     const queryRunner = AppDataSource.createQueryRunner()
     await queryRunner.connect()
     try {

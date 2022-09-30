@@ -839,9 +839,7 @@ export async function push_files({
   const endpoint = "api/v1/log-request/single"
   const instance_name = instance_url.split("/").at(-1)
   let [key, raw] = createApiKey(`Metlo-collector-${id}`)
-  let api_key = await AppDataSource.getRepository(ApiKey).save(
-    key
-  )
+  let api_key = await AppDataSource.getRepository(ApiKey).save(key)
 
   try {
     let filepath_ingestor_out = path.normalize(
@@ -871,11 +869,11 @@ export async function push_files({
 
     const fileMap = [
       path.normalize(`${__dirname}/../generics/scripts/install.sh`) +
-      ` ${instance_name}:~/install.sh`,
+        ` ${instance_name}:~/install.sh`,
       path.normalize(`${__dirname}/../generics/scripts/install-deps.sh`) +
-      ` ${instance_name}:~/install-deps.sh`,
+        ` ${instance_name}:~/install-deps.sh`,
       path.normalize(`${__dirname}/../generics/scripts/suricata.yaml`) +
-      ` ${instance_name}:~/suricata.yaml`,
+        ` ${instance_name}:~/suricata.yaml`,
       filepath_rules_out + ` ${instance_name}:"~/local.rules"`,
       filepath_ingestor_out + ` ${instance_name}:~/metlo-ingestor.service`,
     ]

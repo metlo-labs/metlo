@@ -1,9 +1,4 @@
-import {
-  FindManyOptions,
-  IsNull,
-  LessThanOrEqual,
-  Raw,
-} from "typeorm"
+import { FindManyOptions, IsNull, LessThanOrEqual, Raw } from "typeorm"
 import { v4 as uuidv4 } from "uuid"
 import { DateTime } from "luxon"
 import {
@@ -525,9 +520,13 @@ export class JobsService {
           const paths = openApiSpec["paths"]
           const path = endpoint.path
           const method = endpoint.method.toLowerCase()
-          const tracesQb = apiTraceRepository.createQueryBuilder().where('"apiEndpointUuid" = :id', { id: endpoint.uuid })
+          const tracesQb = apiTraceRepository
+            .createQueryBuilder()
+            .where('"apiEndpointUuid" = :id', { id: endpoint.uuid })
           if (spec.updatedAt) {
-            tracesQb.andWhere('"createdAt" > :updated', { updated: spec.updatedAt })
+            tracesQb.andWhere('"createdAt" > :updated', {
+              updated: spec.updatedAt,
+            })
             tracesQb.andWhere('"createdAt" <= :curr', { curr: currTime })
           } else {
             tracesQb.andWhere('"createdAt" <= :curr', { curr: currTime })

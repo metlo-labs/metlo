@@ -2,7 +2,11 @@ import { Request, Response } from "express"
 import ApiResponseHandler from "api-response-handler"
 import { hasValidLicense } from "utils/license"
 import { AttackService } from "services/attacks"
-import { AttackDetailResponse, AttackResponse, GetAttackParams } from "@common/types"
+import {
+  AttackDetailResponse,
+  AttackResponse,
+  GetAttackParams,
+} from "@common/types"
 import Error400BadRequest from "errors/error-400-bad-request"
 
 export const getAttacksHandler = async (
@@ -40,7 +44,7 @@ export const getAttackHandler = async (
       await ApiResponseHandler.success(res, {
         validLicense,
         attack: null,
-        traces: []
+        traces: [],
       } as AttackDetailResponse)
     }
     if (!attackId) {

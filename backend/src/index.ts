@@ -153,7 +153,8 @@ const main = async () => {
   try {
     const datasource = await AppDataSource.initialize()
     console.log(
-      `Is AppDataSource Initialized? ${datasource.isInitialized ? "Yes" : "No"
+      `Is AppDataSource Initialized? ${
+        datasource.isInitialized ? "Yes" : "No"
       }`,
     )
     await initInstanceSettings()

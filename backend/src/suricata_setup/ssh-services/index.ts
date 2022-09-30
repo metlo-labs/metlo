@@ -69,9 +69,7 @@ export async function push_files({
   const endpoint = "api/v1/log-request/single"
   let conn = new SSH_CONN(keypair, remote_machine_url, username)
   let [key, raw] = createApiKey(`Metlo-collector-${id}`)
-  let api_key = await AppDataSource.getRepository(ApiKey).save(
-    key
-  )
+  let api_key = await AppDataSource.getRepository(ApiKey).save(key)
   try {
     let filepath_ingestor = `${__dirname}/../generics/scripts/metlo-ingestor-${randomUUID()}.service`
     let filepath_rules = `${__dirname}/../generics/scripts/local-${randomUUID()}.rules`
