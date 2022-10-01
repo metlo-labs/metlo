@@ -60,6 +60,9 @@ export class ApiEndpoint extends BaseEntity {
   @OneToMany(() => Alert, alert => alert.apiEndpoint)
   alerts: Alert[]
 
+  @Column({ type: "bool", default: true })
+  isAuthenticatedDetected: boolean
+
   @Column({ nullable: true })
   openapiSpecName: string
 

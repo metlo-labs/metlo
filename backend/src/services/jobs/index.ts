@@ -21,6 +21,7 @@ import { SpecService } from "services/spec"
 import {
   aggregateTracesDataHourlyQuery,
   aggregateTracesDataMinutelyQuery,
+  updateUnauthenticatedEndpoints,
 } from "./queries"
 
 interface GenerateEndpoint {
@@ -126,6 +127,18 @@ export class JobsService {
     }
     bodySpec[nonNullKey] = {
       schema: this.parseSchema(bodySpec[nonNullKey].schema, parsedBody),
+    }
+  }
+
+  static async checkForUnauthenticatedEndpoints(): Promise<void> {
+    const queryRunner = AppDataSource.createQueryRunner()
+    try {
+      await queryRunner.connect()
+      await queryRunner.query(updateUnauthenticatedEndpoints)
+    } catch (err) {
+      console.error(`Encountered error when checking for unauthenticated endpoints: ${err}`)
+    } finally {
+      await queryRunner.release()
     }
   }
 

@@ -19,6 +19,7 @@ const main = async () => {
   const testsSem = semaphore(1)
   const clearApiTracesSem = semaphore(1)
   const logAggregateStatsSem = semaphore(1)
+  const checkForUnauthenticatedSem = semaphore(1)
 
   schedule.scheduleJob("* * * * * *", () => {
     analyzeTracesSem.take(async () => {
@@ -35,6 +36,15 @@ const main = async () => {
       await JobsService.generateEndpointsFromTraces()
       console.log("Finished generating Endpoints and OpenAPI Spec Files.")
       generateEndpointsSem.leave()
+    })
+  })
+
+  schedule.scheduleJob("30 * * * * ", () => {
+    checkForUnauthenticatedSem.take(async () => {
+      console.log("\nChecking for Unauthenticated Endpoints")
+      await JobsService.checkForUnauthenticatedEndpoints()
+      console.log("Finished checking for Unauthenticated Endpoints")
+      checkForUnauthenticatedSem.leave()
     })
   })
 

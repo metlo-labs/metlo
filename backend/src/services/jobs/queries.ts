@@ -147,3 +147,17 @@ export const aggregateTracesDataHourlyQuery = `
   ON CONFLICT ON CONSTRAINT unique_constraint_hourly
   DO UPDATE SET "numCalls" = EXCLUDED."numCalls" + aggregate_trace_data_hourly."numCalls"
 `
+
+export const updateUnauthenticatedEndpoints = `
+  UPDATE api_endpoint
+  SET "isAuthenticatedDetected" = FALSE
+  WHERE uuid IN (
+    SELECT
+      DISTINCT("apiEndpointUuid")
+    FROM api_trace
+    WHERE
+      analyzed = TRUE
+      AND "sessionMeta" ->> 'authenticationProvided' = 'false'
+      AND "sessionMeta" ->> 'authenticationSuccessful' = 'true'
+  )
+`
