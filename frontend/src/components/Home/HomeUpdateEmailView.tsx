@@ -80,7 +80,7 @@ export const HomeUpdateEmailView: React.FC<{}> = () => {
             }}
           />
           <FormHelperText>
-            We'll only use this email to send you important updates about Metlo.
+            We will only use this email to send you important updates about Metlo.
           </FormHelperText>
         </FormControl>
         <Button colorScheme="blue" onClick={submit}>
