@@ -161,7 +161,16 @@ export interface Alert {
   type: AlertType
   riskScore: RiskScore
   apiEndpointUuid: string
-  apiEndpoint: ApiEndpoint
+  apiEndpoint: {
+    uuid: string
+    method: RestMethod
+    path: string
+    openapiSpecName: string
+    openapiSpec: {
+      extension: SpecExtension
+      minimizedSpecContext: Record<string, MinimizedSpecContext>
+    }
+  }
   description: string
   createdAt: Date
   updatedAt: Date
@@ -468,4 +477,9 @@ export interface ConnectionInfo {
   name: string
   aws?: Omit<AWS_CONNECTION, "secret_access_key" | "access_id" | "keypair">
   gcp?: Omit<GCP_CONNECTION, "key_file">
+}
+
+export interface MinimizedSpecContext {
+  lineNumber: number
+  minimizedSpec: string
 }

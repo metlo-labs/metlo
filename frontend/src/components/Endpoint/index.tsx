@@ -134,7 +134,12 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
               <TraceList traces={endpoint.traces} uuid={uuid as string} />
             </TabPanel>
             <TabPanel p="0" h="full">
-              <AlertTab initAlerts={alerts} initAlertParams={initAlertParams} />
+              <AlertTab
+                initAlerts={alerts}
+                initAlertParams={initAlertParams}
+                providedSpecString={endpoint.openapiSpec.spec}
+                providedSpecExtension={endpoint.openapiSpec.extension}
+              />
             </TabPanel>
             <TabPanel p="0" h="full">
               <TestList endpoint={endpoint} />

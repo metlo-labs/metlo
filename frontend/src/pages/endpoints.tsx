@@ -75,6 +75,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
       .map(e => e as DataClass),
     offset: 0,
     searchQuery: "",
+    isAuthenticatedDetected: null,
     limit: ENDPOINT_PAGE_LIMIT,
   }
   const hostsPromise = getHosts()

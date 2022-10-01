@@ -441,6 +441,7 @@ export class SpecService {
   static async findOpenApiSpecDiff(
     trace: ApiTrace,
     endpoint: ApiEndpoint,
+    queryRunner: QueryRunner,
   ): Promise<Alert[]> {
     try {
       const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec)
@@ -547,8 +548,8 @@ export class SpecService {
         errorItems,
         endpoint.uuid,
         trace,
-        openApiSpec.spec,
-        openApiSpec.extension,
+        openApiSpec,
+        queryRunner,
       )
     } catch (err) {
       console.error(`Error finding OpenAPI Spec diff: ${err}`)

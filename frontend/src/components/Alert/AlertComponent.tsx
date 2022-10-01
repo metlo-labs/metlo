@@ -17,11 +17,10 @@ import {
 } from "@chakra-ui/react"
 import { RiEyeOffFill } from "@react-icons/all-files/ri/RiEyeOffFill"
 import { RiEyeFill } from "@react-icons/all-files/ri/RiEyeFill"
-import { AiOutlineExclamationCircle } from "@react-icons/all-files/ai/AiOutlineExclamationCircle"
 import { FiCheckCircle } from "@react-icons/all-files/fi/FiCheckCircle"
 import { AiOutlineFileSearch } from "@react-icons/all-files/ai/AiOutlineFileSearch"
 import { Alert, UpdateAlertParams } from "@common/types"
-import { Status, UpdateAlertType } from "@common/enums"
+import { SpecExtension, Status, UpdateAlertType } from "@common/enums"
 import { RISK_TO_COLOR } from "~/constants"
 import { AlertPanel } from "./AlertPanel"
 import { AlertDetail } from "./AlertDetail"
@@ -33,12 +32,16 @@ interface AlertComponentProps {
     updateAlertParams: UpdateAlertParams,
   ) => Promise<void>
   updating: boolean
+  providedSpecString?: string
+  providedSpecExtension?: SpecExtension
 }
 
 export const AlertComponent: React.FC<AlertComponentProps> = ({
   alert,
   handleUpdateAlert,
   updating,
+  providedSpecString,
+  providedSpecExtension,
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [resolutionMessage, setResolutionMessage] = useState<string>(
@@ -150,6 +153,8 @@ export const AlertComponent: React.FC<AlertComponentProps> = ({
                 alert={alert}
                 resolutionMessage={resolutionMessage}
                 setResolutionMessage={setResolutionMessage}
+                providedSpecString={providedSpecString}
+                providedSpecExtension={providedSpecExtension}
               />
             )}
           </ModalBody>

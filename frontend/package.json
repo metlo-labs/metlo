@@ -26,8 +26,6 @@
     "file-saver": "^2.0.5",
     "framer-motion": "^6.3.0",
     "js-yaml": "^4.1.0",
-    "js-yaml-source-map": "^0.2.2",
-    "json-source-map": "^0.6.1",
     "lodash": "^4.17.21",
     "luxon": "^3.0.1",
     "next": "12.2.5",

@@ -3,15 +3,20 @@ import { useToast, Box } from "@chakra-ui/react"
 import { Alert, GetAlertParams, UpdateAlertParams } from "@common/types"
 import { getAlerts, updateAlert } from "api/alerts"
 import { AlertList } from "components/Alert/AlertList"
+import { SpecExtension } from "@common/enums"
 
 interface AlertTabProps {
   initAlertParams: GetAlertParams
   initAlerts: Alert[]
+  providedSpecString: string
+  providedSpecExtension: SpecExtension
 }
 
 export const AlertTab: React.FC<AlertTabProps> = ({
   initAlertParams,
   initAlerts,
+  providedSpecString,
+  providedSpecExtension,
 }) => {
   const [alerts, setAlerts] = useState<Alert[]>(initAlerts)
   const [fetching, setFetching] = useState<boolean>(false)
@@ -70,6 +75,8 @@ export const AlertTab: React.FC<AlertTabProps> = ({
         params={params}
         setParams={setParams}
         fetching={fetching}
+        providedSpecString={providedSpecString}
+        providedSpecExtension={providedSpecExtension}
       />
     </Box>
   )

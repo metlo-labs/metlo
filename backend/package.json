@@ -43,6 +43,8 @@
     "express-session": "^1.17.3",
     "ioredis": "^5.2.3",
     "js-yaml": "^4.1.0",
+    "js-yaml-source-map": "^0.2.2",
+    "json-source-map": "^0.6.1",
     "lodash": "^4.17.21",
     "luxon": "^3.0.3",
     "memory-cache": "^0.2.0",

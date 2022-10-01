@@ -21,7 +21,7 @@ import {
 } from "@chakra-ui/react"
 import { FiFilter } from "@react-icons/all-files/fi/FiFilter"
 import { Alert, GetAlertParams, UpdateAlertParams } from "@common/types"
-import { AlertType, RiskScore, Status } from "@common/enums"
+import { AlertType, RiskScore, SpecExtension, Status } from "@common/enums"
 import { ALERT_PAGE_LIMIT } from "~/constants"
 import { AlertComponent } from "components/Alert/AlertComponent"
 import EmptyView from "components/utils/EmptyView"
@@ -48,6 +48,8 @@ interface AlertListProps {
   pagination?: boolean
   totalCount?: number
   page?: number
+  providedSpecString?: string
+  providedSpecExtension?: SpecExtension
 }
 
 export const AlertList: React.FC<AlertListProps> = ({
@@ -61,6 +63,8 @@ export const AlertList: React.FC<AlertListProps> = ({
   page,
   handleUpdateAlert,
   updating,
+  providedSpecString,
+  providedSpecExtension,
 }) => {
   const scrollDivRef = useRef(null)
   const { isOpen, onOpen, onClose } = useDisclosure()
@@ -294,6 +298,8 @@ export const AlertList: React.FC<AlertListProps> = ({
                   alert={listAlert}
                   handleUpdateAlert={handleUpdateAlert}
                   updating={updating}
+                  providedSpecString={providedSpecString}
+                  providedSpecExtension={providedSpecExtension}
                 />
               </Box>
             ))}

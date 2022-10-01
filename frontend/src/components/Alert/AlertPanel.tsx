@@ -12,13 +12,10 @@ import {
 } from "@chakra-ui/react"
 import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch"
 import { useRouter } from "next/router"
-import jsonMap from "json-source-map"
-import yaml from "js-yaml"
-import SourceMap from "js-yaml-source-map"
 import darkTheme from "prism-react-renderer/themes/duotoneDark"
 import lightTheme from "prism-react-renderer/themes/github"
 import Highlight, { defaultProps } from "prism-react-renderer"
-import { AlertType, SpecExtension } from "@common/enums"
+import { AlertType } from "@common/enums"
 import { getPathTokens } from "@common/utils"
 import { Alert } from "@common/types"
 import { METHOD_TO_COLOR, RISK_TO_COLOR } from "~/constants"
@@ -44,104 +41,80 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({ alert }) => {
 
   switch (alert.type) {
     case AlertType.OPEN_API_SPEC_DIFF:
-      let lineNumber = null
       const contextSpec = alert.context as SpecDiffContext
-      let range = 5
-      if (contextSpec.specExtension) {
-        switch (contextSpec.specExtension) {
-          case SpecExtension.JSON:
-            const result = jsonMap.parse(contextSpec.spec)
-            let pathKey = ""
-            for (let i = 0; i < contextSpec.pathPointer?.length; i++) {
-              let pathToken = contextSpec.pathPointer[i]
-              pathToken = pathToken.replaceAll("/", "~1")
-              pathKey += `/${pathToken}`
-            }
-            lineNumber = result.pointers?.[pathKey]?.key?.line
-            if (lineNumber) {
-              lineNumber += 1
-            }
-            break
-          case SpecExtension.YAML:
-            const map = new SourceMap()
-            yaml.load(contextSpec.spec, { listener: map.listen() })
-            lineNumber = map.lookup(contextSpec.pathPointer).line
-            if (lineNumber) {
-              lineNumber -= 1
-            }
-            break
-          default:
-            break
-        }
-      }
-      panel = (
-        <Box w="full">
-          <Highlight
-            {...defaultProps}
-            theme={theme}
-            code={contextSpec.spec}
-            language={contextSpec.specExtension || "json"}
-          >
-            {({ className, style, tokens, getLineProps, getTokenProps }) => {
-              tokens = tokens.filter(
-                (line, i) => i >= lineNumber - range && i <= lineNumber + range,
-              )
-              const startLine = lineNumber - range
-              return (
-                <pre
-                  className={className}
-                  style={{
-                    ...style,
-                    fontSize: "14px",
-                    padding: "8px",
-                    overflowX: "hidden",
-                    minHeight: "100%",
-                  }}
-                >
-                  {tokens.map((line, i) => {
-                    const lineProps = getLineProps({ line, key: i })
-                    if (startLine + i + 1 === lineNumber) {
-                      lineProps.className = `${lineProps.className} highlight-line ${colorMode}`
-                    }
-                    return (
-                      <pre
-                        style={{
-                          textAlign: "left",
-                          margin: "1em 0",
-                          padding: "0.5em",
-                          overflow: "scroll",
-                        }}
-                        key={i.toString()}
-                        {...lineProps}
-                      >
-                        <span
+      const minimizedSpecDetail =
+        alert.apiEndpoint.openapiSpec.minimizedSpecContext[
+          contextSpec.pathPointer.join(".")
+        ]
+      const specString = minimizedSpecDetail?.minimizedSpec
+      const lineNumber = minimizedSpecDetail?.lineNumber
+      if (lineNumber && specString) {
+        panel = (
+          <Box w="full">
+            <Highlight
+              {...defaultProps}
+              theme={theme}
+              code={specString}
+              language={alert.apiEndpoint?.openapiSpec?.extension || "json"}
+            >
+              {({ className, style, tokens, getLineProps, getTokenProps }) => {
+                const startLine = lineNumber - 5
+                return (
+                  <pre
+                    className={className}
+                    style={{
+                      ...style,
+                      fontSize: "14px",
+                      padding: "8px",
+                      overflowX: "hidden",
+                      minHeight: "100%",
+                    }}
+                  >
+                    {tokens.map((line, i) => {
+                      const lineProps = getLineProps({ line, key: i })
+                      if (startLine + i + 1 === lineNumber) {
+                        lineProps.className = `${lineProps.className} highlight-line ${colorMode}`
+                      }
+                      return (
+                        <pre
                           style={{
-                            display: "table-cell",
-                            textAlign: "right",
-                            paddingRight: "1em",
-                            userSelect: "none",
-                            opacity: "0.5",
+                            textAlign: "left",
+                            margin: "1em 0",
+                            padding: "0.5em",
+                            overflow: "scroll",
                           }}
+                          key={i.toString()}
+                          {...lineProps}
                         >
-                          {startLine + i + 1}
-                        </span>
-                        <span style={{ display: "table-cell" }}>
-                          {line.map((token, key) => (
-                            <span
-                              key={key.toString()}
-                              {...getTokenProps({ token, key })}
-                            />
-                          ))}
-                        </span>
-                      </pre>
-                    )
-                  })}
-                </pre>
-              )
-            }}
-          </Highlight>
-        </Box>
-      )
+                          <span
+                            style={{
+                              display: "table-cell",
+                              textAlign: "right",
+                              paddingRight: "1em",
+                              userSelect: "none",
+                              opacity: "0.5",
+                            }}
+                          >
+                            {startLine + i + 1}
+                          </span>
+                          <span style={{ display: "table-cell" }}>
+                            {line.map((token, key) => (
+                              <span
+                                key={key.toString()}
+                                {...getTokenProps({ token, key })}
+                              />
+                            ))}
+                          </span>
+                        </pre>
+                      )
+                    })}
+                  </pre>
+                )
+              }}
+            </Highlight>
+          </Box>
+        )
+      }
       break
     case AlertType.QUERY_SENSITIVE_DATA:
       const contextSensitiveQuery = alert.context as SensitiveQueryParamContext

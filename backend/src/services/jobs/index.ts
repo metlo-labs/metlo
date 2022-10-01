@@ -136,7 +136,9 @@ export class JobsService {
       await queryRunner.connect()
       await queryRunner.query(updateUnauthenticatedEndpoints)
     } catch (err) {
-      console.error(`Encountered error when checking for unauthenticated endpoints: ${err}`)
+      console.error(
+        `Encountered error when checking for unauthenticated endpoints: ${err}`,
+      )
     } finally {
       await queryRunner.release()
     }
@@ -144,8 +146,8 @@ export class JobsService {
 
   static async analyzeTraces(): Promise<void> {
     const queryRunner = AppDataSource.createQueryRunner()
-    await queryRunner.connect()
     try {
+      await queryRunner.connect()
       const qb = queryRunner.manager
         .createQueryBuilder()
         .from(ApiTrace, "traces")
@@ -172,6 +174,7 @@ export class JobsService {
             let alerts = await SpecService.findOpenApiSpecDiff(
               trace,
               apiEndpoint,
+              queryRunner,
             )
             const sensitiveDataAlerts =
               await AlertService.createDataFieldAlerts(

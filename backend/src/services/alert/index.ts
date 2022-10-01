@@ -4,9 +4,13 @@ import {
   In,
   FindOptionsOrder,
   Not,
+  QueryRunner,
 } from "typeorm"
+import jsonMap from "json-source-map"
+import yaml from "js-yaml"
+import SourceMap from "js-yaml-source-map"
 import { AppDataSource } from "data-source"
-import { Alert, ApiEndpoint, ApiTrace, DataField } from "models"
+import { Alert, ApiEndpoint, ApiTrace, DataField, OpenApiSpec } from "models"
 import {
   AlertType,
   DataSection,
@@ -141,13 +145,38 @@ export class AlertService {
     }
 
     const alerts = await alertRepository.findAndCount({
+      //@ts-ignore
+      select: {
+        uuid: true,
+        type: true,
+        riskScore: true,
+        description: true,
+        createdAt: true,
+        updatedAt: true,
+        status: true,
+        resolutionMessage: true,
+        context: true,
+        apiEndpointUuid: true,
+        apiEndpoint: {
+          method: true,
+          uuid: true,
+          path: true,
+          openapiSpecName: true,
+          openapiSpec: {
+            minimizedSpecContext: true,
+            extension: true,
+          },
+        },
+      },
       where: whereConditions,
       ...paginationParams,
       relations: {
-        apiEndpoint: true,
+        apiEndpoint: {
+          openapiSpec: true,
+        },
       },
       order: {
-        status: "ASC",
+        status: "DESC",
         ...orderParams,
         createdAt: "DESC",
       },
@@ -380,8 +409,8 @@ export class AlertService {
     alertItems: Record<string, string[]>,
     apiEndpointUuid: string,
     apiTrace: ApiTrace,
-    specString: string,
-    specExtension: SpecExtension,
+    openApiSpec: OpenApiSpec,
+    queryRunner: QueryRunner,
   ): Promise<Alert[]> {
     try {
       if (!alertItems) {
@@ -403,15 +432,54 @@ export class AlertService {
           newAlert.riskScore =
             ALERT_TYPE_TO_RISK_SCORE[AlertType.OPEN_API_SPEC_DIFF]
           newAlert.apiEndpointUuid = apiEndpointUuid
+          const pathPointer = alertItems[key]
+          const minimizedSpecKey = pathPointer.join(".")
           newAlert.context = {
-            pathPointer: alertItems[key],
+            pathPointer,
             trace: apiTrace,
-            spec: specString,
-            specExtension,
+          }
+          if (!openApiSpec.minimizedSpecContext[minimizedSpecKey]) {
+            let lineNumber = null
+            if (openApiSpec.extension === SpecExtension.JSON) {
+              const result = jsonMap.parse(openApiSpec.spec)
+              let pathKey = ""
+              for (let i = 0; i < pathPointer?.length; i++) {
+                let pathToken = pathPointer[i]
+                pathToken = pathToken.replace(/\//g, "~1")
+                pathKey += `/${pathToken}`
+              }
+              lineNumber = result.pointers?.[pathKey]?.key?.line
+              if (lineNumber) {
+                lineNumber += 1
+              }
+            } else if (openApiSpec.extension === SpecExtension.YAML) {
+              const map = new SourceMap()
+              yaml.load(openApiSpec.spec, { listener: map.listen() })
+              lineNumber = map.lookup(pathPointer).line
+              if (lineNumber) {
+                lineNumber -= 1
+              }
+            }
+            if (lineNumber) {
+              const minimizedString = openApiSpec.spec
+                .split(/\r?\n/)
+                .slice(lineNumber - 5, lineNumber + 5)
+                .join("\n")
+              openApiSpec.minimizedSpecContext[minimizedSpecKey] = {
+                lineNumber,
+                minimizedSpec: minimizedString,
+              }
+            }
           }
           newAlert.description = key
           alerts.push(newAlert)
         }
+        await queryRunner.manager
+          .createQueryBuilder()
+          .update(OpenApiSpec)
+          .set({ minimizedSpecContext: openApiSpec.minimizedSpecContext })
+          .where("name = :name", { name: openApiSpec.name })
+          .execute()
       }
       return alerts
     } catch (err) {
