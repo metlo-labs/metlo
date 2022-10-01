@@ -102,6 +102,7 @@ export interface GetEndpointParams {
   riskScores?: RiskScore[]
   dataClasses?: DataClass[]
   searchQuery?: string
+  isAuthenticatedDetected?: boolean
   offset?: number
   limit?: number
 }
@@ -197,6 +198,7 @@ export interface ApiEndpoint {
   owner: string
   riskScore: RiskScore
   openapiSpecName: string
+  isAuthenticatedDetected: boolean
 }
 
 export interface ApiEndpointDetailed extends ApiEndpoint {

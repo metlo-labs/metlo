@@ -73,6 +73,12 @@ export class GetEndpointsService {
           path: ILike(`%${getEndpointParams.searchQuery}%`),
         }
       }
+      if (getEndpointParams?.isAuthenticatedDetected) {
+        whereConditions= {
+          ...whereConditions,
+          isAuthenticatedDetected: getEndpointParams.isAuthenticatedDetected
+        }
+      }
 
       return await apiEndpointRepository.findAndCount({
         select: {

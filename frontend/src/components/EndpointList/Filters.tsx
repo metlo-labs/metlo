@@ -121,6 +121,30 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
               }
             />
           </Box>
+          <Box w={{ base: "full", lg: "xs" }} zIndex="1000">
+            <FilterHeader title="Detected Authentication" />
+            <Select
+              defaultValue={
+                params &&
+                { label: "All", value: null }
+              }
+              size="sm"
+              options={[
+                { label: "All", value: null },
+                { label: "Authenticated", value: true },
+                { label: "Unauthenticated", value: false }
+              ]}
+              placeholder="Filter by Detected Authentication"
+              instanceId="endpoint-tbl-env-isAuthenticatedDetected"
+              onChange={e =>
+                setParams(oldParams => ({
+                  ...oldParams,
+                  isAuthenticatedDetected: e.value,
+                  offset: 0,
+                }))
+              }
+            />
+          </Box>
         </Stack>
         <InputGroup>
           <InputLeftElement pointerEvents="none">
