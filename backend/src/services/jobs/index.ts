@@ -539,9 +539,9 @@ export class JobsService {
           const tracesQb = apiTraceRepository
             .createQueryBuilder()
             .where('"apiEndpointUuid" = :id', { id: endpoint.uuid })
-          if (spec.updatedAt) {
+          if (spec.specUpdatedAt) {
             tracesQb.andWhere('"createdAt" > :updated', {
-              updated: spec.updatedAt,
+              updated: spec.specUpdatedAt,
             })
             tracesQb.andWhere('"createdAt" <= :curr', { curr: currTime })
           } else {
@@ -674,7 +674,11 @@ export class JobsService {
           endpoint.openapiSpec = spec
         }
         spec.spec = JSON.stringify(openApiSpec, null, 2)
+        if (!spec.createdAt) {
+          spec.createdAt = currTime
+        }
         spec.updatedAt = currTime
+        spec.specUpdatedAt = currTime
         spec.extension = SpecExtension.JSON
         await DatabaseService.executeTransactions([[spec], endpoints], [], true)
       }

@@ -169,6 +169,7 @@ export class SpecService {
     specString: string,
     existingQueryRunner?: QueryRunner,
   ): Promise<void> {
+    const currTime = new Date()
     const specVersion = getOpenAPISpecVersion(specObject)
     if (!specVersion) {
       throw new Error422UnprocessableEntity(
@@ -211,8 +212,11 @@ export class SpecService {
       existingSpec = new OpenApiSpec()
       existingSpec.name = fileName
       existingSpec.extension = extension
+      existingSpec.createdAt = currTime
     }
     existingSpec.spec = specString
+    existingSpec.specUpdatedAt = currTime
+    existingSpec.updatedAt = currTime
     const pathKeys = Object.keys(paths)
     const endpointsMap: Record<string, EndpointsMap> = {}
     let specHosts: Set<string> = new Set()

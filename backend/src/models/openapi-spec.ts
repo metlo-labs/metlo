@@ -26,6 +26,9 @@ export class OpenApiSpec extends BaseEntity {
   @UpdateDateColumn({ type: "timestamptz" })
   updatedAt: Date
 
+  @Column({ type: "timestamptz" })
+  specUpdatedAt: Date
+
   @Column({ type: "enum", enum: SpecExtension, default: SpecExtension.JSON })
   extension: SpecExtension
 
