@@ -63,6 +63,9 @@ export class ApiEndpoint extends BaseEntity {
   @Column({ type: "bool", default: true })
   isAuthenticatedDetected: boolean
 
+  @Column({ type: "bool", nullable: true })
+  isAuthenticatedUserSet: boolean
+
   @Column({ nullable: true })
   openapiSpecName: string
 

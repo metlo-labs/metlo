@@ -1,6 +1,14 @@
-import React from "react"
+import React, { useState } from "react"
 import { ApiEndpointDetailed, Usage } from "@common/types"
-import { Box, Badge, Grid, GridItem, Stack } from "@chakra-ui/react"
+import {
+  Box,
+  Badge,
+  Grid,
+  GridItem,
+  Stack,
+  HStack,
+  Checkbox,
+} from "@chakra-ui/react"
 import dynamic from "next/dynamic"
 import { DataAttribute, DataHeading } from "components/utils/Card"
 import EndpointUsageChart from "./UsageChart"
@@ -8,6 +16,7 @@ import { RISK_TO_COLOR } from "~/constants"
 import EndpointPIIChart from "./PIIChart"
 import { getDateTimeString } from "utils"
 import { DataTag, Status } from "@common/enums"
+import { updateEndpointAuthenticated } from "api/endpoints"
 
 const SpecComponent = dynamic(() => import("./SpecComponent"), { ssr: false })
 
@@ -21,6 +30,20 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
     const piiFields = endpoint.dataFields.filter(
       field => field.dataTag === DataTag.PII,
     )
+    const [authenticated, setAuthenticated] = useState(
+      endpoint.isAuthenticatedUserSet,
+    )
+
+    const handleAuthenticatedCheck = (
+      checked: boolean,
+      authenticated: boolean,
+    ) => {
+      if (!checked) {
+        authenticated = null
+      }
+      updateEndpointAuthenticated(endpoint.uuid, authenticated)
+      setAuthenticated(authenticated)
+    }
 
     return (
       <Stack
@@ -72,6 +95,27 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
               <DataAttribute>
                 {getDateTimeString(endpoint.lastActive) || "N/A"}
               </DataAttribute>
+            </GridItem>
+            <GridItem>
+              <DataHeading>Authenticated</DataHeading>
+              <HStack>
+                <Checkbox
+                  isChecked={authenticated}
+                  onChange={e =>
+                    handleAuthenticatedCheck(e.target.checked, true)
+                  }
+                >
+                  Yes
+                </Checkbox>
+                <Checkbox
+                  isChecked={authenticated !== null && !authenticated}
+                  onChange={e =>
+                    handleAuthenticatedCheck(e.target.checked, false)
+                  }
+                >
+                  No
+                </Checkbox>
+              </HStack>
             </GridItem>
             {usage.length > 0 && (
               <GridItem w="100%" colSpan={2}>

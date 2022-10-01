@@ -10,6 +10,7 @@ import {
   getEndpointsHandler,
   getHostsHandler,
   getUsageHandler,
+  updateEndpointIsAuthenticated,
 } from "api/get-endpoints"
 import {
   deleteSpecHandler,
@@ -97,6 +98,10 @@ app.get("/api/v1/endpoints/hosts", getHostsHandler)
 app.get("/api/v1/endpoints", getEndpointsHandler)
 app.get("/api/v1/endpoint/:endpointId", getEndpointHandler)
 app.get("/api/v1/endpoint/:endpointId/usage", getUsageHandler)
+app.put(
+  "/api/v1/endpoint/:endpointId/authenticated",
+  updateEndpointIsAuthenticated,
+)
 
 app.post("/api/v1/spec/new", MulterSource.single("file"), uploadNewSpecHandler)
 app.delete("/api/v1/spec/:specFileName", deleteSpecHandler)

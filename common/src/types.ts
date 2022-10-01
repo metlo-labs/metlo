@@ -209,6 +209,7 @@ export interface ApiEndpoint {
   riskScore: RiskScore
   openapiSpecName: string
   isAuthenticatedDetected: boolean
+  isAuthenticatedUserSet: boolean
 }
 
 export interface ApiEndpointDetailed extends ApiEndpoint {

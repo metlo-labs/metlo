@@ -53,3 +53,20 @@ export const getUsageHandler = async (
     await ApiResponseHandler.error(res, err)
   }
 }
+
+export const updateEndpointIsAuthenticated = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { endpointId } = req.params
+    const params: { authenticated: boolean } = req.body
+    await GetEndpointsService.updateIsAuthenticated(
+      endpointId,
+      params.authenticated,
+    )
+    await ApiResponseHandler.success(res)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}

@@ -69,3 +69,12 @@ export const getUsage = async (endpointId: string): Promise<Usage[]> => {
     return []
   }
 }
+
+export const updateEndpointAuthenticated = async (
+  endpointId: string,
+  authenticated: boolean,
+): Promise<void> => {
+  await axios.put(`${getAPIURL()}/endpoint/${endpointId}/authenticated`, {
+    authenticated,
+  })
+}

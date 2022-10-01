@@ -18,6 +18,17 @@ import Error404NotFound from "errors/error-404-not-found"
 import { getRiskScore } from "utils"
 
 export class GetEndpointsService {
+  static async updateIsAuthenticated(
+    apiEndpointUuid: string,
+    authenticated: boolean,
+  ): Promise<void> {
+    await AppDataSource.createQueryBuilder()
+      .update(ApiEndpoint)
+      .set({ isAuthenticatedUserSet: authenticated })
+      .where("uuid = :id", { id: apiEndpointUuid })
+      .execute()
+  }
+
   static async updateEndpointRiskScore(
     apiEndpointUuid: string,
   ): Promise<ApiEndpoint> {
