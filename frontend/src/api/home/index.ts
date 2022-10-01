@@ -17,7 +17,9 @@ export const getSummary = async (): Promise<Summary> => {
 
 export const getInstanceSettings = async (): Promise<InstanceSettings> => {
   try {
-    const resp = await axios.get<InstanceSettings>(`${getAPIURL()}/instance-settings`)
+    const resp = await axios.get<InstanceSettings>(
+      `${getAPIURL()}/instance-settings`,
+    )
     return resp.data
   } catch (err) {
     console.error(`Error fetching instance settings: ${err}`)

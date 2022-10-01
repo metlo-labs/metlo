@@ -51,7 +51,10 @@ import { getVulnerabilitySummaryHandler } from "api/alert/vulnerability"
 import { getAttackHandler, getAttacksHandler } from "api/attacks"
 import { inSandboxMode } from "utils"
 import { createKey, deleteKey, listKeys } from "api/keys"
-import { getInstanceSettingsHandler, putInstanceSettingsHandler } from "api/settings"
+import {
+  getInstanceSettingsHandler,
+  putInstanceSettingsHandler,
+} from "api/settings"
 
 const app: Express = express()
 const port = process.env.PORT || 8080

@@ -200,7 +200,6 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
   const [rightPanel, setRightPanel] = useState(null)
   const scrollRef = useRef(null)
   const topDivRef = useRef(null)
-  console.log(providedSpecExtension)
 
   const executeScroll = () => {
     scrollRef.current?.scrollIntoView()

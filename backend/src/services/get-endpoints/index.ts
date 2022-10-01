@@ -74,9 +74,9 @@ export class GetEndpointsService {
         }
       }
       if (getEndpointParams?.isAuthenticatedDetected) {
-        whereConditions= {
+        whereConditions = {
           ...whereConditions,
-          isAuthenticatedDetected: getEndpointParams.isAuthenticatedDetected
+          isAuthenticatedDetected: getEndpointParams.isAuthenticatedDetected,
         }
       }
 
