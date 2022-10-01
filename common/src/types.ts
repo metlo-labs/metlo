@@ -164,6 +164,7 @@ export interface Alert {
   apiEndpoint: {
     uuid: string
     method: RestMethod
+    host: string
     path: string
     openapiSpecName: string
     openapiSpec: {

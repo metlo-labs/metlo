@@ -161,6 +161,7 @@ export class AlertService {
           method: true,
           uuid: true,
           path: true,
+          host: true,
           openapiSpecName: true,
           openapiSpec: {
             minimizedSpecContext: true,
