@@ -51,6 +51,7 @@ import { getVulnerabilitySummaryHandler } from "api/alert/vulnerability"
 import { getAttackHandler, getAttacksHandler } from "api/attacks"
 import { inSandboxMode } from "utils"
 import { createKey, deleteKey, listKeys } from "api/keys"
+import { getInstanceSettingsHandler, putInstanceSettingsHandler } from "api/settings"
 
 const app: Express = express()
 const port = process.env.PORT || 8080
@@ -85,6 +86,8 @@ app.get("/api/v1", (req: Request, res: Response) => {
 })
 
 app.get("/api/v1/summary", getSummaryHandler)
+app.get("/api/v1/instance-settings", getInstanceSettingsHandler)
+app.put("/api/v1/instance-settings", putInstanceSettingsHandler)
 app.get("/api/v1/sensitive-data-summary", getSensitiveDataSummaryHandler)
 app.get("/api/v1/vulnerability-summary", getVulnerabilitySummaryHandler)
 app.get("/api/v1/endpoints/hosts", getHostsHandler)

@@ -17,6 +17,8 @@ export const logAggregatedStats = async () => {
     method: "POST",
     data: {
       instanceUUID: settings.uuid,
+      email: settings.updateEmail,
+      skippedEmail: settings.skippedUpdateEmail,
       eventName: "instanceAggregatedStats",
       data: {
         numEndpoints: counts.endpointsTracked,

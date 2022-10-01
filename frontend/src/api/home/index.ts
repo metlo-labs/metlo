@@ -1,5 +1,5 @@
 import axios from "axios"
-import { Summary } from "@common/types"
+import { Summary, InstanceSettings } from "@common/types"
 import { getAPIURL } from "~/constants"
 
 export const getSummary = async (): Promise<Summary> => {
@@ -11,6 +11,16 @@ export const getSummary = async (): Promise<Summary> => {
     return null
   } catch (err) {
     console.error(`Error fetching summary stats: ${err}`)
+    return null
+  }
+}
+
+export const getInstanceSettings = async (): Promise<InstanceSettings> => {
+  try {
+    const resp = await axios.get<InstanceSettings>(`${getAPIURL()}/instance-settings`)
+    return resp.data
+  } catch (err) {
+    console.error(`Error fetching instance settings: ${err}`)
     return null
   }
 }

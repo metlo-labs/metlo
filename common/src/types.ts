@@ -371,6 +371,12 @@ export interface TrafficFilterRuleSpecs {
   direction: "out" | "in"
 }
 
+export interface InstanceSettings {
+  uuid: string
+  updateEmail: string
+  skippedUpdateEmail: boolean
+}
+
 export interface CONNECTIONS_BASE {
   id: string
   name: string
