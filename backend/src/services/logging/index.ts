@@ -17,8 +17,6 @@ export const logAggregatedStats = async () => {
     method: "POST",
     data: {
       instanceUUID: settings.uuid,
-      email: settings.updateEmail,
-      skippedEmail: settings.skippedUpdateEmail,
       eventName: "instanceAggregatedStats",
       data: {
         numEndpoints: counts.endpointsTracked,
@@ -26,6 +24,8 @@ export const logAggregatedStats = async () => {
         openAlerts: counts.newAlerts,
         openHighRiskAlerts: counts.highRiskAlerts,
         piiDataFields: counts.piiDataFields,
+        email: settings.updateEmail,
+        skippedEmail: settings.skippedUpdateEmail,
       },
     },
   })
