@@ -161,3 +161,40 @@ export const updateUnauthenticatedEndpoints = `
       AND "sessionMeta" ->> 'authenticationSuccessful' = 'true'
   )
 `
+
+export const getUnauthenticatedEndpointsSensitiveData = `
+  With endpoints AS (
+    SELECT
+      endpoint.uuid,
+      endpoint.path,
+      endpoint.method,
+      endpoint.host
+    FROM
+      "api_endpoint" "endpoint"
+      LEFT JOIN "data_field" "field" ON "field" ."apiEndpointUuid" = "endpoint" ."uuid"
+    WHERE
+      (
+        endpoint."isAuthenticatedDetected" = FALSE
+        OR endpoint."isAuthenticatedUserSet" = FALSE
+      )
+      AND field."dataSection" = $1
+      AND field."dataTag" = $2
+    GROUP BY
+      1
+  )
+  SELECT
+    *
+  FROM
+    endpoints
+  WHERE
+    endpoints.uuid NOT IN (
+      SELECT
+        "apiEndpointUuid"
+      FROM
+        alert
+      WHERE
+        alert."apiEndpointUuid" = endpoints.uuid
+        AND alert.type = $3
+        AND alert.status != $4
+    )
+`

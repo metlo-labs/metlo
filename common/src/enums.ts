@@ -55,6 +55,7 @@ export enum AlertType {
   PATH_SENSITIVE_DATA = "Sensitive Data in Path Params",
   BASIC_AUTHENTICATION_DETECTED = "Basic Authentication Detected",
   UNSECURED_ENDPOINT_DETECTED = "Endpoint not secured by SSL",
+  UNAUTHENTICATED_ENDPOINT_SENSITIVE_DATA = "Unauthenticated Endpoint returning Sensitive Data",
 }
 
 export const VULNERABILITY_ALERT_TYPES = [
@@ -63,6 +64,7 @@ export const VULNERABILITY_ALERT_TYPES = [
   AlertType.PATH_SENSITIVE_DATA,
   AlertType.BASIC_AUTHENTICATION_DETECTED,
   AlertType.UNSECURED_ENDPOINT_DETECTED,
+  AlertType.UNAUTHENTICATED_ENDPOINT_SENSITIVE_DATA,
 ]
 
 export enum AttackType {

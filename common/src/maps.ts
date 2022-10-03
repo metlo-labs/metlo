@@ -86,6 +86,7 @@ export const ALERT_TYPE_TO_RISK_SCORE: Record<AlertType, RiskScore> = {
   [AlertType.PATH_SENSITIVE_DATA]: RiskScore.HIGH,
   [AlertType.BASIC_AUTHENTICATION_DETECTED]: RiskScore.MEDIUM,
   [AlertType.UNSECURED_ENDPOINT_DETECTED]: RiskScore.HIGH,
+  [AlertType.UNAUTHENTICATED_ENDPOINT_SENSITIVE_DATA]: RiskScore.HIGH,
 }
 
 export const ATTACK_TYPE_TO_RISK_SCORE: Record<AttackType, RiskScore> = {

@@ -24,6 +24,7 @@ import { getDateTimeString } from "utils"
 import { METHOD_TO_COLOR, STATUS_TO_COLOR } from "~/constants"
 import TraceDetail from "components/Endpoint/TraceDetail"
 import { getSpec } from "api/apiSpecs"
+import Link from "next/link"
 
 export interface SpecDiffContext {
   pathPointer: string[]
@@ -244,6 +245,17 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
           setLeftPanel(res.leftPanel)
           setRightPanel(res.rightPanel)
           setLoadingSpec(false)
+          break
+        case AlertType.UNAUTHENTICATED_ENDPOINT_SENSITIVE_DATA:
+          setLeftPanel(
+            <Box alignSelf="flex-start">
+              <Link href={`/endpoint/${alert.apiEndpointUuid}?tab=fields`}>
+                <Text as="button" fontWeight="semibold">
+                  View Endpoint →
+                </Text>
+              </Link>
+            </Box>,
+          )
           break
         case AlertType.PII_DATA_DETECTED:
         case AlertType.QUERY_SENSITIVE_DATA:
