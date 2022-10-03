@@ -82,32 +82,4 @@ This repo is entirely MIT licensed. Features like user management, user roles an
 
 ## Development
 
-**1. Build the Common Modules**
-
-```bash
-$ cd common
-$ yarn watch
-```
-
-**2. Start the Frontend**
-
-```bash
-$ cd frontend
-$ yarn install
-$ yarn dev
-```
-
-**3. Start the Backend**
-
-```bash
-$ cd backend
-$ yarn install
-$ yarn dev
-```
-
-**4. Start the Job Runner**
-
-```bash
-$ cd backend
-$ yarn dev-jobs
-```
+Checkout our [development guide](https://docs.metlo.com/docs/development-guide) for more info on how to develop Metlo locally.
