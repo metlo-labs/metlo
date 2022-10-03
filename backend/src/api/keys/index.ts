@@ -10,7 +10,11 @@ export const listKeys = async (req: Request, res: Response): Promise<void> => {
   const keys = await AppDataSource.getRepository(ApiKey).find()
   return ApiResponseHandler.success(
     res,
-    keys.map(v => "metlo." + v.keyIdentifier),
+    keys.map(v => ({
+      name: v.name,
+      identifier: `metlo.${v.keyIdentifier}`,
+      created: v.createdAt
+    })),
   )
 }
 

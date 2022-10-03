@@ -358,11 +358,11 @@ export interface STEP_RESPONSE<T extends ConnectionType = ConnectionType> {
     err: string
   }
   data: CONNECTIONS_BASE &
-    (T extends ConnectionType.AWS
-      ? Partial<AWS_CONNECTION & AWS_CONNECTION_MISC & SSH_INFO>
-      : T extends ConnectionType.GCP
-      ? Partial<GCP_CONNECTION & GCP_CONNECTION_MISC>
-      : never)
+  (T extends ConnectionType.AWS
+    ? Partial<AWS_CONNECTION & AWS_CONNECTION_MISC & SSH_INFO>
+    : T extends ConnectionType.GCP
+    ? Partial<GCP_CONNECTION & GCP_CONNECTION_MISC>
+    : never)
   returns?: {
     os_types?: [{ name: string; ami: string }]
     instance_types?: string[]
@@ -485,4 +485,10 @@ export interface ConnectionInfo {
 export interface MinimizedSpecContext {
   lineNumber: number
   minimizedSpec: string
+}
+
+export interface ApiKey {
+  name: string
+  identifier: string
+  created: string
 }
