@@ -526,7 +526,12 @@ export class AlertService {
   }
 
   static async createUnauthEndpointSenDataAlerts(
-    endpoints: Array<{ uuid: string, path: string, host: string, method: RestMethod }>
+    endpoints: Array<{
+      uuid: string
+      path: string
+      host: string
+      method: RestMethod
+    }>,
   ) {
     try {
       if (!endpoints || endpoints?.length === 0) {
@@ -534,17 +539,22 @@ export class AlertService {
       }
       let alerts: Alert[] = []
       for (const item of endpoints) {
-        const description = `${item.method} ${item.path} in ${item.host} is returning sensitive data.`
+        const description = `Unauthenticated endpoint ${item.method} ${item.path} in ${item.host} is returning sensitive data.`
         const newAlert = new Alert()
         newAlert.type = AlertType.UNAUTHENTICATED_ENDPOINT_SENSITIVE_DATA
-        newAlert.riskScore = ALERT_TYPE_TO_RISK_SCORE[AlertType.UNAUTHENTICATED_ENDPOINT_SENSITIVE_DATA]
+        newAlert.riskScore =
+          ALERT_TYPE_TO_RISK_SCORE[
+            AlertType.UNAUTHENTICATED_ENDPOINT_SENSITIVE_DATA
+          ]
         newAlert.apiEndpointUuid = item.uuid
         newAlert.description = description
         alerts.push(newAlert)
       }
       return alerts
     } catch (err) {
-      console.error(`Error creating alert for unauthenticated endpoints returning sensitive data: ${err}`)
+      console.error(
+        `Error creating alert for unauthenticated endpoints returning sensitive data: ${err}`,
+      )
       return []
     }
   }

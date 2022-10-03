@@ -56,7 +56,7 @@ export class GetEndpointsService {
     try {
       await queryRunner.connect()
       let whereFilter = []
-      let whereFilterString = ''
+      let whereFilterString = ""
       let argNumber = 1
       const parameters = []
 
@@ -78,10 +78,14 @@ export class GetEndpointsService {
       }
       if (getEndpointParams?.isAuthenticated) {
         const isAuthenticated = getEndpointParams.isAuthenticated
-        if (String(isAuthenticated) === 'true') {
-          whereFilter.push('(endpoint."isAuthenticatedUserSet" = TRUE OR (endpoint."isAuthenticatedDetected" = TRUE AND (endpoint."isAuthenticatedUserSet" IS NULL OR endpoint."isAuthenticatedUserSet" = TRUE)))')
+        if (String(isAuthenticated) === "true") {
+          whereFilter.push(
+            '(endpoint."isAuthenticatedUserSet" = TRUE OR (endpoint."isAuthenticatedDetected" = TRUE AND (endpoint."isAuthenticatedUserSet" IS NULL OR endpoint."isAuthenticatedUserSet" = TRUE)))',
+          )
         } else {
-          whereFilter.push('(endpoint."isAuthenticatedUserSet" = FALSE OR (endpoint."isAuthenticatedDetected" = FALSE AND (endpoint."isAuthenticatedUserSet" IS NULL OR endpoint."isAuthenticatedUserSet" = FALSE)))')
+          whereFilter.push(
+            '(endpoint."isAuthenticatedUserSet" = FALSE OR (endpoint."isAuthenticatedDetected" = FALSE AND (endpoint."isAuthenticatedUserSet" IS NULL OR endpoint."isAuthenticatedUserSet" = FALSE)))',
+          )
         }
       }
       if (whereFilter.length > 0) {
@@ -90,8 +94,14 @@ export class GetEndpointsService {
       const limitFilter = `LIMIT ${getEndpointParams?.limit ?? 10}`
       const offsetFilter = `OFFSET ${getEndpointParams?.offset ?? 10}`
 
-      const endpointResults = await queryRunner.query(getEndpointsQuery(whereFilterString, limitFilter, offsetFilter), parameters)
-      const countResults = await queryRunner.query(getEndpointsCountQuery(whereFilterString), parameters)
+      const endpointResults = await queryRunner.query(
+        getEndpointsQuery(whereFilterString, limitFilter, offsetFilter),
+        parameters,
+      )
+      const countResults = await queryRunner.query(
+        getEndpointsCountQuery(whereFilterString),
+        parameters,
+      )
 
       return [endpointResults, countResults?.[0]?.count]
     } catch (err) {

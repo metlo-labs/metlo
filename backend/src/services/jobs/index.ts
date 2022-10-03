@@ -11,7 +11,15 @@ import {
 } from "utils"
 import { ApiEndpoint, ApiTrace, OpenApiSpec, Alert, DataField } from "models"
 import { AppDataSource } from "data-source"
-import { AlertType, DataSection, DataTag, DataType, RestMethod, SpecExtension, Status } from "@common/enums"
+import {
+  AlertType,
+  DataSection,
+  DataTag,
+  DataType,
+  RestMethod,
+  SpecExtension,
+  Status,
+} from "@common/enums"
 import { getPathTokens } from "@common/utils"
 import { AlertService } from "services/alert"
 import { DataFieldService } from "services/data-field"
@@ -136,9 +144,24 @@ export class JobsService {
     try {
       await queryRunner.connect()
       await queryRunner.query(updateUnauthenticatedEndpoints)
-      const endpointsToAlert = await queryRunner.query(getUnauthenticatedEndpointsSensitiveData, [DataSection.RESPONSE_BODY, DataTag.PII, AlertType.UNAUTHENTICATED_ENDPOINT_SENSITIVE_DATA, Status.RESOLVED])
-      const alerts = await AlertService.createUnauthEndpointSenDataAlerts(endpointsToAlert)
-      await queryRunner.manager.createQueryBuilder().insert().into(Alert).values(alerts).execute()
+      const endpointsToAlert = await queryRunner.query(
+        getUnauthenticatedEndpointsSensitiveData,
+        [
+          DataSection.RESPONSE_BODY,
+          DataTag.PII,
+          AlertType.UNAUTHENTICATED_ENDPOINT_SENSITIVE_DATA,
+          Status.RESOLVED,
+        ],
+      )
+      const alerts = await AlertService.createUnauthEndpointSenDataAlerts(
+        endpointsToAlert,
+      )
+      await queryRunner.manager
+        .createQueryBuilder()
+        .insert()
+        .into(Alert)
+        .values(alerts)
+        .execute()
     } catch (err) {
       console.error(
         `Encountered error when checking for unauthenticated endpoints: ${err}`,

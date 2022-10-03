@@ -1,4 +1,8 @@
-export const getEndpointsQuery = (whereFilter: string, limitFilter: string, offsetFilter: string) => `
+export const getEndpointsQuery = (
+  whereFilter: string,
+  limitFilter: string,
+  offsetFilter: string,
+) => `
   SELECT
     endpoint.*,
     data_field."dataClasses"
