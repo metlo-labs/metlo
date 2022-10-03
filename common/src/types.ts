@@ -102,7 +102,7 @@ export interface GetEndpointParams {
   riskScores?: RiskScore[]
   dataClasses?: DataClass[]
   searchQuery?: string
-  isAuthenticatedDetected?: boolean
+  isAuthenticated?: boolean
   offset?: number
   limit?: number
 }
