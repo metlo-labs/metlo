@@ -55,42 +55,43 @@ export class GetEndpointsService {
     const queryRunner = AppDataSource.createQueryRunner()
     try {
       await queryRunner.connect()
-      let whereFilter = ''
+      let whereFilter = []
+      let whereFilterString = ''
       let argNumber = 1
       const parameters = []
 
       if (getEndpointParams?.hosts) {
-        whereFilter += `endpoint.host = ANY($${argNumber++})\n`
+        whereFilter.push(`endpoint.host = ANY($${argNumber++})`)
         parameters.push(getEndpointParams.hosts)
       }
       if (getEndpointParams?.riskScores) {
-        whereFilter += `endpoint."riskScore" = ANY($${argNumber++})\n`
+        whereFilter.push(`endpoint."riskScore" = ANY($${argNumber++})`)
         parameters.push(getEndpointParams.riskScores)
       }
       if (getEndpointParams?.dataClasses) {
-        whereFilter += `data_field."dataClasses" && $${argNumber++}\n`
+        whereFilter.push(`data_field."dataClasses" && $${argNumber++}`)
         parameters.push(getEndpointParams.dataClasses)
       }
       if (getEndpointParams?.searchQuery) {
-        whereFilter += `endpoint.path ILIKE $${argNumber++}\n`
+        whereFilter.push(`endpoint.path ILIKE $${argNumber++}`)
         parameters.push(`%${getEndpointParams.searchQuery}%`)
       }
-      if (getEndpointParams?.isAuthenticatedDetected) {
-        const isAuthenticated = getEndpointParams.isAuthenticatedDetected
+      if (getEndpointParams?.isAuthenticated) {
+        const isAuthenticated = getEndpointParams.isAuthenticated
         if (String(isAuthenticated) === 'true') {
-          whereFilter += '(endpoint."isAuthenticatedDetected" = TRUE AND endpoint."isAuthenticatedUserSet" = TRUE)'
+          whereFilter.push('(endpoint."isAuthenticatedUserSet" = TRUE OR (endpoint."isAuthenticatedDetected" = TRUE AND (endpoint."isAuthenticatedUserSet" IS NULL OR endpoint."isAuthenticatedUserSet" = TRUE)))')
         } else {
-          whereFilter += '(endpoint."isAuthenticatedDetected" = FALSE OR endpoint."isAuthenticatedUserSet" = FALSE)'
+          whereFilter.push('(endpoint."isAuthenticatedUserSet" = FALSE OR (endpoint."isAuthenticatedDetected" = FALSE AND (endpoint."isAuthenticatedUserSet" IS NULL OR endpoint."isAuthenticatedUserSet" = FALSE)))')
         }
       }
       if (whereFilter.length > 0) {
-        whereFilter = `WHERE ${whereFilter}`
+        whereFilterString = `WHERE ${whereFilter.join(" AND ")}`
       }
       const limitFilter = `LIMIT ${getEndpointParams?.limit ?? 10}`
       const offsetFilter = `OFFSET ${getEndpointParams?.offset ?? 10}`
 
-      const endpointResults = await queryRunner.query(getEndpointsQuery(whereFilter, limitFilter, offsetFilter), parameters)
-      const countResults = await queryRunner.query(getEndpointsCountQuery(whereFilter), parameters)
+      const endpointResults = await queryRunner.query(getEndpointsQuery(whereFilterString, limitFilter, offsetFilter), parameters)
+      const countResults = await queryRunner.query(getEndpointsCountQuery(whereFilterString), parameters)
 
       return [endpointResults, countResults?.[0]?.count]
     } catch (err) {
@@ -104,12 +105,10 @@ export class GetEndpointsService {
   static async getEndpoint(
     endpointId: string,
   ): Promise<ApiEndpointDetailedResponse> {
+    const queryRunner = AppDataSource.createQueryRunner()
     try {
-      const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
-      const apiTraceRepository = AppDataSource.getRepository(ApiTrace)
-      const apiEndpointTestRepository =
-        AppDataSource.getRepository(ApiEndpointTest)
-      const endpoint = await apiEndpointRepository.findOne({
+      await queryRunner.connect()
+      const endpoint = await queryRunner.manager.findOne(ApiEndpoint, {
         select: {
           alerts: {
             uuid: true,
@@ -132,12 +131,12 @@ export class GetEndpointsService {
       if (!endpoint) {
         throw new Error404NotFound("Endpoint does not exist.")
       }
-      const traces = await apiTraceRepository.find({
+      const traces = await queryRunner.manager.find(ApiTrace, {
         where: { apiEndpointUuid: endpoint.uuid },
         order: { createdAt: "DESC" },
         take: 100,
       })
-      const tests = await apiEndpointTestRepository.find({
+      const tests = await queryRunner.manager.find(ApiEndpointTest, {
         where: { apiEndpoint: { uuid: endpointId } },
       })
       return {
@@ -148,6 +147,8 @@ export class GetEndpointsService {
     } catch (err) {
       console.error(`Error in Get Endpoints service: ${err}`)
       throw new Error500InternalServer(err)
+    } finally {
+      await queryRunner.release()
     }
   }
 
