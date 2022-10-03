@@ -200,7 +200,7 @@ export interface ApiEndpoint {
   path: string
   createdAt: Date
   updatedAt: Date
-  dataFields: DataField[]
+  dataClasses?: string[]
   firstDetected?: Date
   lastActive?: Date
   host: string
@@ -217,6 +217,7 @@ export interface ApiEndpointDetailed extends ApiEndpoint {
   alerts: Alert[]
   traces: ApiTrace[]
   tests: Test[]
+  dataFields: DataField[]
 }
 
 export interface TestDetailed {

@@ -1,4 +1,3 @@
-import { FindOptionsWhere, In, ILike, Raw } from "typeorm"
 import { AppDataSource } from "data-source"
 import {
   ApiEndpoint,
@@ -16,6 +15,7 @@ import Error500InternalServer from "errors/error-500-internal-server"
 import { Test } from "@metlo/testing"
 import Error404NotFound from "errors/error-404-not-found"
 import { getRiskScore } from "utils"
+import { getEndpointsCountQuery, getEndpointsQuery } from "./queries"
 
 export class GetEndpointsService {
   static async updateIsAuthenticated(
@@ -52,66 +52,52 @@ export class GetEndpointsService {
   static async getEndpoints(
     getEndpointParams: GetEndpointParams,
   ): Promise<[ApiEndpointResponse[], number]> {
+    const queryRunner = AppDataSource.createQueryRunner()
     try {
-      const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
-      let whereConditions: FindOptionsWhere<ApiEndpoint> = {}
+      await queryRunner.connect()
+      let whereFilter = ''
+      let argNumber = 1
+      const parameters = []
 
       if (getEndpointParams?.hosts) {
-        whereConditions = {
-          ...whereConditions,
-          host: In(getEndpointParams.hosts),
-        }
+        whereFilter += `endpoint.host = ANY($${argNumber++})\n`
+        parameters.push(getEndpointParams.hosts)
       }
       if (getEndpointParams?.riskScores) {
-        whereConditions = {
-          ...whereConditions,
-          riskScore: In(getEndpointParams.riskScores),
-        }
+        whereFilter += `endpoint."riskScore" = ANY($${argNumber++})\n`
+        parameters.push(getEndpointParams.riskScores)
       }
       if (getEndpointParams?.dataClasses) {
-        whereConditions = {
-          ...whereConditions,
-          dataFields: {
-            dataClasses: Raw(alias => `${alias} && :filteredClasses`, {
-              filteredClasses: getEndpointParams.dataClasses,
-            }),
-          },
-        }
+        whereFilter += `data_field."dataClasses" && $${argNumber++}\n`
+        parameters.push(getEndpointParams.dataClasses)
       }
       if (getEndpointParams?.searchQuery) {
-        whereConditions = {
-          ...whereConditions,
-          path: ILike(`%${getEndpointParams.searchQuery}%`),
-        }
+        whereFilter += `endpoint.path ILIKE $${argNumber++}\n`
+        parameters.push(`%${getEndpointParams.searchQuery}%`)
       }
       if (getEndpointParams?.isAuthenticatedDetected) {
-        whereConditions = {
-          ...whereConditions,
-          isAuthenticatedDetected: getEndpointParams.isAuthenticatedDetected,
+        const isAuthenticated = getEndpointParams.isAuthenticatedDetected
+        if (String(isAuthenticated) === 'true') {
+          whereFilter += '(endpoint."isAuthenticatedDetected" = TRUE AND endpoint."isAuthenticatedUserSet" = TRUE)'
+        } else {
+          whereFilter += '(endpoint."isAuthenticatedDetected" = FALSE OR endpoint."isAuthenticatedUserSet" = FALSE)'
         }
       }
+      if (whereFilter.length > 0) {
+        whereFilter = `WHERE ${whereFilter}`
+      }
+      const limitFilter = `LIMIT ${getEndpointParams?.limit ?? 10}`
+      const offsetFilter = `OFFSET ${getEndpointParams?.offset ?? 10}`
 
-      return await apiEndpointRepository.findAndCount({
-        select: {
-          dataFields: {
-            uuid: true,
-            dataClasses: true,
-          },
-        },
-        where: whereConditions,
-        relations: {
-          dataFields: true,
-        },
-        order: {
-          riskScore: "DESC",
-          lastActive: "DESC",
-        },
-        skip: getEndpointParams?.offset ?? 0,
-        take: getEndpointParams?.limit ?? 10,
-      })
+      const endpointResults = await queryRunner.query(getEndpointsQuery(whereFilter, limitFilter, offsetFilter), parameters)
+      const countResults = await queryRunner.query(getEndpointsCountQuery(whereFilter), parameters)
+
+      return [endpointResults, countResults?.[0]?.count]
     } catch (err) {
       console.error(`Error in Get Endpoints service: ${err}`)
       throw new Error500InternalServer(err)
+    } finally {
+      await queryRunner.release()
     }
   }
 

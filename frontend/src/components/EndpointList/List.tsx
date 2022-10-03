@@ -166,17 +166,9 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         name: "Sensitive Data Classes",
         sortable: false,
         cell: (row: ApiEndpoint) => {
-          let dataClassSet = new Set<string>()
-          row.dataFields.forEach(
-            dataField =>
-              (dataClassSet = new Set([
-                ...dataClassSet,
-                ...dataField.dataClasses,
-              ])),
-          )
           return (
             <Box>
-              {Array.from(dataClassSet).map(e => (
+              {row.dataClasses?.map(e => (
                 <Tag
                   p="1"
                   m="2px"
