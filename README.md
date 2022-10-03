@@ -11,7 +11,7 @@
 <div align="center">
 
 [![Prs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields)](http://makeapullrequest.com)
-[![Join Discord Server](https://img.shields.io/badge/discord%20community-join-blue)](https://discord.com/invite/C3jK4tSt)
+[![Join Discord Server](https://img.shields.io/badge/discord%20community-join-blue)](https://discord.gg/4xhumff9BX)
 ![Github Commit Activity](https://img.shields.io/github/commit-activity/m/metlo-labs/metlo)
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/metlo-labs/metlo/build)
 [![License](https://img.shields.io/badge/license-MIT-brightgreen)](/LICENSE)
@@ -37,7 +37,7 @@ ENCRYPTION_KEY="some random string" EXPRESS_SECRET="some random string" docker-c
 
 Now visit [http://localhost:8000](http://localhost:8000)
 
-See our [Docs](https://docs.metlo.com/docs) for an in-depth walk-throughs on how to set up Metlo in your cloud environment. You can also join our [Discord community](https://discord.com/invite/C3jK4tSt) if you need help or just want to chat!
+See our [Docs](https://docs.metlo.com/docs) for an in-depth walk-throughs on how to set up Metlo in your cloud environment. You can also join our [Discord community](https://discord.gg/4xhumff9BX) if you need help or just want to chat!
 
 ## Features
 ![walkthrough](https://storage.googleapis.com/metlo-security-public-images/walkthrough.gif)
