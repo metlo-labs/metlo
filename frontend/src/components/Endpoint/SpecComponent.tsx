@@ -48,9 +48,8 @@ const SpecComponent: React.FC<SpecComponentProps> = ({ endpoint }) => {
       setSpecString(endpoint.openapiSpec.spec)
       setCurrExtension(endpoint.openapiSpec.extension)
     } else if (extension === SpecExtension.YAML) {
-      const doc = new YAML.Document()
-      doc.contents = JSON.parse(specString)
-      setSpecString(doc.toString())
+      const obj = JSON.parse(specString)
+      setSpecString(YAML.stringify(obj))
       setCurrExtension(SpecExtension.YAML)
     } else if (extension === SpecExtension.JSON) {
       const specObj = JsYaml.load(specString)
