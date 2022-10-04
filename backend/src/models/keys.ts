@@ -1,3 +1,4 @@
+import { API_KEY_TYPE } from "@common/enums"
 import {
   Entity,
   BaseEntity,
@@ -21,6 +22,9 @@ export class ApiKey extends BaseEntity {
 
   @Column({ type: "text", nullable: false })
   keyIdentifier: string
+
+  @Column({ type: "enum", enum: API_KEY_TYPE, nullable: false, default: API_KEY_TYPE.GENERIC })
+  for: API_KEY_TYPE
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date

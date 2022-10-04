@@ -179,3 +179,9 @@ export enum GCP_SOURCE_TYPE {
   SUBNET,
   TAG,
 }
+
+export enum API_KEY_TYPE {
+  GCP = "GCP",
+  AWS = "AWS",
+  GENERIC = "GENERIC"
+}
