@@ -39,6 +39,9 @@ export const createKey = async (req: Request, res: Response): Promise<void> => {
   await AppDataSource.getRepository(ApiKey).save(key)
   return ApiResponseHandler.success(res, {
     apiKey: rawKey,
+    name: key.name,
+    identifier: `metlo.${key.keyIdentifier}`,
+    created: key.createdAt
   })
 }
 
