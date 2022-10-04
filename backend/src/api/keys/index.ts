@@ -2,6 +2,7 @@ import ApiResponseHandler from "api-response-handler"
 import { Request, Response } from "express"
 import { AppDataSource } from "data-source"
 import { ApiKey } from "models"
+import { ApiKey as ApiKeyType } from "@common/types"
 import Error404NotFound from "errors/error-404-not-found"
 import { createApiKey } from "./service"
 import Error400BadRequest from "errors/error-400-bad-request"
@@ -10,10 +11,11 @@ export const listKeys = async (req: Request, res: Response): Promise<void> => {
   const keys = await AppDataSource.getRepository(ApiKey).find()
   return ApiResponseHandler.success(
     res,
-    keys.map(v => ({
+    keys.map<ApiKeyType>(v => ({
       name: v.name,
       identifier: `metlo.${v.keyIdentifier}`,
-      created: v.createdAt
+      created: v.createdAt.toISOString(),
+      for: v.for
     })),
   )
 }
@@ -41,7 +43,8 @@ export const createKey = async (req: Request, res: Response): Promise<void> => {
     apiKey: rawKey,
     name: key.name,
     identifier: `metlo.${key.keyIdentifier}`,
-    created: key.createdAt
+    created: key.createdAt.toISOString(),
+    for: key.for
   })
 }
 

@@ -1,4 +1,4 @@
-import { ConnectionType } from "@common/enums"
+import { API_KEY_TYPE, ConnectionType } from "@common/enums"
 import { STEP_RESPONSE } from "@common/types"
 import { createApiKey } from "api/keys/service"
 import { randomUUID } from "crypto"
@@ -69,6 +69,7 @@ export async function push_files({
   const endpoint = "api/v1/log-request/single"
   let conn = new SSH_CONN(keypair, remote_machine_url, username)
   let [key, raw] = createApiKey(`Metlo-collector-${id}`)
+  key.for = API_KEY_TYPE.AWS
   let api_key = await AppDataSource.getRepository(ApiKey).save(key)
   try {
     let filepath_ingestor = `${__dirname}/../generics/scripts/metlo-ingestor-${randomUUID()}.service`

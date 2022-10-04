@@ -1,4 +1,4 @@
-import { Button, useColorMode } from "@chakra-ui/react"
+import { Badge, Box, Button, useColorMode } from "@chakra-ui/react"
 import { ApiKey } from "@common/types"
 import { deleteKey } from "api/keys"
 import EmptyView from "components/utils/EmptyView"
@@ -29,7 +29,7 @@ const ListKeys: React.FC<ListKeysInterface> = ({ keys, setKeys }) => {
   let columns: Array<TableColumn<ApiKey>> = [
     {
       name: "Name",
-      sortable: false,
+      sortable: true,
       selector: (row: ApiKey) => row.name,
       cell: (row: ApiKey) => row.name,
       id: "name",
@@ -48,6 +48,12 @@ const ListKeys: React.FC<ListKeysInterface> = ({ keys, setKeys }) => {
       cell: (row: ApiKey) =>
         DateTime.fromISO(row.created).toFormat("yyyy-MM-dd"),
       id: "created_at",
+    },
+    {
+      name: "Key Used For",
+      sortable: false,
+      selector: (row: ApiKey) => row.for,
+      cell: (row: ApiKey) => <Badge fontFamily={"mono"}>{row.for}</Badge>,
     },
     {
       name: "",

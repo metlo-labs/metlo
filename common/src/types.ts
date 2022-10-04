@@ -17,6 +17,7 @@ import {
   GCP_SOURCE_TYPE,
   AuthType,
   AttackType,
+  API_KEY_TYPE,
 } from "./enums"
 import { Test, Request as TestRequest } from "@metlo/testing"
 import "axios"
@@ -491,4 +492,5 @@ export interface ApiKey {
   name: string
   identifier: string
   created: string
+  for: API_KEY_TYPE
 }
