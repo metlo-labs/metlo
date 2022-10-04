@@ -137,8 +137,8 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
               <AlertTab
                 initAlerts={alerts}
                 initAlertParams={initAlertParams}
-                providedSpecString={endpoint.openapiSpec.spec}
-                providedSpecExtension={endpoint.openapiSpec.extension}
+                providedSpecString={endpoint.openapiSpec?.spec}
+                providedSpecExtension={endpoint.openapiSpec?.extension}
               />
             </TabPanel>
             <TabPanel p="0" h="full">
