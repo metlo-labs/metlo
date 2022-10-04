@@ -4,10 +4,12 @@ import { Alert, GetAlertParams, UpdateAlertParams } from "@common/types"
 import { getAlerts, updateAlert } from "api/alerts"
 import { AlertList } from "components/Alert/AlertList"
 import { SpecExtension } from "@common/enums"
+import { ALERT_PAGE_LIMIT } from "~/constants"
 
 interface AlertTabProps {
   initAlertParams: GetAlertParams
   initAlerts: Alert[]
+  initTotalCount: number
   providedSpecString: string
   providedSpecExtension: SpecExtension
 }
@@ -15,10 +17,12 @@ interface AlertTabProps {
 export const AlertTab: React.FC<AlertTabProps> = ({
   initAlertParams,
   initAlerts,
+  initTotalCount,
   providedSpecString,
   providedSpecExtension,
 }) => {
   const [alerts, setAlerts] = useState<Alert[]>(initAlerts)
+  const [totalCount, setTotalCount] = useState<number>(initTotalCount)
   const [fetching, setFetching] = useState<boolean>(false)
   const [updating, setUpdating] = useState<boolean>(false)
   const [params, setParamsInner] = useState<GetAlertParams>(initAlertParams)
@@ -29,6 +33,7 @@ export const AlertTab: React.FC<AlertTabProps> = ({
     getAlerts(fetchParams)
       .then(res => {
         setAlerts(res[0])
+        setTotalCount(res[1])
       })
       .catch(e =>
         toast({
@@ -55,12 +60,14 @@ export const AlertTab: React.FC<AlertTabProps> = ({
       toast({
         title: `Updating alert successful`,
         status: "success",
+        position: "top",
       })
       fetchAlerts(params)
     } else {
       toast({
         title: "Updating Alert failed...",
         status: "error",
+        position: "top",
       })
     }
     setUpdating(false)
@@ -75,6 +82,9 @@ export const AlertTab: React.FC<AlertTabProps> = ({
         params={params}
         setParams={setParams}
         fetching={fetching}
+        totalCount={totalCount}
+        pagination
+        page={params.offset / ALERT_PAGE_LIMIT + 1}
         providedSpecString={providedSpecString}
         providedSpecExtension={providedSpecExtension}
       />

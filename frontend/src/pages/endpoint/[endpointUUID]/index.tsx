@@ -8,8 +8,15 @@ import { getEndpoint, getUsage } from "api/endpoints"
 import { ApiEndpointDetailed, Usage, Alert } from "@common/types"
 import { getAlerts } from "api/alerts"
 import { Status } from "@common/enums"
+import { ALERT_PAGE_LIMIT } from "~/constants"
 
-const Endpoint = ({ endpoint, usage, alerts, initAlertParams }) => {
+const Endpoint = ({
+  endpoint,
+  usage,
+  alerts,
+  totalAlertsCount,
+  initAlertParams,
+}) => {
   const parsedEndpoint = superjson.parse(endpoint) as ApiEndpointDetailed | null
   const parsedUsage = superjson.parse(usage) as Usage[] | []
   const parsedAlerts = superjson.parse(alerts) as Alert[] | []
@@ -26,6 +33,7 @@ const Endpoint = ({ endpoint, usage, alerts, initAlertParams }) => {
         usage={parsedUsage}
         alerts={parsedAlerts}
         initAlertParams={initAlertParams}
+        totalAlertsCount={totalAlertsCount}
       />
     </SidebarLayoutShell>
   )
@@ -38,6 +46,8 @@ export const getServerSideProps: GetServerSideProps = async context => {
     status: [Status.OPEN],
     alertTypes: [],
     order: "DESC" as const,
+    offset: 0,
+    limit: ALERT_PAGE_LIMIT,
   }
   const endpointPromise = getEndpoint(context.query.endpointUUID as string)
   const usagePromise = getUsage(context.query.endpointUUID as string)
@@ -49,6 +59,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
       endpoint: superjson.stringify(endpoint),
       usage: superjson.stringify(usage),
       alerts: superjson.stringify(alerts[0]),
+      totalAlertsCount: alerts[1],
       initAlertParams,
     },
   }

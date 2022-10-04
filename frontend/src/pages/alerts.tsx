@@ -69,12 +69,14 @@ const Alerts = ({ initParams, initAlerts, initTotalCount, initHosts }) => {
       toast({
         title: `Updating alert successful`,
         status: "success",
+        position: "top",
       })
       fetchAlerts(params)
     } else {
       toast({
         title: "Updating Alert failed...",
         status: "error",
+        position: "top",
       })
     }
     setUpdating(false)

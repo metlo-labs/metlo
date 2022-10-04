@@ -38,11 +38,12 @@ interface EndpointPageProps {
   endpoint: ApiEndpointDetailed
   usage: Usage[]
   alerts: Alert[]
+  totalAlertsCount: number
   initAlertParams: GetAlertParams
 }
 
 const EndpointPage: React.FC<EndpointPageProps> = React.memo(
-  ({ endpoint, usage, alerts, initAlertParams }) => {
+  ({ endpoint, usage, alerts, totalAlertsCount, initAlertParams }) => {
     const router = useRouter()
     const headerColor = useColorModeValue(
       "rgb(179, 181, 185)",
@@ -137,6 +138,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
               <AlertTab
                 initAlerts={alerts}
                 initAlertParams={initAlertParams}
+                initTotalCount={totalAlertsCount}
                 providedSpecString={endpoint.openapiSpec?.spec}
                 providedSpecExtension={endpoint.openapiSpec?.extension}
               />
