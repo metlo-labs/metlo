@@ -15,7 +15,6 @@ import {
   DataField,
   OpenApiSpec,
   Alert,
-  AggregateTraceDataMinutely,
   AggregateTraceDataHourly,
 } from "models"
 import { JSONValue, OpenApiSpec as OpenApiSpecResponse } from "@common/types"
@@ -39,7 +38,6 @@ import {
   getServersV3,
 } from "./utils"
 import { AlertService } from "services/alert"
-import { DatabaseService } from "services/database"
 import Error404NotFound from "errors/error-404-not-found"
 import { BlockFieldsService } from "services/block-fields"
 import Error500InternalServer from "errors/error-500-internal-server"
@@ -47,7 +45,6 @@ import { RISK_SCORE_ORDER } from "~/constants"
 import {
   insertDataFieldQuery,
   insertAggregateHourlyQuery,
-  insertAggregateMinutelyQuery,
   deleteOpenAPISpecDiffAlerts,
 } from "./queries"
 
@@ -385,13 +382,6 @@ export class SpecService {
             .andWhere(`type IN(:...types)`, {
               types: [AlertType.NEW_ENDPOINT, AlertType.OPEN_API_SPEC_DIFF],
             })
-          const deleteAggregateMinutelyQb = queryRunner.manager
-            .createQueryBuilder()
-            .delete()
-            .from(AggregateTraceDataMinutely)
-            .where(`"apiEndpointUuid" IN(:...ids)`, {
-              ids: similarEndpointUuids,
-            })
           const deleteAggregateHourlyQb = queryRunner.manager
             .createQueryBuilder()
             .delete()
@@ -408,15 +398,10 @@ export class SpecService {
           await deleteDataFieldsQb.execute()
           await updateAlertsQb.execute()
           await deleteAlertsQb.execute()
-          await queryRunner.query(insertAggregateMinutelyQuery, [
-            similarEndpointUuids,
-            item.endpoint.uuid,
-          ])
           await queryRunner.query(insertAggregateHourlyQuery, [
             item.endpoint.uuid,
             similarEndpointUuids,
           ])
-          await deleteAggregateMinutelyQb.execute()
           await deleteAggregateHourlyQb.execute()
           await queryRunner.manager
             .createQueryBuilder()

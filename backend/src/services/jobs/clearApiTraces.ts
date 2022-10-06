@@ -1,16 +1,13 @@
 import { DateTime } from "luxon"
 import { ApiTrace } from "models"
 import { AppDataSource } from "data-source"
-import {
-  aggregateTracesDataHourlyQuery,
-  aggregateTracesDataMinutelyQuery,
-} from "./queries"
+import { aggregateTracesDataHourlyQuery } from "./queries"
 
 const clearApiTraces = async (): Promise<void> => {
   const queryRunner = AppDataSource.createQueryRunner()
   await queryRunner.connect()
   try {
-    const now = DateTime.now().startOf("hour")
+    const now = DateTime.now()
     const oneHourAgo = now.minus({ hours: 1 }).toJSDate()
 
     const maxTimeRes = await queryRunner.manager
@@ -25,7 +22,6 @@ const clearApiTraces = async (): Promise<void> => {
 
     if (maxTime) {
       await queryRunner.startTransaction()
-      await queryRunner.query(aggregateTracesDataMinutelyQuery, [maxTime])
       await queryRunner.query(aggregateTracesDataHourlyQuery, [maxTime])
       await queryRunner.manager
         .createQueryBuilder()
