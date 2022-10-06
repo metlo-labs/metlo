@@ -74,7 +74,7 @@ const getPathToRequestLocation = (
 }
 
 export const parsePathParameter = (parameterValue: string) => {
-  return Number(parameterValue) ?? parameterValue
+  return typeof parameterValue === "number" ? Number(parameterValue) : parameterValue
 }
 
 export const validateSpecSchema = (schema: any, version?: number): string[] => {
