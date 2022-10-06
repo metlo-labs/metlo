@@ -457,7 +457,7 @@ export class AlertService {
             } else if (openApiSpec.extension === SpecExtension.YAML) {
               const map = new SourceMap()
               yaml.load(openApiSpec.spec, { listener: map.listen() })
-              lineNumber = map.lookup(pathPointer).line
+              lineNumber = map.lookup(pathPointer)?.line
               if (lineNumber) {
                 lineNumber -= 1
               }
