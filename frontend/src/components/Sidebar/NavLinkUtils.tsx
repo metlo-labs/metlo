@@ -7,7 +7,7 @@ import { AiFillSecurityScan } from "@react-icons/all-files/ai/AiFillSecurityScan
 import { AiFillApi } from "@react-icons/all-files/ai/AiFillApi"
 import { HiShieldCheck } from "@react-icons/all-files/hi/HiShieldCheck"
 import { IconType } from "@react-icons/all-files/lib"
-import { FaWrench } from "@react-icons/all-files/fa/FaWrench"
+import { FaCog } from "@react-icons/all-files/fa/FaCog"
 
 export enum SideNavLinkDestination {
   Home,
@@ -69,7 +69,7 @@ export const sideNavDestinationToIcon: (
     case SideNavLinkDestination.Protection:
       return HiShieldCheck
     case SideNavLinkDestination.Settings:
-      return FaWrench
+      return FaCog
     default:
       throw Error(`No value mapped for ${dest}`)
   }
