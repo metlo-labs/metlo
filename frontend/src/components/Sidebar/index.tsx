@@ -78,8 +78,8 @@ const SideNavBar: React.FC<SideNavBarProps> = React.memo(({ currentTab }) => {
           isActive={currentTab === SideNavLinkDestination.Specs}
         />
         <SideNavLink
-          destination={SideNavLinkDestination.Keys}
-          isActive={currentTab === SideNavLinkDestination.Keys}
+          destination={SideNavLinkDestination.Settings}
+          isActive={currentTab === SideNavLinkDestination.Settings}
         />
       </Stack>
       <Spacer />

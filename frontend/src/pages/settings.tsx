@@ -52,7 +52,7 @@ const Keys = ({ keys: _keysString }) => {
         name: resp.name,
         identifier: resp.identifier,
         created: resp.created,
-        for:resp.for
+        for: resp.for,
       })
       console.log(new_keys)
       setKeys(new_keys)
@@ -67,7 +67,7 @@ const Keys = ({ keys: _keysString }) => {
   return (
     <SidebarLayoutShell
       title="API Specs"
-      currentTab={SideNavLinkDestination.Specs}
+      currentTab={SideNavLinkDestination.Settings}
     >
       <ContentContainer>
         <Heading fontWeight="medium" size="lg" mb="4">

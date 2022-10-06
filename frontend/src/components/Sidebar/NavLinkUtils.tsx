@@ -7,7 +7,7 @@ import { AiFillSecurityScan } from "@react-icons/all-files/ai/AiFillSecurityScan
 import { AiFillApi } from "@react-icons/all-files/ai/AiFillApi"
 import { HiShieldCheck } from "@react-icons/all-files/hi/HiShieldCheck"
 import { IconType } from "@react-icons/all-files/lib"
-import { RiKey2Fill } from "@react-icons/all-files/ri/RiKey2Fill"
+import { FaWrench } from "@react-icons/all-files/fa/FaWrench"
 
 export enum SideNavLinkDestination {
   Home,
@@ -18,7 +18,7 @@ export enum SideNavLinkDestination {
   SensitiveData,
   Vulnerabilities,
   Protection,
-  Keys,
+  Settings,
 }
 
 export const sideNavDestinationToLabel: (
@@ -41,8 +41,8 @@ export const sideNavDestinationToLabel: (
       return "Connections"
     case SideNavLinkDestination.Protection:
       return "Protection"
-    case SideNavLinkDestination.Keys:
-      return "API Keys"
+    case SideNavLinkDestination.Settings:
+      return "Settings"
     default:
       throw Error(`No value mapped for ${dest}`)
   }
@@ -68,8 +68,8 @@ export const sideNavDestinationToIcon: (
       return FaShareAlt
     case SideNavLinkDestination.Protection:
       return HiShieldCheck
-    case SideNavLinkDestination.Keys:
-      return RiKey2Fill
+    case SideNavLinkDestination.Settings:
+      return FaWrench
     default:
       throw Error(`No value mapped for ${dest}`)
   }
@@ -95,8 +95,8 @@ export const sideNavDestinationToHref: (
       return "/connections"
     case SideNavLinkDestination.Protection:
       return "/protection"
-    case SideNavLinkDestination.Keys:
-      return "/keys"
+    case SideNavLinkDestination.Settings:
+      return "/settings"
     default:
       throw Error(`No value mapped for ${dest}`)
   }
