@@ -49,6 +49,7 @@ enum In {
 }
 
 interface BodySchema {
+  nullable?: boolean
   type?: DataType
   items?: BodySchema
   properties?: Record<string, BodySchema>
@@ -110,12 +111,19 @@ export class JobsService {
       return bodySchema
     } else if (dataType === DataType.UNKNOWN) {
       return {
-        type: dataType,
+        type: bodySchema?.type ?? DataType.UNKNOWN,
         nullable: true,
       }
     } else {
-      return {
-        type: dataType,
+      if (bodySchema?.nullable) {
+        return {
+          type: dataType,
+          nullable: true,
+        }
+      } else {
+        return {
+          type: dataType,
+        }
       }
     }
   }
