@@ -32,9 +32,6 @@
       "@common/*": [
         "../../common/dist/*"
       ],
-      "@enterprise/*": [
-        "../../metlo-api-security-enterprise/dist/*"
-      ],
       "~/constants": [
         "./constants"
       ],
