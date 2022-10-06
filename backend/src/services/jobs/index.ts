@@ -1,6 +1,5 @@
 import { FindManyOptions, IsNull, LessThanOrEqual, Raw } from "typeorm"
 import { v4 as uuidv4 } from "uuid"
-import { DateTime } from "luxon"
 import {
   getDataType,
   isParameter,
@@ -27,8 +26,6 @@ import { DatabaseService } from "services/database"
 import axios from "axios"
 import { SpecService } from "services/spec"
 import {
-  aggregateTracesDataHourlyQuery,
-  aggregateTracesDataMinutelyQuery,
   getUnauthenticatedEndpointsSensitiveData,
   updateUnauthenticatedEndpoints,
 } from "./queries"
@@ -286,45 +283,6 @@ export class JobsService {
       await queryRunner.rollbackTransaction()
     } finally {
       await queryRunner.release()
-    }
-  }
-
-  static async clearApiTraces(): Promise<void> {
-    const queryRunner = AppDataSource.createQueryRunner()
-    await queryRunner.connect()
-    try {
-      const now = DateTime.now().startOf("hour")
-      const oneHourAgo = now.minus({ hours: 1 }).toJSDate()
-
-      const maxTimeRes = await queryRunner.manager
-        .createQueryBuilder()
-        .select([`MAX("createdAt") as "maxTime"`])
-        .from(ApiTrace, "traces")
-        .where('"apiEndpointUuid" IS NOT NULL')
-        .andWhere("analyzed = TRUE")
-        .andWhere('"createdAt" < :oneHourAgo', { oneHourAgo })
-        .getRawOne()
-      const maxTime: Date = maxTimeRes?.maxTime ?? null
-
-      if (maxTime) {
-        await queryRunner.startTransaction()
-        await queryRunner.query(aggregateTracesDataMinutelyQuery, [maxTime])
-        await queryRunner.query(aggregateTracesDataHourlyQuery, [maxTime])
-        await queryRunner.manager
-          .createQueryBuilder()
-          .delete()
-          .from(ApiTrace)
-          .where('"apiEndpointUuid" IS NOT NULL')
-          .andWhere("analyzed = TRUE")
-          .andWhere('"createdAt" <= :maxTime', { maxTime })
-          .execute()
-        await queryRunner.commitTransaction()
-      }
-    } catch (err) {
-      console.error(`Encountered error while clearing trace data: ${err}`)
-      await queryRunner.rollbackTransaction()
-    } finally {
-      await queryRunner?.release()
     }
   }
 

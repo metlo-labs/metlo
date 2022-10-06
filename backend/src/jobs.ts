@@ -4,6 +4,7 @@ import { AppDataSource } from "data-source"
 import { JobsService } from "services/jobs"
 import runAllTests from "services/testing/runAllTests"
 import { logAggregatedStats } from "services/logging"
+import clearApiTraces from "services/jobs/clearApiTraces"
 
 const main = async () => {
   const datasource = await AppDataSource.initialize()
@@ -70,7 +71,7 @@ const main = async () => {
   schedule.scheduleJob("0 * * * *", () => {
     clearApiTracesSem.take(async () => {
       console.log("\nClearing Api Trace data...")
-      await JobsService.clearApiTraces()
+      await clearApiTraces()
       console.log("Finished clearing Api Trace data.")
       clearApiTracesSem.leave()
     })
