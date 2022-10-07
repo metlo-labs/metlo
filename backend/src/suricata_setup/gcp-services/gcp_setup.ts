@@ -1,5 +1,10 @@
 import { MachineSpecifications, STEP_RESPONSE } from "@common/types"
-import { API_KEY_TYPE, ConnectionType, GCP_SOURCE_TYPE, GCP_STEPS } from "@common/enums"
+import {
+  API_KEY_TYPE,
+  ConnectionType,
+  GCP_SOURCE_TYPE,
+  GCP_STEPS,
+} from "@common/enums"
 import { GCP_CONN } from "./gcp_apis"
 import AsyncRetry from "async-retry"
 import { promisify } from "util"
@@ -870,11 +875,11 @@ export async function push_files({
 
     const fileMap = [
       path.normalize(`${__dirname}/../generics/scripts/install.sh`) +
-      ` ${instance_name}:~/install.sh`,
+        ` ${instance_name}:~/install.sh`,
       path.normalize(`${__dirname}/../generics/scripts/install-deps.sh`) +
-      ` ${instance_name}:~/install-deps.sh`,
+        ` ${instance_name}:~/install-deps.sh`,
       path.normalize(`${__dirname}/../generics/scripts/suricata.yaml`) +
-      ` ${instance_name}:~/suricata.yaml`,
+        ` ${instance_name}:~/suricata.yaml`,
       filepath_rules_out + ` ${instance_name}:"~/local.rules"`,
       filepath_ingestor_out + ` ${instance_name}:~/metlo-ingestor.service`,
     ]

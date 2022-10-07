@@ -1,10 +1,15 @@
 import schedule from "node-schedule"
 import semaphore from "semaphore"
 import { AppDataSource } from "data-source"
-import { JobsService } from "services/jobs"
+import {
+  analyzeTraces,
+  generateEndpointsFromTraces,
+  checkForUnauthenticatedEndpoints,
+  monitorEndpointForHSTS,
+  clearApiTraces,
+} from "services/jobs"
 import runAllTests from "services/testing/runAllTests"
 import { logAggregatedStats } from "services/logging"
-import clearApiTraces from "services/jobs/clearApiTraces"
 
 const main = async () => {
   const datasource = await AppDataSource.initialize()
@@ -25,7 +30,7 @@ const main = async () => {
   schedule.scheduleJob("* * * * * *", () => {
     analyzeTracesSem.take(async () => {
       console.log("\nAnalyzing traces...")
-      await JobsService.analyzeTraces()
+      await analyzeTraces()
       console.log("Finished analyzing traces.")
       analyzeTracesSem.leave()
     })
@@ -34,7 +39,7 @@ const main = async () => {
   schedule.scheduleJob("*/30 * * * * *", () => {
     generateEndpointsSem.take(async () => {
       console.log("\nGenerating Endpoints and OpenAPI Spec Files...")
-      await JobsService.generateEndpointsFromTraces()
+      await generateEndpointsFromTraces()
       console.log("Finished generating Endpoints and OpenAPI Spec Files.")
       generateEndpointsSem.leave()
     })
@@ -43,7 +48,7 @@ const main = async () => {
   schedule.scheduleJob("30 * * * * ", () => {
     checkForUnauthenticatedSem.take(async () => {
       console.log("\nChecking for Unauthenticated Endpoints")
-      await JobsService.checkForUnauthenticatedEndpoints()
+      await checkForUnauthenticatedEndpoints()
       console.log("Finished checking for Unauthenticated Endpoints")
       checkForUnauthenticatedSem.leave()
     })
@@ -53,7 +58,7 @@ const main = async () => {
   schedule.scheduleJob("15 */4 * * *", () => {
     unsecuredAlertsSem.take(async () => {
       console.log("\nGenerating Alerts for Unsecured Endpoints")
-      await JobsService.monitorEndpointForHSTS()
+      await monitorEndpointForHSTS()
       console.log("Finished generating alerts for Unsecured Endpoints.")
       unsecuredAlertsSem.leave()
     })

@@ -15,7 +15,7 @@ export const listKeys = async (req: Request, res: Response): Promise<void> => {
       name: v.name,
       identifier: `metlo.${v.keyIdentifier}`,
       created: v.createdAt.toISOString(),
-      for: v.for
+      for: v.for,
     })),
   )
 }
@@ -44,7 +44,7 @@ export const createKey = async (req: Request, res: Response): Promise<void> => {
     name: key.name,
     identifier: `metlo.${key.keyIdentifier}`,
     created: key.createdAt.toISOString(),
-    for: key.for
+    for: key.for,
   })
 }
 
