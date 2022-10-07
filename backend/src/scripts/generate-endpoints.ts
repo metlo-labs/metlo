@@ -1,5 +1,5 @@
 import { AppDataSource } from "data-source"
-import { JobsService } from "services/jobs"
+import { generateEndpointsFromTraces } from "services/jobs"
 
 const main = async () => {
   const datasource = await AppDataSource.initialize()
@@ -9,7 +9,7 @@ const main = async () => {
   }
   console.log("AppDataSource Initialized...")
   console.log("Generating Endpoints and OpenAPI Spec Files...")
-  await JobsService.generateEndpointsFromTraces()
+  await generateEndpointsFromTraces()
   console.log("Finished generating Endpoints and OpenAPI Spec Files.")
 }
 

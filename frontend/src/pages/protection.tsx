@@ -9,16 +9,13 @@ const Protection = ({ attacksResponse, hosts }) => (
 )
 
 export const getServerSideProps: GetServerSideProps = async context => {
-  const attacksPromise = getAttacks({})
-  const hostsPromise = getHosts()
-  const [hosts, attacksResponse] = await Promise.all([
-    hostsPromise,
-    attacksPromise,
-  ])
+  const attacksResponse = {
+    validLicense: false
+  }
   return {
     props: {
       attacksResponse: superjson.stringify(attacksResponse),
-      hosts: superjson.stringify(hosts),
+      hosts: superjson.stringify([]),
     },
   }
 }
