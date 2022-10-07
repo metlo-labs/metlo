@@ -109,6 +109,7 @@ export interface GetEndpointParams {
 }
 
 export interface GetAlertParams {
+  uuid?: string
   apiEndpointUuid?: string
   riskScores?: RiskScore[]
   status?: Status[]

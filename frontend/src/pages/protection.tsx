@@ -10,7 +10,7 @@ const Protection = ({ attacksResponse, hosts }) => (
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const attacksResponse = {
-    validLicense: false
+    validLicense: false,
   }
   return {
     props: {

@@ -21,7 +21,7 @@ const AlertItem: React.FC<{ alertItem: Alert }> = React.memo(
   ({ alertItem }) => {
     return (
       <Link
-        href={`/endpoint/${alertItem.apiEndpointUuid}?tab=alerts#alert-${alertItem.uuid}`}
+        href={`/endpoint/${alertItem.apiEndpointUuid}?tab=alerts&uuid=${alertItem.uuid}`}
       >
         <HStack
           py="2"

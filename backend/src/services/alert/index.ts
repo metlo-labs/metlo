@@ -91,6 +91,12 @@ export class AlertService {
     let paginationParams: FindManyOptions<Alert> = {}
     let orderParams: FindOptionsOrder<Alert> = {}
 
+    if (alertParams?.uuid) {
+      whereConditions = {
+        ...whereConditions,
+        uuid: alertParams.uuid,
+      }
+    }
     if (alertParams?.apiEndpointUuid) {
       whereConditions = {
         ...whereConditions,

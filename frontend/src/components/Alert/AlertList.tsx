@@ -18,7 +18,11 @@ import {
   ModalHeader,
   ModalOverlay,
   useDisclosure,
+  InputGroup,
+  InputLeftElement,
+  Input,
 } from "@chakra-ui/react"
+import debounce from "lodash/debounce"
 import { FiFilter } from "@react-icons/all-files/fi/FiFilter"
 import { Alert, GetAlertParams, UpdateAlertParams } from "@common/types"
 import { AlertType, RiskScore, SpecExtension, Status } from "@common/enums"
@@ -26,6 +30,7 @@ import { ALERT_PAGE_LIMIT } from "~/constants"
 import { AlertComponent } from "components/Alert/AlertComponent"
 import EmptyView from "components/utils/EmptyView"
 import { PaginationComponent } from "components/PaginationComponent"
+import { GoSearch } from "@react-icons/all-files/go/GoSearch"
 
 const RISK_SCORE_TO_LABEL: Record<RiskScore, string> = {
   [RiskScore.HIGH]: "High",
@@ -152,6 +157,16 @@ export const AlertList: React.FC<AlertListProps> = ({
       }))
     }
   }
+
+  const setSearchQuery = (val: string) => {
+    setParams(oldParams => ({
+      ...oldParams,
+      uuid: val,
+      offset: 0,
+    }))
+  }
+
+  const debounceSearch = debounce(setSearchQuery, 500)
 
   const riskFilterPanel = (
     <Accordion defaultIndex={[0, 1, 2, 3]} w="full" allowToggle allowMultiple>
@@ -280,41 +295,55 @@ export const AlertList: React.FC<AlertListProps> = ({
         >
           {riskFilterPanel}
         </VStack>
-        {!fetching && alerts && alerts.length > 0 ? (
-          <VStack
-            h="full"
-            w="full"
-            overflowY="auto"
-            spacing="4"
-            alignSelf="flex-start"
-          >
-            {alerts.map((listAlert, i) => (
-              <Box
-                w="full"
-                key={listAlert.uuid}
-                ref={i === 0 ? scrollDivRef : null}
-              >
-                <AlertComponent
-                  alert={listAlert}
-                  handleUpdateAlert={handleUpdateAlert}
-                  updating={updating}
-                  providedSpecString={providedSpecString}
-                  providedSpecExtension={providedSpecExtension}
+        <VStack h="full" w="full" alignSelf="flex-start">
+          <InputGroup mt="1" mr="1">
+            <InputLeftElement pointerEvents="none">
+              <GoSearch />
+            </InputLeftElement>
+            <Input
+              defaultValue={params.uuid}
+              onChange={e => debounceSearch(e.target.value)}
+              type="text"
+              placeholder="Search by alert id..."
+            />
+          </InputGroup>
+
+          {!fetching && alerts && alerts.length > 0 ? (
+            <VStack
+              h="full"
+              w="full"
+              overflowY="auto"
+              spacing="4"
+              alignSelf="flex-start"
+            >
+              {alerts.map((listAlert, i) => (
+                <Box
+                  w="full"
+                  key={listAlert.uuid}
+                  ref={i === 0 ? scrollDivRef : null}
+                >
+                  <AlertComponent
+                    alert={listAlert}
+                    handleUpdateAlert={handleUpdateAlert}
+                    updating={updating}
+                    providedSpecString={providedSpecString}
+                    providedSpecExtension={providedSpecExtension}
+                  />
+                </Box>
+              ))}
+            </VStack>
+          ) : (
+            <>
+              {!fetching && (
+                <EmptyView
+                  h="full"
+                  alignSelf="flex-start"
+                  text="No results found."
                 />
-              </Box>
-            ))}
-          </VStack>
-        ) : (
-          <>
-            {!fetching && (
-              <EmptyView
-                h="full"
-                alignSelf="flex-start"
-                text="No results found."
-              />
-            )}
-          </>
-        )}
+              )}
+            </>
+          )}
+        </VStack>
         {modal}
       </HStack>
       {totalCount && (

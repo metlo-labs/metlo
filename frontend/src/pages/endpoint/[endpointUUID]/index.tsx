@@ -41,6 +41,7 @@ const Endpoint = ({
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const initAlertParams = {
+    uuid: context.query.uuid as string,
     apiEndpointUuid: context.query.endpointUUID as string,
     riskScores: [],
     status: [Status.OPEN],
