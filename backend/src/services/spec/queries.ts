@@ -10,6 +10,22 @@ export const deleteOpenAPISpecDiffAlerts = `
   )
 `
 
+export const getAllOldEndpoints = `
+  SELECT
+    COALESCE(array_agg(DISTINCT "oldUuids"), '{}') as "uuids"
+  FROM
+    api_endpoint,
+    unnest("oldEndpointUuids") as "oldUuids"
+  WHERE
+    uuid = ANY($1)
+`
+
+export const updateOldEndpointUuids = `
+  UPDATE api_endpoint
+  SET "oldEndpointUuids" = array_cat("oldEndpointUuids", $1)
+  WHERE uuid = $2
+`
+
 export const insertDataFieldQuery = `
   WITH arr_aggs as (
     SELECT

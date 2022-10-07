@@ -54,6 +54,9 @@ export class ApiEndpoint extends BaseEntity {
   @Column({ nullable: true })
   owner: string
 
+  @Column({ type: "uuid", array: true, default: [] })
+  oldEndpointUuids: string[]
+
   @OneToMany(() => DataField, dataField => dataField.apiEndpoint)
   dataFields: DataField[]
 

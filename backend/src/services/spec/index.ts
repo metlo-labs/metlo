@@ -46,6 +46,8 @@ import {
   insertDataFieldQuery,
   insertAggregateHourlyQuery,
   deleteOpenAPISpecDiffAlerts,
+  updateOldEndpointUuids,
+  getAllOldEndpoints,
 } from "./queries"
 
 interface EndpointsMap {
@@ -389,8 +391,11 @@ export class SpecService {
             .where(`"apiEndpointUuid" IN(:...ids)`, {
               ids: similarEndpointUuids,
             })
+          const oldEndpointUuids = (await queryRunner.query(getAllOldEndpoints, [similarEndpointUuids]))?.[0]?.uuids ?? []
+          const concatUuids = oldEndpointUuids.length > 0 ? similarEndpointUuids?.concat(oldEndpointUuids) : similarEndpointUuids
 
           await updateTracesQb.execute()
+          await queryRunner.query(updateOldEndpointUuids, [concatUuids, item.endpoint.uuid])
           await queryRunner.query(insertDataFieldQuery, [
             similarEndpointUuids,
             item.endpoint.uuid,
