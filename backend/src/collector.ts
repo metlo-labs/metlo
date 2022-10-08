@@ -41,7 +41,7 @@ const populateBlockFields = async () => {
     const blockFieldsRepo = AppDataSource.getRepository(BlockFields)
     const removeEntries = await blockFieldsRepo.find()
     let entriesToAdd: BlockFields[] = []
-    const blockFieldsDoc = metloConfig["blockFields"]
+    const blockFieldsDoc = metloConfig?.["blockFields"]
     if (blockFieldsDoc) {
       for (const host in blockFieldsDoc) {
         const hostEntries: BlockFields[] = []
@@ -110,12 +110,12 @@ const populateAuthentication = async () => {
   }
   const queryRunner = AppDataSource.createQueryRunner()
   await queryRunner.connect()
-  await queryRunner.startTransaction()
   try {
+    await queryRunner.startTransaction()
     const metloConfig: object = yaml.load(
       fs.readFileSync("./metlo-config.yaml", "utf-8"),
     ) as object
-    const authConfigDoc = metloConfig["authentication"]
+    const authConfigDoc = metloConfig?.["authentication"]
     const authConfigEntries: AuthenticationConfig[] = []
     if (authConfigDoc) {
       authConfigDoc.forEach(item => {
