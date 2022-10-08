@@ -29,9 +29,7 @@ const main = async () => {
 
   schedule.scheduleJob("* * * * * *", () => {
     analyzeTracesSem.take(async () => {
-      console.log("\nAnalyzing traces...")
       await analyzeTraces()
-      console.log("Finished analyzing traces.")
       analyzeTracesSem.leave()
     })
   })
@@ -73,7 +71,7 @@ const main = async () => {
     })
   })
 
-  schedule.scheduleJob("0 * * * *", () => {
+  schedule.scheduleJob("*/10 * * * *", () => {
     clearApiTracesSem.take(async () => {
       console.log("\nClearing Api Trace data...")
       await clearApiTraces()
