@@ -60,7 +60,6 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
         setdataFieldList(dataFieldList.filter(e => e.uuid !== res.uuid))
         setDataField(undefined)
       } catch (err) {
-        console.log(err)
         toast(
           makeToast(
             {
