@@ -47,13 +47,18 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
         : "Upload Failed..."
       const errors = err.response.data?.errors
       const description = errors ? errors.join(" ") : err.response.data
-      toast(makeToast({
-        title,
-        size: "xl",
-        description,
-        status: "error",
-        duration: 1000000,
-      }, err.response?.status))
+      toast(
+        makeToast(
+          {
+            title,
+            size: "xl",
+            description,
+            status: "error",
+            duration: 1000000,
+          },
+          err.response?.status,
+        ),
+      )
     }
     setFetching(false)
   }
@@ -64,11 +69,16 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
       router.push("/specs")
     } catch (err) {
       console.log(err)
-      toast(makeToast({
-        title: `Couldn't Delete Spec ${spec.name}`,
-        status: "error",
-        description: "See the console for more details",
-      }, err.response?.status))
+      toast(
+        makeToast(
+          {
+            title: `Couldn't Delete Spec ${spec.name}`,
+            status: "error",
+            description: "See the console for more details",
+          },
+          err.response?.status,
+        ),
+      )
     } finally {
       setDeleting(false)
     }

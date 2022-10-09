@@ -46,10 +46,12 @@ const Alerts = ({ initParams, initAlerts, initTotalCount, initHosts }) => {
         setTotalCount(res[1])
       })
       .catch(e =>
-        toast(makeToast({
-          title: "Fetching Alerts failed",
-          status: "error",
-        })),
+        toast(
+          makeToast({
+            title: "Fetching Alerts failed",
+            status: "error",
+          }),
+        ),
       )
       .finally(() => setFetching(false))
   }
@@ -67,17 +69,24 @@ const Alerts = ({ initParams, initAlerts, initTotalCount, initHosts }) => {
     setUpdating(true)
     try {
       const resp: Alert = await updateAlert(alertId, updateAlertParams)
-      toast(makeToast({
-        title: `Updating alert successful`,
-        status: "success",
-      }))
+      toast(
+        makeToast({
+          title: `Updating alert successful`,
+          status: "success",
+        }),
+      )
       fetchAlerts(params)
     } catch (err) {
-      toast(makeToast({
-        title: "Updating Alert failed",
-        status: "error",
-        description: err.response?.data,
-      }, err.response?.status ))
+      toast(
+        makeToast(
+          {
+            title: "Updating Alert failed",
+            status: "error",
+            description: err.response?.data,
+          },
+          err.response?.status,
+        ),
+      )
     } finally {
       setUpdating(false)
     }

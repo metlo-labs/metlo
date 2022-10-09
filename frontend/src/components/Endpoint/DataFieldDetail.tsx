@@ -50,21 +50,28 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
       setUpdating(true)
       try {
         const res = await deleteDataField(currDataField.uuid)
-        toast(makeToast({
-          title: `Removed Data Field ${currDataField.dataPath}`,
-          status: "success",
-          duration: 3000,
-        }))
+        toast(
+          makeToast({
+            title: `Removed Data Field ${currDataField.dataPath}`,
+            status: "success",
+            duration: 3000,
+          }),
+        )
         setdataFieldList(dataFieldList.filter(e => e.uuid !== res.uuid))
         setDataField(undefined)
       } catch (err) {
         console.log(err)
-        toast(makeToast({
-          title: "Data Field Deletion failed",
-          status: "error",
-          description: err.response?.data,
-          duration: 5000,
-        }, err.response?.status))
+        toast(
+          makeToast(
+            {
+              title: "Data Field Deletion failed",
+              status: "error",
+              description: err.response?.data,
+              duration: 5000,
+            },
+            err.response?.status,
+          ),
+        )
       } finally {
         setUpdating(false)
       }
@@ -85,11 +92,16 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
           return resp
         })
         .catch(e => {
-          toast(makeToast({
-            title: "Data Class Update failed",
-            status: "error",
-            description: e.response?.data            
-          }, e.response?.status))
+          toast(
+            makeToast(
+              {
+                title: "Data Class Update failed",
+                status: "error",
+                description: e.response?.data,
+              },
+              e.response?.status,
+            ),
+          )
         })
         .finally(() => setUpdating(false))
     }

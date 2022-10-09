@@ -37,11 +37,13 @@ export const AlertTab: React.FC<AlertTabProps> = ({
         setTotalCount(res[1])
       })
       .catch(e =>
-        toast(makeToast({
-          title: "Fetching Alerts failed",
-          status: "error",
-          description: e.response?.data
-        })),
+        toast(
+          makeToast({
+            title: "Fetching Alerts failed",
+            status: "error",
+            description: e.response?.data,
+          }),
+        ),
       )
       .finally(() => setFetching(false))
   }
@@ -59,17 +61,24 @@ export const AlertTab: React.FC<AlertTabProps> = ({
     setUpdating(true)
     try {
       const resp: Alert = await updateAlert(alertId, updateAlertParams)
-      toast(makeToast({
-        title: `Updating alert successful`,
-        status: "success",
-      }))
+      toast(
+        makeToast({
+          title: `Updating alert successful`,
+          status: "success",
+        }),
+      )
       fetchAlerts(params)
     } catch (err) {
-      toast(makeToast({
-        title: "Updating Alert failed",
-        status: "error",
-        description: err.response?.data
-      }, err.response?.status))
+      toast(
+        makeToast(
+          {
+            title: "Updating Alert failed",
+            status: "error",
+            description: err.response?.data,
+          },
+          err.response?.status,
+        ),
+      )
     } finally {
       setUpdating(false)
     }

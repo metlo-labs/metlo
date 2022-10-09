@@ -61,11 +61,16 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
         .catch((err: AxiosError) => {
           setInstances([])
           setSelectedInstance("")
-          toast(makeToast({
-            title: "Couldn't fetch EC2 instance matching specs",
-            status: "error",
-            description: JSON.stringify(err.response.data),
-          }, err.response?.status))
+          toast(
+            makeToast(
+              {
+                title: "Couldn't fetch EC2 instance matching specs",
+                status: "error",
+                description: JSON.stringify(err.response.data),
+              },
+              err.response?.status,
+            ),
+          )
         })
         .finally(() => setLoadingState(false))
     }

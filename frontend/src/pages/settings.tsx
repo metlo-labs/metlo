@@ -62,11 +62,16 @@ const Keys = ({ keys: _keysString }) => {
       setNewKeyValue([resp.apiKey, resp.name])
       onNewKeyOpen()
     } catch (err) {
-      toast(makeToast({
-        title: "Adding new key failed",
-        status: "error",
-        description: err.response?.data
-      }, err.response?.status))
+      toast(
+        makeToast(
+          {
+            title: "Adding new key failed",
+            status: "error",
+            description: err.response?.data,
+          },
+          err.response?.status,
+        ),
+      )
     } finally {
       setIsAddingKey(false)
       onClose()

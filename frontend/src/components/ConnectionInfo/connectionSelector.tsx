@@ -48,12 +48,17 @@ const DeleteButton: React.FC<{
   const toast = useToast()
   const create_toast_with_message = (msg: string, statusCode?: number) => {
     console.log(msg)
-    toast(makeToast({
-      title: `Encountered an error while deleting connection`,
-      description: msg,
-      status: "error",
-      duration: 6000,
-    }, statusCode))
+    toast(
+      makeToast(
+        {
+          title: `Encountered an error while deleting connection`,
+          description: msg,
+          status: "error",
+          duration: 6000,
+        },
+        statusCode,
+      ),
+    )
   }
   const onBtnClick = async () => {
     await retrier({

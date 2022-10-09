@@ -22,10 +22,12 @@ export const HomeUpdateEmailView: React.FC<{}> = () => {
 
   const submit = () => {
     if (!input) {
-      toast(makeToast({
-        title: "Email is required...",
-        status: "error",
-      }))
+      toast(
+        makeToast({
+          title: "Email is required...",
+          status: "error",
+        }),
+      )
       return
     }
     updateEmail(input, false)
@@ -33,11 +35,16 @@ export const HomeUpdateEmailView: React.FC<{}> = () => {
         router.reload()
       })
       .catch(e => {
-        toast(makeToast({
-          title: "Post Failed",
-          description: e.response?.data,
-          status: "error",
-        }, e.response?.status))
+        toast(
+          makeToast(
+            {
+              title: "Post Failed",
+              description: e.response?.data,
+              status: "error",
+            },
+            e.response?.status,
+          ),
+        )
       })
   }
   const skip = () => {
@@ -46,11 +53,16 @@ export const HomeUpdateEmailView: React.FC<{}> = () => {
         router.reload()
       })
       .catch(e => {
-        toast(makeToast({
-          title: "Post Failed",
-          description: e.response?.data,
-          status: "error",
-        }, e.response?.status))
+        toast(
+          makeToast(
+            {
+              title: "Post Failed",
+              description: e.response?.data,
+              status: "error",
+            },
+            e.response?.status,
+          ),
+        )
       })
   }
 

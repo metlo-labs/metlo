@@ -45,15 +45,25 @@ const AWS_INFO: React.FC<AWS_INFOInterface> = ({
           name: name,
         })
         .then(v => {
-          toast(makeToast({ title: "Updated Name for Connection", status: "success" }))
+          toast(
+            makeToast({
+              title: "Updated Name for Connection",
+              status: "success",
+            }),
+          )
           setConnection({ ...connection, name: name })
         })
         .catch(err => {
-          toast(makeToast({
-            title: "Couldn't update name for connection",
-            description: err.response?.data,
-            status: "error",
-          }, err?.response?.status))
+          toast(
+            makeToast(
+              {
+                title: "Couldn't update name for connection",
+                description: err.response?.data,
+                status: "error",
+              },
+              err?.response?.status,
+            ),
+          )
         })
     }
   }
@@ -74,7 +84,13 @@ const AWS_INFO: React.FC<AWS_INFOInterface> = ({
       })
       .catch(err => {
         console.log(err)
-        toast(makeToast({ title: "Couldn't download ssh key file", description: err.response?.data, status: "error" }))
+        toast(
+          makeToast({
+            title: "Couldn't download ssh key file",
+            description: err.response?.data,
+            status: "error",
+          }),
+        )
       })
   }
   return (

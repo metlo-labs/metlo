@@ -85,13 +85,22 @@ const ConfigureGCP: React.FC<configureAWSParams> = ({
   const [id] = useState(uuidv4())
   const [name, setName] = useState(`Metlo-Connection-${id}`)
   const toast = useToast()
-  const create_toast_with_message = (msg: string, step: GCP_STEPS, statusCode?: number) => {
-    toast(makeToast({
-      title: `Encountered an error on step ${GCP_STEPS[step]}`,
-      description: msg,
-      status: "error",
-      duration: 6000,
-    }, statusCode))
+  const create_toast_with_message = (
+    msg: string,
+    step: GCP_STEPS,
+    statusCode?: number,
+  ) => {
+    toast(
+      makeToast(
+        {
+          title: `Encountered an error on step ${GCP_STEPS[step]}`,
+          description: msg,
+          status: "error",
+          duration: 6000,
+        },
+        statusCode,
+      ),
+    )
   }
 
   const step_increment_function = (
@@ -113,7 +122,11 @@ const ConfigureGCP: React.FC<configureAWSParams> = ({
         console.log(err.data.error)
       },
       error => {
-        create_toast_with_message(error.message as string, step, error.response?.status)
+        create_toast_with_message(
+          error.message as string,
+          step,
+          error.response?.status,
+        )
         console.log(error)
       },
       setUpdating,
@@ -305,10 +318,12 @@ const ConfigureGCP: React.FC<configureAWSParams> = ({
                 step: GCP_STEPS.EXEC_COMMAND,
                 params,
                 onComplete: () =>
-                  toast(makeToast({
-                    title: "Mirroring setup completed!",
-                    status: "success",
-                  })),
+                  toast(
+                    makeToast({
+                      title: "Mirroring setup completed!",
+                      status: "success",
+                    }),
+                  ),
               })
             }}
             isCurrent={GCP_STEPS.EXEC_COMMAND == selected}

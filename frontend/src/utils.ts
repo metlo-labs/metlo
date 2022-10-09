@@ -21,11 +21,17 @@ export const getDateTimeRelative = (date: Date) => {
   return null
 }
 
-export const makeToast = (e: UseToastOptions, statusCode?: number): UseToastOptions => ({
+export const makeToast = (
+  e: UseToastOptions,
+  statusCode?: number,
+): UseToastOptions => ({
   ...e,
-  description: statusCode && statusCode === 401 ? "Not enabled in sandbox mode..." : e.description,
+  description:
+    statusCode && statusCode === 401
+      ? "Not enabled in sandbox mode..."
+      : e.description,
   isClosable: true,
-  position: "top"
+  position: "top",
 })
 
 export async function api_call_retry({

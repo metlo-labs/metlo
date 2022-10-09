@@ -50,12 +50,17 @@ const AlertDetail: React.FC<AlertDetailProps> = React.memo(
     const handleResolveClick = async () => {
       setResolving(true)
       try {
-        const resp: Alert = await resolveAlert(currAlert.uuid, resolutionMessage)
-        toast(makeToast({
-          title: "Successfully resolved alert!",
-          status: "success",
-          duration: 5000,
-        }))
+        const resp: Alert = await resolveAlert(
+          currAlert.uuid,
+          resolutionMessage,
+        )
+        toast(
+          makeToast({
+            title: "Successfully resolved alert!",
+            status: "success",
+            duration: 5000,
+          }),
+        )
         const tempAlertList = [...alertList]
         for (let i = 0; i < tempAlertList.length; i++) {
           if (tempAlertList[i].uuid === resp.uuid) {
@@ -65,12 +70,17 @@ const AlertDetail: React.FC<AlertDetailProps> = React.memo(
         setCurrAlert(resp)
         setAlertList([...tempAlertList])
       } catch (err) {
-        toast(makeToast({
-          title: "Resolving Alert Failed",
-          status: "error",
-          duration: 5000,
-          description: err.response.data
-        }, err?.response?.status))
+        toast(
+          makeToast(
+            {
+              title: "Resolving Alert Failed",
+              status: "error",
+              duration: 5000,
+              description: err.response.data,
+            },
+            err?.response?.status,
+          ),
+        )
       } finally {
         setResolving(false)
       }

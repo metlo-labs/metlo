@@ -192,11 +192,16 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
           }))
         })
         .catch(err => {
-          toast(makeToast({
-            title: "Error Running Test",
-            description: err.message,
-            status: "error",
-          }, err.response?.status))
+          toast(
+            makeToast(
+              {
+                title: "Error Running Test",
+                description: err.message,
+                status: "error",
+              },
+              err.response?.status,
+            ),
+          )
         })
         .finally(() =>
           setState(state => ({
@@ -212,20 +217,27 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
       updateSaving(true)
       saveTest(state.test, endpoint.uuid)
         .then(e => {
-          toast(makeToast({
-            title: "Saved Request",
-            status: "success",
-          }))
+          toast(
+            makeToast({
+              title: "Saved Request",
+              status: "success",
+            }),
+          )
           if (isNewTest) {
             router.push(`/endpoint/${endpoint.uuid}/test/${e.uuid}`)
           }
         })
         .catch(err => {
-          toast(makeToast({
-            title: "Error Saving",
-            description: err.message,
-            status: "error",
-          }, err.response?.status))
+          toast(
+            makeToast(
+              {
+                title: "Error Saving",
+                description: err.message,
+                status: "error",
+              },
+              err.response?.status,
+            ),
+          )
         })
         .finally(() => {
           updateSaving(false)
@@ -246,11 +258,16 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
           }))
         })
         .catch(err => {
-          toast(makeToast({
-            title: "Error Running Test",
-            description: err.message,
-            status: "error",
-          }, err.response?.status))
+          toast(
+            makeToast(
+              {
+                title: "Error Running Test",
+                description: err.message,
+                status: "error",
+              },
+              err.response?.status,
+            ),
+          )
         })
         .finally(() =>
           setState(state => ({
@@ -270,11 +287,16 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
           router.push(`/endpoint/${endpoint.uuid}`)
         })
         .catch(err => {
-          toast(makeToast({
-            title: "Error Deleting Test",
-            description: err.message,
-            status: "error",
-          }, err.response?.status))
+          toast(
+            makeToast(
+              {
+                title: "Error Deleting Test",
+                description: err.message,
+                status: "error",
+              },
+              err.response?.status,
+            ),
+          )
         })
         .finally(() =>
           setState(state => ({

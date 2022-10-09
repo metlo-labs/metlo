@@ -31,11 +31,13 @@ export const ProtectionPage: React.FC<ProtectionPageProps> = React.memo(
       getAttacks(fetchParams)
         .then(res => setResponse(res))
         .catch(err =>
-          toast(makeToast({
-            title: "Fetching Protection Data failed",
-            status: "error",
-            duration: 5000,
-          })),
+          toast(
+            makeToast({
+              title: "Fetching Protection Data failed",
+              status: "error",
+              duration: 5000,
+            }),
+          ),
         )
         .finally(() => setFetching(false))
     }

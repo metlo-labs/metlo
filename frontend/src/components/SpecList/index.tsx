@@ -39,13 +39,18 @@ const APISpecList: React.FC<APISpecListProps> = React.memo(({ apiSpecs }) => {
         : "Upload Failed..."
       const errors = err.response.data?.errors
       const description = errors ? errors.join(" ") : err.response.data
-      toast(makeToast({
-        title,
-        size: "xl",
-        description,
-        status: "error",
-        duration: 1000000,
-      }, err.response?.status))
+      toast(
+        makeToast(
+          {
+            title,
+            size: "xl",
+            description,
+            status: "error",
+            duration: 1000000,
+          },
+          err.response?.status,
+        ),
+      )
     }
     setFetching(false)
   }

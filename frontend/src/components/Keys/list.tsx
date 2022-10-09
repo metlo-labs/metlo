@@ -28,11 +28,16 @@ const ListKeys: React.FC<ListKeysInterface> = ({ keys, setKeys }) => {
       setIsDeleting([...isDeleting].filter(v => v != key_name))
       setKeys(keys.filter(v => v.name != key_name))
     } catch (err) {
-      toast(makeToast({
-        title: "Deleting Key failed",
-        status: "error",
-        description: err.response?.data,
-      }, err.response?.status))
+      toast(
+        makeToast(
+          {
+            title: "Deleting Key failed",
+            status: "error",
+            description: err.response?.data,
+          },
+          err.response?.status,
+        ),
+      )
     } finally {
       setIsDeleting([...isDeleting].filter(v => v != key_name))
     }
