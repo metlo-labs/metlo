@@ -17,7 +17,7 @@ import { ConnectionType } from "@common/enums"
 import { ConnectionInfo } from "@common/types"
 import axios, { AxiosError, AxiosResponse } from "axios"
 import React, { useState } from "react"
-import { api_call_retry } from "utils"
+import { api_call_retry, makeToast } from "utils"
 import AWS_INFO from "./aws"
 import GCP_INFO from "./gcp"
 
@@ -46,15 +46,14 @@ const DeleteButton: React.FC<{
 }> = ({ conn, onDelete }) => {
   const [deleting, setDeleting] = useState(false)
   const toast = useToast()
-  const create_toast_with_message = (msg: string) => {
+  const create_toast_with_message = (msg: string, statusCode?: number) => {
     console.log(msg)
-    toast({
-      title: `Encountered an error on while deleting`,
+    toast(makeToast({
+      title: `Encountered an error while deleting connection`,
       description: msg,
       status: "error",
       duration: 6000,
-      isClosable: true,
-    })
+    }, statusCode))
   }
   const onBtnClick = async () => {
     await retrier({
@@ -75,7 +74,7 @@ const DeleteButton: React.FC<{
     setDeleting(true)
     let retry_id = await getRetryId(id, err => {
       console.log(err)
-      create_toast_with_message(err.message)
+      create_toast_with_message(err.message, err?.response?.status)
     })
 
     if (retry_id) {
@@ -84,7 +83,7 @@ const DeleteButton: React.FC<{
         url: `/api/v1/long_running/${retry_id}`,
         requestParams: {},
         onAPIError: (err: AxiosError<{ success: string; error: string }>) => {
-          create_toast_with_message(err.response.data.error)
+          create_toast_with_message(err.response.data.error, Number(err.code))
           setDeleting(false)
         },
         onError: (err: Error) => {

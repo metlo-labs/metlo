@@ -14,7 +14,7 @@ import { STEP_RESPONSE } from "@common/types"
 import { GCP_STEP_TO_TITLE_MAP } from "@common/maps"
 import axios, { AxiosResponse, AxiosError, AxiosRequestConfig } from "axios"
 import { useToast } from "@chakra-ui/react"
-import { api_call_retry } from "utils"
+import { api_call_retry, makeToast } from "utils"
 import GenericStep from "../common/genericStep"
 import KeySetup from "./key_setup"
 import SelectMirrorSourceGCP from "./select_source"
@@ -85,14 +85,13 @@ const ConfigureGCP: React.FC<configureAWSParams> = ({
   const [id] = useState(uuidv4())
   const [name, setName] = useState(`Metlo-Connection-${id}`)
   const toast = useToast()
-  const create_toast_with_message = (msg: string, step: GCP_STEPS) => {
-    toast({
+  const create_toast_with_message = (msg: string, step: GCP_STEPS, statusCode?: number) => {
+    toast(makeToast({
       title: `Encountered an error on step ${GCP_STEPS[step]}`,
       description: msg,
       status: "error",
       duration: 6000,
-      isClosable: true,
-    })
+    }, statusCode))
   }
 
   const step_increment_function = (
@@ -110,11 +109,11 @@ const ConfigureGCP: React.FC<configureAWSParams> = ({
         onSuccess()
       },
       err => {
-        create_toast_with_message(err.data.message, step)
+        create_toast_with_message(err.data.message, step, err.status)
         console.log(err.data.error)
       },
       error => {
-        create_toast_with_message(error.message as string, step)
+        create_toast_with_message(error.message as string, step, error.response?.status)
         console.log(error)
       },
       setUpdating,
@@ -142,7 +141,7 @@ const ConfigureGCP: React.FC<configureAWSParams> = ({
           params: { id, step, ..._params },
         } as AxiosRequestConfig,
         onAPIError: (err: AxiosError) => {
-          create_toast_with_message(err.message, step)
+          create_toast_with_message(err.message, step, err.response?.status)
           setUpdating(false)
         },
         onError: (err: Error) => {
@@ -306,10 +305,10 @@ const ConfigureGCP: React.FC<configureAWSParams> = ({
                 step: GCP_STEPS.EXEC_COMMAND,
                 params,
                 onComplete: () =>
-                  toast({
+                  toast(makeToast({
                     title: "Mirroring setup completed!",
                     status: "success",
-                  }),
+                  })),
               })
             }}
             isCurrent={GCP_STEPS.EXEC_COMMAND == selected}

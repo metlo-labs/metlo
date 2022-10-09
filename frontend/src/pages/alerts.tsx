@@ -18,6 +18,7 @@ import { getAlerts, updateAlert } from "api/alerts"
 import { AlertType, RiskScore, Status } from "@common/enums"
 import { GetServerSideProps } from "next"
 import { getHosts } from "api/endpoints"
+import { makeToast } from "utils"
 
 enum Order {
   DESC = "DESC",
@@ -45,10 +46,10 @@ const Alerts = ({ initParams, initAlerts, initTotalCount, initHosts }) => {
         setTotalCount(res[1])
       })
       .catch(e =>
-        toast({
-          title: "Fetching Alerts failed...",
+        toast(makeToast({
+          title: "Fetching Alerts failed",
           status: "error",
-        }),
+        })),
       )
       .finally(() => setFetching(false))
   }
@@ -64,22 +65,22 @@ const Alerts = ({ initParams, initAlerts, initTotalCount, initHosts }) => {
     updateAlertParams: UpdateAlertParams,
   ) => {
     setUpdating(true)
-    const resp: Alert = await updateAlert(alertId, updateAlertParams)
-    if (resp) {
-      toast({
+    try {
+      const resp: Alert = await updateAlert(alertId, updateAlertParams)
+      toast(makeToast({
         title: `Updating alert successful`,
         status: "success",
-        position: "top",
-      })
+      }))
       fetchAlerts(params)
-    } else {
-      toast({
-        title: "Updating Alert failed...",
+    } catch (err) {
+      toast(makeToast({
+        title: "Updating Alert failed",
         status: "error",
-        position: "top",
-      })
+        description: err.response?.data,
+      }, err.response?.status ))
+    } finally {
+      setUpdating(false)
     }
-    setUpdating(false)
   }
 
   return (

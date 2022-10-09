@@ -7,6 +7,7 @@ import { ContentContainer } from "components/utils/ContentContainer"
 import { AttackFilters } from "./Filters"
 import { AggAttackChart } from "./AggAttackChart"
 import { List } from "./List"
+import { makeToast } from "utils"
 
 interface ProtectionPageProps {
   initAttackResponse: AttackResponse
@@ -30,13 +31,11 @@ export const ProtectionPage: React.FC<ProtectionPageProps> = React.memo(
       getAttacks(fetchParams)
         .then(res => setResponse(res))
         .catch(err =>
-          toast({
-            title: "Fetching Protection Data failed...",
+          toast(makeToast({
+            title: "Fetching Protection Data failed",
             status: "error",
             duration: 5000,
-            isClosable: true,
-            position: "top",
-          }),
+          })),
         )
         .finally(() => setFetching(false))
     }

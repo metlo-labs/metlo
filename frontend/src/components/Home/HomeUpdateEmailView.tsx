@@ -13,6 +13,7 @@ import { Logo } from "components/Logo"
 import Head from "next/head"
 import { useRouter } from "next/router"
 import { useState } from "react"
+import { makeToast } from "utils"
 
 export const HomeUpdateEmailView: React.FC<{}> = () => {
   const [input, setInput] = useState("")
@@ -21,10 +22,10 @@ export const HomeUpdateEmailView: React.FC<{}> = () => {
 
   const submit = () => {
     if (!input) {
-      toast({
+      toast(makeToast({
         title: "Email is required...",
         status: "error",
-      })
+      }))
       return
     }
     updateEmail(input, false)
@@ -32,11 +33,11 @@ export const HomeUpdateEmailView: React.FC<{}> = () => {
         router.reload()
       })
       .catch(e => {
-        toast({
+        toast(makeToast({
           title: "Post Failed",
-          description: e.message,
+          description: e.response?.data,
           status: "error",
-        })
+        }, e.response?.status))
       })
   }
   const skip = () => {
@@ -45,11 +46,11 @@ export const HomeUpdateEmailView: React.FC<{}> = () => {
         router.reload()
       })
       .catch(e => {
-        toast({
+        toast(makeToast({
           title: "Post Failed",
-          description: e.message,
+          description: e.response?.data,
           status: "error",
-        })
+        }, e.response?.status))
       })
   }
 

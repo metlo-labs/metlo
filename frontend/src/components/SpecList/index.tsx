@@ -11,6 +11,7 @@ import { OpenApiSpec } from "@common/types"
 import List from "./List"
 import { uploadSpec } from "api/apiSpecs"
 import { useRouter } from "next/router"
+import { makeToast } from "utils"
 
 interface APISpecListProps {
   apiSpecs: OpenApiSpec[]
@@ -38,15 +39,13 @@ const APISpecList: React.FC<APISpecListProps> = React.memo(({ apiSpecs }) => {
         : "Upload Failed..."
       const errors = err.response.data?.errors
       const description = errors ? errors.join(" ") : err.response.data
-      toast({
+      toast(makeToast({
         title,
         size: "xl",
         description,
         status: "error",
         duration: 1000000,
-        isClosable: true,
-        position: "top",
-      })
+      }, err.response?.status))
     }
     setFetching(false)
   }

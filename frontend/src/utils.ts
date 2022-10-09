@@ -3,6 +3,7 @@ import axios, { AxiosError } from "axios"
 import { DateTime } from "luxon"
 import { RISK_SCORE_ORDER } from "./constants"
 import { DATA_CLASS_TO_RISK_SCORE } from "@common/maps"
+import { UseToastOptions } from "@chakra-ui/react"
 
 export const getDateTimeString = (date: Date) => {
   if (date) {
@@ -19,6 +20,13 @@ export const getDateTimeRelative = (date: Date) => {
   }
   return null
 }
+
+export const makeToast = (e: UseToastOptions, statusCode?: number): UseToastOptions => ({
+  ...e,
+  description: statusCode && statusCode === 401 ? "Not enabled in sandbox mode..." : e.description,
+  isClosable: true,
+  position: "top"
+})
 
 export async function api_call_retry({
   url,

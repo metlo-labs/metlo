@@ -18,6 +18,7 @@ import { ConnectionType, GCP_SOURCE_TYPE } from "@common/enums"
 import { ConnectionInfo } from "@common/types"
 import axios from "axios"
 import { useState } from "react"
+import { makeToast } from "utils"
 import { getAPIURL } from "~/constants"
 import { EditableControls } from "../utils/EditableControls"
 
@@ -61,14 +62,15 @@ const GCP_INFO: React.FC<GCP_INFOInterface> = ({
           name: name,
         })
         .then(v => {
-          toast({ title: "Updated Name for Connection" })
+          toast(makeToast({ title: "Updated Name for Connection", status: "success" }))
           setConnection({ ...connection, name: name })
         })
         .catch(err => {
-          toast({
+          toast(makeToast({
             title: "Couldn't update name for connection",
             description: err,
-          })
+            status: "error",
+          }, err?.response?.status))
         })
     }
   }
@@ -89,7 +91,7 @@ const GCP_INFO: React.FC<GCP_INFOInterface> = ({
       })
       .catch(err => {
         console.log(err)
-        toast({ title: "Couldn't download ssh key file", description: err })
+        toast(makeToast({ title: "Couldn't download ssh key file", description: err, status: "error" }, err?.response?.status))
       })
   }
 

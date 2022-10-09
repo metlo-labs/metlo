@@ -20,7 +20,7 @@ import InstanceSelection from "./instance_selection"
 import GenericStep from "../common/genericStep"
 import SetupRulesFilter from "./mirrorFilters"
 import { useToast } from "@chakra-ui/react"
-import { api_call_retry } from "utils"
+import { api_call_retry, makeToast } from "utils"
 interface configureAWSParams {
   selected: AWS_STEPS
   updateSelected: (x: AWS_STEPS) => void
@@ -85,14 +85,13 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
   const [id] = useState(uuidv4())
   const [name, setName] = useState(`Metlo-Connection-${id}`)
   const toast = useToast()
-  const create_toast_with_message = (msg: string, step: AWS_STEPS) => {
-    toast({
+  const create_toast_with_message = (msg: string, step: AWS_STEPS, statusCode?: number) => {
+    toast(makeToast({
       title: `Encountered an error on step ${AWS_STEPS[step]}`,
       description: msg,
       status: "error",
       duration: 6000,
-      isClosable: true,
-    })
+    }, statusCode))
   }
 
   const step_increment_function = (
@@ -107,11 +106,11 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
         updateSelected(step + 1)
       },
       err => {
-        create_toast_with_message(err.data.message, step)
+        create_toast_with_message(err.data.message, step, err.status)
         console.log(err.data.error)
       },
       error => {
-        create_toast_with_message(error.message as string, step)
+        create_toast_with_message(error.message as string, step, error.response?.status)
         console.log(error)
       },
       setUpdating,
@@ -135,7 +134,7 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
       url: `/api/v1/long_running/${retry_id}`,
       requestParams: { params: { id, step, ..._params } } as AxiosRequestConfig,
       onAPIError: (err: AxiosError) => {
-        create_toast_with_message(err.message, step)
+        create_toast_with_message(err.message, step, err.response?.status)
         setUpdating(false)
       },
       onError: (err: Error) => {
@@ -296,10 +295,10 @@ const ConfigureAWS: React.FC<configureAWSParams> = ({
                 step: AWS_STEPS.EXEC_COMMAND,
                 params,
                 onComplete: () => {
-                  toast({
+                  toast(makeToast({
                     title: "Mirroring setup completed!",
                     status: "success",
-                  })
+                  }))
                 },
               })
             }}

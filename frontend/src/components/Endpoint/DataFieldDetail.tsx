@@ -16,6 +16,7 @@ import {
   getDateTimeString,
   getMaxRiskScoreFromList,
   getRiskScores,
+  makeToast,
 } from "utils"
 import { deleteDataField, updateDataFieldClasses } from "api/dataFields"
 import { DataClass, RiskScore } from "@common/enums"
@@ -47,26 +48,26 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
 
     const handleDeleteDataField = async () => {
       setUpdating(true)
-      const res = await deleteDataField(currDataField.uuid)
-      if (res) {
-        toast({
+      try {
+        const res = await deleteDataField(currDataField.uuid)
+        toast(makeToast({
           title: `Removed Data Field ${currDataField.dataPath}`,
           status: "success",
           duration: 3000,
-          position: "top",
-        })
+        }))
         setdataFieldList(dataFieldList.filter(e => e.uuid !== res.uuid))
         setDataField(undefined)
-      } else {
-        toast({
-          title: "Data Field Deletion failed...",
+      } catch (err) {
+        console.log(err)
+        toast(makeToast({
+          title: "Data Field Deletion failed",
           status: "error",
-          isClosable: true,
+          description: err.response?.data,
           duration: 5000,
-          position: "top",
-        })
+        }, err.response?.status))
+      } finally {
+        setUpdating(false)
       }
-      setUpdating(false)
     }
 
     const handleUpdateTags = async (newTags: DataClass[]) => {
@@ -84,11 +85,11 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
           return resp
         })
         .catch(e => {
-          toast({
-            title: "Data Class Update failed...",
+          toast(makeToast({
+            title: "Data Class Update failed",
             status: "error",
-            position: "top",
-          })
+            description: e.response?.data            
+          }, e.response?.status))
         })
         .finally(() => setUpdating(false))
     }

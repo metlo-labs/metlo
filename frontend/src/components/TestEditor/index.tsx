@@ -28,6 +28,7 @@ import { makeNewEmptyRequest } from "./requestUtils"
 import { deleteTest, runTest, saveTest } from "api/tests"
 import { TagList } from "components/utils/TagList"
 import { useRouter } from "next/router"
+import { makeToast } from "utils"
 
 interface TestEditorProps {
   endpoint: ApiEndpointDetailed
@@ -191,11 +192,11 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
           }))
         })
         .catch(err => {
-          toast({
+          toast(makeToast({
             title: "Error Running Test",
             description: err.message,
             status: "error",
-          })
+          }, err.response?.status))
         })
         .finally(() =>
           setState(state => ({
@@ -211,20 +212,20 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
       updateSaving(true)
       saveTest(state.test, endpoint.uuid)
         .then(e => {
-          toast({
+          toast(makeToast({
             title: "Saved Request",
             status: "success",
-          })
+          }))
           if (isNewTest) {
             router.push(`/endpoint/${endpoint.uuid}/test/${e.uuid}`)
           }
         })
         .catch(err => {
-          toast({
+          toast(makeToast({
             title: "Error Saving",
             description: err.message,
             status: "error",
-          })
+          }, err.response?.status))
         })
         .finally(() => {
           updateSaving(false)
@@ -245,11 +246,11 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
           }))
         })
         .catch(err => {
-          toast({
+          toast(makeToast({
             title: "Error Running Test",
             description: err.message,
             status: "error",
-          })
+          }, err.response?.status))
         })
         .finally(() =>
           setState(state => ({
@@ -269,11 +270,11 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
           router.push(`/endpoint/${endpoint.uuid}`)
         })
         .catch(err => {
-          toast({
+          toast(makeToast({
             title: "Error Deleting Test",
             description: err.message,
             status: "error",
-          })
+          }, err.response?.status))
         })
         .finally(() =>
           setState(state => ({

@@ -5,6 +5,7 @@ import { getAlerts, updateAlert } from "api/alerts"
 import { AlertList } from "components/Alert/AlertList"
 import { SpecExtension } from "@common/enums"
 import { ALERT_PAGE_LIMIT } from "~/constants"
+import { makeToast } from "utils"
 
 interface AlertTabProps {
   initAlertParams: GetAlertParams
@@ -36,10 +37,11 @@ export const AlertTab: React.FC<AlertTabProps> = ({
         setTotalCount(res[1])
       })
       .catch(e =>
-        toast({
-          title: "Fetching Alerts failed...",
+        toast(makeToast({
+          title: "Fetching Alerts failed",
           status: "error",
-        }),
+          description: e.response?.data
+        })),
       )
       .finally(() => setFetching(false))
   }
@@ -55,22 +57,22 @@ export const AlertTab: React.FC<AlertTabProps> = ({
     updateAlertParams: UpdateAlertParams,
   ) => {
     setUpdating(true)
-    const resp: Alert = await updateAlert(alertId, updateAlertParams)
-    if (resp) {
-      toast({
+    try {
+      const resp: Alert = await updateAlert(alertId, updateAlertParams)
+      toast(makeToast({
         title: `Updating alert successful`,
         status: "success",
-        position: "top",
-      })
+      }))
       fetchAlerts(params)
-    } else {
-      toast({
-        title: "Updating Alert failed...",
+    } catch (err) {
+      toast(makeToast({
+        title: "Updating Alert failed",
         status: "error",
-        position: "top",
-      })
+        description: err.response?.data
+      }, err.response?.status))
+    } finally {
+      setUpdating(false)
     }
-    setUpdating(false)
   }
 
   return (

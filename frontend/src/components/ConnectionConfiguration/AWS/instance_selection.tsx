@@ -16,6 +16,7 @@ import {
 import { MachineSpecifications } from "@common/types"
 import axios, { AxiosError } from "axios"
 import { useEffect, useState } from "react"
+import { makeToast } from "utils"
 import { getAPIURL } from "~/constants"
 
 interface KeySetupInterface {
@@ -60,10 +61,11 @@ const InstanceSelection: React.FC<KeySetupInterface> = ({
         .catch((err: AxiosError) => {
           setInstances([])
           setSelectedInstance("")
-          toast({
+          toast(makeToast({
             title: "Couldn't fetch EC2 instance matching specs",
+            status: "error",
             description: JSON.stringify(err.response.data),
-          })
+          }, err.response?.status))
         })
         .finally(() => setLoadingState(false))
     }

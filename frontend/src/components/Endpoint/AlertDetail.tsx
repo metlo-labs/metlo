@@ -17,7 +17,7 @@ import {
   List,
 } from "@chakra-ui/react"
 import { AiOutlineRight } from "@react-icons/all-files/ai/AiOutlineRight"
-import { getDateTimeString } from "utils"
+import { getDateTimeString, makeToast } from "utils"
 import { METHOD_TO_COLOR } from "~/constants"
 import { RestMethod, Status } from "@common/enums"
 import { resolveAlert } from "api/alerts"
@@ -49,15 +49,13 @@ const AlertDetail: React.FC<AlertDetailProps> = React.memo(
 
     const handleResolveClick = async () => {
       setResolving(true)
-      const resp: Alert = await resolveAlert(currAlert.uuid, resolutionMessage)
-      if (resp) {
-        toast({
+      try {
+        const resp: Alert = await resolveAlert(currAlert.uuid, resolutionMessage)
+        toast(makeToast({
           title: "Successfully resolved alert!",
           status: "success",
           duration: 5000,
-          isClosable: true,
-          position: "top",
-        })
+        }))
         const tempAlertList = [...alertList]
         for (let i = 0; i < tempAlertList.length; i++) {
           if (tempAlertList[i].uuid === resp.uuid) {
@@ -66,16 +64,16 @@ const AlertDetail: React.FC<AlertDetailProps> = React.memo(
         }
         setCurrAlert(resp)
         setAlertList([...tempAlertList])
-      } else {
-        toast({
-          title: "Resolving Alert Failed...",
+      } catch (err) {
+        toast(makeToast({
+          title: "Resolving Alert Failed",
           status: "error",
           duration: 5000,
-          isClosable: true,
-          position: "top",
-        })
+          description: err.response.data
+        }, err?.response?.status))
+      } finally {
+        setResolving(false)
       }
-      setResolving(false)
     }
 
     return (

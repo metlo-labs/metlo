@@ -10,6 +10,7 @@ import {
 } from "@chakra-ui/react"
 import axios from "axios"
 import { useEffect, useState } from "react"
+import { makeToast } from "utils"
 
 interface KeySetupInterface {
   complete: (params: Record<string, any>) => void
@@ -40,10 +41,11 @@ const SourceMigConfig: React.FC<KeySetupInterface> = ({
           setImageTemplateURL(os_choice.data[0][1])
         })
         .catch(err => {
-          toast({
+          toast(makeToast({
             title: "Encountered an error fetching OS Choices",
+            status: "error",
             description: "Check the console for more details",
-          })
+          }, err?.response?.status))
           console.warn(err)
         })
     }

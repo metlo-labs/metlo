@@ -17,6 +17,7 @@ import lightTheme from "prism-react-renderer/themes/github"
 import Highlight, { defaultProps } from "prism-react-renderer"
 import { OpenApiSpec } from "@common/types"
 import { deleteSpec, updateSpec } from "api/apiSpecs"
+import { makeToast } from "utils"
 
 interface SpecPageProps {
   spec: OpenApiSpec
@@ -46,15 +47,13 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
         : "Upload Failed..."
       const errors = err.response.data?.errors
       const description = errors ? errors.join(" ") : err.response.data
-      toast({
+      toast(makeToast({
         title,
         size: "xl",
         description,
         status: "error",
         duration: 1000000,
-        isClosable: true,
-        position: "top",
-      })
+      }, err.response?.status))
     }
     setFetching(false)
   }
@@ -65,10 +64,11 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
       router.push("/specs")
     } catch (err) {
       console.log(err)
-      toast({
+      toast(makeToast({
         title: `Couldn't Delete Spec ${spec.name}`,
+        status: "error",
         description: "See the console for more details",
-      })
+      }, err.response?.status))
     } finally {
       setDeleting(false)
     }
