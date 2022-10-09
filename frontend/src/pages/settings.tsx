@@ -4,6 +4,7 @@ import {
   Heading,
   HStack,
   useDisclosure,
+  useToast,
   VStack,
 } from "@chakra-ui/react"
 import { ApiKey } from "@common/types"
@@ -17,6 +18,7 @@ import { ContentContainer } from "components/utils/ContentContainer"
 import { GetServerSideProps } from "next"
 import { useState } from "react"
 import superjson from "superjson"
+import { makeToast } from "utils"
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const apiKeys = await getKeys()
@@ -41,6 +43,7 @@ const Keys = ({ keys: _keysString }) => {
     onClose: onNewKeyClose,
   } = useDisclosure()
   const [isAddingKey, setIsAddingKey] = useState(false)
+  const toast = useToast()
 
   const addKey = async (key_name: string) => {
     setIsAddingKey(true)
@@ -58,6 +61,12 @@ const Keys = ({ keys: _keysString }) => {
       setKeys(new_keys)
       setNewKeyValue([resp.apiKey, resp.name])
       onNewKeyOpen()
+    } catch (err) {
+      toast(makeToast({
+        title: "Adding new key failed",
+        status: "error",
+        description: err.response?.data
+      }, err.response?.status))
     } finally {
       setIsAddingKey(false)
       onClose()

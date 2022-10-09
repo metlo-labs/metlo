@@ -1,4 +1,4 @@
-import { Badge, Box, Button, useColorMode } from "@chakra-ui/react"
+import { Badge, Button, useColorMode, useToast } from "@chakra-ui/react"
 import { ApiKey } from "@common/types"
 import { deleteKey } from "api/keys"
 import EmptyView from "components/utils/EmptyView"
@@ -7,6 +7,7 @@ import _ from "lodash"
 import { DateTime } from "luxon"
 import { useState } from "react"
 import DataTable, { TableColumn } from "react-data-table-component"
+import { makeToast } from "utils"
 
 interface ListKeysInterface {
   keys: Array<ApiKey>
@@ -16,14 +17,25 @@ interface ListKeysInterface {
 const ListKeys: React.FC<ListKeysInterface> = ({ keys, setKeys }) => {
   const colorMode = useColorMode()
   const [isDeleting, setIsDeleting] = useState<Array<string>>([])
+  const toast = useToast()
 
   const onDeletePress = async (key_name: string) => {
     let _keys = [...isDeleting]
     _keys.push(key_name)
     setIsDeleting(_keys)
-    await deleteKey(key_name)
-    setIsDeleting([...isDeleting].filter(v => v != key_name))
-    setKeys(keys.filter(v => v.name != key_name))
+    try {
+      await deleteKey(key_name)
+      setIsDeleting([...isDeleting].filter(v => v != key_name))
+      setKeys(keys.filter(v => v.name != key_name))
+    } catch (err) {
+      toast(makeToast({
+        title: "Deleting Key failed",
+        status: "error",
+        description: err.response?.data,
+      }, err.response?.status))
+    } finally {
+      setIsDeleting([...isDeleting].filter(v => v != key_name))
+    }
   }
 
   let columns: Array<TableColumn<ApiKey>> = [
