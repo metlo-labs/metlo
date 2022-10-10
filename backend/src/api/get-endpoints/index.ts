@@ -1,7 +1,9 @@
 import { Request, Response } from "express"
+import validator from "validator"
 import { GetEndpointsService } from "services/get-endpoints"
 import { GetEndpointParams } from "@common/types"
 import ApiResponseHandler from "api-response-handler"
+import Error404NotFound from "errors/error-404-not-found"
 
 export const getEndpointsHandler = async (
   req: Request,
@@ -22,6 +24,9 @@ export const getEndpointHandler = async (
 ): Promise<void> => {
   try {
     const { endpointId } = req.params
+    if (!validator.isUUID(endpointId)) {
+      throw new Error404NotFound("Endpoint does not exist.")
+    }
     const endpoint = await GetEndpointsService.getEndpoint(endpointId)
     await ApiResponseHandler.success(res, endpoint)
   } catch (err) {
@@ -47,6 +52,9 @@ export const getUsageHandler = async (
 ): Promise<void> => {
   try {
     const { endpointId } = req.params
+    if (!validator.isUUID(endpointId)) {
+      throw new Error404NotFound("Endpoint does not exist.")
+    }
     const usageData = await GetEndpointsService.getUsage(endpointId)
     await ApiResponseHandler.success(res, usageData)
   } catch (err) {

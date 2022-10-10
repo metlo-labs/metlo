@@ -6,6 +6,7 @@ import {
   Not,
   QueryRunner,
 } from "typeorm"
+import validator from "validator"
 import jsonMap from "json-source-map"
 import yaml from "js-yaml"
 import SourceMap from "js-yaml-source-map"
@@ -29,6 +30,7 @@ import {
 import Error409Conflict from "errors/error-409-conflict"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { getPathTokens } from "@common/utils"
+import Error404NotFound from "errors/error-404-not-found"
 
 export class AlertService {
   static async updateAlert(
@@ -91,13 +93,16 @@ export class AlertService {
     let paginationParams: FindManyOptions<Alert> = {}
     let orderParams: FindOptionsOrder<Alert> = {}
 
-    if (alertParams?.uuid) {
+    if (alertParams?.uuid && validator.isUUID(alertParams?.uuid)) {
       whereConditions = {
         ...whereConditions,
         uuid: alertParams.uuid,
       }
     }
-    if (alertParams?.apiEndpointUuid) {
+    if (
+      alertParams?.apiEndpointUuid &&
+      validator.isUUID(alertParams?.apiEndpointUuid)
+    ) {
       whereConditions = {
         ...whereConditions,
         apiEndpointUuid: alertParams.apiEndpointUuid,
@@ -195,6 +200,9 @@ export class AlertService {
 
   static async getAlert(alertId: string): Promise<AlertResponse> {
     const alertRepository = AppDataSource.getRepository(Alert)
+    if (!validator.isUUID(alertId)) {
+      throw new Error404NotFound("Alert not found.")
+    }
     return await alertRepository.findOneBy({ uuid: alertId })
   }
 
