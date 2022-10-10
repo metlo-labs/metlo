@@ -21,6 +21,7 @@ services:
       - 8081:8081
     environment:
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     volumes:
       - ./metlo-config.yaml:/usr/src/app/backend/metlo-config.yaml
   cache:
