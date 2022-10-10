@@ -148,6 +148,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
             <GoSearch />
           </InputLeftElement>
           <Input
+            spellCheck={false}
             onChange={e => debounceSearch(e.target.value)}
             w={{ base: "full", lg: "xs" }}
             type="text"

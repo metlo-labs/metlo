@@ -301,6 +301,7 @@ export const AlertList: React.FC<AlertListProps> = ({
               <GoSearch />
             </InputLeftElement>
             <Input
+              spellCheck={false}
               defaultValue={params.uuid}
               onChange={e => debounceSearch(e.target.value)}
               type="text"
