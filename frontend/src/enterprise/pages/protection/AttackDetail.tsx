@@ -21,7 +21,7 @@ const AttackDetail = ({ attackDetail }) => {
       title="Protection"
       currentTab={SideNavLinkDestination.Protection}
     >
-      <AttackDetailPage attack={attack} traces={traces} />
+      <AttackDetailPage initialAttack={attack} traces={traces} />
     </SidebarLayoutShell>
   )
 }

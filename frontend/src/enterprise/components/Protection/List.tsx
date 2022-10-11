@@ -4,7 +4,7 @@ import { useRouter } from "next/router"
 import { Badge, useColorMode, Box, HStack, Text } from "@chakra-ui/react"
 import EmptyView from "components/utils/EmptyView"
 import { TableColumn } from "react-data-table-component"
-import { ATTACK_PAGE_LIMIT, RISK_TO_COLOR } from "~/constants"
+import { ATTACK_PAGE_LIMIT, RISK_TO_COLOR, STATUS_TO_COLOR } from "~/constants"
 import {
   getCustomStyles,
   rowStyles,
@@ -12,6 +12,7 @@ import {
 } from "components/utils/TableUtils"
 import { Attack } from "@common/types"
 import { getDateTimeString } from "utils"
+import { Status } from "@common/enums"
 const DataTable = dynamic(() => import("react-data-table-component"), {
   ssr: false,
 })
@@ -35,6 +36,11 @@ const TableLoader: React.FC<TableLoaderProps> = ({
 }) => {
   const colorMode = useColorMode()
   const loadingColumns: TableColumn<any>[] = [
+    {
+      name: "Status",
+      id: "status",
+      grow: 1,
+    },
     {
       name: "Attack Type",
       id: "type",
@@ -95,6 +101,25 @@ export const List: React.FC<AttackTableProps> = React.memo(
     const colorMode = useColorMode()
     const router = useRouter()
     const columns: TableColumn<Attack>[] = [
+      {
+        name: "Status",
+        sortable: false,
+        id: "status",
+        cell: (row: Attack) => (
+          <Badge
+            py="1"
+            px="2"
+            fontSize="sm"
+            colorScheme={
+              STATUS_TO_COLOR[row.resolved ? Status.RESOLVED : Status.OPEN]
+            }
+            pointerEvents="none"
+          >
+            {row.resolved ? "RESOLVED" : "OPEN"}
+          </Badge>
+        ),
+        grow: 1,
+      },
       {
         name: "Attack Type",
         sortable: false,

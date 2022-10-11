@@ -22,6 +22,7 @@ import {
   MenuItem,
   MenuList,
   Text,
+  useToast,
   VStack,
 } from "@chakra-ui/react"
 import { ApiTrace, Attack } from "@common/types"
@@ -29,24 +30,49 @@ import { DataAttribute, DataHeading } from "components/utils/Card"
 import TraceDetail from "components/Endpoint/TraceDetail"
 import { METHOD_TO_COLOR, RISK_TO_COLOR, STATUS_TO_COLOR } from "~/constants"
 import { Status } from "@common/enums"
-import { getDateTimeString } from "utils"
+import { getDateTimeString, makeToast } from "utils"
 import { statusCodeToColor } from "components/utils/StatusCode"
 import { getCustomStyles, rowStyles } from "components/utils/TableUtils"
 import EmptyView from "components/utils/EmptyView"
+import { resolveAttack } from "api/attacks"
 
 interface AttackDetailPageProps {
-  attack: Attack
+  initialAttack: Attack
   traces: ApiTrace[]
 }
 
 export const AttackDetailPage: React.FC<AttackDetailPageProps> = React.memo(
-  ({ attack, traces }) => {
+  ({ initialAttack, traces }) => {
+    const [attack, setAttack] = useState<Attack>(initialAttack)
+    const [resolving, setResolving] = useState<boolean>(false)
     const [trace, setTrace] = useState<ApiTrace | undefined>()
     const headerColor = "rgb(179, 181, 185)"
     const selectedRowColor = "rgb(242, 242, 242)"
     const headerBg = "rgb(252, 252, 252)"
     const divColor = "rgb(216, 216, 216)"
     const headerTextColor = "gray.700"
+    const toast = useToast()
+
+    const handleResolveClick = async () => {
+      setResolving(true)
+      try {
+        await resolveAttack(attack?.uuid)
+        setAttack({ ...attack, resolved: true, snoozed: false })
+      } catch (err) {
+        toast(
+          makeToast(
+            {
+              title: "Resolve attack failed",
+              status: "error",
+              description: err.response?.data,
+            },
+            err.response?.status,
+          ),
+        )
+      } finally {
+        setResolving(false)
+      }
+    }
 
     const conditionalStyles = [
       {
@@ -174,16 +200,18 @@ export const AttackDetailPage: React.FC<AttackDetailPageProps> = React.memo(
               px="2"
               fontSize="sm"
               colorScheme={
-                STATUS_TO_COLOR[attack.resolved ? Status.RESOLVED : Status.OPEN]
+                STATUS_TO_COLOR[
+                  attack?.resolved ? Status.RESOLVED : Status.OPEN
+                ]
               }
               pointerEvents="none"
             >
-              {attack.resolved ? "RESOLVED" : "OPEN"}
+              {attack?.resolved ? "RESOLVED" : "OPEN"}
             </Badge>
           </GridItem>
           <GridItem>
             <DataHeading>Host</DataHeading>
-            <DataAttribute>{attack.host}</DataAttribute>
+            <DataAttribute>{attack?.host}</DataAttribute>
           </GridItem>
           <GridItem>
             <DataHeading>Risk Score</DataHeading>
@@ -191,31 +219,31 @@ export const AttackDetailPage: React.FC<AttackDetailPageProps> = React.memo(
               py="1"
               px="2"
               fontSize="sm"
-              colorScheme={RISK_TO_COLOR[attack.riskScore]}
+              colorScheme={RISK_TO_COLOR[attack?.riskScore]}
               pointerEvents="none"
             >
-              {attack.riskScore}
+              {attack?.riskScore}
             </Badge>
           </GridItem>
           <GridItem>
             <DataHeading>Source IP</DataHeading>
-            <DataAttribute>{attack.sourceIP ?? "N/A"}</DataAttribute>
+            <DataAttribute>{attack?.sourceIP ?? "N/A"}</DataAttribute>
           </GridItem>
           <GridItem>
             <DataHeading>Start Time</DataHeading>
             <DataAttribute>
-              {getDateTimeString(attack.startTime) || "N/A"}
+              {getDateTimeString(attack?.startTime) || "N/A"}
             </DataAttribute>
           </GridItem>
           <GridItem>
             <DataHeading>End Time</DataHeading>
             <DataAttribute>
-              {getDateTimeString(attack.endTime) || "N/A"}
+              {getDateTimeString(attack?.endTime) || "N/A"}
             </DataAttribute>
           </GridItem>
           <GridItem colSpan={2}>
             <DataHeading>Description</DataHeading>
-            <Code p="1">{attack.description}</Code>
+            <Code p="1">{attack?.description}</Code>
           </GridItem>
         </Grid>
         <Divider w="100vw" pt="4" borderColor={divColor} />
@@ -250,13 +278,13 @@ export const AttackDetailPage: React.FC<AttackDetailPageProps> = React.memo(
           <HStack w="full" justifyContent="space-between">
             <HStack>
               <Heading fontWeight="medium" size="lg">
-                {attack.attackType}
+                {attack?.attackType}
               </Heading>
-              {attack.resolved && (
+              {attack?.resolved && (
                 <FiCheckCircle fontSize="20px" color="green" />
               )}
             </HStack>
-            {!attack.resolved && (
+            {!attack?.resolved && (
               <HStack>
                 <Menu>
                   <MenuButton
@@ -275,7 +303,12 @@ export const AttackDetailPage: React.FC<AttackDetailPageProps> = React.memo(
                     <MenuItem>Other...</MenuItem>
                   </MenuList>
                 </Menu>
-                <Button leftIcon={<FiCheckCircle />} colorScheme="green">
+                <Button
+                  isLoading={resolving}
+                  onClick={handleResolveClick}
+                  leftIcon={<FiCheckCircle />}
+                  colorScheme="green"
+                >
                   Resolve
                 </Button>
               </HStack>

@@ -23,3 +23,7 @@ export const getAttack = async (
   )
   return resp.data
 }
+
+export const resolveAttack = async (attackId: string): Promise<void> => {
+  await axios.put(`${getAPIURL()}/attack/${attackId}/resolve`)
+}
