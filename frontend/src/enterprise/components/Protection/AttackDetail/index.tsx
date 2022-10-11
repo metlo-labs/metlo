@@ -185,7 +185,7 @@ export const AttackDetailPage: React.FC<AttackDetailPageProps> = React.memo(
           </Button>
         </HStack>
         <Box h="calc(100% - 52px)">
-          <TraceDetail trace={trace} />
+          <TraceDetail trace={trace} attackView />
         </Box>
       </Box>
     ) : null
