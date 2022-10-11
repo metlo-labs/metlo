@@ -21,6 +21,7 @@ const ReactJson = dynamic(() => import("react-json-view"), { ssr: false })
 interface TraceDetailProps {
   trace: ApiTrace
   alertModalView?: boolean
+  attackView?: boolean
 }
 
 export const JSONContentViewer = (
@@ -92,7 +93,7 @@ export const TraceView: React.FC<{ trace: ApiTrace; colorMode: ColorMode }> = ({
 )
 
 const TraceDetail: React.FC<TraceDetailProps> = React.memo(
-  ({ trace, alertModalView }) => {
+  ({ trace, alertModalView, attackView }) => {
     const colorMode = useColorMode()
     return (
       <Box
@@ -165,6 +166,42 @@ const TraceDetail: React.FC<TraceDetailProps> = React.memo(
               >{`${trace.meta.destination}:${trace.meta.destinationPort}`}</Text>
             </VStack>
           </GridItem>
+          {attackView && (
+            <>
+              <GridItem>
+                <VStack alignItems="flex-start">
+                  <Text fontWeight="semibold">Authentication Provided</Text>
+                  <Text fontFamily="mono" fontSize="sm">{`${
+                    trace.sessionMeta?.authenticationProvided ?? "N/A"
+                  }`}</Text>
+                </VStack>
+              </GridItem>
+              <GridItem>
+                <VStack alignItems="flex-start">
+                  <Text fontWeight="semibold">Authentication Successful</Text>
+                  <Text fontFamily="mono" fontSize="sm">{`${
+                    trace.sessionMeta?.authenticationSuccessful ?? "N/A"
+                  }`}</Text>
+                </VStack>
+              </GridItem>
+              <GridItem>
+                <VStack alignItems="flex-start">
+                  <Text fontWeight="semibold">Auth Type</Text>
+                  <Text fontFamily="mono" fontSize="sm">
+                    {trace.sessionMeta?.authType ?? "N/A"}
+                  </Text>
+                </VStack>
+              </GridItem>
+              <GridItem>
+                <VStack alignItems="flex-start">
+                  <Text fontWeight="semibold">User</Text>
+                  <Text fontFamily="mono" fontSize="sm">
+                    {trace.sessionMeta?.user ?? "N/A"}
+                  </Text>
+                </VStack>
+              </GridItem>
+            </>
+          )}
         </Grid>
         <Box pt="4">
           <TraceView trace={trace} colorMode={colorMode.colorMode} />

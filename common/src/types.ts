@@ -155,6 +155,7 @@ export interface ApiTrace {
   responseHeaders: PairObject[]
   responseBody: string
   meta: Meta
+  sessionMeta: SessionMeta
   apiEndpointUuid: string
 }
 
