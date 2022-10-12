@@ -33,13 +33,11 @@ export class AuthenticationConfigService {
             const decodedUser = Buffer.from(encodedValue, "base64")
               ?.toString()
               ?.split(":")[0]
-            const encrypted = encryptEcb(encodedValue, key)
-            sessionMeta = {
-              authenticationProvided: true,
-              authenticationSuccessful: successfulAuth,
-              authType: authConfig.authType,
-              uniqueSessionKey: encrypted,
-              user: decodedUser,
+            sessionMeta["authenticationProvided"] = true
+            sessionMeta["user"] = decodedUser
+            if (key) {
+              const encrypted = encryptEcb(encodedValue, key)
+              sessionMeta["uniqueSessionKey"] = encrypted
             }
           }
           break
@@ -47,12 +45,10 @@ export class AuthenticationConfigService {
           const authHeader = authConfig.headerKey ?? ""
           if (header.name.toLowerCase() === authHeader.toLowerCase()) {
             const headerValue = header.value
-            const encrypted = encryptEcb(headerValue, key)
-            sessionMeta = {
-              authenticationProvided: true,
-              authenticationSuccessful: successfulAuth,
-              authType: authConfig.authType,
-              uniqueSessionKey: encrypted,
+            sessionMeta["authenticationProvided"] = true
+            if (key) {
+              const encrypted = encryptEcb(headerValue, key)
+              sessionMeta["uniqueSessionKey"] = encrypted
             }
           }
           break
@@ -60,25 +56,17 @@ export class AuthenticationConfigService {
           const cookieName = authConfig?.cookieName ?? ""
           if (header.name.toLowerCase() === cookieName.toLowerCase()) {
             const cookieValue = header.value
-            const encrypted = encryptEcb(cookieValue, key)
-            sessionMeta = {
-              authenticationProvided: true,
-              authenticationSuccessful: successfulAuth,
-              authType: authConfig.authType,
-              uniqueSessionKey: encrypted,
+            sessionMeta["authenticationProvided"] = true
+            if (key) {
+              const encrypted = encryptEcb(cookieValue, key)
+              sessionMeta["uniqueSessionKey"] = encrypted
             }
           }
           break
         case AuthType.JWT:
           const jwtHeader = authConfig.headerKey ?? ""
           if (header.name.toLowerCase() === jwtHeader.toLowerCase()) {
-            const encrypted = encryptEcb(header.value, key)
-            sessionMeta = {
-              authenticationProvided: true,
-              authenticationSuccessful: successfulAuth,
-              authType: authConfig.authType,
-              uniqueSessionKey: encrypted,
-            }
+            sessionMeta["authenticationProvided"] = true
             const decodedPayload = JSON.parse(
               Buffer.from(
                 header.value?.split(".")?.[1] ?? "",
@@ -92,11 +80,12 @@ export class AuthenticationConfigService {
                   return o && o[k]
                 }, decodedPayload)
               if (jwtUser && typeof jwtUser === "string") {
-                sessionMeta = {
-                  ...sessionMeta,
-                  user: jwtUser,
-                }
+                sessionMeta["user"] = jwtUser
               }
+            }
+            if (key) {
+              const encrypted = encryptEcb(header.value, key)
+              sessionMeta["uniqueSessionKey"] = encrypted
             }
           }
           break
