@@ -5,6 +5,8 @@ import { DataType, RiskScore } from "@common/enums"
 import wordJson from "./words.json"
 import { getPathTokens } from "@common/utils"
 
+export const isDevelopment = process.env.NODE_ENV === "development"
+
 export const isSuspectedParamater = (value: string): boolean => {
   if (!isNaN(Number(value))) {
     return true
