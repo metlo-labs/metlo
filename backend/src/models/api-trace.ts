@@ -29,9 +29,6 @@ export class ApiTrace extends BaseEntity {
   @Column({ type: "enum", enum: RestMethod })
   method: RestMethod
 
-  @Column({ nullable: true })
-  owner: string
-
   @Column({ type: "jsonb", nullable: true, default: [] })
   requestParameters: PairObject[]
 
