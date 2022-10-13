@@ -17,7 +17,8 @@
     "sync-endpoints": "ts-node -r tsconfig-paths/register src/scripts/generate-endpoints.ts",
     "generate-attacks": "ts-node -r tsconfig-paths/register src/scripts/generate-attacks.ts",
     "generate-alerts": "ts-node -r tsconfig-paths/register src/scripts/generate-alerts.ts",
-    "format": "prettier --write './src/**/*.{ts,tsx}'"
+    "format": "prettier --write './src/**/*.{ts,tsx}'",
+    "migration:create": "typeorm migration:create"
   },
   "keywords": [],
   "author": "",

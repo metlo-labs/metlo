@@ -16,11 +16,11 @@ import {
   AggregateTraceDataHourly,
   Attack,
 } from "models"
+import { removeOwnerColumnFromApitrace1665697571667 } from "migrations/1665697571667-remove-owner-column-from-apitrace"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
   url: process.env.DB_URL,
-  synchronize: true,
   entities: [
     ApiEndpoint,
     DataField,
@@ -37,6 +37,8 @@ export const AppDataSource: DataSource = new DataSource({
     AggregateTraceDataHourly,
     Attack,
   ],
-  migrations: [],
+  synchronize: false,
+  migrations: [removeOwnerColumnFromApitrace1665697571667],
+  migrationsRun: true,
   logging: false,
 })
