@@ -155,7 +155,6 @@ const generateOpenApiSpec = async (): Promise<void> => {
             )
           }
 
-          // Request body only for put, post, options, patch, trace
           parseContent(requestBodySpec, requestBody, requestContentType)
           if (responseBody) {
             if (!responses[responseStatusString]?.content) {
@@ -197,7 +196,6 @@ const generateOpenApiSpec = async (): Promise<void> => {
           }
         }
 
-        // Add endpoint path parameters to parameter list
         endpoint.openapiSpec = spec
       }
       spec.spec = JSON.stringify(openApiSpec, null, 2)
