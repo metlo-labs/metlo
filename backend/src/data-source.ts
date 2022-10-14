@@ -16,8 +16,8 @@ import {
   AggregateTraceDataHourly,
   Attack,
 } from "models"
-import { removeOwnerColumnFromApitrace1665697571667 } from "migrations/1665697571667-remove-owner-column-from-apitrace"
 import { isDevelopment } from "utils"
+import { initialMigration1665758810395 } from "migrations/1665758810395-initial-migration"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -39,7 +39,7 @@ export const AppDataSource: DataSource = new DataSource({
     Attack,
   ],
   synchronize: isDevelopment,
-  migrations: [removeOwnerColumnFromApitrace1665697571667],
+  migrations: [initialMigration1665758810395],
   migrationsRun: !isDevelopment,
   logging: false,
 })
