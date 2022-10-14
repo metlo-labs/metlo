@@ -19,6 +19,7 @@ class WorkerPoolTaskInfo extends AsyncResource {
 }
 
 class WorkerPool extends EventEmitter {
+
     constructor(numThreads, fileName) {
         super();
         this.numThreads = numThreads;
