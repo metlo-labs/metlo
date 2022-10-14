@@ -23,16 +23,16 @@ function initialize({ key, host, pool }) {
                     url: {
                         host: _req.hostname,
                         path: _req.route.path,
-                        parameters: _req.query,
+                        parameters: Object.entries(_req.query).map(([k, v]) => ({ name: k, value: v })),
                     },
-                    headers: _req.headers,
+                    headers: Object.entries(_req.headers).map(([k, v]) => ({ name: k, value: v })),
                     body: _req.body || "No Body",
                     method: _req.method,
                 },
                 response: {
                     url: `${_req.socket.remoteAddress}:${_req.socket.remotePort}`,
                     status: _res.statusCode,
-                    headers: _res.getHeaders(),
+                    headers: Object.entries(_res.getHeaders()).map(([k, v]) => ({ name: k, value: v })),
                     body: responseBody,
                 },
                 meta: {

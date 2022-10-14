@@ -25,16 +25,16 @@ function initialize({ key, host, pool }) {
                         url: {
                             host: ctx.request.hostname,
                             path: ctx.path,
-                            parameters: ctx.query,
+                            parameters: Object.entries(ctx.query).map(([k, v]) => ({ name: k, value: v })),
                         },
-                        headers: ctx.request.headers,
+                        headers: Object.entries(ctx.request.headers).map(([k, v]) => ({ name: k, value: v })),
                         body: ctx.request.body || "No Body",
                         method: ctx.request.method,
                     },
                     response: {
                         url: `${ctx.response.socket.remoteAddress}:${ctx.response.socket.remotePort}`,
                         status: ctx.response.statusCode,
-                        headers: ctx.response.headers,
+                        headers: Object.entries(ctx.response.headers).map(([k, v]) => ({ name: k, value: v })),
                         body: ctx.body,
                     },
                     meta: {
