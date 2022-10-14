@@ -9,8 +9,6 @@ function exit() {
     pool.close()
 }
 
-console.log(require(path.resolve(__dirname, "../package.json")).dependencies)
-
 process.on('exit', exit);
 process.on('SIGTERM', exit);
 

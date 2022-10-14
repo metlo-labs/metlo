@@ -46,14 +46,6 @@ function initialize({ key, host, pool }) {
                         destination: "server.hostname",
                         destinationPort: "server.port",
                     }
-                    // }
-                    // )
-
-                    // METLO_DETAILS.pool.runTask({ host: METLO_DETAILS.host, key: METLO_DETAILS.key, data }, (err, result) => {
-                    //     console.log(err, result);
-                    // })
-                    // }
-
                 }
             )
 
@@ -87,7 +79,7 @@ function initialize({ key, host, pool }) {
                         Array.from(this.middleware).unshift([compileInformation])
                     }
                 }
-                let resp = original_use.apply(this, arguments)                
+                let resp = original_use.apply(this, arguments)
                 return resp
             }
             exports.prototype.use = modifiedUse
