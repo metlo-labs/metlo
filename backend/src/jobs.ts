@@ -53,7 +53,7 @@ const main = async () => {
   })
 
   // Offset by 15 minutes past every 4th hour, so that there isn't any excess database slowdown
-  schedule.scheduleJob("15 */4 * * *", () => {
+  schedule.scheduleJob("15 * * * *", () => {
     unsecuredAlertsSem.take(async () => {
       console.log("\nGenerating Alerts for Unsecured Endpoints")
       await monitorEndpointForHSTS()

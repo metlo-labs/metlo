@@ -32,7 +32,6 @@ const monitorEndpointForHSTS = async (): Promise<void> => {
               validateStatus: code => true,
             },
           )
-          console.log(options_req.headers)
           if (
             !Object.keys(options_req.headers).includes(
               "Strict-Transport-Security",
