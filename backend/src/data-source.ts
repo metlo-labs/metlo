@@ -16,6 +16,8 @@ import {
   AggregateTraceDataHourly,
   Attack,
 } from "models"
+import { isDevelopment, runMigration } from "utils"
+import { initMigration1665782029662 } from "migrations/1665782029662-init-migration"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -36,6 +38,8 @@ export const AppDataSource: DataSource = new DataSource({
     AggregateTraceDataHourly,
     Attack,
   ],
-  synchronize: true,
+  synchronize: isDevelopment,
+  migrations: [initMigration1665782029662],
+  migrationsRun: !isDevelopment && runMigration,
   logging: false,
 })

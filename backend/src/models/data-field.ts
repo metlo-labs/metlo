@@ -21,22 +21,55 @@ export class DataField extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
 
-  @Column({ type: "enum", enum: DataClass, array: true, default: [] })
+  @Column({
+    type: "enum",
+    enum: DataClass,
+    array: true,
+    default: [],
+    enumName: "data_class_enum",
+  })
   dataClasses: DataClass[]
 
-  @Column({ type: "enum", enum: DataClass, array: true, default: [] })
+  @Column({
+    type: "enum",
+    enum: DataClass,
+    array: true,
+    default: [],
+    enumName: "data_class_enum",
+  })
   falsePositives: DataClass[]
 
-  @Column({ type: "enum", enum: DataClass, array: true, default: [] })
+  @Column({
+    type: "enum",
+    enum: DataClass,
+    array: true,
+    default: [],
+    enumName: "data_class_enum",
+  })
   scannerIdentified: DataClass[]
 
-  @Column({ type: "enum", enum: DataType, nullable: false })
+  @Column({
+    type: "enum",
+    enum: DataType,
+    nullable: false,
+    enumName: "data_type_enum",
+  })
   dataType: DataType
 
-  @Column({ type: "enum", enum: DataTag, nullable: true })
+  @Column({
+    type: "enum",
+    enum: DataTag,
+    nullable: true,
+    enumName: "data_tag_enum",
+  })
   dataTag: DataTag
 
-  @Column({ type: "enum", enum: DataSection, nullable: false })
+  @Column({
+    type: "enum",
+    enum: DataSection,
+    nullable: false,
+    enumName: "data_section_enum",
+  })
   dataSection: DataSection
 
   @CreateDateColumn({ type: "timestamptz" })

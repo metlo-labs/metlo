@@ -45,10 +45,15 @@ export class ApiEndpoint extends BaseEntity {
   @Column({ type: "integer", nullable: false, default: 0 })
   numberParams: number
 
-  @Column({ type: "enum", enum: RestMethod })
+  @Column({ type: "enum", enum: RestMethod, enumName: "rest_method_enum" })
   method: RestMethod
 
-  @Column({ type: "enum", enum: RiskScore, default: RiskScore.NONE })
+  @Column({
+    type: "enum",
+    enum: RiskScore,
+    default: RiskScore.NONE,
+    enumName: "riskscore_enum",
+  })
   riskScore: RiskScore
 
   @Column({ nullable: true })

@@ -28,6 +28,7 @@ export class ApiKey extends BaseEntity {
     enum: API_KEY_TYPE,
     nullable: false,
     default: API_KEY_TYPE.GENERIC,
+    enumName: "api_key_type_enum",
   })
   for: API_KEY_TYPE
 
