@@ -1,14 +1,13 @@
 import {
   Badge,
   Button,
-  Flex,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogCloseButton,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
   useColorMode,
   useDisclosure,
   useToast,
@@ -18,7 +17,7 @@ import { deleteKey } from "api/keys"
 import EmptyView from "components/utils/EmptyView"
 import { getCustomStyles } from "components/utils/TableUtils"
 import { DateTime } from "luxon"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import DataTable, { TableColumn } from "react-data-table-component"
 import { makeToast } from "utils"
 
@@ -32,6 +31,7 @@ const ListKeys: React.FC<ListKeysInterface> = ({ keys, setKeys }) => {
   const [isDeleting, setIsDeleting] = useState<Array<string>>([])
   const [deletePromptKeyName, setDeletePromptKeyName] = useState<string>("")
   const { isOpen, onClose, onOpen } = useDisclosure()
+  const leastDestructiveRef = useRef()
   const toast = useToast()
 
   const onDeletePress = async (key_name: string) => {
@@ -120,13 +120,25 @@ const ListKeys: React.FC<ListKeysInterface> = ({ keys, setKeys }) => {
           data={keys.sort((a, b) => a.name.localeCompare(b.name))}
           customStyles={getCustomStyles(colorMode.colorMode)}
         />
-        <Modal isOpen={isOpen} onClose={onClose}>
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>Confirm Deletion of API Key</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>Confirm deletion of {deletePromptKeyName}</ModalBody>
-            <ModalFooter>
+        <AlertDialog
+          isOpen={isOpen}
+          onClose={onClose}
+          leastDestructiveRef={leastDestructiveRef}
+        >
+          <AlertDialogOverlay />
+          <AlertDialogContent>
+            <AlertDialogHeader>Confirm Deletion of API Key</AlertDialogHeader>
+            <AlertDialogCloseButton />
+            <AlertDialogBody>
+              Confirm deletion of API Key : 
+              <span style={{ fontWeight: "bold", paddingInlineStart: 4   }}>
+                {deletePromptKeyName}
+              </span>
+            </AlertDialogBody>
+            <AlertDialogFooter>
+              <Button mr={3} onClick={onClose} ref={leastDestructiveRef}>
+                Cancel
+              </Button>
               <Button
                 colorScheme="red"
                 mr={3}
@@ -136,12 +148,9 @@ const ListKeys: React.FC<ListKeysInterface> = ({ keys, setKeys }) => {
               >
                 Delete
               </Button>
-              <Button colorScheme="blue" mr={3} onClick={onClose}>
-                Cancel
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </>
     )
   }
