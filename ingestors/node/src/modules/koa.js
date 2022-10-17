@@ -23,7 +23,7 @@ function initialize({ key, host, pool }) {
                 {
                     request: {
                         url: {
-                            host: `${ctx.response.socket.remoteAddress}:${ctx.response.socket.remotePort}`,
+                            host: ctx.response.socket.remoteAddress,
                             path: ctx.path,
                             parameters: Object.entries(ctx.query).map(([k, v]) => ({ name: k, value: v })),
                         },
@@ -41,7 +41,7 @@ function initialize({ key, host, pool }) {
                         environment: process.env.NODE_ENV,
                         incoming: true,
                         source: ctx.request.socket.remoteAddress,
-                        sourcePort: ctx.request.socket.remotePort,                        
+                        sourcePort: ctx.request.socket.remotePort,
                         destination: ctx.request.socket.localAddress,
                         destinationPort: ctx.request.socket.localPort,
                     }

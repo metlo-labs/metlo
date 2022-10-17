@@ -22,7 +22,7 @@ function initialize({ key, host, pool }) {
                 {
                     request: {
                         url: {
-                            host: `${request.raw.socket.remoteAddress}:${request.raw.socket.remotePort}`,
+                            host: request.raw.socket.remoteAddress,
                             path: request.routerPath,
                             parameters: Object.entries(request.query).map(([k, v]) => ({ name: k, value: v })),
                         },
@@ -40,7 +40,7 @@ function initialize({ key, host, pool }) {
                         environment: process.env.NODE_ENV,
                         incoming: true,
                         source: request.raw.socket.remoteAddress,
-                        sourcePort: request.raw.socket.remotePort,                        
+                        sourcePort: request.raw.socket.remotePort,
                         destination: response.raw.socket.localAddress,
                         destinationPort: response.raw.socket.localPort,
                     }
