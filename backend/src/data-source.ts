@@ -16,7 +16,7 @@ import {
   AggregateTraceDataHourly,
   Attack,
 } from "models"
-import { isDevelopment, runMigration } from "utils"
+import { runMigration } from "utils"
 import { initMigration1665782029662 } from "migrations/1665782029662-init-migration"
 
 export const AppDataSource: DataSource = new DataSource({
@@ -38,8 +38,8 @@ export const AppDataSource: DataSource = new DataSource({
     AggregateTraceDataHourly,
     Attack,
   ],
-  synchronize: isDevelopment,
+  synchronize: false,
   migrations: [initMigration1665782029662],
-  migrationsRun: !isDevelopment && runMigration,
+  migrationsRun: runMigration,
   logging: false,
 })
