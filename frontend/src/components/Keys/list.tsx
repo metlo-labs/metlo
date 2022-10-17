@@ -1,9 +1,22 @@
-import { Badge, Button, useColorMode, useToast } from "@chakra-ui/react"
+import {
+  Badge,
+  Button,
+  Flex,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  useColorMode,
+  useDisclosure,
+  useToast,
+} from "@chakra-ui/react"
 import { ApiKey } from "@common/types"
 import { deleteKey } from "api/keys"
 import EmptyView from "components/utils/EmptyView"
 import { getCustomStyles } from "components/utils/TableUtils"
-import _ from "lodash"
 import { DateTime } from "luxon"
 import { useState } from "react"
 import DataTable, { TableColumn } from "react-data-table-component"
@@ -17,13 +30,21 @@ interface ListKeysInterface {
 const ListKeys: React.FC<ListKeysInterface> = ({ keys, setKeys }) => {
   const colorMode = useColorMode()
   const [isDeleting, setIsDeleting] = useState<Array<string>>([])
+  const [deletePromptKeyName, setDeletePromptKeyName] = useState<string>("")
+  const { isOpen, onClose, onOpen } = useDisclosure()
   const toast = useToast()
 
   const onDeletePress = async (key_name: string) => {
+    setDeletePromptKeyName(key_name)
+    onOpen()
+  }
+
+  const onDeleteConfirm = async (key_name: string) => {
     let _keys = [...isDeleting]
     _keys.push(key_name)
     setIsDeleting(_keys)
     try {
+      onClose()
       await deleteKey(key_name)
       setIsDeleting([...isDeleting].filter(v => v != key_name))
       setKeys(keys.filter(v => v.name != key_name))
@@ -93,11 +114,35 @@ const ListKeys: React.FC<ListKeysInterface> = ({ keys, setKeys }) => {
     return <EmptyView text="No API Keys found." />
   } else {
     return (
-      <DataTable
-        columns={columns}
-        data={keys.sort((a, b) => a.name.localeCompare(b.name))}
-        customStyles={getCustomStyles(colorMode.colorMode)}
-      />
+      <>
+        <DataTable
+          columns={columns}
+          data={keys.sort((a, b) => a.name.localeCompare(b.name))}
+          customStyles={getCustomStyles(colorMode.colorMode)}
+        />
+        <Modal isOpen={isOpen} onClose={onClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Confirm Deletion of API Key</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>Confirm deletion of {deletePromptKeyName}</ModalBody>
+            <ModalFooter>
+              <Button
+                colorScheme="red"
+                mr={3}
+                onClick={() => {
+                  onDeleteConfirm(deletePromptKeyName)
+                }}
+              >
+                Delete
+              </Button>
+              <Button colorScheme="blue" mr={3} onClick={onClose}>
+                Cancel
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      </>
     )
   }
 }
