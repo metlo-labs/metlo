@@ -48,16 +48,14 @@ const Keys = ({ keys: _keysString }) => {
   const addKey = async (key_name: string) => {
     setIsAddingKey(true)
     try {
-      let resp = await addKeyReq(key_name)
-      console.log(resp)
+      let resp = await addKeyReq(key_name)      
       let new_keys = [...keys]
       new_keys.push({
         name: resp.name,
         identifier: resp.identifier,
         created: resp.created,
         for: resp.for,
-      })
-      console.log(new_keys)
+      })      
       setKeys(new_keys)
       setNewKeyValue([resp.apiKey, resp.name])
       onNewKeyOpen()
