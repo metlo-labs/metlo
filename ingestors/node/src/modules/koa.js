@@ -23,16 +23,16 @@ function initialize({ key, host, pool }) {
                 {
                     request: {
                         url: {
-                            host: ctx.request.hostname,
+                            host: `${ctx.response.socket.remoteAddress}:${ctx.response.socket.remotePort}`,
                             path: ctx.path,
                             parameters: Object.entries(ctx.query).map(([k, v]) => ({ name: k, value: v })),
                         },
                         headers: Object.entries(ctx.request.headers).map(([k, v]) => ({ name: k, value: v })),
-                        body: ctx.request.body || "No Body",
+                        body: ctx.request.body || "",
                         method: ctx.request.method,
                     },
                     response: {
-                        url: `${ctx.response.socket.remoteAddress}:${ctx.response.socket.remotePort}`,
+                        url: `${ctx.response.socket.localAddress}:${ctx.response.socket.localPort}`,
                         status: ctx.response.statusCode,
                         headers: Object.entries(ctx.response.headers).map(([k, v]) => ({ name: k, value: v })),
                         body: ctx.body,
@@ -41,10 +41,9 @@ function initialize({ key, host, pool }) {
                         environment: process.env.NODE_ENV,
                         incoming: true,
                         source: ctx.request.socket.remoteAddress,
-                        sourcePort: ctx.request.socket.remotePort,
-                        // TODO : Add destination
-                        destination: "server.hostname",
-                        destinationPort: "server.port",
+                        sourcePort: ctx.request.socket.remotePort,                        
+                        destination: ctx.request.socket.localAddress,
+                        destinationPort: ctx.request.socket.localPort,
                     }
                 }
             )

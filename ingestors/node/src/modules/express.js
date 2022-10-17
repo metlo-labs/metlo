@@ -21,7 +21,7 @@ function initialize({ key, host, pool }) {
             const data = JSON.stringify({
                 request: {
                     url: {
-                        host: _req.hostname,
+                        host: `${_req.socket.remoteAddress}:${_req.socket.remotePort}`,
                         path: _req.route.path,
                         parameters: Object.entries(_req.query).map(([k, v]) => ({ name: k, value: v })),
                     },
@@ -30,7 +30,7 @@ function initialize({ key, host, pool }) {
                     method: _req.method,
                 },
                 response: {
-                    url: `${_req.socket.remoteAddress}:${_req.socket.remotePort}`,
+                    url: `${_req.socket.localAddress}:${_req.socket.localPort}`,
                     status: _res.statusCode,
                     headers: Object.entries(_res.getHeaders()).map(([k, v]) => ({ name: k, value: v })),
                     body: responseBody,
@@ -39,10 +39,9 @@ function initialize({ key, host, pool }) {
                     environment: process.env.NODE_ENV,
                     incoming: true,
                     source: _req.socket.remoteAddress,
-                    sourcePort: _req.socket.remotePort,
-                    // TODO : Add destination
-                    destination: "server.hostname",
-                    destinationPort: "server.port",
+                    sourcePort: _req.socket.remotePort,                    
+                    destination: _res.socket.localAddress,
+                    destinationPort: _res.socket.localPort,
                 }
             })
 

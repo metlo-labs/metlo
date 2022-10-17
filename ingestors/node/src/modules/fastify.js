@@ -22,16 +22,16 @@ function initialize({ key, host, pool }) {
                 {
                     request: {
                         url: {
-                            host: request.hostname,
+                            host: `${request.raw.socket.remoteAddress}:${request.raw.socket.remotePort}`,
                             path: request.routerPath,
                             parameters: Object.entries(request.query).map(([k, v]) => ({ name: k, value: v })),
                         },
                         headers: Object.entries(request.headers).map(([k, v]) => ({ name: k, value: v })),
-                        body: request.body || "No Body",
+                        body: request.body || "",
                         method: request.method,
                     },
                     response: {
-                        url: `${response.raw.socket.remoteAddress}:${response.raw.socket.remotePort}`,
+                        url: `${response.raw.socket.localAddress}:${response.raw.socket.localPort}`,
                         status: response.statusCode,
                         headers: Object.entries(response.headers).map(([k, v]) => ({ name: k, value: v })),
                         body: response.body,
@@ -40,10 +40,9 @@ function initialize({ key, host, pool }) {
                         environment: process.env.NODE_ENV,
                         incoming: true,
                         source: request.raw.socket.remoteAddress,
-                        sourcePort: request.raw.socket.remotePort,
-                        // TODO : Add destination
-                        destination: "server.hostname",
-                        destinationPort: "server.port",
+                        sourcePort: request.raw.socket.remotePort,                        
+                        destination: response.raw.socket.localAddress,
+                        destinationPort: response.raw.socket.localPort,
                     }
                 }
             )
