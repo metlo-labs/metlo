@@ -1,0 +1,74 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:14.4-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - db:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init_db.sql
+  ingestor:
+    image: metlo/backend:staging
+    command: yarn start-collector
+    container_name: metlo-ingestor
+    depends_on:
+      - db
+      - cache
+    restart: unless-stopped
+    ports:
+      - 8081:8081
+    environment:
+      - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - RUN_MIGRATION=true
+    volumes:
+      - ./metlo-config.yaml:/usr/src/app/backend/metlo-config.yaml
+  cache:
+    image: redis:7.0.4
+    restart: always
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    volumes:
+      - cache:/data
+  backend:
+    image: metlo/backend:staging
+    container_name: metlo-backend
+    restart: unless-stopped
+    depends_on:
+      - db
+      - cache
+    ports:
+      - 8080:8080
+    environment:
+      - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
+      - REDIS_URL=redis://:eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81@cache:6379
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - BACKEND_URL=${BACKEND_URL}
+      - EXPRESS_SECRET=${EXPRESS_SECRET}
+      - SESSION_SECRET=${EXPRESS_SECRET}
+      - SANDBOX_MODE=${SANDBOX_MODE}
+  jobs:
+    image: metlo/jobrunner:staging
+    container_name: metlo-jobs
+    depends_on:
+      - ingestor
+    restart: unless-stopped
+    environment:
+      - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
+      - DISABLE_LOGGING_STATS=${DISABLE_LOGGING_STATS}
+  frontend:
+    image: metlo/frontend:staging
+    container_name: metlo-frontend
+    restart: unless-stopped
+    environment:
+      - BACKEND_URL=http://backend:8080
+    ports:
+      - 8000:3000
+
+volumes:
+  db:
+    driver: local
+  cache:
+    driver: local
