@@ -11,7 +11,7 @@ services:
       - db:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init_db.sql
   ingestor:
-    image: metlo/backend      
+    image: metlo/backend:${DOCKER_IMAGE_TAG:-latest}
     command: yarn start-collector
     container_name: metlo-ingestor
     depends_on:
@@ -33,7 +33,7 @@ services:
     volumes:
       - cache:/data
   backend:
-    image: metlo/backend
+    image: metlo/backend:${DOCKER_IMAGE_TAG:-latest}
     container_name: metlo-backend
     restart: unless-stopped
     depends_on:      
@@ -50,7 +50,7 @@ services:
       - SESSION_SECRET=${EXPRESS_SECRET}
       - SANDBOX_MODE=${SANDBOX_MODE}
   jobs:
-    image: metlo/jobrunner
+    image: metlo/jobrunner:${DOCKER_IMAGE_TAG:-latest}
     container_name: metlo-jobs
     depends_on:
       - ingestor
@@ -59,7 +59,7 @@ services:
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
       - DISABLE_LOGGING_STATS=${DISABLE_LOGGING_STATS}
   frontend:
-    image: metlo/frontend
+    image: metlo/frontend:${DOCKER_IMAGE_TAG:-latest}
     container_name: metlo-frontend
     restart: unless-stopped
     environment:
