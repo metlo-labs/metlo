@@ -44,7 +44,7 @@ const SpecComponent: React.FC<SpecComponentProps> = ({ endpoint }) => {
     type: EXTENSION_TO_TYPE[currExtension],
   })
 
-  const changeExtenstionHandler = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const changeExtensionHandler = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const extension = e.target.value
     if (extension === endpoint.openapiSpec.extension) {
       setSpecString(endpoint.openapiSpec.spec)
@@ -111,7 +111,7 @@ const SpecComponent: React.FC<SpecComponentProps> = ({ endpoint }) => {
             <Select
               defaultValue={endpoint?.openapiSpec?.extension}
               w="max-content"
-              onChange={changeExtenstionHandler}
+              onChange={changeExtensionHandler}
             >
               <option value={SpecExtension.YAML}>yaml</option>
               <option value={SpecExtension.JSON}>json</option>

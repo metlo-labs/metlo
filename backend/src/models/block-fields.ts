@@ -20,7 +20,11 @@ export class BlockFields extends BaseEntity {
   @Column()
   pathRegex: string
 
-  @Column({ type: "enum", enum: DisableRestMethod })
+  @Column({
+    type: "enum",
+    enum: DisableRestMethod,
+    enumName: "disable_rest_method_enum",
+  })
   method: DisableRestMethod
 
   @Column()

@@ -29,7 +29,12 @@ export class OpenApiSpec extends BaseEntity {
   @Column({ type: "timestamptz", nullable: true })
   specUpdatedAt: Date
 
-  @Column({ type: "enum", enum: SpecExtension, default: SpecExtension.JSON })
+  @Column({
+    type: "enum",
+    enum: SpecExtension,
+    default: SpecExtension.JSON,
+    enumName: "spec_extension_enum",
+  })
   extension: SpecExtension
 
   @Column({ type: "bool", default: false })

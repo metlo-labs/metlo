@@ -15,6 +15,7 @@ services:
     command: yarn start-collector
     container_name: metlo-ingestor
     depends_on:
+      - db
       - cache
     restart: unless-stopped
     ports:
@@ -22,6 +23,7 @@ services:
     environment:
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - RUN_MIGRATION=true
     volumes:
       - ./metlo-config.yaml:/usr/src/app/backend/metlo-config.yaml
   cache:
@@ -35,6 +37,7 @@ services:
     container_name: metlo-backend
     restart: unless-stopped
     depends_on:      
+      - db
       - cache
     ports:
       - 8080:8080
@@ -49,6 +52,8 @@ services:
   jobs:
     image: metlo/jobrunner
     container_name: metlo-jobs
+    depends_on:
+      - ingestor
     restart: unless-stopped
     environment:
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security

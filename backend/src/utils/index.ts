@@ -1,4 +1,5 @@
 import validator from "validator"
+import { QueryRunner } from "typeorm"
 import { ApiEndpoint, DataField } from "models"
 import { pathParameterRegex } from "~/constants"
 import { DataType, RiskScore } from "@common/enums"
@@ -6,6 +7,17 @@ import wordJson from "./words.json"
 import { getPathTokens } from "@common/utils"
 
 export const isDevelopment = process.env.NODE_ENV === "development"
+export const runMigration = process.env.RUN_MIGRATION === "true"
+
+export const getExistingConstraint = (
+  queryRunner: QueryRunner,
+  constraintName: string,
+  tableName: string,
+) =>
+  queryRunner.query(
+    "SELECT 1 FROM information_schema.table_constraints WHERE constraint_name=$1 AND table_name=$2",
+    [constraintName, tableName],
+  )
 
 export const isSuspectedParamater = (value: string): boolean => {
   if (!isNaN(Number(value))) {

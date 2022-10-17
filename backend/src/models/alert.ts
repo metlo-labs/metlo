@@ -15,10 +15,15 @@ export class Alert extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
 
-  @Column({ type: "enum", enum: AlertType })
+  @Column({ type: "enum", enum: AlertType, enumName: "alert_type_enum" })
   type: AlertType
 
-  @Column({ type: "enum", enum: RiskScore, default: RiskScore.NONE })
+  @Column({
+    type: "enum",
+    enum: RiskScore,
+    default: RiskScore.NONE,
+    enumName: "riskscore_enum",
+  })
   riskScore: RiskScore
 
   @Column()
@@ -36,7 +41,12 @@ export class Alert extends BaseEntity {
   @UpdateDateColumn({ type: "timestamptz" })
   updatedAt: Date
 
-  @Column({ type: "enum", enum: Status, default: Status.OPEN })
+  @Column({
+    type: "enum",
+    enum: Status,
+    default: Status.OPEN,
+    enumName: "alert_status_enum",
+  })
   status: Status
 
   @Column({ nullable: true })

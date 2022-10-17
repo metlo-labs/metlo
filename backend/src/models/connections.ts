@@ -22,7 +22,11 @@ export class Connections extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
 
-  @Column({ type: "enum", enum: ConnectionType })
+  @Column({
+    type: "enum",
+    enum: ConnectionType,
+    enumName: "connection_type_enum",
+  })
   connectionType: ConnectionType
 
   @CreateDateColumn({ type: "timestamptz" })
