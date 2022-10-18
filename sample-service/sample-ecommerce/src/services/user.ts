@@ -1,5 +1,5 @@
 import { randomBytes } from "crypto"
-import bcrypt from "bcrypt"
+import bcrypt from "bcryptjs"
 import { AppDataSource } from "data-source"
 import { Error400BadRequest, Error404NotFound, Error409Conflict } from "errors"
 import { User } from "models"

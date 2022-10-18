@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt"
+import bcrypt from "bcryptjs"
 import { StringHashError } from "errors"
 
 const SALT_ROUNDS = 10
