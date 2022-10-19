@@ -35,3 +35,14 @@ export const getProductHandler = async (
     await ApiResponseHandler.error(res, err)
   }
 }
+
+export const getProductsHandler = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    await ApiResponseHandler.success(res, await ProductService.getProducts())
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}

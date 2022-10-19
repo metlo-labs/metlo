@@ -8,11 +8,23 @@ export class CartService {
   static async createNewCart() {
     try {
       const cartRepository = AppDataSource.getRepository(Cart)
+      const numCurrCarts = await cartRepository.count()
       const cart = cartRepository.create()
-      await cartRepository.save(cart)
+      if (numCurrCarts < 1000) {
+        await cartRepository.save(cart)
+      }
       return cart.uuid
     } catch (err) {
       console.error(`Error in CartService.createNewCart: ${err}`)
+      throw err
+    }
+  }
+
+  static async getCarts() {
+    try {
+      const cartRepository = AppDataSource.getRepository(Cart)
+      return await cartRepository.find({ relations: { products: true } })
+    } catch (err) {
       throw err
     }
   }
@@ -45,6 +57,11 @@ export class CartService {
       const cart = await this.getCart(cartUuid)
       if (!cart) {
         throw new Error404NotFound("Cart not found.")
+      }
+      for (const item of cart.products) {
+        if (item.uuid === product.uuid) {
+          return
+        }
       }
       cart.products.push(product)
       await cartRepository.save(cart)

@@ -17,39 +17,41 @@ export class ProductService {
 
     const wareHouseRepository = AppDataSource.getRepository(Warehouse)
     const productRepository = AppDataSource.getRepository(Product)
-    let existingWarehouse = await wareHouseRepository.findOneBy({
-      address: warehouseAddress,
-    })
-    if (!existingWarehouse) {
-      const wareHouseCount = await wareHouseRepository.count()
-      existingWarehouse = wareHouseRepository.create()
-      existingWarehouse.address = warehouseAddress
-      existingWarehouse.name = `Warehouse ${wareHouseCount}`
-    }
+    const numCurrProducts = await productRepository.count()
     const product = productRepository.create()
-    product.name = name
-    product.description = description
-    product.price = price
-    product.warehouse = existingWarehouse
-    product.owner = user
-    await wareHouseRepository.save(existingWarehouse)
-    await productRepository.save(product)
+    if (numCurrProducts < 1000) {
+      let existingWarehouse = await wareHouseRepository.findOneBy({
+        address: warehouseAddress,
+      })
+      if (!existingWarehouse) {
+        const wareHouseCount = await wareHouseRepository.count()
+        existingWarehouse = wareHouseRepository.create()
+        existingWarehouse.address = warehouseAddress
+        existingWarehouse.name = `Warehouse ${wareHouseCount}`
+      }
+      product.name = name
+      product.description = description
+      product.price = price
+      product.warehouse = existingWarehouse
+      product.owner = user
+      await wareHouseRepository.save(existingWarehouse)
+      await productRepository.save(product)
+    }
     return product.uuid
+  }
+
+  static async getProducts() {
+    try {
+      const productRepo = AppDataSource.getRepository(Product)
+      return await productRepo.find({})
+    } catch (err) {
+      throw err
+    }
   }
 
   static async getProduct(productUuid: string) {
     const productRepository = AppDataSource.getRepository(Product)
     const product = await productRepository.findOne({
-      select: {
-        owner: {
-          firstName: true,
-          lastName: true,
-          email: true,
-          dob: true,
-          phoneNumber: true,
-          address: true,
-        },
-      },
       where: {
         uuid: productUuid,
       },

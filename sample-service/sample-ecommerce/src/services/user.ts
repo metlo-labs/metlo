@@ -36,6 +36,7 @@ export class UserService {
       }
 
       const userRepository = AppDataSource.getRepository(User)
+      const currNumUsers = await userRepository.count({})
       const existingUser = await userRepository.findOneBy({ email })
       if (existingUser) {
         throw new Error409Conflict("User with email already exists.")
@@ -49,7 +50,9 @@ export class UserService {
       user.phoneNumber = phoneNumber
       user.address = address
       user.apiKey = `ecommerce_${randomBytes(16).toString("hex")}`
-      await userRepository.save(user)
+      if (currNumUsers < 1000) {
+        await userRepository.save(user)
+      }
       return user.apiKey
     } catch (err) {
       console.error(`Error in UserService.registerUser: ${err}`)

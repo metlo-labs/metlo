@@ -8,9 +8,14 @@ import {
   addProductHandler,
   createNewCartHandler,
   getCartHandler,
+  getCartsHandler,
   purchaseCartHandler,
 } from "api/cart"
-import { createNewProductHandler, getProductHandler } from "api/product"
+import {
+  createNewProductHandler,
+  getProductHandler,
+  getProductsHandler,
+} from "api/product"
 import { hashString } from "utils"
 
 dotenv.config()
@@ -41,11 +46,13 @@ app.get("/product/:productUuid", getProductHandler)
 
 app.use(authMiddleware)
 
+app.get("/cart", getCartsHandler)
 app.get("/cart/:cartUuid", getCartHandler)
 app.post("/cart/new", createNewCartHandler)
 app.post("/cart/:cartUuid/add-product", addProductHandler)
 app.post("/cart/:cartUuid/purchase", purchaseCartHandler)
 
+app.get("/product", getProductsHandler)
 app.post("/product/new", createNewProductHandler)
 
 const initializeUser = async () => {
