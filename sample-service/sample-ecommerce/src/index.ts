@@ -11,7 +11,11 @@ import {
   getCartsHandler,
   purchaseCartHandler,
 } from "api/cart"
-import { createNewProductHandler, getProductHandler, getProductsHandler } from "api/product"
+import {
+  createNewProductHandler,
+  getProductHandler,
+  getProductsHandler,
+} from "api/product"
 import { hashString } from "utils"
 
 dotenv.config()
