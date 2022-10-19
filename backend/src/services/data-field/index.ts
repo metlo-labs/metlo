@@ -52,7 +52,7 @@ export class DataFieldService {
     apiEndpoint: ApiEndpoint,
     dataValue: any,
   ): void {
-    const existingMatch = `${dataSection}.${dataPath}`
+    const existingMatch = `${dataSection}${dataPath ? `.${dataPath}` : ""}`
     const dataType = getDataType(dataValue)
     if (!this.dataFields[existingMatch]) {
       const dataField = new DataField()
@@ -214,7 +214,7 @@ export class DataFieldService {
     this.dataFields = apiEndpoint.dataFields.reduce((obj, item) => {
       return {
         ...obj,
-        [`${item.dataSection}.${item.dataPath}`]: item,
+        [`${item.dataSection}${item.dataPath ? `.${item.dataPath}` : ""}`]: item,
       }
     }, {})
     this.updatedFields = {}
