@@ -116,9 +116,10 @@ def update():
 
 def main():
     parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers(dest='command')
+    subparsers = parser.add_subparsers(dest='command', required=True)
 
     init_cmd = subparsers.add_parser('init')
+    init_env_cmd = subparsers.add_parser('init-env')
     start_cmd = subparsers.add_parser('start')
     stop_cmd = subparsers.add_parser('stop')
     status_cmd = subparsers.add_parser('status')
@@ -130,6 +131,8 @@ def main():
     command = args.command
     if command == 'init':
         init()
+    elif command == 'init-env':
+        init_env()
     elif command == 'start':
         start()
     elif command == 'stop':
