@@ -33,6 +33,17 @@ export const getCartHandler = async (
   }
 }
 
+export const getCartsHandler = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    await ApiResponseHandler.success(res, await CartService.getCarts())
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}
+
 export const addProductHandler = async (
   req: Request,
   res: Response,
