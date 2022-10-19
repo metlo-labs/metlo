@@ -70,12 +70,13 @@ export const getRiskScore = (dataFields: DataField[]): RiskScore => {
   if (!dataFields) {
     return RiskScore.NONE
   }
-  let numRiskySensitiveDataClasses = 0
+  let uniqueSensitiveDataClasses = new Set<string>()
   for (const dataField of dataFields) {
     if (dataField.dataClasses) {
-      numRiskySensitiveDataClasses += dataField.dataClasses?.length ?? 0
+      dataField.dataClasses.forEach(e => uniqueSensitiveDataClasses.add(e))
     }
   }
+  const numRiskySensitiveDataClasses = uniqueSensitiveDataClasses.size
   switch (true) {
     case numRiskySensitiveDataClasses >= 3:
       return RiskScore.HIGH

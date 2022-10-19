@@ -112,7 +112,7 @@ const generateEndpointsFromTraces = async (): Promise<void> => {
               }
             }
             if (pathRegex.length > 0) {
-              pathRegex = String.raw`^${pathRegex}$`
+              pathRegex = String.raw`^${pathRegex}(/)*$`
               const regexKey = `${trace.host}-${trace.method}-${pathRegex}`
               if (regexToTracesMap[regexKey]) {
                 regexToTracesMap[regexKey].traces.push(trace)
