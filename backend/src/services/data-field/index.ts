@@ -219,24 +219,26 @@ export class DataFieldService {
     }, {})
     this.updatedFields = {}
     this.findPathDataFields(apiTrace.path, apiEndpoint)
-    this.findPairObjectDataFields(
-      DataSection.REQUEST_QUERY,
-      apiTrace.requestParameters,
-      apiEndpoint,
-    )
-    this.findPairObjectDataFields(
-      DataSection.REQUEST_HEADER,
-      apiTrace.requestHeaders,
-      apiEndpoint,
-    )
+    if (apiTrace.responseStatus < 400) {
+      this.findPairObjectDataFields(
+        DataSection.REQUEST_QUERY,
+        apiTrace.requestParameters,
+        apiEndpoint,
+      )
+      this.findPairObjectDataFields(
+        DataSection.REQUEST_HEADER,
+        apiTrace.requestHeaders,
+        apiEndpoint,
+      )
+      this.findBodyDataFields(
+        DataSection.REQUEST_BODY,
+        apiTrace.requestBody,
+        apiEndpoint,
+      )
+    }
     this.findPairObjectDataFields(
       DataSection.RESPONSE_HEADER,
       apiTrace.responseHeaders,
-      apiEndpoint,
-    )
-    this.findBodyDataFields(
-      DataSection.REQUEST_BODY,
-      apiTrace.requestBody,
       apiEndpoint,
     )
     this.findBodyDataFields(

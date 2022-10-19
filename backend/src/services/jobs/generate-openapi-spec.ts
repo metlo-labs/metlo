@@ -120,21 +120,23 @@ const generateOpenApiSpec = async (): Promise<void> => {
               )
             }
           }
-          for (const requestParameter of requestParamters) {
-            const key = `${requestParameter.name}<>query`
-            parameters[key] = parseSchema(
-              parameters[key] ?? {},
-              parsedJsonNonNull(requestParameter.value, true),
-            )
-          }
-          for (const requestHeader of requestHeaders) {
-            const key = `${requestHeader.name}<>header`
-            parameters[key] = parseSchema(
-              parameters[key] ?? {},
-              parsedJsonNonNull(requestHeader.value, true),
-            )
-            if (requestHeader.name.toLowerCase() === "content-type") {
-              requestContentType = requestHeader.value.toLowerCase()
+          if (trace.responseStatus < 400) {
+            for (const requestParameter of requestParamters) {
+              const key = `${requestParameter.name}<>query`
+              parameters[key] = parseSchema(
+                parameters[key] ?? {},
+                parsedJsonNonNull(requestParameter.value, true),
+              )
+            }
+            for (const requestHeader of requestHeaders) {
+              const key = `${requestHeader.name}<>header`
+              parameters[key] = parseSchema(
+                parameters[key] ?? {},
+                parsedJsonNonNull(requestHeader.value, true),
+              )
+              if (requestHeader.name.toLowerCase() === "content-type") {
+                requestContentType = requestHeader.value.toLowerCase()
+              }
             }
           }
           for (const responseHeader of responseHeaders) {
@@ -155,7 +157,9 @@ const generateOpenApiSpec = async (): Promise<void> => {
             )
           }
 
-          parseContent(requestBodySpec, requestBody, requestContentType)
+          if (trace.responseStatus < 400) {
+            parseContent(requestBodySpec, requestBody, requestContentType)
+          }
           if (responseBody) {
             if (!responses[responseStatusString]?.content) {
               responses[responseStatusString] = {
