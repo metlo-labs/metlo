@@ -28,12 +28,12 @@
 ## Get started for free!
 
 <details>
-    <summary>
-      <a href="#">
-        <img height="50px" src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/aws-deploy-light.svg"/>
-      </a>
-    </summary>
+    <summary><strong>Deploy to AWS →</strong></summary>
     <hr>
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/aws-dark.svg" height="40">
+      <img alt="logo" src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/aws-light.svg" height="40">
+    </picture>
     <h4>Metlo has ready to use AMIs in different regions to get started in a few clicks:</h4>
     <a href="https://backend.metlo.com/deploy/aws?region=us-west-1">
       <img height="50px" src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/aws-deploy-us-west-1-light.svg"/>
