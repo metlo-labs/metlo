@@ -27,12 +27,42 @@
 
 ## Get started for free!
 
+<details>
+    <summary>
+      <a href="#">
+        <img height="50px" src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/aws-deploy-light.svg"/>
+      </a>
+    </summary>
+    <hr>
+    <h4>Metlo has ready to use AMIs in different regions to get started in a few clicks:</h4>
+    <a href="https://backend.metlo.com/deploy/aws?region=us-west-1">
+      <img height="50px" src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/aws-deploy-us-west-1-light.svg"/>
+    </a>
+    <span>&nbsp;</span>
+    <a href="https://backend.metlo.com/deploy/aws?region=us-west-2">
+      <img height="50px" src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/aws-deploy-us-west-2-light.svg"/>
+    </a>
+    <span>&nbsp;</span>
+    <a href="https://backend.metlo.com/deploy/aws?region=us-east-1">
+      <img height="50px" src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/aws-deploy-us-east-1-light.svg"/>
+    </a>
+    <span>&nbsp;</span>
+    <a href="https://backend.metlo.com/deploy/aws?region=us-east-2">
+      <img height="50px" src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/aws-deploy-us-east-2-light.svg"/>
+    </a>
+    <p></p>
+    <p><i>Let us know if you need an AMI in a different region!</i></p>
+    <hr>
+</details>
+
+**Deploy with Docker**
+
 Run the following in your cloud environment:
 
 ```bash
 git clone https://github.com/metlo-labs/metlo.git
 cd metlo
-ENCRYPTION_KEY="some random string" EXPRESS_SECRET="some random string" docker-compose up
+ENCRYPTION_KEY="some random string" EXPRESS_SECRET="some random string" docker-compose up -d
 ```
 
 Now visit [http://localhost:8000](http://localhost:8000)
