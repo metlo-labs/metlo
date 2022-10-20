@@ -35,7 +35,7 @@ Currently Metlo ingestor for Python supports 2 servers :
 
 It can be installed from `pypi` by running :
 
-```bash
+```shell
 pip install metlo-python
 ```
 
@@ -89,3 +89,20 @@ parameter, a named value can be passed for max number of workers for communicati
 ```python
 FlaskMiddleware(app, "<METLO-COLLECTOR-URL>", "<API-KEY-GOES-HERE>", workers="<WORKER-COUNT>")
 ```
+
+## Building wheels
+
+To start with, we need to install setuptools build, which can be done by :
+
+```shell
+pip install -q build
+```
+
+Followed by
+
+```shell
+python -m build
+```
+
+This should be done in the root directory (so right here)
+The build will be generated in the `dist/` folder.
