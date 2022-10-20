@@ -55,6 +55,19 @@
     <hr>
 </details>
 
+<details>
+  <summary><strong>Deploy to GCP →</strong></summary>
+  <hr>
+  <img alt="logo" src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/gcp.svg" height="40">
+   
+  #### Run the following command to spin up Metlo in GCP:
+  ```bash
+  $ export PROJECT_ID="<YOUR_PROJECT_ID>"
+  $ gcloud compute instances create metlo-api-security --image-family=metlo-api-security --image-project=metlo-security --project=$PROJECT_ID --machine-type e2-standard-2
+  ```
+  <hr>
+</details>
+
 **Deploy with Docker**
 
 Run the following in your cloud environment:
