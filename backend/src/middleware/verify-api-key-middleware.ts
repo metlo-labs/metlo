@@ -14,11 +14,6 @@ export async function verifyApiKeyMiddleware(
     console.log("before hasher")
     let hashKey = hasher(req.headers.authorization)
     console.log("test log", hashKey)
-    const apiKey = await AppDataSource.getRepository(ApiKey)
-      .createQueryBuilder("key")
-      .where("key.apiKeyHash = :hash", { hash: hashKey })
-      .getOneOrFail()
-    console.log("key", apiKey)
     next()
   } catch (err) {
     await ApiResponseHandler.error(
