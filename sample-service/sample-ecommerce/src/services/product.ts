@@ -19,7 +19,7 @@ export class ProductService {
       await queryRunner.connect()
       const numCurrProducts = await queryRunner.manager.count(Product)
       const product = queryRunner.manager.create(Product)
-      if (numCurrProducts < 300) {
+      if (numCurrProducts < 10) {
         let existingWarehouse = await queryRunner.manager.findOneBy(Warehouse, {
           address: warehouseAddress,
         })

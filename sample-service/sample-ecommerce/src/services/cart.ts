@@ -11,7 +11,7 @@ export class CartService {
       await queryRunner.connect()
       const numCurrCarts = await queryRunner.manager.count(Cart)
       const cart = queryRunner.manager.create(Cart)
-      if (numCurrCarts < 300) {
+      if (numCurrCarts < 10) {
         await queryRunner.manager.insert(Cart, cart)
       }
       return cart.uuid
