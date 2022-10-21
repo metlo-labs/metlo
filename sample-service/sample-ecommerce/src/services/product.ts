@@ -48,7 +48,7 @@ export class ProductService {
   static async getProducts() {
     try {
       const productRepo = AppDataSource.getRepository(Product)
-      return await productRepo.find({})
+      return await productRepo.findOne({})
     } catch (err) {
       throw err
     }
@@ -59,10 +59,6 @@ export class ProductService {
     const product = await productRepository.findOne({
       where: {
         uuid: productUuid,
-      },
-      relations: {
-        warehouse: true,
-        owner: true,
       },
     })
     return product

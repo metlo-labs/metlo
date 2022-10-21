@@ -26,7 +26,7 @@ export class CartService {
   static async getCarts() {
     try {
       const cartRepository = AppDataSource.getRepository(Cart)
-      return await cartRepository.find({ relations: { products: true } })
+      return await cartRepository.findOne({})
     } catch (err) {
       throw err
     }
@@ -38,9 +38,6 @@ export class CartService {
       const cart = await cartRepository.findOne({
         where: {
           uuid: cartUuid,
-        },
-        relations: {
-          products: true,
         },
       })
       return cart
