@@ -48,7 +48,7 @@ export class ProductService {
   static async getProducts() {
     try {
       const productRepo = AppDataSource.getRepository(Product)
-      return await productRepo.findOne({})
+      return await productRepo.find({ take: 1 })
     } catch (err) {
       throw err
     }

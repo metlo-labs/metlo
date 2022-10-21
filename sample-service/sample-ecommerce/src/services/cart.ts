@@ -26,7 +26,7 @@ export class CartService {
   static async getCarts() {
     try {
       const cartRepository = AppDataSource.getRepository(Cart)
-      return await cartRepository.findOne({})
+      return await cartRepository.find({ take: 1 })
     } catch (err) {
       throw err
     }
