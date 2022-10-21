@@ -1,7 +1,7 @@
-import { ALERT, RESPONSE, HOST, conns } from "./interface"
+import { ALERT, RESPONSE, HOST, conns, RecordHolderWithTimestamp } from "./interface"
 import axios from "axios"
 
-export function compileHost(jsonmsg: any, http_meta: Record<string, conns>) {
+export function compileHost(jsonmsg: any, http_meta: Record<string, RecordHolderWithTimestamp<conns>>) {
   // Get Response and Request headers from json blob
   const resp_headers = jsonmsg.http.response_headers
   const req_headers = jsonmsg.http.request_headers
@@ -13,24 +13,28 @@ export function compileHost(jsonmsg: any, http_meta: Record<string, conns>) {
   // store flow metadata. Each connection in a pipeline comes sequentially
   // Store them sequentially
   if (host.flow_id in http_meta) {
-    http_meta[host.flow_id].metas.push({
+    http_meta[host.flow_id].value.metas.push({
       timestamp: host.timestamp,
       metadata: host,
     })
+    http_meta[host.flow_id].timestamp = Date.now()
   } else {
     http_meta[host.flow_id] = {
-      flowId: host.flow_id,
-      metas: [
-        {
-          timestamp: host.timestamp,
-          metadata: host,
-        },
-      ],
+      timestamp: Date.now(),
+      value: {
+        flowId: host.flow_id,
+        metas: [
+          {
+            timestamp: host.timestamp,
+            metadata: host,
+          },
+        ]
+      },
     }
   }
 }
 
-export function pushAlert(resp: RESPONSE, url: string, api_key: string) {
+export async function pushAlert(resp: RESPONSE, url: string, api_key: string) {
   axios
     .post(url, {
       ...resp,

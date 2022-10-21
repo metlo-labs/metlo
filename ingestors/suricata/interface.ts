@@ -121,3 +121,8 @@ export interface RESPONSE {
     destinationPort: number
   }
 }
+
+export interface RecordHolderWithTimestamp<T> {
+  value: T
+  timestamp: number
+}

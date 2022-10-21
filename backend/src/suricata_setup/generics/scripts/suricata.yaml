@@ -62,7 +62,7 @@ default-log-dir: /etc/suricata-logs
 
 # Global stats configuration
 stats:
-  enabled: yes
+  enabled: no
   # The interval field (in seconds) controls the interval at
   # which stats are updated in the log.
   interval: 8
@@ -153,12 +153,12 @@ outputs:
 
       types:
         - alert:
-            payload: yes             # enable dumping payload in Base64
-            payload-buffer-size: 4kb # max size of payload buffer to output in eve-log
-            payload-printable: yes   # enable dumping payload in printable (lossy) format
-            packet: yes              # enable dumping of packet (without stream segments)
+            payload: no             # enable dumping payload in Base64
+            payload-buffer-size: 1000kb # max size of payload buffer to output in eve-log
+            payload-printable: no   # enable dumping payload in printable (lossy) format
+            packet: no              # enable dumping of packet (without stream segments)
             # metadata: yes             # enable inclusion of app layer metadata with alert. Default yes
-            http-body: yes           # Requires metadata; enable dumping of HTTP body in Base64
+            http-body: no           # Requires metadata; enable dumping of HTTP body in Base64
             http-body-printable: yes # Requires metadata; enable dumping of HTTP body in printable format
 
             # Enable the logging of tagged packets for rules using the
@@ -221,7 +221,7 @@ outputs:
             # to dump all HTTP headers for every HTTP request and/or response
             dump-all-headers: both
             payload: yes             # enable dumping payload in Base64
-            payload-buffer-size: 4kb # max size of payload buffer to output in eve-log
+            payload-buffer-size: 1000kb # max size of payload buffer to output in eve-log
             payload-printable: yes   # enable dumping payload in printable (lossy) format
             packet: yes              # enable dumping of packet (without stream segments)
             # metadata: yes             # enable inclusion of app layer metadata with alert. Default yes

@@ -1,13 +1,19 @@
 import net from "net"
 import fs from "fs"
 import process from "process"
-import { conns, EVENTS, ALERT } from "./interface"
+import { conns, EVENTS, ALERT, RecordHolderWithTimestamp } from "./interface"
 import { program } from "commander"
 import { prepareResponse, compileHost, pushAlert } from "./utils"
+import ndjson from "ndjson"
 
 var server: net.Server
 var connections: Record<number, net.Socket> = {}
-var http_meta: Record<string, conns> = {}
+var http_meta: Record<string, RecordHolderWithTimestamp<conns>> = {}
+var alerts: Record<string, RecordHolderWithTimestamp<ALERT>> = {}
+const msSendTimeout = 10
+// Just offset by enough to not conflict with timeout
+const msCleanupTimeout = 10011
+
 
 var url = ""
 var api_key = ""
@@ -29,40 +35,33 @@ function createServer(socket: string) {
         delete connections[self]
       })
 
-      // Messages are buffers. use toString
-      stream.on("data", function (msg) {
-        msg
-          .toString()
-          .split("\n")
-          .filter(_msg => !!_msg)
-          .forEach((_msg, i, a) => {
-            try {
-              const jsonmsg = JSON.parse(_msg)
-              if (EVENTS.HTTP === (jsonmsg["event_type"] as string)) {
-                compileHost(jsonmsg, http_meta)
-              }
-              if (EVENTS.ALERT === (jsonmsg["event_type"] as string)) {
-                // compileAlert(jsonmsg);
-                const alert: ALERT = jsonmsg
-                // Get first metadata for the given connection.
-                let meta = http_meta[alert.flow_id].metas.shift()
-                if (meta) {
-                  let resp = prepareResponse(alert, meta)
-                  pushAlert(resp, url, api_key)
-                }
-              }
-            } catch (err) {
-              console.log(
-                `///////////////////     ERROR      ///////////////////`,
-              )
-              console.log(err)
-              console.log(
-                `///////////////////     MESSAGE      ///////////////////`,
-              )
-              console.log(_msg)
+      stream.pipe(ndjson.parse())
+        .on('data', function (obj) {
+          // obj is a javascript object
+          try {
+
+            const jsonmsg = obj
+            const flow_id = jsonmsg.flow_id
+
+            if (EVENTS.HTTP === (jsonmsg["event_type"] as string)) {
+              compileHost(jsonmsg, http_meta)
             }
-          })
-      })
+            if (EVENTS.ALERT === (jsonmsg["event_type"] as string)) {
+              alerts[flow_id] = { value: jsonmsg, timestamp: Date.now() }
+            }
+          } catch (err) {
+            console.log(
+              `///////////////////     ERROR      ///////////////////`,
+            )
+            console.log(err)
+            console.log(
+              `///////////////////     MESSAGE      ///////////////////`,
+            )
+            console.log(JSON.stringify(obj))
+          }
+        })
+
+
     })
     .listen(socket)
     .on("connection", function (socket) {
@@ -127,6 +126,36 @@ function main() {
   }
   process.on("SIGINT", cleanup)
 }
+
+function processAlerts() {
+  Object.entries(http_meta).forEach(([k, v]) => {
+    const flow_id = k
+    // Find if both events are present in their respective things
+    if (flow_id in alerts) {
+
+      let curr_alert = alerts[flow_id].value
+      delete alerts[flow_id]
+      let curr_http = v.value.metas.shift()
+
+      // Get first metadata for the given connection.              
+      let resp = prepareResponse(curr_alert, curr_http)
+      pushAlert(resp, url, api_key)
+    }
+  })
+}
+
+function cleanup() {
+  let new_meta = {}
+  Object.entries(http_meta).filter((([k, v]) => ((Date.now() - v.timestamp) > msCleanupTimeout))).forEach(([k, v]) => { new_meta[k] = v })
+  http_meta = new_meta
+
+  let new_alerts = {}
+  Object.entries(alerts).filter((([k, v]) => ((Date.now() - v.timestamp) > msCleanupTimeout))).forEach(([k, v]) => { new_meta[k] = v })
+  alerts = new_alerts
+}
+
+setInterval(processAlerts, msSendTimeout)
+setInterval(cleanup, msCleanupTimeout)
 
 process.title = "METLO"
 
