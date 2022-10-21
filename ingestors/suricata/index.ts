@@ -5,10 +5,13 @@ import { conns, EVENTS, ALERT, RecordHolderWithTimestamp } from "./interface"
 import { program } from "commander"
 import { prepareResponse, compileHost, pushAlert } from "./utils"
 import ndjson from "ndjson"
+import { Mutex, MutexInterface } from "async-mutex"
 
 var server: net.Server
 var connections: Record<number, net.Socket> = {}
 var http_meta: Record<string, RecordHolderWithTimestamp<conns>> = {}
+const httpMutex: MutexInterface = new Mutex()
+const alertMutex: MutexInterface = new Mutex()
 var alerts: Record<string, RecordHolderWithTimestamp<ALERT>> = {}
 const msSendTimeout = 10
 // Just offset by enough to not conflict with timeout
@@ -44,10 +47,16 @@ function createServer(socket: string) {
             const flow_id = jsonmsg.flow_id
 
             if (EVENTS.HTTP === (jsonmsg["event_type"] as string)) {
-              compileHost(jsonmsg, http_meta)
+              httpMutex.acquire().then((release) => {
+                compileHost(jsonmsg, http_meta)
+                release()
+              })
             }
             if (EVENTS.ALERT === (jsonmsg["event_type"] as string)) {
-              alerts[flow_id] = { value: jsonmsg, timestamp: Date.now() }
+              alertMutex.acquire().then((release) => {
+                alerts[flow_id] = { value: jsonmsg, timestamp: Date.now() }
+                release()
+              })
             }
           } catch (err) {
             console.log(
@@ -128,34 +137,45 @@ function main() {
 }
 
 function processAlerts() {
-  Object.entries(http_meta).forEach(([k, v]) => {
-    const flow_id = k
-    // Find if both events are present in their respective things
-    if (flow_id in alerts) {
+  httpMutex.acquire().then((release) => {
+    Object.entries(http_meta).forEach(([k, v]) => {
+      const flow_id = k
+      // Find if both events are present in their respective things
+      alertMutex.acquire().then((alertRelease) => {
+        if (flow_id in alerts) {
+          let curr_alert = alerts[flow_id].value
+          delete alerts[flow_id]
+          let curr_http = v.value.metas.shift()
 
-      let curr_alert = alerts[flow_id].value
-      delete alerts[flow_id]
-      let curr_http = v.value.metas.shift()
-
-      // Get first metadata for the given connection.              
-      let resp = prepareResponse(curr_alert, curr_http)
-      pushAlert(resp, url, api_key)
-    }
+          // Get first metadata for the given connection.              
+          let resp = prepareResponse(curr_alert, curr_http)
+          pushAlert(resp, url, api_key)
+        }
+        alertRelease()
+      })
+    })
+    release()
   })
 }
 
-function cleanup() {
-  let new_meta = {}
-  Object.entries(http_meta).filter((([k, v]) => ((Date.now() - v.timestamp) > msCleanupTimeout))).forEach(([k, v]) => { new_meta[k] = v })
-  http_meta = new_meta
+function cleanupData() {
+  httpMutex.acquire().then((release) => {
+    let new_meta = {}
+    Object.entries(http_meta).filter((([k, v]) => ((Date.now() - v.timestamp) > msCleanupTimeout))).forEach(([k, v]) => { new_meta[k] = v })
+    http_meta = new_meta
+    release()
+  })
 
-  let new_alerts = {}
-  Object.entries(alerts).filter((([k, v]) => ((Date.now() - v.timestamp) > msCleanupTimeout))).forEach(([k, v]) => { new_meta[k] = v })
-  alerts = new_alerts
+  alertMutex.acquire().then((release) => {
+    let new_alerts = {}
+    Object.entries(alerts).filter((([k, v]) => ((Date.now() - v.timestamp) > msCleanupTimeout))).forEach(([k, v]) => { new_alerts[k] = v })
+    alerts = new_alerts
+    release()
+  })
 }
 
 setInterval(processAlerts, msSendTimeout)
-setInterval(cleanup, msCleanupTimeout)
+setInterval(cleanupData, msCleanupTimeout)
 
 process.title = "METLO"
 
