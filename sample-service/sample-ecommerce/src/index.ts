@@ -98,7 +98,7 @@ const main = async () => {
       }`,
     )
     await initializeUser()
-    app.listen({ port }, () => {
+    app.listen({ port, host: "0.0.0.0" }, () => {
       console.log(
         `⚡️[server]: Fastify Server is running at http://localhost:${port}`,
       )

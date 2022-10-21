@@ -9,7 +9,7 @@
     "watch": "tsc -w",
     "dev": "nodemon -r tsconfig-paths/register src/index.ts",
     "start": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register dist/index.js",
-    "start:prod": "pm2-runtime start pm2.json -i 4",
+    "start:prod": "pm2-runtime start pm2.json -i max",
     "format": "prettier --write './src/**/*.{ts,tsx}'"
   },
   "keywords": [],
