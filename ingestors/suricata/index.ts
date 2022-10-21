@@ -53,7 +53,7 @@ function createServer(socket: string) {
               })
             }
             if (EVENTS.ALERT === (jsonmsg["event_type"] as string)) {
-              alertMutex.acquire().then((release) => {                
+              alertMutex.acquire().then((release) => {
                 alerts[flow_id] = { value: jsonmsg, timestamp: Date.now() }
                 release()
               })
@@ -150,8 +150,8 @@ function processAlerts() {
           // Get first metadata for the given connection.              
           let resp = prepareResponse(curr_alert, curr_http)
           pushAlert(resp, url, api_key)
-          alertRelease()
         }
+        alertRelease()
       })
     })
     release()
