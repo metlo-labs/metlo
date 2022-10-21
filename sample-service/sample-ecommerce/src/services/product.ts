@@ -14,30 +14,35 @@ export class ProductService {
         "Please provide product name, description, price, and warehouse address.",
       )
     }
-
-    const wareHouseRepository = AppDataSource.getRepository(Warehouse)
-    const productRepository = AppDataSource.getRepository(Product)
-    const numCurrProducts = await productRepository.count()
-    const product = productRepository.create()
-    if (numCurrProducts < 1000) {
-      let existingWarehouse = await wareHouseRepository.findOneBy({
-        address: warehouseAddress,
-      })
-      if (!existingWarehouse) {
-        const wareHouseCount = await wareHouseRepository.count()
-        existingWarehouse = wareHouseRepository.create()
-        existingWarehouse.address = warehouseAddress
-        existingWarehouse.name = `Warehouse ${wareHouseCount}`
+    const queryRunner = AppDataSource.createQueryRunner()
+    try {
+      await queryRunner.connect()
+      const numCurrProducts = await queryRunner.manager.count(Product)
+      const product = queryRunner.manager.create(Product)
+      if (numCurrProducts < 300) {
+        let existingWarehouse = await queryRunner.manager.findOneBy(Warehouse, {
+          address: warehouseAddress,
+        })
+        if (!existingWarehouse) {
+          const wareHouseCount = await queryRunner.manager.count(Warehouse)
+          existingWarehouse = queryRunner.manager.create(Warehouse)
+          existingWarehouse.address = warehouseAddress
+          existingWarehouse.name = `Warehouse ${wareHouseCount}`
+          await queryRunner.manager.insert(Warehouse, existingWarehouse)
+        }
+        product.name = name
+        product.description = description
+        product.price = price
+        product.warehouse = existingWarehouse
+        product.owner = user
+        await queryRunner.manager.save(Product, product)
       }
-      product.name = name
-      product.description = description
-      product.price = price
-      product.warehouse = existingWarehouse
-      product.owner = user
-      await wareHouseRepository.save(existingWarehouse)
-      await productRepository.save(product)
+      return product.uuid
+    } catch (err) {
+      throw err
+    } finally {
+      await queryRunner.release()
     }
-    return product.uuid
   }
 
   static async getProducts() {

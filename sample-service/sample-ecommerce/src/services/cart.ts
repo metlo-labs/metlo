@@ -6,17 +6,20 @@ import { ProductService } from "./product"
 
 export class CartService {
   static async createNewCart() {
+    const queryRunner = AppDataSource.createQueryRunner()
     try {
-      const cartRepository = AppDataSource.getRepository(Cart)
-      const numCurrCarts = await cartRepository.count()
-      const cart = cartRepository.create()
-      if (numCurrCarts < 1000) {
-        await cartRepository.save(cart)
+      await queryRunner.connect()
+      const numCurrCarts = await queryRunner.manager.count(Cart)
+      const cart = queryRunner.manager.create(Cart)
+      if (numCurrCarts < 300) {
+        await queryRunner.manager.insert(Cart, cart)
       }
       return cart.uuid
     } catch (err) {
       console.error(`Error in CartService.createNewCart: ${err}`)
       throw err
+    } finally {
+      queryRunner.release()
     }
   }
 

@@ -1,12 +1,12 @@
-import { Request, Response } from "express"
+import { FastifyReply, FastifyRequest } from "fastify"
 import ApiResponseHandler from "api-response-handler"
 import { CartService } from "services/cart"
 import { Error404NotFound } from "errors"
 import { PurchaseCartParams } from "types"
 
 export const createNewCartHandler = async (
-  req: Request,
-  res: Response,
+  req: FastifyRequest,
+  res: FastifyReply,
 ): Promise<void> => {
   try {
     const cartUuid = await CartService.createNewCart()
@@ -18,11 +18,11 @@ export const createNewCartHandler = async (
 }
 
 export const getCartHandler = async (
-  req: Request,
-  res: Response,
+  req: FastifyRequest,
+  res: FastifyReply,
 ): Promise<void> => {
   try {
-    const { cartUuid } = req.params
+    const { cartUuid } = req.params as { cartUuid: string }
     const cart = await CartService.getCart(cartUuid)
     if (!cart) {
       throw new Error404NotFound("Cart not found.")
@@ -34,8 +34,8 @@ export const getCartHandler = async (
 }
 
 export const getCartsHandler = async (
-  req: Request,
-  res: Response,
+  req: FastifyRequest,
+  res: FastifyReply,
 ): Promise<void> => {
   try {
     await ApiResponseHandler.success(res, await CartService.getCarts())
@@ -45,12 +45,12 @@ export const getCartsHandler = async (
 }
 
 export const addProductHandler = async (
-  req: Request,
-  res: Response,
+  req: FastifyRequest,
+  res: FastifyReply,
 ): Promise<void> => {
   try {
-    const { cartUuid } = req.params
-    const { productUuid } = req.body
+    const { cartUuid } = req.params as { cartUuid: string }
+    const { productUuid } = req.body as { productUuid: string }
     await CartService.addProduct(cartUuid, productUuid)
     await ApiResponseHandler.success(res, null)
   } catch (err) {
@@ -59,12 +59,13 @@ export const addProductHandler = async (
 }
 
 export const purchaseCartHandler = async (
-  req: Request,
-  res: Response,
+  req: FastifyRequest,
+  res: FastifyReply,
 ): Promise<void> => {
   try {
-    const { cartUuid } = req.params
-    const purchaseCartParams: PurchaseCartParams = req.body
+    const { cartUuid } = req.params as { cartUuid: string }
+    const purchaseCartParams: PurchaseCartParams =
+      req.body as PurchaseCartParams
     const payload = await CartService.purchaseCart(cartUuid, purchaseCartParams)
     await ApiResponseHandler.success(res, payload)
   } catch (err) {

@@ -1,15 +1,16 @@
-import { Request, Response } from "express"
+import { FastifyReply, FastifyRequest } from "fastify"
 import ApiResponseHandler from "api-response-handler"
 import { AddNewProductParams } from "types"
 import { ProductService } from "services/product"
 import { Error404NotFound } from "errors"
 
 export const createNewProductHandler = async (
-  req: Request,
-  res: Response,
+  req: FastifyRequest,
+  res: FastifyReply,
 ): Promise<void> => {
   try {
-    const addNewProductParams: AddNewProductParams = req.body
+    const addNewProductParams: AddNewProductParams =
+      req.body as AddNewProductParams
     const newProductId = await ProductService.addNewProduct(
       addNewProductParams,
       req.user,
@@ -21,11 +22,11 @@ export const createNewProductHandler = async (
 }
 
 export const getProductHandler = async (
-  req: Request,
-  res: Response,
+  req: FastifyRequest,
+  res: FastifyReply,
 ): Promise<void> => {
   try {
-    const { productUuid } = req.params
+    const { productUuid } = req.params as { productUuid: string }
     const product = await ProductService.getProduct(productUuid)
     if (!product) {
       throw new Error404NotFound("No product found for uuid.")
@@ -37,8 +38,8 @@ export const getProductHandler = async (
 }
 
 export const getProductsHandler = async (
-  req: Request,
-  res: Response,
+  req: FastifyRequest,
+  res: FastifyReply,
 ): Promise<void> => {
   try {
     await ApiResponseHandler.success(res, await ProductService.getProducts())

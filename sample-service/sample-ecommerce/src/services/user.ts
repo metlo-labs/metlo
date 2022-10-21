@@ -50,7 +50,7 @@ export class UserService {
       user.phoneNumber = phoneNumber
       user.address = address
       user.apiKey = `ecommerce_${randomBytes(16).toString("hex")}`
-      if (currNumUsers < 1000) {
+      if (currNumUsers < 300) {
         await userRepository.save(user)
       }
       return user.apiKey
