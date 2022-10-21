@@ -34,7 +34,7 @@ export function compileHost(jsonmsg: any, http_meta: Record<string, RecordHolder
   }
 }
 
-export function pushAlert(resp: RESPONSE, url: string, api_key: string) {
+export async function pushAlert(resp: RESPONSE, url: string, api_key: string) {
   axios
     .post(url, {
       ...resp,

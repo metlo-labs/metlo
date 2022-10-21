@@ -132,7 +132,6 @@ function processAlerts() {
     const flow_id = k
     // Find if both events are present in their respective things
     if (flow_id in alerts) {
-      console.log("Got both together")
 
       let curr_alert = alerts[flow_id].value
       delete alerts[flow_id]
@@ -148,12 +147,10 @@ function processAlerts() {
 function cleanup() {
   let new_meta = {}
   Object.entries(http_meta).filter((([k, v]) => ((Date.now() - v.timestamp) > msCleanupTimeout))).forEach(([k, v]) => { new_meta[k] = v })
-  console.log(`Size diff ${Object.keys(new_meta).length - Object.keys(http_meta).length}`)
   http_meta = new_meta
 
   let new_alerts = {}
   Object.entries(alerts).filter((([k, v]) => ((Date.now() - v.timestamp) > msCleanupTimeout))).forEach(([k, v]) => { new_meta[k] = v })
-  console.log(`Size diff ${Object.keys(new_alerts).length - Object.keys(alerts).length}`)
   alerts = new_alerts
 }
 
