@@ -52,6 +52,7 @@ export const bodyParserMiddleware = async (
   res: Response,
   next: NextFunction,
 ) => {
+  console.log("in bodyparser")
   let traceParamsList: TraceParams[] = req.body
   const dataType = getDataType(req.body)
   if (dataType !== DataType.ARRAY) {
@@ -114,6 +115,6 @@ export const bodyParserMiddleware = async (
       }
     }
   })
-
+  console.log("finished bodyparser")
   next()
 }

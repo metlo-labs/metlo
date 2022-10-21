@@ -12,10 +12,11 @@ export async function verifyApiKeyMiddleware(
 ) {
   try {
     let hashKey = hasher(req.headers.authorization)
-    await AppDataSource.getRepository(ApiKey)
+    const apiKey = await AppDataSource.getRepository(ApiKey)
       .createQueryBuilder("key")
       .where("key.apiKeyHash = :hash", { hash: hashKey })
       .getOneOrFail()
+    console.log("key", apiKey)
     next()
   } catch (err) {
     await ApiResponseHandler.error(
