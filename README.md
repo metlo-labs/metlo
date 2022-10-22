@@ -70,7 +70,7 @@
   <hr>
 </details>
 <details>
-<summary><strong>Deploy to GCP →</strong></summary>
+<summary><strong>Deploy to Digital Ocean →</strong></summary>
   <hr>
   <a href="https://cloud.digitalocean.com/apps/new?repo=https://github.com/metlo-labs/metlo/tree/one-click-digitalocean">
       <img src="https://www.deploytodo.com/do-btn-blue.svg" alt="Deploy Metlo to Digital Ocean" height="400">
