@@ -1,7 +1,7 @@
 spec:
   name: sample-golang
   services:
-    - name: web
-      git:
-        branch: main
-        repo_clone_url: https://github.com/digitalocean/sample-golang.git
+  - name: web
+    git:
+      branch: main
+      repo_clone_url: https://github.com/digitalocean/sample-golang.git
