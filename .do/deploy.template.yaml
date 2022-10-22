@@ -1,7 +1,8 @@
 spec:
-  name: sample-golang
+  name: sample-metlo
   services:
-  - name: web
+  - name: metlo-backend
     git:
-      branch: main
-      repo_clone_url: https://github.com/digitalocean/sample-golang.git
+      branch: one-click-digitalocean
+      repo_clone_url: https://github.com/metlo-labs/metlo.git
+    dockerfile_path: deploy/backend/Dockerfile
