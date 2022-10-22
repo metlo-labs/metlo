@@ -1,71 +1,10 @@
 spec:
-  envs:
-    - key: DB_URL
-      scope: RUN_AND_BUILD_TIME
-    - key: REDIS_URL
-      scope: RUN_AND_BUILD_TIME
-  name: metlo
-  region: sfo
+  name: sample-golang
   services:
     - envs:
-        - key: BACKEND_URL
-          scope: RUN_AND_BUILD_TIME
-      http_port: 3000
-      image:
-        registry: metlo
-        registry_type: DOCKER_HUB
-        repository: frontend
-        tag: latest
-      instance_count: 1
-      instance_size_slug: professional-xs
-      name: metlo-frontend
-      routes:
-        - path: /metlo-frontend
-    - envs:
-        - key: ENCRYPTION_KEY
-          scope: RUN_AND_BUILD_TIME
-        - key: RUN_MIGRATION
-          scope: RUN_AND_BUILD_TIME
-          value: "true"
-      http_port: 8081
-      image:
-        registry: metlo
-        registry_type: DOCKER_HUB
-        repository: backend
-        tag: latest
-      instance_count: 1
-      instance_size_slug: professional-xs
-      name: metlo-ingestor
-      routes:
-        - path: /metlo-ingestor
-      run_command: yarn start-collector
-  workers:
-    - envs:
-        - key: DISABLE_LOGGING_STATS
-          scope: RUN_AND_BUILD_TIME
-          value: "true"
-      image:
-        registry: metlo
-        registry_type: DOCKER_HUB
-        repository: jobrunner
-        tag: latest
-      instance_count: 1
-      instance_size_slug: professional-xs
-      name: metlo-jobs
-    - envs:
-        - key: ENCRYPTION_KEY
-          scope: RUN_AND_BUILD_TIME
-        - key: BACKEND_URL
-          scope: RUN_AND_BUILD_TIME
-        - key: EXPRESS_SECRET
-          scope: RUN_AND_BUILD_TIME
-        - key: SESSION_SECRET
-          scope: RUN_AND_BUILD_TIME
-      image:
-        registry: metlo
-        registry_type: DOCKER_HUB
-        repository: backend
-        tag: latest
-      instance_count: 2
-      instance_size_slug: professional-xs
-      name: metlo-backend
+        http_port: 80
+        image:
+          registry: okteto
+          registry_type: DOCKER_HUB
+          respository: hello-world
+          tag: latest
