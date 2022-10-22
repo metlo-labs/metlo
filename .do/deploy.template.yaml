@@ -1,10 +1,7 @@
 spec:
   name: sample-golang
   services:
-    - envs:
-        http_port: 80
-        image:
-          registry: okteto
-          registry_type: DOCKER_HUB
-          respository: hello-world
-          tag: latest
+    - name: web
+      git:
+        branch: main
+        repo_clone_url: https://github.com/digitalocean/sample-golang.git
