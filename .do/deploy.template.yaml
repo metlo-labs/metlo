@@ -1,8 +1,15 @@
 spec:
   name: sample-metlo
+  region: blr
   services:
-  - name: metlo-backend
-    git:
-      branch: one-click-digitalocean
-      repo_clone_url: https://github.com/metlo-labs/metlo.git
-    dockerfile_path: deploy/backend/Dockerfile
+  - http_port: 8080
+    image:
+      registry: metlo
+      registry_type: DOCKER_HUB
+      repository: backend
+      tag: latest
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    name: metlo-backend
+    routes:
+    - path: /
