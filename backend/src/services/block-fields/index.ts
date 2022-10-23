@@ -1,23 +1,54 @@
-import { In, Raw } from "typeorm"
 import { DataType, DisableRestMethod } from "@common/enums"
-import { getDataType, parsedJson, parsedJsonNonNull } from "utils"
-import { PairObject } from "@common/types"
-import { ApiTrace, BlockFields } from "models"
-import { AppDataSource } from "data-source"
+import { getDataType, isParameter, parsedJson, parsedJsonNonNull } from "utils"
+import { BlockFieldEntry, PairObject } from "@common/types"
+import { ApiTrace } from "models"
+import { getPathTokens } from "@common/utils"
+import { BLOCK_FIELDS_ALL_REGEX } from "~/constants"
 
 export class BlockFieldsService {
-  static async getBlockFieldsEntry(apiTrace: ApiTrace) {
-    const blockFieldsRepo = AppDataSource.getRepository(BlockFields)
-    return await blockFieldsRepo.findOne({
-      where: {
-        host: apiTrace.host,
-        method: In([apiTrace.method, DisableRestMethod.ALL]),
-        pathRegex: Raw(alias => `:path ~ ${alias}`, { path: apiTrace.path }),
-      },
-      order: {
-        numberParams: "ASC",
-      },
-    })
+  static entries: Record<string, BlockFieldEntry[]> = {}
+
+  static getNumberParams(
+    pathRegex: string,
+    method: DisableRestMethod,
+    path: string,
+  ) {
+    let numParams = 0
+    if (pathRegex === BLOCK_FIELDS_ALL_REGEX) {
+      numParams += 1000
+    } else if (method === DisableRestMethod.ALL) {
+      numParams += 500
+    }
+    if (path) {
+      const pathTokens = getPathTokens(path)
+      for (let i = 0; i < pathTokens.length; i++) {
+        const token = pathTokens[i]
+        if (isParameter(token)) {
+          numParams += 1
+        }
+      }
+      return numParams
+    }
+    return 0
+  }
+
+  static getBlockFieldsEntry(apiTrace: ApiTrace): BlockFieldEntry {
+    let entry: BlockFieldEntry = null
+    const hostEntry = this.entries[apiTrace.host]
+    if (hostEntry) {
+      for (const item of hostEntry) {
+        const regex = new RegExp(item.pathRegex)
+        if (
+          (item.method === DisableRestMethod[apiTrace.method] ||
+            item.method === DisableRestMethod.ALL) &&
+          regex.test(apiTrace.path) &&
+          (entry === null || item.numberParams < entry.numberParams)
+        ) {
+          entry = item
+        }
+      }
+    }
+    return entry
   }
 
   static isContained(
@@ -191,7 +222,7 @@ export class BlockFieldsService {
   }
 
   static async redactBlockedFields(apiTrace: ApiTrace) {
-    const blockFieldEntry = await this.getBlockFieldsEntry(apiTrace)
+    const blockFieldEntry = this.getBlockFieldsEntry(apiTrace)
     if (blockFieldEntry) {
       const disabledPaths = blockFieldEntry.disabledPaths
       const validRequestParams = this.redactBlockedFieldsPairObject(

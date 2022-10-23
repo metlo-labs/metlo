@@ -18,6 +18,7 @@ import {
   AuthType,
   AttackType,
   API_KEY_TYPE,
+  DisableRestMethod,
 } from "./enums"
 import { Test, Request as TestRequest } from "@metlo/testing"
 import "axios"
@@ -503,4 +504,12 @@ export interface AuthenticationConfig {
   headerKey: string
   jwtUserPath: string
   cookieName: string
+}
+
+export interface BlockFieldEntry {
+  path: string
+  pathRegex: string
+  method: DisableRestMethod,
+  numberParams: number
+  disabledPaths: string[]
 }
