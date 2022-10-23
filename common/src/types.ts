@@ -496,3 +496,11 @@ export interface ApiKey {
   created: string
   for: API_KEY_TYPE
 }
+
+export interface AuthenticationConfig {
+  host: string
+  authType: AuthType
+  headerKey: string
+  jwtUserPath: string
+  cookieName: string
+}

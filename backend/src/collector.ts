@@ -8,11 +8,13 @@ import {
   logRequestSingleHandler,
 } from "collector_src/log-request"
 import { verifyApiKeyMiddleware } from "middleware/verify-api-key-middleware"
-import { AuthenticationConfig, BlockFields } from "models"
+import { BlockFields, AuthenticationConfig } from "models"
 import { getPathRegex } from "utils"
 import { AuthType, DisableRestMethod } from "@common/enums"
 import { DatabaseService } from "services/database"
 import { bodyParserMiddleware } from "middleware/body-parser-middleware"
+import { addToRedis, deleteKeyFromRedis, getFromRedis, getListFromRedis } from "suricata_setup/utils"
+import { AUTH_CONFIG_LIST_KEY } from "./constants"
 
 dotenv.config()
 
@@ -117,6 +119,7 @@ const populateAuthentication = async () => {
     ) as object
     const authConfigDoc = metloConfig?.["authentication"]
     const authConfigEntries: AuthenticationConfig[] = []
+    const currAuthConfigEntries = await getListFromRedis(AUTH_CONFIG_LIST_KEY, 0, -1)
     if (authConfigDoc) {
       authConfigDoc.forEach(item => {
         const newConfig = new AuthenticationConfig()
@@ -140,6 +143,9 @@ const populateAuthentication = async () => {
     await deleteQb.execute()
     await addQb.execute()
     await queryRunner.commitTransaction()
+    if (currAuthConfigEntries) {
+      await deleteKeyFromRedis([...currAuthConfigEntries, AUTH_CONFIG_LIST_KEY])
+    }
   } catch (err) {
     console.error(`Error in populating metlo config authentication: ${err}`)
     await queryRunner.rollbackTransaction()
