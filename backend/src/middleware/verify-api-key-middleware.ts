@@ -19,7 +19,7 @@ export async function verifyApiKeyMiddleware(
         .createQueryBuilder("key")
         .where("key.apiKeyHash = :hash", { hash: hashKey })
         .getOneOrFail()
-      RedisClient.addToRedis(hashKey, true, 3600)
+      RedisClient.addToRedis(hashKey, true, 5)
     }
     next()
   } catch (err) {
