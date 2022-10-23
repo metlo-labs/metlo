@@ -66,10 +66,7 @@ export class LogRequestService {
           .where("uuid = :id", { id: apiEndpoint.uuid })
           .execute()
       }
-      await DatabaseService.retryTypeormTransaction(
-        () => queryRunner.manager.insert(ApiTrace, apiTraceObj),
-        5,
-      )
+      await queryRunner.manager.insert(ApiTrace, apiTraceObj)
     } catch (err) {
       console.error(`Error in Log Request service: ${err}`)
       throw new Error500InternalServer(err)
