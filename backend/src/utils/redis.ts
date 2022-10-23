@@ -16,9 +16,12 @@ export class RedisClient {
     return RedisClient.client
   }
 
-  public static async addToRedis(key: string, data: Object) {
+  public static addToRedis(key: string, data: Object, expireIn?: number) {
     try {
-      await this.getInstance().set(key, JSON.stringify(data))
+      this.getInstance().set(key, JSON.stringify(data))
+      if (expireIn) {
+        this.getInstance().expire(key, expireIn, "NX")
+      }
     } catch {}
   }
 
@@ -38,12 +41,12 @@ export class RedisClient {
     }
   }
 
-  public static async pushValueToRedisList(
+  public static pushValueToRedisList(
     key: string,
     data: string | number | Buffer,
   ) {
     try {
-      await this.getInstance().lpush(key, data)
+      this.getInstance().lpush(key, data)
     } catch (err) {
       console.error(`Error pushing value to redis list: ${err}`)
     }

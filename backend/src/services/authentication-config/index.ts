@@ -28,8 +28,8 @@ export class AuthenticationConfigService {
         jwtUserPath: authConfig.jwtUserPath,
         cookieName: authConfig.cookieName,
       }
-      await RedisClient.addToRedis(redisKey, cachedAuthConfig)
-      await RedisClient.pushValueToRedisList(
+      RedisClient.addToRedis(redisKey, cachedAuthConfig)
+      RedisClient.pushValueToRedisList(
         AUTH_CONFIG_LIST_KEY,
         `auth_config_${apiTrace.host}`,
       )
