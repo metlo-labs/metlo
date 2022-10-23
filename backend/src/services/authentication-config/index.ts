@@ -2,15 +2,17 @@ import { AuthType } from "@common/enums"
 import { SessionMeta } from "@common/types"
 import { AppDataSource } from "data-source"
 import { ApiTrace, AuthenticationConfig } from "models"
-import { addToRedis, getFromRedis, pushValueToRedisList } from "suricata_setup/utils"
 import { encryptEcb } from "utils/encryption"
 import { AuthenticationConfig as CachedAuthConfig } from "@common/types"
 import { AUTH_CONFIG_LIST_KEY } from "~/constants"
+import { RedisClient } from "utils/redis"
 
 export class AuthenticationConfigService {
   static async setSessionMetadata(apiTrace: ApiTrace) {
     const redisKey = `auth_config_${apiTrace.host}`
-    let cachedAuthConfig: CachedAuthConfig = await getFromRedis(redisKey)
+    let cachedAuthConfig: CachedAuthConfig = await RedisClient.getFromRedis(
+      redisKey,
+    )
     if (!cachedAuthConfig) {
       const authConfigRepo = AppDataSource.getRepository(AuthenticationConfig)
       const authConfig = await authConfigRepo.findOneBy({
@@ -19,9 +21,18 @@ export class AuthenticationConfigService {
       if (!authConfig) {
         return
       }
-      cachedAuthConfig = { host: authConfig.host, authType: authConfig.authType, headerKey: authConfig.headerKey, jwtUserPath: authConfig.jwtUserPath, cookieName: authConfig.cookieName }
-      await addToRedis(redisKey, cachedAuthConfig)
-      await pushValueToRedisList(AUTH_CONFIG_LIST_KEY, `auth_config_${apiTrace.host}`)
+      cachedAuthConfig = {
+        host: authConfig.host,
+        authType: authConfig.authType,
+        headerKey: authConfig.headerKey,
+        jwtUserPath: authConfig.jwtUserPath,
+        cookieName: authConfig.cookieName,
+      }
+      await RedisClient.addToRedis(redisKey, cachedAuthConfig)
+      await RedisClient.pushValueToRedisList(
+        AUTH_CONFIG_LIST_KEY,
+        `auth_config_${apiTrace.host}`,
+      )
     }
     const key = process.env.ENCRYPTION_KEY
 

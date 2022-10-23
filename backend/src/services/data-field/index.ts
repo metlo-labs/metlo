@@ -214,7 +214,8 @@ export class DataFieldService {
     this.dataFields = apiEndpoint.dataFields.reduce((obj, item) => {
       return {
         ...obj,
-        [`${item.dataSection}${item.dataPath ? `.${item.dataPath}` : ""}`]: item,
+        [`${item.dataSection}${item.dataPath ? `.${item.dataPath}` : ""}`]:
+          item,
       }
     }, {})
     this.updatedFields = {}

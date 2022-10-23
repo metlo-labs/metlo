@@ -8,20 +8,14 @@ import {
   logRequestSingleHandler,
 } from "collector_src/log-request"
 import { verifyApiKeyMiddleware } from "middleware/verify-api-key-middleware"
-import { BlockFields, AuthenticationConfig } from "models"
+import { AuthenticationConfig } from "models"
 import { getPathRegex } from "utils"
 import { AuthType, DisableRestMethod } from "@common/enums"
-import { DatabaseService } from "services/database"
 import { bodyParserMiddleware } from "middleware/body-parser-middleware"
-import {
-  addToRedis,
-  deleteKeyFromRedis,
-  getFromRedis,
-  getListFromRedis,
-} from "suricata_setup/utils"
 import { AUTH_CONFIG_LIST_KEY, BLOCK_FIELDS_ALL_REGEX } from "./constants"
 import { BlockFieldsService } from "services/block-fields"
 import { BlockFieldEntry } from "@common/types"
+import { RedisClient } from "utils/redis"
 
 dotenv.config()
 
@@ -149,7 +143,7 @@ const populateAuthentication = async () => {
     ) as object
     const authConfigDoc = metloConfig?.["authentication"]
     const authConfigEntries: AuthenticationConfig[] = []
-    const currAuthConfigEntries = await getListFromRedis(
+    const currAuthConfigEntries = await RedisClient.getListValueFromRedis(
       AUTH_CONFIG_LIST_KEY,
       0,
       -1,
@@ -178,7 +172,10 @@ const populateAuthentication = async () => {
     await addQb.execute()
     await queryRunner.commitTransaction()
     if (currAuthConfigEntries) {
-      await deleteKeyFromRedis([...currAuthConfigEntries, AUTH_CONFIG_LIST_KEY])
+      await RedisClient.deleteFromRedis([
+        ...currAuthConfigEntries,
+        AUTH_CONFIG_LIST_KEY,
+      ])
     }
   } catch (err) {
     console.error(`Error in populating metlo config authentication: ${err}`)

@@ -18,20 +18,7 @@ async function getFromRedis(key) {
 
 async function deleteKeyFromRedis(key) {
   const redisClient = RedisClient.getInstance()
-  if (Array.isArray(key)) {
-    return await redisClient.del(key)
-  }
   return await redisClient.del([key])
 }
 
-async function pushValueToRedisList(key, data: any) {
-  const redisClient = RedisClient.getInstance()
-  await redisClient.lpush(key, data)
-}
-
-async function getListFromRedis(key, start: number, end: number) {
-  const redisClient = RedisClient.getInstance()
-  return await redisClient.lrange(key, start, end)
-}
-
-export { addToRedis, addToRedisFromPromise, getFromRedis, deleteKeyFromRedis, pushValueToRedisList, getListFromRedis }
+export { addToRedis, addToRedisFromPromise, getFromRedis, deleteKeyFromRedis }
