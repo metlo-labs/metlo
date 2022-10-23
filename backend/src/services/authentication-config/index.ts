@@ -18,15 +18,17 @@ export class AuthenticationConfigService {
       const authConfig = await authConfigRepo.findOneBy({
         host: apiTrace.host,
       })
-      if (!authConfig) {
-        return
-      }
-      cachedAuthConfig = {
-        host: authConfig.host,
-        authType: authConfig.authType,
-        headerKey: authConfig.headerKey,
-        jwtUserPath: authConfig.jwtUserPath,
-        cookieName: authConfig.cookieName,
+
+      if (authConfig) {
+        cachedAuthConfig = {
+          host: authConfig.host,
+          authType: authConfig.authType,
+          headerKey: authConfig.headerKey,
+          jwtUserPath: authConfig.jwtUserPath,
+          cookieName: authConfig.cookieName,
+        }
+      } else {
+        cachedAuthConfig = {} as CachedAuthConfig
       }
       RedisClient.addToRedis(redisKey, cachedAuthConfig)
       RedisClient.pushValueToRedisList(
@@ -34,6 +36,11 @@ export class AuthenticationConfigService {
         `auth_config_${apiTrace.host}`,
       )
     }
+
+    if (Object.keys(cachedAuthConfig).length === 0) {
+      return
+    }
+
     const key = process.env.ENCRYPTION_KEY
 
     const requestHeaders = apiTrace.requestHeaders
