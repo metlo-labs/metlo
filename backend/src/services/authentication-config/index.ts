@@ -31,10 +31,9 @@ export class AuthenticationConfigService {
         cachedAuthConfig = {} as CachedAuthConfig
       }
       RedisClient.addToRedis(redisKey, cachedAuthConfig)
-      RedisClient.pushValueToRedisList(
-        AUTH_CONFIG_LIST_KEY,
+      RedisClient.pushValueToRedisList(AUTH_CONFIG_LIST_KEY, [
         `auth_config_${apiTrace.host}`,
-      )
+      ])
     }
 
     if (Object.keys(cachedAuthConfig).length === 0) {

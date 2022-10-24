@@ -43,12 +43,29 @@ export class RedisClient {
 
   public static pushValueToRedisList(
     key: string,
-    data: string | number | Buffer,
+    data: (string | number | Buffer)[],
+    right?: boolean,
   ) {
     try {
-      this.getInstance().lpush(key, data)
+      if (right) {
+        this.getInstance().rpush(key, ...data)
+      } else {
+        this.getInstance().lpush(key, ...data)
+      }
     } catch (err) {
       console.error(`Error pushing value to redis list: ${err}`)
+    }
+  }
+
+  public static async popValueFromRedisList(key: string, right?: boolean) {
+    try {
+      if (right) {
+        return await this.getInstance().lpop(key)
+      } else {
+        return await this.getInstance().rpop(key)
+      }
+    } catch (err) {
+      return null
     }
   }
 

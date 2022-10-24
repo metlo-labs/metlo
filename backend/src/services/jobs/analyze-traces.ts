@@ -4,22 +4,24 @@ import { DataFieldService } from "services/data-field"
 import { SpecService } from "services/spec"
 import { AlertService } from "services/alert"
 import { DatabaseService } from "services/database"
+import { RedisClient } from "utils/redis"
+import { TRACES_TO_ANALYZE_KEY } from "~/constants"
 
 const analyzeTraces = async (): Promise<void> => {
   const queryRunner = AppDataSource.createQueryRunner()
   try {
     await queryRunner.connect()
-    const qb = queryRunner.manager
-      .createQueryBuilder()
-      .from(ApiTrace, "traces")
-      .where(`"apiEndpointUuid" IS NOT NULL`)
-      .andWhere("analyzed = FALSE")
-      .orderBy('"createdAt"', "ASC")
-      .limit(5000)
-    let traces = await qb.getRawMany()
+    while (true) {
+      const traceUuid = await RedisClient.popValueFromRedisList(
+        TRACES_TO_ANALYZE_KEY,
+      )
+      if (traceUuid) {
+        const trace = await queryRunner.manager
+          .createQueryBuilder()
+          .from(ApiTrace, "traces")
+          .where("uuid = :id", { id: traceUuid })
+          .getRawOne()
 
-    while (traces && traces.length > 0) {
-      for (const trace of traces) {
         const apiEndpoint = await queryRunner.manager.findOne(ApiEndpoint, {
           where: {
             uuid: trace.apiEndpointUuid,
@@ -104,7 +106,6 @@ const analyzeTraces = async (): Promise<void> => {
           await queryRunner.commitTransaction()
         }
       }
-      traces = await qb.getRawMany()
     }
   } catch (err) {
     console.error(`Encountered error while analyzing traces: ${err}`)
