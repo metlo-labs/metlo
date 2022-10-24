@@ -2,7 +2,6 @@ import schedule from "node-schedule"
 import semaphore from "semaphore"
 import { AppDataSource } from "data-source"
 import {
-  analyzeTraces,
   generateEndpointsFromTraces,
   checkForUnauthenticatedEndpoints,
   monitorEndpointForHSTS,
@@ -19,20 +18,12 @@ const main = async () => {
   }
   console.log("AppDataSource Initialized...")
 
-  const analyzeTracesSem = semaphore(1)
   const generateEndpointsSem = semaphore(1)
   const unsecuredAlertsSem = semaphore(1)
   const testsSem = semaphore(1)
   const clearApiTracesSem = semaphore(1)
   const logAggregateStatsSem = semaphore(1)
   const checkForUnauthenticatedSem = semaphore(1)
-
-  schedule.scheduleJob("* * * * * *", () => {
-    analyzeTracesSem.take(async () => {
-      await analyzeTraces()
-      analyzeTracesSem.leave()
-    })
-  })
 
   schedule.scheduleJob("*/30 * * * * *", () => {
     generateEndpointsSem.take(async () => {
