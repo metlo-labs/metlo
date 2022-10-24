@@ -1,17 +1,18 @@
 {
-  "name": "@metlo/node-ingest",
-  "description": "An ingestor for metlo api-security to support the express server",
-  "version": "1.0.0",
-  "main": "./src/index.js",
+  "name": "metlo",
+  "version": "0.0.8",
   "license": "MIT",
+  "description": "The node agent for Metlo API Security.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "start": "nodemon src/index.js",
     "build": "tsc",
-    "clean": "rm -rf dist/*"
+    "clean": "rm -rf dist",
+    "format": "prettier --write './src/**/*.{ts,tsx}'"
   },
   "dependencies": {
-    "require-in-the-middle": "^5.2.0",
-    "typescript": "^4.8.4"
+    "require-in-the-middle": "^5.2.0"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,7 @@
   "homepage": "www.metlo.com",
   "devDependencies": {
     "@types/node": "^18.8.4",
+    "typescript": "^4.8.4",
     "nodemon": "^2.0.20",
     "ts-node": "^10.9.1",
     "tslib": "^2.4.0"
