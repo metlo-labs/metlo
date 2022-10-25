@@ -42,6 +42,7 @@ function initialize({ key, host, pool }) {
                     sourcePort: _req.socket.remotePort,
                     destination: _res.socket.localAddress,
                     destinationPort: _res.socket.localPort,
+                    metloSource: "node/express"
                 }
             })
 
