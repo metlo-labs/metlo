@@ -17,7 +17,7 @@ function initialize({ key, host, pool }) {
         METLO_DETAILS.pool = pool
 
 
-        async function compileInformation(request, response) {
+        async function compileInformation(request, response, response_body) {
             const data = JSON.stringify(
                 {
                     request: {
@@ -34,7 +34,7 @@ function initialize({ key, host, pool }) {
                         url: `${response.raw.socket.localAddress}:${response.raw.socket.localPort}`,
                         status: response.statusCode,
                         headers: Object.entries(response.headers).map(([k, v]) => ({ name: k, value: v })),
-                        body: response.body,
+                        body: response_body,
                     },
                     meta: {
                         environment: process.env.NODE_ENV,
@@ -56,7 +56,7 @@ function initialize({ key, host, pool }) {
             function modifiedFastify() {
                 let fastifyInst = originalFastify.apply(this, arguments)
                 fastifyInst.addHook("onSend", async (request, reply, payload) => {
-                    compileInformation(request, reply)
+                    compileInformation(request, reply, payload)
                     return payload
                 })
                 return fastifyInst
