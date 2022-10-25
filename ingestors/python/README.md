@@ -39,11 +39,11 @@ METLO_CONFIG = {
 }
 ```
 
-`METLO_CONFIG` can take an optional key-value pair representing the max number of workers for communicating with METLO.
+`METLO_CONFIG` can take an optional key-value pair representing the max number of workers for communicating with Metlo.
 
 ### Flask
 
-Once installed, METLO middleware can be added simply like :
+Once installed, Metlo middleware can be added simply like:
 
 ```python
 from flask import Flask
@@ -55,8 +55,8 @@ app = Flask(__name__)
 MetloFlask(app, "<YOUR_METLO_COLLECTOR_URL>", "<YOUR_METLO_API_KEY>")
 ```
 
-The Flask Middleware takes the flask app, METLO collector url, and the METLO API Key as parameters. As an optional
-parameter, a named value can be passed for max number of workers for communicating with METLO.
+The Flask Middleware takes the flask app, Metlo collector url, and the Metlo API Key as parameters. As an optional
+parameter, a named value can be passed for max number of workers for communicating with Metlo.
 
 ```python
 MetloFlask(app, "<YOUR_METLO_COLLECTOR_URL>", "<YOUR_METLO_API_KEY>", workers="<WORKER-COUNT>")

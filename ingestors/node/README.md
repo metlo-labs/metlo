@@ -20,7 +20,7 @@ npm install metlo
 ```
 Or from `yarn` by running: 
 ```bash
-yarn install metlo
+yarn add metlo
 ```
 
 ## Configuration
