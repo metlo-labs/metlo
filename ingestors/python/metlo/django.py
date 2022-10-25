@@ -5,7 +5,7 @@ from urllib.request import Request, urlopen
 from django.conf import settings
 
 
-class Middleware(object):
+class MetloDjango(object):
 
     def perform_request(self, data):
         urlopen(
@@ -51,14 +51,14 @@ class Middleware(object):
                     "path": request.path,
                     "parameters": list(map(lambda x: {"name": x[0], "value": x[1]}, params.items())),
                 },
-                "headers": dict(request.headers),
+                "headers": list(map(lambda x: {"name": x[0], "value": x[1]}, request.headers.items())),
                 "body": request.body.decode("utf-8"),
                 "method": request.method,
             },
             "response": {
                 "url": f"{dest_ip}:{request.META.get('SERVER_PORT')}",
                 "status": response.status_code,
-                "headers": dict(response.headers),
+                "headers": list(map(lambda x: {"name": x[0], "value": x[1]}, response.headers.items())),
                 "body": res_body,
             },
             "meta": {

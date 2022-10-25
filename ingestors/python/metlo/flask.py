@@ -5,7 +5,7 @@ from urllib.request import Request, urlopen
 from flask import request
 
 
-class Middleware:
+class MetloFlask:
     def perform_request(self, data):
         urlopen(
             url=self.saved_request,
@@ -47,14 +47,14 @@ class Middleware:
                         "path": request.path,
                         "parameters": list(map(lambda x: {"name": x[0], "value": x[1]}, request.args.items())),
                     },
-                    "headers": dict(request.headers),
+                    "headers": list(map(lambda x: {"name": x[0], "value": x[1]}, (request.headers).items())),
                     "body": request.data.decode("utf-8"),
                     "method": request.method,
                 },
                 "response": {
                     "url": f"{request.environ.get('SERVER_NAME')}:{request.environ.get('SERVER_PORT')}",
                     "status": response.status_code,
-                    "headers": dict(response.headers),
+                    "headers": list(map(lambda x: {"name": x[0], "value": x[1]}, (response.headers).items())),
                     "body": response.data.decode("utf-8"),
                 },
                 "meta": {
