@@ -28,9 +28,10 @@ class MetloDjango(object):
         assert (
             settings.METLO_CONFIG.get("API_KEY") is not None
         ), "METLO_CONFIG is missing API_KEY attribute"
-        assert (
-                urlparse(settings.METLO_CONFIG.get("METLO_HOST")).scheme in ["http", "https"]
-        ), f"Metlo for Django has invalid host scheme. Host must be in format http[s]://example.com"
+        assert urlparse(settings.METLO_CONFIG.get("METLO_HOST")).scheme in [
+            "http",
+            "https",
+        ], f"Metlo for Django has invalid host scheme. Host must be in format http[s]://example.com"
 
         self.host = settings.METLO_CONFIG["METLO_HOST"]
         self.host += endpoint if self.host[-1] == "/" else f"/{endpoint}"
@@ -96,6 +97,7 @@ class MetloDjango(object):
                 "sourcePort": source_port,
                 "destination": dest_ip,
                 "destinationPort": request.META.get("SERVER_PORT"),
+                "metloSource": "python/django",
             },
         }
         self.pool.submit(self.perform_request, data=data)
