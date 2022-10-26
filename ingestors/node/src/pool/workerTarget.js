@@ -1,32 +1,18 @@
 const { parentPort } = require("node:worker_threads")
-const https = require("https");
+// const { http } = require('follow-redirects');
+const axios = require("axios")
 
-parentPort.on('message', ({ data: postData, host, key }) => {        
-    var _resp = https.request(host, {
-        method: "POST", headers: {
+parentPort.on('message', ({ data: postData, host, key }) => {
+    axios({
+        method: 'post',
+        url: host,
+        headers: {
             'Content-Type': 'application/json',
             'Content-Length': Buffer.byteLength(postData),
             'Authorization': key
-        }
-    },
-        // (res) => {
-        //     let data = '';
-
-        //     console.log('Status Code:', res.statusCode);
-
-        //     res.on('data', (chunk) => {
-        //         data += chunk;
-        //     });
-
-        //     res.on('end', () => {
-        //         console.log('Body sent');
-        //     });
-
-        // }
-    ).on("error", (err) => {
-        console.log("Error: ", err.message);
-    })
-
-    _resp.write(postData)
-    _resp.end();    
+        },
+        data: postData
+    }).catch((error) => {
+        console.warn("Encountered an error with metlo ingestor.\nError: ", error.message);
+    });
 });

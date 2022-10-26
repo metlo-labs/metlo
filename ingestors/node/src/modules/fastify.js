@@ -43,6 +43,7 @@ function initialize({ key, host, pool }) {
                         sourcePort: request.raw.socket.remotePort,
                         destination: response.raw.socket.localAddress,
                         destinationPort: response.raw.socket.localPort,
+                        metloSource: "node/fastify"
                     }
                 }
             )

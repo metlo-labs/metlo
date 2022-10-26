@@ -16,7 +16,6 @@ function initialize({ key, host, pool }) {
         METLO_DETAILS.host = host
         METLO_DETAILS.pool = pool
 
-
         function compileInformation(_req, _res, responseBody) {
             const data = JSON.stringify({
                 request: {
@@ -42,6 +41,7 @@ function initialize({ key, host, pool }) {
                     sourcePort: _req.socket.remotePort,
                     destination: _res.socket.localAddress,
                     destinationPort: _res.socket.localPort,
+                    metloSource: "node/express"
                 }
             })
 
@@ -77,7 +77,7 @@ function initialize({ key, host, pool }) {
 
             function modifiedSendFile() {
                 const resp = original_sendFile.apply(this, arguments)
-                compileInformation(this.req, resp, arguments[arguments.length - 1])
+                compileInformation(this.req, this, arguments[0])
                 return resp
             };
 
