@@ -21,9 +21,9 @@ module.exports = function (key, host) {
         throw new Error(`Couldn't load metlo. Host is not a proper url : ${host}`)
     }
     let metlo_host = host
-    if (metlo_host[metlo_host.length - 1] == "/") {
+    if (metlo_host[metlo_host.length - 1] != "/") {
         metlo_host += "/"
     }
     metlo_host += endpoint
-    Modules({ metlo_host, key, pool })
+    Modules({ host: metlo_host, key, pool })
 }
