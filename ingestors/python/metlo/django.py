@@ -1,6 +1,7 @@
 import json
 from concurrent.futures import ThreadPoolExecutor
 from urllib.request import Request, urlopen
+from urllib.parse import urlparse
 
 from django.conf import settings
 
@@ -27,6 +28,9 @@ class MetloDjango(object):
         assert (
             settings.METLO_CONFIG.get("API_KEY") is not None
         ), "METLO_CONFIG is missing API_KEY attribute"
+        assert (
+                urlparse(settings.METLO_CONFIG.get("METLO_HOST")).scheme in ["http", "https"]
+        ), f"Metlo for Django has invalid host scheme. Host must be in format http[s]://example.com"
 
         self.host = settings.METLO_CONFIG["METLO_HOST"]
         self.host += endpoint if self.host[-1] == "/" else f"/{endpoint}"
