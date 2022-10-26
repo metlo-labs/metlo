@@ -143,8 +143,7 @@ export type JSONValue =
   | { [x: string]: JSONValue }
   | Array<JSONValue>
 
-export interface ApiTrace {
-  uuid: string
+export interface QueuedApiTrace {
   path: string
   createdAt: Date
   host: string
@@ -157,6 +156,10 @@ export interface ApiTrace {
   responseBody: string
   meta: Meta
   sessionMeta: SessionMeta
+}
+
+export interface ApiTrace extends QueuedApiTrace {
+  uuid: string
   apiEndpointUuid: string
 }
 

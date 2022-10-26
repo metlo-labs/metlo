@@ -20,7 +20,8 @@
     "start-collector": "TS_NODE_BASEURL=./dist/ node -r tsconfig-paths/register dist/collector.js",
     "start-analyzer": "TS_NODE_BASEURL=./dist/ node -r tsconfig-paths/register dist/analyzer.js",
     "format": "prettier --write './src/**/*.{ts,tsx}'",
-    "migration:create": "typeorm migration:create"
+    "migration:create": "typeorm migration:create",
+    "migration:run": "ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm migration:run -d src/data-source.ts"
   },
   "keywords": [],
   "author": "",
@@ -60,6 +61,7 @@
     "parse-multipart-data": "^1.4.0",
     "pg": "^8.7.3",
     "pg-protocol": "^1.5.0",
+    "piscina": "^3.2.0",
     "reflect-metadata": "^0.1.13",
     "semaphore": "^1.1.0",
     "swagger2openapi": "^7.0.8",

@@ -35,4 +35,4 @@ export const AUTH_CONFIG_LIST_KEY = "auth_config_list"
 
 export const BLOCK_FIELDS_ALL_REGEX = "^.*$"
 
-export const TRACES_TO_ANALYZE_KEY = "pending_analysis_traces"
+export const TRACES_QUEUE = "traces_queue"

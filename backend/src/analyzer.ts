@@ -1,35 +1,17 @@
-import cluster from "cluster"
+import path from "path"
+import Piscina from "piscina"
 import os from "os"
-import { AppDataSource } from "data-source"
-import { analyzeTraces } from "services/jobs"
 
 const totalCPUs = os.cpus().length
 
-if (cluster.isPrimary) {
-  console.log(`Number of CPUs is ${totalCPUs}`)
-  console.log(`Master ${process.pid} is running`)
-
-  // Fork workers.
-  for (let i = 0; i < totalCPUs; i++) {
-    cluster.fork()
+const main = async () => {
+  const pool = new Piscina()
+  const options = {
+    filename: path.resolve(__dirname, "analyze-traces.js"),
   }
-
-  cluster.on("exit", (worker, code, signal) => {
-    console.log(`worker ${worker.process.pid} died`)
-    console.log("Let's fork another worker!")
-    cluster.fork()
-  })
-} else {
-  const main = async () => {
-    const datasource = await AppDataSource.initialize()
-    if (!datasource.isInitialized) {
-      console.error("Couldn't initialize datasource...")
-      return
-    }
-    console.log("AppDataSource Initialized...")
-    console.log("Running Analyzer...")
-    await analyzeTraces()
-  }
-
-  main()
+  const analyzers = Array.from({ length: totalCPUs }).map(() =>
+    pool.run({}, options),
+  )
+  await Promise.all(analyzers)
 }
+main()

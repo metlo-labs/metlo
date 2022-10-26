@@ -143,10 +143,8 @@ const populateAuthentication = async () => {
     ) as object
     const authConfigDoc = metloConfig?.["authentication"]
     const authConfigEntries: AuthenticationConfig[] = []
-    const currAuthConfigEntries = await RedisClient.getListValueFromRedis(
+    const currAuthConfigEntries = await RedisClient.getValuesFromSet(
       AUTH_CONFIG_LIST_KEY,
-      0,
-      -1,
     )
     if (authConfigDoc) {
       authConfigDoc.forEach(item => {

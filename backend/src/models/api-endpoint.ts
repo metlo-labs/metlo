@@ -7,6 +7,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from "typeorm"
 import { DataField } from "models/data-field"
@@ -17,6 +18,7 @@ import { isParameter } from "utils"
 import { getPathTokens } from "@common/utils"
 
 @Entity()
+@Unique("unique_constraint_api_endpoint", ["path", "method", "host"])
 export class ApiEndpoint extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string

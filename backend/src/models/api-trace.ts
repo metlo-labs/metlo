@@ -53,9 +53,6 @@ export class ApiTrace extends BaseEntity {
   @Column({ type: "jsonb", default: {} })
   sessionMeta: SessionMeta
 
-  @Column({ type: "bool", default: false })
-  analyzed: boolean
-
   @Column({ nullable: true })
   apiEndpointUuid: string
 

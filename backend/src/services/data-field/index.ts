@@ -1,4 +1,4 @@
-import { PairObject } from "@common/types"
+import { PairObject, QueuedApiTrace } from "@common/types"
 import { DataClass, DataSection, DataTag, DataType } from "@common/enums"
 import { ApiEndpoint, ApiTrace, DataField } from "models"
 import { getDataType, getRiskScore, isParameter, parsedJson } from "utils"
@@ -10,6 +10,7 @@ import Error404NotFound from "errors/error-404-not-found"
 export class DataFieldService {
   static dataFields: Record<string, DataField>
   static updatedFields: Record<string, DataField>
+  static traceCreatedAt: Date
 
   static async deleteDataField(dataFieldId: string): Promise<DataField> {
     const dataFieldRepository = AppDataSource.getRepository(DataField)
@@ -61,6 +62,8 @@ export class DataFieldService {
       dataField.dataSection = dataSection
       dataField.apiEndpointUuid = apiEndpoint.uuid
       dataField.dataClasses = []
+      dataField.createdAt = this.traceCreatedAt
+      dataField.updatedAt = this.traceCreatedAt
       if (dataClass) {
         dataField.addDataClass(dataClass)
         dataField.dataTag = DataTag.PII
@@ -77,12 +80,14 @@ export class DataFieldService {
 
       if (
         existingDataField.dataType !== dataType &&
+        this.traceCreatedAt > existingDataField.updatedAt &&
         dataType !== DataType.UNKNOWN
       ) {
         existingDataField.dataType = dataType
         updated = true
       }
       if (updated) {
+        existingDataField.updatedAt = this.traceCreatedAt
         this.updatedFields[existingMatch] = existingDataField
       }
     }
@@ -207,7 +212,7 @@ export class DataFieldService {
   }
 
   static findAllDataFields(
-    apiTrace: ApiTrace,
+    apiTrace: QueuedApiTrace,
     apiEndpoint: ApiEndpoint,
     returnAllFields?: boolean,
   ): DataField[] {
@@ -219,6 +224,7 @@ export class DataFieldService {
       }
     }, {})
     this.updatedFields = {}
+    this.traceCreatedAt = apiTrace.createdAt
     this.findPathDataFields(apiTrace.path, apiEndpoint)
     if (apiTrace.responseStatus < 400) {
       this.findPairObjectDataFields(

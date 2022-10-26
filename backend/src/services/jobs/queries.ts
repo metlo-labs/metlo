@@ -7,7 +7,6 @@ export const aggregateTracesDataHourlyQuery = `
   FROM api_trace traces
   WHERE
     "apiEndpointUuid" IS NOT NULL
-    AND analyzed = TRUE
     AND "createdAt" <= $1
   GROUP BY 1, 2
   ON CONFLICT ON CONSTRAINT unique_constraint_hourly
@@ -22,8 +21,7 @@ export const updateUnauthenticatedEndpoints = `
       DISTINCT("apiEndpointUuid")
     FROM api_trace
     WHERE
-      analyzed = TRUE
-      AND "sessionMeta" ->> 'authenticationProvided' = 'false'
+      "sessionMeta" ->> 'authenticationProvided' = 'false'
       AND "sessionMeta" ->> 'authenticationSuccessful' = 'true'
   )
 `

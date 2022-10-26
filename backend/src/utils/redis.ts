@@ -60,12 +60,28 @@ export class RedisClient {
   public static async popValueFromRedisList(key: string, right?: boolean) {
     try {
       if (right) {
-        return await this.getInstance().lpop(key)
-      } else {
         return await this.getInstance().rpop(key)
+      } else {
+        return await this.getInstance().lpop(key)
       }
     } catch (err) {
       return null
+    }
+  }
+
+  public static addValueToSet(key: string, data: string[]) {
+    try {
+      this.getInstance().sadd(key, ...data)
+    } catch (err) {
+      console.error(`Error adding value to redis set: ${err}`)
+    }
+  }
+
+  public static async getValuesFromSet(key: string) {
+    try {
+      return await this.getInstance().smembers(key)
+    } catch (err) {
+      return []
     }
   }
 

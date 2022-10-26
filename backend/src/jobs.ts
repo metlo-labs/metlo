@@ -2,10 +2,10 @@ import schedule from "node-schedule"
 import semaphore from "semaphore"
 import { AppDataSource } from "data-source"
 import {
-  generateEndpointsFromTraces,
   checkForUnauthenticatedEndpoints,
   monitorEndpointForHSTS,
   clearApiTraces,
+  generateOpenApiSpec,
 } from "services/jobs"
 import runAllTests from "services/testing/runAllTests"
 import { logAggregatedStats } from "services/logging"
@@ -18,19 +18,19 @@ const main = async () => {
   }
   console.log("AppDataSource Initialized...")
 
-  const generateEndpointsSem = semaphore(1)
+  const generateSpecSem = semaphore(1)
   const unsecuredAlertsSem = semaphore(1)
   const testsSem = semaphore(1)
   const clearApiTracesSem = semaphore(1)
   const logAggregateStatsSem = semaphore(1)
   const checkForUnauthenticatedSem = semaphore(1)
 
-  schedule.scheduleJob("*/30 * * * * *", () => {
-    generateEndpointsSem.take(async () => {
-      console.log("\nGenerating Endpoints and OpenAPI Spec Files...")
-      await generateEndpointsFromTraces()
-      console.log("Finished generating Endpoints and OpenAPI Spec Files.")
-      generateEndpointsSem.leave()
+  schedule.scheduleJob("30 * * * *", () => {
+    generateSpecSem.take(async () => {
+      console.log("\nGenerating OpenAPI Spec Files...")
+      await generateOpenApiSpec()
+      console.log("Finished generating OpenAPI Spec Files.")
+      generateSpecSem.leave()
     })
   })
 

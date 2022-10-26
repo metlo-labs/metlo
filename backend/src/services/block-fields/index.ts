@@ -1,7 +1,6 @@
 import { DataType, DisableRestMethod } from "@common/enums"
 import { getDataType, isParameter, parsedJson, parsedJsonNonNull } from "utils"
-import { BlockFieldEntry, PairObject } from "@common/types"
-import { ApiTrace } from "models"
+import { BlockFieldEntry, PairObject, QueuedApiTrace } from "@common/types"
 import { getPathTokens } from "@common/utils"
 import { BLOCK_FIELDS_ALL_REGEX } from "~/constants"
 
@@ -32,7 +31,7 @@ export class BlockFieldsService {
     return 0
   }
 
-  static getBlockFieldsEntry(apiTrace: ApiTrace): BlockFieldEntry {
+  static getBlockFieldsEntry(apiTrace: QueuedApiTrace): BlockFieldEntry {
     let entry: BlockFieldEntry = null
     const hostEntry = this.entries[apiTrace.host]
     if (hostEntry) {
@@ -221,7 +220,7 @@ export class BlockFieldsService {
     })
   }
 
-  static async redactBlockedFields(apiTrace: ApiTrace) {
+  static async redactBlockedFields(apiTrace: QueuedApiTrace) {
     const blockFieldEntry = this.getBlockFieldsEntry(apiTrace)
     if (blockFieldEntry) {
       const disabledPaths = blockFieldEntry.disabledPaths
