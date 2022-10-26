@@ -4,6 +4,7 @@ const WorkerPool = require("./pool");
 const path = require("path")
 
 const pool = new WorkerPool(os.cpus().length, './workerTarget.js');
+const endpoint = "api/v1/log-request/single"
 
 function exit() {
     pool.close()
@@ -19,5 +20,10 @@ module.exports = function (key, host) {
         console.error(err)
         throw new Error(`Couldn't load metlo. Host is not a proper url : ${host}`)
     }
-    Modules({ host, key, pool })
+    let metlo_host = host
+    if (metlo_host[metlo_host.length - 1] == "/") {
+        metlo_host += "/"
+    }
+    metlo_host += endpoint
+    Modules({ metlo_host, key, pool })
 }
