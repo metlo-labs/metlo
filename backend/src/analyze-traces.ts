@@ -158,7 +158,9 @@ const generateEndpoint = async (
       await queryRunner.commitTransaction()
       await analyze(trace, apiEndpoint, queryRunner, true)
     } catch (err) {
-      await queryRunner.rollbackTransaction()
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction()
+      }
       if (DatabaseService.isQueryFailedError(err) && err.code === "23505") {
         const existingEndpoint = await queryRunner.manager.findOne(
           ApiEndpoint,
