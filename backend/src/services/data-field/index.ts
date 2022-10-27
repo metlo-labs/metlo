@@ -6,6 +6,7 @@ import { getPathTokens } from "@common/utils"
 import { ScannerService } from "services/scanner/scan"
 import { AppDataSource } from "data-source"
 import Error404NotFound from "errors/error-404-not-found"
+import { addDataClass } from "./utils"
 
 export class DataFieldService {
   static dataFields: Record<string, DataField>
@@ -67,7 +68,7 @@ export class DataFieldService {
         dataField.createdAt = this.traceCreatedAt
         dataField.updatedAt = this.traceCreatedAt
         if (dataClass) {
-          dataField.addDataClass(dataClass)
+          addDataClass(dataField, dataClass)
           dataField.dataTag = DataTag.PII
         }
         this.dataFields[existingMatch] = dataField
@@ -77,7 +78,7 @@ export class DataFieldService {
     } else {
       const existingDataField = this.dataFields[existingMatch]
       let updated = false
-      updated = existingDataField.addDataClass(dataClass)
+      updated = addDataClass(existingDataField, dataClass)
       if (updated) {
         existingDataField.dataTag = DataTag.PII
       }

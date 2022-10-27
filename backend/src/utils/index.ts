@@ -138,3 +138,33 @@ export const parsedJsonNonNull = (
 
 export const inSandboxMode =
   (process.env.SANDBOX_MODE || "false").toLowerCase() == "true"
+
+export const endpointUpdateDates = (traceCreatedDate: Date, apiEndpoint: ApiEndpoint) => {
+  if (!apiEndpoint.firstDetected) {
+    apiEndpoint.firstDetected = traceCreatedDate
+  }
+  if (!apiEndpoint.lastActive) {
+    apiEndpoint.lastActive = traceCreatedDate
+  }
+
+  if (traceCreatedDate && traceCreatedDate < apiEndpoint.firstDetected) {
+    apiEndpoint.firstDetected = traceCreatedDate
+  }
+  if (traceCreatedDate && traceCreatedDate > apiEndpoint.lastActive) {
+    apiEndpoint.lastActive = traceCreatedDate
+  }
+}
+
+export const endpointAddNumberParams = (apiEndpoint: ApiEndpoint) => {
+  if (apiEndpoint.path) {
+    const pathTokens = getPathTokens(apiEndpoint.path)
+    let numParams = 0
+    for (let i = 0; i < pathTokens.length; i++) {
+      const token = pathTokens[i]
+      if (isParameter(token)) {
+        numParams += 1
+      }
+    }
+    apiEndpoint.numberParams = numParams
+  }
+}
