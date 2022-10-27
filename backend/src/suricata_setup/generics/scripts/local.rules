@@ -1,1 +1,1 @@
-alert http %s any -> any any (msg:"TEST"; flow:established,to_client; http.response_body; pcre:/./; sid:1; rev:1;)
+alert http %s any -> any any (msg:"TEST"; flow:established,to_client; http.response_body; pcre:/./; sid:1; rev:1; threshold: type limit, track by_rule, seconds 1, count 30;)
