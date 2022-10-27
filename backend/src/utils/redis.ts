@@ -97,4 +97,14 @@ export class RedisClient {
       return []
     }
   }
+
+  public static async getListLength(
+    key: string,
+  ) {
+    try {
+      return await this.getInstance().llen(key)
+    } catch (err) {
+      return 0
+    }
+  }
 }

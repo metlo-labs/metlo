@@ -9,6 +9,10 @@ export class LogRequestService {
   static async logRequest(traceParams: TraceParams): Promise<void> {
     try {
       /** Log Request in ApiTrace table **/
+      const queueLength = await RedisClient.getListLength(TRACES_QUEUE)
+      if (queueLength > 1000) {
+        return
+      }
       const path = traceParams?.request?.url?.path
       const method = traceParams?.request?.method
       const host = traceParams?.request?.url?.host
