@@ -52,6 +52,7 @@ BACKEND_URL="http://{instance_ip}:8081"
 EXPRESS_SECRET="{express_secret}"
 CLICKHOUSE_USER="{clickhouse_user}"
 CLICKHOUSE_PASSWORD="{clickhouse_password}"
+NUM_WORKERS=1
 SANDBOX_MODE="false"
 DISABLE_LOGGING_STATS="false"
     '''.strip()
