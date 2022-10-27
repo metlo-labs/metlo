@@ -30,3 +30,9 @@ export const EXTENSION_TO_MIME_TYPE: Record<SpecExtension, string[]> = {
     "application/yaml",
   ],
 }
+
+export const AUTH_CONFIG_LIST_KEY = "auth_config_list"
+
+export const BLOCK_FIELDS_ALL_REGEX = "^.*$"
+
+export const TRACES_QUEUE = "traces_queue"

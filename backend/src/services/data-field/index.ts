@@ -1,4 +1,4 @@
-import { PairObject } from "@common/types"
+import { PairObject, QueuedApiTrace } from "@common/types"
 import { DataClass, DataSection, DataTag, DataType } from "@common/enums"
 import { ApiEndpoint, ApiTrace, DataField } from "models"
 import { getDataType, getRiskScore, isParameter, parsedJson } from "utils"
@@ -10,6 +10,8 @@ import Error404NotFound from "errors/error-404-not-found"
 export class DataFieldService {
   static dataFields: Record<string, DataField>
   static updatedFields: Record<string, DataField>
+  static traceCreatedAt: Date
+  static dataFieldsLength: number
 
   static async deleteDataField(dataFieldId: string): Promise<DataField> {
     const dataFieldRepository = AppDataSource.getRepository(DataField)
@@ -55,18 +57,23 @@ export class DataFieldService {
     const existingMatch = `${dataSection}${dataPath ? `.${dataPath}` : ""}`
     const dataType = getDataType(dataValue)
     if (!this.dataFields[existingMatch]) {
-      const dataField = new DataField()
-      dataField.dataPath = dataPath ?? ""
-      dataField.dataType = dataType
-      dataField.dataSection = dataSection
-      dataField.apiEndpointUuid = apiEndpoint.uuid
-      dataField.dataClasses = []
-      if (dataClass) {
-        dataField.addDataClass(dataClass)
-        dataField.dataTag = DataTag.PII
+      if (this.dataFieldsLength < 200) {
+        const dataField = new DataField()
+        dataField.dataPath = dataPath ?? ""
+        dataField.dataType = dataType
+        dataField.dataSection = dataSection
+        dataField.apiEndpointUuid = apiEndpoint.uuid
+        dataField.dataClasses = []
+        dataField.createdAt = this.traceCreatedAt
+        dataField.updatedAt = this.traceCreatedAt
+        if (dataClass) {
+          dataField.addDataClass(dataClass)
+          dataField.dataTag = DataTag.PII
+        }
+        this.dataFields[existingMatch] = dataField
+        this.updatedFields[existingMatch] = dataField
+        this.dataFieldsLength += 1
       }
-      this.dataFields[existingMatch] = dataField
-      this.updatedFields[existingMatch] = dataField
     } else {
       const existingDataField = this.dataFields[existingMatch]
       let updated = false
@@ -77,12 +84,14 @@ export class DataFieldService {
 
       if (
         existingDataField.dataType !== dataType &&
+        this.traceCreatedAt > existingDataField.updatedAt &&
         dataType !== DataType.UNKNOWN
       ) {
         existingDataField.dataType = dataType
         updated = true
       }
       if (updated) {
+        existingDataField.updatedAt = this.traceCreatedAt
         this.updatedFields[existingMatch] = existingDataField
       }
     }
@@ -207,17 +216,20 @@ export class DataFieldService {
   }
 
   static findAllDataFields(
-    apiTrace: ApiTrace,
+    apiTrace: QueuedApiTrace,
     apiEndpoint: ApiEndpoint,
     returnAllFields?: boolean,
   ): DataField[] {
     this.dataFields = apiEndpoint.dataFields.reduce((obj, item) => {
       return {
         ...obj,
-        [`${item.dataSection}${item.dataPath ? `.${item.dataPath}` : ""}`]: item,
+        [`${item.dataSection}${item.dataPath ? `.${item.dataPath}` : ""}`]:
+          item,
       }
     }, {})
+    this.dataFieldsLength = apiEndpoint.dataFields.length ?? 0
     this.updatedFields = {}
+    this.traceCreatedAt = apiTrace.createdAt
     this.findPathDataFields(apiTrace.path, apiEndpoint)
     if (apiTrace.responseStatus < 400) {
       this.findPairObjectDataFields(

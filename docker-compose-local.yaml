@@ -57,6 +57,19 @@ services:
     restart: unless-stopped
     environment:
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
+  analyzer:
+    build:
+      context: ./
+      dockerfile: ./deploy/jobrunner/Dockerfile
+    # image: metlo/jobrunner:${DOCKER_IMAGE_TAG:-latest}
+    container_name: metlo-analyzer
+    command: yarn start-analyzer
+    depends_on:
+      - ingestor
+    restart: unless-stopped
+    environment:
+      - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
+      - REDIS_URL=redis://:eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81@cache:6379
   frontend:
     # image: metlo/frontend
     build:

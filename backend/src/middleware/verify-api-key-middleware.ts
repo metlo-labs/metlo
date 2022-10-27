@@ -4,6 +4,7 @@ import Error401Unauthorized from "errors/error-401-unauthorized"
 import { NextFunction, Request, Response } from "express"
 import { ApiKey } from "models"
 import { hasher } from "utils/hash"
+import { RedisClient } from "utils/redis"
 
 export async function verifyApiKeyMiddleware(
   req: Request,
@@ -12,10 +13,14 @@ export async function verifyApiKeyMiddleware(
 ) {
   try {
     let hashKey = hasher(req.headers.authorization)
-    await AppDataSource.getRepository(ApiKey)
-      .createQueryBuilder("key")
-      .where("key.apiKeyHash = :hash", { hash: hashKey })
-      .getOneOrFail()
+    const cachedHashKey = await RedisClient.getFromRedis(hashKey)
+    if (!cachedHashKey) {
+      await AppDataSource.getRepository(ApiKey)
+        .createQueryBuilder("key")
+        .where("key.apiKeyHash = :hash", { hash: hashKey })
+        .getOneOrFail()
+      RedisClient.addToRedis(hashKey, true, 5)
+    }
     next()
   } catch (err) {
     await ApiResponseHandler.error(

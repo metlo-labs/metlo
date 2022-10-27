@@ -8,11 +8,14 @@ import {
   logRequestSingleHandler,
 } from "collector_src/log-request"
 import { verifyApiKeyMiddleware } from "middleware/verify-api-key-middleware"
-import { AuthenticationConfig, BlockFields } from "models"
+import { AuthenticationConfig } from "models"
 import { getPathRegex } from "utils"
 import { AuthType, DisableRestMethod } from "@common/enums"
-import { DatabaseService } from "services/database"
 import { bodyParserMiddleware } from "middleware/body-parser-middleware"
+import { AUTH_CONFIG_LIST_KEY, BLOCK_FIELDS_ALL_REGEX } from "./constants"
+import { BlockFieldsService } from "services/block-fields"
+import { BlockFieldEntry } from "@common/types"
+import { RedisClient } from "utils/redis"
 
 dotenv.config()
 
@@ -33,30 +36,52 @@ app.use(bodyParserMiddleware)
 app.post("/api/v1/log-request/single", logRequestSingleHandler)
 app.post("/api/v1/log-request/batch", logRequestBatchHandler)
 
+const addToBlockFields = (
+  blockFieldsEntries: Record<string, BlockFieldEntry[]>,
+  host: string,
+  method: DisableRestMethod,
+  path: string,
+  pathRegex: string,
+  disabledPaths: string[],
+) => {
+  const entry = {
+    method,
+    path,
+    pathRegex,
+    disabledPaths,
+    numberParams: BlockFieldsService.getNumberParams(pathRegex, method, path),
+  }
+  if (blockFieldsEntries[host]) {
+    blockFieldsEntries[host].push(entry)
+  } else {
+    blockFieldsEntries[host] = [entry]
+  }
+}
+
 const populateBlockFields = async () => {
   try {
     const metloConfig: object = yaml.load(
       fs.readFileSync("./metlo-config.yaml", "utf-8"),
     ) as object
-    const blockFieldsRepo = AppDataSource.getRepository(BlockFields)
-    const removeEntries = await blockFieldsRepo.find()
-    let entriesToAdd: BlockFields[] = []
     const blockFieldsDoc = metloConfig?.["blockFields"]
+    const blockFieldsEntries: Record<string, BlockFieldEntry[]> = {}
     if (blockFieldsDoc) {
       for (const host in blockFieldsDoc) {
-        const hostEntries: BlockFields[] = []
         const hostObj = blockFieldsDoc[host]
         let allDisablePaths = []
         if (hostObj) {
           if (hostObj["ALL"]) {
             allDisablePaths = hostObj["ALL"]["disable_paths"] ?? []
-            const blockFieldEntry = BlockFields.create()
-            blockFieldEntry.host = host
-            blockFieldEntry.method = DisableRestMethod.ALL
-            blockFieldEntry.path = "/"
-            blockFieldEntry.pathRegex = "^/.*$"
-            blockFieldEntry.disabledPaths = allDisablePaths
-            hostEntries.push(blockFieldEntry)
+            const pathRegex = BLOCK_FIELDS_ALL_REGEX
+            const path = "/"
+            addToBlockFields(
+              blockFieldsEntries,
+              host,
+              DisableRestMethod.ALL,
+              path,
+              pathRegex,
+              allDisablePaths,
+            )
           }
           for (const endpoint in hostObj) {
             if (endpoint && endpoint !== "ALL") {
@@ -65,38 +90,39 @@ const populateBlockFields = async () => {
                 endpointDisablePaths = endpointDisablePaths?.concat(
                   hostObj[endpoint]["ALL"]["disable_paths"] ?? [],
                 )
-                const blockFieldEntry = BlockFields.create()
-                blockFieldEntry.host = host
-                blockFieldEntry.method = DisableRestMethod.ALL
-                blockFieldEntry.pathRegex = getPathRegex(endpoint)
-                blockFieldEntry.path = endpoint
-                blockFieldEntry.disabledPaths = endpointDisablePaths
-                hostEntries.push(blockFieldEntry)
+                const pathRegex = getPathRegex(endpoint)
+                addToBlockFields(
+                  blockFieldsEntries,
+                  host,
+                  DisableRestMethod.ALL,
+                  endpoint,
+                  pathRegex,
+                  endpointDisablePaths,
+                )
               }
               for (const method in hostObj[endpoint]) {
                 if (method && method !== "ALL") {
-                  const blockFieldEntry = BlockFields.create()
-                  blockFieldEntry.host = host
-                  blockFieldEntry.method = DisableRestMethod[method]
-                  blockFieldEntry.pathRegex = getPathRegex(endpoint)
-                  blockFieldEntry.path = endpoint
-                  blockFieldEntry.disabledPaths = endpointDisablePaths?.concat(
+                  const blockFieldMethod = DisableRestMethod[method]
+                  const pathRegex = getPathRegex(endpoint)
+                  const disabledPaths = endpointDisablePaths?.concat(
                     hostObj[endpoint][method]?.["disable_paths"] ?? [],
                   )
-                  hostEntries.push(blockFieldEntry)
+                  addToBlockFields(
+                    blockFieldsEntries,
+                    host,
+                    blockFieldMethod,
+                    endpoint,
+                    pathRegex,
+                    disabledPaths,
+                  )
                 }
               }
             }
           }
         }
-        entriesToAdd = entriesToAdd.concat(hostEntries)
       }
     }
-    await DatabaseService.executeTransactions(
-      [entriesToAdd],
-      [removeEntries],
-      false,
-    )
+    BlockFieldsService.entries = blockFieldsEntries
   } catch (err) {
     console.error(`Error in populating metlo config blockFields: ${err}`)
   }
@@ -117,6 +143,9 @@ const populateAuthentication = async () => {
     ) as object
     const authConfigDoc = metloConfig?.["authentication"]
     const authConfigEntries: AuthenticationConfig[] = []
+    const currAuthConfigEntries = await RedisClient.getValuesFromSet(
+      AUTH_CONFIG_LIST_KEY,
+    )
     if (authConfigDoc) {
       authConfigDoc.forEach(item => {
         const newConfig = new AuthenticationConfig()
@@ -140,6 +169,12 @@ const populateAuthentication = async () => {
     await deleteQb.execute()
     await addQb.execute()
     await queryRunner.commitTransaction()
+    if (currAuthConfigEntries) {
+      await RedisClient.deleteFromRedis([
+        ...currAuthConfigEntries,
+        AUTH_CONFIG_LIST_KEY,
+      ])
+    }
   } catch (err) {
     console.error(`Error in populating metlo config authentication: ${err}`)
     await queryRunner.rollbackTransaction()

@@ -9,7 +9,6 @@ import { BodySchema, BodyContent, Responses } from "./types"
 import { parseSchema, parseContent } from "./utils"
 
 const generateOpenApiSpec = async (): Promise<void> => {
-  console.log("Generating OpenAPI Spec Files...")
   try {
     const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
     const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec)

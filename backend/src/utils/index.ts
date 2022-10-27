@@ -63,7 +63,10 @@ export const isParameter = (token: string): boolean => {
 }
 
 export const getPathRegex = (path: string): string => {
-  return String.raw`^${path.replace(pathParameterRegex, String.raw`/[^/]+`)}$`
+  return String.raw`^${path.replace(
+    pathParameterRegex,
+    String.raw`/[^/]+`,
+  )}(/)*$`
 }
 
 export const getRiskScore = (dataFields: DataField[]): RiskScore => {

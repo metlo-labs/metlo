@@ -18,6 +18,7 @@ import {
   AuthType,
   AttackType,
   API_KEY_TYPE,
+  DisableRestMethod,
 } from "./enums"
 import { Test, Request as TestRequest } from "@metlo/testing"
 import "axios"
@@ -142,8 +143,7 @@ export type JSONValue =
   | { [x: string]: JSONValue }
   | Array<JSONValue>
 
-export interface ApiTrace {
-  uuid: string
+export interface QueuedApiTrace {
   path: string
   createdAt: Date
   host: string
@@ -156,6 +156,10 @@ export interface ApiTrace {
   responseBody: string
   meta: Meta
   sessionMeta: SessionMeta
+}
+
+export interface ApiTrace extends QueuedApiTrace {
+  uuid: string
   apiEndpointUuid: string
 }
 
@@ -495,4 +499,20 @@ export interface ApiKey {
   identifier: string
   created: string
   for: API_KEY_TYPE
+}
+
+export interface AuthenticationConfig {
+  host: string
+  authType: AuthType
+  headerKey: string
+  jwtUserPath: string
+  cookieName: string
+}
+
+export interface BlockFieldEntry {
+  path: string
+  pathRegex: string
+  method: DisableRestMethod,
+  numberParams: number
+  disabledPaths: string[]
 }

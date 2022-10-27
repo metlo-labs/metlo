@@ -15,7 +15,6 @@ const clearApiTraces = async (): Promise<void> => {
       .select([`MAX("createdAt") as "maxTime"`])
       .from(ApiTrace, "traces")
       .where('"apiEndpointUuid" IS NOT NULL')
-      .andWhere("analyzed = TRUE")
       .andWhere('"createdAt" < :oneHourAgo', { oneHourAgo })
       .getRawOne()
     const maxTime: Date = maxTimeRes?.maxTime ?? null
@@ -28,7 +27,6 @@ const clearApiTraces = async (): Promise<void> => {
         .delete()
         .from(ApiTrace)
         .where('"apiEndpointUuid" IS NOT NULL')
-        .andWhere("analyzed = TRUE")
         .andWhere('"createdAt" <= :maxTime', { maxTime })
         .execute()
       await queryRunner.commitTransaction()

@@ -26,6 +26,7 @@ import {
   GetAlertParams,
   Alert as AlertResponse,
   UpdateAlertParams,
+  QueuedApiTrace,
 } from "@common/types"
 import Error409Conflict from "errors/error-409-conflict"
 import Error500InternalServer from "errors/error-500-internal-server"
@@ -217,13 +218,30 @@ export class AlertService {
     apiEndpointUuid: string,
     type: AlertType,
     description: string,
+    queryRunner?: QueryRunner,
   ) {
+    if (queryRunner) {
+      return await queryRunner.manager
+        .createQueryBuilder()
+        .select(["uuid"])
+        .from(Alert, "alert")
+        .where(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+        .andWhere("type = :type", { type })
+        .andWhere("status != :status", { status: Status.RESOLVED })
+        .andWhere("description = :description", { description })
+        .getRawOne()
+    }
     const alertRepository = AppDataSource.getRepository(Alert)
-    return await alertRepository.findOneBy({
-      apiEndpointUuid,
-      type,
-      status: Not(Status.RESOLVED),
-      description,
+    return await alertRepository.findOne({
+      select: {
+        uuid: true,
+      },
+      where: {
+        apiEndpointUuid,
+        type,
+        status: Not(Status.RESOLVED),
+        description,
+      },
     })
   }
 
@@ -293,7 +311,8 @@ export class AlertService {
     dataFields: DataField[],
     apiEndpointUuid: string,
     apiEndpointPath: string,
-    apiTrace: ApiTrace,
+    apiTrace: QueuedApiTrace,
+    queryRunner: QueryRunner,
     sensitiveDataAlerts?: Alert[],
   ): Promise<Alert[]> {
     try {
@@ -325,6 +344,7 @@ export class AlertService {
                     apiEndpointUuid,
                     AlertType.BASIC_AUTHENTICATION_DETECTED,
                     basicAuthDescription,
+                    queryRunner,
                   ))
                 if (!existing) {
                   const newAlert = new Alert()
@@ -400,6 +420,7 @@ export class AlertService {
                   apiEndpointUuid,
                   alert.type,
                   alert.description,
+                  queryRunner,
                 ))
               if (!existing) {
                 const newAlert = new Alert()
@@ -424,7 +445,7 @@ export class AlertService {
   static async createSpecDiffAlerts(
     alertItems: Record<string, string[]>,
     apiEndpointUuid: string,
-    apiTrace: ApiTrace,
+    apiTrace: QueuedApiTrace,
     openApiSpec: OpenApiSpec,
     queryRunner: QueryRunner,
   ): Promise<Alert[]> {
