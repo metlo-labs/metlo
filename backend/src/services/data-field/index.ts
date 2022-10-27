@@ -11,6 +11,7 @@ export class DataFieldService {
   static dataFields: Record<string, DataField>
   static updatedFields: Record<string, DataField>
   static traceCreatedAt: Date
+  static dataFieldsLength: number
 
   static async deleteDataField(dataFieldId: string): Promise<DataField> {
     const dataFieldRepository = AppDataSource.getRepository(DataField)
@@ -56,20 +57,23 @@ export class DataFieldService {
     const existingMatch = `${dataSection}${dataPath ? `.${dataPath}` : ""}`
     const dataType = getDataType(dataValue)
     if (!this.dataFields[existingMatch]) {
-      const dataField = new DataField()
-      dataField.dataPath = dataPath ?? ""
-      dataField.dataType = dataType
-      dataField.dataSection = dataSection
-      dataField.apiEndpointUuid = apiEndpoint.uuid
-      dataField.dataClasses = []
-      dataField.createdAt = this.traceCreatedAt
-      dataField.updatedAt = this.traceCreatedAt
-      if (dataClass) {
-        dataField.addDataClass(dataClass)
-        dataField.dataTag = DataTag.PII
+      if (this.dataFieldsLength < 200) {
+        const dataField = new DataField()
+        dataField.dataPath = dataPath ?? ""
+        dataField.dataType = dataType
+        dataField.dataSection = dataSection
+        dataField.apiEndpointUuid = apiEndpoint.uuid
+        dataField.dataClasses = []
+        dataField.createdAt = this.traceCreatedAt
+        dataField.updatedAt = this.traceCreatedAt
+        if (dataClass) {
+          dataField.addDataClass(dataClass)
+          dataField.dataTag = DataTag.PII
+        }
+        this.dataFields[existingMatch] = dataField
+        this.updatedFields[existingMatch] = dataField
+        this.dataFieldsLength += 1
       }
-      this.dataFields[existingMatch] = dataField
-      this.updatedFields[existingMatch] = dataField
     } else {
       const existingDataField = this.dataFields[existingMatch]
       let updated = false
@@ -223,6 +227,7 @@ export class DataFieldService {
           item,
       }
     }, {})
+    this.dataFieldsLength = apiEndpoint.dataFields.length ?? 0
     this.updatedFields = {}
     this.traceCreatedAt = apiTrace.createdAt
     this.findPathDataFields(apiTrace.path, apiEndpoint)
