@@ -52,7 +52,12 @@
     </a>
     <p></p>
     <p><i>Let us know if you need an AMI in a different region!</i></p>
-    <hr>
+   
+  #### Once you've launched your instance run the following in the instance to start Metlo:
+  ```bash
+  $ sudo metlo start
+  ```
+  <hr>
 </details>
 
 <details>
@@ -64,6 +69,10 @@
   ```bash
   $ export PROJECT_ID="<YOUR_PROJECT_ID>"
   $ gcloud compute instances create metlo-api-security --image-family=metlo-api-security --image-project=metlo-security --project=$PROJECT_ID --machine-type e2-standard-2
+  ```
+  #### Once you've launched your instance run the following in the instance to start Metlo:
+  ```bash
+  $ sudo metlo start
   ```
   <hr>
 </details>
