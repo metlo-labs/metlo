@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+from base64 import b64encode
 import secrets
 import string
 import subprocess
@@ -40,7 +41,7 @@ def gen_secret(l):
 
 
 def write_env():
-    encryption_key = gen_secret(32)
+    encryption_key = b64encode(secrets.token_bytes(32)).decode('UTF-8')
     express_secret = gen_secret(32)
     clickhouse_user = gen_secret(16)
     clickhouse_password = gen_secret(16)
