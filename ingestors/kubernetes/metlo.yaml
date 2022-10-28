@@ -21,8 +21,16 @@ spec:
         - name: suricata-daemon
           image: metlo/suricata-daemon
           imagePullPolicy: Never
+          resources:
+            requests:
+              ephemeral-storage: "32Mi"
+            limits:
+              ephemeral-storage: "64Mi"
           securityContext:
             privileged: true
+          volumeMounts:
+            - mountPath: /tmp
+              name: socket-volume
           env:
             - name: METLO_ADDR
               value: <INSERT METLO COLLECTOR URL HERE>
@@ -30,3 +38,6 @@ spec:
               value: <INSERT METLO API KEY HERE>
       nodeSelector:
         app: metlo-app
+      volumes:
+        - name: socket-volume
+          emptyDir: {}

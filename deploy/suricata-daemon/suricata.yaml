@@ -83,7 +83,7 @@ outputs:
   - eve-log:
       enabled: yes
       filetype: unix_stream #regular|syslog|unix_dgram|unix_stream|redis
-      filename: /etc/suricata-logs/eve.sock
+      filename: /tmp/eve.sock
       # Enable for multi-threaded eve.json output; output files are amended with
       # with an identifier, e.g., eve.9.json
       #threaded: false
