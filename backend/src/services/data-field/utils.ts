@@ -1,11 +1,17 @@
 import { DataClass } from "@common/enums"
 import { DataField } from "models"
 
-export const addDataClass = (dataField: DataField, dataClass: DataClass): boolean => {
+export const addDataClass = (
+  dataField: DataField,
+  dataClass: DataClass,
+): boolean => {
   if (dataField.dataClasses === null || dataField.dataClasses === undefined) {
     dataField.dataClasses = Array<DataClass>()
   }
-  if (dataField.falsePositives === null || dataField.falsePositives === undefined) {
+  if (
+    dataField.falsePositives === null ||
+    dataField.falsePositives === undefined
+  ) {
     dataField.falsePositives = Array<DataClass>()
   }
   if (

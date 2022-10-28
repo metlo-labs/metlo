@@ -139,7 +139,10 @@ export const parsedJsonNonNull = (
 export const inSandboxMode =
   (process.env.SANDBOX_MODE || "false").toLowerCase() == "true"
 
-export const endpointUpdateDates = (traceCreatedDate: Date, apiEndpoint: ApiEndpoint) => {
+export const endpointUpdateDates = (
+  traceCreatedDate: Date,
+  apiEndpoint: ApiEndpoint,
+) => {
   if (!apiEndpoint.firstDetected) {
     apiEndpoint.firstDetected = traceCreatedDate
   }
