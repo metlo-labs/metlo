@@ -20,6 +20,7 @@ import { runMigration } from "utils"
 import { initMigration1665782029662 } from "migrations/1665782029662-init-migration"
 import { addUniqueConstraintApiEndpoint1666678487137 } from "migrations/1666678487137-add-unique-constraint-api-endpoint"
 import { dropAnalyzedColumnFromApiTrace1666752646836 } from "migrations/1666752646836-drop-analyzed-column-from-api-trace"
+import { addIndexForDataField1666941075032 } from "migrations/1666941075032-add-index-for-data-field"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -45,11 +46,12 @@ export const AppDataSource: DataSource = new DataSource({
     initMigration1665782029662,
     addUniqueConstraintApiEndpoint1666678487137,
     dropAnalyzedColumnFromApiTrace1666752646836,
+    addIndexForDataField1666941075032,
   ],
   migrationsRun: runMigration,
   logging: false,
   extra: {
     max: 100,
-    idleTimeoutMillis: process.env.IS_ANALYZER ? 0 : 10000,
+    idleTimeoutMillis: process.env.IS_ANALYZER ? 0 : 2500,
   },
 })
