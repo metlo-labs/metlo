@@ -56,18 +56,6 @@ export async function list_all_instances(
   return await client.send(command)
 }
 
-export async function get_network_id_for_instance(
-  client: EC2Client,
-  instance_id,
-) {
-  let command = new DescribeInstancesCommand({
-    InstanceIds: [instance_id],
-  } as DescribeInstancesCommandInput)
-  return await (
-    await client.send(command)
-  ).Reservations[0].Instances[0].NetworkInterfaces[0].NetworkInterfaceId
-}
-
 export async function get_region_for_instance(client: EC2Client, instance_id) {
   let command = new DescribeInstancesCommand({
     MaxResults: 1,

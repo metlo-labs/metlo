@@ -6,12 +6,12 @@ import {
   awsMirrorSessionCreation,
   awsMirrorTargetCreation,
   awsSourceIdentification,
+  getNetworkIdForInstance,
 } from "./setupUtils"
 import { AWS_SOURCE_TYPE, Protocols } from "./types"
+import { AWS_REGIONS } from "./constants"
 
-export const awsTrafficMirrorSetup = async () => {
-  const id = uuidv4()
-  const _region = "us-west-2"
+const getAWSKeys = async (_region: string) => {
   try {
     const awsKeyResp = await prompt([
       {
@@ -25,11 +25,38 @@ export const awsTrafficMirrorSetup = async () => {
         message: "Enter your AWS Secret Access Key",
       },
     ])
-    const accessID = awsKeyResp["accessID"] as string
-    const secretAccessKey = awsKeyResp["key"] as string
+    const accessID = (awsKeyResp["accessID"] as string).trim()
+    const secretAccessKey = (awsKeyResp["key"] as string).trim()
     console.log("Verifying Keys...")
     await awsKeySetup(accessID, secretAccessKey, _region)
     console.log("Success!")
+    return {
+      accessID,
+      secretAccessKey,
+    }
+  } catch (e) {
+    console.error(e)
+    return getAWSKeys(_region)
+  }
+}
+
+export const awsTrafficMirrorSetup = async () => {
+  const id = uuidv4()
+  try {
+    const regionResp = await prompt([
+      {
+        type: "select",
+        name: "_region",
+        message: "Select your AWS region",
+        initial: 1,
+        choices: AWS_REGIONS.map(e => ({
+          name: e,
+        })),
+      },
+    ])
+    const _region = regionResp["_region"] as string
+
+    const { accessID, secretAccessKey } = await getAWSKeys(_region)
 
     const mirrorSourceResp = await prompt([
       {
@@ -49,7 +76,7 @@ export const awsTrafficMirrorSetup = async () => {
       },
     ])
     const sourceType = mirrorSourceResp["sourceType"] as AWS_SOURCE_TYPE
-    const mirrorSourceId = mirrorSourceResp["mirrorSourceId"] as string
+    const mirrorSourceId = (mirrorSourceResp["mirrorSourceId"] as string).trim()
 
     console.log("Finding Source...")
     const { source_eni_id, region } = await awsSourceIdentification(
@@ -68,14 +95,22 @@ export const awsTrafficMirrorSetup = async () => {
         message: "Enter the id of your destination: ",
       },
     ])
-    const destinationEniId = mirrorDestinationResp["destinationEniId"] as string
+    const destinationEniId = (
+      mirrorDestinationResp["destinationEniId"] as string
+    ).trim()
+    const destinationNetworkEniID = await getNetworkIdForInstance(
+      accessID,
+      secretAccessKey,
+      region,
+      destinationEniId,
+    )
 
     console.log("Creating Mirror Session...")
     const { mirror_target_id } = await awsMirrorTargetCreation(
       accessID,
       secretAccessKey,
       region,
-      destinationEniId,
+      destinationNetworkEniID,
       id,
     )
     const { mirror_filter_id } = await awsMirrorFilterCreation(

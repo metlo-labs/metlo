@@ -1,5 +1,7 @@
 import {
   CreateTrafficMirrorFilterCommandOutput,
+  DescribeInstancesCommandInput,
+  DescribeInstancesCommand,
   EC2Client,
 } from "@aws-sdk/client-ec2"
 import { STSClient } from "@aws-sdk/client-sts"
@@ -10,14 +12,10 @@ import {
   create_mirror_target,
   delete_mirror_filter,
 } from "./mirroring"
-import {
-  match_av_to_region,
-  verifyIdentity,
-} from "./utils"
+import { match_av_to_region, verifyIdentity } from "./utils"
 import { EC2_CONN } from "./ec2Utils"
 
 import { AWS_SOURCE_TYPE, TrafficFilterRuleSpecs } from "./types"
-import { SUPPORTED_AWS_INSTANCES } from "./constants"
 
 export const awsKeySetup = async (
   access_id: string,
@@ -33,6 +31,28 @@ export const awsKeySetup = async (
   })
   await verifyIdentity(client)
   client.destroy()
+}
+
+export async function getNetworkIdForInstance(
+  access_id: string,
+  secret_access_key: string,
+  region: string,
+  instance_id: string,
+) {
+  let client = new EC2Client({
+    credentials: {
+      secretAccessKey: secret_access_key,
+      accessKeyId: access_id,
+    },
+    region: region,
+  })
+  let command = new DescribeInstancesCommand({
+    InstanceIds: [instance_id],
+  } as DescribeInstancesCommandInput)
+  const resp = await await client.send(command)
+  client.destroy()
+  return resp.Reservations[0].Instances[0].NetworkInterfaces[0]
+    .NetworkInterfaceId
 }
 
 export const awsSourceIdentification = async (
@@ -51,7 +71,7 @@ export const awsSourceIdentification = async (
   })
 
   let ec2_conn = new EC2_CONN(access_id, secret_access_key, _region)
-  let all_valid_types = SUPPORTED_AWS_INSTANCES
+  let all_valid_types = await ec2_conn.get_valid_types(undefined, undefined)
 
   var region, source_eni_id, source_private_ip, instance_type
   if (source_type === AWS_SOURCE_TYPE.INSTANCE) {
@@ -85,7 +105,7 @@ export const awsSourceIdentification = async (
     )
   }
 
-  if (!all_valid_types.includes(instance_type)) {
+  if (!all_valid_types.map(v => v.InstanceType).includes(instance_type)) {
     throw new Error(
       `AWS EC2 instance type ${instance_type} does not support mirroring traffic. ` +
         `Supported instances listed at https://aws.amazon.com/about-aws/whats-new/2021/02/amazon-vpc-traffic-mirroring-supported-select-non-nitro-instance-types/`,
