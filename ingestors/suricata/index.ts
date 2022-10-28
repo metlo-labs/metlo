@@ -6,6 +6,8 @@ import { program } from "commander"
 import { prepareResponse, compileHost, pushAlert } from "./utils"
 import ndjson from "ndjson"
 import { Mutex, MutexInterface } from "async-mutex"
+import dotenv from "dotenv"
+
 
 var server: net.Server
 var connections: Record<number, net.Socket> = {}
@@ -86,15 +88,24 @@ function main() {
     .name("AWS-Suricata Ingestor")
     .description("Basic CLI app to ingest data from suricata on AWS")
   program
-    .requiredOption("-u, --url <url>", "URL for the webhook destination")
-    .requiredOption("-k, --key <api_key>", "API Key for the webhook destination")
     .requiredOption("-s, --socket <socket_path>", "Socket file path")
+    .option("-e, --env <path>", "Env file path")
+    .option("-u, --url <url>", "URL for the webhook destination")
+    .option("-k, --key <api_key>", "API Key for the webhook destination")
   program.parse(process.argv)
   let options = program.opts()
-  if (new URL(options.url)) {
+  SOCKETFILE = options.socket
+  if (options.url && new URL(options.url)) {
     url = options.url
     api_key = options.key
-    SOCKETFILE = options.socket
+  } else if (options.env) {
+    dotenv.config({ path: options.env })
+    if (process.env.METLO_ADDR && process.env.METLO_KEY) {
+      url = process.env.METLO_ADDR + "/api/v1/log-request/single"
+      api_key = process.env.METLO_KEY
+    }
+  } else {
+    throw new Error("Neither url/key or env params defined. Must choose either of options")
   }
 
   console.info("Socket: %s \n  Process: %s", SOCKETFILE, process.pid)
