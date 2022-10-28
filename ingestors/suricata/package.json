@@ -9,6 +9,7 @@
     "async-mutex": "^0.4.0",
     "axios": "^0.27.2",
     "commander": "^9.4.0",
+    "dotenv": "^16.0.3",
     "ndjson": "^2.0.0",
     "ts-node": "^10.9.1",
     "tsc": "^2.0.4",
