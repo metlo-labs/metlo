@@ -101,7 +101,7 @@ function main() {
   } else if (options.env) {
     dotenv.config({ path: options.env })
     if (process.env.METLO_ADDR && process.env.METLO_KEY) {
-      url = process.env.METLO_ADDR
+      url = process.env.METLO_ADDR + "/api/v1/log-request/single"
       api_key = process.env.METLO_KEY
     }
   } else {
