@@ -92,7 +92,7 @@ export const awsTrafficMirrorSetup = async () => {
       {
         type: "input",
         name: "destinationEniId",
-        message: "Enter the id of your destination: ",
+        message: "Enter the id of your Metlo Mirroring Instance",
       },
     ])
     const destinationEniId = (
