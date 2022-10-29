@@ -20,7 +20,6 @@ spec:
       containers:
         - name: suricata-daemon
           image: metlo/suricata-daemon
-          imagePullPolicy: Never
           resources:
             requests:
               ephemeral-storage: "32Mi"
@@ -33,11 +32,11 @@ spec:
               name: socket-volume
           env:
             - name: METLO_ADDR
-              value: <INSERT METLO COLLECTOR URL HERE>
+              value: http://<METLO_HOST_URL>:8081
             - name: METLO_KEY
-              value: <INSERT METLO API KEY HERE>
-      nodeSelector:
-        app: metlo-app
+              value: <YOUR_METLO_API_KEY>
+      # nodeSelector:
+      #   app: your-app
       volumes:
         - name: socket-volume
           emptyDir: {}
