@@ -7,6 +7,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Unique,
+  Index,
 } from "typeorm"
 import { DataClass, DataTag, DataType, DataSection } from "@common/enums"
 import { ApiEndpoint } from "models/api-endpoint"
@@ -85,6 +86,7 @@ export class DataField extends BaseEntity {
   matches: Record<DataClass, string[]>
 
   @Column({ nullable: false })
+  @Index("apiEndpointUuid_data_field")
   apiEndpointUuid: string
 
   @ManyToOne(() => ApiEndpoint, apiEndpoint => apiEndpoint.dataFields)

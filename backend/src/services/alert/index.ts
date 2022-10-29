@@ -252,7 +252,6 @@ export class AlertService {
     context?: object,
     noDuplicate?: boolean,
   ): Promise<Alert> {
-    const alertRepository = AppDataSource.getRepository(Alert)
     let alertDescription = description
     if (!alertDescription) {
       switch (alertType) {
@@ -358,6 +357,8 @@ export class AlertService {
                     trace: apiTrace,
                   }
                   newAlert.description = basicAuthDescription
+                  newAlert.createdAt = apiTrace.createdAt
+                  newAlert.updatedAt = apiTrace.createdAt
                   alerts.push(newAlert)
                 }
               }
@@ -429,6 +430,8 @@ export class AlertService {
                 newAlert.apiEndpointUuid = apiEndpointUuid
                 newAlert.context = alert.context
                 newAlert.description = alert.description
+                newAlert.createdAt = apiTrace.createdAt
+                newAlert.updatedAt = apiTrace.createdAt
                 alerts.push(newAlert)
               }
             }
@@ -475,6 +478,8 @@ export class AlertService {
             pathPointer,
             trace: apiTrace,
           }
+          newAlert.createdAt = apiTrace.createdAt
+          newAlert.updatedAt = apiTrace.createdAt
           if (!openApiSpec.minimizedSpecContext[minimizedSpecKey]) {
             let lineNumber = null
             if (openApiSpec.extension === SpecExtension.JSON) {

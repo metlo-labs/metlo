@@ -19,7 +19,8 @@ const monitorEndpointForHSTS = async (): Promise<void> => {
         order: { createdAt: "DESC" },
       })
       if (
-        !latest_trace_for_endpoint.responseHeaders.find(v =>
+        latest_trace_for_endpoint &&
+        !latest_trace_for_endpoint?.responseHeaders.find(v =>
           v.name.includes("Strict-Transport-Security"),
         )
       ) {
