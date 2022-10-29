@@ -92,6 +92,8 @@ const analyze = async (
       AlertType.NEW_ENDPOINT,
       apiEndpoint,
     )
+    newEndpointAlert.createdAt = trace.createdAt
+    newEndpointAlert.updatedAt = trace.createdAt
     alerts = alerts?.concat(newEndpointAlert)
   }
 
