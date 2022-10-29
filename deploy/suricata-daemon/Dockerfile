@@ -1,10 +1,7 @@
-FROM node:lts-alpine
+FROM node:lts-bullseye-slim
 
-ENV VERSION="6.0.5-r0"
-
-RUN apk add librdkafka --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
-
-RUN apk add --no-cache grep procps git suricata=$VERSION
+RUN apt update
+RUN apt install suricata git -y
 
 WORKDIR /app
 
@@ -13,7 +10,6 @@ ADD ../../ingestors/suricata metlo-ingestor
 
 RUN chmod +x /app/suricata-daemon/entrypoint.sh
 
-# Setup pre-reqs
 RUN mkdir -p /etc/metlo-ingestor && \
         cd /etc/ && \
         rm -rf /etc/metlo-ingestor/* && \
@@ -32,7 +28,4 @@ RUN cd /etc/metlo-ingestor/ingestors/suricata && \
         yarn install && \
         yarn build
 
-# WORKDIR /var/lib/suricata/rules
-
-
-ENTRYPOINT ["/app/suricata-daemon/entrypoint.sh"]
+ENTRYPOINT ["/bin/bash","/app/suricata-daemon/entrypoint.sh"]

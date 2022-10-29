@@ -96,7 +96,7 @@ function main() {
   let options = program.opts()
   SOCKETFILE = options.socket
   if (options.url && new URL(options.url)) {
-    url = options.url
+    url = options.url + "/api/v1/log-request/single"
     api_key = options.key
   } else if (options.env) {
     dotenv.config({ path: options.env })
