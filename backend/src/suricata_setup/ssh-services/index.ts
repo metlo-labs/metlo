@@ -66,7 +66,6 @@ export async function push_files({
   id,
   ...rest
 }: RESPONSE["data"] & { step: number }): Promise<RESPONSE> {
-  const endpoint = "api/v1/log-request/single"
   let conn = new SSH_CONN(keypair, remote_machine_url, username)
   let [key, raw] = createApiKey(`Metlo-collector-${id}`)
   key.for = API_KEY_TYPE.AWS
@@ -77,7 +76,7 @@ export async function push_files({
     put_data_file(
       format(
         `${__dirname}/../generics/scripts/metlo-ingestor-template.service`,
-        [`${process.env.BACKEND_URL}/${endpoint}`, raw],
+        [process.env.BACKEND_URL, raw],
       ),
       filepath_ingestor,
     )
