@@ -50,8 +50,4 @@ export const AppDataSource: DataSource = new DataSource({
   ],
   migrationsRun: runMigration,
   logging: false,
-  extra: {
-    max: 100,
-    idleTimeoutMillis: process.env.IS_ANALYZER ? 0 : 2500,
-  },
 })
