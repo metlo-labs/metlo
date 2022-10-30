@@ -185,3 +185,8 @@ export enum API_KEY_TYPE {
   AWS = "AWS",
   GENERIC = "GENERIC"
 }
+
+export enum OperationType {
+  QUERY = "query",
+  MUTATION = "mutation",
+}

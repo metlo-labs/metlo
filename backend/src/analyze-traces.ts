@@ -17,6 +17,7 @@ import {
 } from "utils"
 import { getPathTokens } from "@common/utils"
 import { AlertType } from "@common/enums"
+import { getGraphQlData, isGraphQlEndpoint } from "services/graphql"
 
 const GET_ENDPOINT_QUERY = `
 SELECT
@@ -72,6 +73,9 @@ const analyze = async (
   queryRunner: QueryRunner,
   newEndpoint?: boolean,
 ) => {
+  if (apiEndpoint.isGraphQl && trace.responseStatus < 400) {
+    getGraphQlData(trace.requestBody, trace.responseBody)
+  }
   endpointUpdateDates(trace.createdAt, apiEndpoint)
   const dataFields = DataFieldService.findAllDataFields(trace, apiEndpoint)
   let alerts = await SpecService.findOpenApiSpecDiff(
@@ -158,23 +162,29 @@ const generateEndpoint = async (
   trace: QueuedApiTrace,
   queryRunner: QueryRunner,
 ): Promise<void> => {
-  const pathTokens = getPathTokens(trace.path)
+  const isGraphQl = isGraphQlEndpoint(trace.path)
   let paramNum = 1
   let parameterizedPath = ""
   let pathRegex = String.raw``
-  for (let j = 0; j < pathTokens.length; j++) {
-    const tokenString = pathTokens[j]
-    if (tokenString === "/") {
-      parameterizedPath += "/"
-      pathRegex += "/"
-    } else if (tokenString.length > 0) {
-      if (isSuspectedParamater(tokenString)) {
-        parameterizedPath += `/{param${paramNum}}`
-        pathRegex += String.raw`/[^/]+`
-        paramNum += 1
-      } else {
-        parameterizedPath += `/${tokenString}`
-        pathRegex += String.raw`/${tokenString}`
+  if (isGraphQl) {
+    parameterizedPath = trace.path
+    pathRegex = trace.path
+  } else {
+    const pathTokens = getPathTokens(trace.path)
+    for (let j = 0; j < pathTokens.length; j++) {
+      const tokenString = pathTokens[j]
+      if (tokenString === "/") {
+        parameterizedPath += "/"
+        pathRegex += "/"
+      } else if (tokenString.length > 0) {
+        if (isSuspectedParamater(tokenString)) {
+          parameterizedPath += `/{param${paramNum}}`
+          pathRegex += String.raw`/[^/]+`
+          paramNum += 1
+        } else {
+          parameterizedPath += `/${tokenString}`
+          pathRegex += String.raw`/${tokenString}`
+        }
       }
     }
   }
@@ -188,6 +198,9 @@ const generateEndpoint = async (
     apiEndpoint.method = trace.method
     endpointAddNumberParams(apiEndpoint)
     apiEndpoint.dataFields = []
+    if (isGraphQl) {
+      apiEndpoint.isGraphQl = true
+    }
 
     try {
       await queryRunner.startTransaction()
