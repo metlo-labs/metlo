@@ -89,6 +89,7 @@ export function prepareResponse(
       sourcePort: alert.src_port,
       destination: alert.dest_ip,
       destinationPort: alert.dest_port,
+      metloSource: "suricata"
     },
   }
   return resp
