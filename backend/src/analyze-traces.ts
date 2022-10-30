@@ -259,7 +259,7 @@ const analyzeTraces = async (): Promise<void> => {
           apiEndpoint.dataFields = dataFields
           await analyze(trace, apiEndpoint, queryRunner)
         } else {
-          if (trace.responseStatus !== 404) {
+          if (trace.responseStatus !== 404 && trace.responseStatus !== 405) {
             await generateEndpoint(trace, queryRunner)
           }
         }
