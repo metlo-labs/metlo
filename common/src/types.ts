@@ -217,6 +217,7 @@ export interface ApiEndpoint {
   openapiSpecName: string
   isAuthenticatedDetected: boolean
   isAuthenticatedUserSet: boolean
+  isGraphQl: boolean
 }
 
 export interface ApiEndpointDetailed extends ApiEndpoint {
