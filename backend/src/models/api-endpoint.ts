@@ -76,6 +76,9 @@ export class ApiEndpoint extends BaseEntity {
   @Column({ type: "bool", nullable: true })
   isAuthenticatedUserSet: boolean
 
+  @Column({ type: "bool", default: false })
+  isGraphQl: boolean
+
   @Column({ nullable: true })
   openapiSpecName: string
 
