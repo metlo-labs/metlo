@@ -19,7 +19,7 @@ export class ProductService {
       await queryRunner.connect()
       const numCurrProducts = await queryRunner.manager.count(Product)
       const product = queryRunner.manager.create(Product)
-      if (numCurrProducts < 10) {
+      if (numCurrProducts < 15) {
         let existingWarehouse = await queryRunner.manager.findOneBy(Warehouse, {
           address: warehouseAddress,
         })
@@ -48,7 +48,7 @@ export class ProductService {
   static async getProducts() {
     try {
       const productRepo = AppDataSource.getRepository(Product)
-      return await productRepo.find({ take: 1 })
+      return await productRepo.find({})
     } catch (err) {
       throw err
     }
@@ -59,6 +59,10 @@ export class ProductService {
     const product = await productRepository.findOne({
       where: {
         uuid: productUuid,
+      },
+      relations: {
+        warehouse: true,
+        owner: true,
       },
     })
     return product

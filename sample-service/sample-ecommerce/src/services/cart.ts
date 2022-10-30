@@ -11,7 +11,7 @@ export class CartService {
       await queryRunner.connect()
       const numCurrCarts = await queryRunner.manager.count(Cart)
       const cart = queryRunner.manager.create(Cart)
-      if (numCurrCarts < 10) {
+      if (numCurrCarts < 20) {
         await queryRunner.manager.insert(Cart, cart)
       }
       return cart.uuid
@@ -26,7 +26,7 @@ export class CartService {
   static async getCarts() {
     try {
       const cartRepository = AppDataSource.getRepository(Cart)
-      return await cartRepository.find({ take: 1 })
+      return await cartRepository.find({})
     } catch (err) {
       throw err
     }
@@ -38,6 +38,9 @@ export class CartService {
       const cart = await cartRepository.findOne({
         where: {
           uuid: cartUuid,
+        },
+        relations: {
+          products: true,
         },
       })
       return cart
