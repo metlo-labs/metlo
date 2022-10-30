@@ -70,7 +70,6 @@ var schema = buildSchema(`
   }
 `);
 
-// The root provides a resolver function for each API endpoint
 const fakeDatabase = {}
 let initId = 0
 
@@ -124,7 +123,6 @@ const root = {
     }
   },
   createMessage: ({input}) => {
-    // Create a random id for our "database".
     const id = initId++
 
     fakeDatabase[id] = input;
@@ -146,5 +144,5 @@ app.use('/graphql', graphqlHTTP({
   rootValue: root,
   graphiql: true,
 }));
-app.listen(4000);
+app.listen(8080);
 console.log('Running a GraphQL API server at http://localhost:4000/graphql');
