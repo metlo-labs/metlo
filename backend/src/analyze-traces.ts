@@ -7,7 +7,7 @@ import { AlertService } from "services/alert"
 import { DatabaseService } from "services/database"
 import { RedisClient } from "utils/redis"
 import { TRACES_QUEUE } from "~/constants"
-import { QueryRunner, Raw } from "typeorm"
+import { QueryRunner } from "typeorm"
 import { QueuedApiTrace } from "@common/types"
 import {
   endpointAddNumberParams,
@@ -17,7 +17,7 @@ import {
 } from "utils"
 import { getPathTokens } from "@common/utils"
 import { AlertType } from "@common/enums"
-import { getGraphQlData, isGraphQlEndpoint } from "services/graphql"
+import { isGraphQlEndpoint } from "services/graphql"
 
 const GET_ENDPOINT_QUERY = `
 SELECT
@@ -73,9 +73,6 @@ const analyze = async (
   queryRunner: QueryRunner,
   newEndpoint?: boolean,
 ) => {
-  if (apiEndpoint.isGraphQl && trace.responseStatus < 400) {
-    getGraphQlData(trace.requestBody, trace.responseBody)
-  }
   endpointUpdateDates(trace.createdAt, apiEndpoint)
   const dataFields = DataFieldService.findAllDataFields(trace, apiEndpoint)
   let alerts = await SpecService.findOpenApiSpecDiff(
