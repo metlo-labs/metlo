@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -27,6 +28,7 @@ export class Alert extends BaseEntity {
   riskScore: RiskScore
 
   @Column()
+  @Index("apiEndpointUuid_alert")
   apiEndpointUuid: string
 
   @ManyToOne(() => ApiEndpoint, apiEndpoint => apiEndpoint.alerts)
