@@ -1,9 +1,9 @@
-import express, { Express, Request, Response } from "express"
+import Fastify, { FastifyInstance } from "fastify"
 import dotenv from "dotenv"
-import { AppDataSource } from "data-source"
-import { loginUserHandler, registerUserHandler } from "api/user"
 import { User } from "models"
-import { authMiddleware } from "middleware/auth-middleware"
+import { AppDataSource } from "data-source"
+import { hashString } from "utils"
+import { loginUserHandler, registerUserHandler } from "api/user"
 import {
   addProductHandler,
   createNewCartHandler,
@@ -16,44 +16,65 @@ import {
   getProductHandler,
   getProductsHandler,
 } from "api/product"
-import { hashString } from "utils"
+import { UserService } from "services/user"
+import { Error401UnauthorizedRequest } from "errors"
+import ApiResponseHandler from "api-response-handler"
 
 dotenv.config()
 
-declare global {
-  namespace Express {
-    export interface Request {
-      user?: User
-    }
+declare module "fastify" {
+  export interface FastifyRequest {
+    user: User
   }
 }
 
-const app: Express = express()
-const port = process.env.PORT || 8080
+const app: FastifyInstance = Fastify({})
+const port = Number(process.env.PORT) || 8080
 
-app.disable("x-powered-by")
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-
-app.get("/", (req: Request, res: Response) => {
-  res.send("OK")
+app.register((fastify, options, next) => {
+  fastify.get("/", async (request, reply) => {
+    return "OK"
+  })
+  fastify.post("/register", registerUserHandler)
+  fastify.post("/login", loginUserHandler)
+  fastify.get("/product/:productUuid", getProductHandler)
+  next()
 })
 
-app.post("/register", registerUserHandler)
-app.post("/login", loginUserHandler)
+app.register((fastify, options, next) => {
+  fastify.addHook("onRequest", async (req, res) => {
+    const apiKey = req.headers["x-api-key"]
+    try {
+      if (apiKey && typeof apiKey === "string") {
+        const user = await UserService.findUserByApiKey(apiKey)
+        if (!user) {
+          throw new Error401UnauthorizedRequest(
+            "Unauthorized access. Unknown API Key.",
+          )
+        }
+        req.user = user
+        next()
+      } else {
+        throw new Error401UnauthorizedRequest(
+          "Unauthorized access. Please add `X-API-Key` header.",
+        )
+      }
+    } catch (err) {
+      await ApiResponseHandler.error(res, err)
+    }
+  })
 
-app.get("/product/:productUuid", getProductHandler)
+  fastify.get("/cart", getCartsHandler)
+  fastify.get("/cart/:cartUuid", getCartHandler)
+  fastify.post("/cart/new", createNewCartHandler)
+  fastify.post("/cart/:cartUuid/add-product", addProductHandler)
+  fastify.post("/cart/:cartUuid/purchase", purchaseCartHandler)
 
-app.use(authMiddleware)
+  fastify.get("/product", getProductsHandler)
+  fastify.post("/product/new", createNewProductHandler)
 
-app.get("/cart", getCartsHandler)
-app.get("/cart/:cartUuid", getCartHandler)
-app.post("/cart/new", createNewCartHandler)
-app.post("/cart/:cartUuid/add-product", addProductHandler)
-app.post("/cart/:cartUuid/purchase", purchaseCartHandler)
-
-app.get("/product", getProductsHandler)
-app.post("/product/new", createNewProductHandler)
+  next()
+})
 
 const initializeUser = async () => {
   const user = AppDataSource.getRepository(User).create()
@@ -77,8 +98,10 @@ const main = async () => {
       }`,
     )
     await initializeUser()
-    app.listen(port, () => {
-      console.log(`⚡️[server]: Server is running at http://localhost:${port}`)
+    app.listen({ port, host: "0.0.0.0" }, () => {
+      console.log(
+        `⚡️[server]: Fastify Server is running at http://localhost:${port}`,
+      )
     })
   } catch (err) {
     console.error(`CatchBlockInsideMain: ${err}`)
