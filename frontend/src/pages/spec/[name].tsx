@@ -15,7 +15,7 @@ const Spec = ({ spec }) => {
   }
   return (
     <SidebarLayoutShell currentTab={SideNavLinkDestination.Specs}>
-      <ContentContainer maxContentW="5xl">
+      <ContentContainer maxContentW="5xl" height="full">
         <SpecPage spec={parsedSpec} />
       </ContentContainer>
     </SidebarLayoutShell>

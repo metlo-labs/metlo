@@ -10,14 +10,15 @@ import {
   InputGroup,
   Button,
   useToast,
+  Box,
 } from "@chakra-ui/react"
 import { AiFillApi } from "@react-icons/all-files/ai/AiFillApi"
 import darkTheme from "prism-react-renderer/themes/duotoneDark"
 import lightTheme from "prism-react-renderer/themes/github"
-import Highlight, { defaultProps } from "prism-react-renderer"
 import { OpenApiSpec } from "@common/types"
 import { deleteSpec, updateSpec } from "api/apiSpecs"
 import { makeToast } from "utils"
+import Editor from "@monaco-editor/react"
 
 interface SpecPageProps {
   spec: OpenApiSpec
@@ -90,7 +91,7 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
   )
 
   return (
-    <VStack w="full" alignItems="flex-start" spacing="10">
+    <VStack h="full" w="full" alignItems="flex-start" spacing="10" pb="3px">
       <HStack justifyContent="space-between" w="full" alignItems="flex-end">
         <VStack alignItems="flex-start" pt="6">
           <NextLink href="/specs">
@@ -123,56 +124,23 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
           </InputGroup>
         </HStack>
       </HStack>
-      <Highlight
-        {...defaultProps}
-        theme={theme}
-        code={spec.spec}
-        language={spec.extension}
-      >
-        {({ className, style, tokens, getLineProps, getTokenProps }) => (
-          <pre
-            className={className}
-            style={{
-              ...style,
-              fontSize: "14px",
-              padding: "8px",
-              width: "100%",
-              overflowX: "scroll",
-              minHeight: "100%",
-            }}
-          >
-            {tokens.map((line, i) => (
-              <pre
-                style={{
-                  textAlign: "left",
-                  margin: "1em 0",
-                  padding: "0.5em",
-                  overflow: "scroll",
-                }}
-                key={i}
-                {...getLineProps({ line, key: i })}
-              >
-                <span
-                  style={{
-                    display: "table-cell",
-                    textAlign: "right",
-                    paddingRight: "1em",
-                    userSelect: "none",
-                    opacity: "0.5",
-                  }}
-                >
-                  {i + 1}
-                </span>
-                <span style={{ display: "table-cell" }}>
-                  {line.map((token, key) => (
-                    <span key={key} {...getTokenProps({ token, key })} />
-                  ))}
-                </span>
-              </pre>
-            ))}
-          </pre>
-        )}
-      </Highlight>
+      <Box h="full" w="full" borderWidth="1px">
+        <Editor
+          width="100%"
+          defaultLanguage="yaml"
+          value={spec.spec}
+          options={{
+            minimap: {
+              enabled: false,
+            },
+            automaticLayout: true,
+            theme,
+            readOnly: true,
+            renderIndentGuides: false,
+            scrollBeyondLastLine: false,
+          }}
+        />
+      </Box>
     </VStack>
   )
 })
