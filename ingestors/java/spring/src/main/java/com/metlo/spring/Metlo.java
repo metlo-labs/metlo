@@ -24,6 +24,7 @@ import java.util.function.Function;
 
 public class Metlo extends OncePerRequestFilter {
     private static final int DEFAULT_THREAD_POOL_SIZE = 8;
+    private final static String endpoint = "/api/v1/log-request/single";
     private final ThreadPoolExecutor pool;
     private final String METLO_KEY;
     private final String METLO_ADDR;
@@ -34,7 +35,7 @@ public class Metlo extends OncePerRequestFilter {
 
     public Metlo(int pool_size, String host, String api_key) {
         this.METLO_KEY = api_key;
-        this.METLO_ADDR = host;
+        this.METLO_ADDR = host + Metlo.endpoint;
         this.pool = new ThreadPoolExecutor(0, pool_size,
                 60L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>());
