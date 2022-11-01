@@ -1,26 +1,14 @@
 import { useState } from "react"
-import {
-  Box,
-  useColorModeValue,
-  HStack,
-  Tag,
-  IconButton,
-  Select,
-  Tooltip,
-  Icon,
-} from "@chakra-ui/react"
-import { HiOutlineExclamationCircle } from "@react-icons/all-files/hi/HiOutlineExclamationCircle"
+import { Box, HStack, Tag, IconButton, Select } from "@chakra-ui/react"
+import Editor from "@monaco-editor/react"
 import { saveAs } from "file-saver"
 import { BsFileCode } from "@react-icons/all-files/bs/BsFileCode"
 import YAML from "yaml"
 import JsYaml from "js-yaml"
-import darkTheme from "prism-react-renderer/themes/duotoneDark"
-import lightTheme from "prism-react-renderer/themes/github"
 import { FiDownload } from "@react-icons/all-files/fi/FiDownload"
 import { ApiEndpointDetailed } from "@common/types"
 import { SpecExtension } from "@common/enums"
 import { DataHeading } from "components/utils/Card"
-import Editor from "@monaco-editor/react"
 import EmptyView from "components/utils/EmptyView"
 
 interface SpecComponentProps {
@@ -33,7 +21,6 @@ const EXTENSION_TO_TYPE: Record<SpecExtension, string> = {
 }
 
 const SpecComponent: React.FC<SpecComponentProps> = ({ endpoint }) => {
-  const theme = useColorModeValue(lightTheme, darkTheme)
   const [specString, setSpecString] = useState<string>(
     endpoint.openapiSpec?.spec,
   )
@@ -126,7 +113,6 @@ const SpecComponent: React.FC<SpecComponentProps> = ({ endpoint }) => {
                   enabled: false,
                 },
                 automaticLayout: true,
-                theme,
                 readOnly: true,
                 renderIndentGuides: false,
                 scrollBeyondLastLine: false,

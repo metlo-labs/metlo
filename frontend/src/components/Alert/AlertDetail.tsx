@@ -16,8 +16,7 @@ import {
   AccordionPanel,
   Spinner,
 } from "@chakra-ui/react"
-import lightTheme from "prism-react-renderer/themes/github"
-import Highlight, { defaultProps } from "prism-react-renderer"
+import Editor from "@monaco-editor/react"
 import { AlertType, SpecExtension, Status } from "@common/enums"
 import { Alert, ApiTrace, MinimizedSpecContext } from "@common/types"
 import { getDateTimeString } from "utils"
@@ -99,70 +98,35 @@ const handleOpenApiSpec = (
     <Box w="55%" h="full">
       <Box borderWidth={1} h="full">
         {specString ? (
-          <Highlight
-            {...defaultProps}
-            theme={lightTheme}
-            code={specString}
-            language={specExtension || "json"}
-          >
-            {({ className, style, tokens, getLineProps, getTokenProps }) => {
-              return (
-                <pre
-                  className={className}
-                  style={{
-                    ...style,
-                    fontSize: "14px",
-                    padding: "8px",
-                    overflowX: "auto",
-                    minHeight: "100%",
-                    maxHeight: "100%",
-                    overflowY: "auto",
-                    background: "var(--chakra-colors-chakra-body-bg)",
-                  }}
-                >
-                  {tokens.map((line, i) => {
-                    const lineProps = getLineProps({ line, key: i })
-                    if (i + 1 === lineNumber) {
-                      lineProps.className = `${lineProps.className} highlight-line light`
-                    }
-                    return (
-                      <pre
-                        key={i.toString()}
-                        style={{
-                          textAlign: "left",
-                          margin: "1em 0",
-                          padding: "0.5em",
-                          overflow: "scroll",
-                        }}
-                        ref={i + 1 === lineNumber ? scrollRef : null}
-                        {...lineProps}
-                      >
-                        <span
-                          style={{
-                            display: "table-cell",
-                            textAlign: "right",
-                            paddingRight: "1em",
-                            userSelect: "none",
-                            opacity: "0.5",
-                          }}
-                        >
-                          {i + 1}
-                        </span>
-                        <span style={{ display: "table-cell" }}>
-                          {line.map((token, key) => (
-                            <span
-                              key={key}
-                              {...getTokenProps({ token, key })}
-                            />
-                          ))}
-                        </span>
-                      </pre>
-                    )
-                  })}
-                </pre>
+          <Editor
+            width="100%"
+            defaultLanguage="yaml"
+            value={specString || "No spec generated yet."}
+            onMount={(editor, monaco) => {
+              editor.revealLineInCenter(lineNumber)
+              editor.deltaDecorations(
+                [],
+                [
+                  {
+                    range: new monaco.Range(lineNumber, 1, lineNumber, 1),
+                    options: {
+                      isWholeLine: true,
+                      className: "highlight-line.light",
+                    },
+                  },
+                ],
               )
             }}
-          </Highlight>
+            options={{
+              minimap: {
+                enabled: false,
+              },
+              automaticLayout: true,
+              readOnly: true,
+              renderIndentGuides: false,
+              scrollBeyondLastLine: false,
+            }}
+          />
         ) : (
           <Text>Related spec no longer exists or has been deleted.</Text>
         )}

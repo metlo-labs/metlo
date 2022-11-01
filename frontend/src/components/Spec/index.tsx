@@ -13,8 +13,6 @@ import {
   Box,
 } from "@chakra-ui/react"
 import { AiFillApi } from "@react-icons/all-files/ai/AiFillApi"
-import darkTheme from "prism-react-renderer/themes/duotoneDark"
-import lightTheme from "prism-react-renderer/themes/github"
 import { OpenApiSpec } from "@common/types"
 import { deleteSpec, updateSpec } from "api/apiSpecs"
 import { makeToast } from "utils"
@@ -25,7 +23,6 @@ interface SpecPageProps {
 }
 
 const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
-  const theme = useColorModeValue(lightTheme, darkTheme)
   const inputRef = useRef<HTMLInputElement | null>(null)
   const router = useRouter()
   const toast = useToast()
@@ -134,7 +131,6 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
               enabled: false,
             },
             automaticLayout: true,
-            theme,
             readOnly: true,
             renderIndentGuides: false,
             scrollBeyondLastLine: false,
