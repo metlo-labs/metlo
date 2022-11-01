@@ -1,6 +1,7 @@
 plugins {
-    id 'java'
-    id "maven-publish"
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
 }
 
 group 'com.metlo'
@@ -26,16 +27,53 @@ test {
 
 publishing {
     publications {
-        maven(MavenPublication) {
-            groupId = 'org.metlo'
-            artifactId = 'metlo-springboot'
-            version = "0.0.1-SNAPSHOT"
+        mavenJava(MavenPublication) {
+            artifactId = 'spring'
             from components.java
-
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
             pom {
-                name = 'Metlo'
-                description = 'A description of my library'
+                name = 'Metlo for springboot'
+                description = 'Metlo Agent for Java'
+                url = 'https:/www.github.com/metlo-labs/metlo'
+                licenses {
+                    license {
+                        name = 'MIT Licenses'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'ninads'
+                        name = 'Ninad Sinha'
+                        email = 'ninad@metlo.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/metlo-labs/metlo.git'
+                    developerConnection = 'scm:git:ssh:git@github.com:metlo-labs/metlo.git'
+                    url = 'https://github.com/metlo-labs/metlo'
+                }
             }
         }
     }
+    repositories {
+        maven {
+            // change URLs to point to your repos, e.g. http://my.org/repo
+            def releasesRepoUrl = layout.buildDirectory.dir('repos/releases')
+            def snapshotsRepoUrl = layout.buildDirectory.dir('repos/snapshots')
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+//    sign configuration.archives
 }
