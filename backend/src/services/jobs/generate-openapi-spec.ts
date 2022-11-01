@@ -62,18 +62,23 @@ const generateOpenApiSpec = async (): Promise<void> => {
         const paths = openApiSpec["paths"]
         const path = endpoint.path
         const method = endpoint.method.toLowerCase()
-        const tracesQb = apiTraceRepository
+        let tracesQb = apiTraceRepository
           .createQueryBuilder()
           .where('"apiEndpointUuid" = :id', { id: endpoint.uuid })
         if (spec.specUpdatedAt) {
-          tracesQb.andWhere('"createdAt" > :updated', {
-            updated: spec.specUpdatedAt,
-          })
-          tracesQb.andWhere('"createdAt" <= :curr', { curr: currTime })
+          tracesQb = tracesQb
+            .andWhere('"createdAt" > :updated', {
+              updated: spec.specUpdatedAt,
+            })
+            .andWhere('"createdAt" <= :curr', { curr: currTime })
         } else {
-          tracesQb.andWhere('"createdAt" <= :curr', { curr: currTime })
+          tracesQb = tracesQb.andWhere('"createdAt" <= :curr', {
+            curr: currTime,
+          })
         }
-        const traces = await tracesQb.orderBy('"createdAt"', "ASC").getMany()
+        tracesQb = tracesQb.orderBy('"createdAt"', "ASC").limit(5000)
+        let traces = await tracesQb.getMany()
+        let offset = traces.length
 
         let parameters: Record<string, BodySchema> = {}
         let requestBodySpec: BodyContent = {}
@@ -96,83 +101,86 @@ const generateOpenApiSpec = async (): Promise<void> => {
             [method]: {},
           }
         }
+        while (traces?.length > 0) {
+          for (const trace of traces) {
+            const requestParamters = trace.requestParameters
+            const requestHeaders = trace.requestHeaders
+            const requestBody = trace.requestBody
+            const responseHeaders = trace.responseHeaders
+            const responseBody = trace.responseBody
+            const responseStatusString =
+              trace.responseStatus?.toString() || "default"
+            let requestContentType = null
+            let responseContentType = null
+            const endpointTokens = getPathTokens(endpoint.path)
+            const traceTokens = getPathTokens(trace.path)
+            for (let i = 0; i < endpointTokens.length; i++) {
+              const currToken = endpointTokens[i]
+              if (isParameter(currToken)) {
+                const key = `${currToken.slice(1, -1)}<>path`
+                parameters[key] = parseSchema(
+                  parameters[key] ?? {},
+                  parsedJsonNonNull(traceTokens[i], true),
+                )
+              }
+            }
+            if (trace.responseStatus < 400) {
+              for (const requestParameter of requestParamters) {
+                const key = `${requestParameter.name}<>query`
+                parameters[key] = parseSchema(
+                  parameters[key] ?? {},
+                  parsedJsonNonNull(requestParameter.value, true),
+                )
+              }
+              for (const requestHeader of requestHeaders) {
+                const key = `${requestHeader.name}<>header`
+                parameters[key] = parseSchema(
+                  parameters[key] ?? {},
+                  parsedJsonNonNull(requestHeader.value, true),
+                )
+                if (requestHeader.name.toLowerCase() === "content-type") {
+                  requestContentType = requestHeader.value.toLowerCase()
+                }
+              }
+            }
+            for (const responseHeader of responseHeaders) {
+              if (responseHeader.name.toLowerCase() === "content-type") {
+                responseContentType = responseHeader.value.toLowerCase()
+              }
+              if (!responses[responseStatusString]?.headers) {
+                responses[responseStatusString] = {
+                  description: `${responseStatusString} description`,
+                  ...responses[responseStatusString],
+                  headers: {},
+                }
+              }
+              parseContent(
+                responses[responseStatusString]?.headers,
+                responseHeader.value,
+                responseHeader.name,
+              )
+            }
 
-        for (const trace of traces) {
-          const requestParamters = trace.requestParameters
-          const requestHeaders = trace.requestHeaders
-          const requestBody = trace.requestBody
-          const responseHeaders = trace.responseHeaders
-          const responseBody = trace.responseBody
-          const responseStatusString =
-            trace.responseStatus?.toString() || "default"
-          let requestContentType = null
-          let responseContentType = null
-          const endpointTokens = getPathTokens(endpoint.path)
-          const traceTokens = getPathTokens(trace.path)
-          for (let i = 0; i < endpointTokens.length; i++) {
-            const currToken = endpointTokens[i]
-            if (isParameter(currToken)) {
-              const key = `${currToken.slice(1, -1)}<>path`
-              parameters[key] = parseSchema(
-                parameters[key] ?? {},
-                parsedJsonNonNull(traceTokens[i], true),
+            if (trace.responseStatus < 400) {
+              parseContent(requestBodySpec, requestBody, requestContentType)
+            }
+            if (responseBody) {
+              if (!responses[responseStatusString]?.content) {
+                responses[responseStatusString] = {
+                  description: `${responseStatusString} description`,
+                  ...responses[responseStatusString],
+                  content: {},
+                }
+              }
+              parseContent(
+                responses[responseStatusString]?.content,
+                responseBody,
+                responseContentType,
               )
             }
           }
-          if (trace.responseStatus < 400) {
-            for (const requestParameter of requestParamters) {
-              const key = `${requestParameter.name}<>query`
-              parameters[key] = parseSchema(
-                parameters[key] ?? {},
-                parsedJsonNonNull(requestParameter.value, true),
-              )
-            }
-            for (const requestHeader of requestHeaders) {
-              const key = `${requestHeader.name}<>header`
-              parameters[key] = parseSchema(
-                parameters[key] ?? {},
-                parsedJsonNonNull(requestHeader.value, true),
-              )
-              if (requestHeader.name.toLowerCase() === "content-type") {
-                requestContentType = requestHeader.value.toLowerCase()
-              }
-            }
-          }
-          for (const responseHeader of responseHeaders) {
-            if (responseHeader.name.toLowerCase() === "content-type") {
-              responseContentType = responseHeader.value.toLowerCase()
-            }
-            if (!responses[responseStatusString]?.headers) {
-              responses[responseStatusString] = {
-                description: `${responseStatusString} description`,
-                ...responses[responseStatusString],
-                headers: {},
-              }
-            }
-            parseContent(
-              responses[responseStatusString]?.headers,
-              responseHeader.value,
-              responseHeader.name,
-            )
-          }
-
-          if (trace.responseStatus < 400) {
-            parseContent(requestBodySpec, requestBody, requestContentType)
-          }
-          if (responseBody) {
-            if (!responses[responseStatusString]?.content) {
-              responses[responseStatusString] = {
-                description: `${responseStatusString} description`,
-                ...responses[responseStatusString],
-                content: {},
-              }
-            }
-            parseContent(
-              responses[responseStatusString]?.content,
-              responseBody,
-              responseContentType,
-            )
-          }
+          traces = await tracesQb.offset(offset).getMany()
+          offset += traces.length
         }
         let specParameterList = []
         for (const parameter in parameters) {

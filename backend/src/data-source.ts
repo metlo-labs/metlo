@@ -50,7 +50,7 @@ export const AppDataSource: DataSource = new DataSource({
     dropAnalyzedColumnFromApiTrace1666752646836,
     addIndexForDataField1666941075032,
     addIsgraphqlColumnApiEndpoint1667095325334,
-    addApiEndpointUuidIndexForAlert1667259254414
+    addApiEndpointUuidIndexForAlert1667259254414,
   ],
   migrationsRun: runMigration,
   logging: false,

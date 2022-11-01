@@ -25,7 +25,7 @@ const main = async () => {
   const logAggregateStatsSem = semaphore(1)
   const checkForUnauthenticatedSem = semaphore(1)
 
-  schedule.scheduleJob("30 * * * *", () => {
+  schedule.scheduleJob("10 * * * *", () => {
     generateSpecSem.take(async () => {
       console.log("\nGenerating OpenAPI Spec Files...")
       await generateOpenApiSpec()
