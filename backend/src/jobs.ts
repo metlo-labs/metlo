@@ -9,6 +9,12 @@ import {
 } from "services/jobs"
 import runAllTests from "services/testing/runAllTests"
 import { logAggregatedStats } from "services/logging"
+import { DateTime } from "luxon"
+
+const log = (logMessage: string, newLine?: boolean) =>
+  console.log(
+    `${newLine ? "\n" : ""}${DateTime.utc().toString()} ${logMessage}`,
+  )
 
 const main = async () => {
   const datasource = await AppDataSource.initialize()
@@ -25,20 +31,20 @@ const main = async () => {
   const logAggregateStatsSem = semaphore(1)
   const checkForUnauthenticatedSem = semaphore(1)
 
-  schedule.scheduleJob("10 * * * *", () => {
+  schedule.scheduleJob("*/10 * * * *", () => {
     generateSpecSem.take(async () => {
-      console.log("\nGenerating OpenAPI Spec Files...")
+      log("Generating OpenAPI Spec Files...", true)
       await generateOpenApiSpec()
-      console.log("Finished generating OpenAPI Spec Files.")
+      log("Finished generating OpenAPI Spec Files.")
       generateSpecSem.leave()
     })
   })
 
   schedule.scheduleJob("30 * * * * ", () => {
     checkForUnauthenticatedSem.take(async () => {
-      console.log("\nChecking for Unauthenticated Endpoints")
+      log("Checking for Unauthenticated Endpoints", true)
       await checkForUnauthenticatedEndpoints()
-      console.log("Finished checking for Unauthenticated Endpoints")
+      log("Finished checking for Unauthenticated Endpoints")
       checkForUnauthenticatedSem.leave()
     })
   })
@@ -46,27 +52,27 @@ const main = async () => {
   // Offset by 15 minutes past every 4th hour, so that there isn't any excess database slowdown
   schedule.scheduleJob("15 * * * *", () => {
     unsecuredAlertsSem.take(async () => {
-      console.log("\nGenerating Alerts for Unsecured Endpoints")
+      log("Generating Alerts for Unsecured Endpoints", true)
       await monitorEndpointForHSTS()
-      console.log("Finished generating alerts for Unsecured Endpoints.")
+      log("Finished generating alerts for Unsecured Endpoints.")
       unsecuredAlertsSem.leave()
     })
   })
 
   schedule.scheduleJob("30 * * * *", () => {
     testsSem.take(async () => {
-      console.log("\nRunning Tests...")
+      log("Running Tests...", true)
       await runAllTests()
-      console.log("Finished running tests.")
+      log("Finished running tests.")
       testsSem.leave()
     })
   })
 
   schedule.scheduleJob("*/10 * * * *", () => {
     clearApiTracesSem.take(async () => {
-      console.log("\nClearing Api Trace data...")
+      log("Clearing Api Trace data...", true)
       await clearApiTraces()
-      console.log("Finished clearing Api Trace data.")
+      log("Finished clearing Api Trace data.")
       clearApiTracesSem.leave()
     })
   })
@@ -74,14 +80,14 @@ const main = async () => {
   if ((process.env.DISABLE_LOGGING_STATS || "false").toLowerCase() == "false") {
     schedule.scheduleJob("0 */6 * * *", () => {
       logAggregateStatsSem.take(async () => {
-        console.log("\nLogging Aggregated Stats...")
+        log("Logging Aggregated Stats...", true)
         await logAggregatedStats()
-        console.log("Finished Logging Aggregated Stats.")
+        log("Finished Logging Aggregated Stats.")
         logAggregateStatsSem.leave()
       })
     })
   } else {
-    console.log("\nLogging Aggregated Stats Disabled...")
+    log("Logging Aggregated Stats Disabled...", true)
   }
 
   process.on("SIGINT", () => {
