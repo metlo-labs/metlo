@@ -1,8 +1,6 @@
 package com.metlo.spring;
 
 import com.google.gson.Gson;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
@@ -22,9 +20,9 @@ import java.util.*;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 public class Metlo extends OncePerRequestFilter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Metlo.class);
     private static final int DEFAULT_THREAD_POOL_SIZE = 8;
     private final ThreadPoolExecutor pool;
     private final String METLO_KEY;
@@ -42,11 +40,12 @@ public class Metlo extends OncePerRequestFilter {
                 new SynchronousQueue<Runnable>());
     }
 
-    private void pushRequest(DataBinding data) throws IOException {
-        URL url = new URL("https://eoene6b90uzny1h.m.pipedream.net");
+    private void pushRequest(Map<String, Object> data) throws IOException {
+        URL url = new URL(this.METLO_ADDR);
         URLConnection con = url.openConnection();
         HttpURLConnection http = (HttpURLConnection) con;
         http.setRequestMethod("POST"); // PUT is another valid option
+        http.setRequestProperty("Authorization", this.METLO_KEY);
         http.setDoOutput(true);
         Gson gson = new Gson();
         String json = gson.toJson(data);
@@ -68,26 +67,17 @@ public class Metlo extends OncePerRequestFilter {
         ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
         ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
 
-        long startTime = System.currentTimeMillis();
         filterChain.doFilter(requestWrapper, responseWrapper);
-        long timeTaken = System.currentTimeMillis() - startTime;
 
         String requestBody = getStringValue(requestWrapper.getContentAsByteArray(),
                 request.getCharacterEncoding());
         String responseBody = getStringValue(responseWrapper.getContentAsByteArray(),
                 response.getCharacterEncoding());
 
-        LOGGER.info(
-                "FINISHED PROCESSING : METHOD={}; REQUESTURI={}; REQUEST PAYLOAD={}; RESPONSE CODE={}; RESPONSE={}; TIME TAKEN={}",
-                request.getMethod(), request.getRequestURI(), requestBody, response.getStatus(), responseBody,
-                timeTaken);
-
         this.pool.submit(() -> {
             try {
-//                this.pushRequest("{\"username\":\"root\",\"password\":\"password\"}");
-                // TODO : Set DataBinding params properly
-                this.pushRequest(new DataBinding());
-            } catch (IOException e) {
+                this.pushRequest(createDataBinding(requestWrapper, responseWrapper, requestBody, responseBody));
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         });
@@ -103,15 +93,52 @@ public class Metlo extends OncePerRequestFilter {
         return "";
     }
 
-    private DataBinding createDataBinding(HttpServletRequest request, HttpServletResponse response) {
-        DataBinding bind = new DataBinding();
-        bind.request_url_host = request.getRemoteHost();
-        bind.request_url_path = request.getRequestURI();
-        bind.request_url_parameters = listParamFormat(request.getParameterMap());
-        //        bind.request_headers = listParamFormat(request.head());
-        //        request.getHeaderNames()
+    private Map<String, Object> createDataBinding(HttpServletRequest request, HttpServletResponse response, String request_body, String response_body) throws Exception {
+        Map<String, Object> DATA = new HashMap<String, Object>();
+        Map<String, Object> REQUEST = new HashMap<>();
+        Map<String, Object> REQUEST_URL = new HashMap<>();
+        Map<String, Object> RESPONSE = new HashMap<>();
+        Map<String, Object> META = new HashMap<>();
 
-        return bind;
+        String host = request.getHeader("host");
+        if (host == null) {
+            host = request.getRemoteHost();
+        }
+        REQUEST_URL.put("host", host);
+        REQUEST_URL.put("path", request.getRequestURI());
+        REQUEST_URL.put("parameters", listParamFormat(request.getParameterMap()));
+
+        REQUEST.put("url", REQUEST_URL);
+        try {
+            REQUEST.put("headers", listRequestHeaderFormat(request.getHeaderNames(), request::getHeader));
+        } catch (Exception e) {
+            REQUEST.put("headers", new ArrayList<Map<String, String>>());
+        }
+        REQUEST.put("body", request_body);
+        REQUEST.put("method", request.getMethod());
+
+        RESPONSE.put("url", request.getLocalAddr());
+        RESPONSE.put("status", response.getStatus());
+        try {
+            RESPONSE.put("headers", listResponseHeaderFormat(response.getHeaderNames(), response::getHeader));
+        } catch (Exception e) {
+            RESPONSE.put("headers", new ArrayList<Map<String, String>>());
+        }
+        RESPONSE.put("body", response_body);
+
+        META.put("source", request.getRemoteAddr());
+        META.put("sourcePort", request.getRemotePort());
+        META.put("destination", request.getLocalAddr());
+        META.put("destinationPort", request.getLocalPort());
+        META.put("environment", "production");
+        META.put("incoming", "true");
+        META.put("metloSource", "java/spring");
+
+        DATA.put("request", REQUEST);
+        DATA.put("response", RESPONSE);
+        DATA.put("meta", META);
+
+        return DATA;
     }
 
     private List<Map<String, String>> listParamFormat(Map<String, String[]> map) {
@@ -125,31 +152,29 @@ public class Metlo extends OncePerRequestFilter {
         return _formatted_params_;
     }
 
-    //    private List<Map<String, String>> listHeaderFormat(Enumeration<String> headerNames(),) {
-    //    }
-
-    private class DataBinding {
-        String request_url_host;
-        String request_url_path;
-        List<Map<String, String>> request_url_parameters;
-        List<Map<String, String>> request_headers;
-        String request_body;
-        String request_method;
-        String response_url;
-        String response_status;
-        List<HashMap<String, String>> response_headers;
-        String response_body;
-        String meta_environment = "production";
-        Boolean meta_incoming = true;
-        String meta_source;
-        Integer meta_sourcePort;
-        String meta_destination;
-        String meta_destinationPort;
-        String meta_metloSource = "java/spring";
-
-        public DataBinding() {
+    private List<Map<String, String>> listRequestHeaderFormat(Enumeration<String> headerNames, Function<String, String> headerValueForName) throws Exception {
+        List<Map<String, String>> headers = new ArrayList<Map<String, String>>();
+        for (Iterator<String> headerNameIter = headerNames.asIterator(); headerNameIter.hasNext(); ) {
+            String headerName = headerNameIter.next();
+            String headerValue = headerValueForName.apply(headerName);
+            Map<String, String> individualHeader = new HashMap<String, String>();
+            individualHeader.put("Name", headerName);
+            individualHeader.put("Value", headerValue);
+            headers.add(individualHeader);
         }
+        return headers;
     }
 
+    private List<Map<String, String>> listResponseHeaderFormat(Collection<String> headerNames, Function<String, String> headerValueForName) throws Exception {
+        List<Map<String, String>> headers = new ArrayList<Map<String, String>>();
+        for (String headerName : headerNames) {
+            String headerValue = headerValueForName.apply(headerName);
+            Map<String, String> individualHeader = new HashMap<String, String>();
+            individualHeader.put("Name", headerName);
+            individualHeader.put("Value", headerValue);
+            headers.add(individualHeader);
+        }
+        return headers;
+    }
 
 }
