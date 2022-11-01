@@ -32,6 +32,9 @@ export const JSONContentViewer = (
   const bgColor = colorMode === "dark" ? "#4C5564" : "#EDF2F7"
   try {
     let parsedData: object
+    if (!data) {
+      throw new Error()
+    }
     if (typeof data === "object") {
       parsedData = data
     } else {
@@ -63,7 +66,7 @@ export const JSONContentViewer = (
   } catch {
     return (
       <Code h="full" p="2" rounded="md" w="full">
-        {`${data}`}
+        {`${data ?? ""}`}
       </Code>
     )
   }
