@@ -31,9 +31,14 @@ export const JSONContentViewer = (
 ) => {
   const bgColor = colorMode === "dark" ? "#4C5564" : "#EDF2F7"
   try {
-    const parsedData = JSON.parse(data ?? "{}")
-    if (typeof parsedData !== "object" && !Array.isArray(parsedData)) {
-      throw new Error()
+    let parsedData: object
+    if (typeof data === "object") {
+      parsedData = data
+    } else {
+      parsedData = JSON.parse(data ?? "{}")
+      if (typeof parsedData !== "object" && !Array.isArray(parsedData)) {
+        throw new Error()
+      }
     }
     return (
       <Box w="full" h="full" rounded="md" bgColor={bgColor}>
@@ -58,7 +63,7 @@ export const JSONContentViewer = (
   } catch {
     return (
       <Code h="full" p="2" rounded="md" w="full">
-        {data}
+        {`${data}`}
       </Code>
     )
   }
