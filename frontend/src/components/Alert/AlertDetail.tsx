@@ -288,13 +288,13 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
       }
     }
     setPanels()
-  }, [])
+  }, [alert, providedSpecExtension, providedSpecString])
 
   useEffect(() => {
     if (showRightPanel(alert.type)) {
       executeScroll()
     }
-  }, [rightPanel])
+  }, [rightPanel, alert])
 
   return (
     <Box w="full" h="full">
