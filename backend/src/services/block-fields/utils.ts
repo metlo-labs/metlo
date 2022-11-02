@@ -9,7 +9,6 @@ const scrubKeys = [
   "x-api-key",
   "x_api_key",
   "api-key",
-  "blech",
 ]
 const simpleCreditCardRegex = new RegExp(String.raw`^(?:\d[ -]*?){13,16}$`)
 
