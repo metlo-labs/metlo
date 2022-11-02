@@ -210,7 +210,7 @@ export class BlockFieldsService {
       resHeaders: [],
       resBody: [],
     }
-    console.log(disabledPaths)
+
     const validRequestParams = this.redactBlockedFieldsPairObject(
       apiTrace.requestParameters,
       "req.query",
