@@ -22,23 +22,38 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import com.metlo.spring.utils.RequestParse;
+
 public class Metlo extends OncePerRequestFilter {
-    private static final int DEFAULT_THREAD_POOL_SIZE = 8;
+    private static final int DEFAULT_THREAD_POOL_SIZE = 2;
+
+    private static final int DEFAULT_RPS = 10;
     private final static String endpoint = "/api/v1/log-request/single";
     private final ThreadPoolExecutor pool;
     private final String METLO_KEY;
     private final String METLO_ADDR;
 
+    private final Boolean enabled;
+
     public Metlo(String host, String api_key) {
-        this(DEFAULT_THREAD_POOL_SIZE, host, api_key);
+        this(DEFAULT_THREAD_POOL_SIZE, host, api_key,DEFAULT_RPS);
+    }
+    public Metlo(String host, String api_key, Integer rps) {
+        this(DEFAULT_THREAD_POOL_SIZE, host, api_key,rps);
     }
 
-    public Metlo(int pool_size, String host, String api_key) {
+    public Metlo(int pool_size, String host, String api_key,Integer rps) {
         this.METLO_KEY = api_key;
         this.METLO_ADDR = host + Metlo.endpoint;
         this.pool = new ThreadPoolExecutor(0, pool_size,
                 60L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>());
+        String enabled = System.getenv("METLO_ENABLED");
+        if (enabled != null) {
+            this.enabled = Boolean.parseBoolean(enabled);
+        } else {
+            this.enabled = true;
+        }
     }
 
     private void pushRequest(Map<String, Object> data) throws IOException {
@@ -65,24 +80,26 @@ public class Metlo extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+
         ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
         ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
 
         filterChain.doFilter(requestWrapper, responseWrapper);
+        if (this.enabled) {
+            String requestBody = getStringValue(requestWrapper.getContentAsByteArray(),
+                    request.getCharacterEncoding());
+            String responseBody = getStringValue(responseWrapper.getContentAsByteArray(),
+                    response.getCharacterEncoding());
 
-        String requestBody = getStringValue(requestWrapper.getContentAsByteArray(),
-                request.getCharacterEncoding());
-        String responseBody = getStringValue(responseWrapper.getContentAsByteArray(),
-                response.getCharacterEncoding());
-
-        this.pool.submit(() -> {
-            try {
-                this.pushRequest(createDataBinding(requestWrapper, responseWrapper, requestBody, responseBody));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-        responseWrapper.copyBodyToResponse();
+            this.pool.submit(() -> {
+                try {
+                    this.pushRequest(createDataBinding(requestWrapper, responseWrapper, requestBody, responseBody));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+            responseWrapper.copyBodyToResponse();
+        }
     }
 
     private String getStringValue(byte[] contentAsByteArray, String characterEncoding) {
