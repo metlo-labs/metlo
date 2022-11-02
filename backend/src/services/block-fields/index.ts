@@ -3,6 +3,7 @@ import { getDataType, isParameter, parsedJson, parsedJsonNonNull } from "utils"
 import { BlockFieldEntry, PairObject, QueuedApiTrace } from "@common/types"
 import { getPathTokens } from "@common/utils"
 import { BLOCK_FIELDS_ALL_REGEX } from "~/constants"
+import { isSensitiveDataKey, isSensitiveDataValue } from "./utils"
 
 export class BlockFieldsService {
   static entries: Record<string, BlockFieldEntry[]> = {}
@@ -50,23 +51,15 @@ export class BlockFieldsService {
     return entry
   }
 
-  static isContained(
-    arr: string[],
-    str: string,
-  ): { fully: boolean; partially: boolean } {
-    let res = { fully: false, partially: false }
+  static isContained(arr: string[], str: string): boolean {
     const strLower = str.toLowerCase()
     arr.forEach(e => {
       const entryLower = e.toLowerCase()
       if (entryLower === strLower) {
-        res["fully"] = true
-        res["partially"] = true
-        return res
-      } else if (entryLower.includes(strLower)) {
-        res["partially"] = true
+        return true
       }
     })
-    return res
+    return false
   }
 
   static recursiveParseBody(
@@ -81,7 +74,7 @@ export class BlockFieldsService {
     if (dataType === DataType.OBJECT) {
       for (const key in jsonBody) {
         const contained = this.isContained(disabledPaths, `${path}.${key}`)
-        if (redacted || contained.fully) {
+        if (redacted || contained || isSensitiveDataKey(key)) {
           jsonBody[key] = this.recursiveParseBody(
             `${dataPath}.${key}`,
             dataSection,
@@ -89,7 +82,7 @@ export class BlockFieldsService {
             disabledPaths,
             true,
           )
-        } else if (contained.partially) {
+        } else {
           jsonBody[key] = this.recursiveParseBody(
             `${dataPath}.${key}`,
             dataSection,
@@ -110,7 +103,7 @@ export class BlockFieldsService {
         )
       })
     } else {
-      if (redacted) {
+      if (redacted || isSensitiveDataValue(jsonBody)) {
         return "[REDACTED]"
       }
       return jsonBody
@@ -126,13 +119,11 @@ export class BlockFieldsService {
     if (!body) {
       return
     }
-    if (!disabledPaths || disabledPaths?.length === 0) {
-      return body
-    }
     let redacted = false
-    if (this.isContained(disabledPaths, dataSection).fully) {
+    if (this.isContained(disabledPaths, dataSection)) {
       redacted = true
     }
+
     let jsonBody = parsedJson(body)
     if (jsonBody) {
       const dataType = getDataType(jsonBody)
@@ -142,7 +133,7 @@ export class BlockFieldsService {
             disabledPaths,
             `${dataSection}.${key}`,
           )
-          if (redacted || contained.fully) {
+          if (redacted || contained || isSensitiveDataKey(key)) {
             jsonBody[key] = this.recursiveParseBody(
               key,
               dataSection,
@@ -150,7 +141,7 @@ export class BlockFieldsService {
               disabledPaths,
               true,
             )
-          } else if (contained.partially) {
+          } else {
             jsonBody[key] = this.recursiveParseBody(
               key,
               dataSection,
@@ -170,14 +161,10 @@ export class BlockFieldsService {
             redacted,
           )
         })
-      } else {
-        if (redacted) {
-          jsonBody = "[REDACTED]"
-        }
       }
     } else {
-      if (redacted) {
-        jsonBody = "[REDACTED]"
+      if (redacted || isSensitiveDataValue(body)) {
+        body = "[REDACTED]"
       }
     }
     return jsonBody ?? body
@@ -191,11 +178,8 @@ export class BlockFieldsService {
     if (!data) {
       return data
     }
-    if (!disabledPaths || disabledPaths?.length === 0) {
-      return data
-    }
     let redacted = false
-    if (this.isContained(disabledPaths, dataSection).fully) {
+    if (this.isContained(disabledPaths, dataSection)) {
       redacted = true
     }
     return data.map(item => {
@@ -203,9 +187,6 @@ export class BlockFieldsService {
         disabledPaths,
         `${dataSection}.${item.name}`,
       )
-      if (!redacted && !contained.fully && !contained.partially) {
-        return item
-      }
 
       return {
         name: item.name,
@@ -214,7 +195,7 @@ export class BlockFieldsService {
           dataSection,
           parsedJsonNonNull(item.value, true),
           disabledPaths,
-          redacted || contained.fully,
+          redacted || contained || isSensitiveDataKey(item.name),
         ),
       }
     })
@@ -222,39 +203,44 @@ export class BlockFieldsService {
 
   static async redactBlockedFields(apiTrace: QueuedApiTrace) {
     const blockFieldEntry = this.getBlockFieldsEntry(apiTrace)
-    if (blockFieldEntry) {
-      const disabledPaths = blockFieldEntry.disabledPaths
-      const validRequestParams = this.redactBlockedFieldsPairObject(
-        apiTrace.requestParameters,
-        "req.query",
-        disabledPaths.filter(e => e.includes("req.query")),
-      )
-      const validRequestHeaders = this.redactBlockedFieldsPairObject(
-        apiTrace.requestHeaders,
-        "req.headers",
-        disabledPaths.filter(e => e.includes("req.headers")),
-      )
-      const validRequestBody = this.redactBlockedFieldsBodyData(
-        apiTrace.requestBody,
-        "req.body",
-        disabledPaths.filter(e => e.includes("req.body")),
-      )
-      const validResponseHeaders = this.redactBlockedFieldsPairObject(
-        apiTrace.responseHeaders,
-        "res.headers",
-        disabledPaths.filter(e => e.includes("res.headers")),
-      )
-      const validResponseBody = this.redactBlockedFieldsBodyData(
-        apiTrace.responseBody,
-        "res.body",
-        disabledPaths.filter(e => e.includes("res.body")),
-      )
-
-      apiTrace.requestParameters = validRequestParams
-      apiTrace.requestHeaders = validRequestHeaders
-      apiTrace.requestBody = validRequestBody
-      apiTrace.responseHeaders = validResponseHeaders
-      apiTrace.responseBody = validResponseBody
+    const disabledPaths = blockFieldEntry?.disabledPaths ?? {
+      reqQuery: [],
+      reqHeaders: [],
+      reqBody: [],
+      resHeaders: [],
+      resBody: [],
     }
+    console.log(disabledPaths)
+    const validRequestParams = this.redactBlockedFieldsPairObject(
+      apiTrace.requestParameters,
+      "req.query",
+      disabledPaths.reqQuery,
+    )
+    const validRequestHeaders = this.redactBlockedFieldsPairObject(
+      apiTrace.requestHeaders,
+      "req.headers",
+      disabledPaths.reqHeaders,
+    )
+    const validRequestBody = this.redactBlockedFieldsBodyData(
+      apiTrace.requestBody,
+      "req.body",
+      disabledPaths.reqBody,
+    )
+    const validResponseHeaders = this.redactBlockedFieldsPairObject(
+      apiTrace.responseHeaders,
+      "res.headers",
+      disabledPaths.resHeaders,
+    )
+    const validResponseBody = this.redactBlockedFieldsBodyData(
+      apiTrace.responseBody,
+      "res.body",
+      disabledPaths.resBody,
+    )
+
+    apiTrace.requestParameters = validRequestParams
+    apiTrace.requestHeaders = validRequestHeaders
+    apiTrace.requestBody = validRequestBody
+    apiTrace.responseHeaders = validResponseHeaders
+    apiTrace.responseBody = validResponseBody
   }
 }

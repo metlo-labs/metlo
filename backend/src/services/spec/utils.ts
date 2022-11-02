@@ -243,9 +243,7 @@ export const generateAlertMessageFromRespErrors = (
         errorMessage = `Required property '${path}' is missing from response body.`
         break
       case "type":
-        if (isDisabledPath) {
-          ignoreError = true
-        }
+        ignoreError = true
         errorMessage = `Property '${path}' ${error.message} in response body.`
         break
       case "additionalProperties":
@@ -269,9 +267,7 @@ export const generateAlertMessageFromRespErrors = (
           `Property '${path}' is present in response body without matching any schemas/definitions in the OpenAPI Spec.`
         break
       case "format":
-        if (isDisabledPath) {
-          ignoreError = true
-        }
+        ignoreError = true
         errorMessage = `Property '${path}' ${error.message} in response body.`
         break
       default:

@@ -510,10 +510,18 @@ export interface AuthenticationConfig {
   cookieName: string
 }
 
+interface DisabledPathSection {
+  reqQuery: string[]
+  reqHeaders: string[]
+  reqBody: string[]
+  resHeaders: string[]
+  resBody: string[]
+}
+
 export interface BlockFieldEntry {
   path: string
   pathRegex: string
   method: DisableRestMethod,
   numberParams: number
-  disabledPaths: string[]
+  disabledPaths: DisabledPathSection
 }

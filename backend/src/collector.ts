@@ -44,11 +44,27 @@ const addToBlockFields = (
   pathRegex: string,
   disabledPaths: string[],
 ) => {
+  const disabledPathsObj = {
+    reqQuery: [],
+    reqHeaders: [],
+    reqBody: [],
+    resHeaders: [],
+    resBody: [],
+  }
+  disabledPaths.forEach(path => {
+    if (path.includes("req.query")) disabledPathsObj.reqQuery.push(path)
+    else if (path.includes("req.headers"))
+      disabledPathsObj.reqHeaders.push(path)
+    else if (path.includes("req.body")) disabledPathsObj.reqBody.push(path)
+    else if (path.includes("res.headers"))
+      disabledPathsObj.resHeaders.push(path)
+    else if (path.includes("res.body")) disabledPathsObj.resBody.push(path)
+  })
   const entry = {
     method,
     path,
     pathRegex,
-    disabledPaths,
+    disabledPaths: disabledPathsObj,
     numberParams: BlockFieldsService.getNumberParams(pathRegex, method, path),
   }
   if (blockFieldsEntries[host]) {

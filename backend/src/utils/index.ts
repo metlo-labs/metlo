@@ -116,7 +116,12 @@ export const getDataType = (data: any): DataType => {
 
 export const parsedJson = (jsonString: string): any => {
   try {
-    return JSON.parse(jsonString)
+    if (typeof jsonString === "object" || Array.isArray(jsonString)) {
+      return jsonString
+    }
+    const parsed = JSON.parse(jsonString)
+    const isNonScalar = typeof parsed === "object" || Array.isArray(parsed)
+    return isNonScalar ? parsed : null
   } catch (err) {
     return null
   }
@@ -127,7 +132,12 @@ export const parsedJsonNonNull = (
   returnString?: boolean,
 ): any => {
   try {
-    return JSON.parse(jsonString)
+    if (typeof jsonString === "object" || Array.isArray(jsonString)) {
+      return jsonString
+    }
+    const parsed = JSON.parse(jsonString)
+    const isNonScalar = typeof parsed === "object" || Array.isArray(parsed)
+    return isNonScalar ? parsed : jsonString
   } catch (err) {
     if (returnString) {
       return jsonString

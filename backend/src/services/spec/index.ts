@@ -489,7 +489,7 @@ export class SpecService {
       const respErrorItems = generateAlertMessageFromRespErrors(
         responseErrors as AjvError[],
         responses?.path,
-        blockFieldEntry?.disabledPaths ?? [],
+        blockFieldEntry?.disabledPaths?.resBody ?? [],
       )
 
       const errorItems = { ...respErrorItems }
