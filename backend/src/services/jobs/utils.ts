@@ -44,8 +44,13 @@ export const parseSchema = (bodySchema: BodySchema, parsedBody: any) => {
     }
     return bodySchema
   } else if (dataType === DataType.UNKNOWN) {
+    if (bodySchema?.type) {
+      return {
+        type: bodySchema?.type,
+        nullable: true,
+      }
+    }
     return {
-      type: bodySchema?.type ?? DataType.UNKNOWN,
       nullable: true,
     }
   } else {

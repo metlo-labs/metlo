@@ -840,7 +840,7 @@ export async function push_files({
   id,
   instance_url,
   ...rest
-}: RESPONSE["data"]): Promise<RESPONSE> {  
+}: RESPONSE["data"]): Promise<RESPONSE> {
   const instance_name = instance_url.split("/").at(-1)
   let [key, raw] = createApiKey(`Metlo-collector-${id}`)
   key.for = API_KEY_TYPE.GCP
@@ -861,10 +861,7 @@ export async function push_files({
     )
 
     put_data_file(
-      format(filepath_ingestor_in, [
-        `${process.env.BACKEND_URL}`,
-        raw,
-      ]),
+      format(filepath_ingestor_in, [`${process.env.BACKEND_URL}`, raw]),
       filepath_ingestor_out,
     )
     put_data_file(

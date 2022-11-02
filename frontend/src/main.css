@@ -64,3 +64,5 @@
 .highlight-line.dark {
   background-color: var(--chakra-colors-orange-800);
 }
+
+.monaco-editor-overlaymessage { display: none !important; }

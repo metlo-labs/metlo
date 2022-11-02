@@ -4,6 +4,9 @@ import {
   ApiEndpointTest,
   ApiTrace,
   AggregateTraceDataHourly,
+  Alert,
+  DataField,
+  OpenApiSpec,
 } from "models"
 import {
   GetEndpointParams,
@@ -16,6 +19,28 @@ import { Test } from "@metlo/testing"
 import Error404NotFound from "errors/error-404-not-found"
 import { getRiskScore } from "utils"
 import { getEndpointsCountQuery, getEndpointsQuery } from "./queries"
+
+const GET_DATA_FIELDS_QUERY = `
+SELECT
+  uuid,
+  "dataClasses"::text[],
+  "falsePositives"::text[],
+  "scannerIdentified"::text[],
+  "dataType",
+  "dataTag",
+  "dataSection",
+  "createdAt",
+  "updatedAt",
+  "dataPath",
+  "apiEndpointUuid"
+FROM
+  data_field
+WHERE
+  "apiEndpointUuid" = $1
+ORDER BY
+  "dataTag" ASC,
+  "dataPath" ASC
+`
 
 export class GetEndpointsService {
   static async updateIsAuthenticated(
@@ -118,29 +143,29 @@ export class GetEndpointsService {
     const queryRunner = AppDataSource.createQueryRunner()
     try {
       await queryRunner.connect()
-      const endpoint = await queryRunner.manager.findOne(ApiEndpoint, {
-        select: {
-          alerts: {
-            uuid: true,
-            status: true,
-          },
-        },
-        where: { uuid: endpointId },
-        relations: {
-          dataFields: true,
-          openapiSpec: true,
-          alerts: true,
-        },
-        order: {
-          dataFields: {
-            dataTag: "ASC",
-            dataPath: "ASC",
-          },
-        },
-      })
+      const endpoint = await queryRunner.manager
+        .createQueryBuilder()
+        .from(ApiEndpoint, "endpoint")
+        .where("uuid = :id", { id: endpointId })
+        .getRawOne()
       if (!endpoint) {
         throw new Error404NotFound("Endpoint does not exist.")
       }
+      const alerts = await queryRunner.manager
+        .createQueryBuilder()
+        .select(["uuid", "status"])
+        .from(Alert, "alert")
+        .where(`"apiEndpointUuid" = :id`, { id: endpointId })
+        .getRawMany()
+      const dataFields: DataField[] = await queryRunner.query(
+        GET_DATA_FIELDS_QUERY,
+        [endpointId],
+      )
+      const openapiSpec = await queryRunner.manager
+        .createQueryBuilder()
+        .from(OpenApiSpec, "spec")
+        .where("name = :name", { name: endpoint.openapiSpecName })
+        .getRawOne()
       const traces = await queryRunner.manager.find(ApiTrace, {
         where: { apiEndpointUuid: endpoint.uuid },
         order: { createdAt: "DESC" },
@@ -151,6 +176,9 @@ export class GetEndpointsService {
       })
       return {
         ...endpoint,
+        alerts,
+        dataFields,
+        openapiSpec,
         traces: [...traces],
         tests: tests as Array<Test>,
       }

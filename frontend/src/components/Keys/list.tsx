@@ -130,8 +130,8 @@ const ListKeys: React.FC<ListKeysInterface> = ({ keys, setKeys }) => {
             <AlertDialogHeader>Confirm Deletion of API Key</AlertDialogHeader>
             <AlertDialogCloseButton />
             <AlertDialogBody>
-              Confirm deletion of API Key : 
-              <span style={{ fontWeight: "bold", paddingInlineStart: 4   }}>
+              Confirm deletion of API Key :
+              <span style={{ fontWeight: "bold", paddingInlineStart: 4 }}>
                 {deletePromptKeyName}
               </span>
             </AlertDialogBody>
