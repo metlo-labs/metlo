@@ -3,7 +3,7 @@ import { getDataType, isParameter, parsedJson, parsedJsonNonNull } from "utils"
 import { BlockFieldEntry, PairObject, QueuedApiTrace } from "@common/types"
 import { getPathTokens } from "@common/utils"
 import { BLOCK_FIELDS_ALL_REGEX } from "~/constants"
-import { isSensitiveDataKey, isSensitiveDataValue } from "./utils"
+import { isSensitiveDataKey } from "./utils"
 
 export class BlockFieldsService {
   static entries: Record<string, BlockFieldEntry[]> = {}
@@ -103,7 +103,7 @@ export class BlockFieldsService {
         )
       })
     } else {
-      if (redacted || isSensitiveDataValue(jsonBody)) {
+      if (redacted) {
         return "[REDACTED]"
       }
       return jsonBody
@@ -163,7 +163,7 @@ export class BlockFieldsService {
         })
       }
     } else {
-      if (redacted || isSensitiveDataValue(body)) {
+      if (redacted) {
         body = "[REDACTED]"
       }
     }
