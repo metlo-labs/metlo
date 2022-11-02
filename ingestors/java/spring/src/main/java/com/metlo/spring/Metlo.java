@@ -1,53 +1,49 @@
 package com.metlo.spring;
 
-import com.google.gson.Gson;
+import com.metlo.spring.utils.ContentCachingResponseWrapperWithHeaderNames;
+import com.metlo.spring.utils.RateLimitingRequests;
+
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
-import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import com.metlo.spring.utils.RequestParse;
 
 public class Metlo extends OncePerRequestFilter {
     private static final int DEFAULT_THREAD_POOL_SIZE = 2;
 
     private static final int DEFAULT_RPS = 10;
-    private final static String endpoint = "/api/v1/log-request/single";
-    private final ThreadPoolExecutor pool;
-    private final String METLO_KEY;
-    private final String METLO_ADDR;
+    private final static String endpoint = "api/v1/log-request/single";
 
     private final Boolean enabled;
 
+    private final RateLimitingRequests req;
+
     public Metlo(String host, String api_key) {
-        this(DEFAULT_THREAD_POOL_SIZE, host, api_key,DEFAULT_RPS);
-    }
-    public Metlo(String host, String api_key, Integer rps) {
-        this(DEFAULT_THREAD_POOL_SIZE, host, api_key,rps);
+        this(DEFAULT_THREAD_POOL_SIZE, host, api_key, DEFAULT_RPS);
     }
 
-    public Metlo(int pool_size, String host, String api_key,Integer rps) {
-        this.METLO_KEY = api_key;
-        this.METLO_ADDR = host + Metlo.endpoint;
-        this.pool = new ThreadPoolExecutor(0, pool_size,
-                60L, TimeUnit.SECONDS,
-                new SynchronousQueue<Runnable>());
+    public Metlo(String host, String api_key, Integer rps) {
+        this(DEFAULT_THREAD_POOL_SIZE, host, api_key, rps);
+    }
+
+    public Metlo(int pool_size, String host, String api_key, Integer rps) {
+
+        String METLO_ADDR = host;
+        if (host.charAt(host.length() - 1) == '/') {
+            METLO_ADDR += endpoint;
+        } else {
+            METLO_ADDR += "/" + endpoint;
+        }
+        this.req = new RateLimitingRequests(rps, pool_size, METLO_ADDR, api_key);
+
         String enabled = System.getenv("METLO_ENABLED");
         if (enabled != null) {
             this.enabled = Boolean.parseBoolean(enabled);
@@ -56,33 +52,13 @@ public class Metlo extends OncePerRequestFilter {
         }
     }
 
-    private void pushRequest(Map<String, Object> data) throws IOException {
-        URL url = new URL(this.METLO_ADDR);
-        URLConnection con = url.openConnection();
-        HttpURLConnection http = (HttpURLConnection) con;
-        http.setRequestMethod("POST"); // PUT is another valid option
-        http.setRequestProperty("Authorization", this.METLO_KEY);
-        http.setDoOutput(true);
-        Gson gson = new Gson();
-        String json = gson.toJson(data);
-
-        byte[] out = json.getBytes(StandardCharsets.UTF_8);
-        int length = out.length;
-
-        http.setFixedLengthStreamingMode(length);
-        http.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-        http.connect();
-        try (OutputStream os = http.getOutputStream()) {
-            os.write(out);
-        }
-    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
         ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
-        ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
+        ContentCachingResponseWrapperWithHeaderNames responseWrapper = new ContentCachingResponseWrapperWithHeaderNames(response);
 
         filterChain.doFilter(requestWrapper, responseWrapper);
         if (this.enabled) {
@@ -91,13 +67,7 @@ public class Metlo extends OncePerRequestFilter {
             String responseBody = getStringValue(responseWrapper.getContentAsByteArray(),
                     response.getCharacterEncoding());
 
-            this.pool.submit(() -> {
-                try {
-                    this.pushRequest(createDataBinding(requestWrapper, responseWrapper, requestBody, responseBody));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
+            this.req.send(createDataBinding(requestWrapper, responseWrapper, requestBody, responseBody));
             responseWrapper.copyBodyToResponse();
         }
     }
@@ -111,7 +81,7 @@ public class Metlo extends OncePerRequestFilter {
         return "";
     }
 
-    private Map<String, Object> createDataBinding(HttpServletRequest request, HttpServletResponse response, String request_body, String response_body) throws Exception {
+    private Map<String, Object> createDataBinding(HttpServletRequest request, ContentCachingResponseWrapperWithHeaderNames response, String request_body, String response_body) {
         Map<String, Object> DATA = new HashMap<String, Object>();
         Map<String, Object> REQUEST = new HashMap<>();
         Map<String, Object> REQUEST_URL = new HashMap<>();
@@ -163,8 +133,8 @@ public class Metlo extends OncePerRequestFilter {
         List<Map<String, String>> _formatted_params_ = new ArrayList<>();
         for (Map.Entry<String, String[]> entry_raw : map.entrySet()) {
             HashMap<String, String> entry = new HashMap<String, String>();
-            entry.put("Name", entry_raw.getKey());
-            entry.put("Value", "[" + String.join(",", entry_raw.getValue()) + "]");
+            entry.put("name", entry_raw.getKey());
+            entry.put("value", "[" + String.join(",", entry_raw.getValue()) + "]");
             _formatted_params_.add(entry);
         }
         return _formatted_params_;
@@ -176,8 +146,8 @@ public class Metlo extends OncePerRequestFilter {
             String headerName = headerNameIter.next();
             String headerValue = headerValueForName.apply(headerName);
             Map<String, String> individualHeader = new HashMap<String, String>();
-            individualHeader.put("Name", headerName);
-            individualHeader.put("Value", headerValue);
+            individualHeader.put("name", headerName);
+            individualHeader.put("value", headerValue);
             headers.add(individualHeader);
         }
         return headers;
@@ -188,8 +158,8 @@ public class Metlo extends OncePerRequestFilter {
         for (String headerName : headerNames) {
             String headerValue = headerValueForName.apply(headerName);
             Map<String, String> individualHeader = new HashMap<String, String>();
-            individualHeader.put("Name", headerName);
-            individualHeader.put("Value", headerValue);
+            individualHeader.put("name", headerName);
+            individualHeader.put("value", headerValue);
             headers.add(individualHeader);
         }
         return headers;
