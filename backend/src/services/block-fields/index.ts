@@ -53,12 +53,12 @@ export class BlockFieldsService {
 
   static isContained(arr: string[], str: string): boolean {
     const strLower = str.toLowerCase()
-    arr.forEach(e => {
-      const entryLower = e.toLowerCase()
+    for (const e of arr) {
+      const entryLower = e.toLowerCase().trim()
       if (entryLower === strLower) {
         return true
       }
-    })
+    }
     return false
   }
 
