@@ -1,5 +1,4 @@
 import {
-  BaseEntity,
   Entity,
   PrimaryColumn,
   Column,
@@ -8,9 +7,10 @@ import {
 } from "typeorm"
 import { SpecExtension } from "@common/enums"
 import { MinimizedSpecContext } from "@common/types"
+import MetloBaseEntity from "./metlo-base-entity"
 
 @Entity()
-export class OpenApiSpec extends BaseEntity {
+export class OpenApiSpec extends MetloBaseEntity {
   @PrimaryColumn()
   name: string
 

@@ -1,8 +1,10 @@
 import { UsageStats } from "@common/types"
-import cache from "memory-cache"
+import { Alert, ApiEndpoint, DataField } from "models"
 import { DatabaseService } from "services/database"
+import { MetloContext } from "types"
+import { RedisClient } from "utils/redis"
 
-export const getUsageStats = async () => {
+export const getUsageStats = async (ctx: MetloContext) => {
   const statsQuery = `
     SELECT
       DATE_TRUNC('day', traces.hour) as day,
@@ -38,13 +40,16 @@ export const getUsageStats = async () => {
   } as UsageStats
 }
 
-export const getUsageStatsCached = async () => {
-  const cacheRes: UsageStats | null = cache.get("usageStats")
+export const getUsageStatsCached = async (ctx: MetloContext) => {
+  const cacheRes: UsageStats | null = await RedisClient.getFromRedis(
+    ctx,
+    "usageStats",
+  )
   if (cacheRes) {
     return cacheRes
   }
-  const realRes = await getUsageStats()
-  cache.put("usageStats", realRes, 60000)
+  const realRes = await getUsageStats(ctx)
+  await RedisClient.addToRedis(ctx, "usageStats", realRes, 60)
   return realRes
 }
 
@@ -56,22 +61,22 @@ interface CountsResponse {
   highRiskAlerts: number
 }
 
-export const getCounts = async () => {
+export const getCounts = async (ctx: MetloContext) => {
   const newAlertQuery = `
     SELECT
       CAST(COUNT(*) AS INTEGER) as count,
       CAST(SUM(CASE WHEN "riskScore" = 'high' THEN 1 ELSE 0 END) AS INTEGER) as high_risk_count
-    FROM alert WHERE status = 'Open'
+    FROM ${Alert.getTableName(ctx)} WHERE status = 'Open'
   `
   const endpointsTrackedQuery = `
     SELECT
       CAST(COUNT(*) AS INTEGER) as endpoint_count,
       CAST(COUNT(DISTINCT(host)) AS INTEGER) as host_count
-    FROM api_endpoint
+    FROM ${ApiEndpoint.getTableName(ctx)}
   `
   const piiDataFieldsQuery = `
     SELECT CAST(COUNT(*) AS INTEGER) as count
-    FROM data_field WHERE "dataTag" = 'PII'
+    FROM ${DataField.getTableName(ctx)} WHERE "dataTag" = 'PII'
   `
   const [newAlertQueryRes, endpointsTrackedQueryRes, piiDataFieldsQueryRes] =
     await DatabaseService.executeRawQueries([
@@ -93,12 +98,15 @@ export const getCounts = async () => {
   }
 }
 
-export const getCountsCached = async () => {
-  const cacheRes: CountsResponse | null = cache.get("usageCounts")
+export const getCountsCached = async (ctx: MetloContext) => {
+  const cacheRes: CountsResponse | null = await RedisClient.getFromRedis(
+    ctx,
+    "usageCounts",
+  )
   if (cacheRes) {
     return cacheRes
   }
-  const realRes = await getCounts()
-  cache.put("usageCounts", realRes, 5000)
+  const realRes = await getCounts(ctx)
+  await RedisClient.addToRedis(ctx, "usageCounts", realRes, 60)
   return realRes
 }

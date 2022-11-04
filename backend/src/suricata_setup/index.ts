@@ -14,7 +14,6 @@ import {
 import { delete_aws_data } from "./aws-services/delete"
 import { test_ssh, push_files, execute_commands } from "./ssh-services"
 import { v4 as uuidv4 } from "uuid"
-import { addToRedis, addToRedisFromPromise } from "./utils"
 import { ConnectionsService } from "services/connections"
 import {
   get_destination_subnet,
@@ -32,6 +31,8 @@ import {
   execute_commands as gcp_execute_commands,
 } from "./gcp-services/gcp_setup"
 import { delete_gcp_data } from "./gcp-services/delete"
+import { RedisClient } from "utils/redis"
+import { MetloContext } from "types"
 
 function dummy_response(uuid, step, data, type: ConnectionType) {
   if (type == ConnectionType.AWS) {
@@ -62,6 +63,7 @@ function dummy_response(uuid, step, data, type: ConnectionType) {
 }
 
 export async function setup(
+  ctx: MetloContext,
   step: number = 0,
   type: ConnectionType,
   metadata_for_step: STEP_RESPONSE["data"],
@@ -93,8 +95,9 @@ export async function setup(
       case 10:
         uuid = uuidv4()
         resp = dummy_response(uuid, 10, metadata_for_step, ConnectionType.AWS)
-        await addToRedis(uuid, resp)
-        addToRedisFromPromise(
+        await RedisClient.addToRedis(ctx, uuid, resp)
+        RedisClient.addToRedisFromPromise(
+          ctx,
           uuid,
           test_ssh({
             ...metadata,
@@ -105,8 +108,9 @@ export async function setup(
       case 11:
         uuid = uuidv4()
         resp = dummy_response(uuid, 11, metadata_for_step, ConnectionType.AWS)
-        await addToRedis(uuid, resp)
-        addToRedisFromPromise(
+        await RedisClient.addToRedis(ctx, uuid, resp)
+        RedisClient.addToRedisFromPromise(
+          ctx,
           uuid,
           push_files({
             ...metadata,
@@ -117,8 +121,9 @@ export async function setup(
       case 12:
         uuid = uuidv4()
         resp = dummy_response(uuid, 12, metadata_for_step, ConnectionType.AWS)
-        await addToRedis(uuid, resp)
-        addToRedisFromPromise(
+        await RedisClient.addToRedis(ctx, uuid, resp)
+        RedisClient.addToRedisFromPromise(
+          ctx,
           uuid,
           execute_commands({
             ...metadata,
@@ -150,8 +155,12 @@ export async function setup(
       case GCP_STEPS.CREATE_DESTINATION_SUBNET:
         uuid = uuidv4()
         resp = await dummy_response(uuid, 3, metadata, ConnectionType.GCP)
-        await addToRedis(uuid, resp)
-        addToRedisFromPromise(uuid, get_destination_subnet(metadata))
+        await RedisClient.addToRedis(ctx, uuid, resp)
+        RedisClient.addToRedisFromPromise(
+          ctx,
+          uuid,
+          get_destination_subnet(metadata),
+        )
         return resp
       case GCP_STEPS.CREATE_FIREWALL:
         return await create_firewall_rule(metadata)
@@ -160,35 +169,47 @@ export async function setup(
       case GCP_STEPS.CREATE_MIG:
         uuid = uuidv4()
         resp = dummy_response(uuid, 6, metadata, ConnectionType.GCP)
-        await addToRedis(uuid, resp)
-        addToRedisFromPromise(uuid, create_mig(metadata))
+        await RedisClient.addToRedis(ctx, uuid, resp)
+        RedisClient.addToRedisFromPromise(ctx, uuid, create_mig(metadata))
         return resp
       case GCP_STEPS.CREATE_HEALTH_CHECK:
         uuid = uuidv4()
         resp = dummy_response(uuid, 8, metadata, ConnectionType.GCP)
-        await addToRedis(uuid, resp)
-        addToRedisFromPromise(uuid, create_health_check(metadata))
+        await RedisClient.addToRedis(ctx, uuid, resp)
+        RedisClient.addToRedisFromPromise(
+          ctx,
+          uuid,
+          create_health_check(metadata),
+        )
         return resp
       case GCP_STEPS.CREATE_BACKEND_SERVICE:
         uuid = uuidv4()
         resp = dummy_response(uuid, 9, metadata, ConnectionType.GCP)
-        await addToRedis(uuid, resp)
+        await RedisClient.addToRedis(ctx, uuid, resp)
 
-        addToRedisFromPromise(uuid, create_backend_service(metadata))
+        RedisClient.addToRedisFromPromise(
+          ctx,
+          uuid,
+          create_backend_service(metadata),
+        )
         return resp
       case GCP_STEPS.CREATE_ILB:
         uuid = uuidv4()
         resp = dummy_response(uuid, 10, metadata, ConnectionType.GCP)
-        await addToRedis(uuid, resp)
+        await RedisClient.addToRedis(ctx, uuid, resp)
 
-        addToRedisFromPromise(uuid, create_load_balancer(metadata))
+        RedisClient.addToRedisFromPromise(
+          ctx,
+          uuid,
+          create_load_balancer(metadata),
+        )
         return resp
       case GCP_STEPS.START_PACKET_MIRRORING:
         uuid = uuidv4()
         resp = dummy_response(uuid, 11, metadata, ConnectionType.GCP)
-        await addToRedis(uuid, resp)
+        await RedisClient.addToRedis(ctx, uuid, resp)
 
-        addToRedisFromPromise(uuid, packet_mirroring(metadata))
+        RedisClient.addToRedisFromPromise(ctx, uuid, packet_mirroring(metadata))
         return resp
       case GCP_STEPS.TEST_SSH:
         uuid = uuidv4()
@@ -198,8 +219,8 @@ export async function setup(
           metadata,
           ConnectionType.GCP,
         )
-        await addToRedis(uuid, resp)
-        addToRedisFromPromise(uuid, gcp_test_ssh(metadata))
+        await RedisClient.addToRedis(ctx, uuid, resp)
+        RedisClient.addToRedisFromPromise(ctx, uuid, gcp_test_ssh(metadata))
         return resp
       case GCP_STEPS.PUSH_FILES:
         uuid = uuidv4()
@@ -209,8 +230,8 @@ export async function setup(
           metadata_for_step,
           ConnectionType.GCP,
         )
-        await addToRedis(uuid, resp)
-        addToRedisFromPromise(uuid, gcp_push_files(metadata))
+        await RedisClient.addToRedis(ctx, uuid, resp)
+        RedisClient.addToRedisFromPromise(ctx, uuid, gcp_push_files(metadata))
         return resp
       case GCP_STEPS.EXEC_COMMAND:
         uuid = uuidv4()
@@ -220,8 +241,9 @@ export async function setup(
           metadata_for_step,
           ConnectionType.GCP,
         )
-        await addToRedis(uuid, resp)
-        addToRedisFromPromise(
+        await RedisClient.addToRedis(ctx, uuid, resp)
+        RedisClient.addToRedisFromPromise(
+          ctx,
           uuid,
           gcp_execute_commands(metadata).then(resp => {
             if (resp.status === "COMPLETE") {

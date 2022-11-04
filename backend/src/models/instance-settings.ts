@@ -1,7 +1,8 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm"
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
+import MetloBaseEntity from "./metlo-base-entity"
 
 @Entity()
-export class InstanceSettings extends BaseEntity {
+export class InstanceSettings extends MetloBaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
 

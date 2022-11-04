@@ -4,7 +4,6 @@ import SwaggerParser from "@apidevtools/swagger-parser"
 import Converter from "swagger2openapi"
 import yaml from "js-yaml"
 import YAML from "yaml"
-import OpenAPIRequestValidator from "@leoscope/openapi-request-validator"
 import OpenAPIResponseValidator, {
   OpenAPIResponseValidatorValidationError,
 } from "@leoscope/openapi-response-validator"
@@ -22,22 +21,16 @@ import {
   OpenApiSpec as OpenApiSpecResponse,
   QueuedApiTrace,
 } from "@common/types"
-import { getPathTokens } from "@common/utils"
 import { AppDataSource } from "data-source"
-import { getPathRegex, isParameter, parsedJsonNonNull } from "utils"
+import { getPathRegex, parsedJsonNonNull } from "utils"
 import Error409Conflict from "errors/error-409-conflict"
 import Error422UnprocessableEntity from "errors/error-422-unprocessable-entity"
 import {
-  generateAlertMessageFromReqErrors,
   generateAlertMessageFromRespErrors,
   getOpenAPISpecVersion,
-  getSpecRequestParameters,
   getSpecResponses,
-  parsePathParameter,
-  SpecValue,
   AjvError,
   validateSpecSchema,
-  getSpecRequestBody,
   getHostsV3,
   getServersV3,
 } from "./utils"

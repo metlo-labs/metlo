@@ -1,8 +1,9 @@
 import { BaseEntity, Column, Entity, PrimaryColumn } from "typeorm"
 import { AuthType } from "@common/enums"
+import MetloBaseEntity from "./metlo-base-entity"
 
 @Entity()
-export class AuthenticationConfig extends BaseEntity {
+export class AuthenticationConfig extends MetloBaseEntity {
   @PrimaryColumn()
   host: string
 

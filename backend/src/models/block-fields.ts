@@ -1,5 +1,4 @@
 import {
-  BaseEntity,
   Column,
   Entity,
   PrimaryGeneratedColumn,
@@ -8,9 +7,10 @@ import {
 import { DisableRestMethod } from "@common/enums"
 import { isParameter } from "utils"
 import { getPathTokens } from "@common/utils"
+import MetloBaseEntity from "./metlo-base-entity"
 
 @Entity()
-export class BlockFields extends BaseEntity {
+export class BlockFields extends MetloBaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
 

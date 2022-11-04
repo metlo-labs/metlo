@@ -1,16 +1,17 @@
-import { Request, Response } from "express"
+import { Response } from "express"
 import ApiResponseHandler from "api-response-handler"
-import { AWS_CONNECTION, SSH_INFO, STEP_RESPONSE } from "@common/types"
+import { STEP_RESPONSE } from "@common/types"
 import { ConnectionType } from "@common/enums"
 import { setup } from "suricata_setup"
 import "express-session"
 import { EC2_CONN } from "suricata_setup/aws-services/create-ec2-instance"
 import { VirtualizationType } from "@aws-sdk/client-ec2"
-import { deleteKeyFromRedis, getFromRedis } from "suricata_setup/utils"
 import {
   list_images,
   list_machines,
 } from "suricata_setup/gcp-services/gcp_setup"
+import { MetloRequest } from "types"
+import { RedisClient } from "utils/redis"
 
 declare module "express-session" {
   interface SessionData {
@@ -28,7 +29,7 @@ declare module "express-session" {
 }
 
 export const setupConnection = async (
-  req: Request,
+  req: MetloRequest,
   res: Response,
 ): Promise<void> => {
   try {
@@ -50,7 +51,7 @@ export const setupConnection = async (
       ...params,
       id: id,
     }
-    let resp = await setup(step, type, combined_params)
+    let resp = await setup(req.ctx, step, type, combined_params)
     req.session.connection_config[id] = {
       ...req.session.connection_config[id],
       ...resp,
@@ -65,7 +66,7 @@ export const setupConnection = async (
 }
 
 export const awsOsChoices = async (
-  req: Request,
+  req: MetloRequest,
   res: Response,
 ): Promise<void> => {
   const { id } = req.body
@@ -79,7 +80,7 @@ export const awsOsChoices = async (
 }
 
 export const gcpOsChoices = async (
-  req: Request,
+  req: MetloRequest,
   res: Response,
 ): Promise<void> => {
   try {
@@ -96,7 +97,7 @@ export const gcpOsChoices = async (
 }
 
 export const awsInstanceChoices = async (
-  req: Request,
+  req: MetloRequest,
   res: Response,
 ): Promise<void> => {
   try {
@@ -119,7 +120,7 @@ export const awsInstanceChoices = async (
 }
 
 export const gcpInstanceChoices = async (
-  req: Request,
+  req: MetloRequest,
   res: Response,
 ): Promise<void> => {
   try {
@@ -145,12 +146,12 @@ export const gcpInstanceChoices = async (
   }
 }
 
-export const getLongRunningState = async (req: Request, res: Response) => {
+export const getLongRunningState = async (req: MetloRequest, res: Response) => {
   const { uuid } = req.params
   try {
-    let resp: STEP_RESPONSE = await getFromRedis(uuid)
+    let resp: STEP_RESPONSE = await RedisClient.getFromRedis(req.ctx, uuid)
     if (["OK", "FAIL"].includes(resp.success)) {
-      await deleteKeyFromRedis(uuid)
+      await RedisClient.deleteKeyFromRedis(req.ctx, uuid)
     }
     try {
       // try to add things to connection cache if they exist

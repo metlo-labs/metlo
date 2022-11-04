@@ -16,10 +16,11 @@ import { OpenApiSpec } from "models/openapi-spec"
 import { RestMethod, RiskScore } from "@common/enums"
 import { isParameter } from "utils"
 import { getPathTokens } from "@common/utils"
+import MetloBaseEntity from "./metlo-base-entity"
 
 @Entity()
 @Unique("unique_constraint_api_endpoint", ["path", "method", "host"])
-export class ApiEndpoint extends BaseEntity {
+export class ApiEndpoint extends MetloBaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
 

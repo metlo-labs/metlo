@@ -6,11 +6,13 @@ import { encryptEcb } from "utils/encryption"
 import { AuthenticationConfig as CachedAuthConfig } from "@common/types"
 import { AUTH_CONFIG_LIST_KEY } from "~/constants"
 import { RedisClient } from "utils/redis"
+import { MetloContext } from "types"
 
 export class AuthenticationConfigService {
-  static async setSessionMetadata(apiTrace: QueuedApiTrace) {
+  static async setSessionMetadata(ctx: MetloContext, apiTrace: QueuedApiTrace) {
     const redisKey = `auth_config_${apiTrace.host}`
     let cachedAuthConfig: CachedAuthConfig = await RedisClient.getFromRedis(
+      ctx,
       redisKey,
     )
     if (!cachedAuthConfig) {
@@ -30,8 +32,8 @@ export class AuthenticationConfigService {
       } else {
         cachedAuthConfig = {} as CachedAuthConfig
       }
-      RedisClient.addToRedis(redisKey, cachedAuthConfig)
-      RedisClient.addValueToSet(AUTH_CONFIG_LIST_KEY, [
+      RedisClient.addToRedis(ctx, redisKey, cachedAuthConfig)
+      RedisClient.addValueToSet(ctx, AUTH_CONFIG_LIST_KEY, [
         `auth_config_${apiTrace.host}`,
       ])
     }

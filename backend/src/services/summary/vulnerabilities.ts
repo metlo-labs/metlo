@@ -5,13 +5,14 @@ import {
   VulnerabilitySummary,
 } from "@common/types"
 import { ALERT_TYPE_TO_RISK_SCORE } from "@common/maps"
-import { AppDataSource } from "data-source"
+import { Alert } from "models"
+import { MetloContext } from "types"
+import { DatabaseService } from "services/database"
 
 export const getVulnerabilityAgg = async (
+  ctx: MetloContext,
   params: GetVulnerabilityAggParams,
 ) => {
-  const queryRunner = AppDataSource.createQueryRunner()
-
   let queryParams = []
   let alertFilters: string[] = []
 
@@ -44,7 +45,7 @@ export const getVulnerabilityAgg = async (
       alert.*,
       ${riskCase} as risk,
       api_endpoint.host as host
-    FROM alert
+    FROM ${Alert.getTableName(ctx)}
     JOIN api_endpoint ON alert."apiEndpointUuid" = api_endpoint.uuid
     ${alertFilter}
   `
@@ -67,16 +68,10 @@ export const getVulnerabilityAgg = async (
     FROM filtered_alerts 
   `
 
-  const vulnerabilityItemRes: VulnerabilityAggItem[] = await queryRunner.query(
-    vulnerabilityQuery,
-    queryParams,
-  )
-  const endpointRes: { count: number }[] = await queryRunner.query(
-    endpointQuery,
-    queryParams,
-  )
-
-  await queryRunner.release()
+  const vulnerabilityItemRes: VulnerabilityAggItem[] =
+    await DatabaseService.executeRawQuery(vulnerabilityQuery, queryParams)
+  const endpointRes: { count: number }[] =
+    await DatabaseService.executeRawQuery(endpointQuery, queryParams)
 
   return {
     vulnerabilityTypeCount: Object.fromEntries(

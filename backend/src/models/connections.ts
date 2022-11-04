@@ -1,6 +1,5 @@
 import {
   Entity,
-  BaseEntity,
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
@@ -16,9 +15,10 @@ import {
   SSH_INFO,
 } from "@common/types"
 import { encrypt, generate_iv } from "utils/encryption"
+import MetloBaseEntity from "./metlo-base-entity"
 
 @Entity()
-export class Connections extends BaseEntity {
+export class Connections extends MetloBaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
 

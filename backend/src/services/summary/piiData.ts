@@ -6,33 +6,38 @@ import {
 } from "@common/types"
 import { DATA_CLASS_TO_RISK_SCORE } from "@common/maps"
 import { AppDataSource } from "data-source"
-import cache from "memory-cache"
 import { DatabaseService } from "services/database"
+import { ApiEndpoint, DataField } from "models"
+import { MetloContext } from "types"
+import { RedisClient } from "utils/redis"
 
-export const getPIIDataTypeCount = async () => {
+export const getPIIDataTypeCount = async (ctx: MetloContext) => {
   const piiDataTypeCountRes: { type: DataClass; cnt: number }[] =
-    await DatabaseService.executeRawQueries(`
+    await DatabaseService.executeRawQuery(`
       SELECT data_class as type, CAST(COUNT(*) AS INTEGER) as cnt
-      FROM (SELECT UNNEST("dataClasses") as data_class FROM data_field) tbl
+      FROM (SELECT UNNEST("dataClasses") as data_class FROM ${DataField.getTableName(
+        ctx,
+      )}) tbl
       GROUP BY 1
     `)
   return Object.fromEntries(piiDataTypeCountRes.map(e => [e.type, e.cnt]))
 }
 
-export const getPIIDataTypeCountCached = async () => {
+export const getPIIDataTypeCountCached = async (ctx: MetloContext) => {
   const cacheRes: Record<DataClass, number> | null =
-    cache.get("PIIDataTypeCount")
+    await RedisClient.getFromRedis(ctx, "PIIDataTypeCount")
   if (cacheRes) {
     return cacheRes
   }
-  const realRes = await getPIIDataTypeCount()
-  cache.put("PIIDataTypeCount", realRes, 5000)
+  const realRes = await getPIIDataTypeCount(ctx)
+  await RedisClient.addToRedis(ctx, "PIIDataTypeCount", realRes, 5)
   return realRes
 }
 
-export const getPIIDataTypeAgg = async (params: GetSensitiveDataAggParams) => {
-  const queryRunner = AppDataSource.createQueryRunner()
-
+export const getPIIDataTypeAgg = async (
+  ctx: MetloContext,
+  params: GetSensitiveDataAggParams,
+) => {
   let queryParams = []
   let dataFieldFilters: string[] = []
   let riskFilter = ""
@@ -66,8 +71,10 @@ export const getPIIDataTypeAgg = async (params: GetSensitiveDataAggParams) => {
 
   const filtered_data_fields = `
     SELECT data_field.*, api_endpoint.host as host
-    FROM data_field
-    JOIN api_endpoint ON data_field."apiEndpointUuid" = api_endpoint.uuid
+    FROM ${DataField.getTableName(ctx)} data_field
+    JOIN ${ApiEndpoint.getTableName(
+      ctx,
+    )} api_endpoint ON data_field."apiEndpointUuid" = api_endpoint.uuid
     ${dataFieldFilter}
   `
   const unnest_fields = `
@@ -114,16 +121,14 @@ export const getPIIDataTypeAgg = async (params: GetSensitiveDataAggParams) => {
     FROM all_filtered_fields 
   `
 
-  const piiDataTypeRes: PIIDataClassAggItem[] = await queryRunner.query(
+  const piiDataTypeRes: PIIDataClassAggItem[] = await DatabaseService.executeRawQuery(
     piiQuery,
     queryParams,
   )
-  const endpointRes: { count: number }[] = await queryRunner.query(
+  const endpointRes: { count: number }[] = await DatabaseService.executeRawQuery(
     endpointQuery,
     queryParams,
   )
-
-  await queryRunner.release()
 
   return {
     piiDataTypeCount: Object.fromEntries(
