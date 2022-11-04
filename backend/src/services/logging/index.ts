@@ -2,8 +2,10 @@ import axios from "axios"
 import { AppDataSource } from "data-source"
 import { InstanceSettings } from "models"
 import { getCounts } from "services/summary/usageStats"
+import { MetloContext } from "types"
 
 export const logAggregatedStats = async () => {
+  const ctx: MetloContext = {}
   const settingRepository = AppDataSource.getRepository(InstanceSettings)
   const settingsLs = await settingRepository.find()
   if (settingsLs.length == 0) {
@@ -11,7 +13,7 @@ export const logAggregatedStats = async () => {
     return
   }
   const settings = settingsLs[0]
-  const counts = await getCounts()
+  const counts = await getCounts(ctx)
   await axios({
     url: "https://logger.metlo.com/log",
     method: "POST",
