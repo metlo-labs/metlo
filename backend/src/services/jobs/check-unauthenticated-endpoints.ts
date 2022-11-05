@@ -9,8 +9,7 @@ import { AlertService } from "services/alert"
 import { getQB } from "services/database/utils"
 import { MetloContext } from "types"
 
-const checkForUnauthenticatedEndpoints = async (): Promise<void> => {
-  const ctx: MetloContext = {}
+const checkForUnauthenticatedEndpoints = async (ctx: MetloContext): Promise<void> => {
   const queryRunner = AppDataSource.createQueryRunner()
   try {
     await queryRunner.connect()

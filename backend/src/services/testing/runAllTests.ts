@@ -3,8 +3,7 @@ import { runTest } from "@metlo/testing"
 import { getRepository } from "services/database/utils"
 import { MetloContext } from "types"
 
-export const runAllTests = async (): Promise<void> => {
-  const ctx: MetloContext = {}
+export const runAllTests = async (ctx: MetloContext): Promise<void> => {
   const testRepository = getRepository(ctx, ApiEndpointTest)
   const allTests = await testRepository.find({
     relations: {

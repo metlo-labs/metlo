@@ -10,6 +10,7 @@ import {
 import runAllTests from "services/testing/runAllTests"
 import { logAggregatedStats } from "services/logging"
 import { DateTime } from "luxon"
+import { MetloContext } from "types"
 
 const log = (logMessage: string, newLine?: boolean) =>
   console.log(
@@ -17,6 +18,7 @@ const log = (logMessage: string, newLine?: boolean) =>
   )
 
 const main = async () => {
+  const ctx: MetloContext = {}
   const datasource = await AppDataSource.initialize()
   if (!datasource.isInitialized) {
     console.error("Couldn't initialize datasource...")
@@ -34,7 +36,7 @@ const main = async () => {
   schedule.scheduleJob("*/10 * * * *", () => {
     generateSpecSem.take(async () => {
       log("Generating OpenAPI Spec Files...", true)
-      await generateOpenApiSpec()
+      await generateOpenApiSpec(ctx)
       log("Finished generating OpenAPI Spec Files.")
       generateSpecSem.leave()
     })
@@ -43,7 +45,7 @@ const main = async () => {
   schedule.scheduleJob("30 * * * * ", () => {
     checkForUnauthenticatedSem.take(async () => {
       log("Checking for Unauthenticated Endpoints", true)
-      await checkForUnauthenticatedEndpoints()
+      await checkForUnauthenticatedEndpoints(ctx)
       log("Finished checking for Unauthenticated Endpoints")
       checkForUnauthenticatedSem.leave()
     })
@@ -53,7 +55,7 @@ const main = async () => {
   schedule.scheduleJob("15 * * * *", () => {
     unsecuredAlertsSem.take(async () => {
       log("Generating Alerts for Unsecured Endpoints", true)
-      await monitorEndpointForHSTS()
+      await monitorEndpointForHSTS(ctx)
       log("Finished generating alerts for Unsecured Endpoints.")
       unsecuredAlertsSem.leave()
     })
@@ -62,7 +64,7 @@ const main = async () => {
   schedule.scheduleJob("30 * * * *", () => {
     testsSem.take(async () => {
       log("Running Tests...", true)
-      await runAllTests()
+      await runAllTests(ctx)
       log("Finished running tests.")
       testsSem.leave()
     })
@@ -71,7 +73,7 @@ const main = async () => {
   schedule.scheduleJob("*/10 * * * *", () => {
     clearApiTracesSem.take(async () => {
       log("Clearing Api Trace data...", true)
-      await clearApiTraces()
+      await clearApiTraces(ctx)
       log("Finished clearing Api Trace data.")
       clearApiTracesSem.leave()
     })
@@ -81,7 +83,7 @@ const main = async () => {
     schedule.scheduleJob("0 */6 * * *", () => {
       logAggregateStatsSem.take(async () => {
         log("Logging Aggregated Stats...", true)
-        await logAggregatedStats()
+        await logAggregatedStats(ctx)
         log("Finished Logging Aggregated Stats.")
         logAggregateStatsSem.leave()
       })

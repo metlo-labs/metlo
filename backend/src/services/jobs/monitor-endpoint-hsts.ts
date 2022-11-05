@@ -1,13 +1,11 @@
 import axios from "axios"
 import { ApiEndpoint, ApiTrace, Alert } from "models"
-import { AppDataSource } from "data-source"
 import { AlertService } from "services/alert"
 import { MetloContext } from "types"
 import { getRepoQB, getRepository } from "services/database/utils"
 
-const monitorEndpointForHSTS = async (): Promise<void> => {
+const monitorEndpointForHSTS = async (ctx: MetloContext): Promise<void> => {
   try {
-    const ctx: MetloContext = {}
     const apiTraceRepository = getRepository(ctx, ApiTrace)
     const alertsRepository = getRepository(ctx, Alert)
 

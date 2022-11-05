@@ -5,8 +5,7 @@ import { aggregateTracesDataHourlyQuery } from "./queries"
 import { MetloContext } from "types"
 import { getQB } from "services/database/utils"
 
-const clearApiTraces = async (): Promise<void> => {
-  const ctx: MetloContext = {}
+const clearApiTraces = async (ctx: MetloContext): Promise<void> => {
   const queryRunner = AppDataSource.createQueryRunner()
   await queryRunner.connect()
   try {

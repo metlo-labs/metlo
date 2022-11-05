@@ -9,9 +9,8 @@ import { parseSchema, parseContent } from "./utils"
 import { getRepoQB, getRepository } from "services/database/utils"
 import { MetloContext } from "types"
 
-const generateOpenApiSpec = async (): Promise<void> => {
+const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
   try {
-    const ctx: MetloContext = {}
     const apiEndpointRepository = getRepository(ctx, ApiEndpoint)
     const openApiSpecRepository = getRepository(ctx, OpenApiSpec)
     const nonSpecEndpoints = await apiEndpointRepository.findBy({
