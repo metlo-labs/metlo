@@ -20,7 +20,7 @@ import { isGraphQlEndpoint } from "services/graphql"
 import { isQueryFailedError, retryTypeormTransaction } from "utils/db"
 import { MetloContext } from "types"
 import { DatabaseService } from "services/database"
-import { getQB } from "services/database/utils"
+import { getEntityManager, getQB } from "services/database/utils"
 
 const getEndpointQuery = (ctx: MetloContext) => `
 SELECT
@@ -58,7 +58,7 @@ SELECT
   "dataPath",
   "apiEndpointUuid"
 FROM
-  ${DataField.getTableName(ctx)}
+  ${DataField.getTableName(ctx)} data_field
 WHERE
   "apiEndpointUuid" = $1
 `
@@ -115,7 +115,7 @@ const analyze = async (
   await queryRunner.startTransaction()
   await retryTypeormTransaction(
     () =>
-      queryRunner.manager.insert(ApiTrace, {
+      getEntityManager(ctx, queryRunner).insert(ApiTrace, {
         ...trace,
         apiEndpointUuid: apiEndpoint.uuid,
       }),
@@ -229,17 +229,17 @@ const generateEndpoint = async (
         await queryRunner.rollbackTransaction()
       }
       if (isQueryFailedError(err) && err.code === "23505") {
-        const existingEndpoint = await queryRunner.manager.findOne(
-          ApiEndpoint,
-          {
-            where: {
-              path: trace.path,
-              host: trace.host,
-              method: trace.method,
-            },
-            relations: { dataFields: true },
+        const existingEndpoint = await getEntityManager(
+          ctx,
+          queryRunner,
+        ).findOne(ApiEndpoint, {
+          where: {
+            path: trace.path,
+            host: trace.host,
+            method: trace.method,
           },
-        )
+          relations: { dataFields: true },
+        })
         if (existingEndpoint) {
           await analyze(ctx, trace, existingEndpoint, queryRunner)
         }

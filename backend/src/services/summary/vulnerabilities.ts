@@ -45,7 +45,7 @@ export const getVulnerabilityAgg = async (
       alert.*,
       ${riskCase} as risk,
       api_endpoint.host as host
-    FROM ${Alert.getTableName(ctx)}
+    FROM ${Alert.getTableName(ctx)} alert
     JOIN api_endpoint ON alert."apiEndpointUuid" = api_endpoint.uuid
     ${alertFilter}
   `

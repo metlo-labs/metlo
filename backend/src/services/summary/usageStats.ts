@@ -1,5 +1,11 @@
 import { UsageStats } from "@common/types"
-import { Alert, ApiEndpoint, DataField } from "models"
+import {
+  AggregateTraceDataHourly,
+  Alert,
+  ApiEndpoint,
+  ApiTrace,
+  DataField,
+} from "models"
 import { DatabaseService } from "services/database"
 import { MetloContext } from "types"
 import { RedisClient } from "utils/redis"
@@ -9,7 +15,7 @@ export const getUsageStats = async (ctx: MetloContext) => {
     SELECT
       DATE_TRUNC('day', traces.hour) as day,
       SUM(traces."numCalls") as cnt
-    FROM aggregate_trace_data_hourly traces
+    FROM ${AggregateTraceDataHourly.getTableName(ctx)} traces
     WHERE traces.hour > (NOW() - INTERVAL '15 days')
     GROUP BY 1
     ORDER BY 1
@@ -18,7 +24,7 @@ export const getUsageStats = async (ctx: MetloContext) => {
     SELECT
       CAST(SUM(CASE WHEN traces."createdAt" > (NOW() - INTERVAL '1 minutes') THEN 1 ELSE 0 END) AS INTEGER) as "last1MinCnt",
       CAST(COUNT(*) AS INTEGER) as "last60MinCnt"
-    FROM api_trace traces
+    FROM ${ApiTrace.getTableName(ctx)} traces
     WHERE traces."createdAt" > (NOW() - INTERVAL '60 minutes')
   `
   const queryResponses = await DatabaseService.executeRawQueries([
@@ -66,17 +72,17 @@ export const getCounts = async (ctx: MetloContext) => {
     SELECT
       CAST(COUNT(*) AS INTEGER) as count,
       CAST(SUM(CASE WHEN "riskScore" = 'high' THEN 1 ELSE 0 END) AS INTEGER) as high_risk_count
-    FROM ${Alert.getTableName(ctx)} WHERE status = 'Open'
+    FROM ${Alert.getTableName(ctx)} alert WHERE status = 'Open'
   `
   const endpointsTrackedQuery = `
     SELECT
       CAST(COUNT(*) AS INTEGER) as endpoint_count,
       CAST(COUNT(DISTINCT(host)) AS INTEGER) as host_count
-    FROM ${ApiEndpoint.getTableName(ctx)}
+    FROM ${ApiEndpoint.getTableName(ctx)} api_endpoint
   `
   const piiDataFieldsQuery = `
     SELECT CAST(COUNT(*) AS INTEGER) as count
-    FROM ${DataField.getTableName(ctx)} WHERE "dataTag" = 'PII'
+    FROM ${DataField.getTableName(ctx)} data_field WHERE "dataTag" = 'PII'
   `
   const [newAlertQueryRes, endpointsTrackedQueryRes, piiDataFieldsQueryRes] =
     await DatabaseService.executeRawQueries([

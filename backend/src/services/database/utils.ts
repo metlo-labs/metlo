@@ -1,9 +1,12 @@
 import {
   DeepPartial,
+  EntityManager,
   FindManyOptions,
   FindOneOptions,
   FindOptionsWhere,
+  InsertResult,
   QueryRunner,
+  RemoveOptions,
   Repository,
   SaveOptions,
 } from "typeorm"
@@ -11,6 +14,7 @@ import { ObjectLiteral } from "typeorm/common/ObjectLiteral"
 import { EntityTarget } from "typeorm/common/EntityTarget"
 import { AppDataSource } from "data-source"
 import { MetloContext } from "types"
+import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity"
 
 export const createQB = (ctx: MetloContext) => {
   let qb = AppDataSource.createQueryBuilder()
@@ -95,4 +99,62 @@ export function getRepository<Entity extends ObjectLiteral>(
 ) {
   const repo = AppDataSource.getRepository(target)
   return new WrappedRepository(ctx, repo)
+}
+
+export class WrappedEntityManager {
+  ctx: MetloContext
+  manager: EntityManager
+
+  constructor(ctx: MetloContext, manager: EntityManager) {
+    this.manager = manager
+    this.ctx = ctx
+  }
+
+  find<Entity>(
+    entityClass: EntityTarget<Entity>,
+    options?: FindManyOptions<Entity>,
+  ): Promise<Entity[]> {
+    return this.manager.find(entityClass, options)
+  }
+
+  findOne<Entity>(
+    entityClass: EntityTarget<Entity>,
+    options: FindOneOptions<Entity>,
+  ): Promise<Entity | null> {
+    return this.manager.findOne(entityClass, options)
+  }
+
+  findOneBy<Entity>(
+    entityClass: EntityTarget<Entity>,
+    where: FindOptionsWhere<Entity> | FindOptionsWhere<Entity>[],
+  ): Promise<Entity | null> {
+    return this.manager.findOneBy(entityClass, where)
+  }
+
+  save<Entity>(
+    targetOrEntity: Entity,
+    maybeEntityOrOptions?: SaveOptions,
+  ): Promise<Entity>
+  save<Entity, T extends DeepPartial<Entity>>(
+    targetOrEntity: EntityTarget<Entity>,
+    maybeEntityOrOptions: T,
+    maybeOptions?: SaveOptions,
+  ) {
+    return this.manager.save(targetOrEntity, maybeEntityOrOptions, maybeOptions)
+  }
+
+  remove<Entity>(entity: Entity, options?: RemoveOptions): Promise<Entity> {
+    return this.manager.remove(entity, options)
+  }
+
+  insert<Entity>(
+    target: EntityTarget<Entity>,
+    entity: QueryDeepPartialEntity<Entity> | QueryDeepPartialEntity<Entity>[],
+  ): Promise<InsertResult> {
+    return this.manager.insert(target, entity)
+  }
+}
+
+export function getEntityManager(ctx: MetloContext, queryRunner: QueryRunner) {
+  return new WrappedEntityManager(ctx, queryRunner.manager)
 }

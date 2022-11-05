@@ -21,13 +21,14 @@ import { getRiskScore } from "utils"
 import { getEndpointsCountQuery, getEndpointsQuery } from "./queries"
 import {
   createQB,
+  getEntityManager,
   getQB,
   getRepoQB,
   getRepository,
 } from "services/database/utils"
 import { MetloContext } from "types"
 
-const GET_DATA_FIELDS_QUERY = `
+const getDataFieldsQuery = (ctx: MetloContext) => `
 SELECT
   uuid,
   "dataClasses"::text[],
@@ -40,8 +41,7 @@ SELECT
   "updatedAt",
   "dataPath",
   "apiEndpointUuid"
-FROM
-  data_field
+FROM ${DataField.getTableName(ctx)} data_field 
 WHERE
   "apiEndpointUuid" = $1
 ORDER BY
@@ -85,6 +85,7 @@ export class GetEndpointsService {
   }
 
   static async getEndpoints(
+    ctx: MetloContext,
     getEndpointParams: GetEndpointParams,
   ): Promise<[ApiEndpointResponse[], number]> {
     const queryRunner = AppDataSource.createQueryRunner()
@@ -130,11 +131,11 @@ export class GetEndpointsService {
       const offsetFilter = `OFFSET ${getEndpointParams?.offset ?? 10}`
 
       const endpointResults = await queryRunner.query(
-        getEndpointsQuery(whereFilterString, limitFilter, offsetFilter),
+        getEndpointsQuery(ctx, whereFilterString, limitFilter, offsetFilter),
         parameters,
       )
       const countResults = await queryRunner.query(
-        getEndpointsCountQuery(whereFilterString),
+        getEndpointsCountQuery(ctx, whereFilterString),
         parameters,
       )
 
@@ -167,21 +168,24 @@ export class GetEndpointsService {
         .where(`"apiEndpointUuid" = :id`, { id: endpointId })
         .getRawMany()
       const dataFields: DataField[] = await queryRunner.query(
-        GET_DATA_FIELDS_QUERY,
+        getDataFieldsQuery(ctx),
         [endpointId],
       )
       const openapiSpec = await getQB(ctx, queryRunner)
         .from(OpenApiSpec, "spec")
         .where("name = :name", { name: endpoint.openapiSpecName })
         .getRawOne()
-      const traces = await queryRunner.manager.find(ApiTrace, {
+      const traces = await getEntityManager(ctx, queryRunner).find(ApiTrace, {
         where: { apiEndpointUuid: endpoint.uuid },
         order: { createdAt: "DESC" },
         take: 100,
       })
-      const tests = await queryRunner.manager.find(ApiEndpointTest, {
-        where: { apiEndpoint: { uuid: endpointId } },
-      })
+      const tests = await getEntityManager(ctx, queryRunner).find(
+        ApiEndpointTest,
+        {
+          where: { apiEndpoint: { uuid: endpointId } },
+        },
+      )
       return {
         ...endpoint,
         alerts,

@@ -12,7 +12,10 @@ export const getEndpointsHandler = async (
 ): Promise<void> => {
   const getEndpointParams: GetEndpointParams = req.query
   try {
-    const endpoints = await GetEndpointsService.getEndpoints(getEndpointParams)
+    const endpoints = await GetEndpointsService.getEndpoints(
+      req.ctx,
+      getEndpointParams,
+    )
     await ApiResponseHandler.success(res, endpoints)
   } catch (err) {
     await ApiResponseHandler.error(res, err)

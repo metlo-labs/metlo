@@ -47,7 +47,7 @@ import {
   getAllOldEndpoints,
 } from "./queries"
 import { MetloContext } from "types"
-import { getQB, getRepository } from "services/database/utils"
+import { getEntityManager, getQB, getRepository } from "services/database/utils"
 
 interface EndpointsMap {
   endpoint: ApiEndpoint
@@ -126,9 +126,12 @@ export class SpecService {
       await queryRunner.startTransaction()
     }
     try {
-      const openApiSpec = await queryRunner.manager.findOneBy(OpenApiSpec, {
-        name: fileName,
-      })
+      const openApiSpec = await getEntityManager(ctx, queryRunner).findOneBy(
+        OpenApiSpec,
+        {
+          name: fileName,
+        },
+      )
       if (!openApiSpec) {
         throw new Error404NotFound(
           "No spec file with the provided name exists.",
@@ -334,9 +337,9 @@ export class SpecService {
     }
 
     try {
-      await queryRunner.manager.save(existingSpec)
+      await getEntityManager(ctx, queryRunner).save(existingSpec)
       for (const item of Object.values(endpointsMap)) {
-        await queryRunner.manager.save(item.endpoint)
+        await getEntityManager(ctx, queryRunner).save(item.endpoint)
         const similarEndpointUuids = []
         for (const e of Object.values(item.similarEndpoints)) {
           similarEndpointUuids.push(e.uuid)
@@ -353,7 +356,7 @@ export class SpecService {
         }
 
         if (similarEndpointUuids.length > 0) {
-          await queryRunner.manager.save(item.endpoint)
+          await getEntityManager(ctx, queryRunner).save(item.endpoint)
           const updateTracesQb = getQB(ctx, queryRunner)
             .update(ApiTrace)
             .set({ apiEndpointUuid: item.endpoint.uuid })

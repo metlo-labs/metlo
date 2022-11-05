@@ -218,7 +218,12 @@ const generateOpenApiSpec = async (): Promise<void> => {
       spec.updatedAt = currTime
       spec.specUpdatedAt = currTime
       spec.extension = SpecExtension.JSON
-      await DatabaseService.executeTransactions([[spec], endpoints], [], true)
+      await DatabaseService.executeTransactions(
+        ctx,
+        [[spec], endpoints],
+        [],
+        true,
+      )
     }
   } catch (err) {
     console.error(`Encountered error while generating OpenAPI specs: ${err}`)

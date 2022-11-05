@@ -2,6 +2,8 @@ import { AppDataSource } from "data-source"
 import { DatabaseModel } from "models"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { retryTypeormTransaction } from "utils/db"
+import { getEntityManager } from "./utils"
+import { MetloContext } from "types"
 
 export class DatabaseService {
   static validateQuery(query: string) {}
@@ -56,6 +58,7 @@ export class DatabaseService {
   }
 
   static async executeTransactions(
+    ctx: MetloContext,
     saveItems: DatabaseModel[][],
     removeItems: DatabaseModel[][],
     retry?: boolean,
@@ -67,7 +70,8 @@ export class DatabaseService {
       const chunkBatch = 1000
       for (let i = 0; i < saveItems.length; i++) {
         const item = saveItems[i]
-        const fn = () => queryRunner.manager.save(item, { chunk: chunkBatch })
+        const fn = () =>
+          getEntityManager(ctx, queryRunner).save(item, { chunk: chunkBatch })
         if (retry) {
           await retryTypeormTransaction(fn, 5)
         } else {
@@ -76,7 +80,8 @@ export class DatabaseService {
       }
       for (let i = 0; i < removeItems.length; i++) {
         const item = removeItems[i]
-        const fn = () => queryRunner.manager.remove(item, { chunk: chunkBatch })
+        const fn = () =>
+          getEntityManager(ctx, queryRunner).remove(item, { chunk: chunkBatch })
         if (retry) {
           await retryTypeormTransaction(fn, 5)
         } else {
