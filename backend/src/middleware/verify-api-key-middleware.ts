@@ -16,7 +16,7 @@ export async function verifyApiKeyMiddleware(
     let hashKey = hasher(req.headers.authorization)
     const cachedHashKey = await RedisClient.getFromRedis(req.ctx, hashKey)
     if (!cachedHashKey) {
-      await getRepoQB(req.ctx, ApiKey, "Key")
+      await getRepoQB(req.ctx, ApiKey, "key")
         .where("key.apiKeyHash = :hash", { hash: hashKey })
         .getOneOrFail()
       RedisClient.addToRedis(req.ctx, hashKey, true, 5)

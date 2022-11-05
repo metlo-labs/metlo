@@ -1,7 +1,7 @@
 import dotenv from "dotenv"
 dotenv.config()
 
-import express, { Express, Request, Response } from "express"
+import express, { Express, Response } from "express"
 import { TypeormStore } from "connect-typeorm"
 import session from "express-session"
 import { InstanceSettings, Session as SessionModel } from "models"
