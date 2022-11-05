@@ -40,7 +40,6 @@ export class BlockFieldsService {
   ): Promise<BlockFieldEntry> {
     const redisKey = `block_fields_${apiTrace.host}`
     let cachedBlockFields: any = await RedisClient.getFromRedis(ctx, redisKey)
-    console.log(cachedBlockFields)
     if (!cachedBlockFields) {
       const blockFieldEntries = await getRepoQB(ctx, BlockFields)
         .createQueryBuilder()
