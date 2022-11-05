@@ -19,6 +19,8 @@ import { Test } from "@metlo/testing"
 import Error404NotFound from "errors/error-404-not-found"
 import { getRiskScore } from "utils"
 import { getEndpointsCountQuery, getEndpointsQuery } from "./queries"
+import { createQB, getQB, getRepoQB } from "services/database/utils"
+import { MetloContext } from "types"
 
 const GET_DATA_FIELDS_QUERY = `
 SELECT
@@ -44,10 +46,11 @@ ORDER BY
 
 export class GetEndpointsService {
   static async updateIsAuthenticated(
+    ctx: MetloContext,
     apiEndpointUuid: string,
     authenticated: boolean,
   ): Promise<void> {
-    await AppDataSource.createQueryBuilder()
+    await createQB(ctx)
       .update(ApiEndpoint)
       .set({ isAuthenticatedUserSet: authenticated })
       .where("uuid = :id", { id: apiEndpointUuid })
@@ -138,21 +141,20 @@ export class GetEndpointsService {
   }
 
   static async getEndpoint(
+    ctx: MetloContext,
     endpointId: string,
   ): Promise<ApiEndpointDetailedResponse> {
     const queryRunner = AppDataSource.createQueryRunner()
     try {
       await queryRunner.connect()
-      const endpoint = await queryRunner.manager
-        .createQueryBuilder()
+      const endpoint = await getQB(ctx, queryRunner)
         .from(ApiEndpoint, "endpoint")
         .where("uuid = :id", { id: endpointId })
         .getRawOne()
       if (!endpoint) {
         throw new Error404NotFound("Endpoint does not exist.")
       }
-      const alerts = await queryRunner.manager
-        .createQueryBuilder()
+      const alerts = await getQB(ctx, queryRunner)
         .select(["uuid", "status"])
         .from(Alert, "alert")
         .where(`"apiEndpointUuid" = :id`, { id: endpointId })
@@ -161,8 +163,7 @@ export class GetEndpointsService {
         GET_DATA_FIELDS_QUERY,
         [endpointId],
       )
-      const openapiSpec = await queryRunner.manager
-        .createQueryBuilder()
+      const openapiSpec = await getQB(ctx, queryRunner)
         .from(OpenApiSpec, "spec")
         .where("name = :name", { name: endpoint.openapiSpecName })
         .getRawOne()
@@ -190,11 +191,13 @@ export class GetEndpointsService {
     }
   }
 
-  static async getHosts(): Promise<string[]> {
+  static async getHosts(ctx: MetloContext): Promise<string[]> {
     try {
-      const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
-      const hosts: { [host: string]: string }[] = await apiEndpointRepository
-        .createQueryBuilder("apiEndpoint")
+      const hosts: { [host: string]: string }[] = await getRepoQB(
+        ctx,
+        ApiEndpoint,
+        "apiEndpoint",
+      )
         .select(["host"])
         .distinct(true)
         .getRawMany()
@@ -205,13 +208,9 @@ export class GetEndpointsService {
     }
   }
 
-  static async getUsage(endpointId: string): Promise<UsageResponse[]> {
+  static async getUsage(ctx: MetloContext, endpointId: string): Promise<UsageResponse[]> {
     try {
-      const aggregateTraceDataRepo = AppDataSource.getRepository(
-        AggregateTraceDataHourly,
-      )
-      const usage = await aggregateTraceDataRepo
-        .createQueryBuilder("trace")
+      const usage = await getRepoQB(ctx, AggregateTraceDataHourly, "trace")
         .select([`DATE_TRUNC('day', hour) AS date`, `SUM("numCalls") AS count`])
         .where(`"apiEndpointUuid" = :id`, { id: endpointId })
         .groupBy(`DATE_TRUNC('day', hour)`)

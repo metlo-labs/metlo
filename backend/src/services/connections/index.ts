@@ -3,6 +3,8 @@ import { AWS_CONNECTION, GCP_CONNECTION, SSH_INFO } from "@common/types"
 import { AppDataSource } from "data-source"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { Connections } from "models"
+import { createQB, getRepoQB } from "services/database/utils"
+import { MetloContext } from "types"
 
 export class ConnectionsService {
   static saveConnectionAws = async ({
@@ -139,11 +141,9 @@ export class ConnectionsService {
     }
   }
 
-  static listConnections = async () => {
+  static listConnections = async (ctx: MetloContext) => {
     try {
-      const connectionRepository = AppDataSource.getRepository(Connections)
-      let resp = await connectionRepository
-        .createQueryBuilder("conn")
+      let resp = await getRepoQB(ctx, Connections, "conn")
         .select([
           "conn.uuid",
           "conn.name",
@@ -162,11 +162,11 @@ export class ConnectionsService {
   }
 
   static getConnectionForUuid = async (
+    ctx: MetloContext,
     uuid: string,
     with_metadata: boolean = false,
   ) => {
     try {
-      const connectionRepository = AppDataSource.getRepository(Connections)
       const selects = [
         "conn.uuid",
         "conn.name",
@@ -180,8 +180,7 @@ export class ConnectionsService {
         selects.push("conn.aws_meta")
         selects.push("conn.gcp_meta")
       }
-      let resp = connectionRepository
-        .createQueryBuilder("conn")
+      let resp = getRepoQB(ctx, Connections, "conn")
         .select(selects)
         .where("conn.uuid = :uuid", { uuid })
         .getOne()
@@ -192,15 +191,18 @@ export class ConnectionsService {
     }
   }
 
-  static updateConnectionForUuid = async ({
-    name,
-    uuid,
-  }: {
-    name: string
-    uuid: string
-  }) => {
+  static updateConnectionForUuid = async (
+    ctx: MetloContext,
+    {
+      name,
+      uuid,
+    }: {
+      name: string
+      uuid: string
+    },
+  ) => {
     try {
-      let resp = AppDataSource.createQueryBuilder()
+      let resp = createQB(ctx)
         .update(Connections)
         .set({ name: name })
         .where("uuid = :uuid", { uuid })
@@ -212,9 +214,9 @@ export class ConnectionsService {
     }
   }
 
-  static deleteConnectionForUuid = async ({ uuid }) => {
+  static deleteConnectionForUuid = async (ctx: MetloContext, { uuid }) => {
     try {
-      let resp = AppDataSource.createQueryBuilder()
+      let resp = createQB(ctx)
         .delete()
         .from(Connections)
         .where("uuid = :uuid", { uuid })

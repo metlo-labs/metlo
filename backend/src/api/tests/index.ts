@@ -1,17 +1,21 @@
-import { Request, Response } from "express"
+import { Response } from "express"
 import ApiResponseHandler from "api-response-handler"
 import { runTest } from "@metlo/testing"
-import { AppDataSource } from "data-source"
 import { ApiEndpointTest } from "models"
 import { GetEndpointsService } from "services/get-endpoints"
+import { getRepoQB } from "services/database/utils"
+import { MetloRequest } from "types"
 
 export const runTestHandler = async (
-  req: Request,
+  req: MetloRequest,
   res: Response,
 ): Promise<void> => {
   try {
     const { test, endpointUuid } = req.body
-    const endpoint = await GetEndpointsService.getEndpoint(endpointUuid)
+    const endpoint = await GetEndpointsService.getEndpoint(
+      req.ctx,
+      endpointUuid,
+    )
     let envVars = new Map<string, string>()
     envVars.set("baseUrl", `https://${endpoint.host}`)
     const testRes = await runTest(test, envVars)
@@ -21,13 +25,15 @@ export const runTestHandler = async (
   }
 }
 
-export const saveTest = async (req: Request, res: Response): Promise<void> => {
+export const saveTest = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
   const {
     test: { uuid, name, tags, requests },
     endpointUuid,
   } = req.body
-  let testInsert = await AppDataSource.getRepository(ApiEndpointTest)
-    .createQueryBuilder()
+  let testInsert = await getRepoQB(req.ctx, ApiEndpointTest)
     .insert()
     .into(ApiEndpointTest)
     .values({
@@ -41,19 +47,20 @@ export const saveTest = async (req: Request, res: Response): Promise<void> => {
     })
     .orUpdate(["name", "tags", "requests"], ["uuid"])
     .execute()
-  let resp = await AppDataSource.getRepository(ApiEndpointTest)
-    .createQueryBuilder()
+  let resp = await getRepoQB(req.ctx, ApiEndpointTest)
     .select()
     .where("uuid = :uuid", testInsert.identifiers[0])
     .getOne()
   await ApiResponseHandler.success(res, resp)
 }
 
-export const getTest = async (req: Request, res: Response): Promise<void> => {
+export const getTest = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
   const { uuid } = req.params
   try {
-    let resp = await AppDataSource.getRepository(ApiEndpointTest)
-      .createQueryBuilder()
+    let resp = await getRepoQB(req.ctx, ApiEndpointTest)
       .select()
       .where("uuid = :uuid", { uuid })
       .getOne()
@@ -63,12 +70,14 @@ export const getTest = async (req: Request, res: Response): Promise<void> => {
   }
 }
 
-export const listTests = async (req: Request, res: Response): Promise<void> => {
+export const listTests = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
   const { hostname } = req.query
   var resp: ApiEndpointTest[]
   try {
-    let partial_resp = AppDataSource.getRepository(ApiEndpointTest)
-      .createQueryBuilder("test")
+    let partial_resp = getRepoQB(req.ctx, ApiEndpointTest, "test")
       .select()
       .leftJoinAndSelect("test.apiEndpoint", "endpoint")
     if (hostname) {
@@ -86,14 +95,13 @@ export const listTests = async (req: Request, res: Response): Promise<void> => {
 }
 
 export const deleteTest = async (
-  req: Request,
+  req: MetloRequest,
   res: Response,
 ): Promise<void> => {
   const { uuid } = req.params
 
   try {
-    let resp = await AppDataSource.getRepository(ApiEndpointTest)
-      .createQueryBuilder()
+    let resp = await getRepoQB(req.ctx, ApiEndpointTest)
       .delete()
       .from(ApiEndpointTest)
       .where("uuid = :uuid", { uuid })

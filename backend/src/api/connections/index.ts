@@ -10,16 +10,18 @@ import { MetloRequest } from "types"
 
 const listConnections = async (req: MetloRequest, res: Response) => {
   try {
-    const connections = (await ConnectionsService.listConnections()).map(v => {
-      if (v.connectionType === ConnectionType.AWS) {
-        delete v.aws.keypair
-        delete v.aws.access_id
-        delete v.aws.secret_access_key
-      } else if (v.connectionType === ConnectionType.GCP) {
-        delete v.gcp.key_file
-      }
-      return v
-    })
+    const connections = (await ConnectionsService.listConnections(req.ctx)).map(
+      v => {
+        if (v.connectionType === ConnectionType.AWS) {
+          delete v.aws.keypair
+          delete v.aws.access_id
+          delete v.aws.secret_access_key
+        } else if (v.connectionType === ConnectionType.GCP) {
+          delete v.gcp.key_file
+        }
+        return v
+      },
+    )
 
     await ApiResponseHandler.success(res, connections)
   } catch (err) {
@@ -30,7 +32,10 @@ const listConnections = async (req: MetloRequest, res: Response) => {
 const getConnectionForUuid = async (req: MetloRequest, res: Response) => {
   try {
     const { uuid } = req.params
-    const connection = await ConnectionsService.getConnectionForUuid(uuid)
+    const connection = await ConnectionsService.getConnectionForUuid(
+      req.ctx,
+      uuid,
+    )
 
     delete connection.aws.keypair
     delete connection.aws.access_id
@@ -45,7 +50,11 @@ const getConnectionForUuid = async (req: MetloRequest, res: Response) => {
 const getSshKeyForConnectionUuid = async (req: MetloRequest, res: Response) => {
   try {
     const { uuid } = req.params
-    const connection = await ConnectionsService.getConnectionForUuid(uuid, true)
+    const connection = await ConnectionsService.getConnectionForUuid(
+      req.ctx,
+      uuid,
+      true,
+    )
     const ssh_key = decrypt(
       connection.aws.keypair,
       Buffer.from(process.env.ENCRYPTION_KEY, "base64"),
@@ -61,7 +70,10 @@ const getSshKeyForConnectionUuid = async (req: MetloRequest, res: Response) => {
 const updateConnection = async (req: MetloRequest, res: Response) => {
   try {
     const { name, id: uuid } = req.body
-    let resp = await ConnectionsService.updateConnectionForUuid({ name, uuid })
+    let resp = await ConnectionsService.updateConnectionForUuid(req.ctx, {
+      name,
+      uuid,
+    })
     await ApiResponseHandler.success(res, { name: name })
   } catch (err) {
     await ApiResponseHandler.error(res, err)
@@ -71,7 +83,11 @@ const updateConnection = async (req: MetloRequest, res: Response) => {
 const deleteConnection = async (req: MetloRequest, res: Response) => {
   const { uuid } = req.params
   try {
-    const connection = await ConnectionsService.getConnectionForUuid(uuid, true)
+    const connection = await ConnectionsService.getConnectionForUuid(
+      req.ctx,
+      uuid,
+      true,
+    )
     const retry_uuid = randomUUID()
     await RedisClient.addToRedis(req.ctx, retry_uuid, { success: "FETCHING" })
     if (connection.connectionType === ConnectionType.AWS) {
@@ -99,7 +115,7 @@ const deleteConnection = async (req: MetloRequest, res: Response) => {
           name: connection.name,
         })
           .then(() => {
-            return ConnectionsService.deleteConnectionForUuid({
+            return ConnectionsService.deleteConnectionForUuid(req.ctx, {
               uuid: connection.uuid,
             }).then(() => ({
               success: "OK",
@@ -125,7 +141,7 @@ const deleteConnection = async (req: MetloRequest, res: Response) => {
           name: connection.name,
         })
           .then(() => {
-            return ConnectionsService.deleteConnectionForUuid({
+            return ConnectionsService.deleteConnectionForUuid(req.ctx, {
               uuid: connection.uuid,
             }).then(() => ({
               success: "OK",

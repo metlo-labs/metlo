@@ -1,8 +1,8 @@
 import ApiResponseHandler from "api-response-handler"
-import { AppDataSource } from "data-source"
 import Error401Unauthorized from "errors/error-401-unauthorized"
 import { NextFunction, Response } from "express"
 import { ApiKey } from "models"
+import { getRepoQB } from "services/database/utils"
 import { MetloRequest } from "types"
 import { hasher } from "utils/hash"
 import { RedisClient } from "utils/redis"
@@ -16,8 +16,7 @@ export async function verifyApiKeyMiddleware(
     let hashKey = hasher(req.headers.authorization)
     const cachedHashKey = await RedisClient.getFromRedis(req.ctx, hashKey)
     if (!cachedHashKey) {
-      await AppDataSource.getRepository(ApiKey)
-        .createQueryBuilder("key")
+      await getRepoQB(req.ctx, ApiKey, "Key")
         .where("key.apiKeyHash = :hash", { hash: hashKey })
         .getOneOrFail()
       RedisClient.addToRedis(req.ctx, hashKey, true, 5)

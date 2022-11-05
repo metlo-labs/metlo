@@ -6,6 +6,7 @@ import { AuthType } from "@common/enums"
 import { RedisClient } from "utils/redis"
 import { AUTH_CONFIG_LIST_KEY } from "~/constants"
 import { MetloContext } from "types"
+import { getQB } from "services/database/utils"
 
 export const populateAuthentication = async (ctx: MetloContext) => {
   const key = process.env.ENCRYPTION_KEY
@@ -37,12 +38,8 @@ export const populateAuthentication = async (ctx: MetloContext) => {
         authConfigEntries.push(newConfig)
       })
     }
-    const deleteQb = queryRunner.manager
-      .createQueryBuilder()
-      .delete()
-      .from(AuthenticationConfig)
-    const addQb = queryRunner.manager
-      .createQueryBuilder()
+    const deleteQb = getQB(ctx, queryRunner).delete().from(AuthenticationConfig)
+    const addQb = getQB(ctx, queryRunner)
       .insert()
       .into(AuthenticationConfig)
       .values(authConfigEntries)

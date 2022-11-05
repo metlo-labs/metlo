@@ -7,12 +7,14 @@ import { getPathTokens } from "@common/utils"
 import { isParameter, parsedJsonNonNull } from "utils"
 import { BodySchema, BodyContent, Responses } from "./types"
 import { parseSchema, parseContent } from "./utils"
+import { getRepoQB } from "services/database/utils"
+import { MetloContext } from "types"
 
 const generateOpenApiSpec = async (): Promise<void> => {
   try {
+    const ctx: MetloContext = {}
     const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
     const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec)
-    const apiTraceRepository = AppDataSource.getRepository(ApiTrace)
     const nonSpecEndpoints = await apiEndpointRepository.findBy({
       openapiSpecName: IsNull(),
     })
@@ -62,9 +64,10 @@ const generateOpenApiSpec = async (): Promise<void> => {
         const paths = openApiSpec["paths"]
         const path = endpoint.path
         const method = endpoint.method.toLowerCase()
-        let tracesQb = apiTraceRepository
-          .createQueryBuilder()
-          .where('"apiEndpointUuid" = :id', { id: endpoint.uuid })
+        let tracesQb = getRepoQB(ctx, ApiTrace).where(
+          '"apiEndpointUuid" = :id',
+          { id: endpoint.uuid },
+        )
         if (spec.specUpdatedAt) {
           tracesQb = tracesQb
             .andWhere('"createdAt" > :updated', {

@@ -9,6 +9,7 @@
     "postbuild": "mkdir -p dist/suricata_setup/generics/scripts && cp -R src/suricata_setup/generics/scripts dist/suricata_setup/generics/",
     "watch": "tsc -w",
     "dev": "NODE_ENV=development nodemon -r tsconfig-paths/register src/index.ts",
+    "test1": "NODE_ENV=development nodemon -r tsconfig-paths/register src/test.ts",
     "dev-jobs": "NODE_ENV=development nodemon -r tsconfig-paths/register src/jobs.ts",
     "dev-collector": "NODE_ENV=development nodemon -r tsconfig-paths/register src/collector.ts",
     "dev-analyzer": "NODE_ENV=development nodemon -r tsconfig-paths/register src/analyzer.ts",

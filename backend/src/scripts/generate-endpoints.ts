@@ -1,5 +1,6 @@
 import { AppDataSource } from "data-source"
 import { generateEndpointsFromTraces } from "services/jobs"
+import { MetloContext } from "types"
 
 const main = async () => {
   const datasource = await AppDataSource.initialize()
@@ -9,7 +10,8 @@ const main = async () => {
   }
   console.log("AppDataSource Initialized...")
   console.log("Generating Endpoints and OpenAPI Spec Files...")
-  await generateEndpointsFromTraces()
+  const ctx: MetloContext = {}
+  await generateEndpointsFromTraces(ctx)
   console.log("Finished generating Endpoints and OpenAPI Spec Files.")
 }
 
