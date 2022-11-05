@@ -1,5 +1,4 @@
 import {
-  BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
@@ -10,9 +9,10 @@ import {
 } from "typeorm"
 import { AlertType, RiskScore, Status } from "@common/enums"
 import { ApiEndpoint } from "models/api-endpoint"
+import MetloBaseEntity from "./metlo-base-entity"
 
 @Entity()
-export class Alert extends BaseEntity {
+export class Alert extends MetloBaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
 

@@ -1,5 +1,4 @@
 import {
-  BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
@@ -11,9 +10,10 @@ import {
 import { RiskScore, AttackType } from "@common/enums"
 import { AttackMeta } from "@common/types"
 import { ApiEndpoint } from "models/api-endpoint"
+import MetloBaseEntity from "./metlo-base-entity"
 
-@Entity()
-export class Attack extends BaseEntity {
+@Entity("attack")
+export class Attack extends MetloBaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
 

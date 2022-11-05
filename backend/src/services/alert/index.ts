@@ -10,7 +10,6 @@ import validator from "validator"
 import jsonMap from "json-source-map"
 import yaml from "js-yaml"
 import SourceMap from "js-yaml-source-map"
-import { AppDataSource } from "data-source"
 import { Alert, ApiEndpoint, ApiTrace, DataField, OpenApiSpec } from "models"
 import {
   AlertType,
@@ -32,13 +31,16 @@ import Error409Conflict from "errors/error-409-conflict"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { getPathTokens } from "@common/utils"
 import Error404NotFound from "errors/error-404-not-found"
+import { createQB, getQB, getRepository } from "services/database/utils"
+import { MetloContext } from "types"
 
 export class AlertService {
   static async updateAlert(
+    ctx: MetloContext,
     alertId: string,
     updateAlertParams: UpdateAlertParams,
   ): Promise<Alert> {
-    const alertRepository = AppDataSource.getRepository(Alert)
+    const alertRepository = getRepository(ctx, Alert)
     const alert = await alertRepository.findOne({
       where: {
         uuid: alertId,
@@ -81,14 +83,19 @@ export class AlertService {
       default:
         throw new Error500InternalServer("Unknown update type.")
     }
-    await alertRepository.update({ uuid: alertId }, alert)
+    await createQB(ctx)
+      .update(Alert)
+      .set({ status: alert.status, resolutionMessage: alert.resolutionMessage })
+      .where("uuid = :uuid", { uuid: alertId })
+      .execute()
     return alert
   }
 
   static async getAlerts(
+    ctx: MetloContext,
     alertParams: GetAlertParams,
   ): Promise<[AlertResponse[], number]> {
-    const alertRepository = AppDataSource.getRepository(Alert)
+    const alertRepository = getRepository(ctx, Alert)
     let whereConditions: FindOptionsWhere<Alert>[] | FindOptionsWhere<Alert> =
       {}
     let paginationParams: FindManyOptions<Alert> = {}
@@ -199,30 +206,15 @@ export class AlertService {
     return alerts
   }
 
-  static async getAlert(alertId: string): Promise<AlertResponse> {
-    const alertRepository = AppDataSource.getRepository(Alert)
-    if (!validator.isUUID(alertId)) {
-      throw new Error404NotFound("Alert not found.")
-    }
-    return await alertRepository.findOneBy({ uuid: alertId })
-  }
-
-  static async getAlertWithConditions(
-    conditions: FindOptionsWhere<Alert>,
-  ): Promise<Alert> {
-    const alertRepository = AppDataSource.getRepository(Alert)
-    return await alertRepository.findOneBy(conditions)
-  }
-
   static async existingUnresolvedAlert(
+    ctx: MetloContext,
     apiEndpointUuid: string,
     type: AlertType,
     description: string,
     queryRunner?: QueryRunner,
   ) {
     if (queryRunner) {
-      return await queryRunner.manager
-        .createQueryBuilder()
+      return await getQB(ctx, queryRunner)
         .select(["uuid"])
         .from(Alert, "alert")
         .where(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
@@ -231,7 +223,7 @@ export class AlertService {
         .andWhere("description = :description", { description })
         .getRawOne()
     }
-    const alertRepository = AppDataSource.getRepository(Alert)
+    const alertRepository = getRepository(ctx, Alert)
     return await alertRepository.findOne({
       select: {
         uuid: true,
@@ -246,6 +238,7 @@ export class AlertService {
   }
 
   static async createAlert(
+    ctx: MetloContext,
     alertType: AlertType,
     apiEndpoint: ApiEndpoint,
     description?: string,
@@ -270,6 +263,7 @@ export class AlertService {
     }
     if (noDuplicate) {
       const existing = await this.existingUnresolvedAlert(
+        ctx,
         apiEndpoint.uuid,
         alertType,
         alertDescription,
@@ -307,6 +301,7 @@ export class AlertService {
   }
 
   static async createDataFieldAlerts(
+    ctx: MetloContext,
     dataFields: DataField[],
     apiEndpointUuid: string,
     apiEndpointPath: string,
@@ -340,6 +335,7 @@ export class AlertService {
                     basicAuthDescription,
                   ) ||
                   (await this.existingUnresolvedAlert(
+                    ctx,
                     apiEndpointUuid,
                     AlertType.BASIC_AUTHENTICATION_DETECTED,
                     basicAuthDescription,
@@ -418,6 +414,7 @@ export class AlertService {
                   alert.description,
                 ) ||
                 (await this.existingUnresolvedAlert(
+                  ctx,
                   apiEndpointUuid,
                   alert.type,
                   alert.description,
@@ -446,6 +443,7 @@ export class AlertService {
   }
 
   static async createSpecDiffAlerts(
+    ctx: MetloContext,
     alertItems: Record<string, string[]>,
     apiEndpointUuid: string,
     apiTrace: QueuedApiTrace,
@@ -462,6 +460,7 @@ export class AlertService {
       let alerts: Alert[] = []
       for (const key in alertItems) {
         const existing = await this.existingUnresolvedAlert(
+          ctx,
           apiEndpointUuid,
           AlertType.OPEN_API_SPEC_DIFF,
           key,
@@ -516,8 +515,7 @@ export class AlertService {
           newAlert.description = key
           alerts.push(newAlert)
         }
-        await queryRunner.manager
-          .createQueryBuilder()
+        await getQB(ctx, queryRunner)
           .update(OpenApiSpec)
           .set({ minimizedSpecContext: openApiSpec.minimizedSpecContext })
           .where("name = :name", { name: openApiSpec.name })
@@ -531,6 +529,7 @@ export class AlertService {
   }
 
   static async createMissingHSTSAlert(
+    ctx: MetloContext,
     alertProps: Array<[ApiEndpoint, ApiTrace, string]>,
   ) {
     try {
@@ -540,6 +539,7 @@ export class AlertService {
       let alerts: Alert[] = []
       for (const alertProp of alertProps) {
         const existing = await this.existingUnresolvedAlert(
+          ctx,
           alertProp[0].uuid,
           AlertType.UNSECURED_ENDPOINT_DETECTED,
           alertProp[2],

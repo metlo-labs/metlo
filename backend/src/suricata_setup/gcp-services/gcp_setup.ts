@@ -16,9 +16,10 @@ import {
   format,
 } from "suricata_setup/ssh-services/ssh-setup"
 import path from "path"
-import { AppDataSource } from "data-source"
 import { ApiKey } from "models"
 import { createApiKey } from "api/keys/service"
+import { getRepository } from "services/database/utils"
+import { MetloContext } from "types"
 
 const promiseExec = promisify(exec)
 
@@ -833,18 +834,21 @@ export async function test_ssh({
   }
 }
 
-export async function push_files({
-  key_file,
-  source_private_ip,
-  project,
-  id,
-  instance_url,
-  ...rest
-}: RESPONSE["data"]): Promise<RESPONSE> {
+export async function push_files(
+  ctx: MetloContext,
+  {
+    key_file,
+    source_private_ip,
+    project,
+    id,
+    instance_url,
+    ...rest
+  }: RESPONSE["data"],
+): Promise<RESPONSE> {
   const instance_name = instance_url.split("/").at(-1)
   let [key, raw] = createApiKey(`Metlo-collector-${id}`)
   key.for = API_KEY_TYPE.GCP
-  let api_key = await AppDataSource.getRepository(ApiKey).save(key)
+  let api_key = await getRepository(ctx, ApiKey).save(key)
 
   try {
     let filepath_ingestor_out = path.normalize(

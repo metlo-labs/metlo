@@ -1,24 +1,27 @@
-import { Request, Response } from "express"
+import { Response } from "express"
 import { ConnectionsService } from "services/connections"
 import ApiResponseHandler from "api-response-handler"
 import { decrypt } from "utils/encryption"
 import { delete_connection as delete_connection_request } from "suricata_setup/"
 import { ConnectionType } from "@common/enums"
 import { randomUUID } from "crypto"
-import { addToRedis, addToRedisFromPromise } from "suricata_setup/utils"
+import { RedisClient } from "utils/redis"
+import { MetloRequest } from "types"
 
-const listConnections = async (req: Request, res: Response) => {
+const listConnections = async (req: MetloRequest, res: Response) => {
   try {
-    const connections = (await ConnectionsService.listConnections()).map(v => {
-      if (v.connectionType === ConnectionType.AWS) {
-        delete v.aws.keypair
-        delete v.aws.access_id
-        delete v.aws.secret_access_key
-      } else if (v.connectionType === ConnectionType.GCP) {
-        delete v.gcp.key_file
-      }
-      return v
-    })
+    const connections = (await ConnectionsService.listConnections(req.ctx)).map(
+      v => {
+        if (v.connectionType === ConnectionType.AWS) {
+          delete v.aws.keypair
+          delete v.aws.access_id
+          delete v.aws.secret_access_key
+        } else if (v.connectionType === ConnectionType.GCP) {
+          delete v.gcp.key_file
+        }
+        return v
+      },
+    )
 
     await ApiResponseHandler.success(res, connections)
   } catch (err) {
@@ -26,10 +29,13 @@ const listConnections = async (req: Request, res: Response) => {
   }
 }
 
-const getConnectionForUuid = async (req: Request, res: Response) => {
+const getConnectionForUuid = async (req: MetloRequest, res: Response) => {
   try {
     const { uuid } = req.params
-    const connection = await ConnectionsService.getConnectionForUuid(uuid)
+    const connection = await ConnectionsService.getConnectionForUuid(
+      req.ctx,
+      uuid,
+    )
 
     delete connection.aws.keypair
     delete connection.aws.access_id
@@ -41,10 +47,14 @@ const getConnectionForUuid = async (req: Request, res: Response) => {
   }
 }
 
-const getSshKeyForConnectionUuid = async (req: Request, res: Response) => {
+const getSshKeyForConnectionUuid = async (req: MetloRequest, res: Response) => {
   try {
     const { uuid } = req.params
-    const connection = await ConnectionsService.getConnectionForUuid(uuid, true)
+    const connection = await ConnectionsService.getConnectionForUuid(
+      req.ctx,
+      uuid,
+      true,
+    )
     const ssh_key = decrypt(
       connection.aws.keypair,
       Buffer.from(process.env.ENCRYPTION_KEY, "base64"),
@@ -57,22 +67,29 @@ const getSshKeyForConnectionUuid = async (req: Request, res: Response) => {
   }
 }
 
-const updateConnection = async (req: Request, res: Response) => {
+const updateConnection = async (req: MetloRequest, res: Response) => {
   try {
     const { name, id: uuid } = req.body
-    let resp = await ConnectionsService.updateConnectionForUuid({ name, uuid })
+    let resp = await ConnectionsService.updateConnectionForUuid(req.ctx, {
+      name,
+      uuid,
+    })
     await ApiResponseHandler.success(res, { name: name })
   } catch (err) {
     await ApiResponseHandler.error(res, err)
   }
 }
 
-const deleteConnection = async (req: Request, res: Response) => {
+const deleteConnection = async (req: MetloRequest, res: Response) => {
   const { uuid } = req.params
   try {
-    const connection = await ConnectionsService.getConnectionForUuid(uuid, true)
+    const connection = await ConnectionsService.getConnectionForUuid(
+      req.ctx,
+      uuid,
+      true,
+    )
     const retry_uuid = randomUUID()
-    await addToRedis(retry_uuid, { success: "FETCHING" })
+    await RedisClient.addToRedis(req.ctx, retry_uuid, { success: "FETCHING" })
     if (connection.connectionType === ConnectionType.AWS) {
       const access_key = decrypt(
         connection.aws.access_id,
@@ -89,7 +106,8 @@ const deleteConnection = async (req: Request, res: Response) => {
       connection.aws.access_id = access_key
       connection.aws.secret_access_key = secret_access_key
 
-      addToRedisFromPromise(
+      RedisClient.addToRedisFromPromise(
+        req.ctx,
         retry_uuid,
         delete_connection_request(connection.connectionType, {
           ...connection.aws,
@@ -97,7 +115,7 @@ const deleteConnection = async (req: Request, res: Response) => {
           name: connection.name,
         })
           .then(() => {
-            return ConnectionsService.deleteConnectionForUuid({
+            return ConnectionsService.deleteConnectionForUuid(req.ctx, {
               uuid: connection.uuid,
             }).then(() => ({
               success: "OK",
@@ -114,7 +132,8 @@ const deleteConnection = async (req: Request, res: Response) => {
       )
       connection.gcp.key_file = key_file
 
-      addToRedisFromPromise(
+      RedisClient.addToRedisFromPromise(
+        req.ctx,
         retry_uuid,
         delete_connection_request(connection.connectionType, {
           ...connection.gcp,
@@ -122,7 +141,7 @@ const deleteConnection = async (req: Request, res: Response) => {
           name: connection.name,
         })
           .then(() => {
-            return ConnectionsService.deleteConnectionForUuid({
+            return ConnectionsService.deleteConnectionForUuid(req.ctx, {
               uuid: connection.uuid,
             }).then(() => ({
               success: "OK",

@@ -1,31 +1,33 @@
 import { Status, AlertType } from "@common/enums"
-import { AppDataSource } from "data-source"
 import { Alert } from "models"
-import cache from "memory-cache"
 import { DatabaseService } from "services/database"
+import { getRepository } from "services/database/utils"
+import { MetloContext } from "types"
+import { RedisClient } from "utils/redis"
 
-export const getAlertTypeAgg = async () => {
+export const getAlertTypeAgg = async (ctx: MetloContext) => {
   const alertTypeAggRes: { type: AlertType; count: number }[] =
-    await DatabaseService.executeRawQueries(`
+    await DatabaseService.executeRawQuery(`
       SELECT type, CAST(COUNT(*) AS INTEGER) as count
-      FROM alert WHERE status = 'Open'
+      FROM ${Alert.getTableName(ctx)} WHERE status = 'Open'
       GROUP BY 1
     `)
   return Object.fromEntries(alertTypeAggRes.map(e => [e.type, e.count]))
 }
 
-export const getAlertTypeAggCached = async () => {
-  const cacheRes: Record<AlertType, number> | null = cache.get("alertTypeAgg")
+export const getAlertTypeAggCached = async (ctx: MetloContext) => {
+  const cacheRes: Record<AlertType, number> | null =
+    await RedisClient.getFromRedis(ctx, "alertTypeAgg")
   if (cacheRes) {
     return cacheRes
   }
-  const realRes = await getAlertTypeAgg()
-  cache.put("alertTypeAgg", realRes, 5000)
+  const realRes = await getAlertTypeAgg(ctx)
+  await RedisClient.addToRedis(ctx, "alertTypeAgg", realRes, 5)
   return realRes
 }
 
-export const getTopAlerts = async () => {
-  const alertRepository = AppDataSource.getRepository(Alert)
+export const getTopAlerts = async (ctx: MetloContext) => {
+  const alertRepository = getRepository(ctx, Alert)
   return await alertRepository.find({
     where: {
       status: Status.OPEN,
@@ -41,12 +43,15 @@ export const getTopAlerts = async () => {
   })
 }
 
-export const getTopAlertsCached = async () => {
-  const cacheRes: Alert[] | null = cache.get("topAlertsCached")
+export const getTopAlertsCached = async (ctx: MetloContext) => {
+  const cacheRes: Alert[] | null = await RedisClient.getFromRedis(
+    ctx,
+    "topAlertsCached",
+  )
   if (cacheRes) {
     return cacheRes
   }
-  const realRes = await getTopAlerts()
-  cache.put("topAlertsCached", realRes, 5000)
+  const realRes = await getTopAlerts(ctx)
+  await RedisClient.addToRedis(ctx, "topAlertsCached", realRes, 5)
   return realRes
 }

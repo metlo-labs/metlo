@@ -6,8 +6,10 @@ import {
   getUnauthenticatedEndpointsSensitiveData,
 } from "./queries"
 import { AlertService } from "services/alert"
+import { getQB } from "services/database/utils"
+import { MetloContext } from "types"
 
-const checkForUnauthenticatedEndpoints = async (): Promise<void> => {
+const checkForUnauthenticatedEndpoints = async (ctx: MetloContext): Promise<void> => {
   const queryRunner = AppDataSource.createQueryRunner()
   try {
     await queryRunner.connect()
@@ -24,12 +26,7 @@ const checkForUnauthenticatedEndpoints = async (): Promise<void> => {
     const alerts = await AlertService.createUnauthEndpointSenDataAlerts(
       endpointsToAlert,
     )
-    await queryRunner.manager
-      .createQueryBuilder()
-      .insert()
-      .into(Alert)
-      .values(alerts)
-      .execute()
+    await getQB(ctx, queryRunner).insert().into(Alert).values(alerts).execute()
   } catch (err) {
     console.error(
       `Encountered error when checking for unauthenticated endpoints: ${err}`,

@@ -1,7 +1,7 @@
 import dotenv from "dotenv"
 dotenv.config()
 
-import express, { Express, Request, Response } from "express"
+import express, { Express, Response } from "express"
 import { TypeormStore } from "connect-typeorm"
 import session from "express-session"
 import { InstanceSettings, Session as SessionModel } from "models"
@@ -22,6 +22,7 @@ import {
 import { getAlertsHandler, updateAlertHandler } from "api/alert"
 import { deleteDataFieldHandler, updateDataFieldClasses } from "api/data-field"
 import { getSummaryHandler } from "api/summary"
+import { MetloRequest } from "types"
 import { AppDataSource } from "data-source"
 import { MulterSource } from "multer-source"
 import {
@@ -56,11 +57,16 @@ import {
   putInstanceSettingsHandler,
 } from "api/settings"
 
-const app: Express = express()
 const port = process.env.PORT || 8080
 RedisClient.getInstance()
 
+const app: Express = express()
 app.disable("x-powered-by")
+
+app.use(async (req: MetloRequest, res, next) => {
+  req.ctx = {}
+  next()
+})
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(
@@ -84,7 +90,7 @@ app.use(async (req, res, next) => {
   }
 })
 
-app.get("/api/v1", (req: Request, res: Response) => {
+app.get("/api/v1", (req: MetloRequest, res: Response) => {
   res.send("OK")
 })
 

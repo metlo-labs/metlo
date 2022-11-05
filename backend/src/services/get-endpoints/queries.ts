@@ -1,4 +1,8 @@
+import { ApiEndpoint, DataField } from "models"
+import { MetloContext } from "types"
+
 export const getEndpointsQuery = (
+  ctx: MetloContext,
   whereFilter: string,
   limitFilter: string,
   offsetFilter: string,
@@ -7,12 +11,12 @@ export const getEndpointsQuery = (
     endpoint.*,
     data_field."dataClasses"
   FROM
-    "api_endpoint" endpoint
+    ${ApiEndpoint.getTableName(ctx)} endpoint
     LEFT JOIN LATERAL (
       SELECT
         array_agg(DISTINCT "classes")::varchar[] as "dataClasses"
       FROM
-        data_field,
+        ${DataField.getTableName(ctx)} data_field,
         unnest(data_field."dataClasses") as "classes"
       WHERE
         data_field."apiEndpointUuid" = endpoint.uuid
@@ -26,16 +30,19 @@ export const getEndpointsQuery = (
   ${offsetFilter}
 `
 
-export const getEndpointsCountQuery = (whereFilter: string) => `
+export const getEndpointsCountQuery = (
+  ctx: MetloContext,
+  whereFilter: string,
+) => `
   SELECT
     COUNT(endpoint.uuid) as count
   FROM
-    "api_endpoint" endpoint
+    ${ApiEndpoint.getTableName(ctx)} endpoint
     LEFT JOIN LATERAL (
       SELECT
         array_agg(DISTINCT "classes") as "dataClasses"
       FROM
-        data_field,
+        ${DataField.getTableName(ctx)} data_field,
         unnest(data_field."dataClasses") as "classes"
       WHERE
         data_field."apiEndpointUuid" = endpoint.uuid

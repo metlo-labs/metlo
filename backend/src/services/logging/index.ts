@@ -1,17 +1,18 @@
 import axios from "axios"
-import { AppDataSource } from "data-source"
 import { InstanceSettings } from "models"
+import { getRepository } from "services/database/utils"
 import { getCounts } from "services/summary/usageStats"
+import { MetloContext } from "types"
 
-export const logAggregatedStats = async () => {
-  const settingRepository = AppDataSource.getRepository(InstanceSettings)
+export const logAggregatedStats = async (ctx: MetloContext) => {
+  const settingRepository = getRepository(ctx, InstanceSettings)
   const settingsLs = await settingRepository.find()
   if (settingsLs.length == 0) {
     console.log("No instance settings found...")
     return
   }
   const settings = settingsLs[0]
-  const counts = await getCounts()
+  const counts = await getCounts(ctx)
   await axios({
     url: "https://logger.metlo.com/log",
     method: "POST",

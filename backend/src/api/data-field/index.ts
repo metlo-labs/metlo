@@ -1,12 +1,13 @@
-import { Request, Response } from "express"
+import { Response } from "express"
 import { DataFieldService } from "services/data-field"
 import { UpdateDataFieldClassesParams } from "@common/types"
 import ApiResponseHandler from "api-response-handler"
 import Error400BadRequest from "errors/error-400-bad-request"
 import { GetEndpointsService } from "services/get-endpoints"
+import { MetloRequest } from "types"
 
 export const updateDataFieldClasses = async (
-  req: Request,
+  req: MetloRequest,
   res: Response,
 ): Promise<void> => {
   try {
@@ -23,6 +24,7 @@ export const updateDataFieldClasses = async (
       throw new Error400BadRequest("No data section provided.")
     }
     const updatedDataField = await DataFieldService.updateDataClasses(
+      req.ctx,
       dataFieldId,
       dataClasses,
       dataPath,
@@ -30,6 +32,7 @@ export const updateDataFieldClasses = async (
     )
     if (updatedDataField) {
       await GetEndpointsService.updateEndpointRiskScore(
+        req.ctx,
         updatedDataField.apiEndpointUuid,
       )
     }
@@ -40,14 +43,18 @@ export const updateDataFieldClasses = async (
 }
 
 export const deleteDataFieldHandler = async (
-  req: Request,
+  req: MetloRequest,
   res: Response,
 ): Promise<void> => {
   try {
     const { dataFieldId } = req.params
-    const removedDataField = await DataFieldService.deleteDataField(dataFieldId)
+    const removedDataField = await DataFieldService.deleteDataField(
+      req.ctx,
+      dataFieldId,
+    )
     if (removedDataField) {
       await GetEndpointsService.updateEndpointRiskScore(
+        req.ctx,
         removedDataField.apiEndpointUuid,
       )
     }

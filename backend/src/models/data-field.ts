@@ -1,6 +1,5 @@
 import {
   Entity,
-  BaseEntity,
   Column,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -11,6 +10,7 @@ import {
 } from "typeorm"
 import { DataClass, DataTag, DataType, DataSection } from "@common/enums"
 import { ApiEndpoint } from "models/api-endpoint"
+import MetloBaseEntity from "./metlo-base-entity"
 
 @Entity()
 @Unique("unique_constraint_data_field", [
@@ -18,7 +18,7 @@ import { ApiEndpoint } from "models/api-endpoint"
   "dataPath",
   "apiEndpointUuid",
 ])
-export class DataField extends BaseEntity {
+export class DataField extends MetloBaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
 

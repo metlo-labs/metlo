@@ -1,5 +1,4 @@
 import {
-  BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
@@ -11,9 +10,10 @@ import {
 import { Meta, PairObject, SessionMeta } from "@common/types"
 import { RestMethod } from "@common/enums"
 import { ApiEndpoint } from "models/api-endpoint"
+import MetloBaseEntity from "./metlo-base-entity"
 
 @Entity()
-export class ApiTrace extends BaseEntity {
+export class ApiTrace extends MetloBaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
 

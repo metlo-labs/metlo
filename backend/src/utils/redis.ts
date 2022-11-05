@@ -1,4 +1,5 @@
 import IORedis from "ioredis"
+import { MetloContext } from "types"
 
 export class RedisClient {
   private static instance: RedisClient
@@ -16,16 +17,21 @@ export class RedisClient {
     return RedisClient.client
   }
 
-  public static addToRedis(key: string, data: Object, expireIn?: number) {
+  public static async addToRedis(
+    ctx: MetloContext,
+    key: string,
+    data: Object,
+    expireIn?: number,
+  ) {
     try {
-      this.getInstance().set(key, JSON.stringify(data))
+      await this.getInstance().set(key, JSON.stringify(data))
       if (expireIn) {
         this.getInstance().expire(key, expireIn, "NX")
       }
     } catch {}
   }
 
-  public static async getFromRedis(key: string) {
+  public static async getFromRedis(ctx: MetloContext, key: string) {
     try {
       return JSON.parse(await this.getInstance().get(key))
     } catch {
@@ -33,7 +39,7 @@ export class RedisClient {
     }
   }
 
-  public static async deleteFromRedis(keys: string[]) {
+  public static async deleteFromRedis(ctx: MetloContext, keys: string[]) {
     try {
       return await this.getInstance().del(keys)
     } catch (err) {
@@ -41,23 +47,33 @@ export class RedisClient {
     }
   }
 
-  public static pushValueToRedisList(
+  public static async deleteKeyFromRedis(ctx: MetloContext, key: string) {
+    const redisClient = RedisClient.getInstance()
+    return await redisClient.del([key])
+  }
+
+  public static async pushValueToRedisList(
+    ctx: MetloContext,
     key: string,
     data: (string | number | Buffer)[],
     right?: boolean,
   ) {
     try {
       if (right) {
-        this.getInstance().rpush(key, ...data)
+        await this.getInstance().rpush(key, ...data)
       } else {
-        this.getInstance().lpush(key, ...data)
+        await this.getInstance().lpush(key, ...data)
       }
     } catch (err) {
       console.error(`Error pushing value to redis list: ${err}`)
     }
   }
 
-  public static async popValueFromRedisList(key: string, right?: boolean) {
+  public static async popValueFromRedisList(
+    ctx: MetloContext,
+    key: string,
+    right?: boolean,
+  ) {
     try {
       if (right) {
         return await this.getInstance().rpop(key)
@@ -69,15 +85,19 @@ export class RedisClient {
     }
   }
 
-  public static addValueToSet(key: string, data: string[]) {
+  public static async addValueToSet(
+    ctx: MetloContext,
+    key: string,
+    data: string[],
+  ) {
     try {
-      this.getInstance().sadd(key, ...data)
+      await this.getInstance().sadd(key, ...data)
     } catch (err) {
       console.error(`Error adding value to redis set: ${err}`)
     }
   }
 
-  public static async getValuesFromSet(key: string) {
+  public static async getValuesFromSet(ctx: MetloContext, key: string) {
     try {
       return await this.getInstance().smembers(key)
     } catch (err) {
@@ -86,6 +106,7 @@ export class RedisClient {
   }
 
   public static async getListValueFromRedis(
+    ctx: MetloContext,
     key: string,
     start: number,
     end: number,
@@ -98,11 +119,22 @@ export class RedisClient {
     }
   }
 
-  public static async getListLength(key: string) {
+  public static async getListLength(ctx: MetloContext, key: string) {
     try {
       return await this.getInstance().llen(key)
     } catch (err) {
       return 0
     }
+  }
+
+  public static addToRedisFromPromise(
+    ctx: MetloContext,
+    key: string,
+    data: Promise<Object>,
+  ) {
+    const redisClient = RedisClient.getInstance()
+    data
+      .then(resp => redisClient.set(key, JSON.stringify(resp)))
+      .catch(err => redisClient.set(key, JSON.stringify(err)))
   }
 }

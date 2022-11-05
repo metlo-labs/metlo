@@ -4,8 +4,10 @@ import { ALERT_TYPE_TO_RISK_SCORE } from "@common/maps"
 import { AppDataSource } from "data-source"
 import { Alert } from "models"
 import { DatabaseService } from "services/database"
+import { MetloContext } from "types"
 
 const generateAlert = async (
+  ctx: MetloContext,
   alertType: string,
   apiEndpointUuid: string,
   description: string,
@@ -18,7 +20,7 @@ const generateAlert = async (
     newAlert.description = description
     newAlert.riskScore = ALERT_TYPE_TO_RISK_SCORE[AlertType[alertType]]
     newAlert.context = JSON.parse(context || "{}")
-    await DatabaseService.executeTransactions([[newAlert]], [], false)
+    await DatabaseService.executeTransactions(ctx, [[newAlert]], [], false)
   } catch (err) {
     console.error(`Error generating new alert from script: ${err}`)
   }
@@ -36,7 +38,7 @@ const main = async () => {
   const apiEndpointUuid = args["endpointUuid"]
   const description = args["description"]
   const context = args["context"]
-  await generateAlert(alertType, apiEndpointUuid, description, context)
+  await generateAlert({}, alertType, apiEndpointUuid, description, context)
 }
 
 main()

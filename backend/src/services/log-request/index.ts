@@ -4,12 +4,16 @@ import { BlockFieldsService } from "services/block-fields"
 import { AuthenticationConfigService } from "services/authentication-config"
 import { RedisClient } from "utils/redis"
 import { TRACES_QUEUE } from "~/constants"
+import { MetloContext } from "types"
 
 export class LogRequestService {
-  static async logRequest(traceParams: TraceParams): Promise<void> {
+  static async logRequest(
+    ctx: MetloContext,
+    traceParams: TraceParams,
+  ): Promise<void> {
     try {
       /** Log Request in ApiTrace table **/
-      const queueLength = await RedisClient.getListLength(TRACES_QUEUE)
+      const queueLength = await RedisClient.getListLength(ctx, TRACES_QUEUE)
       if (queueLength > 1000) {
         return
       }
@@ -39,9 +43,10 @@ export class LogRequestService {
       }
 
       await BlockFieldsService.redactBlockedFields(apiTraceObj)
-      await AuthenticationConfigService.setSessionMetadata(apiTraceObj)
+      await AuthenticationConfigService.setSessionMetadata(ctx, apiTraceObj)
 
       RedisClient.pushValueToRedisList(
+        ctx,
         TRACES_QUEUE,
         [JSON.stringify(apiTraceObj)],
         true,
@@ -52,9 +57,12 @@ export class LogRequestService {
     }
   }
 
-  static async logRequestBatch(traceParamsBatch: TraceParams[]): Promise<void> {
+  static async logRequestBatch(
+    ctx: MetloContext,
+    traceParamsBatch: TraceParams[],
+  ): Promise<void> {
     for (let i = 0; i < traceParamsBatch.length; i++) {
-      await this.logRequest(traceParamsBatch[i])
+      await this.logRequest(ctx, traceParamsBatch[i])
     }
   }
 }

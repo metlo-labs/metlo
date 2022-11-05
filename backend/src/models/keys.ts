@@ -1,16 +1,15 @@
 import { API_KEY_TYPE } from "@common/enums"
 import {
   Entity,
-  BaseEntity,
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  Generated,
 } from "typeorm"
+import MetloBaseEntity from "./metlo-base-entity"
 
 @Entity()
-export class ApiKey extends BaseEntity {
+export class ApiKey extends MetloBaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
 

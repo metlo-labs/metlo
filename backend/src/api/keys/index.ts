@@ -1,14 +1,18 @@
 import ApiResponseHandler from "api-response-handler"
-import { Request, Response } from "express"
-import { AppDataSource } from "data-source"
+import { Response } from "express"
 import { ApiKey } from "models"
 import { ApiKey as ApiKeyType } from "@common/types"
 import Error404NotFound from "errors/error-404-not-found"
 import { createApiKey } from "./service"
 import Error400BadRequest from "errors/error-400-bad-request"
+import { createQB, getRepository } from "services/database/utils"
+import { MetloRequest } from "types"
 
-export const listKeys = async (req: Request, res: Response): Promise<void> => {
-  const keys = await AppDataSource.getRepository(ApiKey).find()
+export const listKeys = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
+  const keys = await getRepository(req.ctx, ApiKey).find()
   return ApiResponseHandler.success(
     res,
     keys.map<ApiKeyType>(v => ({
@@ -20,9 +24,12 @@ export const listKeys = async (req: Request, res: Response): Promise<void> => {
   )
 }
 
-export const createKey = async (req: Request, res: Response): Promise<void> => {
+export const createKey = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
   const { name: keyName } = req.body
-  const key_exists = await AppDataSource.getRepository(ApiKey).countBy({
+  const key_exists = await getRepository(req.ctx, ApiKey).countBy({
     name: keyName,
   })
   if (key_exists) {
@@ -38,7 +45,7 @@ export const createKey = async (req: Request, res: Response): Promise<void> => {
     )
   }
   const [key, rawKey] = createApiKey(keyName)
-  await AppDataSource.getRepository(ApiKey).save(key)
+  await getRepository(req.ctx, ApiKey).save(key)
   return ApiResponseHandler.success(res, {
     apiKey: rawKey,
     name: key.name,
@@ -48,10 +55,13 @@ export const createKey = async (req: Request, res: Response): Promise<void> => {
   })
 }
 
-export const deleteKey = async (req: Request, res: Response): Promise<void> => {
+export const deleteKey = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
   const { name: keyName } = req.params
 
-  let del_resp = await AppDataSource.createQueryBuilder()
+  let del_resp = await createQB(req.ctx)
     .delete()
     .from(ApiKey)
     .where("name = :name", { name: keyName })

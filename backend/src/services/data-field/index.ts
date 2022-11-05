@@ -1,12 +1,13 @@
 import { PairObject, QueuedApiTrace } from "@common/types"
 import { DataClass, DataSection, DataTag, DataType } from "@common/enums"
-import { ApiEndpoint, ApiTrace, DataField } from "models"
+import { ApiEndpoint, DataField } from "models"
 import { getDataType, getRiskScore, isParameter, parsedJson } from "utils"
 import { getPathTokens } from "@common/utils"
 import { ScannerService } from "services/scanner/scan"
-import { AppDataSource } from "data-source"
 import Error404NotFound from "errors/error-404-not-found"
 import { addDataClass } from "./utils"
+import { createQB, getRepository } from "services/database/utils"
+import { MetloContext } from "types"
 
 export class DataFieldService {
   static dataFields: Record<string, DataField>
@@ -14,14 +15,21 @@ export class DataFieldService {
   static traceCreatedAt: Date
   static dataFieldsLength: number
 
-  static async deleteDataField(dataFieldId: string): Promise<DataField> {
-    const dataFieldRepository = AppDataSource.getRepository(DataField)
+  static async deleteDataField(
+    ctx: MetloContext,
+    dataFieldId: string,
+  ): Promise<DataField> {
+    const dataFieldRepository = getRepository(ctx, DataField)
     const dataField = await dataFieldRepository.findOneBy({ uuid: dataFieldId })
     const fieldUuid = dataField.uuid
     if (!dataField) {
       throw new Error404NotFound("DataField for provided id not found.")
     }
-    await dataFieldRepository.remove(dataField)
+    await createQB(ctx)
+      .delete()
+      .from(DataField)
+      .where("uuid = :uuid", { uuid: fieldUuid })
+      .execute()
     return {
       ...dataField,
       uuid: fieldUuid,
@@ -29,12 +37,13 @@ export class DataFieldService {
   }
 
   static async updateDataClasses(
+    ctx: MetloContext,
     dataFieldId: string,
     dataClasses: DataClass[],
     dataPath: string,
     dataSection: DataSection,
   ) {
-    const dataFieldRepository = AppDataSource.getRepository(DataField)
+    const dataFieldRepository = getRepository(ctx, DataField)
     const dataField = await dataFieldRepository.findOneBy({
       uuid: dataFieldId,
       dataPath,

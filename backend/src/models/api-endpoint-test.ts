@@ -1,5 +1,4 @@
 import {
-  BaseEntity,
   Column,
   Entity,
   JoinColumn,
@@ -8,9 +7,10 @@ import {
 } from "typeorm"
 import { Request } from "@metlo/testing"
 import { ApiEndpoint } from "models/api-endpoint"
+import MetloBaseEntity from "./metlo-base-entity"
 
 @Entity()
-export class ApiEndpointTest extends BaseEntity {
+export class ApiEndpointTest extends MetloBaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
 

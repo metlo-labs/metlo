@@ -5,6 +5,8 @@ import { ApiEndpoint, Attack } from "models"
 import { AttackType } from "@common/enums"
 import { ATTACK_TYPE_TO_RISK_SCORE } from "@common/maps"
 import { DateTime } from "luxon"
+import { getEntityManager } from "services/database/utils"
+import { MetloContext } from "types"
 
 const randomDate = (start?: boolean) => {
   const startTime = start
@@ -16,13 +18,16 @@ const randomDate = (start?: boolean) => {
   return new Date(startTime + Math.random() * (endTime - startTime))
 }
 
-const generateAttacks = async (numAttacks: number) => {
+const generateAttacks = async (ctx: MetloContext, numAttacks: number) => {
   const queryRunner = AppDataSource.createQueryRunner()
   await queryRunner.connect()
   try {
-    const endpoints = await queryRunner.manager.find(ApiEndpoint, {
-      select: { uuid: true, host: true },
-    })
+    const endpoints = await getEntityManager(ctx, queryRunner).find(
+      ApiEndpoint,
+      {
+        select: { uuid: true, host: true },
+      },
+    )
     const attackTypes = Object.keys(AttackType)
     const insertAttacks: Attack[] = []
     for (let i = 0; i < numAttacks; i++) {
@@ -39,7 +44,7 @@ const generateAttacks = async (numAttacks: number) => {
       newAttack.host = endpoints[randEndpointNum].host
       insertAttacks.push(newAttack)
     }
-    await queryRunner.manager.insert(Attack, insertAttacks)
+    await getEntityManager(ctx, queryRunner).insert(Attack, insertAttacks)
   } catch (err) {
     console.error(`Encountered error while generating sample attacks: ${err}`)
   } finally {
@@ -48,6 +53,7 @@ const generateAttacks = async (numAttacks: number) => {
 }
 
 const main = async () => {
+  const ctx: MetloContext = {}
   const datasource = await AppDataSource.initialize()
   if (!datasource.isInitialized) {
     console.error("Couldn't initialize datasource...")
@@ -56,7 +62,7 @@ const main = async () => {
   console.log("AppDataSource Initialized...")
   const args = yargs.argv
   const numAttacks = args["numAttacks"] ?? 20
-  await generateAttacks(numAttacks)
+  await generateAttacks(ctx, numAttacks)
 }
 
 main()
