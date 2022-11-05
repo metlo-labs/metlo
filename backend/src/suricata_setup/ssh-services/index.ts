@@ -2,8 +2,9 @@ import { API_KEY_TYPE, ConnectionType } from "@common/enums"
 import { STEP_RESPONSE } from "@common/types"
 import { createApiKey } from "api/keys/service"
 import { randomUUID } from "crypto"
-import { AppDataSource } from "data-source"
 import { ApiKey } from "models"
+import { getRepository } from "services/database/utils"
+import { MetloContext } from "types"
 import { SSH_CONN, put_data_file, format, remove_file } from "./ssh-setup"
 
 type RESPONSE = STEP_RESPONSE<ConnectionType.AWS>
@@ -57,19 +58,22 @@ export async function test_ssh({
   }
 }
 
-export async function push_files({
-  keypair,
-  remote_machine_url,
-  source_private_ip,
-  username,
-  step,
-  id,
-  ...rest
-}: RESPONSE["data"] & { step: number }): Promise<RESPONSE> {
+export async function push_files(
+  ctx: MetloContext,
+  {
+    keypair,
+    remote_machine_url,
+    source_private_ip,
+    username,
+    step,
+    id,
+    ...rest
+  }: RESPONSE["data"] & { step: number },
+): Promise<RESPONSE> {
   let conn = new SSH_CONN(keypair, remote_machine_url, username)
   let [key, raw] = createApiKey(`Metlo-collector-${id}`)
   key.for = API_KEY_TYPE.AWS
-  let api_key = await AppDataSource.getRepository(ApiKey).save(key)
+  let api_key = await getRepository(ctx, ApiKey).save(key)
   try {
     let filepath_ingestor = `${__dirname}/../generics/scripts/metlo-ingestor-${randomUUID()}.service`
     let filepath_rules = `${__dirname}/../generics/scripts/local-${randomUUID()}.rules`

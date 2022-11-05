@@ -1,12 +1,12 @@
 import { AuthType } from "@common/enums"
 import { QueuedApiTrace, SessionMeta } from "@common/types"
-import { AppDataSource } from "data-source"
 import { AuthenticationConfig } from "models"
 import { encryptEcb } from "utils/encryption"
 import { AuthenticationConfig as CachedAuthConfig } from "@common/types"
 import { AUTH_CONFIG_LIST_KEY } from "~/constants"
 import { RedisClient } from "utils/redis"
 import { MetloContext } from "types"
+import { getRepository } from "services/database/utils"
 
 export class AuthenticationConfigService {
   static async setSessionMetadata(ctx: MetloContext, apiTrace: QueuedApiTrace) {
@@ -16,7 +16,7 @@ export class AuthenticationConfigService {
       redisKey,
     )
     if (!cachedAuthConfig) {
-      const authConfigRepo = AppDataSource.getRepository(AuthenticationConfig)
+      const authConfigRepo = getRepository(ctx, AuthenticationConfig)
       const authConfig = await authConfigRepo.findOneBy({
         host: apiTrace.host,
       })

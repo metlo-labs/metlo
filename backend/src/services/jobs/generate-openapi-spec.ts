@@ -1,20 +1,19 @@
 import { IsNull } from "typeorm"
 import { SpecExtension } from "@common/enums"
 import { ApiEndpoint, OpenApiSpec, ApiTrace } from "models"
-import { AppDataSource } from "data-source"
 import { DatabaseService } from "services/database"
 import { getPathTokens } from "@common/utils"
 import { isParameter, parsedJsonNonNull } from "utils"
 import { BodySchema, BodyContent, Responses } from "./types"
 import { parseSchema, parseContent } from "./utils"
-import { getRepoQB } from "services/database/utils"
+import { getRepoQB, getRepository } from "services/database/utils"
 import { MetloContext } from "types"
 
 const generateOpenApiSpec = async (): Promise<void> => {
   try {
     const ctx: MetloContext = {}
-    const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
-    const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec)
+    const apiEndpointRepository = getRepository(ctx, ApiEndpoint)
+    const openApiSpecRepository = getRepository(ctx, OpenApiSpec)
     const nonSpecEndpoints = await apiEndpointRepository.findBy({
       openapiSpecName: IsNull(),
     })

@@ -19,7 +19,12 @@ import { Test } from "@metlo/testing"
 import Error404NotFound from "errors/error-404-not-found"
 import { getRiskScore } from "utils"
 import { getEndpointsCountQuery, getEndpointsQuery } from "./queries"
-import { createQB, getQB, getRepoQB } from "services/database/utils"
+import {
+  createQB,
+  getQB,
+  getRepoQB,
+  getRepository,
+} from "services/database/utils"
 import { MetloContext } from "types"
 
 const GET_DATA_FIELDS_QUERY = `
@@ -58,9 +63,10 @@ export class GetEndpointsService {
   }
 
   static async updateEndpointRiskScore(
+    ctx: MetloContext,
     apiEndpointUuid: string,
   ): Promise<ApiEndpoint> {
-    const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
+    const apiEndpointRepository = getRepository(ctx, ApiEndpoint)
     const apiEndpoint = await apiEndpointRepository.findOne({
       where: {
         uuid: apiEndpointUuid,
@@ -70,10 +76,11 @@ export class GetEndpointsService {
       },
     })
     apiEndpoint.riskScore = getRiskScore(apiEndpoint.dataFields)
-    await apiEndpointRepository.update(
-      { uuid: apiEndpointUuid },
-      { riskScore: apiEndpoint.riskScore },
-    )
+    await getRepoQB(ctx, ApiEndpoint)
+      .andWhere("uuid = :uuid", { uuid: apiEndpointUuid })
+      .update()
+      .set({ riskScore: apiEndpoint.riskScore })
+      .execute()
     return apiEndpoint
   }
 
@@ -208,7 +215,10 @@ export class GetEndpointsService {
     }
   }
 
-  static async getUsage(ctx: MetloContext, endpointId: string): Promise<UsageResponse[]> {
+  static async getUsage(
+    ctx: MetloContext,
+    endpointId: string,
+  ): Promise<UsageResponse[]> {
     try {
       const usage = await getRepoQB(ctx, AggregateTraceDataHourly, "trace")
         .select([`DATE_TRUNC('day', hour) AS date`, `SUM("numCalls") AS count`])

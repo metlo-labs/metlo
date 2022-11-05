@@ -1,21 +1,23 @@
 import { ConnectionType } from "@common/enums"
 import { AWS_CONNECTION, GCP_CONNECTION, SSH_INFO } from "@common/types"
-import { AppDataSource } from "data-source"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { Connections } from "models"
-import { createQB, getRepoQB } from "services/database/utils"
+import { createQB, getRepoQB, getRepository } from "services/database/utils"
 import { MetloContext } from "types"
 
 export class ConnectionsService {
-  static saveConnectionAws = async ({
-    conn_meta,
-    name,
-    id,
-  }: {
-    conn_meta: AWS_CONNECTION & SSH_INFO
-    name: string
-    id: string
-  }) => {
+  static saveConnectionAws = async (
+    ctx: MetloContext,
+    {
+      conn_meta,
+      name,
+      id,
+    }: {
+      conn_meta: AWS_CONNECTION & SSH_INFO
+      name: string
+      id: string
+    },
+  ) => {
     const {
       access_id,
       secret_access_key,
@@ -62,7 +64,7 @@ export class ConnectionsService {
     conn.uuid = id
     conn.name = name
     try {
-      const connectionRepository = AppDataSource.getRepository(Connections)
+      const connectionRepository = getRepository(ctx, Connections)
       await connectionRepository.save(conn)
     } catch (err) {
       console.error(`Error in saving connection: ${err}`)
@@ -70,15 +72,18 @@ export class ConnectionsService {
     }
   }
 
-  static saveConnectionGcp = async ({
-    conn_meta,
-    name,
-    id,
-  }: {
-    conn_meta: GCP_CONNECTION
-    name: string
-    id: string
-  }) => {
+  static saveConnectionGcp = async (
+    ctx: MetloContext,
+    {
+      conn_meta,
+      name,
+      id,
+    }: {
+      conn_meta: GCP_CONNECTION
+      name: string
+      id: string
+    },
+  ) => {
     const {
       key_file,
       project,
@@ -133,7 +138,7 @@ export class ConnectionsService {
     conn.uuid = id
     conn.name = name
     try {
-      const connectionRepository = AppDataSource.getRepository(Connections)
+      const connectionRepository = getRepository(ctx, Connections)
       await connectionRepository.save(conn)
     } catch (err) {
       console.error(`Error in saving connection: ${err}`)
@@ -228,9 +233,9 @@ export class ConnectionsService {
     }
   }
 
-  static getNumConnections = async (): Promise<number> => {
+  static getNumConnections = async (ctx: MetloContext): Promise<number> => {
     try {
-      return await AppDataSource.getRepository(Connections).count()
+      return await getRepository(ctx, Connections).count()
     } catch (err) {
       console.error(`Error in Get Num Connections service: ${err}`)
       throw new Error500InternalServer(err)

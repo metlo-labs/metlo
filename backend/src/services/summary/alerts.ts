@@ -1,7 +1,7 @@
 import { Status, AlertType } from "@common/enums"
-import { AppDataSource } from "data-source"
 import { Alert } from "models"
 import { DatabaseService } from "services/database"
+import { getRepository } from "services/database/utils"
 import { MetloContext } from "types"
 import { RedisClient } from "utils/redis"
 
@@ -26,8 +26,8 @@ export const getAlertTypeAggCached = async (ctx: MetloContext) => {
   return realRes
 }
 
-export const getTopAlerts = async () => {
-  const alertRepository = AppDataSource.getRepository(Alert)
+export const getTopAlerts = async (ctx: MetloContext) => {
+  const alertRepository = getRepository(ctx, Alert)
   return await alertRepository.find({
     where: {
       status: Status.OPEN,
@@ -51,7 +51,7 @@ export const getTopAlertsCached = async (ctx: MetloContext) => {
   if (cacheRes) {
     return cacheRes
   }
-  const realRes = await getTopAlerts()
+  const realRes = await getTopAlerts(ctx)
   await RedisClient.addToRedis(ctx, "topAlertsCached", realRes, 5)
   return realRes
 }

@@ -1,15 +1,15 @@
-import { Request, Response } from "express"
+import { Response } from "express"
 import ApiResponseHandler from "api-response-handler"
-import { AppDataSource } from "data-source"
 import { InstanceSettings } from "models"
+import { getRepository } from "services/database/utils"
+import { MetloRequest } from "types"
 
 export const getInstanceSettingsHandler = async (
-  req: Request,
+  req: MetloRequest,
   res: Response,
 ): Promise<void> => {
   try {
-    const instanceSettingsRepository =
-      AppDataSource.getRepository(InstanceSettings)
+    const instanceSettingsRepository = getRepository(req.ctx, InstanceSettings)
     const instanceSettings = await instanceSettingsRepository.findOne({
       where: {},
     })
@@ -20,13 +20,12 @@ export const getInstanceSettingsHandler = async (
 }
 
 export const putInstanceSettingsHandler = async (
-  req: Request,
+  req: MetloRequest,
   res: Response,
 ): Promise<void> => {
   try {
     const { email, skip } = req.body
-    const instanceSettingsRepository =
-      AppDataSource.getRepository(InstanceSettings)
+    const instanceSettingsRepository = getRepository(req.ctx, InstanceSettings)
     const instanceSettings = await instanceSettingsRepository.findOne({
       where: {},
     })

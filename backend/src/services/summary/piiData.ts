@@ -5,7 +5,6 @@ import {
   SensitiveDataSummary,
 } from "@common/types"
 import { DATA_CLASS_TO_RISK_SCORE } from "@common/maps"
-import { AppDataSource } from "data-source"
 import { DatabaseService } from "services/database"
 import { ApiEndpoint, DataField } from "models"
 import { MetloContext } from "types"

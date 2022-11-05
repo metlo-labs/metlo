@@ -15,7 +15,7 @@ export const getSummaryData = async (
   const piiDataTypeCount = await getPIIDataTypeCountCached(ctx)
   const usageStats = await getUsageStatsCached(ctx)
   const counts = await getCountsCached(ctx)
-  const numConnections = await ConnectionsService.getNumConnections()
+  const numConnections = await ConnectionsService.getNumConnections(ctx)
   return {
     piiDataTypeCount: piiDataTypeCount as any,
     alertTypeCount: alertTypeCount as any,

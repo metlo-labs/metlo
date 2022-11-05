@@ -112,7 +112,7 @@ export async function setup(
         RedisClient.addToRedisFromPromise(
           ctx,
           uuid,
-          push_files({
+          push_files(ctx, {
             ...metadata,
             step: 11,
           }),
@@ -130,7 +130,7 @@ export async function setup(
             step: 12,
           } as any).then(resp => {
             if (resp.status === "COMPLETE") {
-              ConnectionsService.saveConnectionAws({
+              ConnectionsService.saveConnectionAws(ctx, {
                 id: resp.data.id,
                 name: resp.data.name,
                 conn_meta: { ...resp.data } as Required<connType["data"]>,
@@ -231,7 +231,11 @@ export async function setup(
           ConnectionType.GCP,
         )
         await RedisClient.addToRedis(ctx, uuid, resp)
-        RedisClient.addToRedisFromPromise(ctx, uuid, gcp_push_files(metadata))
+        RedisClient.addToRedisFromPromise(
+          ctx,
+          uuid,
+          gcp_push_files(ctx, metadata),
+        )
         return resp
       case GCP_STEPS.EXEC_COMMAND:
         uuid = uuidv4()
@@ -247,7 +251,7 @@ export async function setup(
           uuid,
           gcp_execute_commands(metadata).then(resp => {
             if (resp.status === "COMPLETE") {
-              ConnectionsService.saveConnectionGcp({
+              ConnectionsService.saveConnectionGcp(ctx, {
                 id: resp.data.id,
                 name: resp.data.name,
                 conn_meta: {

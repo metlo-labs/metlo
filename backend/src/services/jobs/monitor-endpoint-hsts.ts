@@ -3,13 +3,13 @@ import { ApiEndpoint, ApiTrace, Alert } from "models"
 import { AppDataSource } from "data-source"
 import { AlertService } from "services/alert"
 import { MetloContext } from "types"
-import { getRepoQB } from "services/database/utils"
+import { getRepoQB, getRepository } from "services/database/utils"
 
 const monitorEndpointForHSTS = async (): Promise<void> => {
   try {
     const ctx: MetloContext = {}
-    const apiTraceRepository = AppDataSource.getRepository(ApiTrace)
-    const alertsRepository = AppDataSource.getRepository(Alert)
+    const apiTraceRepository = getRepository(ctx, ApiTrace)
+    const alertsRepository = getRepository(ctx, Alert)
 
     const alertableData: Array<[ApiEndpoint, ApiTrace, string]> = []
 

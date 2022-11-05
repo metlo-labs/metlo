@@ -1,15 +1,15 @@
 import groupBy from "lodash/groupBy"
 import { In } from "typeorm"
-import { AppDataSource } from "data-source"
 import { ApiEndpoint, ApiTrace } from "models"
 import { EndpointAndUsage } from "@common/types"
 import { DatabaseService } from "services/database"
 import { MetloContext } from "types"
 import { RedisClient } from "utils/redis"
+import { getRepository } from "services/database/utils"
 
 export const getTopEndpoints = async (ctx: MetloContext) => {
-  const apiTraceRepository = AppDataSource.getRepository(ApiTrace)
-  const apiEndpointRepository = AppDataSource.getRepository(ApiEndpoint)
+  const apiTraceRepository = getRepository(ctx, ApiTrace)
+  const apiEndpointRepository = getRepository(ctx, ApiEndpoint)
 
   const endpointStats: {
     endpoint: string

@@ -9,6 +9,7 @@ import { OpenApiSpec } from "models"
 import { SpecExtension } from "@common/enums"
 import { EXTENSION_TO_MIME_TYPE } from "~/constants"
 import { MetloRequest } from "types"
+import { getRepository } from "services/database/utils"
 
 export const getSpecHandler = async (
   req: MetloRequest,
@@ -67,7 +68,7 @@ export const uploadNewSpecHandler = async (
     if (!fileName) {
       throw new Error400BadRequest("No filename provided.")
     }
-    const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec)
+    const openApiSpecRepository = getRepository(req.ctx, OpenApiSpec)
     const exisitingSpec = await openApiSpecRepository.findOneBy({
       name: fileName,
     })
@@ -127,7 +128,7 @@ export const updateSpecHandler = async (
     if (!specFileName) {
       throw new Error400BadRequest("No filename provided.")
     }
-    const openApiSpecRepository = AppDataSource.getRepository(OpenApiSpec)
+    const openApiSpecRepository = getRepository(req.ctx, OpenApiSpec)
     const exisitingSpec = await openApiSpecRepository.findOneBy({
       name: specFileName,
     })
