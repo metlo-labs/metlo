@@ -2,11 +2,12 @@ import { DataType, DisableRestMethod } from "@common/enums"
 import { getDataType, isParameter, parsedJson, parsedJsonNonNull } from "utils"
 import { BlockFieldEntry, PairObject, QueuedApiTrace } from "@common/types"
 import { getPathTokens } from "@common/utils"
-import { BLOCK_FIELDS_ALL_REGEX } from "~/constants"
+import { BLOCK_FIELDS_ALL_REGEX, BLOCK_FIELDS_LIST_KEY } from "~/constants"
 import { isSensitiveDataKey } from "./utils"
 import { BlockFields } from "models"
 import { getRepoQB } from "services/database/utils"
 import { MetloContext } from "types"
+import { RedisClient } from "utils/redis"
 
 export class BlockFieldsService {
   static getNumberParams(
@@ -37,14 +38,38 @@ export class BlockFieldsService {
     ctx: MetloContext,
     apiTrace: QueuedApiTrace,
   ): Promise<BlockFieldEntry> {
-    return await getRepoQB(ctx, BlockFields)
-      .where("host = :host", { host: apiTrace.host })
-      .andWhere("method IN (:...methods)", {
-        methods: [apiTrace.method, DisableRestMethod.ALL],
-      })
-      .andWhere(`:path ~ "pathRegex"`, { path: apiTrace.path })
-      .orderBy(`"numberParams"`, "ASC")
-      .getOne()
+    const redisKey = `block_fields_${apiTrace.host}`
+    let cachedBlockFields: any = await RedisClient.getFromRedis(ctx, redisKey)
+    console.log(cachedBlockFields)
+    if (!cachedBlockFields) {
+      const blockFieldEntries = await getRepoQB(ctx, BlockFields)
+        .createQueryBuilder()
+        .where("host = :host", { host: apiTrace.host })
+        .getMany()
+
+      cachedBlockFields = blockFieldEntries
+      RedisClient.addToRedis(ctx, redisKey, JSON.stringify(blockFieldEntries))
+      RedisClient.addValueToSet(ctx, BLOCK_FIELDS_LIST_KEY, [
+        `block_fields_${apiTrace.host}`,
+      ])
+    } else {
+      cachedBlockFields = JSON.parse(cachedBlockFields)
+    }
+    let res = null
+    if (cachedBlockFields?.length > 0) {
+      for (const item of cachedBlockFields) {
+        const regex = new RegExp(item.pathRegex)
+        if (
+          (item.method === DisableRestMethod[apiTrace.method] ||
+            item.method === DisableRestMethod.ALL) &&
+          regex.test(apiTrace.path) &&
+          (res === null || item.numberParams < res?.numberParams)
+        ) {
+          res = item
+        }
+      }
+    }
+    return res
   }
 
   static isContained(arr: string[], str: string): boolean {

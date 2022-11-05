@@ -3,7 +3,11 @@ import { QueryRunner } from "typeorm"
 import { AuthType, DisableRestMethod } from "@common/enums"
 import { MetloConfigResp, UpdateMetloConfigParams } from "@common/types"
 import { BlockFieldsService } from "services/block-fields"
-import { AUTH_CONFIG_LIST_KEY, BLOCK_FIELDS_ALL_REGEX } from "~/constants"
+import {
+  AUTH_CONFIG_LIST_KEY,
+  BLOCK_FIELDS_ALL_REGEX,
+  BLOCK_FIELDS_LIST_KEY,
+} from "~/constants"
 import { getPathRegex } from "utils"
 import { AuthenticationConfig, BlockFields } from "models"
 import { RedisClient } from "utils/redis"
@@ -76,6 +80,10 @@ const populateBlockFields = async (
   try {
     const blockFieldsDoc = metloConfig?.["blockFields"]
     const blockFieldsEntries: BlockFields[] = []
+    const currBlockFieldsEntries = await RedisClient.getValuesFromSet(
+      ctx,
+      BLOCK_FIELDS_LIST_KEY,
+    )
     if (blockFieldsDoc) {
       for (const host in blockFieldsDoc) {
         const hostObj = blockFieldsDoc[host]
@@ -139,6 +147,12 @@ const populateBlockFields = async (
       .into(BlockFields)
       .values(blockFieldsEntries)
       .execute()
+    if (currBlockFieldsEntries) {
+      await RedisClient.deleteFromRedis(ctx, [
+        ...currBlockFieldsEntries,
+        BLOCK_FIELDS_LIST_KEY,
+      ])
+    }
   } catch (err) {
     throw new Error500InternalServer(
       `Error in populating metlo config blockFields: ${err}`,

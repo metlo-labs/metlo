@@ -86,7 +86,6 @@ const Settings = ({ keys: _keysString, metloConfig }) => {
   }
 
   const updateMetloConfigHandler = async () => {
-    console.log(configString)
     setUpdatingMetloConfig(true)
     try {
       let resp = await updateMetloConfig(configString)
@@ -117,7 +116,7 @@ const Settings = ({ keys: _keysString, metloConfig }) => {
       currentTab={SideNavLinkDestination.Settings}
     >
       <ContentContainer maxContentW="100rem" px="8" py="8">
-        <VStack h="full" w="full" spacing="4">
+        <VStack h="full" w="full" spacing="8">
           <Box h="full" w="full">
             <HStack w="full" justifyContent="space-between">
               <Heading fontWeight="medium" size="lg" mb="4">
@@ -131,7 +130,7 @@ const Settings = ({ keys: _keysString, metloConfig }) => {
                 Save
               </Button>
             </HStack>
-            <Box rounded="md" h="500px" w="full" borderWidth="1px">
+            <Box pt="2" rounded="md" h="500px" w="full" borderWidth="1px">
               <Editor
                 width="100%"
                 defaultLanguage="yaml"
