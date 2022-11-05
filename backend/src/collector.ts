@@ -2,6 +2,7 @@ import dotenv from "dotenv"
 dotenv.config()
 
 import express, { Express, Request, Response } from "express"
+import fs from "fs"
 import { AppDataSource } from "data-source"
 import {
   logRequestBatchHandler,
@@ -9,9 +10,10 @@ import {
 } from "collector_src/log-request"
 import { verifyApiKeyMiddleware } from "middleware/verify-api-key-middleware"
 import { bodyParserMiddleware } from "middleware/body-parser-middleware"
-import { populateBlockFields } from "collector_src/block-fields"
-import { populateAuthentication } from "collector_src/authentication"
 import { MetloContext, MetloRequest } from "types"
+import { populateMetloConfig } from "services/metlo-config"
+import { MetloConfig } from "models/metlo-config"
+import { getRepoQB } from "services/database/utils"
 
 const app: Express = express()
 const port = process.env.PORT || 8081
@@ -42,11 +44,19 @@ const main = async () => {
         datasource.isInitialized ? "Yes" : "No"
       }`,
     )
+    try {
+      const ctx: MetloContext = {}
+      const configString = fs.readFileSync("./metlo-config.yaml", "utf-8")
+      const existingMetloConfig = await getRepoQB(ctx, MetloConfig)
+        .select(["uuid"])
+        .getRawOne()
+      if (configString?.length > 0 && !existingMetloConfig) {
+        await populateMetloConfig(ctx, configString)
+      }
+    } catch (err) {}
     app.listen(port, () => {
       console.log(`⚡️[server]: Server is running at http://localhost:${port}`)
     })
-    const ctx: MetloContext = {}
-    await Promise.all([populateBlockFields(), populateAuthentication(ctx)])
   } catch (err) {
     console.error(`CatchBlockInsideMain: ${err}`)
   }

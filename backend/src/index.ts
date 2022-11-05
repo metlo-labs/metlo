@@ -56,6 +56,10 @@ import {
   getInstanceSettingsHandler,
   putInstanceSettingsHandler,
 } from "api/settings"
+import {
+  getMetloConfigHandler,
+  updateMetloConfigHandler,
+} from "api/metlo-config"
 
 const port = process.env.PORT || 8080
 RedisClient.getInstance()
@@ -148,6 +152,9 @@ app.delete("/api/v1/test/:uuid/delete", deleteTest)
 app.get("/api/v1/keys/list", listKeys)
 app.post("/api/v1/keys/create", createKey)
 app.delete("/api/v1/keys/:name/delete", deleteKey)
+
+app.put("/api/v1/metlo-config", updateMetloConfigHandler)
+app.get("/api/v1/metlo-config", getMetloConfigHandler)
 
 const initInstanceSettings = async () => {
   const settingRepository = AppDataSource.getRepository(InstanceSettings)

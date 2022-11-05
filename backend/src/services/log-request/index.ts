@@ -42,7 +42,7 @@ export class LogRequestService {
         sessionMeta: {} as SessionMeta,
       }
 
-      await BlockFieldsService.redactBlockedFields(apiTraceObj)
+      await BlockFieldsService.redactBlockedFields(ctx, apiTraceObj)
       await AuthenticationConfigService.setSessionMetadata(ctx, apiTraceObj)
 
       RedisClient.pushValueToRedisList(

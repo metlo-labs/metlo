@@ -23,6 +23,9 @@ import { dropAnalyzedColumnFromApiTrace1666752646836 } from "migrations/16667526
 import { addIndexForDataField1666941075032 } from "migrations/1666941075032-add-index-for-data-field"
 import { addIsgraphqlColumnApiEndpoint1667095325334 } from "migrations/1667095325334-add-isgraphql-column-api-endpoint"
 import { addApiEndpointUuidIndexForAlert1667259254414 } from "migrations/1667259254414-add-apiEndpointUuid-index-for-alert"
+import { MetloConfig } from "models/metlo-config"
+import { addMetloConfigTable1667599667595 } from "migrations/1667599667595-add-metlo-config-table"
+import { updateDisabledPathsColumnBlockFieldsTable1667606447208 } from "migrations/1667606447208-update-disabledPaths-column-blockFields-table"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -42,6 +45,7 @@ export const AppDataSource: DataSource = new DataSource({
     AuthenticationConfig,
     AggregateTraceDataHourly,
     Attack,
+    MetloConfig,
   ],
   synchronize: false,
   migrations: [
@@ -51,6 +55,8 @@ export const AppDataSource: DataSource = new DataSource({
     addIndexForDataField1666941075032,
     addIsgraphqlColumnApiEndpoint1667095325334,
     addApiEndpointUuidIndexForAlert1667259254414,
+    addMetloConfigTable1667599667595,
+    updateDisabledPathsColumnBlockFieldsTable1667606447208,
   ],
   migrationsRun: runMigration,
   logging: false,

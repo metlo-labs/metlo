@@ -214,7 +214,6 @@ export const generateAlertMessageFromReqErrors = (
 export const generateAlertMessageFromRespErrors = (
   errors: AjvError[],
   pathToResponseBody: string[],
-  disabledPaths: string[],
 ): Record<string, string[]> => {
   const res = {}
   if (!errors) {
@@ -232,7 +231,6 @@ export const generateAlertMessageFromRespErrors = (
     let errorMessage = `${defaultErrorMessage} in response body.`
     let path = pathArray?.length > 0 ? pathArray.join(".") : ""
     let ignoreError = false
-    const isDisabledPath = disabledPaths.includes(`res.body.${path}`)
     switch (error.keyword) {
       case "required":
         if (error.params?.missingProperty) {

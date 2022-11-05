@@ -4,10 +4,11 @@ import { BlockFieldEntry, PairObject, QueuedApiTrace } from "@common/types"
 import { getPathTokens } from "@common/utils"
 import { BLOCK_FIELDS_ALL_REGEX } from "~/constants"
 import { isSensitiveDataKey } from "./utils"
+import { BlockFields } from "models"
+import { getRepoQB } from "services/database/utils"
+import { MetloContext } from "types"
 
 export class BlockFieldsService {
-  static entries: Record<string, BlockFieldEntry[]> = {}
-
   static getNumberParams(
     pathRegex: string,
     method: DisableRestMethod,
@@ -32,23 +33,18 @@ export class BlockFieldsService {
     return 0
   }
 
-  static getBlockFieldsEntry(apiTrace: QueuedApiTrace): BlockFieldEntry {
-    let entry: BlockFieldEntry = null
-    const hostEntry = this.entries[apiTrace.host]
-    if (hostEntry) {
-      for (const item of hostEntry) {
-        const regex = new RegExp(item.pathRegex)
-        if (
-          (item.method === DisableRestMethod[apiTrace.method] ||
-            item.method === DisableRestMethod.ALL) &&
-          regex.test(apiTrace.path) &&
-          (entry === null || item.numberParams < entry.numberParams)
-        ) {
-          entry = item
-        }
-      }
-    }
-    return entry
+  static async getBlockFieldsEntry(
+    ctx: MetloContext,
+    apiTrace: QueuedApiTrace,
+  ): Promise<BlockFieldEntry> {
+    return await getRepoQB(ctx, BlockFields)
+      .where("host = :host", { host: apiTrace.host })
+      .andWhere("method IN (:...methods)", {
+        methods: [apiTrace.method, DisableRestMethod.ALL],
+      })
+      .andWhere(`:path ~ "pathRegex"`, { path: apiTrace.path })
+      .orderBy(`"numberParams"`, "ASC")
+      .getOne()
   }
 
   static isContained(arr: string[], str: string): boolean {
@@ -201,8 +197,11 @@ export class BlockFieldsService {
     })
   }
 
-  static async redactBlockedFields(apiTrace: QueuedApiTrace) {
-    const blockFieldEntry = this.getBlockFieldsEntry(apiTrace)
+  static async redactBlockedFields(
+    ctx: MetloContext,
+    apiTrace: QueuedApiTrace,
+  ) {
+    const blockFieldEntry = await this.getBlockFieldsEntry(ctx, apiTrace)
     const disabledPaths = blockFieldEntry?.disabledPaths ?? {
       reqQuery: [],
       reqHeaders: [],

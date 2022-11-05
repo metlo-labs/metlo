@@ -8,6 +8,7 @@ import { DisableRestMethod } from "@common/enums"
 import { isParameter } from "utils"
 import { getPathTokens } from "@common/utils"
 import MetloBaseEntity from "./metlo-base-entity"
+import { DisabledPathSection } from "@common/types"
 
 @Entity()
 export class BlockFields extends MetloBaseEntity {
@@ -33,8 +34,8 @@ export class BlockFields extends MetloBaseEntity {
   @Column({ type: "integer", nullable: false, default: 0 })
   numberParams: number
 
-  @Column("varchar", { array: true, default: [] })
-  disabledPaths: string[]
+  @Column({ type: "jsonb", nullable: true, default: null })
+  disabledPaths: DisabledPathSection
 
   @BeforeInsert()
   addNumberParams() {
