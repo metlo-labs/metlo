@@ -510,7 +510,7 @@ export interface AuthenticationConfig {
   cookieName: string
 }
 
-interface DisabledPathSection {
+export interface DisabledPathSection {
   reqQuery: string[]
   reqHeaders: string[]
   reqBody: string[]
@@ -524,4 +524,13 @@ export interface BlockFieldEntry {
   method: DisableRestMethod,
   numberParams: number
   disabledPaths: DisabledPathSection
+}
+
+export interface UpdateMetloConfigParams {
+  configString: string
+}
+
+export interface MetloConfigResp {
+  uuid: string
+  configString: string
 }

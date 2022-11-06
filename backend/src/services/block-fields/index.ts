@@ -2,12 +2,14 @@ import { DataType, DisableRestMethod } from "@common/enums"
 import { getDataType, isParameter, parsedJson, parsedJsonNonNull } from "utils"
 import { BlockFieldEntry, PairObject, QueuedApiTrace } from "@common/types"
 import { getPathTokens } from "@common/utils"
-import { BLOCK_FIELDS_ALL_REGEX } from "~/constants"
+import { BLOCK_FIELDS_ALL_REGEX, BLOCK_FIELDS_LIST_KEY } from "~/constants"
 import { isSensitiveDataKey } from "./utils"
+import { BlockFields } from "models"
+import { getRepoQB } from "services/database/utils"
+import { MetloContext } from "types"
+import { RedisClient } from "utils/redis"
 
 export class BlockFieldsService {
-  static entries: Record<string, BlockFieldEntry[]> = {}
-
   static getNumberParams(
     pathRegex: string,
     method: DisableRestMethod,
@@ -32,23 +34,40 @@ export class BlockFieldsService {
     return 0
   }
 
-  static getBlockFieldsEntry(apiTrace: QueuedApiTrace): BlockFieldEntry {
-    let entry: BlockFieldEntry = null
-    const hostEntry = this.entries[apiTrace.host]
-    if (hostEntry) {
-      for (const item of hostEntry) {
+  static async getBlockFieldsEntry(
+    ctx: MetloContext,
+    apiTrace: QueuedApiTrace,
+  ): Promise<BlockFieldEntry> {
+    const redisKey = `block_fields_${apiTrace.host}`
+    let cachedBlockFields: any = await RedisClient.getFromRedis(ctx, redisKey)
+    if (!cachedBlockFields) {
+      const blockFieldEntries = await getRepoQB(ctx, BlockFields)
+        .where("host = :host", { host: apiTrace.host })
+        .getMany()
+
+      cachedBlockFields = blockFieldEntries
+      RedisClient.addToRedis(ctx, redisKey, JSON.stringify(blockFieldEntries))
+      RedisClient.addValueToSet(ctx, BLOCK_FIELDS_LIST_KEY, [
+        `block_fields_${apiTrace.host}`,
+      ])
+    } else {
+      cachedBlockFields = JSON.parse(cachedBlockFields)
+    }
+    let res = null
+    if (cachedBlockFields?.length > 0) {
+      for (const item of cachedBlockFields) {
         const regex = new RegExp(item.pathRegex)
         if (
           (item.method === DisableRestMethod[apiTrace.method] ||
             item.method === DisableRestMethod.ALL) &&
           regex.test(apiTrace.path) &&
-          (entry === null || item.numberParams < entry.numberParams)
+          (res === null || item.numberParams < res?.numberParams)
         ) {
-          entry = item
+          res = item
         }
       }
     }
-    return entry
+    return res
   }
 
   static isContained(arr: string[], str: string): boolean {
@@ -201,8 +220,11 @@ export class BlockFieldsService {
     })
   }
 
-  static async redactBlockedFields(apiTrace: QueuedApiTrace) {
-    const blockFieldEntry = this.getBlockFieldsEntry(apiTrace)
+  static async redactBlockedFields(
+    ctx: MetloContext,
+    apiTrace: QueuedApiTrace,
+  ) {
+    const blockFieldEntry = await this.getBlockFieldsEntry(ctx, apiTrace)
     const disabledPaths = blockFieldEntry?.disabledPaths ?? {
       reqQuery: [],
       reqHeaders: [],
