@@ -9,6 +9,7 @@ import { ConnectionInfo } from "@common/types"
 import axios from "axios"
 import { getAPIURL } from "~/constants"
 import { useState } from "react"
+import ConnectionDocsList from "components/ConnectionDocs"
 
 const Connections = ({ connections: _connections }) => {
   const [connections, setConnections] = useState(
@@ -25,10 +26,11 @@ const Connections = ({ connections: _connections }) => {
           <Heading fontWeight="medium" size="xl" mb="8">
             Connections
           </Heading>
-          <ConnectionList
+          <ConnectionDocsList />
+          {/* <ConnectionList
             connections={connections}
             setConnections={setConnections}
-          />
+          /> */}
         </VStack>
       </ContentContainer>
     </SidebarLayoutShell>

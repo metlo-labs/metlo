@@ -78,6 +78,10 @@ export enum AttackType {
 export enum ConnectionType {
   AWS = "AWS",
   GCP = "GCP",
+  PYTHON = "PYTHON",
+  NODE = "NODE",
+  JAVA = "JAVA",
+  KUBERNETES = "KUBERNETES"
 }
 
 export enum SpecExtension {
