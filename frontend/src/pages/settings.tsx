@@ -117,35 +117,6 @@ const Settings = ({ keys: _keysString, metloConfig }) => {
     >
       <ContentContainer maxContentW="100rem" px="8" py="8">
         <VStack h="full" w="full" spacing="8">
-          <Box h="full" w="full">
-            <HStack w="full" justifyContent="space-between">
-              <Heading fontWeight="medium" size="lg" mb="4">
-                Metlo Config
-              </Heading>
-              <Button
-                colorScheme="blue"
-                onClick={() => updateMetloConfigHandler()}
-                isLoading={updatingMetloConfig}
-              >
-                Save
-              </Button>
-            </HStack>
-            <Box pt="2" rounded="md" h="500px" w="full" borderWidth="1px">
-              <Editor
-                width="100%"
-                defaultLanguage="yaml"
-                value={configString}
-                onChange={val => setConfigString(val)}
-                options={{
-                  minimap: {
-                    enabled: false,
-                  },
-                  automaticLayout: true,
-                  scrollBeyondLastLine: false,
-                }}
-              />
-            </Box>
-          </Box>
           <Box w="full">
             <Heading fontWeight="medium" size="lg" mb="4">
               API Keys
@@ -182,6 +153,35 @@ const Settings = ({ keys: _keysString, metloConfig }) => {
                 <ListKeys keys={keys} setKeys={setKeys} />
               </Box>
             </VStack>
+          </Box>
+          <Box h="full" w="full">
+            <HStack w="full" justifyContent="space-between">
+              <Heading fontWeight="medium" size="lg" mb="4">
+                Metlo Config
+              </Heading>
+              <Button
+                colorScheme="blue"
+                onClick={() => updateMetloConfigHandler()}
+                isLoading={updatingMetloConfig}
+              >
+                Save
+              </Button>
+            </HStack>
+            <Box pt="2" rounded="md" h="500px" w="full" borderWidth="1px">
+              <Editor
+                width="100%"
+                defaultLanguage="yaml"
+                value={configString}
+                onChange={val => setConfigString(val)}
+                options={{
+                  minimap: {
+                    enabled: false,
+                  },
+                  automaticLayout: true,
+                  scrollBeyondLastLine: false,
+                }}
+              />
+            </Box>
           </Box>
         </VStack>
       </ContentContainer>
