@@ -9,7 +9,7 @@ export const getAlertTypeAgg = async (ctx: MetloContext) => {
   const alertTypeAggRes: { type: AlertType; count: number }[] =
     await DatabaseService.executeRawQuery(`
       SELECT type, CAST(COUNT(*) AS INTEGER) as count
-      FROM ${Alert.getTableName(ctx)} WHERE status = 'Open'
+      FROM ${Alert.getTableName(ctx)} alert WHERE status = 'Open'
       GROUP BY 1
     `)
   return Object.fromEntries(alertTypeAggRes.map(e => [e.type, e.count]))

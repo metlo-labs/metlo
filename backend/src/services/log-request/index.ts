@@ -11,9 +11,13 @@ export class LogRequestService {
     ctx: MetloContext,
     traceParams: TraceParams,
   ): Promise<void> {
+    const unsafeRedisClient = RedisClient.getInstance()
     try {
       /** Log Request in ApiTrace table **/
-      const queueLength = await RedisClient.getListLength(ctx, TRACES_QUEUE)
+      let queueLength = 0
+      try {
+        await unsafeRedisClient.llen(TRACES_QUEUE)
+      } catch {}
       if (queueLength > 1000) {
         return
       }
@@ -45,11 +49,12 @@ export class LogRequestService {
       await BlockFieldsService.redactBlockedFields(ctx, apiTraceObj)
       await AuthenticationConfigService.setSessionMetadata(ctx, apiTraceObj)
 
-      RedisClient.pushValueToRedisList(
-        ctx,
+      await unsafeRedisClient.rpush(
         TRACES_QUEUE,
-        [JSON.stringify(apiTraceObj)],
-        true,
+        JSON.stringify({
+          ctx,
+          trace: apiTraceObj,
+        }),
       )
     } catch (err) {
       console.error(`Error in Log Request service: ${err}`)

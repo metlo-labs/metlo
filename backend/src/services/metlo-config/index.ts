@@ -16,7 +16,12 @@ import Error400BadRequest from "errors/error-400-bad-request"
 import { AppDataSource } from "data-source"
 import { MetloConfig } from "models/metlo-config"
 import { MetloContext } from "types"
-import { createQB, getQB } from "services/database/utils"
+import {
+  createQB,
+  getQB,
+  insertValueBuilder,
+  insertValuesBuilder,
+} from "services/database/utils"
 
 export const getMetloConfig = async (
   ctx: MetloContext,
@@ -142,11 +147,12 @@ const populateBlockFields = async (
       }
     }
     await getQB(ctx, queryRunner).delete().from(BlockFields).execute()
-    await getQB(ctx, queryRunner)
-      .insert()
-      .into(BlockFields)
-      .values(blockFieldsEntries)
-      .execute()
+    await insertValuesBuilder(
+      ctx,
+      queryRunner,
+      BlockFields,
+      blockFieldsEntries,
+    ).execute()
     if (currBlockFieldsEntries) {
       await RedisClient.deleteFromRedis(ctx, [
         ...currBlockFieldsEntries,
@@ -191,10 +197,12 @@ const populateAuthentication = async (
       })
     }
     const deleteQb = getQB(ctx, queryRunner).delete().from(AuthenticationConfig)
-    const addQb = getQB(ctx, queryRunner)
-      .insert()
-      .into(AuthenticationConfig)
-      .values(authConfigEntries)
+    const addQb = insertValuesBuilder(
+      ctx,
+      queryRunner,
+      AuthenticationConfig,
+      authConfigEntries,
+    )
     await deleteQb.execute()
     await addQb.execute()
     if (currAuthConfigEntries) {
@@ -233,11 +241,12 @@ export const populateMetloConfig = async (
     } else {
       const newConfig = MetloConfig.create()
       newConfig.configString = configString
-      await getQB(ctx, queryRunner)
-        .insert()
-        .into(MetloConfig)
-        .values(newConfig)
-        .execute()
+      await insertValueBuilder(
+        ctx,
+        queryRunner,
+        MetloConfig,
+        newConfig,
+      ).execute()
     }
     await queryRunner.commitTransaction()
   } catch (err) {
