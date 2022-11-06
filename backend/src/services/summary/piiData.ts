@@ -16,7 +16,7 @@ export const getPIIDataTypeCount = async (ctx: MetloContext) => {
       SELECT data_class as type, CAST(COUNT(*) AS INTEGER) as cnt
       FROM (SELECT UNNEST("dataClasses") as data_class FROM ${DataField.getTableName(
         ctx,
-      )}) tbl
+      )} data_field) tbl
       GROUP BY 1
     `)
   return Object.fromEntries(piiDataTypeCountRes.map(e => [e.type, e.cnt]))

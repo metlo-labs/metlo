@@ -207,7 +207,6 @@ export class GetEndpointsService {
       const hosts: { [host: string]: string }[] = await getRepoQB(
         ctx,
         ApiEndpoint,
-        "apiEndpoint",
       )
         .select(["host"])
         .distinct(true)

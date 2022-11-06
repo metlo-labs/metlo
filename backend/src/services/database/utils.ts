@@ -28,6 +28,24 @@ export const getQB = (ctx: MetloContext, queryRunner: QueryRunner) => {
   return qb
 }
 
+export function insertValueBuilder<Entity extends ObjectLiteral>(
+  ctx: MetloContext,
+  queryRunner: QueryRunner,
+  into: EntityTarget<Entity>,
+  value: QueryDeepPartialEntity<Entity>,
+) {
+  return getQB(ctx, queryRunner).insert().into(into).values(value)
+}
+
+export function insertValuesBuilder<Entity extends ObjectLiteral>(
+  ctx: MetloContext,
+  queryRunner: QueryRunner,
+  into: EntityTarget<Entity>,
+  values: QueryDeepPartialEntity<Entity>[],
+) {
+  return getQB(ctx, queryRunner).insert().into(into).values(values)
+}
+
 export function getRepoQB<Entity extends ObjectLiteral>(
   ctx: MetloContext,
   target: EntityTarget<Entity>,
@@ -125,16 +143,8 @@ export class WrappedEntityManager {
     return this.manager.findOneBy(entityClass, where)
   }
 
-  save<Entity>(
-    targetOrEntity: Entity,
-    maybeEntityOrOptions?: SaveOptions,
-  ): Promise<Entity>
-  save<Entity, T extends DeepPartial<Entity>>(
-    targetOrEntity: EntityTarget<Entity>,
-    maybeEntityOrOptions: T,
-    maybeOptions?: SaveOptions,
-  ) {
-    return this.manager.save(targetOrEntity, maybeEntityOrOptions, maybeOptions)
+  save<Entity>(target: Entity, options?: SaveOptions): Promise<Entity> {
+    return this.manager.save(target, options)
   }
 
   remove<Entity>(entity: Entity, options?: RemoveOptions): Promise<Entity> {
@@ -143,7 +153,7 @@ export class WrappedEntityManager {
 
   insert<Entity>(
     target: EntityTarget<Entity>,
-    entity: QueryDeepPartialEntity<Entity> | QueryDeepPartialEntity<Entity>[],
+    entity: QueryDeepPartialEntity<Entity>[],
   ): Promise<InsertResult> {
     return this.manager.insert(target, entity)
   }

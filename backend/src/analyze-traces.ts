@@ -20,7 +20,12 @@ import { isGraphQlEndpoint } from "services/graphql"
 import { isQueryFailedError, retryTypeormTransaction } from "utils/db"
 import { MetloContext } from "types"
 import { DatabaseService } from "services/database"
-import { getEntityManager, getQB } from "services/database/utils"
+import {
+  getEntityManager,
+  getQB,
+  insertValueBuilder,
+  insertValuesBuilder,
+} from "services/database/utils"
 
 const getEndpointQuery = (ctx: MetloContext) => `
 SELECT
@@ -63,14 +68,13 @@ WHERE
   "apiEndpointUuid" = $1
 `
 
-const getQueuedApiTrace = async (
-  ctx: MetloContext,
-): Promise<QueuedApiTrace> => {
+const getQueuedApiTrace = async (): Promise<{
+  trace: QueuedApiTrace
+  ctx: MetloContext
+}> => {
   try {
-    const traceString = await RedisClient.popValueFromRedisList(
-      ctx,
-      TRACES_QUEUE,
-    )
+    const unsafeRedisClient = RedisClient.getInstance()
+    const traceString = await unsafeRedisClient.lpop(TRACES_QUEUE)
     return JSON.parse(traceString)
   } catch (err) {
     return null
@@ -115,18 +119,17 @@ const analyze = async (
   await queryRunner.startTransaction()
   await retryTypeormTransaction(
     () =>
-      getEntityManager(ctx, queryRunner).insert(ApiTrace, {
-        ...trace,
-        apiEndpointUuid: apiEndpoint.uuid,
-      }),
+      getEntityManager(ctx, queryRunner).insert(ApiTrace, [
+        {
+          ...trace,
+          apiEndpointUuid: apiEndpoint.uuid,
+        },
+      ]),
     5,
   )
   await retryTypeormTransaction(
     () =>
-      getQB(ctx, queryRunner)
-        .insert()
-        .into(DataField)
-        .values(dataFields)
+      insertValuesBuilder(ctx, queryRunner, DataField, dataFields)
         .orUpdate(
           [
             "dataClasses",
@@ -142,12 +145,7 @@ const analyze = async (
   )
   await retryTypeormTransaction(
     () =>
-      getQB(ctx, queryRunner)
-        .insert()
-        .into(Alert)
-        .values(alerts)
-        .orIgnore()
-        .execute(),
+      insertValuesBuilder(ctx, queryRunner, Alert, alerts).orIgnore().execute(),
     5,
   )
   await retryTypeormTransaction(
@@ -215,11 +213,12 @@ const generateEndpoint = async (
       await queryRunner.startTransaction()
       await retryTypeormTransaction(
         () =>
-          getQB(ctx, queryRunner)
-            .insert()
-            .into(ApiEndpoint)
-            .values(apiEndpoint)
-            .execute(),
+          insertValueBuilder(
+            ctx,
+            queryRunner,
+            ApiEndpoint,
+            apiEndpoint,
+          ).execute(),
         5,
       )
       await queryRunner.commitTransaction()
@@ -251,8 +250,6 @@ const generateEndpoint = async (
 }
 
 const analyzeTraces = async (): Promise<void> => {
-  const ctx: MetloContext = {}
-
   const datasource = await AppDataSource.initialize()
   if (!datasource.isInitialized) {
     console.error("Couldn't initialize datasource...")
@@ -264,8 +261,9 @@ const analyzeTraces = async (): Promise<void> => {
   await queryRunner.connect()
   while (true) {
     try {
-      const trace = await getQueuedApiTrace(ctx)
-      if (trace) {
+      const queued = await getQueuedApiTrace()
+      if (queued) {
+        const { trace, ctx } = queued
         trace.createdAt = new Date(trace.createdAt)
         const apiEndpoint: ApiEndpoint = (
           await queryRunner.query(getEndpointQuery(ctx), [
