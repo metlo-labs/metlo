@@ -19,7 +19,31 @@ const GCPDocs = () => {
           </>
         </Box>
         <Heading w={"full"} size={"sm"} paddingBlock={2}>
-          2. Account Permissions
+          2. Deploy a Metlo Mirroring Instance{" "}
+        </Heading>
+        <VStack w={"full"}>
+          <Box w={"full"}>
+            Run the following command to spin up Metlo in GCP:
+          </Box>
+          <Code w={"full"} p={2}>
+            <VStack>
+              <Box w={"full"}>
+                $ export PROJECT_ID={'"<'}YOUR_PROJECT_ID{'>"'}
+              </Box>
+              <Box w={"full"}>
+                $ gcloud compute instances create metlo-api-security
+                --image-family=metlo-api-security --image-project=metlo-security
+                --project=$PROJECT_ID --machine-type e2-standard-2
+              </Box>
+            </VStack>
+          </Code>
+          <Box w={"full"}>
+            Once you've launched your instance run the following in the instance
+            to start Metlo:<Code> $ sudo metlo start</Code>
+          </Box>
+        </VStack>
+        <Heading w={"full"} size={"sm"} paddingBlock={2}>
+          3. Account Permissions
         </Heading>
         <VStack w={"full"}>
           <Box w={"full"}>
@@ -39,14 +63,14 @@ const GCPDocs = () => {
         </VStack>
         <Box w={"full"}>
           <Heading size={"sm"} paddingBlock={2}>
-            3. Instal Metlo&apos;s CLI Tool
+            4. Install Metlo&apos;s CLI Tool
           </Heading>
-          You can install metlo from npm by running the following: $ npm i -g
-          @metlo/cli
+          You can install metlo from npm by running the following:
+          <Code>$ npm i -g @metlo/cli</Code>
         </Box>
         <Box w={"full"}>
           <Heading size={"sm"} paddingBlock={2}>
-            4. Set up Traffic Mirroring
+            5. Set up Traffic Mirroring
           </Heading>
           To set up traffic mirroring run the following:
           <Code w={"full"} p={2}>
@@ -90,36 +114,3 @@ const GCPDocs = () => {
 }
 
 export default GCPDocs
-/**
- * 
-<Box w={"full"}>✔ GCP Project Name · metlo-security</Box>
-<Box w={"full"}>✔ GCP Network to mirror · default</Box>
-<Box w={"full"}>✔ Select your GCP zone · us-central1-a</Box>
-<Box w={"full"}>✔ Path to GCP key file · /Users/ninadsinha/Desktop/metlo_v2/service_account.json</Box>
-<Box w={"full"}>✔ Validated account details</Box>
-<Box w={"full"}>Validated account details succesfully</Box>
-<Box w={"full"}>✔ Select your mirror source type · SUBNET</Box>
-<Box w={"full"}>✔ Enter the mirror source subnet name · default</Box>
-<Box w={"full"}>✔ Verified mirror source details</Box>
-<Box w={"full"}>✔ Created destination subnet</Box>
-<Box w={"full"}>✔ Created Firewall rule</Box>
-<Box w={"full"}>✔ Obtained router details</Box>
-<Box w={"full"}>? Mirror Instance Type … </Box>
-<Box w={"full"}>? Mirror Instance Type … s</Box>
-<Box w={"full"}>? Mirror Instance Type … st</Box>
-<Box w={"full"}>? Mirror Instance Type … sta</Box>
-<Box w={"full"}>? Mirror Instance Type … stan</Box>
-<Box w={"full"}>? Mirror Instance Type … stand</Box>
-<Box w={"full"}>? Mirror Instance Type … standa</Box>
-<Box w={"full"}>? Mirror Instance Type … standar</Box>
-<Box w={"full"}>? Mirror Instance Type … standard</Box>
-<Box w={"full"}>? Mirror Instance Type … standard-</Box>
-<Box w={"full"}>✔ Mirror Instance Type · e2-standard-2</Box>
-<Box w={"full"}>✔ Metlo URL · http://ec2-35-88-51-212.us-west-2.compute.amazonaws.com</Box>
-<Box w={"full"}>✔ Metlo API Key · metlo.5i4rldY0zo3ez7uTrZIzH+qYaCKDNrG9op0NRfSf</Box>
-<Box w={"full"}>✔ Created MIG for metlo</Box>
-<Box w={"full"}>✔ Created health check</Box>
-<Box w={"full"}>✔ Creating Backend service for packet mirroring</Box>
-<Box w={"full"}>✔ Created load balancer</Box>
-<Box w={"full"}>✔ Created backend service</Box>
- */
