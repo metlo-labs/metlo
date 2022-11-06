@@ -38,8 +38,8 @@ const GCPDocs = () => {
             </VStack>
           </Code>
           <Box w={"full"}>
-            Once you've launched your instance run the following in the instance
-            to start Metlo:<Code> $ sudo metlo start</Code>
+            Once you&apos;ve launched your instance run the following in the
+            instance to start Metlo:<Code> $ sudo metlo start</Code>
           </Box>
         </VStack>
         <Heading w={"full"} size={"sm"} paddingBlock={2}>
