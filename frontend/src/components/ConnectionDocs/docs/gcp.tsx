@@ -19,116 +19,70 @@ const GCPDocs = () => {
           </>
         </Box>
         <Heading w={"full"} size={"sm"} paddingBlock={2}>
-          2. Collect account information
+          2. Account Permissions
         </Heading>
         <VStack w={"full"}>
           <Box w={"full"}>
-            This step is for collecting basic information regarding your GCP
-            instance
+            Metlo mirroring on GCP requires a service account with the following
+            permissions:
           </Box>
-          <Box w={"full"}>
-            <VStack w={"full"}>
-              <Box w={"full"}>These parameters have to be populated:</Box>
-              <Box w={"full"}>
-                &nbsp;-&nbsp;Name : Name for the particular connection.
-              </Box>
-              <Box w={"full"}>&nbsp;-&nbsp;Network: GCP Network Name</Box>
-              <Box w={"full"}>&nbsp;-&nbsp;Project: GCP Project Name</Box>
-              <Box w={"full"}>&nbsp;-&nbsp;Zone: GCP Zone Name</Box>
-              <Box w={"full"}>&nbsp;-&nbsp;Zone: GCP Zone</Box>
-              <Box w={"full"}>
-                &nbsp;-&nbsp;Key: GCP Service Account JSON Key
-              </Box>
-            </VStack>
-          </Box>
-          <Box w={"full"}>Your key should look something like this :</Box>
-          <Code w={"full"} p={2}>
-            <VStack>
-              <Box w={"full"}>{"{"}</Box>
-              <Box w={"full"}>
-                &nbsp;&nbsp;&nbsp;&nbsp;&quot;type&quot;:
-                &quot;service_account&quot;,
-              </Box>
-              <Box w={"full"}>
-                &nbsp;&nbsp;&nbsp;&nbsp;&quot;project_id&quot;: &quot;...&quot;,
-              </Box>
-              <Box w={"full"}>
-                &nbsp;&nbsp;&nbsp;&nbsp;&quot;private_key_id&quot;:
-                &quot;...&quot;,
-              </Box>
-              <Box w={"full"}>
-                &nbsp;&nbsp;&nbsp;&nbsp;&quot;private_key&quot;:
-                &quot;...&quot;,
-              </Box>
-              <Box w={"full"}>
-                &nbsp;&nbsp;&nbsp;&nbsp;&quot;client_email&quot;:
-                &quot;abc@xyz.iam.gserviceaccount.com&quot;,
-              </Box>
-              <Box w={"full"}>
-                &nbsp;&nbsp;&nbsp;&nbsp;&quot;client_id&quot;:&quot;1234567890123456789012&quot;,
-              </Box>
-              <Box w={"full"}>
-                &nbsp;&nbsp;&nbsp;&nbsp;&quot;auth_uri&quot;:
-                &quot;https://accounts.google.com/o/oauth2/auth&quot;,
-              </Box>
-              <Box w={"full"}>
-                &nbsp;&nbsp;&nbsp;&nbsp;&quot;token_uri&quot;:
-                &quot;https://oauth2.googleapis.com/token&quot;,
-              </Box>
-              <Box w={"full"}>
-                &nbsp;&nbsp;&nbsp;&nbsp;&quot;auth_provider_x509_cert_url&quot;:
-                &quot;https://www.googleapis.com/oauth2/v1/certs&quot;,
-              </Box>
-              <Box w={"full"}>
-                &nbsp;&nbsp;&nbsp;&nbsp;&quot;client_x509_cert_url&quot;:
-                &quot;...&quot;
-              </Box>
-              <Box w={"full"}>{"}"}</Box>
-            </VStack>
-          </Code>
+
           <VStack w={"full"}>
             <Box w={"full"}>
-              The Project, Zone, and Network need to match the details of the
-              source which being monitored.
+              Currently, we require these permissions for the service account:
             </Box>
-            <Box w={"full"}>
-              <VStack w={"full"}>
-                <Box w={"full"}>
-                  Currently, we require these permissions for the service
-                  account:
-                </Box>
-                <Box w={"full"}>&nbsp;-&nbsp;Compute Admin</Box>
-                <Box w={"full"}>
-                  &nbsp;-&nbsp;Compute packet mirroring admin
-                </Box>
-                <Box w={"full"}>&nbsp;-&nbsp;Compute packet mirroring user</Box>
-                <Box w={"full"}>&nbsp;-&nbsp;IAP-secured Tunnel User</Box>
-              </VStack>
-            </Box>
+            <Box w={"full"}>&nbsp;-&nbsp;Compute Admin</Box>
+            <Box w={"full"}>&nbsp;-&nbsp;Compute packet mirroring admin</Box>
+            <Box w={"full"}>&nbsp;-&nbsp;Compute packet mirroring user</Box>
+            <Box w={"full"}>&nbsp;-&nbsp;IAP-secured Tunnel User</Box>
           </VStack>
         </VStack>
         <Box w={"full"}>
           <Heading size={"sm"} paddingBlock={2}>
-            3. Collect mirror instance information
+            3. Instal Metlo&apos;s CLI Tool
           </Heading>
-          <VStack w={"full"}>
-            <Box w={"full"}>
-              This step is for selecting the EC2 instance that is to be
-              mirrored.
-            </Box>
-            <Box w={"full"}>Theses parameters have to be populated: </Box>
-            <Box w={"full"}>
-              &nbsp;-&nbsp;Source GCloud Compute Instance Name : The name of the
-              compute engine to be mirrored. It should resemble.
-            </Box>
-          </VStack>
+          You can install metlo from npm by running the following: $ npm i -g
+          @metlo/cli
         </Box>
         <Box w={"full"}>
-          <Heading w={"full"} size={"sm"} paddingBlock={2}>
-            4. GCP Collector Instance Creation
+          <Heading size={"sm"} paddingBlock={2}>
+            4. Set up Traffic Mirroring
           </Heading>
-          This step creates a new compute engine instance for the Metlo
-          collector.
+          To set up traffic mirroring run the following:
+          <Code w={"full"} p={2}>
+            <VStack>
+              <Box w={"full"}>✔ GCP Project Name · metlo-security</Box>
+              <Box w={"full"}>✔ GCP Network to mirror · default</Box>
+              <Box w={"full"}>✔ Select your GCP zone · us-central1-a</Box>
+              <Box w={"full"}>
+                ✔ Path to GCP key file ·{"<"}PATH TO GCP KEY FILE{">"}
+              </Box>
+              <Box w={"full"}>✔ Validated account details</Box>
+              <Box w={"full"}>Validated account details succesfully</Box>
+              <Box w={"full"}>✔ Select your mirror source type · SUBNET</Box>
+              <Box w={"full"}>
+                ✔ Enter the mirror source subnet name · default
+              </Box>
+              <Box w={"full"}>✔ Verified mirror source details</Box>
+              <Box w={"full"}>✔ Created destination subnet</Box>
+              <Box w={"full"}>✔ Created Firewall rule</Box>
+              <Box w={"full"}>✔ Obtained router details</Box>
+              <Box w={"full"}>✔ Mirror Instance Type · e2-standard-2</Box>
+              <Box w={"full"}>
+                ✔ Metlo URL · {"<"}METLO_URL_HERE{">"}
+              </Box>
+              <Box w={"full"}>
+                ✔ Metlo API Key · {"<"}METLO_API_KEY_HERE{">"}
+              </Box>
+              <Box w={"full"}>✔ Created MIG for metlo</Box>
+              <Box w={"full"}>✔ Created health check</Box>
+              <Box w={"full"}>
+                ✔ Creating Backend service for packet mirroring
+              </Box>
+              <Box w={"full"}>✔ Created load balancer</Box>
+              <Box w={"full"}>✔ Started packet mirroring</Box>
+            </VStack>
+          </Code>
         </Box>
       </VStack>
     </>
@@ -136,3 +90,36 @@ const GCPDocs = () => {
 }
 
 export default GCPDocs
+/**
+ * 
+<Box w={"full"}>✔ GCP Project Name · metlo-security</Box>
+<Box w={"full"}>✔ GCP Network to mirror · default</Box>
+<Box w={"full"}>✔ Select your GCP zone · us-central1-a</Box>
+<Box w={"full"}>✔ Path to GCP key file · /Users/ninadsinha/Desktop/metlo_v2/service_account.json</Box>
+<Box w={"full"}>✔ Validated account details</Box>
+<Box w={"full"}>Validated account details succesfully</Box>
+<Box w={"full"}>✔ Select your mirror source type · SUBNET</Box>
+<Box w={"full"}>✔ Enter the mirror source subnet name · default</Box>
+<Box w={"full"}>✔ Verified mirror source details</Box>
+<Box w={"full"}>✔ Created destination subnet</Box>
+<Box w={"full"}>✔ Created Firewall rule</Box>
+<Box w={"full"}>✔ Obtained router details</Box>
+<Box w={"full"}>? Mirror Instance Type … </Box>
+<Box w={"full"}>? Mirror Instance Type … s</Box>
+<Box w={"full"}>? Mirror Instance Type … st</Box>
+<Box w={"full"}>? Mirror Instance Type … sta</Box>
+<Box w={"full"}>? Mirror Instance Type … stan</Box>
+<Box w={"full"}>? Mirror Instance Type … stand</Box>
+<Box w={"full"}>? Mirror Instance Type … standa</Box>
+<Box w={"full"}>? Mirror Instance Type … standar</Box>
+<Box w={"full"}>? Mirror Instance Type … standard</Box>
+<Box w={"full"}>? Mirror Instance Type … standard-</Box>
+<Box w={"full"}>✔ Mirror Instance Type · e2-standard-2</Box>
+<Box w={"full"}>✔ Metlo URL · http://ec2-35-88-51-212.us-west-2.compute.amazonaws.com</Box>
+<Box w={"full"}>✔ Metlo API Key · metlo.5i4rldY0zo3ez7uTrZIzH+qYaCKDNrG9op0NRfSf</Box>
+<Box w={"full"}>✔ Created MIG for metlo</Box>
+<Box w={"full"}>✔ Created health check</Box>
+<Box w={"full"}>✔ Creating Backend service for packet mirroring</Box>
+<Box w={"full"}>✔ Created load balancer</Box>
+<Box w={"full"}>✔ Created backend service</Box>
+ */
