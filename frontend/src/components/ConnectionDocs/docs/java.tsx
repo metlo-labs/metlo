@@ -5,7 +5,7 @@ const JavaDocs = () => {
   return (
     <VStack>
       <Box pb={2} w={"full"}>
-        <Box>Currently Metlo's Java Agent supports 1 framework:</Box>
+        <Box>Currently Metlo&apos;s Java Agent supports 1 framework:</Box>
 
         <Box>&nbsp;&nbsp;-&nbsp; Spring (and by extension Spring Boot)</Box>
 
@@ -88,7 +88,7 @@ const JavaDocs = () => {
             </Box>
           </Box>
           <Box w={"full"}>
-            <Box w={"full"}>// Metlo imported here</Box>
+            <Box w={"full"}>{"//"} Metlo imported here</Box>
             <Box w={"full"}>import com.metlo.spring.Metlo;</Box>
             <Box w={"full"}>@Configuration</Box>
             <Box w={"full"}>public class FilterConfig {"{"}</Box>
@@ -109,7 +109,7 @@ const JavaDocs = () => {
                 </Box>
                 <Box w={"full"}>here registrationBean.setFilter(new</Box>
                 <Box w={"full"}>
-                  Metlo("http://&lt;YOUR_METLO_ADDRESS&gt;:8081","&lt;YOUR_METLO_API_KEY&gt;");
+                  Metlo(&quot;http://&lt;YOUR_METLO_ADDRESS&gt;:8081&quot;,&quot;&lt;YOUR_METLO_API_KEY&gt;&quot;);
                 </Box>
                 <Box w={"full"}>
                   registrationBean.setOrder(2); return registrationBean;

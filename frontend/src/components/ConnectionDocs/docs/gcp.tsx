@@ -37,7 +37,7 @@ const GCPDocs = () => {
               <Box w={"full"}>&nbsp;-&nbsp;Zone: GCP Zone Name</Box>
               <Box w={"full"}>&nbsp;-&nbsp;Zone: GCP Zone</Box>
               <Box w={"full"}>
-                &nbsp;-&nbsp;Key: GCP Service Account JSON Key{" "}
+                &nbsp;-&nbsp;Key: GCP Service Account JSON Key
               </Box>
             </VStack>
           </Box>

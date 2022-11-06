@@ -9,7 +9,7 @@ const NodeDocs = () => {
         <Box w={"full"}>
           <VStack w={"full"}>
             <Box w={"full"}>
-              Currently Metlo's Node Agent supports 3 frameworks:
+              Currently Metlo&apos;s Node Agent supports 3 frameworks:
             </Box>
             <Box w={"full"}>&nbsp;&nbsp;-&nbsp;Express</Box>
             <Box w={"full"}>&nbsp;&nbsp;-&nbsp;Koa</Box>
@@ -40,7 +40,7 @@ const NodeDocs = () => {
               </Box>
               <Code w={"full"} p={2}>
                 <VStack w={"full"}>
-                  <Box w={"full"}>var metlo = require("metlo")</Box>
+                  <Box w={"full"}>var metlo = require(&quot;metlo&quot;)</Box>
                   <Box w={"full"}>
                     metlo({"<"}YOUR_METLO_API_KEY{">, <"}
                     YOUR_METLO_COLLECTOR_URL{">"})

@@ -97,7 +97,7 @@ const AWSDocs = () => {
                 &quot;:8081&quot; {">>"} /opt/metlo/credentials
               </Box>
               <Box w={"full"}>
-                echo &quot;METLO_KEY= {"<"}YOUR_METLO_API_KEY{">"} {">>"}{" "}
+                echo &quot;METLO_KEY= {"<"}YOUR_METLO_API_KEY{">"} {">>"}
                 /opt/metlo/credentials
               </Box>
               <Box w={"full"}>sudo systemctl enable metlo-ingestor.service</Box>
