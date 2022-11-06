@@ -37,6 +37,7 @@
     "dotenv": "^16.0.2",
     "enquirer": "^2.3.6",
     "nodemon": "^2.0.19",
+    "ora": "^5.4.1",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.1.0",
     "tslib": "^2.4.0",

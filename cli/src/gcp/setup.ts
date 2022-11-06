@@ -1,14 +1,15 @@
 import AsyncRetry from "async-retry"
 import { promisify } from "util"
 import { exec } from "child_process"
-import { v4 as uuidv4 } from "uuid"
+import { v4 as uuidv4, validate } from "uuid"
 import fs from "fs"
 import { prompt } from "enquirer"
 import { GCP_REGIONS_SUPPORTED, wait_for_global_operation, wait_for_regional_operation, wait_for_zonal_operation } from "./gcpUtils"
 import { GCP_CONN } from "./gcp_apis"
 import chalk from "chalk"
+import ora from "ora";
 
-const promiseExec = promisify(exec)
+const spinner = ora()
 
 const verifyAccountDetails = async () => {
     const gcp_regions = GCP_REGIONS_SUPPORTED.map(e => ({
@@ -25,7 +26,7 @@ const verifyAccountDetails = async () => {
             name: "_networkName",
             message: "GCP Network to mirror",
         }, {
-            type: "select",
+            type: "autocomplete",
             name: "_zoneName",
             message: "Select your GCP zone",
             initial: 1,
@@ -46,6 +47,8 @@ const verifyAccountDetails = async () => {
         }
     ])
 
+    spinner.text = "Validating account details"
+    spinner.start()
     // @ts-ignore Destructuring is improperly done
     const { _projectName: project, _networkName: network, _zoneName: zone, _keyPath: keyFilePath } = resp;
 
@@ -54,6 +57,9 @@ const verifyAccountDetails = async () => {
     let conn = new GCP_CONN(key, zone, project)
     await conn.test_connection()
     await conn.get_zone({ zone })
+    spinner.succeed("Validated account details")
+    spinner.stop()
+    spinner.clear()
     return { project, network, zone, key }
 }
 
@@ -65,11 +71,12 @@ const sourceSelection = async (conn: GCP_CONN) => {
             type: "select",
             name: "_sourceType",
             message: "Select your mirror source type",
-            initial: 1,
+            initial: 0,
             choices: ["INSTANCE", "SUBNET", "TAG"],
         }
     ])
     let sourceType = sourceTypeResp["_sourceType"]
+
     if (sourceType === "INSTANCE") {
         const instanceNameResp = await prompt([
             {
@@ -78,6 +85,7 @@ const sourceSelection = async (conn: GCP_CONN) => {
                 message: "Enter the mirror source instance name",
             }
         ])
+        spinner.start("Verifying mirror source details")
         let resp = await conn.get_instance(instanceNameResp['_name'])
         source_private_ip = resp[0].networkInterfaces[0].networkIP
         source_subnetwork_url = resp[0].networkInterfaces[0].subnetwork
@@ -93,6 +101,7 @@ const sourceSelection = async (conn: GCP_CONN) => {
         let resp = await conn.get_subnet_information({
             subnetName: subnetNameResp['_name'],
         })
+        spinner.start("Verifying mirror source details")
         source_private_ip = resp[0].ipCidrRange
         source_subnetwork_url = resp[0].selfLink
         source_instance_url = resp[0].selfLink
@@ -104,6 +113,7 @@ const sourceSelection = async (conn: GCP_CONN) => {
                 message: "Enter the mirror source tag name",
             }
         ])
+        spinner.start("Verifying mirror source details")
         let resp = await conn.list_instances()
         let tagName = tagNameResp["_name"]
         if (!resp[0].find(v => v.tags.items.includes(tagName))) {
@@ -116,6 +126,9 @@ const sourceSelection = async (conn: GCP_CONN) => {
         source_subnetwork_url = ""
         source_instance_url = ""
     }
+    spinner.succeed("Verified mirror source details")
+    spinner.stop()
+    spinner.clear()
     return {
         sourceType,
         sourcePrivateIP: source_private_ip,
@@ -132,6 +145,9 @@ const getDestinationSubnet = async (
     id,
 ) => {
     let addressName = `metlo-address-temporary-${id}`
+
+    spinner.text = "Creating Destination subnet"
+    spinner.start()
 
     let address_resp = await conn.create_new_internal_address({
         addressName: addressName,
@@ -170,6 +186,10 @@ const getDestinationSubnet = async (
         destination_subnetwork[0].latestResponse.name,
         conn,
     )
+
+    spinner.succeed("Created destination subnet")
+    spinner.stop()
+    spinner.clear()
     return { ipRange: ip_range, destinationSubnetworkUrl: destination_subnetwork[0].latestResponse.targetLink }
 }
 
@@ -180,11 +200,16 @@ const createFirewallRule = async (
     id
 ) => {
     const firewallName = `metlo-firewall-${id}`
+    spinner.text = "Creating Firewall rule"
+    spinner.start()
     let resp = await conn.create_firewall_rule({
         firewallName,
         networkName: network_url,
         ipRange: ip_range,
     })
+    spinner.succeed("Created Firewall rule")
+    spinner.stop()
+    spinner.clear()
     return { firewallRuleUrl: resp[0].latestResponse.targetLink }
 }
 
@@ -194,6 +219,8 @@ const createCloudRouter = async (
     destination_subnetwork_url,
     id,
 ) => {
+    spinner.text = "Creating or adding existing router"
+    spinner.start()
     let resp = await conn.list_routers()
     let useful_routers = resp[0].filter(v => {
         const usesfulNats = v.nats.filter(nat =>
@@ -225,6 +252,10 @@ const createCloudRouter = async (
         // @ts-ignore
         router_url = new_router[0].latestResponse.targetLink
     }
+
+    spinner.succeed("Obtained router details")
+    spinner.stop()
+    spinner.clear()
     return {
         routerURL: router_url
     }
@@ -239,9 +270,8 @@ const create_mig = async (
     id: string,
 ) => {
 
-    // Check for machine type :
     const [types] = await conn.list_machine_types({ filters: [] })
-    const machineTypeResp = await prompt([
+    const machineInfoResp = await prompt([
         {
             type: "autocomplete",
             name: "_machineType",
@@ -249,22 +279,65 @@ const create_mig = async (
             choices: types.map((v) => ({
                 name: v.name
             }))
-        },
+        }, {
+            type: "input",
+            name: "_url",
+            message: "Metlo URL",
+            hint: "http://www.example.com or http://12.34.56",
+            validate: (url: string) => {
+                try {
+                    new URL(url)
+                    return true
+                } catch (err) {
+                    return false
+                }
+            }
+        }, {
+            type: "input",
+            name: "_apiKey",
+            message: "Metlo API Key",
+            hint: "metlo.abcd.....xyz",
+            validate: (apiKey: string) => {
+                try {
+                    const [metlo, strPart] = apiKey.split(".")
+                    if (metlo == 'metlo') {
+                        if (strPart.length == 40) {
+                            return true
+                        } else {
+                            return chalk.red("Invalid key length. Key length should be 46 characters long")
+                        }
+                    } else {
+                        return chalk.red("Api key must begin with metlo")
+                    }
+                } catch (err) {
+                    return false
+                }
+            }
+        }
     ])
+    spinner.text = "Creating Managed Instance Group for metlo"
+    spinner.start()
 
+    spinner.text = "Creating Image Template"
     const imageTemplateName = `metlo-image-template-${id}`
     let image_resp = await conn.create_image_template({
-        machineType: machineTypeResp["_machineType"],
+        machineType: machineInfoResp["_machineType"],
         sourceImage: source_image,
         network: network_url,
         subnet: destination_subnetwork_url,
         imageTemplateName: imageTemplateName,
+        startupScript: `#!/bin/bash
+        echo "METLO_ADDR=${machineInfoResp['_url']}:8081" >> /opt/metlo/credentials
+        echo "METLO_KEY=${machineInfoResp['_apiKey']}" >>  /opt/metlo/credentials
+        sudo systemctl enable metlo-ingestor.service
+        sudo systemctl start metlo-ingestor.service`
     })
     let img_resp = await wait_for_global_operation(
         image_resp[0].latestResponse.name,
         conn,
     )
 
+    spinner.text = "Creating Instance Group manager"
     const instanceGroupName = `metlo-mig-${id}`
     let instance_manager = await conn.create_instance_manager({
         templateURL: img_resp[0].targetLink,
@@ -277,10 +350,13 @@ const create_mig = async (
 
     const instance_name = `metlo-scaler-${id}`
 
+    spinner.text = "Verifying Instance Group existence"
     let instance = await conn.list_instance_for_group({
         managedGroupName: instanceGroupName,
     })
-
+    spinner.succeed("Created MIG for metlo")
+    spinner.stop()
+    spinner.clear()
     return {
         // @ts-ignore
         imageTemplateUrl: image_resp[0].latestResponse.targetLink,
@@ -294,11 +370,16 @@ const createHealthCheck = async (
     conn: GCP_CONN,
     id: string,
 ) => {
+    spinner.text = "Creating Health check for backend service"
+    spinner.start()
     const health_check_name = `metlo-health-check-${id}`
     let resp = await conn.create_health_check({
         healthCheckName: health_check_name,
     })
     await wait_for_global_operation(resp[0].latestResponse.name, conn)
+    spinner.succeed("Created health check")
+    spinner.stop()
+    spinner.clear()
     return {
         //@ts-ignore
         healthCheckUrl: resp[0].latestResponse.targetLink,
@@ -312,6 +393,7 @@ const createBackendService = async (
     managed_group_url,
     health_check_url,
     id) => {
+    spinner.start("Creating Backend service for packet mirroring")
     const backend_name = `metlo-backend-${id}`
     let resp = await conn.create_backend_service({
         networkURL: network_url,
@@ -320,6 +402,9 @@ const createBackendService = async (
         name: backend_name,
     })
     await wait_for_regional_operation(resp[0].latestResponse.name, conn)
+    spinner.succeed()
+    spinner.stop()
+    spinner.clear()
     return {
         //@ts-ignore
         backendServiceUrl: resp[0].latestResponse.targetLink,
@@ -333,7 +418,7 @@ const createLoadBalancer = async (
     destination_subnetwork_url,
     backend_service_url,
     id) => {
-
+    spinner.start("Creating load balancer for metlo/backend service")
     const rule_name = `metlo-forwarding-rule-${id}`
     let resp = await conn.create_forwarding_rule({
         networkURL: network_url,
@@ -342,6 +427,9 @@ const createLoadBalancer = async (
         backendServiceURL: backend_service_url,
     })
     await wait_for_regional_operation(resp[0].latestResponse.name, conn)
+    spinner.succeed("Created load balancer")
+    spinner.stop()
+    spinner.clear()
     return {
         //@ts-ignore
         forwardingRuleUrl: resp[0].latestResponse.targetLink,
@@ -357,8 +445,9 @@ const packetMirroring = async (
     source_type,
     id
 ) => {
+    spinner.start("Starting packet mirroring")
     const packet_mirror_name = `metlo-packet-mirroring-${id}`
-    var packet_mirror_url
+    var packet_mirror_url;
     if (source_type === "INSTANCE") {
         let resp = await conn.start_packet_mirroring({
             networkURL: network_url,
@@ -390,7 +479,10 @@ const packetMirroring = async (
             await wait_for_regional_operation(resp[0].latestResponse.name, conn)
         )[0].targetLink
     }
-    return {}
+    spinner.succeed("Started packet mirroring")
+    spinner.stop()
+    spinner.clear()
+    return { packetMirrorUrl: packet_mirror_url }
 
 }
 
@@ -398,23 +490,46 @@ const imageURL = "https://www.googleapis.com/compute/v1/projects/metlo-security/
 
 export const gcpTrafficMirrorSetup = async () => {
     const id = uuidv4()
+    const data = {}
     try {
         const { project, zone, network, key } = await verifyAccountDetails()
+        console.log("Validated account details succesfully")
         const networkUrl = `https://www.googleapis.com/compute/v1/projects/${project}/global/networks/${network}`
         const conn = new GCP_CONN(key, zone, project);
+        data["key"] = key
+        data["zone"] = zone
+        data["project"] = project
 
         const { sourceType, sourceInstanceURL, sourcePrivateIP, sourceSubnetworkURL, sourceTag } = await sourceSelection(conn)
+        data["sourceType"] = sourceType
+        data["sourceInstanceURL"] = sourceInstanceURL
+        data["sourcePrivateIP"] = sourcePrivateIP
+        data["sourceSubnetworkURL"] = sourceSubnetworkURL
+        data["sourceTag"] = sourceTag
         const { ipRange, destinationSubnetworkUrl } = await getDestinationSubnet(conn, networkUrl, id)
+        data["ipRange"] = ipRange
+        data["destinationSubnetworkUrl"] = destinationSubnetworkUrl
         const { firewallRuleUrl } = await createFirewallRule(conn, networkUrl, ipRange, id)
+        data["firewallRuleUrl"] = firewallRuleUrl
         const { routerURL } = await createCloudRouter(conn, networkUrl, destinationSubnetworkUrl, id)
+        data["routerURL"] = routerURL
         const { imageTemplateUrl, instanceGroupName, instanceUrl } = await create_mig(conn, networkUrl, destinationSubnetworkUrl, imageURL, id)
+        data['mageTemplateUrl'] = imageTemplateUrl
+        data['instanceGroupName'] = instanceGroupName
+        data['instanceUrl'] = instanceUrl
         const managedGroupUrl = `https://www.googleapis.com/compute/v1/projects/${project}/zones/${zone}/instanceGroups/${instanceGroupName}`
+        data['managedGroupUrl'] = managedGroupUrl
         const { healthCheckUrl } = await createHealthCheck(conn, id)
+        data['healthCheckUrl'] = healthCheckUrl
         const { backendServiceUrl } = await createBackendService(conn, networkUrl, managedGroupUrl, healthCheckUrl, id)
+        data['backendServiceUrl'] = backendServiceUrl
         const { forwardingRuleUrl } = await createLoadBalancer(conn, networkUrl, destinationSubnetworkUrl, backendServiceUrl, id)
-        const { } = await packetMirroring(conn, networkUrl, forwardingRuleUrl, sourceInstanceURL, sourceTag, sourceType, id)
-
+        data['forwardingRuleUrl'] = forwardingRuleUrl
+        const { packetMirrorUrl } = await packetMirroring(conn, networkUrl, forwardingRuleUrl, sourceInstanceURL, sourceTag, sourceType, id)
+        data["packetMirrorUrl"] = packetMirrorUrl        
     } catch (e) {
+        spinner.fail()
         console.log(e)
+        console.log(data)
     }
 }

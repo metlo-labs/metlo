@@ -101,7 +101,7 @@ export class GCP_CONN {
     const resp = conn.get({
       project: this.project,
       subnetwork: subnetName,
-      region: "us-west1",
+      region: this.region,
     })
     return resp
   }
@@ -272,8 +272,10 @@ export class GCP_CONN {
     network,
     subnet,
     imageTemplateName,
+    startupScript,
   }) {
     let conn = new InstanceTemplatesClient({ credentials: this.keyfile })
+    let script: string = startupScript || ""
     return conn.insert({
       project: this.project,
       instanceTemplateResource: {
@@ -283,14 +285,7 @@ export class GCP_CONN {
             items: [
               {
                 key: "startup-script",
-                value: `#! /bin/bash
-            apt-get update
-            apt-get install apache2 -y
-            vm_hostname="$(curl -H "Metadata-Flavor:Google" \
-            http://169.254.169.254/computeMetadata/v1/instance/name)"
-            echo "Page served from: $vm_hostname" | \
-            tee /var/www/html/index.html
-            systemctl restart apache2`,
+                value: script,
               },
             ],
           },
