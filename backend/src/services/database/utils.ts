@@ -51,9 +51,7 @@ export class WrappedRepository<Entity extends ObjectLiteral> {
     return this.repository.count(options)
   }
 
-  countBy(
-    where: FindOptionsWhere<Entity> | FindOptionsWhere<Entity>[],
-  ): Promise<number> {
+  countBy(where: FindOptionsWhere<Entity>): Promise<number> {
     return this.repository.countBy(where)
   }
 
@@ -61,9 +59,7 @@ export class WrappedRepository<Entity extends ObjectLiteral> {
     return this.repository.find(options)
   }
 
-  findBy(
-    where: FindOptionsWhere<Entity> | FindOptionsWhere<Entity>[],
-  ): Promise<Entity[]> {
+  findBy(where: FindOptionsWhere<Entity>): Promise<Entity[]> {
     return this.repository.findBy(where)
   }
 
@@ -71,9 +67,7 @@ export class WrappedRepository<Entity extends ObjectLiteral> {
     return this.repository.findOne(options)
   }
 
-  findOneBy(
-    where: FindOptionsWhere<Entity> | FindOptionsWhere<Entity>[],
-  ): Promise<Entity | null> {
+  findOneBy(where: FindOptionsWhere<Entity>): Promise<Entity | null> {
     return this.repository.findOneBy(where)
   }
 
