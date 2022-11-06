@@ -30,6 +30,10 @@ import AWSdocs from "./docs/aws"
 import RenderDocModal from "./renderDocModal"
 import GCPDocs from "./docs/gcp"
 import { FaJava } from "@react-icons/all-files/fa/FaJava"
+import PythonDocs from "./docs/python"
+import NodeDocs from "./docs/node"
+import JavaDocs from "./docs/java"
+import KubernetesDocs from "./docs/kubernetes"
 
 interface ConnectionDocsListProps {}
 
@@ -132,8 +136,8 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
             </Tab>
           </TabList>
 
-          <TabPanels>
-            <TabPanel>
+          <TabPanels paddingInline={0}>
+            <TabPanel paddingInline={0}>
               <AWSdocs />
             </TabPanel>
             <TabPanel>
@@ -142,7 +146,16 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
               </Box>
             </TabPanel>
             <TabPanel>
-              <p>three!</p>
+              <PythonDocs />
+            </TabPanel>
+            <TabPanel>
+              <NodeDocs />
+            </TabPanel>
+            <TabPanel>
+              <JavaDocs />
+            </TabPanel>
+            <TabPanel>
+              <KubernetesDocs />
             </TabPanel>
           </TabPanels>
         </Tabs>
