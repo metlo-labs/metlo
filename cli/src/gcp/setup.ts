@@ -86,7 +86,7 @@ const sourceSelection = async (conn: GCP_CONN) => {
             }
         ])
         spinner.start("Verifying mirror source details")
-        let resp = await conn.get_instance(instanceNameResp['_name'])
+        let resp = await conn.get_instance(instanceNameResp['_name'].trim())
         source_private_ip = resp[0].networkInterfaces[0].networkIP
         source_subnetwork_url = resp[0].networkInterfaces[0].subnetwork
         source_instance_url = resp[0].selfLink
@@ -99,7 +99,7 @@ const sourceSelection = async (conn: GCP_CONN) => {
             }
         ])
         let resp = await conn.get_subnet_information({
-            subnetName: subnetNameResp['_name'],
+            subnetName: subnetNameResp['_name'].trim(),
         })
         spinner.start("Verifying mirror source details")
         source_private_ip = resp[0].ipCidrRange
@@ -115,7 +115,7 @@ const sourceSelection = async (conn: GCP_CONN) => {
         ])
         spinner.start("Verifying mirror source details")
         let resp = await conn.list_instances()
-        let tagName = tagNameResp["_name"]
+        let tagName = tagNameResp["_name"].trim()
         if (!resp[0].find(v => v.tags.items.includes(tagName))) {
             throw new Error(
                 `No instances with tag ${tagName} found in specifiec zone`,
