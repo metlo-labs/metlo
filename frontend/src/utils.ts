@@ -4,6 +4,8 @@ import { DateTime } from "luxon"
 import { RISK_SCORE_ORDER } from "./constants"
 import { DATA_CLASS_TO_RISK_SCORE } from "@common/maps"
 import { UseToastOptions } from "@chakra-ui/react"
+import { GetServerSideProps, GetServerSidePropsContext, PreviewData } from "next"
+import { ParsedUrlQuery } from "querystring"
 
 export const getDateTimeString = (date: Date) => {
   if (date) {
@@ -86,4 +88,14 @@ export const getMaxRiskScoreFromList = (riskScores: RiskScore[]): RiskScore => {
     }
   }
   return maxRisk
+}
+
+export const loginWrapper = (fn: (context: any) => any) => {
+  //@ts-ignore
+  const args = arguments[0]
+  console.log("In login caller")
+  //@ts-ignore
+  console.log(arguments[0])
+  console.log(fn)
+  return fn(args)
 }

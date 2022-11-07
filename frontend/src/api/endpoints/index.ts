@@ -1,4 +1,4 @@
-import axios from "axios"
+import Axios from "axios"
 import {
   ApiEndpoint,
   ApiEndpointDetailed,
@@ -6,6 +6,8 @@ import {
   Usage,
 } from "@common/types"
 import { getAPIURL } from "~/constants"
+
+const axios = Axios.create({ withCredentials: true })
 
 export const getEndpoints = async (
   params: GetEndpointParams,

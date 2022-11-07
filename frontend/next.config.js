@@ -1,6 +1,14 @@
 const withBundleAnalyzer = require("@next/bundle-analyzer")({
   enabled: process.env.ANALYZE === "true",
 })
+
+const getAPIBaseURL = () => {
+  return `${typeof window !== "undefined"
+    ? window.location.origin
+    : process.env.BACKEND_URL || "http://localhost:8080"
+    }`
+}
+console.log(getAPIBaseURL())
 module.exports = withBundleAnalyzer({
   async rewrites() {
     var backendURL = process.env.BACKEND_URL || "http://localhost:8080"
@@ -18,6 +26,16 @@ module.exports = withBundleAnalyzer({
         destination: "/connections",
         permanent: true,
       },
+      {
+        source: "/auth/github",
+        destination: `${getAPIBaseURL()}/auth/github`,
+        permanent: false
+      },
+      // {
+      //   source: "/auth/github/callback",
+      //   destination: `${getAPIBaseURL()}/auth/github/callback`,
+      //   permanent: false
+      // }
     ]
   },
   webpack: (config, { isServer }) => {

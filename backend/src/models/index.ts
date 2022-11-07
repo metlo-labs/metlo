@@ -12,6 +12,7 @@ import { InstanceSettings } from "./instance-settings"
 import { AuthenticationConfig } from "./authentication-config"
 import { AggregateTraceDataHourly } from "./aggregate-trace-data-hourly"
 import { Attack } from "./attack"
+import { User } from "./user"
 
 export type DatabaseModel =
   | ApiEndpoint
@@ -28,6 +29,7 @@ export type DatabaseModel =
   | AuthenticationConfig
   | AggregateTraceDataHourly
   | Attack
+  | User
 
 export {
   ApiEndpoint,
@@ -44,4 +46,5 @@ export {
   AuthenticationConfig,
   AggregateTraceDataHourly,
   Attack,
+  User
 }

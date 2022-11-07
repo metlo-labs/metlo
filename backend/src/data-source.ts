@@ -15,6 +15,7 @@ import {
   AuthenticationConfig,
   AggregateTraceDataHourly,
   Attack,
+  User,
 } from "models"
 import { runMigration } from "utils"
 import { initMigration1665782029662 } from "migrations/1665782029662-init-migration"
@@ -26,6 +27,7 @@ import { addApiEndpointUuidIndexForAlert1667259254414 } from "migrations/1667259
 import { MetloConfig } from "models/metlo-config"
 import { addMetloConfigTable1667599667595 } from "migrations/1667599667595-add-metlo-config-table"
 import { updateDisabledPathsColumnBlockFieldsTable1667606447208 } from "migrations/1667606447208-update-disabledPaths-column-blockFields-table"
+import { migrationsUser1667843036202 } from "migrations/1667843036202-add-users-table"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -46,6 +48,7 @@ export const AppDataSource: DataSource = new DataSource({
     AggregateTraceDataHourly,
     Attack,
     MetloConfig,
+    User
   ],
   synchronize: false,
   migrations: [
@@ -57,6 +60,7 @@ export const AppDataSource: DataSource = new DataSource({
     addApiEndpointUuidIndexForAlert1667259254414,
     addMetloConfigTable1667599667595,
     updateDisabledPathsColumnBlockFieldsTable1667606447208,
+    migrationsUser1667843036202,
   ],
   migrationsRun: runMigration,
   logging: false,

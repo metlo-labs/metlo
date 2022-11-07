@@ -62,11 +62,14 @@ export const statusToColor = (statusCode: number) => {
   return "red"
 }
 export const getAPIURL = () => {
-  return `${
-    typeof window !== "undefined"
-      ? window.location.origin
-      : process.env.BACKEND_URL || "http://localhost:8080"
-  }/api/v1`
+  return `${getAPIBaseURL()}/api/v1`
+}
+
+export const getAPIBaseURL = () => {
+  return `${typeof window !== "undefined"
+    ? window.location.origin
+    : process.env.BACKEND_URL || "http://localhost:8080"
+    }`
 }
 
 export const ENDPOINT_PAGE_LIMIT = 10

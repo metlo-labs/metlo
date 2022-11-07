@@ -4,7 +4,7 @@ dotenv.config()
 import express, { Express, Response } from "express"
 import { TypeormStore } from "connect-typeorm"
 import session from "express-session"
-import { InstanceSettings, Session as SessionModel } from "models"
+import { InstanceSettings, Session as SessionModel, User } from "models"
 import {
   getEndpointHandler,
   getEndpointsHandler,
@@ -22,7 +22,7 @@ import {
 import { getAlertsHandler, updateAlertHandler } from "api/alert"
 import { deleteDataFieldHandler, updateDataFieldClasses } from "api/data-field"
 import { getSummaryHandler } from "api/summary"
-import { MetloRequest } from "types"
+import { LoginType, MetloRequest } from "types"
 import { AppDataSource } from "data-source"
 import { MulterSource } from "multer-source"
 import {
@@ -60,6 +60,10 @@ import {
   getMetloConfigHandler,
   updateMetloConfigHandler,
 } from "api/metlo-config"
+import passport from "passport"
+import ghStrategy from "passport-github2"
+import JWT from "jsonwebtoken"
+import { getRepository } from "services/database/utils"
 
 const port = process.env.PORT || 8080
 RedisClient.getInstance()
@@ -94,67 +98,157 @@ app.use(async (req, res, next) => {
   }
 })
 
-app.get("/api/v1", (req: MetloRequest, res: Response) => {
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+
+if (process.env.GH_CLIENT_ID && process.env.GH_CLIENT_SECRET && process.env.GH_CALLBACK_URL) {
+  passport.use(new ghStrategy({
+    clientID: process.env.GH_CLIENT_ID,
+    clientSecret: process.env.GH_CLIENT_SECRET,
+    callbackURL: process.env.GH_CALLBACK_URL
+  },
+    function (accessToken, refreshToken, profile, done) {
+      console.log(profile)
+      return done(null, profile);
+    }
+  ));
+}
+
+passport.serializeUser(async function SerializeGithub(user, done) {
+  try {
+    const jsonData = user._json
+    const userInstance = new User()
+    userInstance.id = `github-${jsonData.id}`
+    userInstance.meta = user
+    userInstance.name = user.username
+    userInstance.account = LoginType.GITHUB
+    if (user.photos && user.photos.length > 0) {
+      userInstance.userImage = user.photos[0]
+    }
+    let repo = getRepository({}, User)
+    await repo.save(userInstance)
+    done(null, userInstance.id)
+  } catch (err) {
+    // done("pass")
+    done(err)
+  }
+});
+
+// passport.serializeUser(async function SerializeGoogle(user, done) {
+//   console.log("Serializing Github")
+// })
+
+passport.deserializeUser(async function (id, done) {
+  let repo = getRepository({}, User)
+  const user = await repo.findOneBy({ id })
+  done(null, user)
+});
+
+
+
+const apiRouter = express.Router()
+
+apiRouter.use(function (req, res, next) {
+  // @ts-ignore
+  // req.user = new User()
+  console.log("Authenticating")
+  // @ts-ignore
+  if (req.user)
+    return next();
+  else
+    return res.status(401).json({
+      error: 'User not authenticated'
+    })
+
+})
+
+app.use("/api/v1", apiRouter);
+
+app.get('/auth/error', (req, res) => res.send('Unknown Error'))
+app.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
+app.get('/auth/github/callback',
+  passport.authenticate('github', { failureRedirect: '/auth/error' }),
+  function (req, res) {
+    //@ts-ignore
+    res.send(JWT.sign(req.user, process.env.JWT_KEY, { expiresIn: '1800s' }));
+
+  }
+);
+
+app.get("/login", (req, res) => {
+  // @ts-ignore
+  if (req.user) {
+    // @ts-ignore
+    res.status(200).send(req.user)
+  } else {
+    res.sendStatus(401)
+  }
+})
+
+apiRouter.get("/", (req: MetloRequest, res: Response) => {
   res.send("OK")
 })
 
-app.get("/api/v1/summary", getSummaryHandler)
-app.get("/api/v1/instance-settings", getInstanceSettingsHandler)
-app.put("/api/v1/instance-settings", putInstanceSettingsHandler)
-app.get("/api/v1/sensitive-data-summary", getSensitiveDataSummaryHandler)
-app.get("/api/v1/vulnerability-summary", getVulnerabilitySummaryHandler)
-app.get("/api/v1/endpoints/hosts", getHostsHandler)
-app.get("/api/v1/endpoints", getEndpointsHandler)
-app.get("/api/v1/endpoint/:endpointId", getEndpointHandler)
-app.get("/api/v1/endpoint/:endpointId/usage", getUsageHandler)
-app.put(
-  "/api/v1/endpoint/:endpointId/authenticated",
+apiRouter.get("/summary", getSummaryHandler)
+apiRouter.get("/instance-settings", getInstanceSettingsHandler)
+apiRouter.put("/instance-settings", putInstanceSettingsHandler)
+apiRouter.get("/sensitive-data-summary", getSensitiveDataSummaryHandler)
+apiRouter.get("/vulnerability-summary", getVulnerabilitySummaryHandler)
+apiRouter.get("/endpoints/hosts", getHostsHandler)
+apiRouter.get("/endpoints", getEndpointsHandler)
+apiRouter.get("/endpoint/:endpointId", getEndpointHandler)
+apiRouter.get("/endpoint/:endpointId/usage", getUsageHandler)
+apiRouter.put(
+  "/endpoint/:endpointId/authenticated",
   updateEndpointIsAuthenticated,
 )
 
-app.post("/api/v1/spec/new", MulterSource.single("file"), uploadNewSpecHandler)
-app.delete("/api/v1/spec/:specFileName", deleteSpecHandler)
-app.put(
-  "/api/v1/spec/:specFileName",
+apiRouter.post("/spec/new", MulterSource.single("file"), uploadNewSpecHandler)
+apiRouter.delete("/spec/:specFileName", deleteSpecHandler)
+apiRouter.put(
+  "/spec/:specFileName",
   MulterSource.single("file"),
   updateSpecHandler,
 )
-app.get("/api/v1/specs", getSpecListHandler)
-app.get("/api/v1/spec/:specFileName", getSpecHandler)
+apiRouter.get("/specs", getSpecListHandler)
+apiRouter.get("/spec/:specFileName", getSpecHandler)
 
-app.post(
-  "/api/v1/data-field/:dataFieldId/update-classes",
+apiRouter.post(
+  "/data-field/:dataFieldId/update-classes",
   updateDataFieldClasses,
 )
-app.delete("/api/v1/data-field/:dataFieldId", deleteDataFieldHandler)
+apiRouter.delete("/data-field/:dataFieldId", deleteDataFieldHandler)
 
-app.get("/api/v1/alerts", getAlertsHandler)
-app.put("/api/v1/alert/:alertId", updateAlertHandler)
+apiRouter.get("/alerts", getAlertsHandler)
+apiRouter.put("/alert/:alertId", updateAlertHandler)
 
-app.post("/api/v1/setup_connection", setupConnection)
-app.get("/api/v1/long_running/:uuid", getLongRunningState)
-app.post("/api/v1/setup_connection/aws/os", awsOsChoices)
-app.post("/api/v1/setup_connection/aws/instances", awsInstanceChoices)
-app.post("/api/v1/setup_connection/gcp/os", gcpOsChoices)
-app.post("/api/v1/setup_connection/gcp/instances", gcpInstanceChoices)
-app.get("/api/v1/list_connections", listConnections)
-app.get("/api/v1/list_connections/:uuid", getConnectionForUuid)
-app.get("/api/v1/list_connections/:uuid/sshkey", getSshKeyForConnectionUuid)
-app.post("/api/v1/update_connection", updateConnection)
-app.delete("/api/v1/delete_connection/:uuid", deleteConnection)
+apiRouter.post("/setup_connection", setupConnection)
+apiRouter.get("/long_running/:uuid", getLongRunningState)
+apiRouter.post("/setup_connection/aws/os", awsOsChoices)
+apiRouter.post("/setup_connection/aws/instances", awsInstanceChoices)
+apiRouter.post("/setup_connection/gcp/os", gcpOsChoices)
+apiRouter.post("/setup_connection/gcp/instances", gcpInstanceChoices)
+apiRouter.get("/list_connections", listConnections)
+apiRouter.get("/list_connections/:uuid", getConnectionForUuid)
+apiRouter.get("/list_connections/:uuid/sshkey", getSshKeyForConnectionUuid)
+apiRouter.post("/update_connection", updateConnection)
+apiRouter.delete("/delete_connection/:uuid", deleteConnection)
 
-app.post("/api/v1/test/run", runTestHandler)
-app.post("/api/v1/test/save", saveTest)
-app.get("/api/v1/test/list", listTests)
-app.get("/api/v1/test/list/:uuid", getTest)
-app.delete("/api/v1/test/:uuid/delete", deleteTest)
+apiRouter.post("/test/run", runTestHandler)
+apiRouter.post("/test/save", saveTest)
+apiRouter.get("/test/list", listTests)
+apiRouter.get("/test/list/:uuid", getTest)
+apiRouter.delete("/test/:uuid/delete", deleteTest)
 
-app.get("/api/v1/keys/list", listKeys)
-app.post("/api/v1/keys/create", createKey)
-app.delete("/api/v1/keys/:name/delete", deleteKey)
+apiRouter.get("/keys/list", listKeys)
+apiRouter.post("/keys/create", createKey)
+apiRouter.delete("/keys/:name/delete", deleteKey)
 
-app.put("/api/v1/metlo-config", updateMetloConfigHandler)
-app.get("/api/v1/metlo-config", getMetloConfigHandler)
+apiRouter.put("/metlo-config", updateMetloConfigHandler)
+apiRouter.get("/metlo-config", getMetloConfigHandler)
 
 const initInstanceSettings = async () => {
   const settingRepository = AppDataSource.getRepository(InstanceSettings)
@@ -170,8 +264,7 @@ const main = async () => {
   try {
     const datasource = await AppDataSource.initialize()
     console.log(
-      `Is AppDataSource Initialized? ${
-        datasource.isInitialized ? "Yes" : "No"
+      `Is AppDataSource Initialized? ${datasource.isInitialized ? "Yes" : "No"
       }`,
     )
     await initInstanceSettings()
