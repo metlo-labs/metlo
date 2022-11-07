@@ -26,7 +26,7 @@ export class RedisClient {
     try {
       await this.getInstance().set(key, JSON.stringify(data))
       if (expireIn) {
-        this.getInstance().expire(key, expireIn, "NX")
+        this.getInstance().expire(key, expireIn)
       }
     } catch {}
   }
