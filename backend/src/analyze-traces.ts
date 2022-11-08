@@ -68,6 +68,8 @@ WHERE
   "apiEndpointUuid" = $1
 `
 
+const sleep = (ms: number) => new Promise(res => setTimeout(res, ms))
+
 const getQueuedApiTrace = async (): Promise<{
   trace: QueuedApiTrace
   ctx: MetloContext
@@ -284,6 +286,8 @@ const analyzeTraces = async (): Promise<void> => {
             await generateEndpoint(ctx, trace, queryRunner)
           }
         }
+      } else {
+        await sleep(50)
       }
     } catch (err) {
       console.error(`Encountered error while analyzing traces: ${err}`)
