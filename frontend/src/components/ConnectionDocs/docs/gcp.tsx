@@ -2,26 +2,26 @@ import { Code, Heading, Box, Grid, VStack } from "@chakra-ui/react"
 const GCPDocs = () => {
   return (
     <>
-      <VStack w={"full"}>
-        <Box w={"full"}>
-          <Heading w={"full"} size={"md"}>
-            Steps
-          </Heading>
-          <Heading w={"full"} size={"sm"} paddingBlock={2}>
+      <VStack w={"full"} spacing={6}>
+        <Heading w={"full"} size={"md"}>
+          Steps
+        </Heading>
+
+        <VStack w={"full"}>
+          <Heading w={"full"} size={"sm"}>
             1. Open Ports
           </Heading>
-        </Box>
-        <Box w={"full"}>
-          <>
+          <Box w={"full"}>
             Open Port 8081 on your Metlo instance so you can start collecting
             traffic data. It should be open to any machines you want to collect
             traffic from.
-          </>
-        </Box>
-        <Heading w={"full"} size={"sm"} paddingBlock={2}>
-          2. Deploy a Metlo Mirroring Instance{" "}
-        </Heading>
+          </Box>
+        </VStack>
+
         <VStack w={"full"}>
+          <Heading w={"full"} size={"sm"}>
+            2. Deploy a Metlo Mirroring Instance
+          </Heading>
           <Box w={"full"}>
             Run the following command to spin up Metlo in GCP:
           </Box>
@@ -39,13 +39,18 @@ const GCPDocs = () => {
           </Code>
           <Box w={"full"}>
             Once you&apos;ve launched your instance run the following in the
-            instance to start Metlo:<Code> $ sudo metlo start</Code>
+            instance to start Metlo:
           </Box>
+          <Code w={"full"} p={2}>
+            {" "}
+            $ sudo metlo start
+          </Code>
         </VStack>
-        <Heading w={"full"} size={"sm"} paddingBlock={2}>
-          3. Account Permissions
-        </Heading>
+
         <VStack w={"full"}>
+          <Heading w={"full"} size={"sm"}>
+            3. Account Permissions
+          </Heading>
           <Box w={"full"}>
             Metlo mirroring on GCP requires a service account with the following
             permissions:
@@ -66,8 +71,10 @@ const GCPDocs = () => {
             4. Install Metlo&apos;s CLI Tool
           </Heading>
           You can install metlo from npm by running the following:
-          <Code>$ npm i -g @metlo/cli</Code>
         </Box>
+        <Code w={"full"} p={2}>
+          $ npm i -g @metlo/cli
+        </Code>
         <Box w={"full"}>
           <Heading size={"sm"} paddingBlock={2}>
             5. Set up Traffic Mirroring
@@ -75,6 +82,7 @@ const GCPDocs = () => {
           To set up traffic mirroring run the following:
           <Code w={"full"} p={2}>
             <VStack>
+              <Box w={"full"}>$ metlo traffic-mirror gcp</Box>
               <Box w={"full"}>✔ GCP Project Name · metlo-security</Box>
               <Box w={"full"}>✔ GCP Network to mirror · default</Box>
               <Box w={"full"}>✔ Select your GCP zone · us-central1-a</Box>

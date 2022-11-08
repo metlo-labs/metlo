@@ -1,15 +1,18 @@
 import { Box, Code, Heading, VStack, Link } from "@chakra-ui/react"
-import NextLink from "next/link"
 
 const JavaDocs = () => {
   return (
-    <VStack>
-      <Box pb={2} w={"full"}>
-        <Box>Currently Metlo&apos;s Java Agent supports 1 framework:</Box>
+    <VStack spacing={6} w={"full"}>
+      <VStack spacing={1} w={"full"}>
+        <Box w={"full"}>
+          Currently Metlo&apos;s Java Agent supports 1 framework:
+        </Box>
 
-        <Box>&nbsp;&nbsp;-&nbsp; Spring (and by extension Spring Boot)</Box>
+        <Box w={"full"}>
+          &nbsp;&nbsp;-&nbsp; Spring (and by extension Spring Boot)
+        </Box>
 
-        <Box paddingBlock={2}>
+        <Box w={"full"} paddingBlock={2}>
           Its available for download from
           <Link
             href="https://repo1.maven.org/maven2/com/metlo/spring/"
@@ -18,50 +21,57 @@ const JavaDocs = () => {
             &nbsp;maven central
           </Link>
         </Box>
-      </Box>
+      </VStack>
       <Heading size="md" w={"full"}>
         Installation
       </Heading>
       <Box w={"full"}>
-        <p>Metlo can easily be included in either gradle or maven projects: </p>
-        <p>Gradle: </p>
-
-        <Code w={"full"}>
-          dependencies {"{"}
-          <Box pl={4}>
-            ....
-            <Box>implementation</Box> com.metlo.spring:
-            <Box>0.3</Box>
+        <VStack spacing={2} pb={2}>
+          <Box w={"full"}>
+            Metlo can easily be included in either gradle or maven projects:
           </Box>
-          {"}"}
-        </Code>
-        <p>Maven:</p>
-
-        <Code w={"full"} p={2}>
-          <Box paddingInline={4}>
-            &lt;dependencies&gt;
-            <Box> ....</Box>
-            <Box paddingInline={4}>
-              &lt;dependency&gt;
-              <Box paddingInline={4}>
-                <Box>&lt;groupId&gt;</Box>
-                <Box paddingInline={4}>com.metlo</Box>
-                <Box>&lt;/groupId&gt;</Box>
-                <Box>&lt;artifactId&gt;</Box>
-                <Box paddingInline={4}>spring</Box>
-                <Box>&lt;/artifactId&gt;</Box>
-                <Box>&lt;version&gt;</Box>
-                <Box paddingInline={4}>0.3</Box>
-                <Box>&lt;/version&gt;</Box>
-                <Box>&lt;scope&gt;</Box>
-                <Box paddingInline={4}>compile</Box>
-                <Box>&lt;/scope&gt;</Box>
-              </Box>
+        </VStack>
+        <VStack w={"full"} spacing={3}>
+          <Heading size={"sm"} w={"full"}>
+            Gradle:{" "}
+          </Heading>
+          <Code w={"full"}>
+            dependencies {"{"}
+            <Box pl={4}>
+              ....
+              <Box>implementation com.metlo.spring: 0.3</Box>
             </Box>
-            <Box>&lt;/dependency&gt;</Box>
-          </Box>
-          <Box>&lt;/dependencies&gt;</Box>
-        </Code>
+            {"}"}
+          </Code>
+          <Heading size={"sm"} w={"full"}>
+            Maven:
+          </Heading>
+          <Code w={"full"} p={2}>
+            &lt;dependencies&gt;
+            <Box paddingInline={4}>
+              <Box> ....</Box>
+              <Box paddingInline={4}>
+                &lt;dependency&gt;
+                <Box paddingInline={4}>
+                  <Box>&lt;groupId&gt;</Box>
+                  <Box paddingInline={4}>com.metlo</Box>
+                  <Box>&lt;/groupId&gt;</Box>
+                  <Box>&lt;artifactId&gt;</Box>
+                  <Box paddingInline={4}>spring</Box>
+                  <Box>&lt;/artifactId&gt;</Box>
+                  <Box>&lt;version&gt;</Box>
+                  <Box paddingInline={4}>0.3</Box>
+                  <Box>&lt;/version&gt;</Box>
+                  <Box>&lt;scope&gt;</Box>
+                  <Box paddingInline={4}>compile</Box>
+                  <Box>&lt;/scope&gt;</Box>
+                </Box>
+              </Box>
+              <Box>&lt;/dependency&gt;</Box>
+            </Box>
+            <Box>&lt;/dependencies&gt;</Box>
+          </Code>
+        </VStack>
       </Box>
       <p>
         Metlo for Spring/Boot provides a lightweight filter for spring based
@@ -72,7 +82,7 @@ const JavaDocs = () => {
       <Heading size={"sm"} id="example" w={"full"}>
         Example
       </Heading>
-      <Code className="lang-java" w={"full"}>
+      <Code className="lang-java" w={"full"} p={2}>
         <VStack>
           <Box w={"full"}>package com.example.demo;</Box>
           <Box w={"full"}>

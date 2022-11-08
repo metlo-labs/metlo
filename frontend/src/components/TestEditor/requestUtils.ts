@@ -66,7 +66,6 @@ const compileAuthData = (r: Request, rc: AxiosRequestConfig) => {
       break
     case AuthType.BEARER:
       let params_bearer = r.authorization.params as AuthBearerParams
-      console.log(params_bearer.bearer_token)
       rc.headers["Authorization"] = `Bearer ${params_bearer.bearer_token}`
       break
   }

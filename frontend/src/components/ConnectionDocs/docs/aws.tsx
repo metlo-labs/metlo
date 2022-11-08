@@ -1,15 +1,34 @@
-import { Code, Heading, Box, Grid, VStack, Image } from "@chakra-ui/react"
+import {
+  Code,
+  Heading,
+  Box,
+  VStack,
+  Text,
+  Select,
+  Button,
+  HStack,
+} from "@chakra-ui/react"
+import { useRouter } from "next/router"
+import { useState } from "react"
 const AWSDocs = () => {
+  const [selectedRegion, setSelectedRegion] = useState("")
+  const router = useRouter()
   return (
     <>
-      <Heading size={"md"}>Supported Instances :</Heading>
-      AWS is particular about what kind of instances are supported for
-      mirroring. You can find exact information about supported instances here,
-      but TL;DR, most current generation systems are supported, save for some
-      select systems like T2.
-      <br />
-      <Heading size={"md"}>Steps</Heading>
-      <VStack>
+      <VStack spacing={6}>
+        <Box w={"full"}>
+          <Heading size={"md"}>Supported Instances:</Heading>
+          <Text pb={4}>
+            AWS is particular about what kind of instances are supported for
+            mirroring. You can find exact information about supported instances
+            here, but TL;DR, most current generation systems are supported, save
+            for some select systems like T2.
+          </Text>
+          <Box w={"full"}>
+            <Heading size={"md"}>Steps</Heading>
+          </Box>
+        </Box>
+
         <Box w={"full"}>
           <Heading size={"sm"} paddingBlock={2}>
             1. Open Metlo Manager Ports
@@ -18,65 +37,47 @@ const AWSDocs = () => {
           start collecting traffic data. It should be open to any machines you
           want to collect traffic from.
         </Box>
-        <Box w={"full"}>
-          <Heading size={"sm"} paddingBlock={2}>
+        <VStack w={"full"}>
+          <Heading size={"sm"} paddingBlock={2} w={"full"}>
             2. Deploy a Metlo Mirroring Instance
           </Heading>
-          <Grid
-            templateColumns={{ md: "repeat(4,1fr)", base: "repeat(2,1fr)" }}
-            gridGap={4}
-            w={"full"}
-          >
-            <Box>
-              <a
-                href="https://backend.metlo.com/traffic-mirror/aws?region=us-west-1"
-                target="_self"
-              >
-                <Image
-                  alt="deploy to us-west-1"
-                  src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/aws-deploy-us-west-1-light.svg"
-                  height="50px"
-                />
-              </a>
-            </Box>
-            <Box>
-              <a
-                href="https://backend.metlo.com/traffic-mirror/aws?region=us-west-2"
-                target="_self"
-              >
-                <Image
-                  alt="deploy to us-west-2"
-                  src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/aws-deploy-us-west-2-light.svg"
-                  height="50px"
-                />
-              </a>
-            </Box>
-            <Box>
-              <a
-                href="https://backend.metlo.com/traffic-mirror/aws?region=us-east-1"
-                target="_self"
-              >
-                <Image
-                  alt="deploy to us-east-1"
-                  src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/aws-deploy-us-east-1-light.svg"
-                  height="50px"
-                />
-              </a>
-            </Box>
-            <Box>
-              <a
-                href="https://backend.metlo.com/traffic-mirror/aws?region=us-east-2"
-                target="_self"
-              >
-                <Image
-                  alt="deploy to us-east-2"
-                  src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/aws-deploy-us-east-2-light.svg"
-                  height="50px"
-                />
-              </a>
-            </Box>
-          </Grid>
           <VStack w={"full"}>
+            <Box w={"full"}>Deploy Metlo:</Box>
+            <Box w={"full"}>
+              <HStack w={{ lg: "40%", base: "full" }}>
+                <Select
+                  onChange={v => setSelectedRegion(v.target.value)}
+                  defaultValue={""}
+                  w={"full"}
+                >
+                  <option selected disabled value={""}>
+                    Select AWS Region
+                  </option>
+                  <option value="https://backend.metlo.com/traffic-mirror/aws?region=us-west-1">
+                    Deploy to us-west-1
+                  </option>
+                  <option value="https://backend.metlo.com/traffic-mirror/aws?region=us-west-2">
+                    Deploy to us-west-2
+                  </option>
+                  <option value="https://backend.metlo.com/traffic-mirror/aws?region=us-east-1">
+                    Deploy to us-east-1
+                  </option>
+                  <option value="https://backend.metlo.com/traffic-mirror/aws?region=us-east-2">
+                    Deploy to us-west-1
+                  </option>
+                </Select>
+                <Button
+                  as="a"
+                  target={"_blank"}
+                  disabled={selectedRegion === ""}
+                  href={selectedRegion}
+                >
+                  Deploy
+                </Button>
+              </HStack>
+            </Box>
+          </VStack>
+          <VStack w={"full"} paddingBlock={2}>
             <Box w={"full"}>
               We have AMI&apos;s ready in different AWS Regions so you can
               deploy right away. When setting up your instance open up port 4789
@@ -94,17 +95,17 @@ const AWSDocs = () => {
               <Box w={"full"}>#!/bin/bash</Box>
               <Box w={"full"}>
                 echo &quot;METLO_ADDR=http://{"<"}YOUR_METLO_HOST{">"}
-                &quot;:8081&quot; {">>"} /opt/metlo/credentials
+                :8081&quot; {">>"} /opt/metlo/credentials
               </Box>
               <Box w={"full"}>
-                echo &quot;METLO_KEY= {"<"}YOUR_METLO_API_KEY{">"} {">>"}
+                echo &quot;METLO_KEY={"<"}YOUR_METLO_API_KEY{">"}&quot;{">>"}
                 /opt/metlo/credentials
               </Box>
               <Box w={"full"}>sudo systemctl enable metlo-ingestor.service</Box>
               <Box w={"full"}>sudo systemctl start metlo-ingestor.service</Box>
             </VStack>
           </Code>
-        </Box>
+        </VStack>
         <Box w={"full"}>
           <Heading size={"sm"} paddingBlock={2}>
             3. Get AWS API Keys
@@ -113,13 +114,15 @@ const AWSDocs = () => {
           <br /> - AmazonEC2FullAccess
           <br /> - AmazonVPCFullAccess
         </Box>
-        <Box w={"full"}>
-          <Heading size={"sm"} paddingBlock={2}>
+        <VStack w={"full"}>
+          <Heading size={"sm"} paddingBlock={2} w={"full"}>
             4. Instal Metlo&apos;s CLI Tool
           </Heading>
-          You can install metlo from npm by running the following: $ npm i -g
-          @metlo/cli
-        </Box>
+          You can install metlo from npm by running the following:
+          <Code w={"full"} p={2}>
+            $ npm i -g @metlo/cli
+          </Code>
+        </VStack>
         <Box w={"full"}>
           <Heading size={"sm"} paddingBlock={2}>
             5. Set up Traffic Mirroring

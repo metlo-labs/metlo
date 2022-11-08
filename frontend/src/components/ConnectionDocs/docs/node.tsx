@@ -2,8 +2,8 @@ import { Code, Heading, Box, Grid, VStack } from "@chakra-ui/react"
 const NodeDocs = () => {
   return (
     <>
-      <VStack w={"full"}>
-        <Heading w={"full"} size={"md"} pb={4}>
+      <VStack w={"full"} spacing={6}>
+        <Heading w={"full"} size={"md"}>
           Installation
         </Heading>
         <Box w={"full"}>

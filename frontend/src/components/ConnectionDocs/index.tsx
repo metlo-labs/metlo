@@ -1,17 +1,11 @@
-import React, { useEffect, useState } from "react"
+import React, {  useState } from "react"
 import {
   Box,
   VStack,
   HStack,
-  Button,
   useDisclosure,
-  useQuery,
   Image,
-  Flex,
   useColorMode,
-  Text,
-  Heading,
-  Spacer,
   TabPanel,
   Tab,
   Tabs,
@@ -19,12 +13,7 @@ import {
   TabPanels,
   Icon,
 } from "@chakra-ui/react"
-import { ConnectionInfo } from "@common/types"
-
-import NewConnection from "../NewConnection"
-import EmptyView from "../utils/EmptyView"
 import { useRouter } from "next/router"
-import NextLink from "next/link"
 import { ConnectionType } from "@common/enums"
 import AWSdocs from "./docs/aws"
 import RenderDocModal from "./renderDocModal"
@@ -70,7 +59,7 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
                   <Image
                     alt={`AWS-image`}
                     boxSize={"20px"}
-                    src={`connections/${ConnectionType.AWS}_${colorMode.colorMode}.svg`}
+                    src={`/static-images/connections/${ConnectionType.AWS}_${colorMode.colorMode}.svg`}
                   />
                 </Box>
                 <Box>AWS EC2</Box>
@@ -82,7 +71,7 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
                   <Image
                     alt={`GCP-image`}
                     boxSize={"20px"}
-                    src={`connections/${ConnectionType.GCP}_${colorMode.colorMode}.svg`}
+                    src={`/static-images/connections/${ConnectionType.GCP}_${colorMode.colorMode}.svg`}
                   />
                 </Box>
                 <Box>Google Cloud</Box>
@@ -94,7 +83,7 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
                   <Image
                     alt={`Python-image`}
                     boxSize={"20px"}
-                    src={`connections/${ConnectionType.PYTHON}_${colorMode.colorMode}.svg`}
+                    src={`/static-images/connections/${ConnectionType.PYTHON}_${colorMode.colorMode}.svg`}
                   />
                 </Box>
                 <Box>Python</Box>
@@ -106,7 +95,7 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
                   <Image
                     alt={`Node-image`}
                     boxSize={"25px"}
-                    src={`connections/${ConnectionType.NODE}_${colorMode.colorMode}.svg`}
+                    src={`/static-images/connections/${ConnectionType.NODE}_${colorMode.colorMode}.svg`}
                   />
                 </Box>
                 <Box>NodeJS</Box>
@@ -128,7 +117,7 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
                   <Image
                     alt={`Python-image`}
                     boxSize={"20px"}
-                    src={`connections/${ConnectionType.KUBERNETES}_${colorMode.colorMode}.svg`}
+                    src={`/static-images/connections/${ConnectionType.KUBERNETES}_${colorMode.colorMode}.svg`}
                   />
                 </Box>
                 <Box>Kubernetes</Box>
