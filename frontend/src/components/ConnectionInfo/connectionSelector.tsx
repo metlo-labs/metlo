@@ -47,7 +47,6 @@ const DeleteButton: React.FC<{
   const [deleting, setDeleting] = useState(false)
   const toast = useToast()
   const create_toast_with_message = (msg: string, statusCode?: number) => {
-    console.log(msg)
     toast(
       makeToast(
         {
@@ -83,7 +82,6 @@ const DeleteButton: React.FC<{
     })
 
     if (retry_id) {
-      console.log("Attempting to fetch")
       api_call_retry({
         url: `/api/v1/long_running/${retry_id}`,
         requestParams: {},

@@ -16,6 +16,7 @@ const GenericStep: React.FC<GenericStepAWSInterface> = ({
     if (isCurrent) {
       complete({})
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isCurrent])
 
   return (
