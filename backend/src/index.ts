@@ -98,63 +98,66 @@ app.get("/api/v1", (req: MetloRequest, res: Response) => {
   res.send("OK")
 })
 
-app.get("/api/v1/summary", getSummaryHandler)
-app.get("/api/v1/instance-settings", getInstanceSettingsHandler)
-app.put("/api/v1/instance-settings", putInstanceSettingsHandler)
-app.get("/api/v1/sensitive-data-summary", getSensitiveDataSummaryHandler)
-app.get("/api/v1/vulnerability-summary", getVulnerabilitySummaryHandler)
-app.get("/api/v1/endpoints/hosts", getHostsHandler)
-app.get("/api/v1/endpoints", getEndpointsHandler)
-app.get("/api/v1/endpoint/:endpointId", getEndpointHandler)
-app.get("/api/v1/endpoint/:endpointId/usage", getUsageHandler)
-app.put(
+const apiRouter = express.Router()
+apiRouter.get("/api/v1/summary", getSummaryHandler)
+apiRouter.get("/api/v1/instance-settings", getInstanceSettingsHandler)
+apiRouter.put("/api/v1/instance-settings", putInstanceSettingsHandler)
+apiRouter.get("/api/v1/sensitive-data-summary", getSensitiveDataSummaryHandler)
+apiRouter.get("/api/v1/vulnerability-summary", getVulnerabilitySummaryHandler)
+apiRouter.get("/api/v1/endpoints/hosts", getHostsHandler)
+apiRouter.get("/api/v1/endpoints", getEndpointsHandler)
+apiRouter.get("/api/v1/endpoint/:endpointId", getEndpointHandler)
+apiRouter.get("/api/v1/endpoint/:endpointId/usage", getUsageHandler)
+apiRouter.put(
   "/api/v1/endpoint/:endpointId/authenticated",
   updateEndpointIsAuthenticated,
 )
 
-app.post("/api/v1/spec/new", MulterSource.single("file"), uploadNewSpecHandler)
-app.delete("/api/v1/spec/:specFileName", deleteSpecHandler)
-app.put(
+apiRouter.post("/api/v1/spec/new", MulterSource.single("file"), uploadNewSpecHandler)
+apiRouter.delete("/api/v1/spec/:specFileName", deleteSpecHandler)
+apiRouter.put(
   "/api/v1/spec/:specFileName",
   MulterSource.single("file"),
   updateSpecHandler,
 )
-app.get("/api/v1/specs", getSpecListHandler)
-app.get("/api/v1/spec/:specFileName", getSpecHandler)
+apiRouter.get("/api/v1/specs", getSpecListHandler)
+apiRouter.get("/api/v1/spec/:specFileName", getSpecHandler)
 
-app.post(
+apiRouter.post(
   "/api/v1/data-field/:dataFieldId/update-classes",
   updateDataFieldClasses,
 )
-app.delete("/api/v1/data-field/:dataFieldId", deleteDataFieldHandler)
+apiRouter.delete("/api/v1/data-field/:dataFieldId", deleteDataFieldHandler)
 
-app.get("/api/v1/alerts", getAlertsHandler)
-app.put("/api/v1/alert/:alertId", updateAlertHandler)
+apiRouter.get("/api/v1/alerts", getAlertsHandler)
+apiRouter.put("/api/v1/alert/:alertId", updateAlertHandler)
 
-app.post("/api/v1/setup_connection", setupConnection)
-app.get("/api/v1/long_running/:uuid", getLongRunningState)
-app.post("/api/v1/setup_connection/aws/os", awsOsChoices)
-app.post("/api/v1/setup_connection/aws/instances", awsInstanceChoices)
-app.post("/api/v1/setup_connection/gcp/os", gcpOsChoices)
-app.post("/api/v1/setup_connection/gcp/instances", gcpInstanceChoices)
-app.get("/api/v1/list_connections", listConnections)
-app.get("/api/v1/list_connections/:uuid", getConnectionForUuid)
-app.get("/api/v1/list_connections/:uuid/sshkey", getSshKeyForConnectionUuid)
-app.post("/api/v1/update_connection", updateConnection)
-app.delete("/api/v1/delete_connection/:uuid", deleteConnection)
+apiRouter.post("/api/v1/setup_connection", setupConnection)
+apiRouter.get("/api/v1/long_running/:uuid", getLongRunningState)
+apiRouter.post("/api/v1/setup_connection/aws/os", awsOsChoices)
+apiRouter.post("/api/v1/setup_connection/aws/instances", awsInstanceChoices)
+apiRouter.post("/api/v1/setup_connection/gcp/os", gcpOsChoices)
+apiRouter.post("/api/v1/setup_connection/gcp/instances", gcpInstanceChoices)
+apiRouter.get("/api/v1/list_connections", listConnections)
+apiRouter.get("/api/v1/list_connections/:uuid", getConnectionForUuid)
+apiRouter.get("/api/v1/list_connections/:uuid/sshkey", getSshKeyForConnectionUuid)
+apiRouter.post("/api/v1/update_connection", updateConnection)
+apiRouter.delete("/api/v1/delete_connection/:uuid", deleteConnection)
 
-app.post("/api/v1/test/run", runTestHandler)
-app.post("/api/v1/test/save", saveTest)
-app.get("/api/v1/test/list", listTests)
-app.get("/api/v1/test/list/:uuid", getTest)
-app.delete("/api/v1/test/:uuid/delete", deleteTest)
+apiRouter.post("/api/v1/test/run", runTestHandler)
+apiRouter.post("/api/v1/test/save", saveTest)
+apiRouter.get("/api/v1/test/list", listTests)
+apiRouter.get("/api/v1/test/list/:uuid", getTest)
+apiRouter.delete("/api/v1/test/:uuid/delete", deleteTest)
 
-app.get("/api/v1/keys/list", listKeys)
-app.post("/api/v1/keys/create", createKey)
-app.delete("/api/v1/keys/:name/delete", deleteKey)
+apiRouter.get("/api/v1/keys/list", listKeys)
+apiRouter.post("/api/v1/keys/create", createKey)
+apiRouter.delete("/api/v1/keys/:name/delete", deleteKey)
 
-app.put("/api/v1/metlo-config", updateMetloConfigHandler)
-app.get("/api/v1/metlo-config", getMetloConfigHandler)
+apiRouter.put("/api/v1/metlo-config", updateMetloConfigHandler)
+apiRouter.get("/api/v1/metlo-config", getMetloConfigHandler)
+
+app.use(apiRouter)
 
 const initInstanceSettings = async () => {
   const settingRepository = AppDataSource.getRepository(InstanceSettings)
