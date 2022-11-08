@@ -1,6 +1,6 @@
 {
   "name": "@metlo/cli",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,6 +11,9 @@
     "build": "tsc",
     "watch": "tsc -w",
     "dev": "nodemon -r tsconfig-paths/register src/index.ts init",
+    "cli-gcp": "nodemon -r tsconfig-paths/register src/index.ts traffic-mirror gcp",
+    "cli-aws": "nodemon -r tsconfig-paths/register src/index.ts traffic-mirror aws",
+    "cli-gcp-prod": "node dist/index.js traffic-mirror gcp",
     "format": "prettier --write './src/**/*.{ts,tsx}'"
   },
   "devDependencies": {
@@ -23,14 +26,18 @@
   "dependencies": {
     "@aws-sdk/client-ec2": "^3.198.0",
     "@aws-sdk/client-sts": "^3.198.0",
+    "@google-cloud/compute": "^3.5.1",
     "@metlo/testing": "^0.0.3",
+    "@types/chalk": "^2.2.0",
     "@types/valid-url": "^1.0.3",
+    "async-retry": "^1.3.3",
     "axios": "^0.27.2",
     "chalk": "^4.1.2",
     "commander": "^9.4.0",
     "dotenv": "^16.0.2",
     "enquirer": "^2.3.6",
     "nodemon": "^2.0.19",
+    "ora": "^5.4.1",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.1.0",
     "tslib": "^2.4.0",

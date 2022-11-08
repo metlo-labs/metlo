@@ -2,6 +2,7 @@
 
 import { program } from "commander"
 import { awsTrafficMirrorSetup } from "./aws/setup"
+import { gcpTrafficMirrorSetup } from "./gcp/setup"
 import init from "./init"
 import testAPI from "./testAPI"
 
@@ -23,5 +24,6 @@ const trafficMirror = program
   .command("traffic-mirror")
   .description("Set up traffic mirroring for metlo")
 trafficMirror.command("aws").action(awsTrafficMirrorSetup)
+trafficMirror.command("gcp").action(gcpTrafficMirrorSetup)
 
 program.parseAsync()
