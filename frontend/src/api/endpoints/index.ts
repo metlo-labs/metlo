@@ -1,4 +1,4 @@
-import axios from "axios"
+import axios, { AxiosRequestHeaders } from "axios"
 import {
   ApiEndpoint,
   ApiEndpointDetailed,
@@ -9,11 +9,12 @@ import { getAPIURL } from "~/constants"
 
 export const getEndpoints = async (
   params: GetEndpointParams,
+  headers?: AxiosRequestHeaders,
 ): Promise<[ApiEndpoint[], number]> => {
   try {
     const resp = await axios.get<[ApiEndpoint[], number]>(
       `${getAPIURL()}/endpoints`,
-      { params },
+      { params, headers },
     )
     if (resp.status === 200 && resp.data) {
       return resp.data
@@ -27,10 +28,12 @@ export const getEndpoints = async (
 
 export const getEndpoint = async (
   endpointId: string,
+  headers?: AxiosRequestHeaders,
 ): Promise<ApiEndpointDetailed> => {
   try {
     const resp = await axios.get<ApiEndpointDetailed>(
       `${getAPIURL()}/endpoint/${endpointId}`,
+      { headers },
     )
     if (resp.status === 200 && resp.data) {
       return resp.data
@@ -42,9 +45,15 @@ export const getEndpoint = async (
   }
 }
 
-export const getHosts = async (): Promise<string[]> => {
+export const getHosts = async (
+  headers?: AxiosRequestHeaders,
+): Promise<string[]> => {
   try {
-    const resp = await axios.get<string[]>(`${getAPIURL()}/endpoints/hosts`)
+    const resp = await axios.get<string[]>(
+      `${getAPIURL()}/endpoints/hosts`,
+
+      { headers },
+    )
     if (resp.status === 200 && resp.data) {
       return resp.data
     }
@@ -55,10 +64,14 @@ export const getHosts = async (): Promise<string[]> => {
   }
 }
 
-export const getUsage = async (endpointId: string): Promise<Usage[]> => {
+export const getUsage = async (
+  endpointId: string,
+  headers?: AxiosRequestHeaders,
+): Promise<Usage[]> => {
   try {
     const resp = await axios.get<Usage[]>(
       `${getAPIURL()}/endpoint/${endpointId}/usage`,
+      { headers },
     )
     if (resp.status === 200 && resp.data) {
       return resp.data
@@ -73,8 +86,13 @@ export const getUsage = async (endpointId: string): Promise<Usage[]> => {
 export const updateEndpointAuthenticated = async (
   endpointId: string,
   authenticated: boolean,
+  headers?: AxiosRequestHeaders,
 ): Promise<void> => {
-  await axios.put(`${getAPIURL()}/endpoint/${endpointId}/authenticated`, {
-    authenticated,
-  })
+  await axios.put(
+    `${getAPIURL()}/endpoint/${endpointId}/authenticated`,
+    {
+      authenticated,
+    },
+    { headers },
+  )
 }

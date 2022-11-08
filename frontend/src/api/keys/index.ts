@@ -1,10 +1,14 @@
-import axios from "axios"
+import axios, { AxiosRequestHeaders } from "axios"
 import { ApiKey } from "@common/types"
 import { getAPIURL } from "~/constants"
 
-export const getKeys = async (): Promise<Array<ApiKey>> => {
+export const getKeys = async (
+  headers?: AxiosRequestHeaders,
+): Promise<Array<ApiKey>> => {
   try {
-    const resp = await axios.get<Array<ApiKey>>(`${getAPIURL()}/keys/list`)
+    const resp = await axios.get<Array<ApiKey>>(`${getAPIURL()}/keys/list`, {
+      headers,
+    })
     if (resp.status === 200 && resp.data) {
       return resp.data
     }
@@ -13,9 +17,14 @@ export const getKeys = async (): Promise<Array<ApiKey>> => {
     throw err
   }
 }
-export const deleteKey = async (key_name: string): Promise<void> => {
+export const deleteKey = async (
+  key_name: string,
+  headers?: AxiosRequestHeaders,
+): Promise<void> => {
   try {
-    const resp = await axios.delete(`${getAPIURL()}/keys/${key_name}/delete`)
+    const resp = await axios.delete(`${getAPIURL()}/keys/${key_name}/delete`, {
+      headers,
+    })
     if (resp.status === 200 && resp.data) {
       return
     } else {
@@ -31,6 +40,7 @@ export const deleteKey = async (key_name: string): Promise<void> => {
 }
 export const addKey = async (
   key_name: string,
+  headers?: AxiosRequestHeaders,
 ): Promise<ApiKey & { apiKey: string }> => {
   try {
     const resp = await axios.post<ApiKey & { apiKey: string }>(
@@ -38,6 +48,7 @@ export const addKey = async (
       {
         name: key_name,
       },
+      { headers },
     )
     if (resp.status === 200 && resp.data) {
       return resp.data
