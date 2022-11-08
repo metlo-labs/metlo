@@ -11,8 +11,8 @@ interface LogoProps extends BoxProps {
 export const Logo: React.FC<LogoProps> = React.memo(
   ({ imageHeight, imageWidth, ...props }) => {
     const imageSrc = useColorModeValue(
-      "/metlo_logo_horiz.svg",
-      "/metlo_logo_horiz_negative.svg",
+      "/static-images/metlo_logo_horiz.svg",
+      "/static-images/metlo_logo_horiz_negative.svg",
     )
     return (
       <Box {...props}>
@@ -30,7 +30,7 @@ export const Logo: React.FC<LogoProps> = React.memo(
 export const SmLogo = React.memo((props: BoxProps) => {
   return (
     <Box {...props}>
-      <Image alt="logo-image" height="30" width="30" src="/metlo_logo.svg" />
+      <Image alt="logo-image" height="30" width="30" src="/static-images/metlo_logo.svg" />
     </Box>
   )
 })

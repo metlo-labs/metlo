@@ -153,7 +153,7 @@ const GCP_INFO: React.FC<GCP_INFOInterface> = ({
             <Button aria-label="See on aws" bg={"transparent"} p={0}>
               <Image
                 alt={`AWS-image`}
-                src={`../connections/${ConnectionType.GCP}_${colorMode.colorMode}.svg`}
+                src={`/static-images/connections/${ConnectionType.GCP}_${colorMode.colorMode}.svg`}
               />
             </Button>
           </Link>
@@ -192,7 +192,7 @@ const GCP_INFO: React.FC<GCP_INFOInterface> = ({
             <Button aria-label="See on aws" bg={"transparent"} p={0}>
               <Image
                 alt={`AWS-image`}
-                src={`../connections/${ConnectionType.GCP}_${colorMode.colorMode}.svg`}
+                src={`/static-images/connections/${ConnectionType.GCP}_${colorMode.colorMode}.svg`}
               />
             </Button>
           </Link>
