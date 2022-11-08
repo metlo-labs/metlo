@@ -138,12 +138,16 @@ export class WrappedEntityManager {
 
   findOneBy<Entity>(
     entityClass: EntityTarget<Entity>,
-    where: FindOptionsWhere<Entity> | FindOptionsWhere<Entity>[],
+    where: FindOptionsWhere<Entity>,
   ): Promise<Entity | null> {
     return this.manager.findOneBy(entityClass, where)
   }
 
   save<Entity>(target: Entity, options?: SaveOptions): Promise<Entity> {
+    return this.manager.save(target, options)
+  }
+
+  saveList<Entity>(target: Entity[], options?: SaveOptions): Promise<Entity[]> {
     return this.manager.save(target, options)
   }
 
