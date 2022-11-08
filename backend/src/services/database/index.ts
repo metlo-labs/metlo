@@ -71,7 +71,7 @@ export class DatabaseService {
       for (let i = 0; i < saveItems.length; i++) {
         const item = saveItems[i]
         const fn = () =>
-          getEntityManager(ctx, queryRunner).save(item, { chunk: chunkBatch })
+          getEntityManager(ctx, queryRunner).saveList(item, { chunk: chunkBatch })
         if (retry) {
           await retryTypeormTransaction(fn, 5)
         } else {
