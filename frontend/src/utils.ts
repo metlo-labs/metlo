@@ -57,7 +57,6 @@ export async function api_call_retry({
       }
       retries.count += 1
       if (retries.count >= MAX_RETRIES) {
-        console.log("Clearing interval")
         clearInterval(interval_id)
         throw new Error(`Couldn't obtain results after ${MAX_RETRIES} retries`)
       }

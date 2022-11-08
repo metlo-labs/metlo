@@ -147,7 +147,6 @@ const ConfigureGCP: React.FC<configureAWSParams> = ({
     let retry_id = await getRetryId(id, _params, step, () => {})
 
     if (retry_id) {
-      console.log("Attempting to fetch")
       api_call_retry({
         url: `/api/v1/long_running/${retry_id}`,
         requestParams: {
