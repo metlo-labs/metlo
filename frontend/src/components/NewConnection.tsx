@@ -34,7 +34,7 @@ const NewConnection = ({ isOpen, onClose }) => {
                 <Image
                   alt={`AWS-image`}
                   boxSize={"125px"}
-                  src={`connections/${ConnectionType.AWS}_${colorMode.colorMode}.svg`}
+                  src={`/static-images/connections/${ConnectionType.AWS}_${colorMode.colorMode}.svg`}
                 />
               </Button>
             </NextLink>
@@ -43,7 +43,7 @@ const NewConnection = ({ isOpen, onClose }) => {
                 <Image
                   alt={`GCP-image`}
                   boxSize={"125px"}
-                  src={`connections/${ConnectionType.GCP}_${colorMode.colorMode}.svg`}
+                  src={`/static-images/connections/${ConnectionType.GCP}_${colorMode.colorMode}.svg`}
                 />
               </Button>
             </NextLink>

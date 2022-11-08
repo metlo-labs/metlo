@@ -81,7 +81,7 @@ const ConnectionList: React.FC<ConnectionListProps> = React.memo(
           <Image
             alt={`${row.connectionType}-image`}
             height="8"
-            src={`connections/${row.connectionType}_${colorMode.colorMode}.svg`}
+            src={`/static-images/connections/${row.connectionType}_${colorMode.colorMode}.svg`}
           />
         ),
         id: "icon",
