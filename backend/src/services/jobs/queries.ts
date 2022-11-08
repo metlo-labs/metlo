@@ -1,3 +1,6 @@
+import { Alert, ApiEndpoint, DataField } from "models"
+import { MetloContext } from "types"
+
 export const aggregateTracesDataHourlyQuery = `
   INSERT INTO aggregate_trace_data_hourly ("apiEndpointUuid", "hour", "numCalls")
   SELECT
@@ -26,16 +29,16 @@ export const updateUnauthenticatedEndpoints = `
   )
 `
 
-export const getUnauthenticatedEndpointsSensitiveData = `
+export const getUnauthenticatedEndpointsSensitiveData = (ctx: MetloContext) => `
   With endpoints AS (
-    SELECT
+    SELECT DISTINCT
       endpoint.uuid,
       endpoint.path,
       endpoint.method,
       endpoint.host
     FROM
-      "api_endpoint" "endpoint"
-      LEFT JOIN "data_field" "field" ON "field" ."apiEndpointUuid" = "endpoint" ."uuid"
+      ${ApiEndpoint.getTableName(ctx)} "endpoint"
+      LEFT JOIN ${DataField.getTableName(ctx)} "field" ON "field" ."apiEndpointUuid" = "endpoint" ."uuid"
     WHERE
       (
         endpoint."isAuthenticatedDetected" = FALSE
@@ -43,8 +46,6 @@ export const getUnauthenticatedEndpointsSensitiveData = `
       )
       AND field."dataSection" = $1
       AND field."dataTag" = $2
-    GROUP BY
-      1
   )
   SELECT
     *
@@ -54,8 +55,7 @@ export const getUnauthenticatedEndpointsSensitiveData = `
     endpoints.uuid NOT IN (
       SELECT
         "apiEndpointUuid"
-      FROM
-        alert
+      FROM ${Alert.getTableName(ctx)} alert
       WHERE
         alert."apiEndpointUuid" = endpoints.uuid
         AND alert.type = $3

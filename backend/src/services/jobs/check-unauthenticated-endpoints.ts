@@ -17,7 +17,7 @@ const checkForUnauthenticatedEndpoints = async (
     await queryRunner.connect()
     await queryRunner.query(updateUnauthenticatedEndpoints)
     const endpointsToAlert = await queryRunner.query(
-      getUnauthenticatedEndpointsSensitiveData,
+      getUnauthenticatedEndpointsSensitiveData(ctx),
       [
         DataSection.RESPONSE_BODY,
         DataTag.PII,
