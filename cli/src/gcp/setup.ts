@@ -1,7 +1,5 @@
 import AsyncRetry from "async-retry"
-import { promisify } from "util"
-import { exec } from "child_process"
-import { v4 as uuidv4, validate } from "uuid"
+import { v4 as uuidv4 } from "uuid"
 import fs from "fs"
 import { prompt } from "enquirer"
 import { GCP_REGIONS_SUPPORTED, wait_for_global_operation, wait_for_regional_operation, wait_for_zonal_operation } from "./gcpUtils"
@@ -267,6 +265,7 @@ const create_mig = async (
     network_url: string,
     destination_subnetwork_url: string,
     source_image: string,
+    source_ip: string,
     id: string,
 ) => {
 
@@ -276,6 +275,7 @@ const create_mig = async (
             type: "autocomplete",
             name: "_machineType",
             message: "Mirror Instance Type",
+            initial: types.sort().findIndex((v) => v.name.includes("e2-standard")) || 0,
             choices: types.map((v) => ({
                 name: v.name
             }))
@@ -327,10 +327,14 @@ const create_mig = async (
         subnet: destination_subnetwork_url,
         imageTemplateName: imageTemplateName,
         startupScript: `#!/bin/bash
-        echo "METLO_ADDR=${machineInfoResp['_url']}:8081" >> /opt/metlo/credentials
+        echo "METLO_ADDR=${machineInfoResp['_url']}" >> /opt/metlo/credentials
         echo "METLO_KEY=${machineInfoResp['_apiKey']}" >>  /opt/metlo/credentials
+        echo "alert http ${source_ip} any -> any any (msg:\\"TEST\\"; flow:established,to_client; http.response_body; pcre:/./; sid:1; rev:1; threshold: type limit, track by_rule, seconds 1, count 30;)" >> /opt/metlo/local.rules
+        sudo mv /opt/metlo/local.rules /var/lib/suricata/rules/local.rules
         sudo systemctl enable metlo-ingestor.service
-        sudo systemctl start metlo-ingestor.service`
+        sudo systemctl start metlo-ingestor.service
+        sudo systemctl enable suricata.service
+        sudo systemctl start suricata.service`
     })
     let img_resp = await wait_for_global_operation(
         image_resp[0].latestResponse.name,
@@ -486,7 +490,7 @@ const packetMirroring = async (
 
 }
 
-const imageURL = "https://www.googleapis.com/compute/v1/projects/metlo-security/global/images/metlo-ingestor-v1"
+const imageURL = "https://www.googleapis.com/compute/v1/projects/metlo-security/global/images/metlo-ingestor-v2"
 
 export const gcpTrafficMirrorSetup = async () => {
     const id = uuidv4()
@@ -513,7 +517,7 @@ export const gcpTrafficMirrorSetup = async () => {
         data["firewallRuleUrl"] = firewallRuleUrl
         const { routerURL } = await createCloudRouter(conn, networkUrl, destinationSubnetworkUrl, id)
         data["routerURL"] = routerURL
-        const { imageTemplateUrl, instanceGroupName, instanceUrl } = await create_mig(conn, networkUrl, destinationSubnetworkUrl, imageURL, id)
+        const { imageTemplateUrl, instanceGroupName, instanceUrl } = await create_mig(conn, networkUrl, destinationSubnetworkUrl, imageURL, sourcePrivateIP, id)
         data['mageTemplateUrl'] = imageTemplateUrl
         data['instanceGroupName'] = instanceGroupName
         data['instanceUrl'] = instanceUrl
@@ -526,7 +530,7 @@ export const gcpTrafficMirrorSetup = async () => {
         const { forwardingRuleUrl } = await createLoadBalancer(conn, networkUrl, destinationSubnetworkUrl, backendServiceUrl, id)
         data['forwardingRuleUrl'] = forwardingRuleUrl
         const { packetMirrorUrl } = await packetMirroring(conn, networkUrl, forwardingRuleUrl, sourceInstanceURL, sourceTag, sourceType, id)
-        data["packetMirrorUrl"] = packetMirrorUrl        
+        data["packetMirrorUrl"] = packetMirrorUrl
     } catch (e) {
         spinner.fail()
         console.log(e)
