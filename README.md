@@ -55,6 +55,7 @@
    
   #### Once you've launched your instance run the following in the instance to start Metlo:
   ```bash
+  $ sudo metlo update
   $ sudo metlo start
   ```
   <hr>
@@ -72,6 +73,7 @@
   ```
   #### Once you've launched your instance run the following in the instance to start Metlo:
   ```bash
+  $ sudo metlo update
   $ sudo metlo start
   ```
   <hr>
