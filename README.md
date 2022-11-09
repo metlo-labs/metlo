@@ -58,6 +58,11 @@
   $ sudo metlo update
   $ sudo metlo start
   ```
+
+  #### Then you can tunnel locally to access the UI
+  ```bash
+  $ ssh -i $SSH_KEY -L 8000:localhost:8000 -N -f ec2-user@$INSTANCE_IP
+  ```
   <hr>
 </details>
 
@@ -75,6 +80,11 @@
   ```bash
   $ sudo metlo update
   $ sudo metlo start
+  ```
+
+  #### Then you can tunnel locally to access the UI
+  ```bash
+  gcloud --project=$PROJECT_ID beta compute ssh $INSTANCE_NAME -- -L 8000:localhost:8000 -N -f
   ```
   <hr>
 </details>
