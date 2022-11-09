@@ -58,7 +58,7 @@ export class GetEndpointsService {
     await createQB(ctx)
       .update(ApiEndpoint)
       .set({ isAuthenticatedUserSet: authenticated })
-      .where("uuid = :id", { id: apiEndpointUuid })
+      .andWhere("uuid = :id", { id: apiEndpointUuid })
       .execute()
   }
 
@@ -157,7 +157,7 @@ export class GetEndpointsService {
       await queryRunner.connect()
       const endpoint = await getQB(ctx, queryRunner)
         .from(ApiEndpoint, "endpoint")
-        .where("uuid = :id", { id: endpointId })
+        .andWhere("uuid = :id", { id: endpointId })
         .getRawOne()
       if (!endpoint) {
         throw new Error404NotFound("Endpoint does not exist.")
@@ -165,7 +165,7 @@ export class GetEndpointsService {
       const alerts = await getQB(ctx, queryRunner)
         .select(["uuid", "status"])
         .from(Alert, "alert")
-        .where(`"apiEndpointUuid" = :id`, { id: endpointId })
+        .andWhere(`"apiEndpointUuid" = :id`, { id: endpointId })
         .getRawMany()
       const dataFields: DataField[] = await queryRunner.query(
         getDataFieldsQuery(ctx),
@@ -173,7 +173,7 @@ export class GetEndpointsService {
       )
       const openapiSpec = await getQB(ctx, queryRunner)
         .from(OpenApiSpec, "spec")
-        .where("name = :name", { name: endpoint.openapiSpecName })
+        .andWhere("name = :name", { name: endpoint.openapiSpecName })
         .getRawOne()
       const traces = await getEntityManager(ctx, queryRunner).find(ApiTrace, {
         where: { apiEndpointUuid: endpoint.uuid },
@@ -225,7 +225,7 @@ export class GetEndpointsService {
     try {
       const usage = await getRepoQB(ctx, AggregateTraceDataHourly, "trace")
         .select([`DATE_TRUNC('day', hour) AS date`, `SUM("numCalls") AS count`])
-        .where(`"apiEndpointUuid" = :id`, { id: endpointId })
+        .andWhere(`"apiEndpointUuid" = :id`, { id: endpointId })
         .groupBy(`DATE_TRUNC('day', hour)`)
         .orderBy(`date`, "ASC")
         .getRawMany()

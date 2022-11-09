@@ -144,12 +144,12 @@ export class SpecService {
       await getQB(ctx, queryRunner)
         .update(ApiEndpoint)
         .set({ openapiSpecName: null })
-        .where('"openapiSpecName" = :name', { name: fileName })
+        .andWhere('"openapiSpecName" = :name', { name: fileName })
         .execute()
       await getQB(ctx, queryRunner)
         .delete()
         .from(OpenApiSpec)
-        .where("name = :name", { name: fileName })
+        .andWhere("name = :name", { name: fileName })
         .execute()
       if (!existingQueryRunner) {
         await queryRunner.commitTransaction()
@@ -360,19 +360,19 @@ export class SpecService {
           const updateTracesQb = getQB(ctx, queryRunner)
             .update(ApiTrace)
             .set({ apiEndpointUuid: item.endpoint.uuid })
-            .where(`"apiEndpointUuid" IN(:...ids)`, {
+            .andWhere(`"apiEndpointUuid" IN(:...ids)`, {
               ids: similarEndpointUuids,
             })
           const deleteDataFieldsQb = getQB(ctx, queryRunner)
             .delete()
             .from(DataField)
-            .where(`"apiEndpointUuid" IN(:...ids)`, {
+            .andWhere(`"apiEndpointUuid" IN(:...ids)`, {
               ids: similarEndpointUuids,
             })
           const updateAlertsQb = getQB(ctx, queryRunner)
             .update(Alert)
             .set({ apiEndpointUuid: item.endpoint.uuid })
-            .where(`"apiEndpointUuid" IN(:...ids)`, {
+            .andWhere(`"apiEndpointUuid" IN(:...ids)`, {
               ids: similarEndpointUuids,
             })
             .andWhere(`type NOT IN(:...types)`, {
@@ -381,7 +381,7 @@ export class SpecService {
           const deleteAlertsQb = getQB(ctx, queryRunner)
             .delete()
             .from(Alert)
-            .where(`"apiEndpointUuid" IN(:...ids)`, {
+            .andWhere(`"apiEndpointUuid" IN(:...ids)`, {
               ids: similarEndpointUuids,
             })
             .andWhere(`type IN(:...types)`, {
@@ -390,7 +390,7 @@ export class SpecService {
           const deleteAggregateHourlyQb = getQB(ctx, queryRunner)
             .delete()
             .from(AggregateTraceDataHourly)
-            .where(`"apiEndpointUuid" IN(:...ids)`, {
+            .andWhere(`"apiEndpointUuid" IN(:...ids)`, {
               ids: similarEndpointUuids,
             })
           const oldEndpointUuids =
@@ -424,7 +424,7 @@ export class SpecService {
           await getQB(ctx, queryRunner)
             .delete()
             .from(ApiEndpoint)
-            .where(`"uuid" IN(:...ids)`, { ids: similarEndpointUuids })
+            .andWhere(`"uuid" IN(:...ids)`, { ids: similarEndpointUuids })
             .execute()
         }
       }

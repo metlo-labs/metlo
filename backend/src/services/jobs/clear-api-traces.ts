@@ -15,7 +15,7 @@ const clearApiTraces = async (ctx: MetloContext): Promise<void> => {
     const maxTimeRes = await getQB(ctx, queryRunner)
       .select([`MAX("createdAt") as "maxTime"`])
       .from(ApiTrace, "traces")
-      .where('"apiEndpointUuid" IS NOT NULL')
+      .andWhere('"apiEndpointUuid" IS NOT NULL')
       .andWhere('"createdAt" < :oneHourAgo', { oneHourAgo })
       .getRawOne()
     const maxTime: Date = maxTimeRes?.maxTime ?? null
@@ -26,7 +26,7 @@ const clearApiTraces = async (ctx: MetloContext): Promise<void> => {
       await getQB(ctx, queryRunner)
         .delete()
         .from(ApiTrace)
-        .where('"apiEndpointUuid" IS NOT NULL')
+        .andWhere('"apiEndpointUuid" IS NOT NULL')
         .andWhere('"createdAt" <= :maxTime', { maxTime })
         .execute()
       await queryRunner.commitTransaction()

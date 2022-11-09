@@ -72,7 +72,7 @@ const generateEndpointsFromTraces = async (
               getQB(ctx, queryRunner)
                 .update(ApiTrace)
                 .set({ apiEndpointUuid: apiEndpoint.uuid })
-                .where("uuid = :id", { id: trace.uuid })
+                .andWhere("uuid = :id", { id: trace.uuid })
                 .execute(),
             5,
           )
@@ -84,7 +84,7 @@ const generateEndpointsFromTraces = async (
                   firstDetected: apiEndpoint.firstDetected,
                   lastActive: apiEndpoint.lastActive,
                 })
-                .where("uuid = :id", { id: apiEndpoint.uuid })
+                .andWhere("uuid = :id", { id: apiEndpoint.uuid })
                 .execute(),
             5,
           )
@@ -183,7 +183,7 @@ const generateEndpointsFromTraces = async (
             getQB(ctx, queryRunner)
               .update(ApiTrace)
               .set({ apiEndpointUuid: apiEndpoint.uuid })
-              .where("uuid IN(:...ids)", { ids: traceIds })
+              .andWhere("uuid IN(:...ids)", { ids: traceIds })
               .execute(),
           5,
         )

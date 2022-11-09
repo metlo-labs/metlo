@@ -28,7 +28,7 @@ export class DataFieldService {
     await createQB(ctx)
       .delete()
       .from(DataField)
-      .where("uuid = :uuid", { uuid: fieldUuid })
+      .andWhere("uuid = :uuid", { uuid: fieldUuid })
       .execute()
     return {
       ...dataField,

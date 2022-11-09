@@ -42,7 +42,7 @@ export class BlockFieldsService {
     let cachedBlockFields: any = await RedisClient.getFromRedis(ctx, redisKey)
     if (!cachedBlockFields) {
       const blockFieldEntries = await getRepoQB(ctx, BlockFields)
-        .where("host = :host", { host: apiTrace.host })
+        .andWhere("host = :host", { host: apiTrace.host })
         .getMany()
 
       cachedBlockFields = blockFieldEntries
