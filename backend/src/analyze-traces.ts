@@ -159,7 +159,7 @@ const analyze = async (
           lastActive: apiEndpoint.lastActive,
           riskScore: apiEndpoint.riskScore,
         })
-        .where("uuid = :id", { id: apiEndpoint.uuid })
+        .andWhere("uuid = :id", { id: apiEndpoint.uuid })
         .execute(),
     5,
   )

@@ -187,7 +187,7 @@ export class ConnectionsService {
       }
       let resp = getRepoQB(ctx, Connections, "conn")
         .select(selects)
-        .where("conn.uuid = :uuid", { uuid })
+        .andWhere("conn.uuid = :uuid", { uuid })
         .getOne()
       return await resp
     } catch (err) {
@@ -210,7 +210,7 @@ export class ConnectionsService {
       let resp = createQB(ctx)
         .update(Connections)
         .set({ name: name })
-        .where("uuid = :uuid", { uuid })
+        .andWhere("uuid = :uuid", { uuid })
         .execute()
       return await resp
     } catch (err) {
@@ -224,7 +224,7 @@ export class ConnectionsService {
       let resp = createQB(ctx)
         .delete()
         .from(Connections)
-        .where("uuid = :uuid", { uuid })
+        .andWhere("uuid = :uuid", { uuid })
         .execute()
       return await resp
     } catch (err) {

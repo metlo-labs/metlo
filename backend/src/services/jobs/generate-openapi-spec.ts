@@ -62,7 +62,7 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
         const paths = openApiSpec["paths"]
         const path = endpoint.path
         const method = endpoint.method.toLowerCase()
-        let tracesQb = getRepoQB(ctx, ApiTrace).where(
+        let tracesQb = getRepoQB(ctx, ApiTrace).andWhere(
           '"apiEndpointUuid" = :id',
           { id: endpoint.uuid },
         )

@@ -86,7 +86,7 @@ export class AlertService {
     await createQB(ctx)
       .update(Alert)
       .set({ status: alert.status, resolutionMessage: alert.resolutionMessage })
-      .where("uuid = :uuid", { uuid: alertId })
+      .andWhere("uuid = :uuid", { uuid: alertId })
       .execute()
     return alert
   }
@@ -217,7 +217,7 @@ export class AlertService {
       return await getQB(ctx, queryRunner)
         .select(["uuid"])
         .from(Alert, "alert")
-        .where(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+        .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
         .andWhere("type = :type", { type })
         .andWhere("status != :status", { status: Status.RESOLVED })
         .andWhere("description = :description", { description })
@@ -518,7 +518,7 @@ export class AlertService {
         await getQB(ctx, queryRunner)
           .update(OpenApiSpec)
           .set({ minimizedSpecContext: openApiSpec.minimizedSpecContext })
-          .where("name = :name", { name: openApiSpec.name })
+          .andWhere("name = :name", { name: openApiSpec.name })
           .execute()
       }
       return alerts

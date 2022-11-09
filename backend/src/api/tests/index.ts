@@ -59,7 +59,7 @@ export const saveTest = async (
       .execute()
     let resp = await getRepoQB(req.ctx, ApiEndpointTest)
       .select()
-      .where("uuid = :uuid", testInsert.identifiers[0])
+      .andWhere("uuid = :uuid", testInsert.identifiers[0])
       .getOne()
     await ApiResponseHandler.success(res, resp)
   } catch (err) {
@@ -78,7 +78,7 @@ export const getTest = async (
   try {
     let resp = await getRepoQB(req.ctx, ApiEndpointTest)
       .select()
-      .where("uuid = :uuid", { uuid })
+      .andWhere("uuid = :uuid", { uuid })
       .getOne()
     await ApiResponseHandler.success(res, resp)
   } catch (err) {
@@ -98,7 +98,7 @@ export const listTests = async (
       .leftJoinAndSelect("test.apiEndpoint", "endpoint")
     if (hostname) {
       resp = await partial_resp
-        .where("endpoint.host = :hostname", { hostname })
+        .andWhere("endpoint.host = :hostname", { hostname })
         .getMany()
     } else {
       resp = await partial_resp.getMany()
@@ -120,7 +120,7 @@ export const deleteTest = async (
     let resp = await getRepoQB(req.ctx, ApiEndpointTest)
       .delete()
       .from(ApiEndpointTest)
-      .where("uuid = :uuid", { uuid })
+      .andWhere("uuid = :uuid", { uuid })
       .execute()
 
     await ApiResponseHandler.success(res, resp)

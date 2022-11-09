@@ -64,7 +64,7 @@ export const deleteKey = async (
   let del_resp = await createQB(req.ctx)
     .delete()
     .from(ApiKey)
-    .where("name = :name", { name: keyName })
+    .andWhere("name = :name", { name: keyName })
     .execute()
 
   if (del_resp.affected != 0) {
