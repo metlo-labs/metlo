@@ -73,7 +73,7 @@ export const awsSourceIdentification = async (
   let ec2_conn = new EC2_CONN(access_id, secret_access_key, _region)
   let all_valid_types = await ec2_conn.get_valid_types(undefined, undefined)
 
-  var region, source_eni_id, source_private_ip, instance_type, isValid
+  var region, source_eni_id, source_private_ip, instance_type
   if (source_type === AWS_SOURCE_TYPE.INSTANCE) {
     let resp = await ec2_conn.describe_instance(mirror_source_id)
 
