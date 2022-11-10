@@ -1,6 +1,6 @@
 export enum AWS_SOURCE_TYPE {
   INSTANCE = "instance",
-  NETWORK_INTERFACE = "network-interface"
+  NETWORK_INTERFACE = "network-interface",
 }
 
 export enum Protocols {
