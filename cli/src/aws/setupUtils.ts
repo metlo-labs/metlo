@@ -73,11 +73,17 @@ export const awsSourceIdentification = async (
   let ec2_conn = new EC2_CONN(access_id, secret_access_key, _region)
   let all_valid_types = await ec2_conn.get_valid_types(undefined, undefined)
 
-  var region, source_eni_id, source_private_ip, instance_type
+  var region, source_eni_id, source_private_ip, instance_type, isValid
   if (source_type === AWS_SOURCE_TYPE.INSTANCE) {
     let resp = await ec2_conn.describe_instance(mirror_source_id)
 
     instance_type = resp.Reservations[0].Instances[0].InstanceType
+    if (!all_valid_types.map(v => v.InstanceType).includes(instance_type)) {
+      throw new Error(
+        `AWS EC2 instance type ${instance_type} does not support mirroring traffic. ` +
+        `Supported instances listed at https://aws.amazon.com/about-aws/whats-new/2021/02/amazon-vpc-traffic-mirroring-supported-select-non-nitro-instance-types/`,
+      )
+    }
     region = await match_av_to_region(
       client,
       resp.Reservations[0].Instances[0].Placement.AvailabilityZone,
@@ -88,11 +94,22 @@ export const awsSourceIdentification = async (
       resp.Reservations[0].Instances[0].NetworkInterfaces[0].PrivateIpAddress
   } else if (source_type === AWS_SOURCE_TYPE.NETWORK_INTERFACE) {
     let resp = await ec2_conn.describe_interface(mirror_source_id)
-    let instance_type_resp = await ec2_conn.describe_instance(
-      resp.NetworkInterfaces[0].Attachment.InstanceId,
-    )
+    if (resp.NetworkInterfaces[0].Attachment.InstanceId) {
+      let instance_type_resp = await ec2_conn.describe_instance(
+        resp.NetworkInterfaces[0].Attachment.InstanceId,
+      )
 
-    instance_type = instance_type_resp.Reservations[0].Instances[0].InstanceType
+      instance_type = instance_type_resp.Reservations[0].Instances[0].InstanceType
+      if (!all_valid_types.map(v => v.InstanceType).includes(instance_type)) {
+        throw new Error(
+          `AWS EC2 instance type ${instance_type} does not support mirroring traffic. ` +
+          `Supported instances listed at https://aws.amazon.com/about-aws/whats-new/2021/02/amazon-vpc-traffic-mirroring-supported-select-non-nitro-instance-types/`,
+        )
+      }
+    } else {
+      console.log("Couldn't locate an attached EC2 instance. Moving forward assuming valid instance")
+    }
+
     region = await match_av_to_region(
       client,
       resp.NetworkInterfaces[0].AvailabilityZone,
@@ -102,13 +119,6 @@ export const awsSourceIdentification = async (
   } else {
     throw new Error(
       `Couldn't find information about source_type : ${source_type}`,
-    )
-  }
-
-  if (!all_valid_types.map(v => v.InstanceType).includes(instance_type)) {
-    throw new Error(
-      `AWS EC2 instance type ${instance_type} does not support mirroring traffic. ` +
-        `Supported instances listed at https://aws.amazon.com/about-aws/whats-new/2021/02/amazon-vpc-traffic-mirroring-supported-select-non-nitro-instance-types/`,
     )
   }
 
