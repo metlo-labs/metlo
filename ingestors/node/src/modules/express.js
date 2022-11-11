@@ -21,7 +21,7 @@ function initialize({ key, host, pool }) {
                 request: {
                     url: {
                         host: _req.socket.remoteAddress,
-                        path: _req.route.path,
+                        path: _req.route.originalUrl,
                         parameters: Object.entries(_req.query).map(([k, v]) => ({ name: k, value: v })),
                     },
                     headers: Object.entries(_req.headers).map(([k, v]) => ({ name: k, value: v })),
