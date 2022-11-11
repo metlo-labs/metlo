@@ -24,7 +24,7 @@ class MetloFlask:
         """
         self.app = app
         self.pool = ThreadPoolExecutor(max_workers=kwargs.get("workers", 4))
-        self.disabled = kwargs.get("disabled", false)
+        self.disabled = kwargs.get("disabled", False)
 
         assert (
                 metlo_host is not None

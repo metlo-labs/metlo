@@ -25,14 +25,13 @@ class MetloDjango(object):
             max_workers=settings.METLO_CONFIG.get("workers", 4)
         )
 
-        if settings.METLO_CONFIG.get("DISABLED"):
-            self.disabled = true
+        self.disabled = settings.METLO_CONFIG.get("DISABLED", False)
 
         assert (
-                settings.METLO_CONFIG.get("METLO_HOST") is not None
+            settings.METLO_CONFIG.get("METLO_HOST") is not None
         ), "METLO_CONFIG is missing METLO_HOST attribute"
         assert (
-                settings.METLO_CONFIG.get("API_KEY") is not None
+            settings.METLO_CONFIG.get("API_KEY") is not None
         ), "METLO_CONFIG is missing API_KEY attribute"
         assert urlparse(settings.METLO_CONFIG.get("METLO_HOST")).scheme in [
             "http",
@@ -53,7 +52,7 @@ class MetloDjango(object):
 
     def __call__(self, request):
         response = self.get_response(request)
-        if self.disabled:
+        if not self.disabled:
             try:
                 params = request.GET if request.method == "GET" else request.POST
                 dest_ip = (
@@ -66,7 +65,9 @@ class MetloDjango(object):
                     if "1.0.0.127.in-addr.arpa" not in request.META.get("REMOTE_ADDR")
                     else "localhost"
                 )
-                source_port = request.environ["wsgi.input"].stream.raw._sock.getpeername()[1]
+                source_port = request.environ[
+                    "wsgi.input"
+                ].stream.raw._sock.getpeername()[1]
                 res_body = response.content.decode("utf-8")
                 data = {
                     "request": {
@@ -76,12 +77,16 @@ class MetloDjango(object):
                             else src_ip,
                             "path": request.path,
                             "parameters": list(
-                                map(lambda x: {"name": x[0], "value": x[1]}, params.items())
+                                map(
+                                    lambda x: {"name": x[0], "value": x[1]},
+                                    params.items(),
+                                )
                             ),
                         },
                         "headers": list(
                             map(
-                                lambda x: {"name": x[0], "value": x[1]}, request.headers.items()
+                                lambda x: {"name": x[0], "value": x[1]},
+                                request.headers.items(),
                             )
                         ),
                         "body": request.body.decode("utf-8"),
