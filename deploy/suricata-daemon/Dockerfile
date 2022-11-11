@@ -1,7 +1,7 @@
 FROM node:lts-bullseye-slim
 
 RUN apt update
-RUN apt install suricata git -y
+RUN apt install suricata git iproute2 procps -y
 
 WORKDIR /app
 
