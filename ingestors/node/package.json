@@ -1,6 +1,6 @@
 {
   "name": "metlo",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "license": "MIT",
   "description": "The node agent for Metlo API Security.",
   "main": "dist/index.js",
