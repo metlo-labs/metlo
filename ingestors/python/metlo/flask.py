@@ -2,10 +2,14 @@ import json
 from concurrent.futures import ThreadPoolExecutor
 from urllib.request import Request, urlopen
 from urllib.parse import urlparse
+import logging
 
 from flask import request
 
 endpoint = "api/v1/log-request/single"
+
+
+logger = logging.getLogger("metlo")
 
 
 class MetloFlask:
@@ -13,7 +17,7 @@ class MetloFlask:
         try:
             urlopen(url=self.saved_request, data=json.dumps(data).encode("utf-8"))
         except Exception as e:
-            print(e)
+            logger.warn(e)
 
     def __init__(self, app, metlo_host: str, metlo_api_key: str, **kwargs):
         """
@@ -27,10 +31,10 @@ class MetloFlask:
         self.disabled = kwargs.get("disabled", False)
 
         assert (
-                metlo_host is not None
+            metlo_host is not None
         ), "Metlo for FLASK __init__ is missing metlo_host parameter"
         assert (
-                metlo_api_key is not None
+            metlo_api_key is not None
         ), "Metlo for FLASK __init__ is missing metlo_api_key parameter"
         assert urlparse(metlo_host).scheme in [
             "http",
@@ -50,13 +54,14 @@ class MetloFlask:
         )
 
         if not self.disabled:
+
             @app.after_request
             def function(response, *args, **kwargs):
                 try:
                     dst_host = (
-                            request.environ.get("HTTP_HOST")
-                            or request.environ.get("HTTP_X_FORWARDED_FOR")
-                            or request.environ.get("REMOTE_ADDR")
+                        request.environ.get("HTTP_HOST")
+                        or request.environ.get("HTTP_X_FORWARDED_FOR")
+                        or request.environ.get("REMOTE_ADDR")
                     )
                     data = {
                         "request": {
@@ -94,7 +99,7 @@ class MetloFlask:
                             "environment": "production",
                             "incoming": True,
                             "source": request.environ.get("HTTP_X_FORWARDED_FOR")
-                                      or request.environ.get("REMOTE_ADDR"),
+                            or request.environ.get("REMOTE_ADDR"),
                             "sourcePort": request.environ.get("REMOTE_PORT"),
                             "destination": request.environ.get("SERVER_NAME"),
                             "destinationPort": request.environ.get("SERVER_PORT"),
@@ -103,5 +108,5 @@ class MetloFlask:
                     }
                     self.pool.submit(self.perform_request, data=data)
                 except Exception as e:
-                    print(e)
+                    logger.debug(e)
                 return response

@@ -2,10 +2,13 @@ import json
 from concurrent.futures import ThreadPoolExecutor
 from urllib.request import Request, urlopen
 from urllib.parse import urlparse
+import logging
 
 from django.conf import settings
 
 endpoint = "api/v1/log-request/single"
+
+logger = logging.getLogger("metlo")
 
 
 class MetloDjango(object):
@@ -13,7 +16,7 @@ class MetloDjango(object):
         try:
             urlopen(url=self.saved_request, data=json.dumps(data).encode("utf-8"))
         except Exception as e:
-            print(e)
+            logger.warn(e)
 
     def __init__(self, get_response):
         """
@@ -115,7 +118,7 @@ class MetloDjango(object):
                 }
                 self.pool.submit(self.perform_request, data=data)
             except Exception as e:
-                print(e)
+                logger.debug(e)
         return response
 
     def process_exception(self, request, exception):
