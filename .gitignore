@@ -17,6 +17,7 @@ __pycache__
 metlo-api-security-enterprise
 ingestors/kubernetes/example_deployment.yaml
 ingestors/python/metlo.egg-info
+ingestors/python/.idea
 
 ingestors/java/spring/.gradle/
 ingestors/java/spring/.idea/
