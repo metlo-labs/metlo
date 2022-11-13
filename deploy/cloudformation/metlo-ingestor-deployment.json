@@ -1,0 +1,226 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Here are some details about the template.",
+    "Metadata": {
+        "AWS::CloudFormation::Designer": {
+            "12d7e160-0a80-41e1-9076-14d9d321b425": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 180,
+                    "y": 60
+                },
+                "z": 1,
+                "embeds": [],
+                "isassociatedwith": [
+                    "75ee4d4d-5387-4e64-a6e7-df69e2be9de2"
+                ]
+            },
+            "75ee4d4d-5387-4e64-a6e7-df69e2be9de2": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 330,
+                    "y": 60
+                },
+                "z": 1,
+                "embeds": []
+            }
+        }
+    },
+    "Resources": {
+        "MetloIngestorSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "GroupDescription": "Enable the ports metlo ingestor requires (tcp 22, udp 4789)",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 22,
+                        "ToPort": 22,
+                        "CidrIp": "0.0.0.0/0"
+                    },
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": 4789,
+                        "ToPort": 4789,
+                        "CidrIp": "10.0.0.0/8"
+                    },
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": 4789,
+                        "ToPort": 4789,
+                        "CidrIp": "172.16.0.0/12"
+                    },
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": 4789,
+                        "ToPort": 4789,
+                        "CidrIp": "192.168.0.0/16"
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 0,
+                        "ToPort": 65535,
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ]
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "75ee4d4d-5387-4e64-a6e7-df69e2be9de2"
+                }
+            }
+        },
+        "MetloIngestorInstance": {
+            "Type": "AWS::EC2::Instance",
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "12d7e160-0a80-41e1-9076-14d9d321b425"
+                }
+            },
+            "Properties": {
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "\n",
+                            [
+                                "#!/bin/bash -xve",
+                                {
+                                    "Fn::Sub": [
+                                        "echo 'METLO_ADDR=${METADDR}' >> opt/metlo/credentials",
+                                        {
+                                            "METADDR": {
+                                                "Ref": "metloAddress"
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Fn::Sub": [
+                                        "echo 'METLO_KEY=${METKEY}' >> opt/metlo/credentials",
+                                        {
+                                            "METKEY": {
+                                                "Ref": "metloKey"
+                                            }
+                                        }
+                                    ]
+                                },
+                                "sudo systemctl enable metlo-ingestor.service",
+                                "sudo systemctl start metlo-ingestor.service",
+                                "sudo apt-get update -y",
+                                "sudo apt-get install -y python python-setuptools",
+                                "sudo mkdir -p /opt/aws/bin",
+                                "sudo wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz",
+                                "sudo python -m easy_install --script-dir /opt/aws/bin aws-cfn-bootstrap-latest.tar.gz",
+                                {
+                                    "Fn::Join": [
+                                        " ",
+                                        [
+                                            "sudo /opt/aws/bin/cfn-signal -s true",
+                                            "--stack ",
+                                            {
+                                                "Ref": "AWS::StackName"
+                                            },
+                                            "--resource MetloIngestorInstance",
+                                            "--region ",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            }
+                                        ]
+                                    ]
+                                }
+                            ]
+                        ]
+                    }
+                },
+                "KeyName": {
+                    "Ref": "metloKeyPair"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Metlo-Ingestor"
+                    }
+                ],
+                "ImageId": {
+                    "Fn::FindInMap": [
+                        "RegionMap",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        "AMI"
+                    ]
+                },
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "0",
+                        {
+                            "Fn::GetAZs": ""
+                        }
+                    ]
+                },
+                "InstanceType": "t3.small",
+                "SecurityGroupIds": [
+                    {
+                        "Ref": "MetloIngestorSecurityGroup"
+                    }
+                ]
+            },
+            "CreationPolicy": {
+                "ResourceSignal": {
+                    "Timeout": "PT10M"
+                }
+            }
+        }
+    },
+    "Parameters": {
+        "metloKeyPair": {
+            "Description": "Key pair to access the box running Metlo",
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        },
+        "VPC": {
+            "Description": "The VPC to run metlo inside of",
+            "Type": "AWS::EC2::VPC::Id"
+        },
+        "metloAddress": {
+            "Description": "Host address where the Metlo Collector resides",
+            "Type": "String"
+        },
+        "metloKey": {
+            "Description": "API KEY for Metlo Collector",
+            "Type": "String"
+        }
+    },
+    "Mappings": {
+        "RegionMap": {
+            "us-east-1": {
+                "AMI": "ami-0314228ab1dfca22c"
+            },
+            "us-east-2": {
+                "AMI": "ami-000c7bdfd2cc748ee"
+            },
+            "us-west-1": {
+                "AMI": "ami-092b652ebe2ef2353"
+            },
+            "us-west-2": {
+                "AMI": "ami-0f237f0669df21823"
+            },
+            "ap-south-1": {
+                "AMI": "ami-0fa1f6b93c28a21e4"
+            },
+            "eu-west-2": {
+                "AMI": "ami-0efb31db7e8ceb9a2"
+            }
+        }
+    }
+}
