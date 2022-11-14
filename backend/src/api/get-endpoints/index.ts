@@ -78,7 +78,7 @@ export const updateEndpointIsAuthenticated = async (
       endpointId,
       params.authenticated,
     )
-    await ApiResponseHandler.success(res)
+    await ApiResponseHandler.success(res, "Success")
   } catch (err) {
     await ApiResponseHandler.error(res, err)
   }

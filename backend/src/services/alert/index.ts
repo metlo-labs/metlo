@@ -49,6 +49,9 @@ export class AlertService {
         apiEndpoint: true,
       },
     })
+    if (!alert) {
+      throw new Error404NotFound("Not Found")
+    }
     switch (updateAlertParams.updateType) {
       case UpdateAlertType.IGNORE:
         if (alert.status === Status.IGNORED) {
