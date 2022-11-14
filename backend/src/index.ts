@@ -2,9 +2,7 @@ import dotenv from "dotenv"
 dotenv.config()
 
 import express, { Express, Response } from "express"
-import { TypeormStore } from "connect-typeorm"
-import session from "express-session"
-import { InstanceSettings, Session as SessionModel } from "models"
+import { InstanceSettings } from "models"
 import {
   getEndpointHandler,
   getEndpointsHandler,
@@ -26,27 +24,12 @@ import { MetloRequest } from "types"
 import { AppDataSource } from "data-source"
 import { MulterSource } from "multer-source"
 import {
-  awsInstanceChoices,
-  awsOsChoices,
-  gcpInstanceChoices,
-  gcpOsChoices,
-  getLongRunningState,
-  setupConnection,
-} from "./api/setup"
-import {
   deleteTest,
   getTest,
   listTests,
   runTestHandler,
   saveTest,
 } from "./api/tests"
-import {
-  deleteConnection,
-  getConnectionForUuid,
-  getSshKeyForConnectionUuid,
-  listConnections,
-  updateConnection,
-} from "./api/connections"
 import { RedisClient } from "utils/redis"
 import { getSensitiveDataSummaryHandler } from "api/data-field/sensitive-data"
 import { getVulnerabilitySummaryHandler } from "api/alert/vulnerability"
@@ -73,18 +56,6 @@ app.use(async (req: MetloRequest, res, next) => {
 })
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-app.use(
-  session({
-    resave: false,
-    saveUninitialized: false,
-    store: new TypeormStore({
-      cleanupLimit: 2,
-      limitSubquery: false, // If using MariaDB.
-      ttl: 86400,
-    }).connect(AppDataSource.getRepository(SessionModel)),
-    secret: process.env.EXPRESS_SECRET,
-  }),
-)
 app.use(async (req, res, next) => {
   if (inSandboxMode && req.method != "GET") {
     res.status(401).send("Not enabled in sandbox mode...")
@@ -131,18 +102,6 @@ apiRouter.delete("/api/v1/data-field/:dataFieldId", deleteDataFieldHandler)
 
 apiRouter.get("/api/v1/alerts", getAlertsHandler)
 apiRouter.put("/api/v1/alert/:alertId", updateAlertHandler)
-
-apiRouter.post("/api/v1/setup_connection", setupConnection)
-apiRouter.get("/api/v1/long_running/:uuid", getLongRunningState)
-apiRouter.post("/api/v1/setup_connection/aws/os", awsOsChoices)
-apiRouter.post("/api/v1/setup_connection/aws/instances", awsInstanceChoices)
-apiRouter.post("/api/v1/setup_connection/gcp/os", gcpOsChoices)
-apiRouter.post("/api/v1/setup_connection/gcp/instances", gcpInstanceChoices)
-apiRouter.get("/api/v1/list_connections", listConnections)
-apiRouter.get("/api/v1/list_connections/:uuid", getConnectionForUuid)
-apiRouter.get("/api/v1/list_connections/:uuid/sshkey", getSshKeyForConnectionUuid)
-apiRouter.post("/api/v1/update_connection", updateConnection)
-apiRouter.delete("/api/v1/delete_connection/:uuid", deleteConnection)
 
 apiRouter.post("/api/v1/test/run", runTestHandler)
 apiRouter.post("/api/v1/test/save", saveTest)
