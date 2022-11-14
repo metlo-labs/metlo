@@ -55,6 +55,12 @@ export class GetEndpointsService {
     apiEndpointUuid: string,
     authenticated: boolean,
   ): Promise<void> {
+    const endpoint = await getRepoQB(ctx, ApiEndpoint)
+      .andWhere("uuid = :id", { id: apiEndpointUuid })
+      .getRawOne()
+    if (!endpoint) {
+      throw new Error404NotFound("Endpoint does not exist.")
+    }
     await createQB(ctx)
       .update(ApiEndpoint)
       .set({ isAuthenticatedUserSet: authenticated })
@@ -223,6 +229,12 @@ export class GetEndpointsService {
     endpointId: string,
   ): Promise<UsageResponse[]> {
     try {
+      const endpoint = await getRepoQB(ctx, ApiEndpoint)
+        .andWhere("uuid = :id", { id: endpointId })
+        .getRawOne()
+      if (!endpoint) {
+        throw new Error404NotFound("Endpoint does not exist.")
+      }
       const usage = await getRepoQB(ctx, AggregateTraceDataHourly, "trace")
         .select([`DATE_TRUNC('day', hour) AS date`, `SUM("numCalls") AS count`])
         .andWhere(`"apiEndpointUuid" = :id`, { id: endpointId })
