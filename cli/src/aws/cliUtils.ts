@@ -4,7 +4,7 @@ import { AWS_REGIONS } from "./constants"
 export const getRegion = async () => {
   const regionResp = await prompt([
     {
-      type: "select",
+      type: "autocomplete",
       name: "_region",
       message: "Select your AWS region",
       initial: 1,
