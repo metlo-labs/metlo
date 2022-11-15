@@ -17,13 +17,10 @@ const AWSDocs = () => {
   return (
     <>
       <VStack spacing={6} w="full">
-        <ListNumber num={1} title="Use one of our Launch Stacks">
+        <ListNumber num={1} title="Deploy a Metlo Traffic Mirroring Instacne">
           <Text>
-            The launch stack will create an instance with suricata ingestor
-            installed and security groups with ports 22 and 4789. You will have
-            to select your VPC, the key-pair to access the instance running
-            Metlo, the host address where your Metlo instance resides, and the
-            API Key for the Metlo collector.
+            You can use one of our Cloud Formation stacks to deploy in the
+            region you would like to mirror.
           </Text>
           <HStack>
             <Select
@@ -50,7 +47,7 @@ const AWSDocs = () => {
         </ListNumber>
         <ListNumber num={2} title="Install Metlo's CLI Tool">
           <Text>
-            Once the instance is created, connect to the instance to install
+            Once the instance is created, you can start traffic mirroring using
             Metlo&apos;s CLI Tool. You can install metlo from npm by running the
             following:
           </Text>
