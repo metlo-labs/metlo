@@ -102,7 +102,7 @@ export const printMetloMirrorSessions = (
         sourceText = `https://${region}.console.aws.amazon.com/ec2/home#InstanceDetails:instanceId=${e.networkInterfaceInfo.Attachment.InstanceId}`
       } else {
         sourceType = "network-interface"
-        sourceText = `https://us-west-2.console.aws.amazon.com/ec2/home#NetworkInterface:networkInterfaceId=${e.networkInterfaceID}`
+        sourceText = `https://${region}.console.aws.amazon.com/ec2/home#NetworkInterface:networkInterfaceId=${e.networkInterfaceID}`
       }
       return {
         sessionID: e.sessionID,
