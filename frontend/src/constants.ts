@@ -72,3 +72,19 @@ export const getAPIURL = () => {
 export const ENDPOINT_PAGE_LIMIT = 10
 export const ALERT_PAGE_LIMIT = 10
 export const ATTACK_PAGE_LIMIT = 10
+
+export const INGESTOR_AWS_REGIONS = [
+  "us-east-1",
+  "us-east-2",
+  "us-west-1",
+  "us-west-2",
+  "ap-south-1",
+  "eu-west-2",
+]
+
+export const INGESTOR_AWS_TEMPLATE =
+  "https://cf-templates-7639qxxr319s-us-west-1.s3.us-west-1.amazonaws.com/metlo-ingestor.template"
+export const INGESTOR_STACK_NAME = "metlo-ingestor"
+
+export const getAWSIngestorLaunchStackURL = (region: string) =>
+  `https://${region}.console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review?templateURL=${INGESTOR_AWS_TEMPLATE}&stackName=${INGESTOR_STACK_NAME}`

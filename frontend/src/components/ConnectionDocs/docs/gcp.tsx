@@ -1,30 +1,18 @@
-import { Code, Heading, Box, Grid, VStack } from "@chakra-ui/react"
+import { Code, Box, VStack, Text } from "@chakra-ui/react"
+import { ListNumber } from "components/utils/ListNumber"
 const GCPDocs = () => {
   return (
     <>
       <VStack w={"full"} spacing={6}>
-        <Heading w={"full"} size={"md"}>
-          Steps
-        </Heading>
-
-        <VStack w={"full"}>
-          <Heading w={"full"} size={"sm"}>
-            1. Open Ports
-          </Heading>
-          <Box w={"full"}>
+        <ListNumber num={1} title="Open Ports">
+          <Text>
             Open Port 8081 on your Metlo instance so you can start collecting
             traffic data. It should be open to any machines you want to collect
             traffic from.
-          </Box>
-        </VStack>
-
-        <VStack w={"full"}>
-          <Heading w={"full"} size={"sm"}>
-            2. Deploy a Metlo Mirroring Instance
-          </Heading>
-          <Box w={"full"}>
-            Run the following command to spin up Metlo in GCP:
-          </Box>
+          </Text>
+        </ListNumber>
+        <ListNumber num={2} title="Deploy a Metlo Mirroring Instance">
+          <Text>Run the following command to spin up Metlo in GCP:</Text>
           <Code w={"full"} p={2}>
             <VStack>
               <Box w={"full"}>
@@ -37,49 +25,35 @@ const GCPDocs = () => {
               </Box>
             </VStack>
           </Code>
-          <Box w={"full"}>
+          <Text>
             Once you&apos;ve launched your instance run the following in the
             instance to start Metlo:
-          </Box>
+          </Text>
           <Code w={"full"} p={2}>
-            {" "}
             $ sudo metlo start
           </Code>
-        </VStack>
-
-        <VStack w={"full"}>
-          <Heading w={"full"} size={"sm"}>
-            3. Account Permissions
-          </Heading>
-          <Box w={"full"}>
+        </ListNumber>
+        <ListNumber num={3} title="Account Permissions">
+          <Text>
             Metlo mirroring on GCP requires a service account with the following
             permissions:
-          </Box>
-
-          <VStack w={"full"}>
-            <Box w={"full"}>
-              Currently, we require these permissions for the service account:
-            </Box>
-            <Box w={"full"}>&nbsp;-&nbsp;Compute Admin</Box>
-            <Box w={"full"}>&nbsp;-&nbsp;Compute packet mirroring admin</Box>
-            <Box w={"full"}>&nbsp;-&nbsp;Compute packet mirroring user</Box>
-            <Box w={"full"}>&nbsp;-&nbsp;IAP-secured Tunnel User</Box>
-          </VStack>
-        </VStack>
-        <Box w={"full"}>
-          <Heading size={"sm"} paddingBlock={2}>
-            4. Install Metlo&apos;s CLI Tool
-          </Heading>
-          You can install metlo from npm by running the following:
-        </Box>
-        <Code w={"full"} p={2}>
-          $ npm i -g @metlo/cli
-        </Code>
-        <Box w={"full"}>
-          <Heading size={"sm"} paddingBlock={2}>
-            5. Set up Traffic Mirroring
-          </Heading>
-          To set up traffic mirroring run the following:
+          </Text>
+          <Text>
+            Currently, we require these permissions for the service account:
+          </Text>
+          <Text>&nbsp;-&nbsp;Compute Admin</Text>
+          <Text>&nbsp;-&nbsp;Compute packet mirroring admin</Text>
+          <Text>&nbsp;-&nbsp;Compute packet mirroring user</Text>
+          <Text>&nbsp;-&nbsp;IAP-secured Tunnel User</Text>
+        </ListNumber>
+        <ListNumber num={4} title="Install Metlo's CLI Tool">
+          <Text>You can install metlo from npm by running the following:</Text>
+          <Code w={"full"} p={2}>
+            $ npm i -g @metlo/cli
+          </Code>
+        </ListNumber>
+        <ListNumber num={5} title="Set up Traffic Mirroring">
+          <Text>To set up traffic mirroring run the following:</Text>
           <Code w={"full"} p={2}>
             <VStack>
               <Box w={"full"}>$ metlo traffic-mirror gcp new</Box>
@@ -115,7 +89,7 @@ const GCPDocs = () => {
               <Box w={"full"}>✔ Started packet mirroring</Box>
             </VStack>
           </Code>
-        </Box>
+        </ListNumber>
       </VStack>
     </>
   )
