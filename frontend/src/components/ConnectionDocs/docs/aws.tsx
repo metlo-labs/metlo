@@ -17,7 +17,7 @@ const AWSDocs = () => {
   return (
     <>
       <VStack spacing={6} w="full">
-        <ListNumber num={1} title="Deploy a Metlo Traffic Mirroring Instacne">
+        <ListNumber num={1} title="Deploy a Metlo Traffic Mirroring Instance">
           <Text>
             You can use one of our Cloud Formation stacks to deploy in the
             region you would like to mirror.
