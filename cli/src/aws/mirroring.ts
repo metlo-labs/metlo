@@ -29,7 +29,11 @@ export async function create_mirror_target(
     TagSpecifications: [
       {
         ResourceType: "traffic-mirror-target",
-        Tags: [{ Key: "Name", Value: `METLO-TRAFFIC-TARGET-${unique_id}` }],
+        Tags: [
+          { Key: "name", Value: `METLO-TRAFFIC-TARGET-${unique_id}` },
+          { Key: "metlo-mirror-uuid", Value: unique_id },
+          { Key: "service-name", Value: "metlo" }
+        ],
       },
     ],
   } as CreateTrafficMirrorTargetCommandInput)
@@ -57,7 +61,11 @@ export async function create_mirror_filter(
     TagSpecifications: [
       {
         ResourceType: "traffic-mirror-filter",
-        Tags: [{ Key: "Name", Value: `METLO-MIRROR-FILTER-${unique_id}` }],
+        Tags: [
+          { Key: "Name", Value: `METLO-MIRROR-FILTER-${unique_id}` },
+          { Key: "metlo-mirror-uuid", Value: unique_id },
+          { Key: "service-name", Value: "metlo" }
+        ],
       },
     ],
   } as CreateTrafficMirrorFilterCommandInput)
@@ -117,7 +125,11 @@ export async function create_mirror_session(
     TagSpecifications: [
       {
         ResourceType: "traffic-mirror-session",
-        Tags: [{ Key: "Name", Value: `METLO-MIRROR-SESSION-${unique_id}` }],
+        Tags: [
+          { Key: "Name", Value: `METLO-MIRROR-SESSION-${unique_id}` },
+          { Key: "metlo-mirror-uuid", Value: unique_id },
+          { Key: "service-name", Value: "metlo" }
+        ],
       },
     ],
   } as CreateTrafficMirrorSessionCommandInput)

@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid"
+import chalk from "chalk"
 import { prompt } from "enquirer"
 import {
-  awsKeySetup,
   awsMirrorFilterCreation,
   awsMirrorSessionCreation,
   awsMirrorTargetCreation,
@@ -9,55 +9,13 @@ import {
   getNetworkIdForInstance,
 } from "./setupUtils"
 import { AWS_SOURCE_TYPE, Protocols } from "./types"
-import { AWS_REGIONS } from "./constants"
-
-const getAWSKeys = async (_region: string) => {
-  try {
-    const awsKeyResp = await prompt([
-      {
-        type: "input",
-        name: "accessID",
-        message: "Enter your AWS Access Key ID",
-      },
-      {
-        type: "password",
-        name: "key",
-        message: "Enter your AWS Secret Access Key",
-      },
-    ])
-    const accessID = (awsKeyResp["accessID"] as string).trim()
-    const secretAccessKey = (awsKeyResp["key"] as string).trim()
-    console.log("Verifying Keys...")
-    await awsKeySetup(accessID, secretAccessKey, _region)
-    console.log("Success!")
-    return {
-      accessID,
-      secretAccessKey,
-    }
-  } catch (e) {
-    console.error(e)
-    return getAWSKeys(_region)
-  }
-}
+import { getRegion } from "./cliUtils"
+import { getMetloMirrorTargets } from "./sessionUtils"
 
 export const awsTrafficMirrorSetup = async () => {
   const id = uuidv4()
   try {
-    const regionResp = await prompt([
-      {
-        type: "select",
-        name: "_region",
-        message: "Select your AWS region",
-        initial: 1,
-        choices: AWS_REGIONS.map(e => ({
-          name: e,
-        })),
-      },
-    ])
-    const _region = regionResp["_region"] as string
-
-    const { accessID, secretAccessKey } = await getAWSKeys(_region)
-
+    const _region = await getRegion()
     const mirrorSourceResp = await prompt([
       {
         type: "select",
@@ -80,8 +38,6 @@ export const awsTrafficMirrorSetup = async () => {
 
     console.log("Finding Source...")
     const { source_eni_id, region } = await awsSourceIdentification(
-      accessID,
-      secretAccessKey,
       sourceType,
       mirrorSourceId,
       _region,
@@ -99,23 +55,24 @@ export const awsTrafficMirrorSetup = async () => {
       mirrorDestinationResp["destinationEniId"] as string
     ).trim()
     const destinationNetworkEniID = await getNetworkIdForInstance(
-      accessID,
-      secretAccessKey,
       region,
       destinationEniId,
     )
 
     console.log("Creating Mirror Session...")
-    const { mirror_target_id } = await awsMirrorTargetCreation(
-      accessID,
-      secretAccessKey,
-      region,
-      destinationNetworkEniID,
-      id,
-    )
+    const targets = await getMetloMirrorTargets(region)
+    let mirror_target_id = targets.find(
+      e => e.NetworkInterfaceId == destinationNetworkEniID,
+    )?.TrafficMirrorTargetId
+    if (!mirror_target_id) {
+      const targetCreateResp = await awsMirrorTargetCreation(
+        region,
+        destinationNetworkEniID,
+        id,
+      )
+      mirror_target_id = targetCreateResp.mirror_target_id
+    }
     const { mirror_filter_id } = await awsMirrorFilterCreation(
-      accessID,
-      secretAccessKey,
       region,
       [
         {
@@ -138,15 +95,13 @@ export const awsTrafficMirrorSetup = async () => {
       id,
     )
     await awsMirrorSessionCreation(
-      accessID,
-      secretAccessKey,
       region,
       source_eni_id,
       mirror_filter_id,
       mirror_target_id,
       id,
     )
-    console.log("Success!")
+    console.log(chalk.green.bold(`\nSuccess!`))
   } catch (e) {
     console.error(e)
   }

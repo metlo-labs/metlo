@@ -2,6 +2,8 @@
 
 import { program } from "commander"
 import { awsTrafficMirrorSetup } from "./aws/setup"
+import { awsTrafficMirrorList } from "./aws/list"
+import { awsTrafficMirrorRemove } from "./aws/remove"
 import { gcpTrafficMirrorSetup } from "./gcp/setup"
 import init from "./init"
 import testAPI from "./testAPI"
@@ -23,7 +25,17 @@ program
 const trafficMirror = program
   .command("traffic-mirror")
   .description("Set up traffic mirroring for metlo")
-trafficMirror.command("aws").action(awsTrafficMirrorSetup)
-trafficMirror.command("gcp").action(gcpTrafficMirrorSetup)
+
+const trafficMirrorAws = trafficMirror
+  .command("aws")
+  .description("Set up traffic mirroring for AWS")
+trafficMirrorAws.command("new").action(awsTrafficMirrorSetup)
+trafficMirrorAws.command("list").action(awsTrafficMirrorList)
+trafficMirrorAws.command("remove").action(awsTrafficMirrorRemove)
+
+const trafficMirrorGcp = trafficMirror
+  .command("gcp")
+  .description("Set up traffic mirroring for GCP")
+trafficMirrorGcp.command("new").action(gcpTrafficMirrorSetup)
 
 program.parseAsync()
