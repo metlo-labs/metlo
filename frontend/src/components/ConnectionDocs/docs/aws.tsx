@@ -1,6 +1,5 @@
 import {
   Code,
-  Heading,
   Box,
   VStack,
   Text,
@@ -8,14 +7,13 @@ import {
   Button,
   HStack,
 } from "@chakra-ui/react"
+import { CgArrowRight } from "@react-icons/all-files/cg/CgArrowRight"
 import { ListNumber } from "components/utils/ListNumber"
-import { useRouter } from "next/router"
 import { useState } from "react"
 import { getAWSIngestorLaunchStackURL, INGESTOR_AWS_REGIONS } from "~/constants"
 
 const AWSDocs = () => {
   const [selectedRegion, setSelectedRegion] = useState("us-west-2")
-  const router = useRouter()
   return (
     <>
       <VStack spacing={6} w="full">
@@ -43,6 +41,7 @@ const AWSDocs = () => {
               as="a"
               colorScheme="blue"
               target="_blank"
+              rightIcon={<CgArrowRight />}
               href={getAWSIngestorLaunchStackURL(selectedRegion)}
             >
               Launch Stack
