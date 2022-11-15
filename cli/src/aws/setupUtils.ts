@@ -13,20 +13,12 @@ import {
   delete_mirror_filter,
 } from "./mirroring"
 import { match_av_to_region, verifyIdentity } from "./utils"
-import { EC2_CONN } from "./ec2Utils"
+import { EC2_CONN, getEC2Client } from "./ec2Utils"
 
 import { AWS_SOURCE_TYPE, TrafficFilterRuleSpecs } from "./types"
 
-export const awsKeySetup = async (
-  access_id: string,
-  secret_access_key: string,
-  region: string,
-) => {
+export const awsKeySetup = async (region: string) => {
   let client = new STSClient({
-    credentials: {
-      accessKeyId: access_id,
-      secretAccessKey: secret_access_key,
-    },
     region,
   })
   await verifyIdentity(client)
@@ -34,18 +26,10 @@ export const awsKeySetup = async (
 }
 
 export async function getNetworkIdForInstance(
-  access_id: string,
-  secret_access_key: string,
   region: string,
   instance_id: string,
 ) {
-  let client = new EC2Client({
-    credentials: {
-      secretAccessKey: secret_access_key,
-      accessKeyId: access_id,
-    },
-    region: region,
-  })
+  const client = getEC2Client(region)
   let command = new DescribeInstancesCommand({
     InstanceIds: [instance_id],
   } as DescribeInstancesCommandInput)
@@ -56,21 +40,12 @@ export async function getNetworkIdForInstance(
 }
 
 export const awsSourceIdentification = async (
-  access_id: string,
-  secret_access_key: string,
   source_type: AWS_SOURCE_TYPE,
   mirror_source_id: string,
   _region: string,
 ) => {
-  let client = new EC2Client({
-    credentials: {
-      secretAccessKey: secret_access_key,
-      accessKeyId: access_id,
-    },
-    region: region,
-  })
-
-  let ec2_conn = new EC2_CONN(access_id, secret_access_key, _region)
+  const client = getEC2Client(region)
+  let ec2_conn = new EC2_CONN(_region)
   let all_valid_types = await ec2_conn.get_valid_types(undefined, undefined)
 
   var region, source_eni_id, source_private_ip, instance_type
@@ -81,7 +56,7 @@ export const awsSourceIdentification = async (
     if (!all_valid_types.map(v => v.InstanceType).includes(instance_type)) {
       throw new Error(
         `AWS EC2 instance type ${instance_type} does not support mirroring traffic. ` +
-        `Supported instances listed at https://aws.amazon.com/about-aws/whats-new/2021/02/amazon-vpc-traffic-mirroring-supported-select-non-nitro-instance-types/`,
+          `Supported instances listed at https://aws.amazon.com/about-aws/whats-new/2021/02/amazon-vpc-traffic-mirroring-supported-select-non-nitro-instance-types/`,
       )
     }
     region = await match_av_to_region(
@@ -99,15 +74,18 @@ export const awsSourceIdentification = async (
         resp.NetworkInterfaces[0].Attachment.InstanceId,
       )
 
-      instance_type = instance_type_resp.Reservations[0].Instances[0].InstanceType
+      instance_type =
+        instance_type_resp.Reservations[0].Instances[0].InstanceType
       if (!all_valid_types.map(v => v.InstanceType).includes(instance_type)) {
         throw new Error(
           `AWS EC2 instance type ${instance_type} does not support mirroring traffic. ` +
-          `Supported instances listed at https://aws.amazon.com/about-aws/whats-new/2021/02/amazon-vpc-traffic-mirroring-supported-select-non-nitro-instance-types/`,
+            `Supported instances listed at https://aws.amazon.com/about-aws/whats-new/2021/02/amazon-vpc-traffic-mirroring-supported-select-non-nitro-instance-types/`,
         )
       }
     } else {
-      console.log("Couldn't locate an attached EC2 instance. Moving forward assuming valid instance")
+      console.log(
+        "Couldn't locate an attached EC2 instance. Moving forward assuming valid instance",
+      )
     }
 
     region = await match_av_to_region(
@@ -133,19 +111,11 @@ export const awsSourceIdentification = async (
 }
 
 export const awsMirrorTargetCreation = async (
-  access_id: string,
-  secret_access_key: string,
   region: string,
   destination_eni_id: string,
   id: string,
 ) => {
-  let client = new EC2Client({
-    credentials: {
-      secretAccessKey: secret_access_key,
-      accessKeyId: access_id,
-    },
-    region: region,
-  })
+  const client = getEC2Client(region)
   let resp = await create_mirror_target(client, destination_eni_id, id)
   client.destroy()
   return {
@@ -154,19 +124,11 @@ export const awsMirrorTargetCreation = async (
 }
 
 export const awsMirrorFilterCreation = async (
-  access_id: string,
-  secret_access_key: string,
   region: string,
   mirror_rules: Array<TrafficFilterRuleSpecs>,
   id: string,
 ) => {
-  let client = new EC2Client({
-    credentials: {
-      secretAccessKey: secret_access_key,
-      accessKeyId: access_id,
-    },
-    region: region,
-  })
+  const client = getEC2Client(region)
   let filter: CreateTrafficMirrorFilterCommandOutput
   filter = await create_mirror_filter(client, id)
   try {
@@ -191,21 +153,13 @@ export const awsMirrorFilterCreation = async (
 }
 
 export const awsMirrorSessionCreation = async (
-  access_id: string,
-  secret_access_key: string,
   region: string,
   source_eni_id: string,
   mirror_filter_id: string,
   mirror_target_id: string,
   id: string,
 ) => {
-  let client = new EC2Client({
-    credentials: {
-      secretAccessKey: secret_access_key,
-      accessKeyId: access_id,
-    },
-    region: region,
-  })
+  const client = getEC2Client(region)
   let resp = await create_mirror_session(
     client,
     id,

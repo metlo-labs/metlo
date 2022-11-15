@@ -12,14 +12,15 @@ import {
 import { SUPPORTED_AWS_INSTANCES } from "./constants"
 import { MachineSpecifications } from "./types"
 
+export const getEC2Client = (region?: string) => {
+  return new EC2Client({ region })
+}
+
 export class EC2_CONN {
-  private access_id: string
-  private secret_key: string
   private region?: string
   private conn: EC2Client
-  constructor(access_id: string, secret_key: string, region?: string) {
-    this.access_id = access_id
-    this.secret_key = secret_key
+
+  constructor(region?: string) {
     this.region = region
   }
 
@@ -27,13 +28,7 @@ export class EC2_CONN {
     if (this.conn) {
       return this.conn
     }
-    this.conn = new EC2Client({
-      credentials: {
-        accessKeyId: this.access_id,
-        secretAccessKey: this.secret_key,
-      },
-      region: this.region,
-    })
+    this.conn = getEC2Client(this.region)
     return this.conn
   }
 
