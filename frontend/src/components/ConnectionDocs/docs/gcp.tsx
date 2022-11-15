@@ -82,7 +82,7 @@ const GCPDocs = () => {
           To set up traffic mirroring run the following:
           <Code w={"full"} p={2}>
             <VStack>
-              <Box w={"full"}>$ metlo traffic-mirror gcp</Box>
+              <Box w={"full"}>$ metlo traffic-mirror gcp new</Box>
               <Box w={"full"}>✔ GCP Project Name · metlo-security</Box>
               <Box w={"full"}>✔ GCP Network to mirror · default</Box>
               <Box w={"full"}>✔ Select your GCP zone · us-central1-a</Box>

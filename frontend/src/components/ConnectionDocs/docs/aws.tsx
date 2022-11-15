@@ -130,17 +130,8 @@ const AWSDocs = () => {
           To set up traffic mirroring run the following:
           <Code w={"full"} p={2}>
             <VStack>
-              <Box w={"full"}>$ metlo traffic-mirror aws</Box>
+              <Box w={"full"}>$ metlo traffic-mirror aws new</Box>
               <Box w={"full"}>✔ Select your AWS region · us-west-2 ✔</Box>
-              <Box w={"full"}>
-                Enter your AWS Access Key ID · {"<YOUR_AWS_ACCESS_KEY_ID>"}
-              </Box>
-              <Box w={"full"}>
-                ✔ Enter your AWS Secret Access Key ·
-                {" <YOUR_AWS_SECRET_ACCESS_KEY>"}
-              </Box>
-              <Box w={"full"}>Verifying Keys... </Box>
-              <Box w={"full"}>Success!</Box>
               <Box w={"full"}>
                 ✔ What type of source do you want to mirror? · instance
               </Box>
