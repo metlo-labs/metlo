@@ -1,4 +1,4 @@
-import React, {  useState } from "react"
+import React, { useState } from "react"
 import {
   Box,
   VStack,
@@ -126,7 +126,7 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
           </TabList>
 
           <TabPanels paddingInline={0}>
-            <TabPanel paddingInline={0}>
+            <TabPanel>
               <AWSdocs />
             </TabPanel>
             <TabPanel>

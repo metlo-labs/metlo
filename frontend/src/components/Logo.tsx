@@ -30,7 +30,12 @@ export const Logo: React.FC<LogoProps> = React.memo(
 export const SmLogo = React.memo((props: BoxProps) => {
   return (
     <Box {...props}>
-      <Image alt="logo-image" height="30" width="30" src="/static-images/metlo_logo.svg" />
+      <Image
+        alt="logo-image"
+        height="30"
+        width="30"
+        src="/static-images/metlo_logo.svg"
+      />
     </Box>
   )
 })
