@@ -1,11 +1,12 @@
 import AsyncRetry from "async-retry"
-import { v4 as uuidv4 } from "uuid"
+import { v4 as uuidv4, validate } from "uuid"
 import fs from "fs"
 import { prompt } from "enquirer"
 import { GCP_REGIONS_SUPPORTED, wait_for_global_operation, wait_for_regional_operation, wait_for_zonal_operation } from "./gcpUtils"
 import { GCP_CONN } from "./gcp_apis"
 import chalk from "chalk"
 import ora from "ora";
+import { google } from "@google-cloud/compute/build/protos/protos"
 
 const spinner = ora()
 
@@ -96,10 +97,11 @@ const sourceSelection = async (conn: GCP_CONN) => {
                 message: "Enter the mirror source subnet name",
             }
         ])
+        spinner.start("Verifying mirror source details")
         let resp = await conn.get_subnet_information({
             subnetName: subnetNameResp['_name'].trim(),
         })
-        spinner.start("Verifying mirror source details")
+
         source_private_ip = resp[0].ipCidrRange
         source_subnetwork_url = resp[0].selfLink
         source_instance_url = resp[0].selfLink
@@ -116,7 +118,7 @@ const sourceSelection = async (conn: GCP_CONN) => {
         let tagName = tagNameResp["_name"].trim()
         if (!resp[0].find(v => v.tags.items.includes(tagName))) {
             throw new Error(
-                `No instances with tag ${tagName} found in specifiec zone`,
+                `No instances with tag ${tagName} found in specific zone`,
             )
         }
         sourceTag: tagNameResp["_name"]
@@ -265,7 +267,6 @@ const create_mig = async (
     network_url: string,
     destination_subnetwork_url: string,
     source_image: string,
-    source_ip: string,
     id: string,
 ) => {
 
@@ -328,13 +329,9 @@ const create_mig = async (
         imageTemplateName: imageTemplateName,
         startupScript: `#!/bin/bash
         echo "METLO_ADDR=${machineInfoResp['_url']}" >> /opt/metlo/credentials
-        echo "METLO_KEY=${machineInfoResp['_apiKey']}" >>  /opt/metlo/credentials
-        echo "alert http ${source_ip} any -> any any (msg:\\"TEST\\"; flow:established,to_client; http.response_body; pcre:/./; sid:1; rev:1; threshold: type limit, track by_rule, seconds 1, count 30;)" >> /opt/metlo/local.rules
-        sudo mv /opt/metlo/local.rules /var/lib/suricata/rules/local.rules
+        echo "METLO_KEY=${machineInfoResp['_apiKey']}" >>  /opt/metlo/credentials        
         sudo systemctl enable metlo-ingestor.service
-        sudo systemctl start metlo-ingestor.service
-        sudo systemctl enable suricata.service
-        sudo systemctl start suricata.service`
+        sudo systemctl start metlo-ingestor.service`
     })
     let img_resp = await wait_for_global_operation(
         image_resp[0].latestResponse.name,
@@ -490,7 +487,77 @@ const packetMirroring = async (
 
 }
 
-const imageURL = "https://www.googleapis.com/compute/v1/projects/metlo-security/global/images/metlo-ingestor-v2"
+const updatePacketMirroring = async (
+    conn: GCP_CONN,
+    mirroring: google.cloud.compute.v1.IPacketMirroring[]
+) => {
+    const sourceTypeResp = await prompt([
+        {
+            type: "autocomplete",
+            name: "_packetMirrorName",
+            message: "Select Packet Mirroring instance",
+            initial: 0,
+            choices: mirroring.map((inst) => inst.name)
+        }, {
+            type: "select",
+            name: "_sourceType",
+            message: "Select your mirror source type",
+            initial: 0,
+            choices: ["INSTANCE", "SUBNET", "TAG"],
+        },
+    ])
+    let sourceType = sourceTypeResp["_sourceType"]
+    let packetMirrorName = sourceTypeResp["_packetMirrorName"]
+
+    if (sourceType === "INSTANCE") {
+        const instanceNameResp = await prompt([
+            {
+                type: "input",
+                name: "_name",
+                message: "Enter the mirror source instance name",
+            }
+        ])
+        spinner.start("Verifying mirror source details")
+        let [resp] = await conn.get_instance(instanceNameResp['_name'].trim())
+        await conn.update_packet_mirroring({ packetMirrorName, updateInstance: { url: resp.selfLink } })
+    } else if (sourceType === "SUBNET") {
+        const subnetNameResp = await prompt([
+            {
+                type: "input",
+                name: "_name",
+                message: "Enter the mirror source subnet name",
+            }
+        ])
+        spinner.start("Verifying mirror source details")
+        let [resp] = await conn.get_subnet_information({
+            subnetName: subnetNameResp['_name'].trim(),
+        })
+        await conn.update_packet_mirroring({ packetMirrorName, updateSubnet: { url: resp.selfLink } })
+    } else if (sourceType === "TAG") {
+        const tagNameResp = await prompt([
+            {
+                type: "input",
+                name: "_name",
+                message: "Enter the mirror source tag name",
+            }
+        ])
+        spinner.start("Verifying mirror source details")
+        let [resp] = await conn.list_instances()
+        let tagName = tagNameResp["_name"].trim()
+        if (!resp.find(v => v.tags.items.includes(tagName))) {
+            throw new Error(
+                `No instances with tag ${tagName} found in specific zone`,
+            )
+        }
+        await conn.update_packet_mirroring({ packetMirrorName, updateTag: tagName })
+    }
+    spinner.succeed("Updated packet mirroring")
+    spinner.stop()
+    spinner.clear()
+    return {}
+}
+
+const imageURL = "https://www.googleapis.com/compute/v1/projects/metlo-security/global/images/metlo-ingestor-v3"
 
 export const gcpTrafficMirrorSetup = async () => {
     const id = uuidv4()
@@ -504,33 +571,40 @@ export const gcpTrafficMirrorSetup = async () => {
         data["zone"] = zone
         data["project"] = project
 
-        const { sourceType, sourceInstanceURL, sourcePrivateIP, sourceSubnetworkURL, sourceTag } = await sourceSelection(conn)
-        data["sourceType"] = sourceType
-        data["sourceInstanceURL"] = sourceInstanceURL
-        data["sourcePrivateIP"] = sourcePrivateIP
-        data["sourceSubnetworkURL"] = sourceSubnetworkURL
-        data["sourceTag"] = sourceTag
-        const { ipRange, destinationSubnetworkUrl } = await getDestinationSubnet(conn, networkUrl, id)
-        data["ipRange"] = ipRange
-        data["destinationSubnetworkUrl"] = destinationSubnetworkUrl
-        const { firewallRuleUrl } = await createFirewallRule(conn, networkUrl, ipRange, id)
-        data["firewallRuleUrl"] = firewallRuleUrl
-        const { routerURL } = await createCloudRouter(conn, networkUrl, destinationSubnetworkUrl, id)
-        data["routerURL"] = routerURL
-        const { imageTemplateUrl, instanceGroupName, instanceUrl } = await create_mig(conn, networkUrl, destinationSubnetworkUrl, imageURL, sourcePrivateIP, id)
-        data['mageTemplateUrl'] = imageTemplateUrl
-        data['instanceGroupName'] = instanceGroupName
-        data['instanceUrl'] = instanceUrl
-        const managedGroupUrl = `https://www.googleapis.com/compute/v1/projects/${project}/zones/${zone}/instanceGroups/${instanceGroupName}`
-        data['managedGroupUrl'] = managedGroupUrl
-        const { healthCheckUrl } = await createHealthCheck(conn, id)
-        data['healthCheckUrl'] = healthCheckUrl
-        const { backendServiceUrl } = await createBackendService(conn, networkUrl, managedGroupUrl, healthCheckUrl, id)
-        data['backendServiceUrl'] = backendServiceUrl
-        const { forwardingRuleUrl } = await createLoadBalancer(conn, networkUrl, destinationSubnetworkUrl, backendServiceUrl, id)
-        data['forwardingRuleUrl'] = forwardingRuleUrl
-        const { packetMirrorUrl } = await packetMirroring(conn, networkUrl, forwardingRuleUrl, sourceInstanceURL, sourceTag, sourceType, id)
-        data["packetMirrorUrl"] = packetMirrorUrl
+        const [packetMirrors] = await conn.list_packet_mirroring()
+
+        if (packetMirrors.length > 0) {
+            console.log(chalk.blue("Updating the existing Packet Mirroring instance instead of creating new."))
+            await updatePacketMirroring(conn, packetMirrors)
+        } else {
+            const { sourceType, sourceInstanceURL, sourcePrivateIP, sourceSubnetworkURL, sourceTag } = await sourceSelection(conn)
+            data["sourceType"] = sourceType
+            data["sourceInstanceURL"] = sourceInstanceURL
+            data["sourcePrivateIP"] = sourcePrivateIP
+            data["sourceSubnetworkURL"] = sourceSubnetworkURL
+            data["sourceTag"] = sourceTag
+            const { ipRange, destinationSubnetworkUrl } = await getDestinationSubnet(conn, networkUrl, id)
+            data["ipRange"] = ipRange
+            data["destinationSubnetworkUrl"] = destinationSubnetworkUrl
+            const { firewallRuleUrl } = await createFirewallRule(conn, networkUrl, ipRange, id)
+            data["firewallRuleUrl"] = firewallRuleUrl
+            const { routerURL } = await createCloudRouter(conn, networkUrl, destinationSubnetworkUrl, id)
+            data["routerURL"] = routerURL
+            const { imageTemplateUrl, instanceGroupName, instanceUrl } = await create_mig(conn, networkUrl, destinationSubnetworkUrl, imageURL, id)
+            data['mageTemplateUrl'] = imageTemplateUrl
+            data['instanceGroupName'] = instanceGroupName
+            data['instanceUrl'] = instanceUrl
+            const managedGroupUrl = `https://www.googleapis.com/compute/v1/projects/${project}/zones/${zone}/instanceGroups/${instanceGroupName}`
+            data['managedGroupUrl'] = managedGroupUrl
+            const { healthCheckUrl } = await createHealthCheck(conn, id)
+            data['healthCheckUrl'] = healthCheckUrl
+            const { backendServiceUrl } = await createBackendService(conn, networkUrl, managedGroupUrl, healthCheckUrl, id)
+            data['backendServiceUrl'] = backendServiceUrl
+            const { forwardingRuleUrl } = await createLoadBalancer(conn, networkUrl, destinationSubnetworkUrl, backendServiceUrl, id)
+            data['forwardingRuleUrl'] = forwardingRuleUrl
+            const { packetMirrorUrl } = await packetMirroring(conn, networkUrl, forwardingRuleUrl, sourceInstanceURL, sourceTag, sourceType, id)
+            data["packetMirrorUrl"] = packetMirrorUrl
+        }
     } catch (e) {
         spinner.fail()
         console.log(e)

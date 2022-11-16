@@ -7,6 +7,8 @@ import { awsTrafficMirrorRemove } from "./aws/remove"
 import { gcpTrafficMirrorSetup } from "./gcp/setup"
 import init from "./init"
 import testAPI from "./testAPI"
+import { gcpTrafficMirrorList } from "./gcp/list"
+import { gcpTrafficMirrorDelete } from "./gcp/delete"
 
 program.name("metlo").description("Metlo's command line tool.").version("0.0.0")
 
@@ -37,5 +39,7 @@ const trafficMirrorGcp = trafficMirror
   .command("gcp")
   .description("Set up traffic mirroring for GCP")
 trafficMirrorGcp.command("new").action(gcpTrafficMirrorSetup)
+trafficMirrorGcp.command("list").action(gcpTrafficMirrorList)
+trafficMirrorGcp.command("remove").action(gcpTrafficMirrorDelete)
 
 program.parseAsync()
