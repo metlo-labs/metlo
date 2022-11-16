@@ -95,7 +95,6 @@ export const gcpTrafficMirrorList = async () => {
     const data = {}
     try {
         const { project, zone, network, key } = await verifyAccountDetails()
-        console.log("Validated account details succesfully")
         const networkUrl = `https://www.googleapis.com/compute/v1/projects/${project}/global/networks/${network}`
         const conn = new GCP_CONN(key, zone, project);        
         data["zone"] = zone
