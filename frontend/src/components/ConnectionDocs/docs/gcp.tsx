@@ -4,7 +4,7 @@ const GCPDocs = () => {
   return (
     <>
       <VStack w={"full"} spacing={6}>
-      <ListNumber num={1} title="Install Metlo's CLI Tool">
+        <ListNumber num={1} title="Install Metlo's CLI Tool">
           <Text>You can install metlo from npm by running the following:</Text>
           <Code w={"full"} p={2}>
             $ npm i -g @metlo/cli
