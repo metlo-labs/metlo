@@ -18,8 +18,8 @@ import {
 } from "~/constants"
 
 const AWSDocs = () => {
-  const [selectedRegion, setSelectedRegion] = useState("us-west-2")
-  const [deployRegion, setDeployRegion] = useState("us-west-2")
+  const [selectedRegion, setSelectedRegion] = useState("")
+  const [deployRegion, setDeployRegion] = useState("")
   const [manual, setManual] = useState(false)
 
   return (
@@ -65,7 +65,8 @@ const AWSDocs = () => {
                 Deploy Metlo:
                 <HStack>
                   <Select
-                    defaultValue={"us-west-2"}
+                    placeholder="Select region"
+                    defaultValue={deployRegion}
                     w="200px"
                     onChange={e => setDeployRegion(e.target.value)}
                   >
@@ -80,7 +81,9 @@ const AWSDocs = () => {
                     colorScheme="blue"
                     target="_blank"
                     rightIcon={<CgArrowRight />}
+                    pointerEvents={deployRegion === "" ? "none" : "initial"}
                     href={getAWSDeployAmiURL(deployRegion)}
+                    isDisabled={deployRegion === ""}
                   >
                     Deploy
                   </Button>
@@ -170,7 +173,8 @@ const AWSDocs = () => {
                 </Text>
                 <HStack>
                   <Select
-                    defaultValue={"us-west-2"}
+                    placeholder="Select region"
+                    defaultValue={selectedRegion}
                     w="200px"
                     onChange={e => setSelectedRegion(e.target.value)}
                   >
@@ -185,7 +189,9 @@ const AWSDocs = () => {
                     colorScheme="blue"
                     target="_blank"
                     rightIcon={<CgArrowRight />}
+                    pointerEvents={selectedRegion === "" ? "none" : "initial"}
                     href={getAWSIngestorLaunchStackURL(selectedRegion)}
+                    isDisabled={selectedRegion === ""}
                   >
                     Launch Stack
                   </Button>
