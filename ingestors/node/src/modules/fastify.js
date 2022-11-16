@@ -23,7 +23,7 @@ function initialize({ key, host, pool }) {
                     request: {
                         url: {
                             host: request.raw.socket.remoteAddress,
-                            path: request.routerPath,
+                            path: request.url.split("?")[0],
                             parameters: Object.entries(request.query).map(([k, v]) => ({ name: k, value: v })),
                         },
                         headers: Object.entries(request.headers).map(([k, v]) => ({ name: k, value: v })),
