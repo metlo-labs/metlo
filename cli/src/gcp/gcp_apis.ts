@@ -211,7 +211,8 @@ export class GCP_CONN {
         },
         allowed: [
           {
-            IPProtocol: "all",
+            IPProtocol: "UDP",
+            ports: ["4789"]
           },
         ],
       },

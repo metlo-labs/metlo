@@ -121,7 +121,7 @@ const sourceSelection = async (conn: GCP_CONN) => {
                 `No instances with tag ${tagName} found in specific zone`,
             )
         }
-        sourceTag: tagNameResp["_name"]
+        sourceTag = tagNameResp["_name"]
         source_private_ip = "0.0.0.0/0" // Allow any since filtering is done on tags by gcp
         source_subnetwork_url = ""
         source_instance_url = ""
@@ -473,7 +473,7 @@ const packetMirroring = async (
         let resp = await conn.start_packet_mirroring({
             networkURL: network_url,
             name: packet_mirror_name,
-            mirroredTagURLs: mirror_source_value,
+            mirroredTagURLs: [mirror_source_value],
             loadBalancerURL: forwarding_rule_url,
         })
         packet_mirror_url = (
@@ -557,14 +557,13 @@ const updatePacketMirroring = async (
     return {}
 }
 
-const imageURL = "https://www.googleapis.com/compute/v1/projects/metlo-security/global/images/metlo-ingestor-v3"
+const imageURL = "https://www.googleapis.com/compute/v1/projects/metlo-security/global/images/metlo-ingestor-v5"
 
 export const gcpTrafficMirrorSetup = async () => {
     const id = uuidv4()
     const data = {}
     try {
         const { project, zone, network, key } = await verifyAccountDetails()
-        console.log("Validated account details succesfully")
         const networkUrl = `https://www.googleapis.com/compute/v1/projects/${project}/global/networks/${network}`
         const conn = new GCP_CONN(key, zone, project);
         data["key"] = key
