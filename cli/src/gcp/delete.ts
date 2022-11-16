@@ -70,6 +70,38 @@ const deletePacketMirroringResources = async (
     if (mirroring.length == 0) {
         throw new Error("No existing packet mirroring instances found")
     }
+
+    const instanceChoices = mirroring.flatMap(
+        (mirror) => mirror.mirroredResources.instances.map(
+            inst => {
+                const splits = inst.url.split("/");
+                return splits[splits.length - 1]
+            }
+        )
+    )
+    const subnetChoices = mirroring.flatMap(
+        (mirror) => mirror.mirroredResources.subnetworks.map(
+            inst => {
+                const splits = inst.url.split("/");
+                return splits[splits.length - 1]
+            }
+        )
+    )
+    const tagChoices = mirroring.flatMap(
+        (mirror) => mirror.mirroredResources.tags
+    )
+
+    const availableChoices = []
+    if (instanceChoices.length > 0) {
+        availableChoices.push("INSTANCE")
+    }
+    if (subnetChoices.length > 0) {
+        availableChoices.push("SUBNET")
+    }
+    if (tagChoices.length > 0) {
+        availableChoices.push("TAG")
+    }
+
     const sourceTypeResp = await prompt([
         {
             type: "autocomplete",
@@ -82,7 +114,7 @@ const deletePacketMirroringResources = async (
             name: "_sourceType",
             message: "Select your mirror source type",
             initial: 0,
-            choices: ["INSTANCE", "SUBNET", "TAG"],
+            choices: availableChoices,
         },
     ])
     let sourceType = sourceTypeResp["_sourceType"]
@@ -94,14 +126,8 @@ const deletePacketMirroringResources = async (
                 type: "autocomplete",
                 name: "_name",
                 message: "Enter the mirror source instance name to remove",
-                choices: mirroring.flatMap(
-                    (mirror) => mirror.mirroredResources.instances.map(
-                        inst => {
-                            const splits = inst.url.split("/");
-                            return splits[splits.length - 1]
-                        }
-                    )
-                )
+                choices: instanceChoices
+
             }
         ])
         spinner.start("Verifying mirror source details")
@@ -111,8 +137,6 @@ const deletePacketMirroringResources = async (
         resources.instances = resources.instances.filter((inst) => !inst.url.includes(instanceName))
         resources.instances = resources.instances.length > 0 ? resources.instances : null
 
-        console.log(resources.instances)
-
         let resp = await conn.remove_packet_mirroring_resources({ packetMirrorName, newMirroredResources: resources })
     } else if (sourceType === "SUBNET") {
         const subnetNameResp = await prompt([
@@ -120,14 +144,7 @@ const deletePacketMirroringResources = async (
                 type: "autocomplete",
                 name: "_name",
                 message: "Enter the mirror source subnet name to remove",
-                choices: mirroring.flatMap(
-                    (mirror) => mirror.mirroredResources.subnetworks.map(
-                        inst => {
-                            const splits = inst.url.split("/");
-                            return splits[splits.length - 1]
-                        }
-                    )
-                )
+                choices: subnetChoices
             }
         ])
         spinner.start("Verifying mirror source details")
@@ -137,8 +154,6 @@ const deletePacketMirroringResources = async (
         resources.subnetworks = resources.subnetworks.filter((inst) => !inst.url.includes(subnetName))
         resources.subnetworks = resources.subnetworks.length > 0 ? resources.subnetworks : null
 
-        console.log(resources.subnetworks)
-
         let resp = await conn.remove_packet_mirroring_resources({ packetMirrorName, newMirroredResources: resources })
     } else if (sourceType === "TAG") {
         const tagNameResp = await prompt([
@@ -146,9 +161,7 @@ const deletePacketMirroringResources = async (
                 type: "autocomplete",
                 name: "_name",
                 message: "Enter the mirror source tag name to remove",
-                choices: mirroring.flatMap(
-                    (mirror) => mirror.mirroredResources.tags
-                )
+                choices: tagChoices
             }
         ])
         spinner.start("Verifying mirror source details")
@@ -156,9 +169,6 @@ const deletePacketMirroringResources = async (
 
         const resources = mirroring.find((mirror) => mirror.name === packetMirrorName).mirroredResources
         resources.tags = resources.tags.filter((inst) => !inst.includes(tagName))
-        if (resources.tags.length == 0) {
-            delete resources.tags
-        }
 
         let resp = await conn.remove_packet_mirroring_resources({ packetMirrorName, newMirroredResources: resources })
     }
@@ -175,8 +185,7 @@ export const gcpTrafficMirrorDelete = async () => {
         const { project, zone, network, key } = await verifyAccountDetails()
         console.log("Validated account details succesfully")
         const networkUrl = `https://www.googleapis.com/compute/v1/projects/${project}/global/networks/${network}`
-        const conn = new GCP_CONN(key, zone, project);
-        data["key"] = key
+        const conn = new GCP_CONN(key, zone, project);        
         data["zone"] = zone
         data["project"] = project
 

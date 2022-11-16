@@ -565,22 +565,34 @@ export class GCP_CONN {
   public async remove_packet_mirroring_resources({ packetMirrorName, newMirroredResources }: deletePacketMirroringResourcesInterface) {
     let conn = new PacketMirroringsClient({ credentials: this.keyfile })
     let [mirrorInfo, ,] = await this.get_packet_mirroring({ packetMirrorName })
-    let updatedMirrorInfo: google.cloud.compute.v1.IPacketMirroring = {
-      ...mirrorInfo, mirroredResources: newMirroredResources
-    }
 
     const [delOpRegional, ,] = await conn.delete({ project: this.project, region: this.region, packetMirroring: packetMirrorName })
     await wait_for_regional_operation(delOpRegional.latestResponse.name, this)
-
-    const [createOpRegional, ,] = await this.start_packet_mirroring({
-      name: mirrorInfo.name,
-      networkURL: mirrorInfo.network.url,
-      mirroredInstanceURLs: newMirroredResources.instances.map((inst) => inst.url),
-      mirroredSubnetURLS: newMirroredResources.subnetworks.map((inst) => inst.url),
-      mirroredTagURLs: newMirroredResources.tags,
-      loadBalancerURL: mirrorInfo.collectorIlb.url
-    })
-    await wait_for_regional_operation(createOpRegional.latestResponse.name, this)
+    if (
+      newMirroredResources.instances.length == 0 &&
+      newMirroredResources.subnetworks.length == 0 &&
+      newMirroredResources.tags.length == 0
+    ) {
+      const [createOpRegional, ,] = await this.start_packet_mirroring({
+        name: mirrorInfo.name,
+        networkURL: mirrorInfo.network.url,
+        mirroredInstanceURLs: [],
+        mirroredSubnetURLS: [],
+        mirroredTagURLs: ["metlo-provided-placeholder-network-tag"],
+        loadBalancerURL: mirrorInfo.collectorIlb.url
+      })
+      await wait_for_regional_operation(createOpRegional.latestResponse.name, this)
+    } else {
+      const [createOpRegional, ,] = await this.start_packet_mirroring({
+        name: mirrorInfo.name,
+        networkURL: mirrorInfo.network.url,
+        mirroredInstanceURLs: newMirroredResources.instances.map((inst) => inst.url),
+        mirroredSubnetURLS: newMirroredResources.subnetworks.map((inst) => inst.url),
+        mirroredTagURLs: newMirroredResources.tags,
+        loadBalancerURL: mirrorInfo.collectorIlb.url
+      })
+      await wait_for_regional_operation(createOpRegional.latestResponse.name, this)
+    }
 
     return
   }
