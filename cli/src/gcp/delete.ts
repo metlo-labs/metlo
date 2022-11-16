@@ -135,7 +135,6 @@ const deletePacketMirroringResources = async (
 
         const resources = mirroring.find((mirror) => mirror.name === packetMirrorName).mirroredResources
         resources.instances = resources.instances.filter((inst) => !inst.url.includes(instanceName))
-        resources.instances = resources.instances.length > 0 ? resources.instances : null
 
         let resp = await conn.remove_packet_mirroring_resources({ packetMirrorName, newMirroredResources: resources })
     } else if (sourceType === "SUBNET") {
@@ -152,7 +151,6 @@ const deletePacketMirroringResources = async (
 
         const resources = mirroring.find((mirror) => mirror.name === packetMirrorName).mirroredResources
         resources.subnetworks = resources.subnetworks.filter((inst) => !inst.url.includes(subnetName))
-        resources.subnetworks = resources.subnetworks.length > 0 ? resources.subnetworks : null
 
         let resp = await conn.remove_packet_mirroring_resources({ packetMirrorName, newMirroredResources: resources })
     } else if (sourceType === "TAG") {
