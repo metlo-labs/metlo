@@ -104,6 +104,7 @@ export const gcpTrafficMirrorList = async () => {
         const { } = await listPacketMirroring(conn, zone)
     } catch (e) {
         spinner.fail()
+        console.log(chalk.bgRedBright("Metlo packet mirroring list failed. This might help in debugging it."))
         console.log(e)
         console.log(data)
     }

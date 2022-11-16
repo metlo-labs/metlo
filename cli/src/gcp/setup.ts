@@ -589,7 +589,7 @@ export const gcpTrafficMirrorSetup = async () => {
             const { routerURL } = await createCloudRouter(conn, networkUrl, destinationSubnetworkUrl, id)
             data["routerURL"] = routerURL
             const { imageTemplateUrl, instanceGroupName, instanceUrl } = await create_mig(conn, networkUrl, destinationSubnetworkUrl, imageURL, id)
-            data['mageTemplateUrl'] = imageTemplateUrl
+            data['imageTemplateUrl'] = imageTemplateUrl
             data['instanceGroupName'] = instanceGroupName
             data['instanceUrl'] = instanceUrl
             const managedGroupUrl = `https://www.googleapis.com/compute/v1/projects/${project}/zones/${zone}/instanceGroups/${instanceGroupName}`
@@ -605,6 +605,7 @@ export const gcpTrafficMirrorSetup = async () => {
         }
     } catch (e) {
         spinner.fail()
+        console.log(chalk.bgRedBright("Metlo packet mirroring creation failed. This might help in debugging it."))
         console.log(e)
         console.log(data)
     }
