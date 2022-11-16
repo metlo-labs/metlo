@@ -19,6 +19,8 @@ import {
   ZoneOperationsClient,
   MachineTypesClient,
 } from "@google-cloud/compute"
+import { google } from "@google-cloud/compute/build/protos/protos"
+import { wait_for_regional_operation } from "./gcpUtils"
 
 const PREFIX_LENGTH = 24
 const METLO_DATA_COLLECTOR_TAG = "metlo-capture"
@@ -209,7 +211,8 @@ export class GCP_CONN {
         },
         allowed: [
           {
-            IPProtocol: "all",
+            IPProtocol: "UDP",
+            ports: ["4789"]
           },
         ],
       },
@@ -523,4 +526,87 @@ export class GCP_CONN {
       packetMirroring: packetMirroringURL,
     })
   }
+
+  public async list_packet_mirroring() {
+    let conn = new PacketMirroringsClient({ credentials: this.keyfile })
+    return conn.list({
+      project: this.project,
+      region: this.region
+    })
+  }
+
+  public async get_packet_mirroring({ packetMirrorName }) {
+    let conn = new PacketMirroringsClient({ credentials: this.keyfile })
+    return conn.get({
+      project: this.project,
+      region: this.region,
+      packetMirroring: packetMirrorName
+    })
+  }
+
+  public async update_packet_mirroring({ packetMirrorName, updateInstance, updateTag, updateSubnet }: updatePacketMirroringInterface) {
+    let conn = new PacketMirroringsClient({ credentials: this.keyfile })
+    let [mirrorInfo, ,] = await this.get_packet_mirroring({ packetMirrorName })
+    let updatedMirrorInfo: google.cloud.compute.v1.IPacketMirroring = {
+      ...mirrorInfo, mirroredResources: {
+        tags: updateTag ? [updateTag, ...mirrorInfo.mirroredResources.tags] : mirrorInfo.mirroredResources.tags,
+        instances: updateInstance ? [updateInstance, ...mirrorInfo.mirroredResources.instances] : mirrorInfo.mirroredResources.instances,
+        subnetworks: updateSubnet ? [updateSubnet, ...mirrorInfo.mirroredResources.subnetworks] : mirrorInfo.mirroredResources.subnetworks,
+      }
+    }
+    return conn.patch({
+      project: this.project,
+      region: this.region,
+      packetMirroring: packetMirrorName,
+      packetMirroringResource: updatedMirrorInfo
+    })
+  }
+
+  public async remove_packet_mirroring_resources({ packetMirrorName, newMirroredResources }: deletePacketMirroringResourcesInterface) {
+    let conn = new PacketMirroringsClient({ credentials: this.keyfile })
+    let [mirrorInfo, ,] = await this.get_packet_mirroring({ packetMirrorName })
+
+    const [delOpRegional, ,] = await conn.delete({ project: this.project, region: this.region, packetMirroring: packetMirrorName })
+    await wait_for_regional_operation(delOpRegional.latestResponse.name, this)
+    if (
+      newMirroredResources.instances.length == 0 &&
+      newMirroredResources.subnetworks.length == 0 &&
+      newMirroredResources.tags.length == 0
+    ) {
+      const [createOpRegional, ,] = await this.start_packet_mirroring({
+        name: mirrorInfo.name,
+        networkURL: mirrorInfo.network.url,
+        mirroredInstanceURLs: [],
+        mirroredSubnetURLS: [],
+        mirroredTagURLs: ["metlo-provided-placeholder-network-tag"],
+        loadBalancerURL: mirrorInfo.collectorIlb.url
+      })
+      await wait_for_regional_operation(createOpRegional.latestResponse.name, this)
+    } else {
+      const [createOpRegional, ,] = await this.start_packet_mirroring({
+        name: mirrorInfo.name,
+        networkURL: mirrorInfo.network.url,
+        mirroredInstanceURLs: newMirroredResources.instances.map((inst) => inst.url),
+        mirroredSubnetURLS: newMirroredResources.subnetworks.map((inst) => inst.url),
+        mirroredTagURLs: newMirroredResources.tags,
+        loadBalancerURL: mirrorInfo.collectorIlb.url
+      })
+      await wait_for_regional_operation(createOpRegional.latestResponse.name, this)
+    }
+
+    return
+  }
+
+}
+
+interface updatePacketMirroringInterface {
+  packetMirrorName: string;
+  updateTag?: string;
+  updateInstance?: google.cloud.compute.v1.IPacketMirroringMirroredResourceInfoInstanceInfo;
+  updateSubnet?: google.cloud.compute.v1.IPacketMirroringMirroredResourceInfoSubnetInfo;
+}
+
+interface deletePacketMirroringResourcesInterface {
+  packetMirrorName: string
+  newMirroredResources: google.cloud.compute.v1.IPacketMirroringMirroredResourceInfo
 }
