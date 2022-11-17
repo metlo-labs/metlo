@@ -101,7 +101,9 @@ export const getAWSIngestorLaunchStackURL = (
   region: string,
   metloAddress: string,
 ) =>
-  `https://${region}.console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review?templateURL=${INGESTOR_AWS_TEMPLATE}&stackName=${INGESTOR_STACK_NAME}&param_metloAddress=${metloAddress}`
+  `https://${region}.console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review?templateURL=${INGESTOR_AWS_TEMPLATE}&stackName=${INGESTOR_STACK_NAME}${
+    metloAddress && `&param_metloAddress=${metloAddress}`
+  }`
 
 export const getAWSDeployAmiURL = (region: string) =>
   `https://backend.metlo.com/traffic-mirror/aws?region=${region}`

@@ -17,16 +17,20 @@ import {
   getAWSDeployAmiURL,
 } from "~/constants"
 
+const LOCAL_DOMAINS = ["localhost", "127.0.0.1", "", "::1"]
+
 const AWSDocs = () => {
   const [selectedRegion, setSelectedRegion] = useState("")
   const [deployRegion, setDeployRegion] = useState("")
   const [manual, setManual] = useState(false)
-  const [metloAddress, setMetloAddress] = useState("")
+  const [metloAddress, setMetloAddress] = useState(null)
 
   useEffect(() => {
-    setMetloAddress(
-      `${window.location.protocol}//${window.location.hostname}:8081`,
-    )
+    if (!LOCAL_DOMAINS.includes(window.location.hostname)) {
+      setMetloAddress(
+        `${window.location.protocol}//${window.location.hostname}:8081`,
+      )
+    }
   }, [])
 
   return (
