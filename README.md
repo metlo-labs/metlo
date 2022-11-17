@@ -79,8 +79,9 @@
   ```
   #### Once you've launched your instance run the following in the instance to start Metlo:
   ```bash
-  $ sudo metlo update
-  $ sudo metlo start
+  $ sudo metlo-deploy init-env
+  $ sudo metlo-deploy update
+  $ sudo metlo-deploy start
   ```
 
   #### Then you can tunnel locally to access the UI
