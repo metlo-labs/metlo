@@ -43,10 +43,10 @@ const GCPDocs = () => {
               <Box w={"full"}>✔ Obtained router details</Box>
               <Box w={"full"}>✔ Mirror Instance Type · e2-standard-2</Box>
               <Box w={"full"}>
-                ✔ Metlo URL · {"<"}METLO_URL_HERE{">"}
+                ✔ Metlo URL · http://{"<"}YOUR_METLO_HOST{">"}:8081
               </Box>
               <Box w={"full"}>
-                ✔ Metlo API Key · {"<"}METLO_API_KEY_HERE{">"}
+                ✔ Metlo API Key · {"<"}YOUR_METLO_API_KEY{">"}
               </Box>
               <Box w={"full"}>✔ Created MIG for metlo</Box>
               <Box w={"full"}>✔ Created health check</Box>

@@ -51,11 +51,11 @@ const PythonDocs = () => {
                     <Box w={"full"}>METLO_CONFIG = {"{"}</Box>
                     <Box w={"full"}>
                       &nbsp;&nbsp;&nbsp;&nbsp;&quot;API_KEY&quot;:
-                      {"<YOUR_METLO_API_KEY>"},
+                      {" <YOUR_METLO_API_KEY>"},
                     </Box>
                     <Box w={"full"}>
                       &nbsp;&nbsp;&nbsp;&nbsp;&quot;METLO_HOST&quot;:
-                      {"<YOUR_METLO_COLLECTOR_URL>"}
+                      {" \"http://<YOUR_METLO_HOST>:8081\""}
                     </Box>
                     <Box w={"full"}>{"}"}</Box>
                   </VStack>
@@ -77,7 +77,7 @@ const PythonDocs = () => {
                   <Box w={"full"}>from metlo.flask import MetloFlask</Box>
                   <Box w={"full"}>app = Flask(__name__)</Box>
                   <Box w={"full"}>
-                    MetloFlask(app, {'"<'}YOUR_METLO_COLLECTOR_URL{'>", "<'}
+                    MetloFlask(app, {'"http://<'}YOUR_METLO_HOST{'>:8081", "<'}
                     YOUR_METLO_API_KEY{'>"'})
                   </Box>
                 </VStack>
@@ -89,7 +89,7 @@ const PythonDocs = () => {
                 communicating with METLO.
               </Box>
               <Code p={2} w={"full"}>
-                MetloFlask(app, {'"<'}YOUR_METLO_COLLECTOR_URL{'>", "<'}
+                MetloFlask(app, {'"http://<'}YOUR_METLO_HOST{'>:8081", "<'}
                 YOUR_METLO_API_KEY{'>",'} workers={'"<'}WORKER-COUNT{'>"'})
               </Code>
             </VStack>
