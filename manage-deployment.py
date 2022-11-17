@@ -118,7 +118,7 @@ def update():
 
 def main():
     parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers(dest='command', required=True)
+    subparsers = parser.add_subparsers(dest='command')
 
     init_cmd = subparsers.add_parser('init')
     init_env_cmd = subparsers.add_parser('init-env')

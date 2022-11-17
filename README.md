@@ -91,6 +91,15 @@
   <hr>
 </details>
 
+<details>
+  <summary><strong>Deploy to Azure →</strong></summary>
+  <hr>  
+  <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmetlo-labs%2Fmetlo%2Fmaster%2Fdeploy%2Fazure%2Fdeployment.json" target="_blank">
+    <img src="https://aka.ms/deploytoazurebutton" scale="0" height="40"/>
+  </a>
+  <hr>
+</details>
+
 **Deploy with Docker**
 
 Run the following in your cloud environment:

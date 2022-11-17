@@ -23,3 +23,5 @@ ingestors/java/spring/.gradle/
 ingestors/java/spring/.idea/
 ingestors/java/spring/gradle.properties
 ingestors/java/spring/target/
+
+.meta/*
