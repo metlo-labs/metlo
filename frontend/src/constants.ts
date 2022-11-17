@@ -97,8 +97,11 @@ export const INGESTOR_AWS_TEMPLATE =
   "https://cf-templates-7639qxxr319s-us-west-1.s3.us-west-1.amazonaws.com/metlo-ingestor.template"
 export const INGESTOR_STACK_NAME = "metlo-ingestor"
 
-export const getAWSIngestorLaunchStackURL = (region: string) =>
-  `https://${region}.console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review?templateURL=${INGESTOR_AWS_TEMPLATE}&stackName=${INGESTOR_STACK_NAME}`
+export const getAWSIngestorLaunchStackURL = (
+  region: string,
+  metloAddress: string,
+) =>
+  `https://${region}.console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review?templateURL=${INGESTOR_AWS_TEMPLATE}&stackName=${INGESTOR_STACK_NAME}&param_metloAddress=${metloAddress}`
 
 export const getAWSDeployAmiURL = (region: string) =>
   `https://backend.metlo.com/traffic-mirror/aws?region=${region}`
