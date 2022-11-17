@@ -8,8 +8,9 @@ import subprocess
 import os
 import urllib.request
 
+METLO_DEFAULT_DIR = "/opt/metlo"
 
-METLO_DIR = os.environ.get('METLO_DIR', os.path.join(os.path.expanduser('~'), '.metlo'))
+METLO_DIR = os.environ.get('METLO_DIR', METLO_DEFAULT_DIR)
 ENV_PATH = os.path.join(METLO_DIR, '.env')
 LICENSE_PATH = os.path.join(METLO_DIR, 'LICENSE_KEY')
 FILES_TO_PULL = ['docker-compose.yaml', 'init.sql', 'metlo-config.yaml']
