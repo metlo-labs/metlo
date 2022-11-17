@@ -24,5 +24,5 @@ sudo chmod +x /opt/metlo/manage-deployment.py
 sudo ln -s /opt/metlo/manage-deployment.py /usr/bin/metlo-deploy
 
 export METLO_DIR=/opt/metlo
-sudo metlo-deploy init
-sudo metlo-deploy update
+sudo -E metlo-deploy init
+sudo -E metlo-deploy update
