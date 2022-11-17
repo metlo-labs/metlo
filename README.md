@@ -52,15 +52,8 @@
     </a>
     <p></p>
     <p><i>Let us know if you need an AMI in a different region!</i></p>
-   
-  #### Once you've launched your instance run the following in the instance to start Metlo:
-  ```bash
-  $ sudo metlo-deploy init-env
-  $ sudo metlo-deploy update
-  $ sudo metlo-deploy start
-  ```
 
-  #### Then you can tunnel locally to access the UI
+  #### Once the instance is launched you can tunnel locally
   ```bash
   $ ssh -i $SSH_KEY -L 8000:localhost:8000 -N -f ec2-user@$INSTANCE_IP
   ```
