@@ -39,7 +39,14 @@ export const getMetloConfig = async (
 }
 
 export const validateMetloConfig = (configString: string) => {
-  const metloConfig = yaml.load(configString) as object
+  configString = configString.trim()
+  let metloConfig: object = null
+  try {
+    metloConfig = yaml.load(configString) as object
+    metloConfig = metloConfig ?? {}
+  } catch (err) {
+    throw new Error400BadRequest("Config is not a valid yaml file")
+  }
   const rootKeys = Object.keys(metloConfig)
   if (rootKeys.length > 2) {
     throw new Error400BadRequest(
@@ -60,9 +67,6 @@ export const updateMetloConfig = async (
   ctx: MetloContext,
   updateMetloConfigParams: UpdateMetloConfigParams,
 ) => {
-  if (!updateMetloConfigParams.configString) {
-    throw new Error400BadRequest("Please provide configuration specifications.")
-  }
   await populateMetloConfig(ctx, updateMetloConfigParams.configString)
 }
 
@@ -116,12 +120,12 @@ const populateBlockFields = async (
       ctx,
       BLOCK_FIELDS_LIST_KEY,
     )
-    if (typeof blockFieldsDoc !== "object") {
-      throw new Error400BadRequest(
-        "The value for the 'blockFields' config must be an object",
-      )
-    }
     if (blockFieldsDoc) {
+      if (typeof blockFieldsDoc !== "object") {
+        throw new Error400BadRequest(
+          "The value for the 'blockFields' config must be an object",
+        )
+      }
       for (const host in blockFieldsDoc) {
         const hostObj = blockFieldsDoc[host]
         let allDisablePaths = []
@@ -273,12 +277,12 @@ const populateAuthentication = async (
       ctx,
       AUTH_CONFIG_LIST_KEY,
     )
-    if (!Array.isArray(authConfigDoc)) {
-      throw new Error400BadRequest(
-        "The value for the 'authentication' config must be an array of objects",
-      )
-    }
     if (authConfigDoc) {
+      if (!Array.isArray(authConfigDoc)) {
+        throw new Error400BadRequest(
+          "The value for the 'authentication' config must be an array of objects",
+        )
+      }
       authConfigDoc.forEach(item => {
         if (typeof item !== "object") {
           throw new Error400BadRequest(
@@ -295,6 +299,17 @@ const populateAuthentication = async (
         if (!item.host || !item.authType) {
           throw new Error400BadRequest(
             "Fields 'host' and 'authType' must be included in every entry of the 'authentication' config",
+          )
+        }
+        if (!AuthType[item.authType?.toString()?.toUpperCase()]) {
+          throw new Error400BadRequest(
+            `'${
+              item.authType
+            }' is not a valid value for 'authType', must be one of ${Object.keys(
+              AuthType,
+            )
+              .map(e => e.toLowerCase())
+              .join(", ")}`,
           )
         }
         const newConfig = new AuthenticationConfig()
@@ -316,9 +331,9 @@ const populateAuthentication = async (
             }
             break
           case AuthType.JWT:
-            if (!item.jwtUserPath) {
+            if (!item.headerKey) {
               throw new Error400BadRequest(
-                "'jwtUserPath' field must be provided for 'authType' of 'jwt' in 'authentication' config",
+                "'headerKey' field must be provided for 'authType' of 'jwt' in 'authentication' config",
               )
             }
             break
