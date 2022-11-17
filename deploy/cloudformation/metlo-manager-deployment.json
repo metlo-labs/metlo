@@ -1,0 +1,212 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Here are some details about the template.",
+    "Metadata": {
+        "AWS::CloudFormation::Designer": {
+            "12d7e160-0a80-41e1-9076-14d9d321b425": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 180,
+                    "y": 60
+                },
+                "z": 1,
+                "embeds": [],
+                "isassociatedwith": [
+                    "75ee4d4d-5387-4e64-a6e7-df69e2be9de2"
+                ]
+            },
+            "75ee4d4d-5387-4e64-a6e7-df69e2be9de2": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 330,
+                    "y": 60
+                },
+                "z": 1,
+                "embeds": []
+            }
+        }
+    },
+    "Resources": {
+        "MetloSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "GroupDescription": "Enable the ports metlo requires (80, 22, 3000)",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 22,
+                        "ToPort": 22,
+                        "CidrIp": "0.0.0.0/0"
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 8081,
+                        "ToPort": 8081,
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 0,
+                        "ToPort": 65535,
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ]
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "75ee4d4d-5387-4e64-a6e7-df69e2be9de2"
+                }
+            }
+        },
+        "MetloInstance": {
+            "Type": "AWS::EC2::Instance",
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "12d7e160-0a80-41e1-9076-14d9d321b425"
+                }
+            },
+            "Properties": {
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "\n",
+                            [
+                                "#!/bin/bash -xve",
+                                {
+                                    "Fn::Sub": [
+                                        "echo '${LicKey}' >> opt/metlo/credentials",
+                                        {
+                                            "LicKey": {
+                                                "Ref": "licenseKey"
+                                            }
+                                        }
+                                    ]
+                                },
+                                "sudo metlo update",
+                                "sudo metlo start",
+                                "sudo yum update -y",
+                                "sudo yum install -y python python-setuptools",
+                                "sudo mkdir -p /opt/aws/bin",
+                                "sudo wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz",
+                                "sudo python -m easy_install --script-dir /opt/aws/bin aws-cfn-bootstrap-latest.tar.gz",
+                                {
+                                    "Fn::Join": [
+                                        " ",
+                                        [
+                                            "sudo /opt/aws/bin/cfn-signal -s true",
+                                            "--stack ",
+                                            {
+                                                "Ref": "AWS::StackName"
+                                            },
+                                            "--resource MetloInstance",
+                                            "--region ",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            }
+                                        ]
+                                    ]
+                                }
+                            ]
+                        ]
+                    }
+                },
+                "KeyName": {
+                    "Ref": "metloKeyPair"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Metlo-Manager"
+                    }
+                ],
+                "ImageId": {
+                    "Fn::FindInMap": [
+                        "RegionMap",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        "AMI"
+                    ]
+                },
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "0",
+                        {
+                            "Fn::GetAZs": ""
+                        }
+                    ]
+                },
+                "InstanceType": "t3.large",
+                "SecurityGroupIds": [
+                    {
+                        "Ref": "MetloSecurityGroup"
+                    }
+                ]
+            },
+            "CreationPolicy": {
+                "ResourceSignal": {
+                    "Timeout": "PT30M"
+                }
+            }
+        }
+    },
+    "Parameters": {
+        "metloKeyPair": {
+            "Description": "Key pair to access the box running Metlo",
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        },
+        "VPC": {
+            "Description": "The VPC to run metlo inside of",
+            "Type": "AWS::EC2::VPC::Id"
+        },
+        "licenseKey": {
+            "Description": "License Key for your metlo deployment. Get yours at my.metlo.com",
+            "Type": "String"
+        }
+    },
+    "Mappings": {
+        "RegionMap": {
+            "us-east-1": {
+                "AMI": "ami-0c529a21dc8fc2f70"
+            },
+            "us-east-2": {
+                "AMI": "ami-05e81cc8216a2300f"
+            },
+            "us-west-1": {
+                "AMI": "ami-0466df52309b5fb5f"
+            },
+            "us-west-2": {
+                "AMI": "ami-0008e7c5e892cd615"
+            },
+            "ap-southeast-2": {
+                "AMI": "ami-03f372bf98627ebd2"
+            },
+            "eu-west-1": {
+                "AMI": "ami-0af2efdce48620193"
+            },
+            "eu-west-2": {
+                "AMI": "ami-0f953ab333d2178e9"
+            },
+            "eu-west-3": {
+                "AMI": "ami-04db29e467a5565aa"
+            },
+            "eu-north-1": {
+                "AMI": "ami-04c69f48b48d87e5e"
+            },
+            "eu-central-1": {
+                "AMI": "ami-0766ace5304645aa8"
+            }
+        }
+    }
+}
