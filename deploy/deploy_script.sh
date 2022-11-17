@@ -18,7 +18,7 @@ fi
 sudo docker service start
 
 sudo mkdir /opt/metlo 
-sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/master/manage-deployment.py -O /opt/metlo/manage-deployment.py
+sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/test-old-python-azure/manage-deployment.py -O /opt/metlo/manage-deployment.py
 sudo chmod +x /opt/metlo/manage-deployment.py
 
 sudo ln -s /opt/metlo/manage-deployment.py /usr/bin/metlo-deploy
