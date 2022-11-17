@@ -127,6 +127,16 @@ const populateBlockFields = async (
         let allDisablePaths = []
         if (hostObj) {
           if (hostObj["ALL"]) {
+            if (!hostObj["ALL"]?.["disable_paths"]) {
+              throw new Error400BadRequest(
+                "Must include a 'disable_paths' field under an 'ALL' field in 'blockFields' config",
+              )
+            }
+            if (Object.keys(hostObj["ALL"]).length > 1) {
+              throw new Error400BadRequest(
+                "Must only have 'disable_paths' field under an 'ALL' field in 'blockFields' config",
+              )
+            }
             allDisablePaths = hostObj["ALL"]["disable_paths"] ?? []
             const pathRegex = BLOCK_FIELDS_ALL_REGEX
             const path = "/"
@@ -160,6 +170,11 @@ const populateBlockFields = async (
                     "'disable_paths' must be a list of paths to disable in 'blockFields' config",
                   )
                 }
+                if (Object.keys(hostObj[endpoint]?.["ALL"]).length > 1) {
+                  throw new Error400BadRequest(
+                    `Must only have 'disable_paths' field under 'ALL' field in 'blockFields' config`,
+                  )
+                }
                 endpointDisablePaths = endpointDisablePaths?.concat(
                   hostObj[endpoint]["ALL"]["disable_paths"] ?? [],
                 )
@@ -177,7 +192,7 @@ const populateBlockFields = async (
                 if (method && method !== "ALL") {
                   if (!DisableRestMethod[method]) {
                     throw new Error400BadRequest(
-                      `Field ${method} is not a valid key for 'blockFields' config, must be one of ${Object.keys(
+                      `Field ${method} is not a valid key for the method section of 'blockFields' config, must be one of ${Object.keys(
                         DisableRestMethod,
                       ).join(", ")}`,
                     )
@@ -194,6 +209,11 @@ const populateBlockFields = async (
                   ) {
                     throw new Error400BadRequest(
                       "'disable_paths' must be a list of paths to disable in 'blockFields' config",
+                    )
+                  }
+                  if (Object.keys(hostObj[endpoint]?.[method]).length > 1) {
+                    throw new Error400BadRequest(
+                      `Must only have 'disable_paths' field under '${method}' field in 'blockFields' config`,
                     )
                   }
                   const blockFieldMethod = DisableRestMethod[method]
@@ -280,6 +300,31 @@ const populateAuthentication = async (
         const newConfig = new AuthenticationConfig()
         newConfig.host = item.host
         newConfig.authType = item.authType as AuthType
+        switch (newConfig.authType) {
+          case AuthType.HEADER:
+            if (!item.headerKey) {
+              throw new Error400BadRequest(
+                "'headerKey' field must be provided for 'authType' of 'header' in 'authentication' config",
+              )
+            }
+            break
+          case AuthType.SESSION_COOKIE:
+            if (!item.cookieName) {
+              throw new Error400BadRequest(
+                "'cookieName' field must be provided for 'authType' of 'session_cookie' in 'authentication' config",
+              )
+            }
+            break
+          case AuthType.JWT:
+            if (!item.jwtUserPath) {
+              throw new Error400BadRequest(
+                "'jwtUserPath' field must be provided for 'authType' of 'jwt' in 'authentication' config",
+              )
+            }
+            break
+          default:
+            break
+        }
         if (item.headerKey) newConfig.headerKey = item.headerKey
         if (item.jwtUserPath) newConfig.jwtUserPath = item.jwtUserPath
         if (item.cookieName) newConfig.cookieName = item.cookieName
