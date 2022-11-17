@@ -103,6 +103,7 @@ const Settings = ({ keys: _keysString, metloConfig }) => {
           title: "Updating metlo config failed",
           status: "error",
           description: err.response?.data,
+          duration: 15000
         }),
       )
     } finally {

@@ -23,10 +23,37 @@ import {
   insertValuesBuilder,
 } from "services/database/utils"
 
+const validConfigKeys = ["blockFields", "authentication"]
+const authenticationItemKeys = [
+  "host",
+  "authType",
+  "headerKey",
+  "jwtUserPath",
+  "cookieName",
+]
+
 export const getMetloConfig = async (
   ctx: MetloContext,
 ): Promise<MetloConfigResp> => {
   return await createQB(ctx).from(MetloConfig, "config").getRawOne()
+}
+
+export const validateMetloConfig = (configString: string) => {
+  const metloConfig = yaml.load(configString) as object
+  const rootKeys = Object.keys(metloConfig)
+  if (rootKeys.length > 2) {
+    throw new Error400BadRequest(
+      "Too many root level keys, should only be one instance of 'authentication' and 'blockFields'",
+    )
+  }
+  for (const key of rootKeys) {
+    if (!validConfigKeys.includes(key)) {
+      throw new Error400BadRequest(
+        "Config root key is not one of 'authentication' or 'blockFields'",
+      )
+    }
+  }
+  return metloConfig
 }
 
 export const updateMetloConfig = async (
@@ -89,6 +116,11 @@ const populateBlockFields = async (
       ctx,
       BLOCK_FIELDS_LIST_KEY,
     )
+    if (typeof blockFieldsDoc !== "object") {
+      throw new Error400BadRequest(
+        "The value for the 'blockFields' config must be an object",
+      )
+    }
     if (blockFieldsDoc) {
       for (const host in blockFieldsDoc) {
         const hostObj = blockFieldsDoc[host]
@@ -108,9 +140,26 @@ const populateBlockFields = async (
             )
           }
           for (const endpoint in hostObj) {
+            if (endpoint === "disable_paths") {
+              throw new Error400BadRequest(
+                "'disable_paths' field must be under an 'ALL' field or a method field such as 'GET'",
+              )
+            }
             if (endpoint && endpoint !== "ALL") {
               let endpointDisablePaths = allDisablePaths
               if (hostObj[endpoint]["ALL"]) {
+                if (!hostObj[endpoint]?.["ALL"]?.["disable_paths"]) {
+                  throw new Error400BadRequest(
+                    "Must include a 'disable_paths' field under an 'ALL' field in 'blockFields' config",
+                  )
+                }
+                if (
+                  !Array.isArray(hostObj[endpoint]?.["ALL"]?.["disable_paths"])
+                ) {
+                  throw new Error400BadRequest(
+                    "'disable_paths' must be a list of paths to disable in 'blockFields' config",
+                  )
+                }
                 endpointDisablePaths = endpointDisablePaths?.concat(
                   hostObj[endpoint]["ALL"]["disable_paths"] ?? [],
                 )
@@ -126,6 +175,27 @@ const populateBlockFields = async (
               }
               for (const method in hostObj[endpoint]) {
                 if (method && method !== "ALL") {
+                  if (!DisableRestMethod[method]) {
+                    throw new Error400BadRequest(
+                      `Field ${method} is not a valid key for 'blockFields' config, must be one of ${Object.keys(
+                        DisableRestMethod,
+                      ).join(", ")}`,
+                    )
+                  }
+                  if (!hostObj?.[endpoint]?.[method]?.["disable_paths"]) {
+                    throw new Error400BadRequest(
+                      `Must include a 'disable_paths' field under a '${method}' field in 'blockFields' config`,
+                    )
+                  }
+                  if (
+                    !Array.isArray(
+                      hostObj[endpoint]?.[method]?.["disable_paths"],
+                    )
+                  ) {
+                    throw new Error400BadRequest(
+                      "'disable_paths' must be a list of paths to disable in 'blockFields' config",
+                    )
+                  }
                   const blockFieldMethod = DisableRestMethod[method]
                   const pathRegex = getPathRegex(endpoint)
                   const disabledPaths = endpointDisablePaths?.concat(
@@ -160,9 +230,7 @@ const populateBlockFields = async (
       ])
     }
   } catch (err) {
-    throw new Error500InternalServer(
-      `Error in populating metlo config blockFields: ${err}`,
-    )
+    throw err
   }
 }
 
@@ -185,8 +253,30 @@ const populateAuthentication = async (
       ctx,
       AUTH_CONFIG_LIST_KEY,
     )
+    if (!Array.isArray(authConfigDoc)) {
+      throw new Error400BadRequest(
+        "The value for the 'authentication' config must be an array of objects",
+      )
+    }
     if (authConfigDoc) {
       authConfigDoc.forEach(item => {
+        if (typeof item !== "object") {
+          throw new Error400BadRequest(
+            "Each entry for 'authentication' config must be an object with required properties 'host' and 'authType', and optional properties 'headerKey', 'jwtUserPath', and 'cookieName'",
+          )
+        }
+        for (const key in item) {
+          if (!authenticationItemKeys.includes(key)) {
+            throw new Error400BadRequest(
+              `Field ${key} is not a valid field for an 'authentication' config entry, can only be the following: 'host', 'authType', 'headerKey', 'jwtUserPath', 'cookieName'`,
+            )
+          }
+        }
+        if (!item.host || !item.authType) {
+          throw new Error400BadRequest(
+            "Fields 'host' and 'authType' must be included in every entry of the 'authentication' config",
+          )
+        }
         const newConfig = new AuthenticationConfig()
         newConfig.host = item.host
         newConfig.authType = item.authType as AuthType
@@ -212,9 +302,7 @@ const populateAuthentication = async (
       ])
     }
   } catch (err) {
-    throw new Error500InternalServer(
-      `Error in populating metlo config authentication: ${err}`,
-    )
+    throw err
   }
 }
 
@@ -225,7 +313,7 @@ export const populateMetloConfig = async (
   const queryRunner = AppDataSource.createQueryRunner()
   try {
     await queryRunner.connect()
-    const metloConfig = yaml.load(configString) as object
+    const metloConfig = validateMetloConfig(configString)
     await queryRunner.startTransaction()
     await populateAuthentication(ctx, metloConfig, queryRunner)
     await populateBlockFields(ctx, metloConfig, queryRunner)
@@ -253,7 +341,7 @@ export const populateMetloConfig = async (
     if (queryRunner.isTransactionActive) {
       await queryRunner.rollbackTransaction()
     }
-    throw new Error500InternalServer(err)
+    throw err
   } finally {
     await queryRunner.release()
   }
