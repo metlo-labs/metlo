@@ -2,11 +2,8 @@ import {
   Column,
   Entity,
   PrimaryGeneratedColumn,
-  BeforeInsert,
 } from "typeorm"
 import { DisableRestMethod } from "@common/enums"
-import { isParameter } from "utils"
-import { getPathTokens } from "@common/utils"
 import MetloBaseEntity from "./metlo-base-entity"
 import { DisabledPathSection } from "@common/types"
 
@@ -36,24 +33,4 @@ export class BlockFields extends MetloBaseEntity {
 
   @Column({ type: "jsonb", nullable: true, default: null })
   disabledPaths: DisabledPathSection
-
-  @BeforeInsert()
-  addNumberParams() {
-    let numParams = 0
-    if (this.pathRegex === "^/.*$") {
-      numParams += 1000
-    } else if (this.method === DisableRestMethod.ALL) {
-      numParams += 500
-    }
-    if (this.path) {
-      const pathTokens = getPathTokens(this.path)
-      for (let i = 0; i < pathTokens.length; i++) {
-        const token = pathTokens[i]
-        if (isParameter(token)) {
-          numParams += 1
-        }
-      }
-      this.numberParams = numParams
-    }
-  }
 }
