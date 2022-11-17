@@ -4,13 +4,23 @@ const GCPDocs = () => {
   return (
     <>
       <VStack w={"full"} spacing={6}>
-        <ListNumber num={1} title="Install Metlo's CLI Tool">
+        <ListNumber num={1} title="Create a Service Account">
+          <Text>
+            Metlo mirroring on GCP requires a service account with the following
+            permissions:
+          </Text>
+          <Text>- Compute Admin</Text>
+          <Text>- Compute packet mirroring admin</Text>
+          <Text>- Compute packet mirroring user</Text>
+          <Text>- IAP-secured Tunnel User</Text>
+        </ListNumber>
+        <ListNumber num={2} title="Install Metlo's CLI Tool">
           <Text>You can install metlo from npm by running the following:</Text>
           <Code w={"full"} p={2}>
             $ npm i -g @metlo/cli
           </Code>
         </ListNumber>
-        <ListNumber num={2} title="Set up Traffic Mirroring">
+        <ListNumber num={3} title="Set up Traffic Mirroring">
           <Text>To set up traffic mirroring run the following:</Text>
           <Code w={"full"} p={2}>
             <VStack>
