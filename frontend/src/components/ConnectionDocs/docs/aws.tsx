@@ -28,16 +28,12 @@ const KeyStep = ({ num }: { num: number }) => (
     <Text>- AmazonVPCFullAccess</Text>
     <Text>
       You can use the{" "}
-      <a
-        href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html"
-        target="_blank"
-      >
+      <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html">
         <Code fontWeight="semibold">aws configure</Code>
       </a>{" "}
       command or{" "}
       <Link
         href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
-        target="_blank"
         fontWeight="semibold"
         isExternal
       >
@@ -96,7 +92,10 @@ const AWSDocs = () => {
         <VStack w="full" alignItems="start" spacing="8">
           {manual ? (
             <>
-              <ListNumber num={1} title="Deploy a Metlo Traffic Mirroring Instance">
+              <ListNumber
+                num={1}
+                title="Deploy a Metlo Traffic Mirroring Instance"
+              >
                 Deploy Metlo:
                 <HStack>
                   <Select
