@@ -108,15 +108,6 @@ gcloud --project=$PROJECT_ID beta compute ssh $INSTANCE_NAME -- -L 8000:localhos
 
 </details>
 
-#### Then you can tunnel locally to access the UI
-
-```bash
-gcloud --project=$PROJECT_ID beta compute ssh $INSTANCE_NAME -- -L 8000:localhost:8000 -N -f
-```
-
-  <hr>
-</details>
-
 **Deploy with Docker**
 
 Run the following in your cloud environment:
