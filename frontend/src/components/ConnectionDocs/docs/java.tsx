@@ -119,7 +119,7 @@ const JavaDocs = () => {
                 </Box>
                 <Box w={"full"}>here registrationBean.setFilter(new</Box>
                 <Box w={"full"}>
-                  Metlo(&quot;http://&lt;YOUR_METLO_ADDRESS&gt;:8081&quot;,&quot;&lt;YOUR_METLO_API_KEY&gt;&quot;);
+                  Metlo(&quot;http://&lt;YOUR_METLO_HOST&gt;:8081&quot;,&quot;&lt;YOUR_METLO_API_KEY&gt;&quot;);
                 </Box>
                 <Box w={"full"}>
                   registrationBean.setOrder(2); return registrationBean;

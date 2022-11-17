@@ -7,7 +7,9 @@ import {
   Button,
   HStack,
   Badge,
+  Link,
 } from "@chakra-ui/react"
+import { ExternalLinkIcon } from "@chakra-ui/icons"
 import { CgArrowRight } from "@react-icons/all-files/cg/CgArrowRight"
 import { ListNumber } from "components/utils/ListNumber"
 import { useEffect, useState } from "react"
@@ -17,6 +19,31 @@ import {
   getAWSDeployAmiURL,
 } from "~/constants"
 
+const KeyStep = ({ num }: { num: number }) => (
+  <ListNumber num={num} title="Get AWS API Keys">
+    <Text>
+      To set up mirroring we need an API Key with the following permissions:
+    </Text>
+    <Text>- AmazonEC2FullAccess</Text>
+    <Text>- AmazonVPCFullAccess</Text>
+    <Text>
+      You can use the{" "}
+      <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html">
+        <Code fontWeight="semibold">aws configure</Code>
+      </a>{" "}
+      command or{" "}
+      <Link
+        href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+        fontWeight="semibold"
+        isExternal
+      >
+        Environment Variables
+        <ExternalLinkIcon mx="2px" />
+      </Link>{" "}
+      to configure AWS.
+    </Text>
+  </ListNumber>
+)
 const LOCAL_DOMAINS = ["localhost", "127.0.0.1", "", "::1"]
 
 const AWSDocs = () => {
@@ -65,14 +92,10 @@ const AWSDocs = () => {
         <VStack w="full" alignItems="start" spacing="8">
           {manual ? (
             <>
-              <ListNumber num={1} title="Open Metlo Manager Ports">
-                <Text>
-                  Open Port 8081 on your Metlo instance to TCP Connections so
-                  you can start collecting traffic data. It should be open to
-                  any machines you want to collect traffic from.
-                </Text>
-              </ListNumber>
-              <ListNumber num={2} title="Deploy a Metlo Mirroring Instance">
+              <ListNumber
+                num={1}
+                title="Deploy a Metlo Traffic Mirroring Instance"
+              >
                 Deploy Metlo:
                 <HStack>
                   <Select
@@ -132,15 +155,8 @@ const AWSDocs = () => {
                   </VStack>
                 </Code>
               </ListNumber>
-              <ListNumber num={3} title="Get AWS API Keys">
-                <Text>
-                  To set up mirroring we need an API Key with the following
-                  permissions:
-                </Text>
-                <Text>- AmazonEC2FullAccess</Text>
-                <Text>- AmazonVPCFullAccess</Text>
-              </ListNumber>
-              <ListNumber num={4} title="Install Metlo's CLI Tool">
+              <KeyStep num={2} />
+              <ListNumber num={3} title="Install Metlo's CLI Tool">
                 <Text>
                   You can install metlo from npm by running the following:
                 </Text>
@@ -148,7 +164,7 @@ const AWSDocs = () => {
                   $ npm i -g @metlo/cli
                 </Code>
               </ListNumber>
-              <ListNumber num={5} title="Set up Traffic Mirroring">
+              <ListNumber num={4} title="Set up Traffic Mirroring">
                 <Text>To set up traffic mirroring run the following:</Text>
                 <Code w={"full"} p={2}>
                   <VStack>
@@ -211,7 +227,8 @@ const AWSDocs = () => {
                   </Button>
                 </HStack>
               </ListNumber>
-              <ListNumber num={2} title="Install Metlo's CLI Tool">
+              <KeyStep num={2} />
+              <ListNumber num={3} title="Install Metlo's CLI Tool">
                 <Text>
                   Once the instance is created, you can start traffic mirroring
                   using Metlo&apos;s CLI Tool. You can install metlo from npm by
@@ -221,7 +238,7 @@ const AWSDocs = () => {
                   $ npm i -g @metlo/cli
                 </Code>
               </ListNumber>
-              <ListNumber num={3} title="Set up Traffic Mirroring">
+              <ListNumber num={4} title="Set up Traffic Mirroring">
                 <Text>To set up traffic mirroring run the following:</Text>
                 <Code w={"full"} p={2}>
                   <VStack>

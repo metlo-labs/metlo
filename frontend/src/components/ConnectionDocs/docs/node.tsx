@@ -42,8 +42,8 @@ const NodeDocs = () => {
                 <VStack w={"full"}>
                   <Box w={"full"}>var metlo = require(&quot;metlo&quot;)</Box>
                   <Box w={"full"}>
-                    metlo({"<"}YOUR_METLO_API_KEY{">, <"}
-                    YOUR_METLO_COLLECTOR_URL{">"})
+                    metlo({"<"}YOUR_METLO_API_KEY{">, http://<"}
+                    YOUR_METLO_HOST{">:8081"})
                   </Box>
                 </VStack>
               </Code>

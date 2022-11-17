@@ -1,9 +1,8 @@
-import React, { useState } from "react"
+import React from "react"
 import {
   Box,
   VStack,
   HStack,
-  useDisclosure,
   Image,
   useColorMode,
   TabPanel,
@@ -13,10 +12,8 @@ import {
   TabPanels,
   Icon,
 } from "@chakra-ui/react"
-import { useRouter } from "next/router"
 import { ConnectionType } from "@common/enums"
 import AWSdocs from "./docs/aws"
-import RenderDocModal from "./renderDocModal"
 import GCPDocs from "./docs/gcp"
 import { FaJava } from "@react-icons/all-files/fa/FaJava"
 import PythonDocs from "./docs/python"
@@ -36,17 +33,7 @@ enum docType {
 }
 
 const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
-  const { isOpen, onOpen, onClose } = useDisclosure()
-  const router = useRouter()
   const colorMode = useColorMode()
-  const [displayComponentType, setDisplayComponentType] = useState<docType>(
-    docType.none,
-  )
-
-  const openWithComponent = (componentType: docType) => {
-    setDisplayComponentType(componentType)
-    onOpen()
-  }
 
   return (
     <VStack spacing={12} w={"full"}>
@@ -149,25 +136,6 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
           </TabPanels>
         </Tabs>
       </VStack>
-      <Box>
-        <RenderDocModal
-          isOpen={isOpen}
-          onClose={onClose}
-          type={displayComponentType.toString()}
-          renderComponent={function (): React.ReactElement<
-            any,
-            string | React.JSXElementConstructor<any>
-          > {
-            if (displayComponentType == docType.aws) {
-              return AWSdocs()
-            } else if (displayComponentType == docType.gcp) {
-              return GCPDocs()
-            } else {
-              return <>{displayComponentType}</>
-            }
-          }}
-        />
-      </Box>
     </VStack>
   )
 })
