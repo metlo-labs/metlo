@@ -24,6 +24,6 @@ sudo chmod +x /opt/metlo/manage-deployment.py
 sudo ln -s /opt/metlo/manage-deployment.py /usr/bin/metlo-deploy
 
 export METLO_DIR=/opt/metlo
-echo "METLO_DIR=/opt/metlo" >> ~/.bashrc
+echo "METLO_DIR=/opt/metlo" >> /home/azureuser/.bashrc
 sudo -E metlo-deploy init
 sudo -E metlo-deploy update
