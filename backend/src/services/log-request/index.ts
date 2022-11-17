@@ -16,7 +16,7 @@ export class LogRequestService {
       /** Log Request in ApiTrace table **/
       let queueLength = 0
       try {
-        await unsafeRedisClient.llen(TRACES_QUEUE)
+        queueLength = await unsafeRedisClient.llen(TRACES_QUEUE)
       } catch {}
       if (queueLength > 1000) {
         return
