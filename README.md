@@ -105,7 +105,7 @@ gcloud --project=$PROJECT_ID beta compute ssh $INSTANCE_NAME -- -L 8000:localhos
     <img src="https://aka.ms/deploytoazurebutton" scale="0" height="40"/>
   </a>
   <h4>Metlo is ready to use in all regions of the world for azure</h4>
-
+  <hr>
 </details>
 
 **Deploy with Docker**
