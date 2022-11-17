@@ -12,7 +12,7 @@ import {
 import { ExternalLinkIcon } from "@chakra-ui/icons"
 import { CgArrowRight } from "@react-icons/all-files/cg/CgArrowRight"
 import { ListNumber } from "components/utils/ListNumber"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   getAWSIngestorLaunchStackURL,
   INGESTOR_AWS_REGIONS,
@@ -48,11 +48,21 @@ const KeyStep = ({ num }: { num: number }) => (
     </Text>
   </ListNumber>
 )
+const LOCAL_DOMAINS = ["localhost", "127.0.0.1", "", "::1"]
 
 const AWSDocs = () => {
   const [selectedRegion, setSelectedRegion] = useState("")
   const [deployRegion, setDeployRegion] = useState("")
   const [manual, setManual] = useState(false)
+  const [metloAddress, setMetloAddress] = useState(null)
+
+  useEffect(() => {
+    if (!LOCAL_DOMAINS.includes(window.location.hostname)) {
+      setMetloAddress(
+        `${window.location.protocol}//${window.location.hostname}:8081`,
+      )
+    }
+  }, [])
 
   return (
     <>
@@ -208,7 +218,10 @@ const AWSDocs = () => {
                     target="_blank"
                     rightIcon={<CgArrowRight />}
                     pointerEvents={selectedRegion === "" ? "none" : "initial"}
-                    href={getAWSIngestorLaunchStackURL(selectedRegion)}
+                    href={getAWSIngestorLaunchStackURL(
+                      selectedRegion,
+                      metloAddress,
+                    )}
                     isDisabled={selectedRegion === ""}
                   >
                     Launch Stack
