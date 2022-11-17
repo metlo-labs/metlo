@@ -258,7 +258,7 @@
           "typeHandlerVersion": "1.2",
           "settings": {
             "fileUris": [
-              "https://raw.githubusercontent.com/metlo-labs/metlo/azure_test/deploy/deploy_script.sh"
+              "https://raw.githubusercontent.com/metlo-labs/metlo/develop/deploy/deploy_script.sh"
             ],
             "commandToExecute": "sudo /bin/bash deploy_script.sh"
           }
