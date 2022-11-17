@@ -217,6 +217,7 @@ export interface ApiEndpoint {
   openapiSpecName: string
   isAuthenticatedDetected: boolean
   isAuthenticatedUserSet: boolean
+  fullTraceCaptureEnabled: boolean
   isGraphQl: boolean
 }
 

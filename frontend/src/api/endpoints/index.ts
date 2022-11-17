@@ -96,3 +96,17 @@ export const updateEndpointAuthenticated = async (
     { headers },
   )
 }
+
+export const updateFullTraceCaptureEnabled = async (
+  endpointId: string,
+  enabled: boolean,
+  headers?: AxiosRequestHeaders,
+): Promise<void> => {
+  await axios.put(
+    `${getAPIURL()}/endpoint/${endpointId}/enable-full-trace-capture`,
+    {
+      enabled,
+    },
+    { headers },
+  )
+}

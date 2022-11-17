@@ -83,3 +83,21 @@ export const updateEndpointIsAuthenticated = async (
     await ApiResponseHandler.error(res, err)
   }
 }
+
+export const updateFullTraceCaptureEnabled = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { endpointId } = req.params
+    const params: { enabled: boolean } = req.body
+    await GetEndpointsService.updateFullTraceCaptureEnabled(
+      req.ctx,
+      endpointId,
+      params.enabled,
+    )
+    await ApiResponseHandler.success(res, "Success")
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}
