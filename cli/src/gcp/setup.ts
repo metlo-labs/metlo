@@ -2,7 +2,7 @@ import AsyncRetry from "async-retry"
 import { v4 as uuidv4, validate } from "uuid"
 import fs from "fs"
 import { prompt } from "enquirer"
-import { GCP_REGIONS_SUPPORTED, wait_for_global_operation, wait_for_regional_operation, wait_for_zonal_operation } from "./gcpUtils"
+import { GCP_REGIONS_SUPPORTED, wait_for_global_operation, wait_for_regional_operation, wait_for_zonal_operation, zoneToRegionMap } from "./gcpUtils"
 import { GCP_CONN } from "./gcp_apis"
 import chalk from "chalk"
 import ora from "ora";
@@ -557,7 +557,19 @@ const updatePacketMirroring = async (
     return {}
 }
 
-const imageURL = "https://www.googleapis.com/compute/v1/projects/metlo-security/global/images/metlo-ingestor-v5"
+const resolveImageURL = (zone) => {
+    const region = zone.substring(0, zone.length - 2)
+    const currentImageZone = zoneToRegionMap.find((mapVal) => mapVal.region == region).imageZone
+    if (currentImageZone == "us") {
+        return "https://www.googleapis.com/compute/v1/projects/metlo-security/global/images/metlo-ingestor-us"
+    } else if (currentImageZone == "eu") {
+        return "https://www.googleapis.com/compute/v1/projects/metlo-security/global/images/metlo-ingestor-eu"
+    } else if (currentImageZone == "asia") {
+        return "https://www.googleapis.com/compute/v1/projects/metlo-security/global/images/metlo-ingestor-asia"
+    } else {
+        throw new Error(`Invalid Zone ${zone}`)
+    }
+}
 
 export const gcpTrafficMirrorSetup = async () => {
     const id = uuidv4()
@@ -565,7 +577,7 @@ export const gcpTrafficMirrorSetup = async () => {
     try {
         const { project, zone, network, key } = await verifyAccountDetails()
         const networkUrl = `https://www.googleapis.com/compute/v1/projects/${project}/global/networks/${network}`
-        const conn = new GCP_CONN(key, zone, project);        
+        const conn = new GCP_CONN(key, zone, project);
         data["zone"] = zone
         data["project"] = project
 
@@ -588,7 +600,7 @@ export const gcpTrafficMirrorSetup = async () => {
             data["firewallRuleUrl"] = firewallRuleUrl
             const { routerURL } = await createCloudRouter(conn, networkUrl, destinationSubnetworkUrl, id)
             data["routerURL"] = routerURL
-            const { imageTemplateUrl, instanceGroupName, instanceUrl } = await create_mig(conn, networkUrl, destinationSubnetworkUrl, imageURL, id)
+            const { imageTemplateUrl, instanceGroupName, instanceUrl } = await create_mig(conn, networkUrl, destinationSubnetworkUrl, resolveImageURL(zone), id)
             data['imageTemplateUrl'] = imageTemplateUrl
             data['instanceGroupName'] = instanceGroupName
             data['instanceUrl'] = instanceUrl
