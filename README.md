@@ -90,6 +90,11 @@
   <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmetlo-labs%2Fmetlo%2Fmaster%2Fdeploy%2Fazure%2Fdeployment.json" target="_blank">
     <img src="https://aka.ms/deploytoazurebutton" scale="0" height="40"/>
   </a>
+
+  #### Then you can tunnel locally to access the UI
+  ```bash
+  $ ssh -i $SSH_KEY -L 8000:localhost:8000 -N -f azureuser@$INSTANCE_IP
+  ```
   <hr>
 </details>
 
