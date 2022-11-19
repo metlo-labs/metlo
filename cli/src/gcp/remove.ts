@@ -1,8 +1,7 @@
-import AsyncRetry from "async-retry"
-import { v4 as uuidv4, validate } from "uuid"
+import { v4 as uuidv4 } from "uuid"
 import fs from "fs"
 import { prompt } from "enquirer"
-import { GCP_REGIONS_SUPPORTED, wait_for_global_operation, wait_for_regional_operation, wait_for_zonal_operation } from "./gcpUtils"
+import { GCP_REGIONS_SUPPORTED } from "./gcpUtils"
 import { GCP_CONN } from "./gcp_apis"
 import chalk from "chalk"
 import ora from "ora";
@@ -182,7 +181,7 @@ export const gcpTrafficMirrorDelete = async () => {
     try {
         const { project, zone, network, key } = await verifyAccountDetails()
         const networkUrl = `https://www.googleapis.com/compute/v1/projects/${project}/global/networks/${network}`
-        const conn = new GCP_CONN(key, zone, project);        
+        const conn = new GCP_CONN(key, zone, project);
         data["zone"] = zone
         data["project"] = project
 

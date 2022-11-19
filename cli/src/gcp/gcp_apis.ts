@@ -269,6 +269,13 @@ export class GCP_CONN {
     })
   }
 
+  public async list_image_template() {
+    let conn = new InstanceTemplatesClient({ credentials: this.keyfile })
+    return conn.list({
+      project: this.project,
+    })
+  }
+
   public async create_image_template({
     machineType,
     sourceImage,
@@ -320,6 +327,14 @@ export class GCP_CONN {
           },
         },
       },
+    })
+  }
+
+  public async list_instance_manager() {
+    let conn = new InstanceGroupManagersClient({ credentials: this.keyfile })
+    return conn.list({
+      project: this.project,
+      zone: this.zone,
     })
   }
 
@@ -446,6 +461,14 @@ export class GCP_CONN {
     return resp
   }
 
+  public async list_firewall_rules() {
+    const conn = new FirewallsClient({ credentials: this.keyfile })
+    return conn.list({
+      project: this.project
+    })
+  }
+
+
   public async delete_firewall_rule({ firewallURL }) {
     const conn = new FirewallsClient({ credentials: this.keyfile })
     return conn.delete({
@@ -460,6 +483,13 @@ export class GCP_CONN {
       project: this.project,
       region: this.region,
       router: routerURL,
+    })
+  }
+
+  public async list_health_checks() {
+    let conn = new HealthChecksClient({ credentials: this.keyfile })
+    return conn.list({
+      project: this.project,
     })
   }
 
@@ -497,6 +527,14 @@ export class GCP_CONN {
       instanceGroupManagersDeleteInstancesRequestResource: {
         instances: [instanceURL],
       },
+    })
+  }
+
+  public async list_backend_service() {
+    let conn = new RegionBackendServicesClient({ credentials: this.keyfile })
+    return conn.list({
+      project: this.project,
+      region: this.region,
     })
   }
 

@@ -8,7 +8,8 @@ import { gcpTrafficMirrorSetup } from "./gcp/setup"
 import init from "./init"
 import testAPI from "./testAPI"
 import { gcpTrafficMirrorList } from "./gcp/list"
-import { gcpTrafficMirrorDelete } from "./gcp/delete"
+import { gcpTrafficMirrorDelete } from "./gcp/remove"
+import { gcpTrafficMirrorCleanUp } from "./gcp/cleanup"
 
 program.name("metlo").description("Metlo's command line tool.").version("0.0.0")
 
@@ -41,5 +42,6 @@ const trafficMirrorGcp = trafficMirror
 trafficMirrorGcp.command("new").action(gcpTrafficMirrorSetup)
 trafficMirrorGcp.command("list").action(gcpTrafficMirrorList)
 trafficMirrorGcp.command("remove").action(gcpTrafficMirrorDelete)
+trafficMirrorGcp.command("cleanup").action(gcpTrafficMirrorCleanUp)
 
 program.parseAsync()
