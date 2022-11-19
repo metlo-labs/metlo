@@ -44,7 +44,7 @@ export async function cleanupGCP(
     // Delete GCP Packet Mirroring
     try {
         let resp_pack = await conn.stop_packet_mirroring({
-            packetMirroringURL: mirrorInstance.selfLink.split("/").at(-1),
+            packetMirroringURL: packetMirrorName,
         })
         await wait_for_regional_operation(resp_pack[0].name, conn)
     } catch (err) {
