@@ -1,11 +1,11 @@
-import { v4 as uuidv4 } from "uuid"
+import { v4 as uuidv4, validate } from "uuid"
 import fs from "fs"
 import { prompt } from "enquirer"
 import { GCP_REGIONS_SUPPORTED, wait_for_global_operation, wait_for_regional_operation, wait_for_zonal_operation } from "./gcpUtils"
 import { GCP_CONN } from "./gcp_apis"
 import chalk from "chalk"
 import ora from "ora";
-import { google } from "@google-cloud/compute/build/protos/protos"
+import assert from "node:assert"
 
 const spinner = ora()
 
@@ -37,7 +37,8 @@ export async function cleanupGCP(
     if (metloRegexResp.length != 2) {
         throw new Error("Packet Mirroring policy didn't match expected pattern. Please try manual deletion.")
     }
-    let metloId = regexPattern.exec(mirrorInstance.name)[1]
+    let metloUUID = metloRegexResp[1]
+    assert.ok(validate(metloUUID), "Metlo Packet Mirroring selected has invalid UUID")
 
     spinner.start("Deleting packet mirroring")
     // Delete GCP Packet Mirroring
@@ -57,9 +58,15 @@ export async function cleanupGCP(
 
     spinner.start("Deleting Forwarding Rule")
     // Delete GCP Load Balancer
+    const collectorName = (mirrorInstance.collectorIlb.url.split("/").at(-1))
+    assert.ok(
+        collectorName == `metlo-forwarding-rule-${metloUUID}`,
+        `Forwarding rule didn't match expected name.
+        Found ${collectorName},expected metlo-forwarding-rule-${metloUUID}`
+    )
     try {
         let resp_ilb = await conn.delete_forwarding_rule({
-            forwardingRuleURL: mirrorInstance.collectorIlb.url.split("/").at(-1),
+            forwardingRuleURL: collectorName,
         })
         await wait_for_regional_operation(resp_ilb[0].name, conn)
     } catch (err) {
@@ -73,11 +80,17 @@ export async function cleanupGCP(
 
     spinner.start("Deleting Load Balancer")
     const [backends, ,] = await conn.list_backend_service()
-    const backend = backends.find((_backend) => _backend.name.includes(metloId))
+    const backend = backends.find((_backend) => _backend.name.includes(`metlo-backend-${metloUUID}`))
+    const backendName = backend.selfLink.split("/").at(-1)
+    assert.ok(
+        backendName == `metlo-backend-${metloUUID}`,
+        `Beckend service didn't match expected name.
+        Found ${backendName},expected metlo-backend-${metloUUID}`
+    )
     // Delete GCP Backend Service
     try {
         let resp_back = await conn.delete_backend_service({
-            backendServiceURL: backend.name,
+            backendServiceURL: backendName,
         })
         await wait_for_regional_operation(resp_back[0].name, conn)
     } catch (err) {
@@ -91,11 +104,17 @@ export async function cleanupGCP(
 
     spinner.start("Deleting Health Check")
     const [healthChecks, ,] = await conn.list_health_checks()
-    const check = healthChecks.find((_check) => _check.name.includes(metloId))
+    const check = healthChecks.find((_check) => _check.name.includes(metloUUID))
+    const healthCheckName = check.selfLink.split("/").at(-1)
+    assert.ok(
+        healthCheckName == `metlo-health-check-${metloUUID}`,
+        `Beckend service didn't match expected name.
+        Found ${healthCheckName},expected metlo-health-check-${metloUUID}`
+    )
     // Delete GCP Health Check
     try {
         let resp_health = await conn.delete_health_check({
-            healthCheckURL: check.name,
+            healthCheckURL: healthCheckName,
         })
         await wait_for_global_operation(resp_health[0].name, conn)
     } catch (err) {
@@ -107,11 +126,17 @@ export async function cleanupGCP(
 
     spinner.start("Deleting Instance Group")
     const [instanceGroups, ,] = await conn.list_instance_manager()
-    const group = instanceGroups.find((_group) => _group.name.includes(metloId))
+    const group = instanceGroups.find((_group) => _group.name.includes(metloUUID))
+    const groupName = group.selfLink.split("/").at(-1)
+    assert.ok(
+        groupName == `metlo-mig-${metloUUID}`,
+        `Beckend service didn't match expected name.
+        Found ${groupName},expected metlo-mig-${metloUUID}`
+    )
     // Delete GCP Instance Group Manager
     try {
         let resp_mig = await conn.delete_instance_manager({
-            managerURL: group.name,
+            managerURL: groupName,
         })
         await wait_for_zonal_operation(resp_mig[0].name, conn, 7)
     } catch (err) {
@@ -125,11 +150,17 @@ export async function cleanupGCP(
 
     spinner.start("Deleting Instance Template")
     const [templates, ,] = await conn.list_image_template()
-    const template = templates.find((_template) => _template.name.includes(metloId))
+    const template = templates.find((_template) => _template.name.includes(metloUUID))
+    const templateName = template.selfLink.split("/").at(-1)
+    assert.ok(
+        templateName == `metlo-image-template-${metloUUID}`,
+        `Beckend service didn't match expected name.
+        Found ${templateName},expected metlo-image-template-${metloUUID}`
+    )
     // Delete GCP Instance Template
     try {
         let resp_mig = await conn.delete_image_template({
-            templateURL: template.name.split("/").at(-1),
+            templateURL: templateName,
         })
         await wait_for_global_operation(resp_mig[0].name, conn)
     } catch (err) {
@@ -160,11 +191,17 @@ export async function cleanupGCP(
     //   }
     spinner.start("Deleting Firewall Rule")
     const [firewalls, ,] = await conn.list_firewall_rules()
-    const firewall = firewalls.find((_firewall) => _firewall.name.includes(metloId))
+    const firewall = firewalls.find((_firewall) => _firewall.name.includes(metloUUID))
+    const firewallName = firewall.selfLink.split("/").at(-1)
+    assert.ok(
+        firewallName == `metlo-firewall-${metloUUID}`,
+        `Beckend service didn't match expected name.
+        Found ${firewallName},expected metlo-firewall-${metloUUID}`
+    )
     //   Delete GCP Firewall
     try {
         let resp_firewall = await conn.delete_firewall_rule({
-            firewallURL: firewall.name,
+            firewallURL: firewallName,
         })
         await wait_for_global_operation(resp_firewall[0].name, conn)
     } catch (err) {
@@ -174,7 +211,7 @@ export async function cleanupGCP(
     }
     spinner.succeed("Deleted Firewall Rule")
 
-    return `Deleted connection ${metloId}`
+    return `Deleted connection ${metloUUID}`
 }
 
 const verifyAccountDetails = async () => {
