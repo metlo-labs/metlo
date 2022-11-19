@@ -1,7 +1,7 @@
 import { GCP_CONN } from "./gcp_apis"
 import AsyncRetry from "async-retry"
 
-export async function wait_for_global_operation(operation_id, conn: GCP_CONN) {
+export async function wait_for_global_operation(operation_id, conn: GCP_CONN, retries = 5) {
     return await AsyncRetry(
         async (f, at) => {
             let resp = await conn.get_global_operation_status(operation_id)
@@ -11,14 +11,11 @@ export async function wait_for_global_operation(operation_id, conn: GCP_CONN) {
                 throw Error("Couldn't fetch global operation")
             }
         },
-        { retries: 5 },
+        { retries },
     )
 }
 
-export async function wait_for_regional_operation(
-    operation_id,
-    conn: GCP_CONN,
-) {
+export async function wait_for_regional_operation(operation_id, conn: GCP_CONN, retries = 5) {
     return await AsyncRetry(
         async (f, at) => {
             let resp = await conn.get_regional_operation_status(operation_id)
@@ -29,11 +26,11 @@ export async function wait_for_regional_operation(
                 throw Error("Couldn't fetch regional operation")
             }
         },
-        { retries: 5 },
+        { retries },
     )
 }
 
-export async function wait_for_zonal_operation(operation_id, conn: GCP_CONN) {
+export async function wait_for_zonal_operation(operation_id, conn: GCP_CONN, retries = 5) {
     return await AsyncRetry(
         async (f, at) => {
             let resp = await conn.get_zonal_operation_status(operation_id)
@@ -43,7 +40,7 @@ export async function wait_for_zonal_operation(operation_id, conn: GCP_CONN) {
                 throw Error("Couldn't fetch regional operation")
             }
         },
-        { retries: 5 },
+        { retries },
     )
 }
 
