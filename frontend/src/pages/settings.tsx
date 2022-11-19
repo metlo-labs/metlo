@@ -179,7 +179,7 @@ const Settings = ({ keys: _keysString, metloConfig }) => {
               >
                 docs
               </Link>{" "}
-              to learn how to properly set up the metlo config.
+              on how to set up a metlo config.
             </Text>
             <Box pt="2" rounded="md" h="700px" w="full" borderWidth="1px">
               <Editor

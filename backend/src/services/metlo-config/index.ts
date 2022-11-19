@@ -1,4 +1,6 @@
 import yaml from "js-yaml"
+import Ajv from "ajv"
+import SourceMap from "js-yaml-source-map"
 import { QueryRunner } from "typeorm"
 import { AuthType, DisableRestMethod } from "@common/enums"
 import { MetloConfigResp, UpdateMetloConfigParams } from "@common/types"
@@ -22,15 +24,7 @@ import {
   insertValueBuilder,
   insertValuesBuilder,
 } from "services/database/utils"
-
-const validConfigKeys = ["blockFields", "authentication"]
-const authenticationItemKeys = [
-  "host",
-  "authType",
-  "headerKey",
-  "jwtUserPath",
-  "cookieName",
-]
+import { METLO_CONFIG_SCHEMA } from "./constants"
 
 export const getMetloConfig = async (
   ctx: MetloContext,
@@ -41,22 +35,40 @@ export const getMetloConfig = async (
 export const validateMetloConfig = (configString: string) => {
   configString = configString.trim()
   let metloConfig: object = null
+  const map = new SourceMap()
   try {
-    metloConfig = yaml.load(configString) as object
+    metloConfig = yaml.load(configString, { listener: map.listen() }) as object
     metloConfig = metloConfig ?? {}
   } catch (err) {
     throw new Error400BadRequest("Config is not a valid yaml file")
   }
-  const rootKeys = Object.keys(metloConfig)
-  if (rootKeys.length > 2) {
-    throw new Error400BadRequest(
-      "Too many root level keys, should only be one instance of 'authentication' and 'blockFields'",
-    )
-  }
-  for (const key of rootKeys) {
-    if (!validConfigKeys.includes(key)) {
+  const ajv = new Ajv()
+  const validate = ajv.compile(METLO_CONFIG_SCHEMA)
+  const valid = validate(metloConfig)
+  if (!valid) {
+    const errors = validate.errors
+    if (errors) {
+      const error = errors[0]
+      let instancePath = error.instancePath
+        .replace(/\//g, ".")
+        .replace(/~1/g, "/")
+        .slice(1)
+      let errorMessage = `${error.instancePath} ${error.message}`
+      switch (error.keyword) {
+        case "additionalProperties":
+          const additionalProperty = error.params.additionalProperty
+          instancePath += `.${additionalProperty}`
+          errorMessage = `property '${additionalProperty}' is not expected to be here`
+          break
+        case "enum":
+          errorMessage = `must be equal to one of the allowed values: ${error.params.allowedValues?.join(
+            ", ",
+          )}`
+          break
+      }
+      const lineNumber = map.lookup(instancePath)?.line
       throw new Error400BadRequest(
-        "Config root key is not one of 'authentication' or 'blockFields'",
+        `${errorMessage}${lineNumber ? ` on line ${lineNumber}` : ""}`,
       )
     }
   }
@@ -121,26 +133,11 @@ const populateBlockFields = async (
       BLOCK_FIELDS_LIST_KEY,
     )
     if (blockFieldsDoc) {
-      if (typeof blockFieldsDoc !== "object") {
-        throw new Error400BadRequest(
-          "The value for the 'blockFields' config must be an object",
-        )
-      }
       for (const host in blockFieldsDoc) {
         const hostObj = blockFieldsDoc[host]
         let allDisablePaths = []
         if (hostObj) {
           if (hostObj["ALL"]) {
-            if (!hostObj["ALL"]?.["disable_paths"]) {
-              throw new Error400BadRequest(
-                "Must include a 'disable_paths' field under an 'ALL' field in 'blockFields' config",
-              )
-            }
-            if (Object.keys(hostObj["ALL"]).length > 1) {
-              throw new Error400BadRequest(
-                "Must only have 'disable_paths' field under an 'ALL' field in 'blockFields' config",
-              )
-            }
             allDisablePaths = hostObj["ALL"]["disable_paths"] ?? []
             const pathRegex = BLOCK_FIELDS_ALL_REGEX
             const path = "/"
@@ -154,31 +151,9 @@ const populateBlockFields = async (
             )
           }
           for (const endpoint in hostObj) {
-            if (endpoint === "disable_paths") {
-              throw new Error400BadRequest(
-                "'disable_paths' field must be under an 'ALL' field or a method field such as 'GET'",
-              )
-            }
             if (endpoint && endpoint !== "ALL") {
               let endpointDisablePaths = allDisablePaths
               if (hostObj[endpoint]["ALL"]) {
-                if (!hostObj[endpoint]?.["ALL"]?.["disable_paths"]) {
-                  throw new Error400BadRequest(
-                    "Must include a 'disable_paths' field under an 'ALL' field in 'blockFields' config",
-                  )
-                }
-                if (
-                  !Array.isArray(hostObj[endpoint]?.["ALL"]?.["disable_paths"])
-                ) {
-                  throw new Error400BadRequest(
-                    "'disable_paths' must be a list of paths to disable in 'blockFields' config",
-                  )
-                }
-                if (Object.keys(hostObj[endpoint]?.["ALL"]).length > 1) {
-                  throw new Error400BadRequest(
-                    `Must only have 'disable_paths' field under 'ALL' field in 'blockFields' config`,
-                  )
-                }
                 endpointDisablePaths = endpointDisablePaths?.concat(
                   hostObj[endpoint]["ALL"]["disable_paths"] ?? [],
                 )
@@ -194,32 +169,6 @@ const populateBlockFields = async (
               }
               for (const method in hostObj[endpoint]) {
                 if (method && method !== "ALL") {
-                  if (!DisableRestMethod[method]) {
-                    throw new Error400BadRequest(
-                      `Field ${method} is not a valid key for the method section of 'blockFields' config, must be one of ${Object.keys(
-                        DisableRestMethod,
-                      ).join(", ")}`,
-                    )
-                  }
-                  if (!hostObj?.[endpoint]?.[method]?.["disable_paths"]) {
-                    throw new Error400BadRequest(
-                      `Must include a 'disable_paths' field under a '${method}' field in 'blockFields' config`,
-                    )
-                  }
-                  if (
-                    !Array.isArray(
-                      hostObj[endpoint]?.[method]?.["disable_paths"],
-                    )
-                  ) {
-                    throw new Error400BadRequest(
-                      "'disable_paths' must be a list of paths to disable in 'blockFields' config",
-                    )
-                  }
-                  if (Object.keys(hostObj[endpoint]?.[method]).length > 1) {
-                    throw new Error400BadRequest(
-                      `Must only have 'disable_paths' field under '${method}' field in 'blockFields' config`,
-                    )
-                  }
                   const blockFieldMethod = DisableRestMethod[method]
                   const pathRegex = getPathRegex(endpoint)
                   const disabledPaths = endpointDisablePaths?.concat(
@@ -278,68 +227,10 @@ const populateAuthentication = async (
       AUTH_CONFIG_LIST_KEY,
     )
     if (authConfigDoc) {
-      if (!Array.isArray(authConfigDoc)) {
-        throw new Error400BadRequest(
-          "The value for the 'authentication' config must be an array of objects",
-        )
-      }
       authConfigDoc.forEach(item => {
-        if (typeof item !== "object") {
-          throw new Error400BadRequest(
-            "Each entry for 'authentication' config must be an object with required properties 'host' and 'authType', and optional properties 'headerKey', 'jwtUserPath', and 'cookieName'",
-          )
-        }
-        for (const key in item) {
-          if (!authenticationItemKeys.includes(key)) {
-            throw new Error400BadRequest(
-              `Field ${key} is not a valid field for an 'authentication' config entry, can only be the following: 'host', 'authType', 'headerKey', 'jwtUserPath', 'cookieName'`,
-            )
-          }
-        }
-        if (!item.host || !item.authType) {
-          throw new Error400BadRequest(
-            "Fields 'host' and 'authType' must be included in every entry of the 'authentication' config",
-          )
-        }
-        if (!AuthType[item.authType?.toString()?.toUpperCase()]) {
-          throw new Error400BadRequest(
-            `'${
-              item.authType
-            }' is not a valid value for 'authType', must be one of ${Object.keys(
-              AuthType,
-            )
-              .map(e => e.toLowerCase())
-              .join(", ")}`,
-          )
-        }
         const newConfig = new AuthenticationConfig()
         newConfig.host = item.host
         newConfig.authType = item.authType as AuthType
-        switch (newConfig.authType) {
-          case AuthType.HEADER:
-            if (!item.headerKey) {
-              throw new Error400BadRequest(
-                "'headerKey' field must be provided for 'authType' of 'header' in 'authentication' config",
-              )
-            }
-            break
-          case AuthType.SESSION_COOKIE:
-            if (!item.cookieName) {
-              throw new Error400BadRequest(
-                "'cookieName' field must be provided for 'authType' of 'session_cookie' in 'authentication' config",
-              )
-            }
-            break
-          case AuthType.JWT:
-            if (!item.headerKey) {
-              throw new Error400BadRequest(
-                "'headerKey' field must be provided for 'authType' of 'jwt' in 'authentication' config",
-              )
-            }
-            break
-          default:
-            break
-        }
         if (item.headerKey) newConfig.headerKey = item.headerKey
         if (item.jwtUserPath) newConfig.jwtUserPath = item.jwtUserPath
         if (item.cookieName) newConfig.cookieName = item.cookieName
