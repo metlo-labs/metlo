@@ -1,4 +1,6 @@
 import yaml from "js-yaml"
+import Ajv from "ajv"
+import SourceMap from "js-yaml-source-map"
 import { QueryRunner } from "typeorm"
 import { AuthType, DisableRestMethod } from "@common/enums"
 import { MetloConfigResp, UpdateMetloConfigParams } from "@common/types"
@@ -22,6 +24,7 @@ import {
   insertValueBuilder,
   insertValuesBuilder,
 } from "services/database/utils"
+import { METLO_CONFIG_SCHEMA } from "./constants"
 
 export const getMetloConfig = async (
   ctx: MetloContext,
@@ -29,13 +32,53 @@ export const getMetloConfig = async (
   return await createQB(ctx).from(MetloConfig, "config").getRawOne()
 }
 
+export const validateMetloConfig = (configString: string) => {
+  configString = configString.trim()
+  let metloConfig: object = null
+  const map = new SourceMap()
+  try {
+    metloConfig = yaml.load(configString, { listener: map.listen() }) as object
+    metloConfig = metloConfig ?? {}
+  } catch (err) {
+    throw new Error400BadRequest("Config is not a valid yaml file")
+  }
+  const ajv = new Ajv()
+  const validate = ajv.compile(METLO_CONFIG_SCHEMA)
+  const valid = validate(metloConfig)
+  if (!valid) {
+    const errors = validate.errors
+    if (errors) {
+      const error = errors[0]
+      let instancePath = error.instancePath
+        .replace(/\//g, ".")
+        .replace(/~1/g, "/")
+        .slice(1)
+      let errorMessage = `${error.instancePath} ${error.message}`
+      switch (error.keyword) {
+        case "additionalProperties":
+          const additionalProperty = error.params.additionalProperty
+          instancePath += `.${additionalProperty}`
+          errorMessage = `property '${additionalProperty}' is not expected to be here`
+          break
+        case "enum":
+          errorMessage = `must be equal to one of the allowed values: ${error.params.allowedValues?.join(
+            ", ",
+          )}`
+          break
+      }
+      const lineNumber = map.lookup(instancePath)?.line
+      throw new Error400BadRequest(
+        `${errorMessage}${lineNumber ? ` on line ${lineNumber}` : ""}`,
+      )
+    }
+  }
+  return metloConfig
+}
+
 export const updateMetloConfig = async (
   ctx: MetloContext,
   updateMetloConfigParams: UpdateMetloConfigParams,
 ) => {
-  if (!updateMetloConfigParams.configString) {
-    throw new Error400BadRequest("Please provide configuration specifications.")
-  }
   await populateMetloConfig(ctx, updateMetloConfigParams.configString)
 }
 
@@ -82,87 +125,81 @@ const populateBlockFields = async (
   metloConfig: object,
   queryRunner: QueryRunner,
 ) => {
-  try {
-    const blockFieldsDoc = metloConfig?.["blockFields"]
-    const blockFieldsEntries: BlockFields[] = []
-    const currBlockFieldsEntries = await RedisClient.getValuesFromSet(
-      ctx,
-      BLOCK_FIELDS_LIST_KEY,
-    )
-    if (blockFieldsDoc) {
-      for (const host in blockFieldsDoc) {
-        const hostObj = blockFieldsDoc[host]
-        let allDisablePaths = []
-        if (hostObj) {
-          if (hostObj["ALL"]) {
-            allDisablePaths = hostObj["ALL"]["disable_paths"] ?? []
-            const pathRegex = BLOCK_FIELDS_ALL_REGEX
-            const path = "/"
-            addToBlockFields(
-              blockFieldsEntries,
-              host,
-              DisableRestMethod.ALL,
-              path,
-              pathRegex,
-              allDisablePaths,
-            )
-          }
-          for (const endpoint in hostObj) {
-            if (endpoint && endpoint !== "ALL") {
-              let endpointDisablePaths = allDisablePaths
-              if (hostObj[endpoint]["ALL"]) {
-                endpointDisablePaths = endpointDisablePaths?.concat(
-                  hostObj[endpoint]["ALL"]["disable_paths"] ?? [],
-                )
+  const blockFieldsDoc = metloConfig?.["blockFields"]
+  const blockFieldsEntries: BlockFields[] = []
+  const currBlockFieldsEntries = await RedisClient.getValuesFromSet(
+    ctx,
+    BLOCK_FIELDS_LIST_KEY,
+  )
+  if (blockFieldsDoc) {
+    for (const host in blockFieldsDoc) {
+      const hostObj = blockFieldsDoc[host]
+      let allDisablePaths = []
+      if (hostObj) {
+        if (hostObj["ALL"]) {
+          allDisablePaths = hostObj["ALL"]["disable_paths"] ?? []
+          const pathRegex = BLOCK_FIELDS_ALL_REGEX
+          const path = "/"
+          addToBlockFields(
+            blockFieldsEntries,
+            host,
+            DisableRestMethod.ALL,
+            path,
+            pathRegex,
+            allDisablePaths,
+          )
+        }
+        for (const endpoint in hostObj) {
+          if (endpoint && endpoint !== "ALL") {
+            let endpointDisablePaths = allDisablePaths
+            if (hostObj[endpoint]["ALL"]) {
+              endpointDisablePaths = endpointDisablePaths?.concat(
+                hostObj[endpoint]["ALL"]["disable_paths"] ?? [],
+              )
+              const pathRegex = getPathRegex(endpoint)
+              addToBlockFields(
+                blockFieldsEntries,
+                host,
+                DisableRestMethod.ALL,
+                endpoint,
+                pathRegex,
+                endpointDisablePaths,
+              )
+            }
+            for (const method in hostObj[endpoint]) {
+              if (method && method !== "ALL") {
+                const blockFieldMethod = DisableRestMethod[method]
                 const pathRegex = getPathRegex(endpoint)
+                const disabledPaths = endpointDisablePaths?.concat(
+                  hostObj[endpoint][method]?.["disable_paths"] ?? [],
+                )
                 addToBlockFields(
                   blockFieldsEntries,
                   host,
-                  DisableRestMethod.ALL,
+                  blockFieldMethod,
                   endpoint,
                   pathRegex,
-                  endpointDisablePaths,
+                  disabledPaths,
                 )
-              }
-              for (const method in hostObj[endpoint]) {
-                if (method && method !== "ALL") {
-                  const blockFieldMethod = DisableRestMethod[method]
-                  const pathRegex = getPathRegex(endpoint)
-                  const disabledPaths = endpointDisablePaths?.concat(
-                    hostObj[endpoint][method]?.["disable_paths"] ?? [],
-                  )
-                  addToBlockFields(
-                    blockFieldsEntries,
-                    host,
-                    blockFieldMethod,
-                    endpoint,
-                    pathRegex,
-                    disabledPaths,
-                  )
-                }
               }
             }
           }
         }
       }
     }
-    await getQB(ctx, queryRunner).delete().from(BlockFields).execute()
-    await insertValuesBuilder(
-      ctx,
-      queryRunner,
-      BlockFields,
-      blockFieldsEntries,
-    ).execute()
-    if (currBlockFieldsEntries) {
-      await RedisClient.deleteFromRedis(ctx, [
-        ...currBlockFieldsEntries,
-        BLOCK_FIELDS_LIST_KEY,
-      ])
-    }
-  } catch (err) {
-    throw new Error500InternalServer(
-      `Error in populating metlo config blockFields: ${err}`,
-    )
+  }
+  await getQB(ctx, queryRunner).delete().from(BlockFields).execute()
+  await insertValuesBuilder(
+    ctx,
+    queryRunner,
+    BlockFields,
+    blockFieldsEntries,
+  ).execute()
+  if (currBlockFieldsEntries) {
+    await RedisClient.deleteFromRedis(ctx, [
+      ...currBlockFieldsEntries,
+      BLOCK_FIELDS_LIST_KEY,
+    ])
   }
 }
 
@@ -178,43 +215,37 @@ const populateAuthentication = async (
       "No ENCRYPTION_KEY found. Cannot set authentication config.",
     )
   }
-  try {
-    const authConfigDoc = metloConfig?.["authentication"]
-    const authConfigEntries: AuthenticationConfig[] = []
-    const currAuthConfigEntries = await RedisClient.getValuesFromSet(
-      ctx,
+  const authConfigDoc = metloConfig?.["authentication"]
+  const authConfigEntries: AuthenticationConfig[] = []
+  const currAuthConfigEntries = await RedisClient.getValuesFromSet(
+    ctx,
+    AUTH_CONFIG_LIST_KEY,
+  )
+  if (authConfigDoc) {
+    authConfigDoc.forEach(item => {
+      const newConfig = new AuthenticationConfig()
+      newConfig.host = item.host
+      newConfig.authType = item.authType as AuthType
+      if (item.headerKey) newConfig.headerKey = item.headerKey
+      if (item.jwtUserPath) newConfig.jwtUserPath = item.jwtUserPath
+      if (item.cookieName) newConfig.cookieName = item.cookieName
+      authConfigEntries.push(newConfig)
+    })
+  }
+  const deleteQb = getQB(ctx, queryRunner).delete().from(AuthenticationConfig)
+  const addQb = insertValuesBuilder(
+    ctx,
+    queryRunner,
+    AuthenticationConfig,
+    authConfigEntries,
+  )
+  await deleteQb.execute()
+  await addQb.execute()
+  if (currAuthConfigEntries) {
+    await RedisClient.deleteFromRedis(ctx, [
+      ...currAuthConfigEntries,
       AUTH_CONFIG_LIST_KEY,
-    )
-    if (authConfigDoc) {
-      authConfigDoc.forEach(item => {
-        const newConfig = new AuthenticationConfig()
-        newConfig.host = item.host
-        newConfig.authType = item.authType as AuthType
-        if (item.headerKey) newConfig.headerKey = item.headerKey
-        if (item.jwtUserPath) newConfig.jwtUserPath = item.jwtUserPath
-        if (item.cookieName) newConfig.cookieName = item.cookieName
-        authConfigEntries.push(newConfig)
-      })
-    }
-    const deleteQb = getQB(ctx, queryRunner).delete().from(AuthenticationConfig)
-    const addQb = insertValuesBuilder(
-      ctx,
-      queryRunner,
-      AuthenticationConfig,
-      authConfigEntries,
-    )
-    await deleteQb.execute()
-    await addQb.execute()
-    if (currAuthConfigEntries) {
-      await RedisClient.deleteFromRedis(ctx, [
-        ...currAuthConfigEntries,
-        AUTH_CONFIG_LIST_KEY,
-      ])
-    }
-  } catch (err) {
-    throw new Error500InternalServer(
-      `Error in populating metlo config authentication: ${err}`,
-    )
+    ])
   }
 }
 
@@ -225,7 +256,7 @@ export const populateMetloConfig = async (
   const queryRunner = AppDataSource.createQueryRunner()
   try {
     await queryRunner.connect()
-    const metloConfig = yaml.load(configString) as object
+    const metloConfig = validateMetloConfig(configString)
     await queryRunner.startTransaction()
     await populateAuthentication(ctx, metloConfig, queryRunner)
     await populateBlockFields(ctx, metloConfig, queryRunner)
@@ -253,7 +284,7 @@ export const populateMetloConfig = async (
     if (queryRunner.isTransactionActive) {
       await queryRunner.rollbackTransaction()
     }
-    throw new Error500InternalServer(err)
+    throw err
   } finally {
     await queryRunner.release()
   }

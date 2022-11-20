@@ -3,6 +3,8 @@ import {
   Button,
   Heading,
   HStack,
+  Link,
+  Text,
   useDisclosure,
   useToast,
   VStack,
@@ -103,6 +105,7 @@ const Settings = ({ keys: _keysString, metloConfig }) => {
           title: "Updating metlo config failed",
           status: "error",
           description: err.response?.data,
+          duration: 15000,
         }),
       )
     } finally {
@@ -167,7 +170,18 @@ const Settings = ({ keys: _keysString, metloConfig }) => {
                 Save
               </Button>
             </HStack>
-            <Box pt="2" rounded="md" h="500px" w="full" borderWidth="1px">
+            <Text pt="5px" pb="15px">
+              View our{" "}
+              <Link
+                target="_blank"
+                color="blue"
+                href="https://docs.metlo.com/docs/metlo-config"
+              >
+                docs
+              </Link>{" "}
+              on how to set up a metlo config.
+            </Text>
+            <Box pt="2" rounded="md" h="700px" w="full" borderWidth="1px">
               <Editor
                 width="100%"
                 defaultLanguage="yaml"
