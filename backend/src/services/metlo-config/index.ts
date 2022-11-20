@@ -125,85 +125,81 @@ const populateBlockFields = async (
   metloConfig: object,
   queryRunner: QueryRunner,
 ) => {
-  try {
-    const blockFieldsDoc = metloConfig?.["blockFields"]
-    const blockFieldsEntries: BlockFields[] = []
-    const currBlockFieldsEntries = await RedisClient.getValuesFromSet(
-      ctx,
-      BLOCK_FIELDS_LIST_KEY,
-    )
-    if (blockFieldsDoc) {
-      for (const host in blockFieldsDoc) {
-        const hostObj = blockFieldsDoc[host]
-        let allDisablePaths = []
-        if (hostObj) {
-          if (hostObj["ALL"]) {
-            allDisablePaths = hostObj["ALL"]["disable_paths"] ?? []
-            const pathRegex = BLOCK_FIELDS_ALL_REGEX
-            const path = "/"
-            addToBlockFields(
-              blockFieldsEntries,
-              host,
-              DisableRestMethod.ALL,
-              path,
-              pathRegex,
-              allDisablePaths,
-            )
-          }
-          for (const endpoint in hostObj) {
-            if (endpoint && endpoint !== "ALL") {
-              let endpointDisablePaths = allDisablePaths
-              if (hostObj[endpoint]["ALL"]) {
-                endpointDisablePaths = endpointDisablePaths?.concat(
-                  hostObj[endpoint]["ALL"]["disable_paths"] ?? [],
-                )
+  const blockFieldsDoc = metloConfig?.["blockFields"]
+  const blockFieldsEntries: BlockFields[] = []
+  const currBlockFieldsEntries = await RedisClient.getValuesFromSet(
+    ctx,
+    BLOCK_FIELDS_LIST_KEY,
+  )
+  if (blockFieldsDoc) {
+    for (const host in blockFieldsDoc) {
+      const hostObj = blockFieldsDoc[host]
+      let allDisablePaths = []
+      if (hostObj) {
+        if (hostObj["ALL"]) {
+          allDisablePaths = hostObj["ALL"]["disable_paths"] ?? []
+          const pathRegex = BLOCK_FIELDS_ALL_REGEX
+          const path = "/"
+          addToBlockFields(
+            blockFieldsEntries,
+            host,
+            DisableRestMethod.ALL,
+            path,
+            pathRegex,
+            allDisablePaths,
+          )
+        }
+        for (const endpoint in hostObj) {
+          if (endpoint && endpoint !== "ALL") {
+            let endpointDisablePaths = allDisablePaths
+            if (hostObj[endpoint]["ALL"]) {
+              endpointDisablePaths = endpointDisablePaths?.concat(
+                hostObj[endpoint]["ALL"]["disable_paths"] ?? [],
+              )
+              const pathRegex = getPathRegex(endpoint)
+              addToBlockFields(
+                blockFieldsEntries,
+                host,
+                DisableRestMethod.ALL,
+                endpoint,
+                pathRegex,
+                endpointDisablePaths,
+              )
+            }
+            for (const method in hostObj[endpoint]) {
+              if (method && method !== "ALL") {
+                const blockFieldMethod = DisableRestMethod[method]
                 const pathRegex = getPathRegex(endpoint)
+                const disabledPaths = endpointDisablePaths?.concat(
+                  hostObj[endpoint][method]?.["disable_paths"] ?? [],
+                )
                 addToBlockFields(
                   blockFieldsEntries,
                   host,
-                  DisableRestMethod.ALL,
+                  blockFieldMethod,
                   endpoint,
                   pathRegex,
-                  endpointDisablePaths,
+                  disabledPaths,
                 )
-              }
-              for (const method in hostObj[endpoint]) {
-                if (method && method !== "ALL") {
-                  const blockFieldMethod = DisableRestMethod[method]
-                  const pathRegex = getPathRegex(endpoint)
-                  const disabledPaths = endpointDisablePaths?.concat(
-                    hostObj[endpoint][method]?.["disable_paths"] ?? [],
-                  )
-                  addToBlockFields(
-                    blockFieldsEntries,
-                    host,
-                    blockFieldMethod,
-                    endpoint,
-                    pathRegex,
-                    disabledPaths,
-                  )
-                }
               }
             }
           }
         }
       }
     }
-    await getQB(ctx, queryRunner).delete().from(BlockFields).execute()
-    await insertValuesBuilder(
-      ctx,
-      queryRunner,
-      BlockFields,
-      blockFieldsEntries,
-    ).execute()
-    if (currBlockFieldsEntries) {
-      await RedisClient.deleteFromRedis(ctx, [
-        ...currBlockFieldsEntries,
-        BLOCK_FIELDS_LIST_KEY,
-      ])
-    }
-  } catch (err) {
-    throw err
+  }
+  await getQB(ctx, queryRunner).delete().from(BlockFields).execute()
+  await insertValuesBuilder(
+    ctx,
+    queryRunner,
+    BlockFields,
+    blockFieldsEntries,
+  ).execute()
+  if (currBlockFieldsEntries) {
+    await RedisClient.deleteFromRedis(ctx, [
+      ...currBlockFieldsEntries,
+      BLOCK_FIELDS_LIST_KEY,
+    ])
   }
 }
 
@@ -219,41 +215,37 @@ const populateAuthentication = async (
       "No ENCRYPTION_KEY found. Cannot set authentication config.",
     )
   }
-  try {
-    const authConfigDoc = metloConfig?.["authentication"]
-    const authConfigEntries: AuthenticationConfig[] = []
-    const currAuthConfigEntries = await RedisClient.getValuesFromSet(
-      ctx,
+  const authConfigDoc = metloConfig?.["authentication"]
+  const authConfigEntries: AuthenticationConfig[] = []
+  const currAuthConfigEntries = await RedisClient.getValuesFromSet(
+    ctx,
+    AUTH_CONFIG_LIST_KEY,
+  )
+  if (authConfigDoc) {
+    authConfigDoc.forEach(item => {
+      const newConfig = new AuthenticationConfig()
+      newConfig.host = item.host
+      newConfig.authType = item.authType as AuthType
+      if (item.headerKey) newConfig.headerKey = item.headerKey
+      if (item.jwtUserPath) newConfig.jwtUserPath = item.jwtUserPath
+      if (item.cookieName) newConfig.cookieName = item.cookieName
+      authConfigEntries.push(newConfig)
+    })
+  }
+  const deleteQb = getQB(ctx, queryRunner).delete().from(AuthenticationConfig)
+  const addQb = insertValuesBuilder(
+    ctx,
+    queryRunner,
+    AuthenticationConfig,
+    authConfigEntries,
+  )
+  await deleteQb.execute()
+  await addQb.execute()
+  if (currAuthConfigEntries) {
+    await RedisClient.deleteFromRedis(ctx, [
+      ...currAuthConfigEntries,
       AUTH_CONFIG_LIST_KEY,
-    )
-    if (authConfigDoc) {
-      authConfigDoc.forEach(item => {
-        const newConfig = new AuthenticationConfig()
-        newConfig.host = item.host
-        newConfig.authType = item.authType as AuthType
-        if (item.headerKey) newConfig.headerKey = item.headerKey
-        if (item.jwtUserPath) newConfig.jwtUserPath = item.jwtUserPath
-        if (item.cookieName) newConfig.cookieName = item.cookieName
-        authConfigEntries.push(newConfig)
-      })
-    }
-    const deleteQb = getQB(ctx, queryRunner).delete().from(AuthenticationConfig)
-    const addQb = insertValuesBuilder(
-      ctx,
-      queryRunner,
-      AuthenticationConfig,
-      authConfigEntries,
-    )
-    await deleteQb.execute()
-    await addQb.execute()
-    if (currAuthConfigEntries) {
-      await RedisClient.deleteFromRedis(ctx, [
-        ...currAuthConfigEntries,
-        AUTH_CONFIG_LIST_KEY,
-      ])
-    }
-  } catch (err) {
-    throw err
+    ])
   }
 }
 
