@@ -21,6 +21,7 @@ services:
     ports:
       - 8081:8081
     environment:
+      - LICENSE_KEY=${LICENSE_KEY}
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
       - REDIS_URL=redis://:eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81@cache:6379
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
@@ -43,6 +44,7 @@ services:
     ports:
       - 8080:8080
     environment:
+      - LICENSE_KEY=${LICENSE_KEY}
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
       - REDIS_URL=redis://:eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81@cache:6379
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
@@ -57,6 +59,7 @@ services:
       - ingestor
     restart: unless-stopped
     environment:
+      - LICENSE_KEY=${LICENSE_KEY}
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
       - DISABLE_LOGGING_STATS=${DISABLE_LOGGING_STATS}
   analyzer:
@@ -67,6 +70,7 @@ services:
       - ingestor
     restart: unless-stopped
     environment:
+      - LICENSE_KEY=${LICENSE_KEY}
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
       - REDIS_URL=redis://:eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81@cache:6379
       - NUM_WORKERS=${NUM_WORKERS}
