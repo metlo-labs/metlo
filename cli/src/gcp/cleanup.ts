@@ -212,7 +212,7 @@ export async function cleanupGCP(
     spinner.succeed("Deleted inbound Firewall Rule")
 
     spinner.start("Deleting outbound Firewall Rule")
-    const firewallOutbound = firewalls.find((_firewall) => _firewall.name.includes(metloUUID))
+    const firewallOutbound = firewalls.find((_firewall) => _firewall.name.includes(`metlo-firewall-out-${metloUUID}`))
     const firewallOutboundName = firewallOutbound.selfLink.split("/").at(-1)
     assert.ok(
         firewallOutboundName == `metlo-firewall-out-${metloUUID}`,

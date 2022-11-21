@@ -207,7 +207,7 @@ const createFirewallRule = async (
         firewallName: firewallInboundName,
         networkName: network_url
     })
-    spinner.succeed()
+    spinner.succeed("Created inbound firewall rule")
 
     spinner.start("Creating outbound firewall rule")
     let [respOutbound] = await conn.create_outbound_firewall_rule({
