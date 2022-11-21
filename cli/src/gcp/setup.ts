@@ -199,18 +199,28 @@ const createFirewallRule = async (
     ip_range,
     id
 ) => {
-    const firewallName = `metlo-firewall-${id}`
-    spinner.text = "Creating Firewall rule"
-    spinner.start()
-    let resp = await conn.create_firewall_rule({
-        firewallName,
-        networkName: network_url,
-        ipRange: ip_range,
+    const firewallInboundName = `metlo-firewall-in-${id}`
+    const firewallOutboundName = `metlo-firewall-out-${id}`
+
+    spinner.start("Creating inbound firewall rule")
+    let [respInbound] = await conn.create_inbound_firewall_rule({
+        firewallName: firewallInboundName,
+        networkName: network_url
     })
-    spinner.succeed("Created Firewall rule")
+    spinner.succeed("Created inbound firewall rule")
+
+    spinner.start("Creating outbound firewall rule")
+    let [respOutbound] = await conn.create_outbound_firewall_rule({
+        firewallName: firewallOutboundName,
+        networkName: network_url
+    })
+    spinner.succeed("Created outbound firewall rule")
     spinner.stop()
     spinner.clear()
-    return { firewallRuleUrl: resp[0].latestResponse.targetLink }
+    return {
+        firewallInboundRuleUrl: respInbound.latestResponse.targetLink,
+        firewallOutboundRuleUrl: respOutbound.latestResponse.targetLink,
+    }
 }
 
 const createCloudRouter = async (
@@ -596,8 +606,9 @@ export const gcpTrafficMirrorSetup = async () => {
             const { ipRange, destinationSubnetworkUrl } = await getDestinationSubnet(conn, networkUrl, id)
             data["ipRange"] = ipRange
             data["destinationSubnetworkUrl"] = destinationSubnetworkUrl
-            const { firewallRuleUrl } = await createFirewallRule(conn, networkUrl, ipRange, id)
-            data["firewallRuleUrl"] = firewallRuleUrl
+            const { firewallInboundRuleUrl, firewallOutboundRuleUrl } = await createFirewallRule(conn, networkUrl, ipRange, id)
+            data["firewallInboundRuleUrl"] = firewallInboundRuleUrl
+            data["firewallOutboundRuleUrl"] = firewallOutboundRuleUrl
             const { routerURL } = await createCloudRouter(conn, networkUrl, destinationSubnetworkUrl, id)
             data["routerURL"] = routerURL
             const { imageTemplateUrl, instanceGroupName, instanceUrl } = await create_mig(conn, networkUrl, destinationSubnetworkUrl, resolveImageURL(zone), id)

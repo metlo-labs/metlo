@@ -84,7 +84,7 @@ export async function cleanupGCP(
     const backendName = backend.selfLink.split("/").at(-1)
     assert.ok(
         backendName == `metlo-backend-${metloUUID}`,
-        `Beckend service didn't match expected name.
+        `Load Balancer service didn't match expected name.
         Found ${backendName},expected metlo-backend-${metloUUID}`
     )
     // Delete GCP Backend Service
@@ -108,7 +108,7 @@ export async function cleanupGCP(
     const healthCheckName = check.selfLink.split("/").at(-1)
     assert.ok(
         healthCheckName == `metlo-health-check-${metloUUID}`,
-        `Beckend service didn't match expected name.
+        `Health Check service didn't match expected name.
         Found ${healthCheckName},expected metlo-health-check-${metloUUID}`
     )
     // Delete GCP Health Check
@@ -130,7 +130,7 @@ export async function cleanupGCP(
     const groupName = group.selfLink.split("/").at(-1)
     assert.ok(
         groupName == `metlo-mig-${metloUUID}`,
-        `Beckend service didn't match expected name.
+        `Instance Group didn't match expected name.
         Found ${groupName},expected metlo-mig-${metloUUID}`
     )
     // Delete GCP Instance Group Manager
@@ -154,7 +154,7 @@ export async function cleanupGCP(
     const templateName = template.selfLink.split("/").at(-1)
     assert.ok(
         templateName == `metlo-image-template-${metloUUID}`,
-        `Beckend service didn't match expected name.
+        `Instance Template didn't match expected name.
         Found ${templateName},expected metlo-image-template-${metloUUID}`
     )
     // Delete GCP Instance Template
@@ -189,27 +189,48 @@ export async function cleanupGCP(
     //   } catch (err) {
     //     throw new Error(`Couldn't delete subnet ${gcp.destination_subnetwork_url}`)
     //   }
-    spinner.start("Deleting Firewall Rule")
+    spinner.start("Deleting inbound Firewall Rule")
     const [firewalls, ,] = await conn.list_firewall_rules()
-    const firewall = firewalls.find((_firewall) => _firewall.name.includes(metloUUID))
-    const firewallName = firewall.selfLink.split("/").at(-1)
+    const firewallInbound = firewalls.find((_firewall) => _firewall.name.includes(`metlo-firewall-in-${metloUUID}`))
+    const firewallInboundName = firewallInbound.selfLink.split("/").at(-1)
     assert.ok(
-        firewallName == `metlo-firewall-${metloUUID}`,
-        `Beckend service didn't match expected name.
-        Found ${firewallName},expected metlo-firewall-${metloUUID}`
+        firewallInboundName == `metlo-firewall-in-${metloUUID}`,
+        `Inbound Firewall didn't match expected name.
+        Found ${firewallInboundName},expected metlo-firewall-in-${metloUUID}`
     )
     //   Delete GCP Firewall
     try {
         let resp_firewall = await conn.delete_firewall_rule({
-            firewallURL: firewallName,
+            firewallURL: firewallInboundName,
         })
         await wait_for_global_operation(resp_firewall[0].name, conn)
     } catch (err) {
         spinner.stop()
         console.warn(err)
-        throw new Error(`Couldn't delete Firewall rule ${firewall.name}`)
+        throw new Error(`Couldn't delete Firewall rule ${firewallInbound.name}`)
     }
-    spinner.succeed("Deleted Firewall Rule")
+    spinner.succeed("Deleted inbound Firewall Rule")
+
+    spinner.start("Deleting outbound Firewall Rule")
+    const firewallOutbound = firewalls.find((_firewall) => _firewall.name.includes(`metlo-firewall-out-${metloUUID}`))
+    const firewallOutboundName = firewallOutbound.selfLink.split("/").at(-1)
+    assert.ok(
+        firewallOutboundName == `metlo-firewall-out-${metloUUID}`,
+        `Outbound Firewall didn't match expected name.
+        Found ${firewallOutboundName},expected metlo-firewall-out-${metloUUID}`
+    )
+    //   Delete GCP Firewall
+    try {
+        let resp_firewall = await conn.delete_firewall_rule({
+            firewallURL: firewallOutboundName,
+        })
+        await wait_for_global_operation(resp_firewall[0].name, conn)
+    } catch (err) {
+        spinner.stop()
+        console.warn(err)
+        throw new Error(`Couldn't delete Firewall rule ${firewallOutbound.name}`)
+    }
+    spinner.succeed("Deleted inbound Firewall Rule")
 
     return `Deleted connection ${metloUUID}`
 }
