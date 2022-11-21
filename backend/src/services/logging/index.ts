@@ -27,6 +27,7 @@ export const logAggregatedStats = async (ctx: MetloContext) => {
         piiDataFields: counts.piiDataFields,
         email: settings.updateEmail,
         skippedEmail: settings.skippedUpdateEmail,
+        licenseKey: process.env.LICENSE_KEY,
       },
     },
   })
