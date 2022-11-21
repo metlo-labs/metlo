@@ -195,7 +195,7 @@ export class GCP_CONN {
     return resp
   }
 
-  public async create_firewall_rule({ firewallName, networkName, ipRange }) {
+  public async create_inbound_firewall_rule({ firewallName, networkName }) {
     const conn = new FirewallsClient({ credentials: this.keyfile })
     return conn.insert({
       project: this.project,
@@ -211,8 +211,30 @@ export class GCP_CONN {
         },
         allowed: [
           {
-            IPProtocol: "UDP",
-            ports: ["4789"]
+            IPProtocol: "all"
+          },
+        ],
+      },
+    })
+  }
+
+  public async create_outbound_firewall_rule({ firewallName, networkName }) {
+    const conn = new FirewallsClient({ credentials: this.keyfile })
+    return conn.insert({
+      project: this.project,
+      firewallResource: {
+        direction: "EGRESS",
+        network: networkName,
+        targetTags: [METLO_DATA_COLLECTOR_TAG],
+        sourceRanges: ["0.0.0.0/0"],
+        name: firewallName,
+        priority: 65534,
+        logConfig: {
+          enable: false,
+        },
+        allowed: [
+          {
+            IPProtocol: "all"
           },
         ],
       },
