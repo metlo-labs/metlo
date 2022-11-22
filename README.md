@@ -100,12 +100,14 @@
 
 **Deploy with Docker**
 
+We recommend starting metlo for docker using the [manage-deployment.py]("./manage-deployment.py") script.
 Run the following in your cloud environment:
 
 ```bash
-git clone https://github.com/metlo-labs/metlo.git
-cd metlo
-ENCRYPTION_KEY="some random string" EXPRESS_SECRET="some random string" docker-compose up -d
+sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/master/manage-deployment.py -O manage-deployment.py
+sudo chmod +x manage-deployment.py
+python manage-deployment.py init
+python manage-deployment.py start
 ```
 
 Now visit [http://localhost:8000](http://localhost:8000)
