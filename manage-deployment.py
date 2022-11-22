@@ -47,7 +47,7 @@ def get_license_key(quiet):
         if quiet:
             license = ""
         else:
-            license = input("Please input Metlo license key: ")
+            license = input("[Optional] Please enter your license key: ")
     return license
 
 
