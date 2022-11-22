@@ -13,4 +13,7 @@ WORKDIR /usr/src/app/backend
 RUN yarn
 RUN yarn build
 
+RUN rm -rf src
+RUN yarn cache clean
+
 CMD [ "yarn", "start-jobs" ]
