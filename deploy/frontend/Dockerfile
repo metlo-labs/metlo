@@ -10,9 +10,12 @@ RUN yarn
 RUN yarn build
 
 WORKDIR /usr/src/app/frontend
-RUN echo 'BACKEND_URL=http://backend:8080' > .env
+RUN echo 'BACKEND_URL=http://backend:8080' >> .env
+RUN echo 'NODE_ENV=production' >> .env
 RUN yarn
 RUN yarn build
+RUN rm -rf src
+RUN yarn cache clean
 
 EXPOSE 8080
 

@@ -14,4 +14,7 @@ RUN yarn
 EXPOSE 8080
 RUN yarn build
 
+RUN rm -rf src
+RUN yarn cache clean
+
 CMD [ "yarn", "start" ]
