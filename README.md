@@ -100,7 +100,7 @@
 
 **Deploy with Docker**
 
-We recommend starting metlo for docker using the [manage-deployment.py]("./manage-deployment.py") script.
+We recommend starting metlo for docker using the [manage-deployment.py](./manage-deployment.py) script.
 Run the following in your cloud environment:
 
 ```bash
