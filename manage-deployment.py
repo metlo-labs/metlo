@@ -41,7 +41,7 @@ def gen_secret(l):
     )
 
 
-def get_license_key():
+def get_license_key(quiet):
     license = os.environ.get("LICENSE_KEY")
     if license is None:
         if quiet:
@@ -51,13 +51,13 @@ def get_license_key():
     return license
 
 
-def write_env():
+def write_env(quiet):
     encryption_key = b64encode(secrets.token_bytes(32)).decode("UTF-8")
     express_secret = gen_secret(32)
     clickhouse_user = gen_secret(16)
     clickhouse_password = gen_secret(16)
     instance_ip = get_current_ip()
-    license_key = get_license_key()
+    license_key = get_license_key(quiet)
     init_env_file = f"""
 ENCRYPTION_KEY="{encryption_key}"
 BACKEND_URL="http://{instance_ip}:8081"
@@ -77,7 +77,7 @@ def init_env(quiet=False):
     if os.path.exists(ENV_PATH):
         return
     print("Initializing Environment...")
-    write_env()
+    write_env(quiet)
 
 
 def pull_files():
@@ -98,10 +98,10 @@ def pull_dockers():
         subprocess.run(["docker", "pull", f"metlo/{e}"])
 
 
-def init():
+def init(quiet=False):
     if not os.path.exists(METLO_DIR):
         os.mkdir(METLO_DIR)
-    init_env()
+    init_env(quiet)
     pull_files()
     pull_dockers()
 
@@ -149,16 +149,11 @@ def main():
 
     args = parser.parse_args()
 
-    global quiet
-    quiet = False
-
     command = args.command
     if command == "init":
-        quiet = args.quiet
-        init()
+        init(args.quiet)
     elif command == "init-env":
-        quiet = args.quiet
-        init_env()
+        init_env(args.quiet)
     elif command == "start":
         start()
     elif command == "stop":
