@@ -187,7 +187,7 @@ export const gcpTrafficMirrorDelete = async () => {
 
         const [packetMirrors] = await conn.list_packet_mirroring()
 
-        await deletePacketMirroringResources(conn, packetMirrors)
+        await deletePacketMirroringResources(conn, packetMirrors.filter(mirror => mirror.network.url == networkUrl))
     } catch (e) {
         spinner.fail()
         console.log(chalk.bgRedBright("Metlo packet mirroring item removal failed. This might help in debugging it."))
