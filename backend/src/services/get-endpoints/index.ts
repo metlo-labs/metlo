@@ -50,6 +50,24 @@ ORDER BY
 `
 
 export class GetEndpointsService {
+  static async updateFullTraceCaptureEnabled(
+    ctx: MetloContext,
+    apiEndpointUuid: string,
+    enabled: boolean,
+  ): Promise<void> {
+    const endpoint = await getRepoQB(ctx, ApiEndpoint)
+      .andWhere("uuid = :id", { id: apiEndpointUuid })
+      .getRawOne()
+    if (!endpoint) {
+      throw new Error404NotFound("Endpoint does not exist.")
+    }
+    await createQB(ctx)
+      .update(ApiEndpoint)
+      .set({ fullTraceCaptureEnabled: enabled })
+      .andWhere("uuid = :id", { id: apiEndpointUuid })
+      .execute()
+  }
+
   static async updateIsAuthenticated(
     ctx: MetloContext,
     apiEndpointUuid: string,

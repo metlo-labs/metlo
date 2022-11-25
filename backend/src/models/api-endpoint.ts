@@ -80,6 +80,9 @@ export class ApiEndpoint extends MetloBaseEntity {
   @Column({ type: "bool", default: false })
   isGraphQl: boolean
 
+  @Column({ type: "bool", nullable: false, default: false })
+  fullTraceCaptureEnabled: boolean
+
   @Column({ nullable: true })
   openapiSpecName: string
 

@@ -26,6 +26,7 @@ import { addApiEndpointUuidIndexForAlert1667259254414 } from "migrations/1667259
 import { MetloConfig } from "models/metlo-config"
 import { addMetloConfigTable1667599667595 } from "migrations/1667599667595-add-metlo-config-table"
 import { updateDisabledPathsColumnBlockFieldsTable1667606447208 } from "migrations/1667606447208-update-disabledPaths-column-blockFields-table"
+import { addFullTraceCaptureEnabledColumnApiEndpointTable1668652526988 } from "migrations/1668652526988-add-fullTraceCaptureEnabled-column-apiEndpoint-table"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -57,6 +58,7 @@ export const AppDataSource: DataSource = new DataSource({
     addApiEndpointUuidIndexForAlert1667259254414,
     addMetloConfigTable1667599667595,
     updateDisabledPathsColumnBlockFieldsTable1667606447208,
+    addFullTraceCaptureEnabledColumnApiEndpointTable1668652526988,
   ],
   migrationsRun: runMigration,
   logging: false,

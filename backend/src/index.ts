@@ -9,6 +9,7 @@ import {
   getHostsHandler,
   getUsageHandler,
   updateEndpointIsAuthenticated,
+  updateFullTraceCaptureEnabled,
 } from "api/get-endpoints"
 import {
   deleteSpecHandler,
@@ -83,8 +84,16 @@ apiRouter.put(
   "/api/v1/endpoint/:endpointId/authenticated",
   updateEndpointIsAuthenticated,
 )
+apiRouter.put(
+  "/api/v1/endpoint/:endpointId/enable-full-trace-capture",
+  updateFullTraceCaptureEnabled,
+)
 
-apiRouter.post("/api/v1/spec/new", MulterSource.single("file"), uploadNewSpecHandler)
+apiRouter.post(
+  "/api/v1/spec/new",
+  MulterSource.single("file"),
+  uploadNewSpecHandler,
+)
 apiRouter.delete("/api/v1/spec/:specFileName", deleteSpecHandler)
 apiRouter.put(
   "/api/v1/spec/:specFileName",

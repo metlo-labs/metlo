@@ -8,15 +8,20 @@ import {
   Stack,
   HStack,
   Checkbox,
+  Switch,
+  useToast,
 } from "@chakra-ui/react"
 import dynamic from "next/dynamic"
 import { DataAttribute, DataHeading } from "components/utils/Card"
 import EndpointUsageChart from "./UsageChart"
 import { RISK_TO_COLOR } from "~/constants"
 import EndpointPIIChart from "./PIIChart"
-import { getDateTimeString } from "utils"
+import { getDateTimeString, makeToast } from "utils"
 import { DataTag, Status } from "@common/enums"
-import { updateEndpointAuthenticated } from "api/endpoints"
+import {
+  updateFullTraceCaptureEnabled,
+  updateEndpointAuthenticated,
+} from "api/endpoints"
 
 const SpecComponent = dynamic(() => import("./SpecComponent"), { ssr: false })
 
@@ -33,6 +38,10 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
     const [authenticated, setAuthenticated] = useState(
       endpoint.isAuthenticatedUserSet,
     )
+    const [fullTraceCaptureEnabled, setFullTraceCaptureEnabled] = useState(
+      endpoint.fullTraceCaptureEnabled,
+    )
+    const toast = useToast()
 
     const handleAuthenticatedCheck = (
       checked: boolean,
@@ -43,6 +52,25 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
       }
       updateEndpointAuthenticated(endpoint.uuid, authenticated)
       setAuthenticated(authenticated)
+    }
+
+    const handleEnableFullTraceCapture = async (enabled: boolean) => {
+      try {
+        await updateFullTraceCaptureEnabled(endpoint.uuid, enabled)
+        setFullTraceCaptureEnabled(enabled)
+      } catch (err) {
+        toast(
+          makeToast(
+            {
+              title: "Updating Full Trace Capture failed",
+              status: "error",
+              description: err.response?.data,
+              duration: 3000,
+            },
+            err.response?.status,
+          ),
+        )
+      }
     }
 
     return (
@@ -116,6 +144,14 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
                   No
                 </Checkbox>
               </HStack>
+            </GridItem>
+            <GridItem>
+              <DataHeading>Enable Full Trace Capture</DataHeading>
+              <Switch
+                size="md"
+                isChecked={fullTraceCaptureEnabled}
+                onChange={e => handleEnableFullTraceCapture(e.target.checked)}
+              />
             </GridItem>
             {usage.length > 0 && (
               <GridItem w="100%" colSpan={2}>

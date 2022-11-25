@@ -70,6 +70,18 @@ WHERE
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms))
 
+const stripTrace = (
+  trace: QueuedApiTrace,
+  fullTraceCaptureEnabled: boolean,
+) => {
+  if (!fullTraceCaptureEnabled) {
+    trace.requestHeaders = []
+    trace.requestBody = ""
+    trace.responseHeaders = []
+    trace.responseBody = ""
+  }
+}
+
 const getQueuedApiTrace = async (): Promise<{
   trace: QueuedApiTrace
   ctx: MetloContext
@@ -118,6 +130,7 @@ const analyze = async (
     alerts = alerts?.concat(newEndpointAlert)
   }
 
+  stripTrace(trace, apiEndpoint.fullTraceCaptureEnabled)
   await queryRunner.startTransaction()
   await retryTypeormTransaction(
     () =>
