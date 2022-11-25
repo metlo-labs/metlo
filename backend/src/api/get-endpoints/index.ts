@@ -72,12 +72,31 @@ export const updateEndpointIsAuthenticated = async (
 ): Promise<void> => {
   try {
     const { endpointId } = req.params
+    if (!validator.isUUID(endpointId)) {
+      throw new Error404NotFound("Endpoint does not exist.")
+    }
     const params: { authenticated: boolean } = req.body
     await GetEndpointsService.updateIsAuthenticated(
       req.ctx,
       endpointId,
       params.authenticated,
     )
+    await ApiResponseHandler.success(res, "Success")
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}
+
+export const deleteEndpointHandler = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { endpointId } = req.params
+    if (!validator.isUUID(endpointId)) {
+      throw new Error404NotFound("Endpoint does not exist.")
+    }
+    await GetEndpointsService.deleteEndpoint(req.ctx, endpointId)
     await ApiResponseHandler.success(res, "Success")
   } catch (err) {
     await ApiResponseHandler.error(res, err)

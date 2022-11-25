@@ -7,6 +7,7 @@ import {
   Alert,
   DataField,
   OpenApiSpec,
+  Attack,
 } from "models"
 import {
   GetEndpointParams,
@@ -50,6 +51,67 @@ ORDER BY
 `
 
 export class GetEndpointsService {
+  static async deleteEndpoint(
+    ctx: MetloContext,
+    apiEndpointUuid: string,
+  ): Promise<void> {
+    const queryRunner = AppDataSource.createQueryRunner()
+    try {
+      await queryRunner.connect()
+      const endpoint = await getEntityManager(ctx, queryRunner).findOneBy(
+        ApiEndpoint,
+        { uuid: apiEndpointUuid },
+      )
+      if (!endpoint) {
+        throw new Error404NotFound("Endpoint not found.")
+      }
+      await queryRunner.startTransaction()
+      await getQB(ctx, queryRunner)
+        .delete()
+        .from(AggregateTraceDataHourly)
+        .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+        .execute()
+      await getQB(ctx, queryRunner)
+        .delete()
+        .from(Alert)
+        .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+        .execute()
+      await getQB(ctx, queryRunner)
+        .delete()
+        .from(ApiEndpointTest)
+        .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+        .execute()
+      await getQB(ctx, queryRunner)
+        .delete()
+        .from(ApiTrace)
+        .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+        .execute()
+      await getQB(ctx, queryRunner)
+        .delete()
+        .from(Attack)
+        .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+        .execute()
+      await getQB(ctx, queryRunner)
+        .delete()
+        .from(DataField)
+        .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+        .execute()
+      await getQB(ctx, queryRunner)
+        .delete()
+        .from(ApiEndpoint)
+        .andWhere("uuid = :id", { id: apiEndpointUuid })
+        .execute()
+      await queryRunner.commitTransaction()
+    } catch (err) {
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction()
+      }
+      throw err
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
   static async updateIsAuthenticated(
     ctx: MetloContext,
     apiEndpointUuid: string,

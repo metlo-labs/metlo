@@ -4,6 +4,7 @@ dotenv.config()
 import express, { Express, Response } from "express"
 import { InstanceSettings } from "models"
 import {
+  deleteEndpointHandler,
   getEndpointHandler,
   getEndpointsHandler,
   getHostsHandler,
@@ -83,8 +84,13 @@ apiRouter.put(
   "/api/v1/endpoint/:endpointId/authenticated",
   updateEndpointIsAuthenticated,
 )
+apiRouter.delete("/api/v1/endpoint/:endpointId", deleteEndpointHandler)
 
-apiRouter.post("/api/v1/spec/new", MulterSource.single("file"), uploadNewSpecHandler)
+apiRouter.post(
+  "/api/v1/spec/new",
+  MulterSource.single("file"),
+  uploadNewSpecHandler,
+)
 apiRouter.delete("/api/v1/spec/:specFileName", deleteSpecHandler)
 apiRouter.put(
   "/api/v1/spec/:specFileName",
