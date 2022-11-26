@@ -119,3 +119,15 @@ export const deleteHostHandler = async (
     await ApiResponseHandler.error(res, err)
   }
 }
+
+export const getHostsListHandler = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const resp = await GetEndpointsService.getHostsList(req.ctx, {})
+    await ApiResponseHandler.success(res, resp)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}

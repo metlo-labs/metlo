@@ -15,6 +15,8 @@ import {
   ApiEndpoint as ApiEndpointResponse,
   ApiEndpointDetailed as ApiEndpointDetailedResponse,
   Usage as UsageResponse,
+  GetHostParams,
+  HostResponse,
 } from "@common/types"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { Test } from "@metlo/testing"
@@ -267,7 +269,7 @@ export class GetEndpointsService {
         whereFilterString = `WHERE ${whereFilter.join(" AND ")}`
       }
       const limitFilter = `LIMIT ${getEndpointParams?.limit ?? 10}`
-      const offsetFilter = `OFFSET ${getEndpointParams?.offset ?? 10}`
+      const offsetFilter = `OFFSET ${getEndpointParams?.offset ?? 0}`
 
       const endpointResults = await queryRunner.query(
         getEndpointsQuery(ctx, whereFilterString, limitFilter, offsetFilter),
@@ -354,6 +356,34 @@ export class GetEndpointsService {
     } catch (err) {
       console.error(`Error in Get Endpoints service: ${err}`)
       throw new Error500InternalServer(err)
+    }
+  }
+
+  static async getHostsList(
+    ctx: MetloContext,
+    getHostsParams: GetHostParams,
+  ): Promise<[HostResponse[], any]> {
+    const queryRunner = AppDataSource.createQueryRunner()
+    try {
+      await queryRunner.connect()
+      let qb = getQB(ctx, queryRunner)
+        .select(["host", `COUNT(uuid) as "numEndpoints"`])
+        .from(ApiEndpoint, "endpoint")
+        .distinct(true)
+        .groupBy("host")
+        .limit(getHostsParams?.limit ?? 10)
+        .offset(getHostsParams?.offset ?? 0)
+
+      const hostsResp = await qb.getRawMany()
+      const totalHosts = await getQB(ctx, queryRunner)
+        .select([`COUNT(DISTINCT(host))::int as "numHosts"`])
+        .from(ApiEndpoint, "endpoint")
+        .getRawOne()
+      return [hostsResp, totalHosts?.numHosts ?? 0]
+    } catch (err) {
+      throw new Error500InternalServer(err)
+    } finally {
+      await queryRunner.release()
     }
   }
 
