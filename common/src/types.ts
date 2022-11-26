@@ -112,6 +112,7 @@ export interface GetEndpointParams {
 export interface GetHostParams {
   offset?: number
   limit?: number
+  searchQuery?: string
 }
 
 export interface GetAlertParams {

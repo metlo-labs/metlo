@@ -1,7 +1,7 @@
 import { Response } from "express"
 import validator from "validator"
 import { GetEndpointsService } from "services/get-endpoints"
-import { GetEndpointParams } from "@common/types"
+import { GetEndpointParams, GetHostParams } from "@common/types"
 import ApiResponseHandler from "api-response-handler"
 import Error404NotFound from "errors/error-404-not-found"
 import { MetloRequest } from "types"
@@ -124,8 +124,9 @@ export const getHostsListHandler = async (
   req: MetloRequest,
   res: Response,
 ): Promise<void> => {
+  const hostsParams: GetHostParams = req.query
   try {
-    const resp = await GetEndpointsService.getHostsList(req.ctx, {})
+    const resp = await GetEndpointsService.getHostsList(req.ctx, hostsParams)
     await ApiResponseHandler.success(res, resp)
   } catch (err) {
     await ApiResponseHandler.error(res, err)

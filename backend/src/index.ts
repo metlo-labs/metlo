@@ -88,7 +88,7 @@ apiRouter.put(
 )
 apiRouter.delete("/api/v1/endpoint/:endpointId", deleteEndpointHandler)
 apiRouter.delete("/api/v1/host", deleteHostHandler)
-apiRouter.get("/api/v1/host", getHostsListHandler)
+apiRouter.get("/api/v1/hosts", getHostsListHandler)
 
 apiRouter.post(
   "/api/v1/spec/new",

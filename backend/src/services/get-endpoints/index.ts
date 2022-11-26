@@ -366,19 +366,32 @@ export class GetEndpointsService {
     const queryRunner = AppDataSource.createQueryRunner()
     try {
       await queryRunner.connect()
+
       let qb = getQB(ctx, queryRunner)
         .select(["host", `COUNT(uuid) as "numEndpoints"`])
         .from(ApiEndpoint, "endpoint")
         .distinct(true)
         .groupBy("host")
+      let totalHostsQb = await getQB(ctx, queryRunner)
+        .select([`COUNT(DISTINCT(host))::int as "numHosts"`])
+        .from(ApiEndpoint, "endpoint")
+
+      if (getHostsParams?.searchQuery) {
+        qb = qb.andWhere("host ILIKE :searchQuery", {
+          searchQuery: `%${getHostsParams.searchQuery}%`,
+        })
+        totalHostsQb = totalHostsQb.andWhere("host ILIKE :searchQuery", {
+          searchQuery: `%${getHostsParams.searchQuery}%`,
+        })
+      }
+
+      qb = qb
         .limit(getHostsParams?.limit ?? 10)
         .offset(getHostsParams?.offset ?? 0)
 
       const hostsResp = await qb.getRawMany()
-      const totalHosts = await getQB(ctx, queryRunner)
-        .select([`COUNT(DISTINCT(host))::int as "numHosts"`])
-        .from(ApiEndpoint, "endpoint")
-        .getRawOne()
+      const totalHosts = await totalHostsQb.getRawOne()
+
       return [hostsResp, totalHosts?.numHosts ?? 0]
     } catch (err) {
       throw new Error500InternalServer(err)
