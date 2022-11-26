@@ -85,35 +85,22 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
         }
       }
       {
-        name: 'Metlo-Collector'
+        name: 'Metlo-Collector-10-8'
         properties: {
           priority: 1001
-          protocol: 'Tcp'
-          access: 'Allow'
-          direction: 'Inbound'
-          sourceAddressPrefix: '*'
-          sourcePortRange: '*'
-          destinationAddressPrefix: '*'
-          destinationPortRange: '8081'
-        }
-      }
-      {
-        name: 'Metlo-Frontend-10-8'
-        properties: {
-          priority: 1002
           protocol: 'Tcp'
           access: 'Allow'
           direction: 'Inbound'
           sourceAddressPrefix: '10.0.0.0/8'
           sourcePortRange: '*'
           destinationAddressPrefix: '*'
-          destinationPortRange: '8000'
+          destinationPortRange: '8081'
         }
       }
       {
-        name: 'Metlo-Frontend-172.16-12'
+        name: 'Metlo-Collector-172.16-12'
         properties: {
-          priority: 1003
+          priority: 1002
           protocol: 'Tcp'
           access: 'Allow'
           direction: 'Inbound'
@@ -124,9 +111,9 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
         }
       }
       {
-        name: 'Metlo-Frontend-192.168-16'
+        name: 'Metlo-Collector-192.168-16'
         properties: {
-          priority: 1004
+          priority: 1003
           protocol: 'Tcp'
           access: 'Allow'
           direction: 'Inbound'
