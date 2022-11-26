@@ -1,3 +1,4 @@
+import { QueryRunner } from "typeorm"
 import { AppDataSource } from "data-source"
 import {
   ApiEndpoint,
@@ -102,6 +103,76 @@ export class GetEndpointsService {
         .andWhere("uuid = :id", { id: apiEndpointUuid })
         .execute()
       await queryRunner.commitTransaction()
+    } catch (err) {
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction()
+      }
+      throw err
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  static async deleteEndpointsBatch(
+    ctx: MetloContext,
+    apiEndpointUuids: string[],
+    queryRunner: QueryRunner,
+  ): Promise<void> {
+    await getQB(ctx, queryRunner)
+      .delete()
+      .from(AggregateTraceDataHourly)
+      .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
+      .execute()
+    await getQB(ctx, queryRunner)
+      .delete()
+      .from(Alert)
+      .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
+      .execute()
+    await getQB(ctx, queryRunner)
+      .delete()
+      .from(ApiEndpointTest)
+      .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
+      .execute()
+    await getQB(ctx, queryRunner)
+      .delete()
+      .from(ApiTrace)
+      .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
+      .execute()
+    await getQB(ctx, queryRunner)
+      .delete()
+      .from(Attack)
+      .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
+      .execute()
+    await getQB(ctx, queryRunner)
+      .delete()
+      .from(DataField)
+      .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
+      .execute()
+    await getQB(ctx, queryRunner)
+      .delete()
+      .from(ApiEndpoint)
+      .andWhere("uuid IN(:...ids)", { ids: apiEndpointUuids })
+      .execute()
+  }
+
+  static async deleteHost(ctx: MetloContext, host: string): Promise<void> {
+    const queryRunner = AppDataSource.createQueryRunner()
+    try {
+      await queryRunner.connect()
+      const endpoints = await getQB(ctx, queryRunner)
+        .select(["uuid"])
+        .from(ApiEndpoint, "endpoint")
+        .andWhere("host = :host", { host })
+        .getRawMany()
+      if (endpoints?.length > 0) {
+        await queryRunner.startTransaction()
+        await this.deleteEndpointsBatch(
+          ctx,
+          endpoints?.map(e => e.uuid),
+          queryRunner,
+        )
+        await queryRunner.commitTransaction()
+      }
     } catch (err) {
       if (queryRunner.isTransactionActive) {
         await queryRunner.rollbackTransaction()

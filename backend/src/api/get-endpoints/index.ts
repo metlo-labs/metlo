@@ -5,6 +5,7 @@ import { GetEndpointParams } from "@common/types"
 import ApiResponseHandler from "api-response-handler"
 import Error404NotFound from "errors/error-404-not-found"
 import { MetloRequest } from "types"
+import Error400BadRequest from "errors/error-400-bad-request"
 
 export const getEndpointsHandler = async (
   req: MetloRequest,
@@ -97,6 +98,22 @@ export const deleteEndpointHandler = async (
       throw new Error404NotFound("Endpoint does not exist.")
     }
     await GetEndpointsService.deleteEndpoint(req.ctx, endpointId)
+    await ApiResponseHandler.success(res, "Success")
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}
+
+export const deleteHostHandler = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { host } = req.body
+    if (!host) {
+      throw new Error400BadRequest("Must provide host.")
+    }
+    await GetEndpointsService.deleteHost(req.ctx, host)
     await ApiResponseHandler.success(res, "Success")
   } catch (err) {
     await ApiResponseHandler.error(res, err)

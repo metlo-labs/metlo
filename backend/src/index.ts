@@ -5,6 +5,7 @@ import express, { Express, Response } from "express"
 import { InstanceSettings } from "models"
 import {
   deleteEndpointHandler,
+  deleteHostHandler,
   getEndpointHandler,
   getEndpointsHandler,
   getHostsHandler,
@@ -85,6 +86,7 @@ apiRouter.put(
   updateEndpointIsAuthenticated,
 )
 apiRouter.delete("/api/v1/endpoint/:endpointId", deleteEndpointHandler)
+apiRouter.delete("/api/v1/host", deleteHostHandler)
 
 apiRouter.post(
   "/api/v1/spec/new",
