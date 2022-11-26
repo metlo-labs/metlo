@@ -109,6 +109,12 @@ export interface GetEndpointParams {
   limit?: number
 }
 
+export interface GetHostParams {
+  offset?: number
+  limit?: number
+  searchQuery?: string
+}
+
 export interface GetAlertParams {
   uuid?: string
   apiEndpointUuid?: string
@@ -226,6 +232,11 @@ export interface ApiEndpointDetailed extends ApiEndpoint {
   traces: ApiTrace[]
   tests: Test[]
   dataFields: DataField[]
+}
+
+export interface HostResponse {
+  host: string
+  numEndpoints: number
 }
 
 export interface TestDetailed {

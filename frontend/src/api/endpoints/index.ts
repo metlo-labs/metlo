@@ -3,6 +3,8 @@ import {
   ApiEndpoint,
   ApiEndpointDetailed,
   GetEndpointParams,
+  GetHostParams,
+  HostResponse,
   Usage,
 } from "@common/types"
 import { getAPIURL } from "~/constants"
@@ -95,4 +97,26 @@ export const updateEndpointAuthenticated = async (
     },
     { headers },
   )
+}
+
+export const getHostsList = async (
+  params: GetHostParams,
+  headers?: AxiosRequestHeaders,
+): Promise<[HostResponse[], number]> => {
+  const resp = await axios.get<[HostResponse[], number]>(
+    `${getAPIURL()}/hosts`,
+    { params, headers },
+  )
+  return resp.data
+}
+
+export const deleteHost = async (
+  host: string,
+  headers?: AxiosRequestHeaders,
+): Promise<any> => {
+  const resp = await axios.delete(`${getAPIURL()}/host`, {
+    data: { host },
+    headers,
+  })
+  return resp.data
 }

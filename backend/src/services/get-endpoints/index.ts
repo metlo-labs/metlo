@@ -1,3 +1,4 @@
+import { QueryRunner } from "typeorm"
 import { AppDataSource } from "data-source"
 import {
   ApiEndpoint,
@@ -7,12 +8,15 @@ import {
   Alert,
   DataField,
   OpenApiSpec,
+  Attack,
 } from "models"
 import {
   GetEndpointParams,
   ApiEndpoint as ApiEndpointResponse,
   ApiEndpointDetailed as ApiEndpointDetailedResponse,
   Usage as UsageResponse,
+  GetHostParams,
+  HostResponse,
 } from "@common/types"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { Test } from "@metlo/testing"
@@ -50,6 +54,137 @@ ORDER BY
 `
 
 export class GetEndpointsService {
+  static async deleteEndpoint(
+    ctx: MetloContext,
+    apiEndpointUuid: string,
+  ): Promise<void> {
+    const queryRunner = AppDataSource.createQueryRunner()
+    try {
+      await queryRunner.connect()
+      const endpoint = await getEntityManager(ctx, queryRunner).findOneBy(
+        ApiEndpoint,
+        { uuid: apiEndpointUuid },
+      )
+      if (!endpoint) {
+        throw new Error404NotFound("Endpoint not found.")
+      }
+      await queryRunner.startTransaction()
+      await getQB(ctx, queryRunner)
+        .delete()
+        .from(AggregateTraceDataHourly)
+        .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+        .execute()
+      await getQB(ctx, queryRunner)
+        .delete()
+        .from(Alert)
+        .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+        .execute()
+      await getQB(ctx, queryRunner)
+        .delete()
+        .from(ApiEndpointTest)
+        .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+        .execute()
+      await getQB(ctx, queryRunner)
+        .delete()
+        .from(ApiTrace)
+        .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+        .execute()
+      await getQB(ctx, queryRunner)
+        .delete()
+        .from(Attack)
+        .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+        .execute()
+      await getQB(ctx, queryRunner)
+        .delete()
+        .from(DataField)
+        .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+        .execute()
+      await getQB(ctx, queryRunner)
+        .delete()
+        .from(ApiEndpoint)
+        .andWhere("uuid = :id", { id: apiEndpointUuid })
+        .execute()
+      await queryRunner.commitTransaction()
+    } catch (err) {
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction()
+      }
+      throw err
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  static async deleteEndpointsBatch(
+    ctx: MetloContext,
+    apiEndpointUuids: string[],
+    queryRunner: QueryRunner,
+  ): Promise<void> {
+    await getQB(ctx, queryRunner)
+      .delete()
+      .from(AggregateTraceDataHourly)
+      .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
+      .execute()
+    await getQB(ctx, queryRunner)
+      .delete()
+      .from(Alert)
+      .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
+      .execute()
+    await getQB(ctx, queryRunner)
+      .delete()
+      .from(ApiEndpointTest)
+      .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
+      .execute()
+    await getQB(ctx, queryRunner)
+      .delete()
+      .from(ApiTrace)
+      .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
+      .execute()
+    await getQB(ctx, queryRunner)
+      .delete()
+      .from(Attack)
+      .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
+      .execute()
+    await getQB(ctx, queryRunner)
+      .delete()
+      .from(DataField)
+      .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
+      .execute()
+    await getQB(ctx, queryRunner)
+      .delete()
+      .from(ApiEndpoint)
+      .andWhere("uuid IN(:...ids)", { ids: apiEndpointUuids })
+      .execute()
+  }
+
+  static async deleteHost(ctx: MetloContext, host: string): Promise<void> {
+    const queryRunner = AppDataSource.createQueryRunner()
+    try {
+      await queryRunner.connect()
+      const endpoints = await getQB(ctx, queryRunner)
+        .select(["uuid"])
+        .from(ApiEndpoint, "endpoint")
+        .andWhere("host = :host", { host })
+        .getRawMany()
+      if (endpoints?.length > 0) {
+        await queryRunner.startTransaction()
+        await this.deleteEndpointsBatch(
+          ctx,
+          endpoints?.map(e => e.uuid),
+          queryRunner,
+        )
+        await queryRunner.commitTransaction()
+      }
+    } catch (err) {
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction()
+      }
+      throw err
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
   static async updateIsAuthenticated(
     ctx: MetloContext,
     apiEndpointUuid: string,
@@ -134,7 +269,7 @@ export class GetEndpointsService {
         whereFilterString = `WHERE ${whereFilter.join(" AND ")}`
       }
       const limitFilter = `LIMIT ${getEndpointParams?.limit ?? 10}`
-      const offsetFilter = `OFFSET ${getEndpointParams?.offset ?? 10}`
+      const offsetFilter = `OFFSET ${getEndpointParams?.offset ?? 0}`
 
       const endpointResults = await queryRunner.query(
         getEndpointsQuery(ctx, whereFilterString, limitFilter, offsetFilter),
@@ -221,6 +356,47 @@ export class GetEndpointsService {
     } catch (err) {
       console.error(`Error in Get Endpoints service: ${err}`)
       throw new Error500InternalServer(err)
+    }
+  }
+
+  static async getHostsList(
+    ctx: MetloContext,
+    getHostsParams: GetHostParams,
+  ): Promise<[HostResponse[], any]> {
+    const queryRunner = AppDataSource.createQueryRunner()
+    try {
+      await queryRunner.connect()
+
+      let qb = getQB(ctx, queryRunner)
+        .select(["host", `COUNT(uuid) as "numEndpoints"`])
+        .from(ApiEndpoint, "endpoint")
+        .distinct(true)
+        .groupBy("host")
+      let totalHostsQb = await getQB(ctx, queryRunner)
+        .select([`COUNT(DISTINCT(host))::int as "numHosts"`])
+        .from(ApiEndpoint, "endpoint")
+
+      if (getHostsParams?.searchQuery) {
+        qb = qb.andWhere("host ILIKE :searchQuery", {
+          searchQuery: `%${getHostsParams.searchQuery}%`,
+        })
+        totalHostsQb = totalHostsQb.andWhere("host ILIKE :searchQuery", {
+          searchQuery: `%${getHostsParams.searchQuery}%`,
+        })
+      }
+
+      qb = qb
+        .limit(getHostsParams?.limit ?? 10)
+        .offset(getHostsParams?.offset ?? 0)
+
+      const hostsResp = await qb.getRawMany()
+      const totalHosts = await totalHostsQb.getRawOne()
+
+      return [hostsResp, totalHosts?.numHosts ?? 0]
+    } catch (err) {
+      throw new Error500InternalServer(err)
+    } finally {
+      await queryRunner.release()
     }
   }
 

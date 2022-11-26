@@ -8,10 +8,12 @@ import { AiFillApi } from "@react-icons/all-files/ai/AiFillApi"
 import { HiShieldCheck } from "@react-icons/all-files/hi/HiShieldCheck"
 import { IconType } from "@react-icons/all-files/lib"
 import { FaCog } from "@react-icons/all-files/fa/FaCog"
+import { FiServer } from "@react-icons/all-files/fi/FiServer"
 
 export enum SideNavLinkDestination {
   Home,
   Endpoints,
+  Hosts,
   Alerts,
   Specs,
   Connections,
@@ -29,6 +31,8 @@ export const sideNavDestinationToLabel: (
       return "Home"
     case SideNavLinkDestination.Endpoints:
       return "Endpoints"
+    case SideNavLinkDestination.Hosts:
+      return "Hosts"
     case SideNavLinkDestination.SensitiveData:
       return "Sensitive Data"
     case SideNavLinkDestination.Vulnerabilities:
@@ -56,6 +60,8 @@ export const sideNavDestinationToIcon: (
       return FaHome
     case SideNavLinkDestination.Endpoints:
       return TiFlowSwitch
+    case SideNavLinkDestination.Hosts:
+      return FiServer
     case SideNavLinkDestination.SensitiveData:
       return AiFillLock
     case SideNavLinkDestination.Vulnerabilities:
@@ -83,6 +89,8 @@ export const sideNavDestinationToHref: (
       return "/"
     case SideNavLinkDestination.Endpoints:
       return "/endpoints"
+    case SideNavLinkDestination.Hosts:
+      return "/hosts"
     case SideNavLinkDestination.SensitiveData:
       return "/sensitive-data"
     case SideNavLinkDestination.Vulnerabilities:

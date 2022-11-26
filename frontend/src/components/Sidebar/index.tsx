@@ -53,6 +53,10 @@ const SideNavBar: React.FC<SideNavBarProps> = React.memo(({ currentTab }) => {
           isActive={currentTab === SideNavLinkDestination.Endpoints}
         />
         <SideNavLink
+          destination={SideNavLinkDestination.Hosts}
+          isActive={currentTab === SideNavLinkDestination.Hosts}
+        />
+        <SideNavLink
           destination={SideNavLinkDestination.SensitiveData}
           isActive={currentTab === SideNavLinkDestination.SensitiveData}
         />

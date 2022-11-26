@@ -72,6 +72,7 @@ export const getAPIURL = () => {
 export const ENDPOINT_PAGE_LIMIT = 10
 export const ALERT_PAGE_LIMIT = 10
 export const ATTACK_PAGE_LIMIT = 10
+export const HOST_PAGE_LIMIT = 10
 
 export const INGESTOR_AWS_REGIONS = [
   "us-west-1",
