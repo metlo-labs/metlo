@@ -32,6 +32,14 @@ With Metlo you can:
 Metlo does this by scanning your API traffic using one of our connectors and then analyzing trace data.
 
 ## Get started for free!
+<a href="https://app.metlo.com">
+  <img src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/cloud-button.svg" alt="drawing" height="40"/>
+</a>
+<a href="https://demo.metlo.com">
+  <img src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/demo-button.svg" alt="drawing" height="40"/>
+</a>
+<br/>
+<br/>
 
 There are three ways to get started with Metlo. Metlo Cloud, Metlo Self Hosted, and our Open Source product. We recommend Metlo Cloud for almost all users as it scales to 100s of millions of requests per month and all upgrades and migrations are managed for you.
 
