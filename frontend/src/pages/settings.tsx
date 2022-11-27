@@ -4,6 +4,11 @@ import {
   Heading,
   HStack,
   Link,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
   Text,
   useDisclosure,
   useToast,
@@ -23,6 +28,7 @@ import { useState } from "react"
 import superjson from "superjson"
 import { makeToast } from "utils"
 import Editor from "@monaco-editor/react"
+import { SectionHeader } from "components/utils/Card"
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const apiKeys = await getKeys()
@@ -119,84 +125,93 @@ const Settings = ({ keys: _keysString, metloConfig }) => {
       currentTab={SideNavLinkDestination.Settings}
     >
       <ContentContainer maxContentW="100rem" px="8" py="8">
-        <VStack h="full" w="full" spacing="8">
-          <Box w="full">
-            <Heading fontWeight="medium" size="lg" mb="4">
-              API Keys
-            </Heading>
-            <VStack
-              w="full"
-              alignItems="flex-start"
-              borderWidth="1px"
-              rounded="md"
-              spacing="0"
-              overflow="hidden"
-            >
-              <Box p="4" borderBottom="1px" borderColor="inherit" w="full">
-                <HStack justifyContent="space-between">
-                  <Box />
-                  <Button colorScheme="blue" onClick={onOpen}>
-                    New
+        <VStack h="full" w="full" alignItems="flex-start" spacing="0">
+          <Heading fontWeight="medium" size="lg" mb="4">
+            Settings
+          </Heading>
+          <Tabs w="full" display="flex" flexDir="column" flexGrow="1">
+            <TabList>
+              <Tab>
+                <SectionHeader text="API Keys" />
+              </Tab>
+              <Tab>
+                <SectionHeader text="Metlo Config" />
+              </Tab>
+            </TabList>
+            <TabPanels flexGrow="1" h="full">
+              <TabPanel px="0" overflow="auto" h="full">
+                <VStack
+                  w="full"
+                  alignItems="flex-start"
+                  borderWidth="1px"
+                  rounded="md"
+                  spacing="0"
+                  overflow="hidden"
+                >
+                  <Box p="4" borderBottom="1px" borderColor="inherit" w="full">
+                    <HStack justifyContent="space-between">
+                      <Box />
+                      <Button colorScheme="blue" onClick={onOpen}>
+                        New
+                      </Button>
+                      <NewKeys
+                        isOpen={isOpen}
+                        onClose={onClose}
+                        onCreate={addKey}
+                        isAddingKey={isAddingKey}
+                      />
+                      <KeyAddedModal
+                        newKey={newKey}
+                        newKeyName={newKeyName}
+                        isOpen={isNewKeyOpen}
+                        onClose={onNewKeyClose}
+                      />
+                    </HStack>
+                  </Box>
+                  <Box w="full">
+                    <ListKeys keys={keys} setKeys={setKeys} />
+                  </Box>
+                </VStack>
+              </TabPanel>
+              <TabPanel px="0" overflow="auto" h="full">
+                <HStack w="full" justifyContent="space-between" pb="15px">
+                  <Text>
+                    View our{" "}
+                    <Link
+                      target="_blank"
+                      color="blue"
+                      href="https://docs.metlo.com/docs/metlo-config"
+                    >
+                      docs
+                    </Link>{" "}
+                    on how to set up a metlo config.
+                  </Text>
+                  <Button
+                    colorScheme="blue"
+                    onClick={() => updateMetloConfigHandler()}
+                    isLoading={updatingMetloConfig}
+                  >
+                    Save
                   </Button>
-                  <NewKeys
-                    isOpen={isOpen}
-                    onClose={onClose}
-                    onCreate={addKey}
-                    isAddingKey={isAddingKey}
-                  />
-                  <KeyAddedModal
-                    newKey={newKey}
-                    newKeyName={newKeyName}
-                    isOpen={isNewKeyOpen}
-                    onClose={onNewKeyClose}
-                  />
                 </HStack>
-              </Box>
-              <Box w="full">
-                <ListKeys keys={keys} setKeys={setKeys} />
-              </Box>
-            </VStack>
-          </Box>
-          <Box h="full" w="full">
-            <HStack w="full" justifyContent="space-between">
-              <Heading fontWeight="medium" size="lg" mb="4">
-                Metlo Config
-              </Heading>
-              <Button
-                colorScheme="blue"
-                onClick={() => updateMetloConfigHandler()}
-                isLoading={updatingMetloConfig}
-              >
-                Save
-              </Button>
-            </HStack>
-            <Text pt="5px" pb="15px">
-              View our{" "}
-              <Link
-                target="_blank"
-                color="blue"
-                href="https://docs.metlo.com/docs/metlo-config"
-              >
-                docs
-              </Link>{" "}
-              on how to set up a metlo config.
-            </Text>
-            <Box pt="2" rounded="md" h="700px" w="full" borderWidth="1px">
-              <Editor
-                width="100%"
-                defaultLanguage="yaml"
-                value={configString}
-                onChange={val => setConfigString(val)}
-                options={{
-                  minimap: {
-                    enabled: false,
-                  },
-                  automaticLayout: true,
-                  scrollBeyondLastLine: false,
-                }}
-              />
-            </Box>
-          </Box>
+                <Box pt="2" rounded="md" h="700px" w="full" borderWidth="1px">
+                  <Editor
+                    width="100%"
+                    defaultLanguage="yaml"
+                    value={configString}
+                    onChange={val => setConfigString(val)}
+                    options={{
+                      minimap: {
+                        enabled: false,
+                      },
+                      automaticLayout: true,
+                      scrollBeyondLastLine: false,
+                    }}
+                  />
+                </Box>
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
         </VStack>
       </ContentContainer>
     </SidebarLayoutShell>
