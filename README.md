@@ -21,96 +21,27 @@
 ---
 
 ## Metlo is an open-source API security platform
-* Create an Inventory of all your API Endpoints.
-* Proactively test your APIs before they go into production.
-* Detect API attacks in real time.
+
+With Metlo you can:
+
+* **Create an Inventory of all your API Endpoints and Sensitive Data.**
+* **Detect common API vulnerabilities.**
+* **Proactively test your APIs before they go into production.**
+* **Detect API attacks in real time.**
+
+Metlo does this by scanning your API traffic using one of our connectors and then analyzing trace data.
 
 ## Get started for free!
 
-<details>
-    <summary><strong>Deploy to AWS →</strong></summary>
-    <hr>
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/aws-dark.svg" height="40">
-      <img alt="logo" src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/aws-light.svg" height="40">
-    </picture>
-    <h4>Metlo has ready to use Cloud Formation Stacks in different regions to get started in a few clicks:</h4>
-    <a href="https://backend.metlo.com/deploy/aws?region=us-west-1">
-      <img height="50px" src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/aws-deploy-us-west-1-light.svg"/>
-    </a>
-    <span>&nbsp;</span>
-    <a href="https://backend.metlo.com/deploy/aws?region=us-west-2">
-      <img height="50px" src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/aws-deploy-us-west-2-light.svg"/>
-    </a>
-    <span>&nbsp;</span>
-    <a href="https://backend.metlo.com/deploy/aws?region=us-east-1">
-      <img height="50px" src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/aws-deploy-us-east-1-light.svg"/>
-    </a>
-    <span>&nbsp;</span>
-    <a href="https://backend.metlo.com/deploy/aws?region=us-east-2">
-      <img height="50px" src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/aws-deploy-us-east-2-light.svg"/>
-    </a>
-    <p></p>
-    <p><i>Let us know if you need an AMI in a different region!</i></p>
+There are three ways to get started with Metlo. Metlo Cloud, Metlo Self Hosted, and our Open Source product. We recommend Metlo Cloud for almost all users as it scales to 100s of millions of requests per month and all upgrades and migrations are managed for you.
 
-  #### Once the instance is launched you can tunnel locally
-  ```bash
-  $ ssh -i $SSH_KEY -L 8000:localhost:8000 -N -f ec2-user@$INSTANCE_IP
-  ```
-  <hr>
-</details>
+You can get started with Melto Cloud right away without a credit card. Just make an account on https://app.metlo.com and follow the instructions in our docs [here](https://docs.metlo.com/docs/getting-started).
 
-<details>
-  <summary><strong>Deploy to GCP →</strong></summary>
-  <hr>
-  <img alt="logo" src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/gcp.svg" height="40">
-   
-  #### Run the following command to spin up Metlo in GCP:
-  ```bash
-  $ export PROJECT_ID="<YOUR_PROJECT_ID>"
-  $ gcloud compute instances create metlo-api-security --image-family=metlo-api-security --image-project=metlo-security --project=$PROJECT_ID --machine-type e2-standard-2
-  ```
-  #### Once you've launched your instance run the following in the instance to start Metlo:
-  ```bash
-  $ sudo metlo-deploy init-env
-  $ sudo metlo-deploy update
-  $ sudo metlo-deploy start
-  ```
+Although we highly recommend Metlo Cloud, if you're a large company or need an air-gapped system you can self host Metlo as well! Create an account on https://my.metlo.com and follow the instructions on our docs [here](https://docs.metlo.com/docs/metlo-self-hosted) to setup Metlo in your own Cloud environment.
 
-  #### Then you can tunnel locally to access the UI
-  ```bash
-  gcloud --project=$PROJECT_ID beta compute ssh $INSTANCE_NAME -- -L 8000:localhost:8000 -N -f
-  ```
-  <hr>
-</details>
+If you want to deploy our Open Source product we have instructions for [AWS](https://docs.metlo.com/docs/deploy-to-aws), [GCP](https://docs.metlo.com/docs/deploy-to-gcp), [Azure](https://docs.metlo.com/docs/deploy-to-azure) and [Docker](https://docs.metlo.com/docs/deploy-to-docker).
 
-<details>
-  <summary><strong>Deploy to Azure →</strong></summary>
-  <hr>  
-  <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmetlo-labs%2Fmetlo%2Fmaster%2Fdeploy%2Fazure%2Fdeployment.json" target="_blank">
-    <img src="https://aka.ms/deploytoazurebutton" scale="0" height="40"/>
-  </a>
-
-  #### Then you can tunnel locally to access the UI
-  ```bash
-  $ ssh -i $SSH_KEY -L 8000:localhost:8000 -N -f azureuser@$INSTANCE_IP
-  ```
-  <hr>
-</details>
-
-**Deploy with Docker**
-
-Run the following in your cloud environment:
-
-```bash
-git clone https://github.com/metlo-labs/metlo.git
-cd metlo
-ENCRYPTION_KEY="some random string" EXPRESS_SECRET="some random string" docker-compose up -d
-```
-
-Now visit [http://localhost:8000](http://localhost:8000)
-
-See our [Docs](https://docs.metlo.com/docs) for an in-depth walk-throughs on how to set up Metlo in your cloud environment. You can also join our [Discord community](https://discord.gg/4xhumff9BX) if you need help or just want to chat!
+You can also join our [Discord community](https://discord.gg/4xhumff9BX) if you need help or just want to chat!
 
 ## Features
 ![walkthrough](https://storage.googleapis.com/metlo-security-public-images/walkthrough.gif)
@@ -120,8 +51,8 @@ See our [Docs](https://docs.metlo.com/docs) for an in-depth walk-throughs on how
 * **Vulnerability Discovery** - Get Alerts for issues like unauthenticated endpoints returning sensitive data, No HSTS headers, PII data in URL params, Open API Spec Diffs and more
 * **API Security Testing** - Build security tests directly in Metlo with a simple HTTP Request editor and javascript assertions.
 * **CI/CD Integration** - Integrate with your CI/CD to find issues in development and staging.
-* **Attack Detection** - Our ML Algorithms build a model for baseline API behavior. Any deviation from this baseline is surfaced to your security team as soon as possible. (Coming Soon)
-* **Attack Context** - Metlo’s UI gives you full context around any attack to help quickly fix the vulnerability. (Coming Soon)
+* **Attack Detection** - Our ML Algorithms build a model for baseline API behavior. Any deviation from this baseline is surfaced to your security team as soon as possible.
+* **Attack Context** - Metlo’s UI gives you full context around any attack to help quickly fix the vulnerability.
 
 ## Testing
 ![Testing Screenshot](https://storage.googleapis.com/metlo-security-public-images/testing.png)
