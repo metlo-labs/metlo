@@ -120,3 +120,13 @@ export const deleteHost = async (
   })
   return resp.data
 }
+
+export const deleteEndpoint = async (
+  endpointId: string,
+  headers?: AxiosRequestHeaders,
+): Promise<any> => {
+  const resp = await axios.delete(`${getAPIURL()}/endpoint/${endpointId}`, {
+    headers,
+  })
+  return resp.data
+}

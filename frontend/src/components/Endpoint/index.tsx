@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import NextLink from "next/link"
 import { BiInfoCircle } from "@react-icons/all-files/bi/BiInfoCircle"
 import { BsSearch } from "@react-icons/all-files/bs/BsSearch"
@@ -18,6 +18,15 @@ import {
   Tab,
   TabPanels,
   TabPanel,
+  Button,
+  useDisclosure,
+  AlertDialog,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter,
+  useToast,
 } from "@chakra-ui/react"
 import { useRouter } from "next/router"
 import { SectionHeader } from "components/utils/Card"
@@ -33,6 +42,8 @@ import TraceList from "./TraceList"
 import { AlertTab } from "./AlertTab"
 import EndpointOverview from "./Overview"
 import TestList from "./TestList"
+import { deleteEndpoint } from "api/endpoints"
+import { makeToast } from "utils"
 
 interface EndpointPageProps {
   endpoint: ApiEndpointDetailed
@@ -49,6 +60,10 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
       "rgb(179, 181, 185)",
       "rgb(91, 94, 109)",
     )
+    const [deleting, setDeleting] = useState<boolean>(false)
+    const { isOpen, onOpen, onClose } = useDisclosure()
+    const cancelRef = React.useRef()
+    const toast = useToast()
     const { tab, uuid } = router.query
     const getDefaultTab = () => {
       switch (tab) {
@@ -67,6 +82,27 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
       }
     }
 
+    const handleEndpointDelete = async () => {
+      try {
+        setDeleting(true)
+        await deleteEndpoint(endpoint.uuid)
+        router.push("/endpoints")
+      } catch (err) {
+        toast(
+          makeToast(
+            {
+              title: "Deleting endpoint failed...",
+              status: "error",
+              description: err.response?.data,
+            },
+            err.response?.status,
+          ),
+        )
+      } finally {
+        setDeleting(false)
+      }
+    }
+
     return (
       <VStack
         w="full"
@@ -75,25 +111,32 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
         h="100vh"
         overflow="hidden"
       >
-        <VStack alignItems="flex-start" pt="6" px="6">
-          <NextLink href="/endpoints">
-            <HStack color={headerColor} spacing="1" cursor="pointer">
-              <TiFlowSwitch />
-              <Text fontWeight="semibold">Endpoints</Text>
-            </HStack>
-          </NextLink>
-          <HStack spacing="4" pb="6">
-            <Badge
-              fontSize="xl"
-              px="2"
-              py="1"
-              colorScheme={METHOD_TO_COLOR[endpoint?.method] || "gray"}
-            >
-              {endpoint?.method.toUpperCase()}
-            </Badge>
-            <Code fontSize="xl" fontWeight="semibold" p="1">
-              {endpoint.path}
-            </Code>
+        <VStack w="full" alignItems="flex-start" pt="6" px="6">
+          <HStack w="full" justifyContent="space-between">
+            <VStack alignItems="flex-start">
+              <NextLink href="/endpoints">
+                <HStack color={headerColor} spacing="1" cursor="pointer">
+                  <TiFlowSwitch />
+                  <Text fontWeight="semibold">Endpoints</Text>
+                </HStack>
+              </NextLink>
+              <HStack spacing="4" pb="6">
+                <Badge
+                  fontSize="xl"
+                  px="2"
+                  py="1"
+                  colorScheme={METHOD_TO_COLOR[endpoint?.method] || "gray"}
+                >
+                  {endpoint?.method.toUpperCase()}
+                </Badge>
+                <Code fontSize="xl" fontWeight="semibold" p="1">
+                  {endpoint.path}
+                </Code>
+              </HStack>
+            </VStack>
+            <Button colorScheme="red" isLoading={deleting} onClick={onOpen}>
+              Delete
+            </Button>
           </HStack>
         </VStack>
         <Tabs
@@ -148,6 +191,37 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
             </TabPanel>
           </TabPanels>
         </Tabs>
+        <AlertDialog
+          isOpen={isOpen}
+          leastDestructiveRef={cancelRef}
+          onClose={onClose}
+        >
+          <AlertDialogOverlay>
+            <AlertDialogContent>
+              <AlertDialogHeader fontSize="lg" fontWeight="bold">
+                Delete Endpoint
+              </AlertDialogHeader>
+
+              <AlertDialogBody>
+                Are you sure you want to delete this endpoint?
+              </AlertDialogBody>
+
+              <AlertDialogFooter>
+                <Button ref={cancelRef} onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button
+                  isLoading={deleting}
+                  colorScheme="red"
+                  onClick={handleEndpointDelete}
+                  ml={3}
+                >
+                  Delete
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialogOverlay>
+        </AlertDialog>
       </VStack>
     )
   },
