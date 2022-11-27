@@ -199,7 +199,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
           <AlertDialogOverlay>
             <AlertDialogContent>
               <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                Delete Host
+                Delete Endpoint
               </AlertDialogHeader>
 
               <AlertDialogBody>
