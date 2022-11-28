@@ -1,4 +1,4 @@
-package metlo
+package metlo_gin
 
 import (
 	"bytes"
