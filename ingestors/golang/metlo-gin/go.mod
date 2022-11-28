@@ -1,4 +1,4 @@
-module github.com/metlo-labs/metlo/tree/develop/ingestors/golang/gin
+module metlo-gin
 
 go 1.19
 
