@@ -1,4 +1,4 @@
-package MetloGin
+package metloGin
 
 import (
 	"bytes"
