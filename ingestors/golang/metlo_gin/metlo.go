@@ -91,7 +91,7 @@ func (m *metlo) allow() bool {
 }
 
 func InitMetlo(metloHost string, metloKey string) *metlo {
-	return initMetloCustom(metloHost, metloKey, MetloDefaultRPS, "", 0, false)
+	return InitMetloCustom(metloHost, metloKey, MetloDefaultRPS, "", 0, false)
 }
 
 func InitMetloCustom(metloHost string, metloKey string, rps int, serverHost string, serverPort int, disable bool) *metlo {
