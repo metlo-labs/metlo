@@ -132,56 +132,57 @@ func (m *metlo) GinBodyLogMiddleware(c *gin.Context) {
 	body, _ := ioutil.ReadAll(c.Request.Body)
 	c.Request.Body = ioutil.NopCloser(bytes.NewReader(body))
 	c.Next()
+	if !m.disable {
+		reqHeaders := make([]nv, 0)
+		for k := range c.Request.Header {
+			reqHeaders = append(reqHeaders, nv{Name: k, Value: strings.Join(c.Request.Header[k], ",")})
+		}
+		resHeaderMap := c.Writer.Header()
+		resHeaders := make([]nv, 0)
+		for k := range resHeaderMap {
+			resHeaders = append(resHeaders, nv{Name: k, Value: strings.Join(resHeaderMap[k], ",")})
+		}
+		queryMap := c.Request.URL.Query()
+		queryParams := make([]nv, 0)
+		for k := range queryMap {
+			queryParams = append(queryParams, nv{Name: k, Value: strings.Join(queryMap[k], ",")})
+		}
+		splitAddr := strings.Split(c.Request.RemoteAddr, ":")
+		remAddr := splitAddr[len(splitAddr)-1]
+		sourcePort, err := strconv.Atoi(remAddr)
+		if err != nil {
+			log.Println("Metlo couldn't find source port for incoming request")
+		}
 
-	reqHeaders := make([]nv, 0)
-	for k := range c.Request.Header {
-		reqHeaders = append(reqHeaders, nv{Name: k, Value: strings.Join(c.Request.Header[k], ",")})
-	}
-	resHeaderMap := c.Writer.Header()
-	resHeaders := make([]nv, 0)
-	for k := range resHeaderMap {
-		resHeaders = append(resHeaders, nv{Name: k, Value: strings.Join(resHeaderMap[k], ",")})
-	}
-	queryMap := c.Request.URL.Query()
-	queryParams := make([]nv, 0)
-	for k := range queryMap {
-		queryParams = append(queryParams, nv{Name: k, Value: strings.Join(queryMap[k], ",")})
-	}
-	splitAddr := strings.Split(c.Request.RemoteAddr, ":")
-	remAddr := splitAddr[len(splitAddr)-1]
-	sourcePort, err := strconv.Atoi(remAddr)
-	if err != nil {
-		log.Println("Metlo couldn't find source port for incoming request")
-	}
-
-	tr := &trace{
-		Request: req{
-			Url: url{
-				Host:       c.Request.Host,
-				Path:       c.Request.URL.Path,
-				Parameters: queryParams,
+		tr := &trace{
+			Request: req{
+				Url: url{
+					Host:       c.Request.Host,
+					Path:       c.Request.URL.Path,
+					Parameters: queryParams,
+				},
+				Headers: reqHeaders,
+				Body:    string(body),
+				Method:  c.Request.Method,
 			},
-			Headers: reqHeaders,
-			Body:    string(body),
-			Method:  c.Request.Method,
-		},
-		Response: res{
-			Url:     "",
-			Status:  blw.Status(),
-			Body:    blw.body.String(),
-			Headers: resHeaders,
-		},
-		Meta: meta{
-			Environment:     "production",
-			Incoming:        true,
-			Source:          c.ClientIP(),
-			SourcePort:      sourcePort,
-			Destination:     m.host,
-			DestinationPort: m.hostPort,
-			MetloSource:     "go/gin",
-		},
-	}
-	if m.allow() {
-		go send(m, tr)
+			Response: res{
+				Url:     "",
+				Status:  blw.Status(),
+				Body:    blw.body.String(),
+				Headers: resHeaders,
+			},
+			Meta: meta{
+				Environment:     "production",
+				Incoming:        true,
+				Source:          c.ClientIP(),
+				SourcePort:      sourcePort,
+				Destination:     m.host,
+				DestinationPort: m.hostPort,
+				MetloSource:     "go/gin",
+			},
+		}
+		if m.allow() {
+			go send(m, tr)
+		}
 	}
 }
