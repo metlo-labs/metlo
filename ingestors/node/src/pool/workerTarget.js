@@ -14,5 +14,7 @@ parentPort.on('message', ({ data: postData, host, key }) => {
         data: postData
     }).catch((error) => {
         console.warn("Encountered an error with metlo ingestor.\nError: ", error.message);
+    }).finally(() => {
+        parentPort.postMessage("done")
     });
 });

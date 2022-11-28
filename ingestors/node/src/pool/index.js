@@ -13,7 +13,9 @@ class WorkerPoolTaskInfo extends AsyncResource {
     }
 
     done(err, result) {
-        this.runInAsyncScope(this.callback, null, err, result);
+        if (this.callback) {
+            this.runInAsyncScope(this.callback, null, err, result);
+        }
         this.emitDestroy();  // `TaskInfo`s are used only once.
     }
 }
