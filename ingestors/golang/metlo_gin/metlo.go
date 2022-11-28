@@ -19,7 +19,7 @@ type nv struct {
 	Value string `json:"value"`
 }
 
-type Metlo struct {
+type metlo struct {
 	mu        sync.Mutex
 	ts        []int64
 	rps       int
@@ -68,7 +68,7 @@ type trace struct {
 
 const MetloDefaultRPS int = 10
 
-func (m *Metlo) allow() bool {
+func (m *metlo) allow() bool {
 
 	tmp_ts := make([]int64, 0, 10)
 	now := time.Now()
@@ -90,12 +90,12 @@ func (m *Metlo) allow() bool {
 	return false
 }
 
-func InitMetlo(metloHost string, metloKey string) *Metlo {
+func InitMetlo(metloHost string, metloKey string) *metlo {
 	return initMetloCustom(metloHost, metloKey, MetloDefaultRPS, "", 0, false)
 }
 
-func initMetloCustom(metloHost string, metloKey string, rps int, serverHost string, serverPort int, disable bool) *Metlo {
-	inst := &Metlo{
+func InitMetloCustom(metloHost string, metloKey string, rps int, serverHost string, serverPort int, disable bool) *metlo {
+	inst := &metlo{
 		ts:        make([]int64, 0, rps),
 		rps:       rps,
 		metloHost: metloHost,
@@ -117,7 +117,7 @@ func (w bodyLogWriter) Write(b []byte) (int, error) {
 	return w.ResponseWriter.Write(b)
 }
 
-func send(m *Metlo, tr *trace) {
+func send(m *metlo, tr *trace) {
 	json, err := json.Marshal(tr)
 	if err != nil {
 		log.Fatal(err)
@@ -126,7 +126,7 @@ func send(m *Metlo, tr *trace) {
 		bytes.NewBuffer(json))
 }
 
-func (m *Metlo) GinBodyLogMiddleware(c *gin.Context) {
+func (m *metlo) GinBodyLogMiddleware(c *gin.Context) {
 	blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
 	c.Writer = blw
 	body, _ := ioutil.ReadAll(c.Request.Body)
