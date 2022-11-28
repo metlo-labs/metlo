@@ -1,4 +1,4 @@
-package InstrumentMetloGin
+package MetloGin
 
 import (
 	"bytes"
@@ -67,11 +67,11 @@ type metloInstrumentation struct {
 	serverPort int
 }
 
-func MetloGinInstrumentation(app metloApp) metloInstrumentation {
-	return MetloGinInstrumentationCustom(app, "localhost", 0)
+func Init(app metloApp) metloInstrumentation {
+	return CustomInit(app, "localhost", 0)
 }
 
-func MetloGinInstrumentationCustom(app metloApp, serverHost string, serverPort int) metloInstrumentation {
+func CustomInit(app metloApp, serverHost string, serverPort int) metloInstrumentation {
 	return metloInstrumentation{
 		app:        app,
 		serverHost: serverHost,
@@ -84,7 +84,7 @@ func (w bodyLogWriter) Write(b []byte) (int, error) {
 	return w.ResponseWriter.Write(b)
 }
 
-func (m *metloInstrumentation) GinBodyLogMiddleware(c *gin.Context) {
+func (m *metloInstrumentation) Middleware(c *gin.Context) {
 	blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
 	c.Writer = blw
 	body, _ := ioutil.ReadAll(c.Request.Body)
