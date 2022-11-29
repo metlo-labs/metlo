@@ -18,7 +18,7 @@ const verifyAccountDetails = async () => {
         {
             type: "input",
             name: "_projectName",
-            message: "GCP Project Name",
+            message: "GCP Project ID",
         }, {
             type: "input",
             initial: "default",
