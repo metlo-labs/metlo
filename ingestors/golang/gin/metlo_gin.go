@@ -88,6 +88,7 @@ func (m *metloInstrumentation) Middleware(c *gin.Context) {
 	blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
 	c.Writer = blw
 	body, _ := ioutil.ReadAll(c.Request.Body)
+	c.Request.Body.Close()
 	c.Request.Body = ioutil.NopCloser(bytes.NewReader(body))
 	c.Next()
 	if m.app.Allow() {
