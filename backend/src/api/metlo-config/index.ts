@@ -23,9 +23,12 @@ export const getMetloConfigHandler = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const metloConfig = await getMetloConfig(req.ctx)
+    let metloConfig = await getMetloConfig(req.ctx)
     if (!metloConfig) {
-      throw new Error404NotFound("No config saved yet.")
+      metloConfig = {
+        uuid: "",
+        configString: "",
+      }
     }
     await ApiResponseHandler.success(res, metloConfig)
   } catch (err) {
