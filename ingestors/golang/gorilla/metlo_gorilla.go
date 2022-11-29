@@ -85,7 +85,6 @@ func NewLogResponseWriter(w http.ResponseWriter) *LogResponseWriter {
 }
 
 func (w *LogResponseWriter) WriteHeader(code int) {
-	print(code)
 	w.statusCode = code
 	w.ResponseWriter.WriteHeader(code)
 }
