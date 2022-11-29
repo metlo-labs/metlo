@@ -13,10 +13,13 @@ export async function cleanupGCP(
     conn: GCP_CONN,
     zone: string,
     project: string,
-    network: string
+    networkUrl: string
 ) {
     const region = zone.substring(0, zone.length - 2)
-    const [mirroring] = await conn.list_packet_mirroring()
+    let [mirroring] = await conn.list_packet_mirroring()
+    mirroring = mirroring
+        .filter(mirror => mirror.network.url == networkUrl)
+        .filter((mirror) => mirror.name.startsWith("metlo"))
     if (mirroring.length == 0) {
         throw new Error("No existing packet mirroring instances found")
     }
@@ -27,7 +30,7 @@ export async function cleanupGCP(
             name: "_packetMirrorName",
             message: "Select Packet Mirroring instance",
             initial: 0,
-            choices: mirroring.filter((inst) => inst.name.startsWith("metlo")).map((inst) => inst.name)
+            choices: mirroring.map((inst) => inst.name)
         }]
     )
     let packetMirrorName = identifySourceResp["_packetMirrorName"]
@@ -243,7 +246,7 @@ const verifyAccountDetails = async () => {
         {
             type: "input",
             name: "_projectName",
-            message: "GCP Project Name",
+            message: "GCP Project ID",
         }, {
             type: "input",
             initial: "default",
@@ -297,7 +300,7 @@ export const gcpTrafficMirrorCleanUp = async () => {
         data["zone"] = zone
         data["project"] = project
 
-        await cleanupGCP(conn, zone, project, network)
+        await cleanupGCP(conn, zone, project, networkUrl)
     } catch (e) {
         spinner.fail()
         console.log(chalk.bgRedBright("Metlo packet mirroring item removal failed. This might help in debugging it."))

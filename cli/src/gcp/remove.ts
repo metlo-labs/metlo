@@ -17,7 +17,7 @@ const verifyAccountDetails = async () => {
         {
             type: "input",
             name: "_projectName",
-            message: "GCP Project Name",
+            message: "GCP Project ID",
         }, {
             type: "input",
             initial: "default",
@@ -185,7 +185,8 @@ export const gcpTrafficMirrorDelete = async () => {
         data["zone"] = zone
         data["project"] = project
 
-        const [packetMirrors] = await conn.list_packet_mirroring()
+        let [packetMirrors] = await conn.list_packet_mirroring()
+        packetMirrors = packetMirrors.filter(mirror => mirror.network.url == networkUrl)
 
         await deletePacketMirroringResources(conn, packetMirrors)
     } catch (e) {

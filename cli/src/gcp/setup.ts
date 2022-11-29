@@ -18,7 +18,7 @@ const verifyAccountDetails = async () => {
         {
             type: "input",
             name: "_projectName",
-            message: "GCP Project Name",
+            message: "GCP Project ID",
         }, {
             type: "input",
             initial: "default",
@@ -591,7 +591,8 @@ export const gcpTrafficMirrorSetup = async () => {
         data["zone"] = zone
         data["project"] = project
 
-        const [packetMirrors] = await conn.list_packet_mirroring()
+        let [packetMirrors] = await conn.list_packet_mirroring()
+        packetMirrors = packetMirrors.filter(mirror => mirror.network.url == networkUrl)
 
         if (packetMirrors.length > 0) {
             console.log(chalk.blue("Updating the existing Packet Mirroring instance instead of creating new."))
