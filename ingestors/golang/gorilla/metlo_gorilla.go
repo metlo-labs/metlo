@@ -68,11 +68,11 @@ type metloInstrumentation struct {
 	serverPort int
 }
 
-func MetloGinInstrumentation(app metloApp) metloInstrumentation {
-	return MetloGinInstrumentationCustom(app, "localhost", 0)
+func MetloGorillaInstrumentation(app metloApp) metloInstrumentation {
+	return MetloGorillaInstrumentationCustom(app, "localhost", 0)
 }
 
-func MetloGinInstrumentationCustom(app metloApp, serverHost string, serverPort int) metloInstrumentation {
+func MetloGorillaInstrumentationCustom(app metloApp, serverHost string, serverPort int) metloInstrumentation {
 	return metloInstrumentation{
 		app:        app,
 		serverHost: serverHost,
@@ -158,7 +158,7 @@ func (m *metloInstrumentation) GorillaBodyLogMiddleware(next http.Handler) http.
 					SourcePort:      sourcePort,
 					Destination:     m.serverHost,
 					DestinationPort: m.serverPort,
-					MetloSource:     "go/gin",
+					MetloSource:     "go/gorilla",
 				},
 			}
 
