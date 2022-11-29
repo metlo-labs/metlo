@@ -1,153 +1,124 @@
+import React from "react"
 import { Box, Code, Heading, VStack, Link } from "@chakra-ui/react"
+import { ListNumber } from "components/utils/ListNumber"
+import SyntaxHighlighter from "react-syntax-highlighter"
+import { DocsParams } from "./types"
 
-const JavaDocs = () => {
+const JavaDocs: React.FC<DocsParams> = React.memo(({ host, apiKey }) => {
   return (
-    <VStack spacing={6} w={"full"}>
-      <VStack spacing={1} w={"full"}>
-        <Box w={"full"}>
-          Currently Metlo&apos;s Java Agent supports 1 framework:
+    <VStack spacing={6} w="full">
+      <ListNumber num={1} title="Install">
+        <VStack spacing={1} w="full">
+          <Box w="full">
+            Currently Metlo&apos;s Java Agent supports 1 framework:
+          </Box>
+          <Box w="full">
+            &nbsp;&nbsp;-&nbsp; Spring (and by extension Spring Boot)
+          </Box>
+          <Box w="full" paddingBlock={2}>
+            Its available for download from
+            <Link
+              href="https://repo1.maven.org/maven2/com/metlo/spring/"
+              color={"blue"}
+            >
+              &nbsp;maven central
+            </Link>
+          </Box>
+        </VStack>
+        <Box w="full">
+          <VStack spacing={2} pb={2}>
+            <Box w="full">You can add Metlo via either Maven or Gradle:</Box>
+          </VStack>
+          <VStack w="full" spacing={3}>
+            <Heading size={"sm"} w="full">
+              Gradle
+            </Heading>
+            <Code w="full" p="2">
+              <SyntaxHighlighter
+                customStyle={{ background: "none", padding: 0 }}
+                language="gradle"
+              >
+                {`dependencies {
+  ...
+  implementation com.metlo.spring: 0.3
+}`}
+              </SyntaxHighlighter>
+            </Code>
+            <Heading size={"sm"} w="full">
+              Maven
+            </Heading>
+            <Code w="full" p="2">
+              <SyntaxHighlighter
+                customStyle={{ background: "none", padding: 0 }}
+                language="xml"
+              >
+                {`<dependencies>
+    ...
+    <dependency>
+        <groupId>com.metlo</groupId>
+        <artifactId>spring</artifactId>
+        <version>0.3</version>
+        <scope>compile</scope>
+    </dependency>
+</dependencies>`}
+              </SyntaxHighlighter>
+            </Code>
+          </VStack>
         </Box>
+      </ListNumber>
+      <ListNumber num={2} title="Setup">
+        <p>
+          Metlo for Spring/Boot provides a lightweight filter for spring based
+          applications and can be included as any other filter would. The filter
+          needs to be provided with the Metlo collector url, and the Metlo API
+          Key as parameters.
+        </p>
+        <Code w="full" p={2}>
+          <SyntaxHighlighter
+            customStyle={{ background: "none", padding: 0 }}
+            language="java"
+          >{`package com.example.demo;
 
-        <Box w={"full"}>
-          &nbsp;&nbsp;-&nbsp; Spring (and by extension Spring Boot)
-        </Box>
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-        <Box w={"full"} paddingBlock={2}>
-          Its available for download from
-          <Link
-            href="https://repo1.maven.org/maven2/com/metlo/spring/"
-            color={"blue"}
+// Metlo imprted here
+import com.metlo.spring.Metlo;
+
+@Configuration
+public class FilterConfig {
+
+    @Bean
+    public FilterRegistrationBean<Metlo> loggingFilter() {
+        FilterRegistrationBean<Metlo> registrationBean = new FilterRegistrationBean<>();
+
+        // Metlo registered as a filter here
+        registrationBean.setFilter(new Metlo("${host}", "${apiKey}"));
+        registrationBean.setOrder(2);
+        return registrationBean;
+    }
+
+}`}</SyntaxHighlighter>
+        </Code>
+      </ListNumber>
+      <ListNumber num={3} title="Configuration">
+        <p>
+          Metlo rate limits itself to 10 requests/s by default. In case the
+          system has the capacity to handle more and/or a larger number of
+          traces needs to be reported for some reason, that can be customised in
+          the constructor with the signature:
+        </p>
+        <Code w="full" p={2}>
+          <SyntaxHighlighter
+            customStyle={{ background: "none", padding: 0 }}
+            language="java"
           >
-            &nbsp;maven central
-          </Link>
-        </Box>
-      </VStack>
-      <Heading size="md" w={"full"}>
-        Installation
-      </Heading>
-      <Box w={"full"}>
-        <VStack spacing={2} pb={2}>
-          <Box w={"full"}>
-            Metlo can easily be included in either gradle or maven projects:
-          </Box>
-        </VStack>
-        <VStack w={"full"} spacing={3}>
-          <Heading size={"sm"} w={"full"}>
-            Gradle:{" "}
-          </Heading>
-          <Code w={"full"}>
-            dependencies {"{"}
-            <Box pl={4}>
-              ....
-              <Box>implementation com.metlo.spring: 0.3</Box>
-            </Box>
-            {"}"}
-          </Code>
-          <Heading size={"sm"} w={"full"}>
-            Maven:
-          </Heading>
-          <Code w={"full"} p={2}>
-            &lt;dependencies&gt;
-            <Box paddingInline={4}>
-              <Box> ....</Box>
-              <Box paddingInline={4}>
-                &lt;dependency&gt;
-                <Box paddingInline={4}>
-                  <Box>&lt;groupId&gt;</Box>
-                  <Box paddingInline={4}>com.metlo</Box>
-                  <Box>&lt;/groupId&gt;</Box>
-                  <Box>&lt;artifactId&gt;</Box>
-                  <Box paddingInline={4}>spring</Box>
-                  <Box>&lt;/artifactId&gt;</Box>
-                  <Box>&lt;version&gt;</Box>
-                  <Box paddingInline={4}>0.3</Box>
-                  <Box>&lt;/version&gt;</Box>
-                  <Box>&lt;scope&gt;</Box>
-                  <Box paddingInline={4}>compile</Box>
-                  <Box>&lt;/scope&gt;</Box>
-                </Box>
-              </Box>
-              <Box>&lt;/dependency&gt;</Box>
-            </Box>
-            <Box>&lt;/dependencies&gt;</Box>
-          </Code>
-        </VStack>
-      </Box>
-      <p>
-        Metlo for Spring/Boot provides a lightweight filter for spring based
-        applications and can be included as any other filter would. The filter
-        needs to be provided with the METLO collector url, and the METLO API Key
-        as parameters.
-      </p>
-      <Heading size={"sm"} id="example" w={"full"}>
-        Example
-      </Heading>
-      <Code className="lang-java" w={"full"} p={2}>
-        <VStack>
-          <Box w={"full"}>package com.example.demo;</Box>
-          <Box w={"full"}>
-            <Box w={"full"}>
-              import
-              org.springframework.boot.web.servlet.FilterRegistrationBean;
-            </Box>
-            <Box w={"full"}>
-              import org.springframework.context.annotation.Bean;
-            </Box>
-            <Box w={"full"}>
-              import org.springframework.context.annotation.Configuration;
-            </Box>
-          </Box>
-          <Box w={"full"}>
-            <Box w={"full"}>{"//"} Metlo imported here</Box>
-            <Box w={"full"}>import com.metlo.spring.Metlo;</Box>
-            <Box w={"full"}>@Configuration</Box>
-            <Box w={"full"}>public class FilterConfig {"{"}</Box>
-          </Box>
-          <Box w={"full"} pl={4}>
-            <Box w={"full"} className="hljs-meta">
-              @Bean
-            </Box>
-            <Box w={"full"}>
-              <Box w={"full"}>
-                public FilterRegistrationBean&lt;Metlo&gt; loggingFilter() {"{"}
-              </Box>
-              <Box w={"full"} pl={4}>
-                <Box w={"full"}>
-                  FilterRegistrationBean&lt;Metlo&gt; registrationBean = new
-                  FilterRegistrationBean&lt;&gt;(); // Metlo registered as a
-                  filter
-                </Box>
-                <Box w={"full"}>here registrationBean.setFilter(new</Box>
-                <Box w={"full"}>
-                  Metlo(&quot;http://&lt;YOUR_METLO_HOST&gt;:8081&quot;,&quot;&lt;YOUR_METLO_API_KEY&gt;&quot;);
-                </Box>
-                <Box w={"full"}>
-                  registrationBean.setOrder(2); return registrationBean;
-                </Box>
-              </Box>
-              <Box w={"full"}>{"}"}</Box>
-            </Box>
-          </Box>
-
-          <Box w={"full"}>{"}"}</Box>
-        </VStack>
-      </Code>
-      <Heading size="md" id="configuration" w={"full"}>
-        Configuration
-      </Heading>
-      <Heading size="sm" id="rate-limiting" w={"full"}>
-        Rate Limiting
-      </Heading>
-      <p>
-        Metlo rate limits itself to 10 requests/s by default. In case the system
-        has the capacity to handle more and/or a larger number of traces needs
-        to be reported for some reason, that can be customised in the
-        constructor with the signature:
-      </p>
-      <Code className="lang-java" w={"full"} p={2}>
-        public Metlo( String host, String api_key, Integer rps)
-      </Code>
+            public Metlo( String host, String api_key, Integer rps)
+          </SyntaxHighlighter>
+        </Code>
+      </ListNumber>
     </VStack>
   )
-}
+})
 export default JavaDocs

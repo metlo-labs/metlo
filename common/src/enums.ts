@@ -81,6 +81,7 @@ export enum ConnectionType {
   PYTHON = "PYTHON",
   NODE = "NODE",
   JAVA = "JAVA",
+  GOLANG = "GOLANG",
   KUBERNETES = "KUBERNETES"
 }
 
