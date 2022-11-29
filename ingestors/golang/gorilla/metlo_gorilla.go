@@ -56,7 +56,7 @@ type trace struct {
 	Meta     meta `json:"meta"`
 }
 
-type LogResponseWriter struct {
+type logResponseWriter struct {
 	http.ResponseWriter
 	statusCode int
 	buf        bytes.Buffer
@@ -68,11 +68,11 @@ type metloInstrumentation struct {
 	serverPort int
 }
 
-func MetloGorillaInstrumentation(app metloApp) metloInstrumentation {
-	return MetloGorillaInstrumentationCustom(app, "localhost", 0)
+func Init(app metloApp) metloInstrumentation {
+	return CustomInit(app, "localhost", 0)
 }
 
-func MetloGorillaInstrumentationCustom(app metloApp, serverHost string, serverPort int) metloInstrumentation {
+func CustomInit(app metloApp, serverHost string, serverPort int) metloInstrumentation {
 	return metloInstrumentation{
 		app:        app,
 		serverHost: serverHost,
@@ -80,24 +80,23 @@ func MetloGorillaInstrumentationCustom(app metloApp, serverHost string, serverPo
 	}
 }
 
-func NewLogResponseWriter(w http.ResponseWriter) *LogResponseWriter {
-	return &LogResponseWriter{ResponseWriter: w}
+func newLogResponseWriter(w http.ResponseWriter) *logResponseWriter {
+	return &logResponseWriter{ResponseWriter: w}
 }
 
-func (w *LogResponseWriter) WriteHeader(code int) {
+func (w *logResponseWriter) WriteHeader(code int) {
 	w.statusCode = code
 	w.ResponseWriter.WriteHeader(code)
 }
 
-func (w *LogResponseWriter) Write(body []byte) (int, error) {
+func (w *logResponseWriter) Write(body []byte) (int, error) {
 	w.buf.Write(body)
 	return w.ResponseWriter.Write(body)
 }
 
-func (m *metloInstrumentation) GorillaBodyLogMiddleware(next http.Handler) http.Handler {
-
+func (m *metloInstrumentation) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logRespWriter := NewLogResponseWriter(w)
+		logRespWriter := newLogResponseWriter(w)
 		body, _ := ioutil.ReadAll(r.Body)
 		r.Body.Close()
 		r.Body = ioutil.NopCloser(bytes.NewReader(body))
