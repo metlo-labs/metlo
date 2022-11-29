@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	"log"
+	"net"
 	"strconv"
 	"strings"
 
@@ -106,9 +107,12 @@ func (m *metloInstrumentation) Middleware(c *gin.Context) {
 		for k := range queryMap {
 			queryParams = append(queryParams, nv{Name: k, Value: strings.Join(queryMap[k], ",")})
 		}
-		splitAddr := strings.Split(c.Request.RemoteAddr, ":")
-		remAddr := splitAddr[len(splitAddr)-1]
-		sourcePort, err := strconv.Atoi(remAddr)
+		_, sourcePortRaw, err := net.SplitHostPort(c.Request.RemoteAddr)
+		if err != nil {
+			log.Println("Metlo couldn't find source port for incoming request")
+		}
+
+		sourcePort, err := strconv.Atoi(sourcePortRaw)
 		if err != nil {
 			log.Println("Metlo couldn't find source port for incoming request")
 		}
