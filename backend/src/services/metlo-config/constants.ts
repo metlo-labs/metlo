@@ -108,8 +108,8 @@ export const METLO_CONFIG_SCHEMA = {
         },
       },
     },
-    additionalProperties: false,
   },
+  additionalProperties: false,
   definitions: {
     disable_paths_object: {
       type: "object",
