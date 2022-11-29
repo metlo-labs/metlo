@@ -49,6 +49,7 @@ func (m *metlo) Send(data any) {
 
 func (m *metlo) Allow() bool {
 	if !m.disable {
+		m.mu.Lock()
 		tmp_ts := make([]int64, 0, 10)
 		now := time.Now()
 		curr := now.UTC().UnixMilli()
@@ -64,8 +65,10 @@ func (m *metlo) Allow() bool {
 		m.ts = tmp_ts
 		if len(m.ts) < m.rps {
 			m.ts = append(m.ts, curr)
+			m.mu.Unlock()
 			return true
 		}
+		m.mu.Unlock()
 	}
 	return false
 }
