@@ -82,7 +82,7 @@ export const ConnectionSetup: React.FC<ConnectionSetupProps> = React.memo(
     const handleCopyButton = () => {
       navigator.clipboard.writeText(apiKey)
       toast({
-        title: "License key copied",
+        title: "API Key copied",
         status: "info",
         duration: 2000,
         position: "top",

@@ -100,6 +100,9 @@ export const getOnboardingKeys = async (
   try {
     const keys = await getRepository(req.ctx, ApiKey).find({
       where: { for: API_KEY_TYPE.ONBOARDING },
+      order: {
+        createdAt: "DESC",
+      },
     })
     const payload = keys
       ? keys.map<ApiKeyType>(v => ({
