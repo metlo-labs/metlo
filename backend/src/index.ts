@@ -22,7 +22,7 @@ import {
 } from "api/spec"
 import { getAlertsHandler, updateAlertHandler } from "api/alert"
 import { deleteDataFieldHandler, updateDataFieldClasses } from "api/data-field"
-import { getSummaryHandler } from "api/summary"
+import { getEndpointTrackedHandler, getSummaryHandler } from "api/summary"
 import { MetloRequest } from "types"
 import { AppDataSource } from "data-source"
 import { MulterSource } from "multer-source"
@@ -37,7 +37,7 @@ import { RedisClient } from "utils/redis"
 import { getSensitiveDataSummaryHandler } from "api/data-field/sensitive-data"
 import { getVulnerabilitySummaryHandler } from "api/alert/vulnerability"
 import { inSandboxMode } from "utils"
-import { createKey, deleteKey, listKeys } from "api/keys"
+import { createKey, deleteKey, getOnboardingKeys, listKeys } from "api/keys"
 import {
   getInstanceSettingsHandler,
   putInstanceSettingsHandler,
@@ -74,6 +74,7 @@ app.get("/api/v1", (req: MetloRequest, res: Response) => {
 
 const apiRouter = express.Router()
 apiRouter.get("/api/v1/summary", getSummaryHandler)
+apiRouter.get("/api/v1/summary/endpoint-tracked", getEndpointTrackedHandler)
 apiRouter.get("/api/v1/instance-settings", getInstanceSettingsHandler)
 apiRouter.put("/api/v1/instance-settings", putInstanceSettingsHandler)
 apiRouter.get("/api/v1/sensitive-data-summary", getSensitiveDataSummaryHandler)
@@ -122,6 +123,7 @@ apiRouter.delete("/api/v1/test/:uuid/delete", deleteTest)
 apiRouter.get("/api/v1/keys/list", listKeys)
 apiRouter.post("/api/v1/keys/create", createKey)
 apiRouter.delete("/api/v1/keys/:name/delete", deleteKey)
+apiRouter.get("/api/v1/keys/onboarding", getOnboardingKeys)
 
 apiRouter.put("/api/v1/metlo-config", updateMetloConfigHandler)
 apiRouter.get("/api/v1/metlo-config", getMetloConfigHandler)

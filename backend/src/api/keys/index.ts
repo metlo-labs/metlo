@@ -7,6 +7,7 @@ import { createApiKey } from "./service"
 import Error400BadRequest from "errors/error-400-bad-request"
 import { createQB, getRepository } from "services/database/utils"
 import { MetloRequest } from "types"
+import { API_KEY_TYPE } from "@common/enums"
 
 export const listKeys = async (
   req: MetloRequest,
@@ -28,7 +29,7 @@ export const createKey = async (
   req: MetloRequest,
   res: Response,
 ): Promise<void> => {
-  const { name: keyName } = req.body
+  const { name: keyName, keyFor } = req.body
   const key_exists = await getRepository(req.ctx, ApiKey).countBy({
     name: keyName,
   })
@@ -44,7 +45,20 @@ export const createKey = async (
       new Error400BadRequest(`Key name is required.`),
     )
   }
+  if (keyFor && !API_KEY_TYPE[keyFor]) {
+    return ApiResponseHandler.error(
+      res,
+      new Error400BadRequest(
+        `The key must be for one of the following: ${Object.keys(
+          API_KEY_TYPE,
+        ).join(", ")}`,
+      ),
+    )
+  }
   const [key, rawKey] = createApiKey(keyName)
+  if (keyFor) {
+    key.for = API_KEY_TYPE[keyFor]
+  }
   await getRepository(req.ctx, ApiKey).save(key)
   return ApiResponseHandler.success(res, {
     apiKey: rawKey,
@@ -76,5 +90,30 @@ export const deleteKey = async (
       res,
       new Error404NotFound(`Did not find any matching keys for ${keyName}`),
     )
+  }
+}
+
+export const getOnboardingKeys = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const keys = await getRepository(req.ctx, ApiKey).find({
+      where: { for: API_KEY_TYPE.ONBOARDING },
+      order: {
+        createdAt: "DESC",
+      },
+    })
+    const payload = keys
+      ? keys.map<ApiKeyType>(v => ({
+          name: v.name,
+          identifier: `metlo.${v.keyIdentifier}`,
+          created: v.createdAt.toISOString(),
+          for: v.for,
+        }))
+      : null
+    await ApiResponseHandler.success(res, payload)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
   }
 }
