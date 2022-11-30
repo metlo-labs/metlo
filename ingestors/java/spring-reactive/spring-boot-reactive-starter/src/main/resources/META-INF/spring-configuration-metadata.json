@@ -1,0 +1,71 @@
+{
+  "groups": [
+    {
+      "name": "metlo",
+      "type": "com.metlo.configuration.MetloConfigurationProperties",
+      "sourceType": "com.metlo.configuration.MetloConfigurationProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "metlo.api-key",
+      "type": "java.lang.String",
+      "description": "The Metlo connection API key to use for authorization.",
+      "sourceType": "com.metlo.configuration.MetloConfigurationProperties"
+    },
+    {
+      "name": "metlo.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable Metlo request and response tracing.",
+      "sourceType": "com.metlo.configuration.MetloConfigurationProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "metlo.host",
+      "type": "java.lang.String",
+      "description": "The Metlo API host URL to send traces to.",
+      "sourceType": "com.metlo.configuration.MetloConfigurationProperties",
+      "defaultValue": "https://app.metlo.com:8081"
+    },
+    {
+      "name": "metlo.hostname",
+      "type": "java.lang.String",
+      "description": "Manually set the instance hostname for tracing.",
+      "sourceType": "com.metlo.configuration.MetloConfigurationProperties"
+    },
+    {
+      "name": "metlo.ignored-paths",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Collection of paths (ant-path style accepted) to ignore for trace requests.",
+      "sourceType": "com.metlo.configuration.MetloConfigurationProperties"
+    },
+    {
+      "name": "metlo.log-requests",
+      "type": "java.lang.Boolean",
+      "description": "Log trace requests to application logs.",
+      "sourceType": "com.metlo.configuration.MetloConfigurationProperties",
+      "defaultValue": false
+    },
+    {
+      "name": "metlo.protected-keys",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Case-insensitive collection of field names to omit from headers, bodies, and query arguments.",
+      "sourceType": "com.metlo.configuration.MetloConfigurationProperties"
+    },
+    {
+      "name": "metlo.requests-per-second",
+      "type": "java.lang.Integer",
+      "description": "The maximum number of trace requests per second to capture, -1 means unlimited.",
+      "sourceType": "com.metlo.configuration.MetloConfigurationProperties",
+      "defaultValue": -1
+    },
+    {
+      "name": "metlo.thread-pool-size",
+      "type": "java.lang.Integer",
+      "description": "The maximum number of threads to use for asynchronous communication.",
+      "sourceType": "com.metlo.configuration.MetloConfigurationProperties",
+      "defaultValue": 2
+    }
+  ],
+  "hints": []
+}
