@@ -113,6 +113,8 @@ export const getCountsCached = async (ctx: MetloContext) => {
     return cacheRes
   }
   const realRes = await getCounts(ctx)
-  await RedisClient.addToRedis(ctx, "usageCounts", realRes, 60)
+  if (realRes.hostCount > 0) {
+    await RedisClient.addToRedis(ctx, "usageCounts", realRes, 60)
+  }
   return realRes
 }

@@ -7,7 +7,7 @@ import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
 import { SidebarLayoutShell } from "components/SidebarLayoutShell"
 import { ContentContainer } from "components/utils/ContentContainer"
 import HomePage from "components/Home"
-import { HomeEmptyView } from "components/Home/HomeEmptyView"
+import { HomeOnboardingView } from "components/Onboarding/HomeOnboardingView"
 import { HomeUpdateEmailView } from "components/Home/HomeUpdateEmailView"
 
 const Index = ({ summary, instanceSettings }) => {
@@ -35,8 +35,8 @@ const Index = ({ summary, instanceSettings }) => {
   )
   if (parsedSummary.numConnections === 0 && parsedSummary.hostCount === 0) {
     page = (
-      <ContentContainer maxContentW="full" px="0" py="0">
-        <HomeEmptyView />
+      <ContentContainer maxContentW="100rem" height="100vh">
+        <HomeOnboardingView />
       </ContentContainer>
     )
   }

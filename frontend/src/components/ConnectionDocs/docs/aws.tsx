@@ -214,6 +214,7 @@ sudo systemctl start metlo-ingestor.service`}</SyntaxHighlighter>
                   href={getAWSIngestorLaunchStackURL(
                     selectedRegion,
                     metloAddress,
+                    apiKey,
                   )}
                   isDisabled={selectedRegion === ""}
                 >

@@ -101,9 +101,14 @@ export const INGESTOR_STACK_NAME = "metlo-ingestor"
 export const getAWSIngestorLaunchStackURL = (
   region: string,
   metloAddress: string,
+  metloApiKey: string,
 ) =>
   `https://${region}.console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review?templateURL=${INGESTOR_AWS_TEMPLATE}&stackName=${INGESTOR_STACK_NAME}${
-    metloAddress && `&param_metloAddress=${metloAddress}`
+    metloAddress ? `&param_metloAddress=${metloAddress}` : ""
+  }${
+    metloApiKey && metloApiKey.length === 46
+      ? `&param_metloKey=${metloApiKey}`
+      : ""
   }`
 
 export const getAWSDeployAmiURL = (region: string) =>
