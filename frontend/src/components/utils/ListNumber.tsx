@@ -1,4 +1,4 @@
-import { Badge, HStack, VStack, Heading } from "@chakra-ui/react"
+import { Box, Badge, HStack, VStack, Heading } from "@chakra-ui/react"
 
 interface ListNumberProps {
   num: number
@@ -17,7 +17,7 @@ export const ListNumber: React.FC<ListNumberProps> = ({
         display="flex"
         alignItems="center"
         justifyContent="center"
-        w="25px"
+        minW="25px"
         h="25px"
         borderRadius="50%"
         bg="black"
@@ -25,12 +25,14 @@ export const ListNumber: React.FC<ListNumberProps> = ({
       >
         {num}
       </Badge>
-      <VStack w="full" alignItems="start">
-        <Heading minH="25px" pt="3px" size="sm">
-          {title}
-        </Heading>
-        {children}
-      </VStack>
+      <Box flex="1" overflow="hidden">
+        <VStack w="full" alignItems="start">
+          <Heading minH="25px" pt="3px" size="sm">
+            {title}
+          </Heading>
+          {children}
+        </VStack>
+      </Box>
     </HStack>
   )
 }
