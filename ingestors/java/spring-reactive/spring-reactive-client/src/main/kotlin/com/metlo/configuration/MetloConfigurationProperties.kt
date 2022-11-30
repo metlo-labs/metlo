@@ -29,7 +29,7 @@ data class MetloConfigurationProperties(
     /**
      * Case-insensitive collection of field names to omit from headers, bodies, and query arguments.
      */
-    val protectedKeys: List<String> = listOf("password", "apiKey", "secret"),
+    val protectedKeys: List<String> = emptyList(),
     /**
      * Collection of paths (ant-path style accepted) to ignore for trace requests.
      */
