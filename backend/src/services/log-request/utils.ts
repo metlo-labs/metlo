@@ -16,7 +16,9 @@ export const validateTraceParams = (
       switch (error.keyword) {
         case "additionalProperties":
           const additionalProperty = error.params.additionalProperty
-          errorMessage = `property '${additionalProperty}' is not expected to be in ${error.instancePath}`
+          errorMessage = `property '${additionalProperty}' is not expected to be in ${
+            error.instancePath ? error.instancePath : "the payload"
+          }`
           break
         case "enum":
           errorMessage = `${
