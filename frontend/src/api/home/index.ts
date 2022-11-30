@@ -31,3 +31,17 @@ export const getInstanceSettings = async (
     return null
   }
 }
+
+export const getEndpointTracked = async (
+  headers?: AxiosRequestHeaders,
+): Promise<{ exists: boolean }> => {
+  try {
+    const resp = await axios.get<{ exists: boolean }>(
+      `${getAPIURL()}/summary/endpoint-tracked`,
+      { headers },
+    )
+    return resp.data
+  } catch (err) {
+    return { exists: false }
+  }
+}

@@ -17,6 +17,7 @@ export const getKeys = async (
     throw err
   }
 }
+
 export const deleteKey = async (
   key_name: string,
   headers?: AxiosRequestHeaders,
@@ -38,8 +39,10 @@ export const deleteKey = async (
     throw err
   }
 }
+
 export const addKey = async (
   key_name: string,
+  keyFor?: string,
   headers?: AxiosRequestHeaders,
 ): Promise<ApiKey & { apiKey: string }> => {
   try {
@@ -47,6 +50,7 @@ export const addKey = async (
       `${getAPIURL()}/keys/create`,
       {
         name: key_name,
+        keyFor,
       },
       { headers },
     )
@@ -62,4 +66,13 @@ export const addKey = async (
     console.error(`Error adding Api Key: ${err}`)
     throw err
   }
+}
+
+export const getOnboardingKeys = async (
+  headers?: AxiosRequestHeaders,
+): Promise<ApiKey[]> => {
+  const resp = await axios.get<ApiKey[]>(`${getAPIURL()}/keys/onboarding`, {
+    headers,
+  })
+  return resp.data
 }

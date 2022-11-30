@@ -82,7 +82,7 @@ export enum ConnectionType {
   NODE = "NODE",
   JAVA = "JAVA",
   GOLANG = "GOLANG",
-  KUBERNETES = "KUBERNETES"
+  KUBERNETES = "KUBERNETES",
 }
 
 export enum SpecExtension {
@@ -134,7 +134,7 @@ export enum DataType {
   BOOLEAN = "boolean",
   OBJECT = "object",
   ARRAY = "array",
-  UNKNOWN = "unknown"
+  UNKNOWN = "unknown",
 }
 
 export enum DataSection {
@@ -188,7 +188,8 @@ export enum GCP_SOURCE_TYPE {
 export enum API_KEY_TYPE {
   GCP = "GCP",
   AWS = "AWS",
-  GENERIC = "GENERIC"
+  GENERIC = "GENERIC",
+  ONBOARDING = "ONBOARDING",
 }
 
 export enum OperationType {
