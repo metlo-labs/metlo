@@ -22,9 +22,12 @@ export const deleteKey = async (
   headers?: AxiosRequestHeaders,
 ): Promise<void> => {
   try {
-    const resp = await axios.delete(`${getAPIURL()}/keys/${key_name}/delete`, {
-      headers,
-    })
+    const resp = await axios.delete(
+      `${getAPIURL()}/keys/${encodeURIComponent(key_name)}/delete`,
+      {
+        headers,
+      },
+    )
     if (resp.status === 200 && resp.data) {
       return
     } else {
