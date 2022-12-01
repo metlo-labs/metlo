@@ -6,7 +6,7 @@ import { LogRequestService } from "services/log-request";
 import { populateMetloConfig } from "services/metlo-config";
 import { MetloContext } from "types";
 
-const PROTO_PATH = "./src/grpc/proto/traces.proto";
+const PROTO_PATH = "./src/grpc/proto/originalTraces.proto";
 const fs = require('fs');
 
 let grpc = require("@grpc/grpc-js");

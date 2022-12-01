@@ -97,14 +97,14 @@ message Trace {
 
     uint32 requestTime = 1;
     uint32 responseTime = 2;
-    HttpRequest request = 3;
-    HttpResponse response = 4;
+    Request request = 3;
+    Response response = 4;
     repeated DBQuery dbQueries = 5;
     repeated FileAccess fileAccess = 6;
     repeated Attack detectedAttacks = 7;
     repeated MatchedRule matchesRules = 8;
     bool blocked = 9;
-    TraceMeta meta = 10;
+    Meta meta = 10;
 }
 
 message BulkTrace {
