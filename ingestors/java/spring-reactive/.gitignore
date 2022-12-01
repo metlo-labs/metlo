@@ -1,0 +1,16 @@
+!gradle/wrapper/*
+*.class
+*.log
+*.jar
+target/
+dist/
+.idea/
+*.iml
+TEST*.xml
+.DS_Store
+Thumbs.db
+*.app
+*.exe
+*.war
+.gradle
+build
