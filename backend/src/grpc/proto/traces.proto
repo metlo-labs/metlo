@@ -27,7 +27,7 @@ message Trace {
         string value = 2;
     }
 
-    message HttpRequest {
+    message Request {
         Url url = 1;
         optional string routerPath = 2;
         repeated NVPair headers = 3;
@@ -35,7 +35,7 @@ message Trace {
         optional string body = 5;
     }
 
-    message HttpResponse {
+    message Response {
         uint32 status = 1;
         repeated NVPair headers = 2;
         optional string body = 3;
@@ -74,7 +74,7 @@ message Trace {
         string userId = 5;
     }
 
-    message TraceMeta {
+    message Meta {
         string environment = 1;
         bool incoming = 2;
         string source = 3;
