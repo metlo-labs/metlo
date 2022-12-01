@@ -51,8 +51,8 @@ message Trace {
         repeated string tablesAccessed = 3;
         Columnsaccessed columnsAccessed = 4;
         uint32 time = 5;
-        uint32 queryTime = 6;
-        uint32 resRows = 7;
+        optional uint32 queryTime = 6;
+        optional uint32 resRows = 7;
     }
 
     message Attack {
