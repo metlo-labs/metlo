@@ -196,7 +196,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             makeToast(
               {
                 title: "Error Running Test",
-                description: err.message,
+                description: err.response?.data ?? err.message,
                 status: "error",
               },
               err.response?.status,
@@ -232,7 +232,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             makeToast(
               {
                 title: "Error Saving",
-                description: err.message,
+                description: err.response?.data ?? err.message,
                 status: "error",
               },
               err.response?.status,
@@ -262,7 +262,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             makeToast(
               {
                 title: "Error Running Test",
-                description: err.message,
+                description: err.response?.data ?? err.message,
                 status: "error",
               },
               err.response?.status,
@@ -291,7 +291,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             makeToast(
               {
                 title: "Error Deleting Test",
-                description: err.message,
+                description: err.response?.data ?? err.message,
                 status: "error",
               },
               err.response?.status,
