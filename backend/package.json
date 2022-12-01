@@ -29,6 +29,8 @@
   "license": "ISC",
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.1.0",
+    "@grpc/grpc-js": "^1.7.3",
+    "@grpc/proto-loader": "^0.7.3",
     "@leoscope/openapi-request-validator": "^1.0.0",
     "@leoscope/openapi-response-validator": "^1.0.2",
     "@metlo/testing": "^0.0.3",
