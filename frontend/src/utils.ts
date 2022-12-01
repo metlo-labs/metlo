@@ -26,10 +26,7 @@ export const makeToast = (
   statusCode?: number,
 ): UseToastOptions => ({
   ...e,
-  description:
-    statusCode && statusCode === 401
-      ? "Not enabled in sandbox mode..."
-      : e.description,
+  description: e.description,
   isClosable: true,
   position: "top",
 })
