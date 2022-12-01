@@ -27,20 +27,54 @@ message Trace {
         string value = 2;
     }
 
-    message Request {
+    message HttpRequest {
         Url url = 1;
-        repeated NVPair headers = 2;
-        string method = 3;
-        string body = 4;
+        optional string routerPath = 2;
+        repeated NVPair headers = 3;
+        string method = 4;
+        optional string body = 5;
     }
 
-    message Response {
+    message HttpResponse {
         uint32 status = 1;
         repeated NVPair headers = 2;
-        string body = 3;
+        optional string body = 3;
     }
 
-    message Meta {
+    message DBQuery {
+        message Columnsaccessed {
+            repeated string tablename = 1;
+        }
+
+        string dbHost = 1;
+        string query = 2;
+        repeated string tablesAccessed = 3;
+        Columnsaccessed columnsAccessed = 4;
+        uint32 time = 5;
+        uint32 queryTime = 6;
+        uint32 resRows = 7;
+    }
+
+    message Attack {
+        bool blocked = 1;
+        string type = 2;
+        map<string, google.protobuf.Any> meta = 3;
+    }
+
+    message FileAccess {
+        string filePath = 1;
+        uint32 time = 2;
+    }
+
+    message AuthEvent {
+        uint32 time = 1;
+        string type = 2;
+        string loginType = 3;
+        bool success = 4;
+        string userId = 5;
+    }
+
+    message TraceMeta {
         string environment = 1;
         bool incoming = 2;
         string source = 3;
@@ -48,11 +82,29 @@ message Trace {
         string destination = 5;
         uint32 destinationPort = 6;
         string metloSource = 7;
+        optional string user = 8;
     }
 
-    Request request = 1;
-    Response response = 2;
-    Meta meta = 3;
+    enum RuleAction {
+        LOG = 0;
+        BLOCK = 1;
+    }
+
+    message MatchedRule {
+        string rule = 1;
+        RuleAction action = 2;
+    }
+
+    uint32 requestTime = 1;
+    uint32 responseTime = 2;
+    HttpRequest request = 3;
+    HttpResponse response = 4;
+    repeated DBQuery dbQueries = 5;
+    repeated FileAccess fileAccess = 6;
+    repeated Attack detectedAttacks = 7;
+    repeated MatchedRule matchesRules = 8;
+    bool blocked = 9;
+    TraceMeta meta = 10;
 }
 
 message BulkTrace {
