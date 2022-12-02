@@ -39,7 +39,7 @@ trafficMirrorAws.command("remove").action(awsTrafficMirrorRemove)
 const trafficMirrorGcp = trafficMirror
   .command("gcp")
   .description("Set up traffic mirroring for GCP")
-trafficMirrorGcp.command("new").action(gcpTrafficMirrorSetup)
+trafficMirrorGcp.command("new").action(gcpTrafficMirrorSetup).option("-f,--force", "Force creation of new instance")
 trafficMirrorGcp.command("list").action(gcpTrafficMirrorList)
 trafficMirrorGcp.command("remove").action(gcpTrafficMirrorDelete)
 trafficMirrorGcp.command("cleanup").action(gcpTrafficMirrorCleanUp)

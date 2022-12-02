@@ -581,7 +581,7 @@ const resolveImageURL = (zone) => {
     }
 }
 
-export const gcpTrafficMirrorSetup = async () => {
+export const gcpTrafficMirrorSetup = async ({ force }) => {    
     const id = uuidv4()
     const data = {}
     try {
@@ -590,9 +590,11 @@ export const gcpTrafficMirrorSetup = async () => {
         const conn = new GCP_CONN(key, zone, project);
         data["zone"] = zone
         data["project"] = project
-
-        let [packetMirrors] = await conn.list_packet_mirroring()
-        packetMirrors = packetMirrors.filter(mirror => mirror.network.url == networkUrl)
+        let packetMirrors = []
+        if (!force) {
+            [packetMirrors] = await conn.list_packet_mirroring()
+            packetMirrors = packetMirrors.filter(mirror => mirror.network.url == networkUrl)
+        }
 
         if (packetMirrors.length > 0) {
             console.log(chalk.blue("Updating the existing Packet Mirroring instance instead of creating new."))
