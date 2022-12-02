@@ -15,10 +15,10 @@ import {
   ModalBody,
   ModalFooter,
 } from "@chakra-ui/react"
-import { RiEyeOffFill } from "@react-icons/all-files/ri/RiEyeOffFill"
-import { RiEyeFill } from "@react-icons/all-files/ri/RiEyeFill"
-import { FiCheckCircle } from "@react-icons/all-files/fi/FiCheckCircle"
-import { AiOutlineFileSearch } from "@react-icons/all-files/ai/AiOutlineFileSearch"
+import { RiEyeOffFill } from "icons/ri/RiEyeOffFill"
+import { RiEyeFill } from "icons/ri/RiEyeFill"
+import { FiCheckCircle } from "icons/fi/FiCheckCircle"
+import { AiOutlineFileSearch } from "icons/ai/AiOutlineFileSearch"
 import { Alert, UpdateAlertParams } from "@common/types"
 import { SpecExtension, Status, UpdateAlertType } from "@common/enums"
 import { RISK_TO_COLOR } from "~/constants"

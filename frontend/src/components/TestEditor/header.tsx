@@ -2,8 +2,8 @@ import React from "react"
 import NextLink from "next/link"
 import { ApiEndpointDetailed } from "@common/types"
 import { Badge, Box, Code, HStack, Text } from "@chakra-ui/react"
-import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch"
-import { FaChevronRight } from "@react-icons/all-files/fa/FaChevronRight"
+import { TiFlowSwitch } from "icons/ti/TiFlowSwitch"
+import { FaChevronRight } from "icons/fa/FaChevronRight"
 import { METHOD_TO_COLOR } from "~/constants"
 
 interface TestEditorHeaderProps {

@@ -11,7 +11,6 @@ import {
   Link,
 } from "@chakra-ui/react"
 import { ExternalLinkIcon } from "@chakra-ui/icons"
-import { CgArrowRight } from "@react-icons/all-files/cg/CgArrowRight"
 import { ListNumber } from "components/utils/ListNumber"
 import { useEffect, useState } from "react"
 import {
@@ -116,7 +115,6 @@ const AWSDocs: React.FC<DocsParams> = React.memo(({ host, apiKey }) => {
                   as="a"
                   colorScheme="blue"
                   target="_blank"
-                  rightIcon={<CgArrowRight />}
                   pointerEvents={deployRegion === "" ? "none" : "initial"}
                   href={getAWSDeployAmiURL(deployRegion)}
                   isDisabled={deployRegion === ""}
@@ -209,7 +207,6 @@ sudo systemctl start metlo-ingestor.service`}</SyntaxHighlighter>
                   as="a"
                   colorScheme="blue"
                   target="_blank"
-                  rightIcon={<CgArrowRight />}
                   pointerEvents={selectedRegion === "" ? "none" : "initial"}
                   href={getAWSIngestorLaunchStackURL(
                     selectedRegion,

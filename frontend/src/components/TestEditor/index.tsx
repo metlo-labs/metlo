@@ -20,7 +20,7 @@ import {
   useToast,
   VStack,
 } from "@chakra-ui/react"
-import { HiPencil } from "@react-icons/all-files/hi/HiPencil"
+import { HiPencil } from "icons/hi/HiPencil"
 import TestEditorHeader from "./header"
 import RequestList from "./requestsList"
 import RequestEditor from "./requestEditor"

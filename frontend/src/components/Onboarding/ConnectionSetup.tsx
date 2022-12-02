@@ -10,7 +10,7 @@ import {
   useToast,
   VStack,
 } from "@chakra-ui/react"
-import { FaRegCopy } from "@react-icons/all-files/fa/FaRegCopy"
+import { FaRegCopy } from "icons/fa/FaRegCopy"
 import { API_KEY_TYPE, ConnectionType } from "@common/enums"
 import AwsDocs from "components/ConnectionDocs/docs/aws"
 import GcpDocs from "components/ConnectionDocs/docs/gcp"

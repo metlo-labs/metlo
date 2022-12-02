@@ -1,11 +1,11 @@
 import React, { useState } from "react"
 import NextLink from "next/link"
 import SplitPane from "react-split-pane"
-import { ImCross } from "@react-icons/all-files/im/ImCross"
+import { ImCross } from "icons/im/ImCross"
 import DataTable, { TableColumn } from "react-data-table-component"
-import { HiShieldCheck } from "@react-icons/all-files/hi/HiShieldCheck"
-import { FiCheckCircle } from "@react-icons/all-files/fi/FiCheckCircle"
-import { FiClock } from "@react-icons/all-files/fi/FiClock"
+import { HiShieldCheck } from "icons/hi/HiShieldCheck"
+import { FiCheckCircle } from "icons/fi/FiCheckCircle"
+import { FiClock } from "icons/fi/FiClock"
 import { ChevronDownIcon } from "@chakra-ui/icons"
 import {
   Badge,

@@ -23,14 +23,13 @@ import {
   Input,
 } from "@chakra-ui/react"
 import debounce from "lodash/debounce"
-import { FiFilter } from "@react-icons/all-files/fi/FiFilter"
 import { Alert, GetAlertParams, UpdateAlertParams } from "@common/types"
 import { AlertType, RiskScore, SpecExtension, Status } from "@common/enums"
 import { ALERT_PAGE_LIMIT } from "~/constants"
 import { AlertComponent } from "components/Alert/AlertComponent"
 import EmptyView from "components/utils/EmptyView"
 import { PaginationComponent } from "components/PaginationComponent"
-import { GoSearch } from "@react-icons/all-files/go/GoSearch"
+import { BsSearch } from "icons/bs/BsSearch"
 
 const RISK_SCORE_TO_LABEL: Record<RiskScore, string> = {
   [RiskScore.HIGH]: "High",
@@ -298,7 +297,7 @@ export const AlertList: React.FC<AlertListProps> = ({
         <VStack h="full" w="full" alignSelf="flex-start">
           <InputGroup mt="1" mr="1">
             <InputLeftElement pointerEvents="none">
-              <GoSearch />
+              <BsSearch />
             </InputLeftElement>
             <Input
               spellCheck={false}

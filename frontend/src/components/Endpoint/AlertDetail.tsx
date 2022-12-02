@@ -16,7 +16,6 @@ import {
   ListIcon,
   List,
 } from "@chakra-ui/react"
-import { AiOutlineRight } from "@react-icons/all-files/ai/AiOutlineRight"
 import { getDateTimeString, makeToast } from "utils"
 import { METHOD_TO_COLOR } from "~/constants"
 import { RestMethod, Status } from "@common/enums"

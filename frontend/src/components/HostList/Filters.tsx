@@ -14,7 +14,7 @@ import {
   AlertDialogBody,
   AlertDialogFooter,
 } from "@chakra-ui/react"
-import { GoSearch } from "@react-icons/all-files/go/GoSearch"
+import { BsSearch } from "icons/bs/BsSearch"
 import debounce from "lodash/debounce"
 import { GetHostParams } from "@common/types"
 import { deleteHost } from "api/endpoints"
@@ -84,7 +84,7 @@ const HostFilters: React.FC<HostFilterProps> = React.memo(
       >
         <InputGroup>
           <InputLeftElement pointerEvents="none">
-            <GoSearch />
+            <BsSearch />
           </InputLeftElement>
           <Input
             spellCheck={false}

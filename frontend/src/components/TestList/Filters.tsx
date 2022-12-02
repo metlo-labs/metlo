@@ -1,7 +1,7 @@
 import React from "react"
 import NextLink from "next/link"
 import { Stack, Box, StackProps, Button } from "@chakra-ui/react"
-import { FiPlus } from "@react-icons/all-files/fi/FiPlus"
+import { FiPlus } from "icons/fi/FiPlus"
 import { Select } from "chakra-react-select"
 
 interface TestFilterProps extends StackProps {

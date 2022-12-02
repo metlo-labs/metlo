@@ -1,8 +1,8 @@
 import React, { useState } from "react"
 import { Select } from "chakra-react-select"
 import { HStack, Tag, Button, Box } from "@chakra-ui/react"
-import { FiPlus } from "@react-icons/all-files/fi/FiPlus"
-import { HiPencil } from "@react-icons/all-files/hi/HiPencil"
+import { FiPlus } from "icons/fi/FiPlus"
+import { HiPencil } from "icons/hi/HiPencil"
 
 interface TagListProps {
   allTags: string[]

@@ -8,12 +8,12 @@ import {
   Text,
   Spinner,
 } from "@chakra-ui/react"
-import { IoMdTrash } from "@react-icons/all-files/io/IoMdTrash"
-import { FiPlus } from "@react-icons/all-files/fi/FiPlus"
+import { IoMdTrash } from "icons/io/IoMdTrash"
+import { FiPlus } from "icons/fi/FiPlus"
 import { Request } from "@metlo/testing"
 import { METHOD_TO_COLOR } from "~/constants"
-import { BiCheckCircle } from "@react-icons/all-files/bi/BiCheckCircle"
-import { GiCancel } from "@react-icons/all-files/gi/GiCancel"
+import { BiCheckCircle } from "icons/bi/BiCheckCircle"
+import { GiCancel } from "icons/gi/GiCancel"
 
 interface RequestListProps extends StackProps {
   endpointHost: string

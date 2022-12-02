@@ -10,7 +10,7 @@ import {
   Wrap,
   WrapItem,
 } from "@chakra-ui/react"
-import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch"
+import { TiFlowSwitch } from "icons/ti/TiFlowSwitch"
 import { useRouter } from "next/router"
 import darkTheme from "prism-react-renderer/themes/duotoneDark"
 import lightTheme from "prism-react-renderer/themes/github"

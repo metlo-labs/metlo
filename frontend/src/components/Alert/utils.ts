@@ -1,10 +1,10 @@
-import { FaBell } from "@react-icons/all-files/fa/FaBell"
-import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch"
-import { AiFillApi } from "@react-icons/all-files/ai/AiFillApi"
-import { AiFillLock } from "@react-icons/all-files/ai/AiFillLock"
-import { BsShieldLockFill } from "@react-icons/all-files/bs/BsShieldLockFill"
+import { FaBell } from "icons/fa/FaBell"
+import { TiFlowSwitch } from "icons/ti/TiFlowSwitch"
+import { AiFillApi } from "icons/ai/AiFillApi"
+import { AiFillLock } from "icons/ai/AiFillLock"
+import { BsShieldLockFill } from "icons/bs/BsShieldLockFill"
 import { AlertType } from "@common/enums"
-import { IconType } from "@react-icons/all-files/lib"
+import { IconType } from "icons/lib"
 
 export const alertTypeToIcon: (
   alertType: AlertType,

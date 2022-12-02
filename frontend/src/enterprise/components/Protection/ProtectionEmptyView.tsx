@@ -5,7 +5,7 @@ import {
   Button,
   useColorModeValue,
 } from "@chakra-ui/react"
-import { HiShieldCheck } from "@react-icons/all-files/hi/HiShieldCheck"
+import { HiShieldCheck } from "icons/hi/HiShieldCheck"
 import { DataHeading } from "components/utils/Card"
 
 export const ProtectionEmptyView: React.FC<{}> = () => {

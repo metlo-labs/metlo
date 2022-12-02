@@ -8,7 +8,7 @@ import {
   useColorModeValue,
   VStack,
 } from "@chakra-ui/react"
-import { IoMdTrash } from "@react-icons/all-files/io/IoMdTrash"
+import { IoMdTrash } from "icons/io/IoMdTrash"
 import Editor from "@monaco-editor/react"
 
 interface TestScriptEditorProps extends StackProps {
