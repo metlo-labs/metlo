@@ -1,11 +1,11 @@
 import React, { useState } from "react"
 import NextLink from "next/link"
-import { BiInfoCircle } from "@react-icons/all-files/bi/BiInfoCircle"
-import { BsSearch } from "@react-icons/all-files/bs/BsSearch"
-import { GrStackOverflow } from "@react-icons/all-files/gr/GrStackOverflow"
-import { TiFlowSwitch } from "@react-icons/all-files/ti/TiFlowSwitch"
-import { FaBell } from "@react-icons/all-files/fa/FaBell"
-import { BiTestTube } from "@react-icons/all-files/bi/BiTestTube"
+import { BiInfoCircle } from "icons/bi/BiInfoCircle"
+import { BsSearch } from "icons/bs/BsSearch"
+import { GrStackOverflow } from "icons/gr/GrStackOverflow"
+import { TiFlowSwitch } from "icons/ti/TiFlowSwitch"
+import { FaBell } from "icons/fa/FaBell"
+import { BiTestTube } from "icons/bi/BiTestTube"
 import {
   Badge,
   Code,

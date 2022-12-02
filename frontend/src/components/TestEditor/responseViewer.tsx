@@ -16,8 +16,8 @@ import {
 import { Result } from "@metlo/testing"
 import { SectionHeader } from "../utils/Card"
 import { statusToColor } from "../../constants"
-import { BiCheckCircle } from "@react-icons/all-files/bi/BiCheckCircle"
-import { GiCancel } from "@react-icons/all-files/gi/GiCancel"
+import { BiCheckCircle } from "icons/bi/BiCheckCircle"
+import { GiCancel } from "icons/gi/GiCancel"
 import DataPreview from "./dataPreview"
 import EmptyView from "components/utils/EmptyView"
 

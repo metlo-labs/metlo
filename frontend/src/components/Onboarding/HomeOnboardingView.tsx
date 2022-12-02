@@ -1,7 +1,7 @@
 import { Box, VStack, Button, HStack } from "@chakra-ui/react"
 import { useRouter } from "next/router"
 import { ConnectionType } from "@common/enums"
-import { BiChevronRightCircle } from "@react-icons/all-files/bi/BiChevronRightCircle"
+import { BiChevronRightCircle } from "icons/bi/BiChevronRightCircle"
 import { GetStarted } from "./GetStarted"
 import { ConnectionSetup } from "./ConnectionSetup"
 import { ListenRequests } from "./ListenRequests"

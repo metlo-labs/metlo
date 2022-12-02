@@ -11,7 +11,7 @@ import {
   Text,
 } from "@chakra-ui/react"
 import SplitPane from "react-split-pane"
-import { ImCross } from "@react-icons/all-files/im/ImCross"
+import { ImCross } from "icons/im/ImCross"
 import DataTable, { TableColumn } from "react-data-table-component"
 import { DataField } from "@common/types"
 import { getCustomStyles, rowStyles } from "components/utils/TableUtils"

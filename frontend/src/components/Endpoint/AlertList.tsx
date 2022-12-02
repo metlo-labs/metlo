@@ -12,8 +12,8 @@ import {
   Heading,
   Button,
 } from "@chakra-ui/react"
-import { ImCheckmark } from "@react-icons/all-files/im/ImCheckmark"
-import { ImCross } from "@react-icons/all-files/im/ImCross"
+import { ImCheckmark } from "icons/im/ImCheckmark"
+import { ImCross } from "icons/im/ImCross"
 import DataTable, { TableColumn } from "react-data-table-component"
 import { getCustomStyles, rowStyles } from "components/utils/TableUtils"
 import { Alert } from "@common/types"

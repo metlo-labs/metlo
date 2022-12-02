@@ -12,7 +12,7 @@ import {
   useToast,
   Box,
 } from "@chakra-ui/react"
-import { AiFillApi } from "@react-icons/all-files/ai/AiFillApi"
+import { AiFillApi } from "icons/ai/AiFillApi"
 import { OpenApiSpec } from "@common/types"
 import { deleteSpec, updateSpec } from "api/apiSpecs"
 import { makeToast } from "utils"

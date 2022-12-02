@@ -9,7 +9,7 @@ import {
   InputLeftElement,
 } from "@chakra-ui/react"
 import { Select } from "chakra-react-select"
-import { GoSearch } from "@react-icons/all-files/go/GoSearch"
+import { BsSearch } from "icons/bs/BsSearch"
 import { GetEndpointParams } from "@common/types"
 import { DataClass, RiskScore } from "@common/enums"
 import { useEffect } from "react"
@@ -145,7 +145,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
         </Stack>
         <InputGroup>
           <InputLeftElement pointerEvents="none">
-            <GoSearch />
+            <BsSearch />
           </InputLeftElement>
           <Input
             spellCheck={false}

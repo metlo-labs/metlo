@@ -1,4 +1,3 @@
-import { PhoneIcon } from "@chakra-ui/icons"
 import {
   Modal,
   ModalOverlay,
@@ -15,7 +14,7 @@ import {
   IconButton,
 } from "@chakra-ui/react"
 
-import { IoMdCopy } from "@react-icons/all-files/io/IoMdCopy"
+import { IoMdCopy } from "icons/io/IoMdCopy"
 
 interface KeyAddedInterface {
   newKey: string

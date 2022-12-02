@@ -1,7 +1,7 @@
 import React from "react"
 import { DataPair } from "@metlo/testing"
-import { IoMdTrash } from "@react-icons/all-files/io/IoMdTrash"
-import { HiPlus } from "@react-icons/all-files/hi/HiPlus"
+import { IoMdTrash } from "icons/io/IoMdTrash"
+import { HiPlus } from "icons/hi/HiPlus"
 import {
   Button,
   Heading,
