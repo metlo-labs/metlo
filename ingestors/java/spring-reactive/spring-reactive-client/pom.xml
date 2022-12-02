@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.metlo</groupId>
         <artifactId>spring-reactive-parent</artifactId>
-        <version>0.3</version>
+        <version>0.0.1</version>
     </parent>
 
     <artifactId>spring-reactive-client</artifactId>
@@ -37,6 +37,17 @@
         </plugins>
     </build>
 
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/releases/</url>
+        </repository>
+    </distributionManagement>
 
     <dependencies>
         <dependency>
