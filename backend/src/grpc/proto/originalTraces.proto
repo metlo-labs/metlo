@@ -44,9 +44,9 @@ message Trace {
         string environment = 1;
         bool incoming = 2;
         string source = 3;
-        uint32 sourcePort = 4;
-        string destination = 5;
-        uint32 destinationPort = 6;
+        string sourcePort = 4;            
+        string destination = 5;        
+        string destinationPort = 6;            
         string metloSource = 7;
     }
 
