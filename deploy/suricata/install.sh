@@ -27,7 +27,5 @@ sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/mirror_install_scri
 chmod +x /home/$WHOAMI/suricata/install_nvm.sh
 chmod +x /home/$WHOAMI/suricata/install_deps.sh
 
-echo "suricata" | su suricata
-
 sudo WHOAMI=$WHOAMI /home/$WHOAMI/suricata/install_nvm.sh
 sudo PATH=$PATH WHOAMI=$WHOAMI /home/$WHOAMI/suricata/install_deps.sh
