@@ -1,8 +1,7 @@
 import { GetServerSideProps } from "next"
 import Error from "next/error"
 import superjson from "superjson"
-import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
-import { SidebarLayoutShell } from "components/SidebarLayoutShell"
+import { PageWrapper } from "components/PageWrapper"
 import { VulnerabilitySummary } from "@common/types"
 import { getHosts } from "api/endpoints"
 import { getVulnerabilitySummary } from "api/alerts/vulnerabilities"
@@ -14,12 +13,9 @@ const Vulnerabilities = ({ summary, hosts }) => {
     return <Error statusCode={500} />
   }
   return (
-    <SidebarLayoutShell
-      title="Vulnerabilities"
-      currentTab={SideNavLinkDestination.Vulnerabilities}
-    >
+    <PageWrapper title="Vulnerabilities">
       <VulnerabilityPage initSummary={parsedSummary} hosts={hosts} />
-    </SidebarLayoutShell>
+    </PageWrapper>
   )
 }
 

@@ -1,16 +1,12 @@
 import { Heading, Text, VStack, Link } from "@chakra-ui/react"
-import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
-import { SidebarLayoutShell } from "components/SidebarLayoutShell"
+import { PageWrapper } from "components/PageWrapper"
 import { ContentContainer } from "components/utils/ContentContainer"
 import ConnectionDocsList from "components/ConnectionDocs"
 
 const Connections = () => {
   return (
-    <SidebarLayoutShell
-      title="Connections"
-      currentTab={SideNavLinkDestination.Connections}
-    >
-      <ContentContainer  maxContentW="100rem" px="8" py="8">
+    <PageWrapper title="Connections">
+      <ContentContainer maxContentW="100rem" px="8" py="8">
         <VStack w="full" alignItems="flex-start">
           <Heading fontWeight="medium" size="xl" mb="2">
             Connections
@@ -22,7 +18,7 @@ const Connections = () => {
           <ConnectionDocsList />
         </VStack>
       </ContentContainer>
-    </SidebarLayoutShell>
+    </PageWrapper>
   )
 }
 

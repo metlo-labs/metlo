@@ -1,8 +1,7 @@
 import { GetServerSideProps } from "next"
 import ErrorPage from "next/error"
 import superjson from "superjson"
-import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
-import { SidebarLayoutShell } from "components/SidebarLayoutShell"
+import { PageWrapper } from "components/PageWrapper"
 import { getSpec } from "api/apiSpecs"
 import SpecPage from "components/Spec"
 import { OpenApiSpec } from "@common/types"
@@ -14,11 +13,11 @@ const Spec = ({ spec }) => {
     return <ErrorPage statusCode={404} />
   }
   return (
-    <SidebarLayoutShell currentTab={SideNavLinkDestination.Specs}>
+    <PageWrapper>
       <ContentContainer maxContentW="5xl" height="full">
         <SpecPage spec={parsedSpec} />
       </ContentContainer>
-    </SidebarLayoutShell>
+    </PageWrapper>
   )
 }
 

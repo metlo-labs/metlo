@@ -3,8 +3,7 @@ import superjson from "superjson"
 import { getInstanceSettings, getSummary } from "api/home"
 import { Summary, InstanceSettings } from "@common/types"
 import Error from "next/error"
-import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
-import { SidebarLayoutShell } from "components/SidebarLayoutShell"
+import { PageWrapper } from "components/PageWrapper"
 import { ContentContainer } from "components/utils/ContentContainer"
 import HomePage from "components/Home"
 import { HomeOnboardingView } from "components/Onboarding/HomeOnboardingView"
@@ -40,11 +39,7 @@ const Index = ({ summary, instanceSettings }) => {
       </ContentContainer>
     )
   }
-  return (
-    <SidebarLayoutShell title="Home" currentTab={SideNavLinkDestination.Home}>
-      {page}
-    </SidebarLayoutShell>
-  )
+  return <PageWrapper title="Home">{page}</PageWrapper>
 }
 
 export const getServerSideProps: GetServerSideProps = async context => {

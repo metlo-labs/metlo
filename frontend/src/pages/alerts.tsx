@@ -9,9 +9,8 @@ import {
 } from "@chakra-ui/react"
 import superjson from "superjson"
 import React, { useState } from "react"
-import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
 import { Alert, GetAlertParams, UpdateAlertParams } from "@common/types"
-import { SidebarLayoutShell } from "components/SidebarLayoutShell"
+import { PageWrapper } from "components/PageWrapper"
 import { AlertList } from "components/Alert/AlertList"
 import { ALERT_PAGE_LIMIT } from "~/constants"
 import { getAlerts, updateAlert } from "api/alerts"
@@ -93,10 +92,7 @@ const Alerts = ({ initParams, initAlerts, initTotalCount, initHosts }) => {
   }
 
   return (
-    <SidebarLayoutShell
-      title="Alerts"
-      currentTab={SideNavLinkDestination.Alerts}
-    >
+    <PageWrapper title="Alerts">
       <VStack
         mx="auto"
         maxW="100rem"
@@ -147,7 +143,7 @@ const Alerts = ({ initParams, initAlerts, initTotalCount, initHosts }) => {
           />
         </Box>
       </VStack>
-    </SidebarLayoutShell>
+    </PageWrapper>
   )
 }
 

@@ -1,5 +1,4 @@
-import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
-import { SidebarLayoutShell } from "components/SidebarLayoutShell"
+import { PageWrapper } from "components/PageWrapper"
 import { ContentContainer } from "components/utils/ContentContainer"
 import { Flex, Heading, VStack } from "@chakra-ui/react"
 import { useState } from "react"
@@ -12,7 +11,7 @@ const ConfigureAWS = dynamic(
 const Connections = ({}) => {
   const [selectedIndex, updateIndex] = useState(1)
   return (
-    <SidebarLayoutShell currentTab={SideNavLinkDestination.Connections}>
+    <PageWrapper>
       <ContentContainer height="full">
         <VStack w="full" alignItems="flex-start" h={"full"}>
           <Heading fontWeight="medium" size="xl" mb="8">
@@ -26,7 +25,7 @@ const Connections = ({}) => {
           </Flex>
         </VStack>
       </ContentContainer>
-    </SidebarLayoutShell>
+    </PageWrapper>
   )
 }
 

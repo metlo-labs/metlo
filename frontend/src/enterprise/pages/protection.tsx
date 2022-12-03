@@ -1,6 +1,5 @@
 import superjson from "superjson"
-import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
-import { SidebarLayoutShell } from "components/SidebarLayoutShell"
+import { PageWrapper } from "components/PageWrapper"
 import { ContentContainer } from "components/utils/ContentContainer"
 import { ProtectionEmptyView } from "enterprise/components/Protection/ProtectionEmptyView"
 import { ProtectionPage } from "enterprise/components/Protection"
@@ -19,14 +18,7 @@ const Protection = ({ attacksResponse, hosts }) => {
       </ContentContainer>
     )
   }
-  return (
-    <SidebarLayoutShell
-      title="Protection"
-      currentTab={SideNavLinkDestination.Protection}
-    >
-      {page}
-    </SidebarLayoutShell>
-  )
+  return <PageWrapper title="Protection">{page}</PageWrapper>
 }
 
 export default Protection
