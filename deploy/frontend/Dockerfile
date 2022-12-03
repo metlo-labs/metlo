@@ -24,6 +24,7 @@ WORKDIR /usr/src/app
 WORKDIR /usr/src/app/frontend
 COPY --from=builder /usr/src/app/frontend/public ./public
 COPY --from=builder /usr/src/app/frontend/package.json ./package.json
+COPY --from=builder /usr/src/app/frontend/.env ./.env
 COPY --from=builder /usr/src/app/frontend/.next/standalone ./
 COPY --from=builder /usr/src/app/frontend/.next/static ./.next/static
 
