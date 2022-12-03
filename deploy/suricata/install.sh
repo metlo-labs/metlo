@@ -1,14 +1,15 @@
 #!/bin/bash -e
 
 sudo useradd -m suricata
+echo "suricata:suricata" | sudo chpasswd
 
 export WHOAMI=suricata
 
 sudo mkdir -p /opt/metlo
 sudo touch /opt/metlo/credentials
 
-echo 'METLO_ADDR=$METLO_ADDR' >> opt/metlo/credentials
-echo 'METLO_KEY=$METLO_KEY' >> opt/metlo/credentials
+echo 'METLO_ADDR=$METLO_ADDR' >> /opt/metlo/credentials
+echo 'METLO_KEY=$METLO_KEY' >> /opt/metlo/credentials
 
 
 sudo apt update -y
@@ -26,5 +27,7 @@ sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/mirror_install_scri
 chmod +x /home/$WHOAMI/suricata/install_nvm.sh
 chmod +x /home/$WHOAMI/suricata/install_deps.sh
 
-sudo -E /home/$WHOAMI/suricata/install_nvm.sh
-sudo PATH=$PATH -E /home/$WHOAMI/suricata/install_deps.sh
+echo "suricata" | su suricata
+
+sudo WHOAMI=$WHOAMI /home/$WHOAMI/suricata/install_nvm.sh
+sudo PATH=$PATH WHOAMI=$WHOAMI /home/$WHOAMI/suricata/install_deps.sh
