@@ -32,12 +32,12 @@ sudo systemctl stop suricata.service
 
 
 echo "Get network interface"
-sudo cp $HOME_PATH/suricata/local.rules /var/lib/suricata/rules/local.rules -f
+sudo cp suricata/local.rules /var/lib/suricata/rules/local.rules -f
 INTERFACE=$(ip link | egrep "ens[0-9]*" -o)
 [ ! -z "$INTERFACE" ] || INTERFACE=$(ip link | egrep "[0-9]*" -o)
 echo "Placing packet capture on interface $INTERFACE"
-sed -i "s/%interface/$INTERFACE/" $HOME_PATH/suricata/suricata.yaml
-sudo cp $HOME_PATH/suricata/suricata.yaml /etc/suricata/suricata.yaml -f
+sed -i "s/%interface/$INTERFACE/" suricata/suricata.yaml
+sudo cp suricata/suricata.yaml /etc/suricata/suricata.yaml -f
 
 
 echo "CLONING INGESTOR"
@@ -49,10 +49,10 @@ yarn --cwd /etc/metlo-ingestor/ingestors/suricata build
 cd ~
 # Use ~ as separator since HOME can have escapable characters which will conflict with forward-slash
 # Replace home directory to properly set nvm directory
-sed -i "s~%home~$HOME_PATH~" $HOME_PATH/suricata/metlo-ingestor.service
+sed -i "s~%home~$HOME_PATH~" suricata/metlo-ingestor.service
 
 echo "ADDING SERVICE"
-sudo mv $HOME_PATH/suricata/metlo-ingestor.service /lib/systemd/system/metlo-ingestor.service -f
+sudo mv suricata/metlo-ingestor.service /lib/systemd/system/metlo-ingestor.service -f
 
 echo "STARTING SERVICES"
 sudo systemctl daemon-reload
