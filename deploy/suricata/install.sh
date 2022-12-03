@@ -23,8 +23,8 @@ sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/mirror_install_scri
 sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/mirror_install_script/deploy/suricata/metlo-ingestor.service -P /home/$WHOAMI/suricata
 sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/mirror_install_script/deploy/suricata/suricata.yaml -P /home/$WHOAMI/suricata
 
-chmod +x suricata/install_nvm.sh
-chmod +x suricata/install_deps.sh
+chmod +x /home/$WHOAMI/suricata/install_nvm.sh
+chmod +x /home/$WHOAMI/suricata/install_deps.sh
 
-sudo -E suricata/install_nvm.sh
-sudo PATH=$PATH -E suricata/install_deps.sh
+sudo -E /home/$WHOAMI/suricata/install_nvm.sh
+sudo PATH=$PATH -E /home/$WHOAMI/suricata/install_deps.sh
