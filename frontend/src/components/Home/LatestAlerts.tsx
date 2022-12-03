@@ -69,7 +69,7 @@ const LatestAlerts: React.FC<LatestAlertsProps> = React.memo(
             Latest Alerts
           </Heading>
           <Link href="/alerts">
-            <a>View All Alerts →</a>
+            View All Alerts →
           </Link>
         </HStack>
         {alerts.length === 0 ? (
