@@ -4,8 +4,8 @@ import Image from "next/image"
 import { useColorModeValue, BoxProps, Box } from "@chakra-ui/react"
 
 interface LogoProps extends BoxProps {
-  imageHeight?: string
-  imageWidth?: string
+  imageHeight?: number
+  imageWidth?: number
 }
 
 export const Logo: React.FC<LogoProps> = React.memo(
@@ -18,8 +18,8 @@ export const Logo: React.FC<LogoProps> = React.memo(
       <Box {...props}>
         <Image
           alt="logo-image"
-          height={imageHeight || "36"}
-          width={imageWidth || "127"}
+          height={imageHeight || 36}
+          width={imageWidth || 127}
           src={imageSrc}
         />
       </Box>

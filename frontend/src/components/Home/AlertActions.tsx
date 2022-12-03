@@ -34,7 +34,7 @@ const Action: React.FC<AlertAction> = React.memo(
             {description}
           </Text>
           <Link href={encodeURI(`/alerts?alertTypes=${alertTypes.join(",")}`)}>
-            <a>View Alerts →</a>
+            View Alerts →
           </Link>
         </VStack>
       </HStack>

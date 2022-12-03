@@ -79,7 +79,7 @@ export const HomeUpdateEmailView: React.FC<{}> = () => {
         <title>Metlo</title>
       </Head>
       <VStack spacing="8" w="lg">
-        <Logo imageHeight="72" imageWidth="254" />
+        <Logo imageHeight={72} imageWidth={254} />
         <FormControl>
           <FormLabel>Enter your email address</FormLabel>
           <Input

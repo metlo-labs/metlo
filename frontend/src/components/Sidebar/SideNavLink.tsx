@@ -3,8 +3,7 @@ import {
   HStack,
   Flex,
   Icon,
-  Link,
-  LinkProps,
+  BoxProps,
   Text,
   useColorModeValue,
 } from "@chakra-ui/react"
@@ -17,7 +16,7 @@ import {
   SideNavLinkDestination,
 } from "./NavLinkUtils"
 
-interface SideNavLinkProps extends LinkProps {
+interface SideNavLinkProps extends BoxProps {
   destination: SideNavLinkDestination
   isActive?: boolean
   isComingSoon?: boolean
@@ -33,7 +32,7 @@ const SideNavLink: React.FC<SideNavLinkProps> = React.memo(
     return (
       <Box pointerEvents={isComingSoon ? "none" : "unset"}>
         <NextLink href={sideNavDestinationToHref(destination)}>
-          <Link
+          <Box
             display="block"
             py={3}
             px={4}
@@ -86,7 +85,7 @@ const SideNavLink: React.FC<SideNavLinkProps> = React.memo(
                 color={iconColor}
               />
             </Flex>
-          </Link>
+          </Box>
         </NextLink>
       </Box>
     )

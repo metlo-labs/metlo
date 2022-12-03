@@ -138,7 +138,7 @@ const TestEditor: React.FC<TestEditorProps> = React.memo(
             fetchingRequests: newFetchingRequests,
           }
         }),
-      [setState, endpoint],
+      [setState],
     )
 
     const deleteRequest = useCallback(

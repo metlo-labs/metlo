@@ -22,6 +22,7 @@ const AlertItem: React.FC<{ alertItem: Alert }> = React.memo(
     return (
       <Link
         href={`/endpoint/${alertItem.apiEndpointUuid}?tab=alerts&uuid=${alertItem.uuid}`}
+        legacyBehavior
       >
         <HStack
           py="2"
@@ -69,7 +70,7 @@ const LatestAlerts: React.FC<LatestAlertsProps> = React.memo(
             Latest Alerts
           </Heading>
           <Link href="/alerts">
-            <a>View All Alerts →</a>
+            View All Alerts →
           </Link>
         </HStack>
         {alerts.length === 0 ? (

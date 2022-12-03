@@ -53,7 +53,7 @@ export const GetStarted: React.FC = React.memo(({}) => {
   }
   return (
     <>
-      <Logo imageHeight="72" imageWidth="254" />
+      <Logo imageHeight={72} imageWidth={254} />
       <Heading size="2xl" pt="4" fontWeight="semibold">
         Welcome to Metlo
       </Heading>
@@ -82,6 +82,7 @@ export const GetStarted: React.FC = React.memo(({}) => {
             >
               <VStack>
                 <Image
+                alt={`connection-${conn.type}`}
                   boxSize="50px"
                   src={`/static-images/connections/${conn.type}_light.svg`}
                 />
