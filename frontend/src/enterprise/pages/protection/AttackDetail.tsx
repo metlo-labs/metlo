@@ -2,8 +2,7 @@ import React from "react"
 import superjson from "superjson"
 import ErrorPage from "next/error"
 import { AttackDetailResponse } from "@common/types"
-import { SidebarLayoutShell } from "components/SidebarLayoutShell"
-import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
+import { PageWrapper } from "components/PageWrapper"
 import { AttackDetailPage } from "enterprise/components/Protection/AttackDetail"
 
 const AttackDetail = ({ attackDetail }) => {
@@ -17,12 +16,9 @@ const AttackDetail = ({ attackDetail }) => {
   }
 
   return (
-    <SidebarLayoutShell
-      title="Protection"
-      currentTab={SideNavLinkDestination.Protection}
-    >
+    <PageWrapper title="Protection">
       <AttackDetailPage initialAttack={attack} traces={traces} />
-    </SidebarLayoutShell>
+    </PageWrapper>
   )
 }
 

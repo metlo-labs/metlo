@@ -1,8 +1,7 @@
 import { GetServerSideProps } from "next"
 import ErrorPage from "next/error"
 import superjson from "superjson"
-import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
-import { SidebarLayoutShell } from "components/SidebarLayoutShell"
+import { PageWrapper } from "components/PageWrapper"
 import EndpointPage from "components/Endpoint"
 import { getEndpoint, getUsage } from "api/endpoints"
 import { ApiEndpointDetailed, Usage, Alert } from "@common/types"
@@ -24,10 +23,7 @@ const Endpoint = ({
     return <ErrorPage statusCode={404} />
   }
   return (
-    <SidebarLayoutShell
-      title="Endpoint"
-      currentTab={SideNavLinkDestination.Endpoints}
-    >
+    <PageWrapper title="Endpoint">
       <EndpointPage
         endpoint={parsedEndpoint}
         usage={parsedUsage}
@@ -35,7 +31,7 @@ const Endpoint = ({
         initAlertParams={initAlertParams}
         totalAlertsCount={totalAlertsCount}
       />
-    </SidebarLayoutShell>
+    </PageWrapper>
   )
 }
 

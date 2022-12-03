@@ -5,8 +5,7 @@ import { Heading, VStack } from "@chakra-ui/react"
 import { getHostsList } from "api/endpoints"
 import { GetHostParams, HostResponse } from "@common/types"
 import { HOST_PAGE_LIMIT } from "~/constants"
-import { SidebarLayoutShell } from "components/SidebarLayoutShell"
-import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
+import { PageWrapper } from "components/PageWrapper"
 import { ContentContainer } from "components/utils/ContentContainer"
 import HostList from "components/HostList"
 
@@ -39,7 +38,7 @@ const Hosts = ({ initHosts, initTotalCount }) => {
   }
 
   return (
-    <SidebarLayoutShell title="Hosts" currentTab={SideNavLinkDestination.Hosts}>
+    <PageWrapper title="Hosts">
       <ContentContainer maxContentW="100rem" px="8" py="8">
         <VStack w="full" alignItems="flex-start" spacing="0">
           <Heading fontWeight="medium" size="lg" mb="4">
@@ -54,7 +53,7 @@ const Hosts = ({ initHosts, initTotalCount }) => {
           />
         </VStack>
       </ContentContainer>
-    </SidebarLayoutShell>
+    </PageWrapper>
   )
 }
 

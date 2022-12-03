@@ -1,7 +1,5 @@
 import superjson from "superjson"
 import { GetServerSideProps } from "next"
-import { getAttacks } from "api/attacks"
-import { getHosts } from "api/endpoints"
 import ProtectionContent from "enterprise/pages/protection"
 
 const Protection = ({ attacksResponse, hosts }) => (

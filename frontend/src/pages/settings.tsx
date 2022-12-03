@@ -20,8 +20,7 @@ import { getMetloConfig, updateMetloConfig } from "api/metlo-config"
 import KeyAddedModal from "components/Keys/keyAddedPrompt"
 import NewKeys from "components/Keys/newKeys"
 import ListKeys from "components/Keys/list"
-import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
-import { SidebarLayoutShell } from "components/SidebarLayoutShell"
+import { PageWrapper } from "components/PageWrapper"
 import { ContentContainer } from "components/utils/ContentContainer"
 import { GetServerSideProps } from "next"
 import { useState } from "react"
@@ -120,10 +119,7 @@ const Settings = ({ keys: _keysString, metloConfig }) => {
   }
 
   return (
-    <SidebarLayoutShell
-      title="API Specs"
-      currentTab={SideNavLinkDestination.Settings}
-    >
+    <PageWrapper title="API Specs">
       <ContentContainer maxContentW="100rem" px="8" py="8">
         <VStack h="full" w="full" alignItems="flex-start" spacing="0">
           <Heading fontWeight="medium" size="lg" mb="4">
@@ -214,7 +210,7 @@ const Settings = ({ keys: _keysString, metloConfig }) => {
           </Tabs>
         </VStack>
       </ContentContainer>
-    </SidebarLayoutShell>
+    </PageWrapper>
   )
 }
 

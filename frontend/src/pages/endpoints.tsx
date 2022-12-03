@@ -5,8 +5,7 @@ import { GetServerSideProps } from "next"
 import { ApiEndpoint, GetEndpointParams } from "@common/types"
 import { DataClass, RiskScore } from "@common/enums"
 import EndpointList from "components/EndpointList"
-import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
-import { SidebarLayoutShell } from "components/SidebarLayoutShell"
+import { PageWrapper } from "components/PageWrapper"
 import { ContentContainer } from "components/utils/ContentContainer"
 import { getEndpoints, getHosts } from "api/endpoints"
 import { ENDPOINT_PAGE_LIMIT } from "~/constants"
@@ -39,10 +38,7 @@ const Endpoints = ({ initParams, initEndpoints, initTotalCount, hosts }) => {
   }
 
   return (
-    <SidebarLayoutShell
-      title="Endpoints"
-      currentTab={SideNavLinkDestination.Endpoints}
-    >
+    <PageWrapper title="Endpoints">
       <ContentContainer maxContentW="100rem" px="8" py="8">
         <VStack w="full" alignItems="flex-start" spacing="0">
           <Heading fontWeight="medium" size="lg" mb="4">
@@ -58,7 +54,7 @@ const Endpoints = ({ initParams, initEndpoints, initTotalCount, hosts }) => {
           />
         </VStack>
       </ContentContainer>
-    </SidebarLayoutShell>
+    </PageWrapper>
   )
 }
 

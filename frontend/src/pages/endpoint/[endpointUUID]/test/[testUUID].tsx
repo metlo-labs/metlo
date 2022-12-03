@@ -1,8 +1,7 @@
 import { GetServerSideProps } from "next"
 import ErrorPage from "next/error"
 import superjson from "superjson"
-import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
-import { SidebarLayoutShell } from "components/SidebarLayoutShell"
+import { PageWrapper } from "components/PageWrapper"
 import TestEditor from "components/TestEditor"
 import { ApiEndpointDetailed } from "@common/types"
 import { getTest } from "api/tests"
@@ -16,16 +15,13 @@ const NewTest = ({ endpoint, test }) => {
     return <ErrorPage statusCode={404} />
   }
   return (
-    <SidebarLayoutShell
-      title={parsedTest.name}
-      currentTab={SideNavLinkDestination.Endpoints}
-    >
+    <PageWrapper title={parsedTest.name}>
       <TestEditor
         endpoint={parsedEndpoint}
         initTest={parsedTest}
         isNewTest={false}
       />
-    </SidebarLayoutShell>
+    </PageWrapper>
   )
 }
 

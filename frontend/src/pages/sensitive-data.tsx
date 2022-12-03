@@ -2,8 +2,7 @@ import { GetServerSideProps } from "next"
 import Error from "next/error"
 import superjson from "superjson"
 import SensitiveDataPage from "components/SensitiveData"
-import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
-import { SidebarLayoutShell } from "components/SidebarLayoutShell"
+import { PageWrapper } from "components/PageWrapper"
 import { getSensitiveDataSummary } from "api/sensitiveData"
 import { SensitiveDataSummary } from "@common/types"
 import { getHosts } from "api/endpoints"
@@ -14,12 +13,9 @@ const SensitiveData = ({ summary, hosts }) => {
     return <Error statusCode={500} />
   }
   return (
-    <SidebarLayoutShell
-      title="Sensitive Data"
-      currentTab={SideNavLinkDestination.SensitiveData}
-    >
+    <PageWrapper title="Sensitive Data">
       <SensitiveDataPage initSummary={parsedSummary} hosts={hosts} />
-    </SidebarLayoutShell>
+    </PageWrapper>
   )
 }
 
