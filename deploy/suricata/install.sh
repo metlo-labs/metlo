@@ -6,10 +6,6 @@ echo "suricata:suricata" | sudo chpasswd
 
 export WHOAMI=suricata
 
-echo 'METLO_ADDR=${METLO_ADDR}' >> /opt/metlo/credentials
-echo 'METLO_KEY=${METLO_KEY}' >> /opt/metlo/credentials
-
-
 sudo apt update -y
 sudo apt install wget -y
 
