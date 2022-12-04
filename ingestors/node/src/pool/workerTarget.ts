@@ -1,6 +1,5 @@
-const { parentPort } = require("node:worker_threads")
-// const { http } = require('follow-redirects');
-const axios = require("axios")
+import { parentPort } from "node:worker_threads"
+import axios from "axios";
 
 parentPort.on('message', ({ data: postData, host, key }) => {
     axios({
