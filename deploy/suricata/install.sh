@@ -9,8 +9,8 @@ export WHOAMI=suricata
 sudo mkdir -p /opt/metlo
 sudo touch /opt/metlo/credentials
 
-echo 'METLO_ADDR=$METLO_ADDR' >> /opt/metlo/credentials
-echo 'METLO_KEY=$METLO_KEY' >> /opt/metlo/credentials
+echo 'METLO_ADDR=${METLO_ADDR}' >> /opt/metlo/credentials
+echo 'METLO_KEY=${METLO_KEY}' >> /opt/metlo/credentials
 
 
 sudo apt update -y
