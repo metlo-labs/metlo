@@ -118,7 +118,7 @@
                                         }
                                     ]
                                 },
-                                "[ ! -z $user_exists ] || sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/mirror_install_script/deploy/suricata/install.sh",
+                                "[ ! -z $user_exists ] || sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/master/deploy/suricata/install.sh",
                                 "[ ! -z $user_exists ] || sudo chmod +x install.sh",
                                 "[ ! -z $user_exists ] || sudo -E ./install.sh",
                                 "sudo apt-get update -y",

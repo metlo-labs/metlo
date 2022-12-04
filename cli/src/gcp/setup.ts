@@ -343,7 +343,7 @@ const create_mig = async (
         export user_exists=$(getent passwd suricata)
         [ ! -z $user_exists ] || echo "METLO_ADDR=${machineInfoResp['_url']}" >> /opt/metlo/credentials
         [ ! -z $user_exists ] || echo "METLO_KEY=${machineInfoResp['_apiKey']}" >>  /opt/metlo/credentials
-        [ ! -z $user_exists ] || sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/mirror_install_script/deploy/suricata/install.sh
+        [ ! -z $user_exists ] || sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/master/deploy/suricata/install.sh
         [ ! -z $user_exists ] || sudo chmod +x install.sh
         [ ! -z $user_exists ] || sudo -E ./install.sh
         `
