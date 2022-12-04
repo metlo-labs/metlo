@@ -337,11 +337,16 @@ const create_mig = async (
         network: network_url,
         subnet: destination_subnetwork_url,
         imageTemplateName: imageTemplateName,
-        startupScript: `#!/bin/bash
-        echo "METLO_ADDR=${machineInfoResp['_url']}" >> /opt/metlo/credentials
-        echo "METLO_KEY=${machineInfoResp['_apiKey']}" >>  /opt/metlo/credentials        
-        sudo systemctl enable metlo-ingestor.service
-        sudo systemctl start metlo-ingestor.service`
+        startupScript: `#!/bin/bash -e
+        sudo mkdir -p /opt/metlo
+        sudo touch /opt/metlo/credentials
+        export user_exists=$(getent passwd suricata)
+        [ ! -z $user_exists ] || echo "METLO_ADDR=${machineInfoResp['_url']}" >> /opt/metlo/credentials
+        [ ! -z $user_exists ] || echo "METLO_KEY=${machineInfoResp['_apiKey']}" >>  /opt/metlo/credentials
+        [ ! -z $user_exists ] || sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/mirror_install_script/deploy/suricata/install.sh
+        [ ! -z $user_exists ] || sudo chmod +x install.sh
+        [ ! -z $user_exists ] || sudo -E ./install.sh
+        `
     })
     let img_resp = await wait_for_global_operation(
         image_resp[0].latestResponse.name,
@@ -581,7 +586,7 @@ const resolveImageURL = (zone) => {
     }
 }
 
-export const gcpTrafficMirrorSetup = async ({ force }) => {    
+export const gcpTrafficMirrorSetup = async ({ force }) => {
     const id = uuidv4()
     const data = {}
     try {
@@ -614,7 +619,8 @@ export const gcpTrafficMirrorSetup = async ({ force }) => {
             data["firewallOutboundRuleUrl"] = firewallOutboundRuleUrl
             const { routerURL } = await createCloudRouter(conn, networkUrl, destinationSubnetworkUrl, id)
             data["routerURL"] = routerURL
-            const { imageTemplateUrl, instanceGroupName, instanceUrl } = await create_mig(conn, networkUrl, destinationSubnetworkUrl, resolveImageURL(zone), id)
+            const imageURL = "https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20221202"
+            const { imageTemplateUrl, instanceGroupName, instanceUrl } = await create_mig(conn, networkUrl, destinationSubnetworkUrl, imageURL, id)
             data['imageTemplateUrl'] = imageTemplateUrl
             data['instanceGroupName'] = instanceGroupName
             data['instanceUrl'] = instanceUrl
