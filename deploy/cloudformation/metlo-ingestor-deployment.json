@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "Here are some details about the template.",
+    "Description": "Cloudformation Template for Metlo Ingestor.",
     "Metadata": {
         "AWS::CloudFormation::Designer": {
             "12d7e160-0a80-41e1-9076-14d9d321b425": {
@@ -95,9 +95,12 @@
                             "\n",
                             [
                                 "#!/bin/bash -xve",
-                                {
+                                "sudo mkdir -p /opt/metlo",
+                                "sudo touch /opt/metlo/credentials",
+                                "export user_exists=$(getent passwd suricata)",
+                               {
                                     "Fn::Sub": [
-                                        "echo 'METLO_ADDR=${METADDR}' >> opt/metlo/credentials",
+                                        "[ ! -z $user_exists ] || echo 'METLO_ADDR=${METADDR}' >> /opt/metlo/credentials",
                                         {
                                             "METADDR": {
                                                 "Ref": "metloAddress"
@@ -107,7 +110,7 @@
                                 },
                                 {
                                     "Fn::Sub": [
-                                        "echo 'METLO_KEY=${METKEY}' >> opt/metlo/credentials",
+                                        "[ ! -z $user_exists ] || echo 'METLO_KEY=${METKEY}' >> /opt/metlo/credentials",
                                         {
                                             "METKEY": {
                                                 "Ref": "metloKey"
@@ -115,8 +118,9 @@
                                         }
                                     ]
                                 },
-                                "sudo systemctl enable metlo-ingestor.service",
-                                "sudo systemctl start metlo-ingestor.service",
+                                "[ ! -z $user_exists ] || sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/mirror_install_script/deploy/suricata/install.sh",
+                                "[ ! -z $user_exists ] || sudo chmod +x install.sh",
+                                "[ ! -z $user_exists ] || sudo -E ./install.sh",
                                 "sudo apt-get update -y",
                                 "sudo apt-get install -y python python-setuptools",
                                 "sudo mkdir -p /opt/aws/bin",
@@ -193,33 +197,87 @@
             "Type": "AWS::EC2::VPC::Id"
         },
         "metloAddress": {
-            "Description": "Host address where the Metlo Collector resides",
+            "Description": "Host address where the Metlo Collector resides (http[s]://<YOUR_METLO_HOST>:8081)",
             "Type": "String"
         },
         "metloKey": {
-            "Description": "API KEY for Metlo Collector",
+            "Description": "API KEY for Metlo Collector. You can generate an API Key on the settings page",
             "Type": "String"
         }
     },
     "Mappings": {
         "RegionMap": {
-            "us-east-1": {
-                "AMI": "ami-0314228ab1dfca22c"
+            "af-south-1": {
+                "AMI": "ami-062cdcd18683ee84e"
             },
-            "us-east-2": {
-                "AMI": "ami-000c7bdfd2cc748ee"
+            "ap-east-1": {
+                "AMI": "ami-0476827462b538638"
             },
-            "us-west-1": {
-                "AMI": "ami-092b652ebe2ef2353"
+            "ap-northeast-1": {
+                "AMI": "ami-05c9a233b97c2a78e"
             },
-            "us-west-2": {
-                "AMI": "ami-0f237f0669df21823"
+            "ap-northeast-2": {
+                "AMI": "ami-05f5974ae1e61d78e"
+            },
+            "ap-northeast-3": {
+                "AMI": "ami-04144e5c57e5820b0"
             },
             "ap-south-1": {
-                "AMI": "ami-0fa1f6b93c28a21e4"
+                "AMI": "ami-052639b6127cfb32d"
+            },
+            "ap-southeast-1": {
+                "AMI": "ami-03d4b39cdeb4b7339"
+            },
+            "ap-southeast-2": {
+                "AMI": "ami-0c9b6758e5d5a9558"
+            },
+            "ap-southeast-3": {
+                "AMI": "ami-04ff67f9643e6df11"
+            },
+            "ca-central-1": {
+                "AMI": "ami-0872f26db03af5118"
+            },
+            "eu-central-1": {
+                "AMI": "ami-00648c36e527032ec"
+            },
+            "eu-central-2": {
+                "AMI": "ami-0dae81a048b6cc0be"
+            },
+            "eu-north-1": {
+                "AMI": "ami-03d20f9dd906ec688"
+            },
+            "eu-south-1": {
+                "AMI": "ami-0d31fd2c8fa64baf0"
+            },
+            "eu-west-1": {
+                "AMI": "ami-0c1bebf6df0bafa23"
             },
             "eu-west-2": {
-                "AMI": "ami-0efb31db7e8ceb9a2"
+                "AMI": "ami-05bfd03d0709e3ecb"
+            },
+            "eu-west-3": {
+                "AMI": "ami-058cbb29e232feceb"
+            },
+            "me-central-1": {
+                "AMI": "ami-09bc076c1e48cc663"
+            },
+            "me-south-1": {
+                "AMI": "ami-0799b0ab527e14c62"
+            },
+            "sa-east-1": {
+                "AMI": "ami-06eb89b14ac4f4029"
+            },
+            "us-east-1": {
+                "AMI": "ami-072d6c9fae3253f26"
+            },
+            "us-east-2": {
+                "AMI": "ami-0cb81cb394fc2e305"
+            },
+            "us-west-1": {
+                "AMI": "ami-0ff4dd898acfb0e67"
+            },
+            "us-west-2": {
+                "AMI": "ami-0080e1081b2c5aef6"
             }
         }
     }
