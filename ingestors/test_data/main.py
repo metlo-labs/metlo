@@ -18,7 +18,7 @@ PRODUCER_MAP = {
 PRODUCERS = PRODUCER_MAP.values()
 
 
-def run(backend, api_key):
+def run(backend, api_key, speed_multiple):
     while True:
         print("Tick")
 
@@ -42,12 +42,13 @@ def run(backend, api_key):
                 urljoin(backend, path), json=body, headers={"authorization": api_key}
             )
 
-        time.sleep(tick_length.total_seconds())
+        time.sleep(tick_length.total_seconds() / speed_multiple)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-b", "--metlo_backend", required=True)
     parser.add_argument("-key", "--api_key", required=True)
+    parser.add_argument("-s", "--speed_multiple", type=int, default=1)
     args = parser.parse_args()
-    run(args.metlo_backend, args.api_key)
+    run(args.metlo_backend, args.api_key, args.speed_multiple)
