@@ -13,12 +13,16 @@ JSON_HEADER = {
 }
 
 
+sources = [(fake.ipv4(), choice(range(10000, 20000))) for e in range(100)]
+
+
 def get_meta():
+    source = choice(sources)
     return {
         "environment": "production",
         "incoming": True,
-        "source": fake.ipv4(),
-        "sourcePort": choice(range(10000, 20000)),
+        "source": source[0],
+        "sourcePort": source[1],
         "destination": "76.47.25.189",
         "destinationPort": 443,
     }
