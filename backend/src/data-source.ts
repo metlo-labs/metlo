@@ -15,6 +15,7 @@ import {
   AuthenticationConfig,
   AggregateTraceDataHourly,
   Attack,
+  Webhook,
 } from "models"
 import { runMigration } from "utils"
 import { initMigration1665782029662 } from "migrations/1665782029662-init-migration"
@@ -27,6 +28,7 @@ import { MetloConfig } from "models/metlo-config"
 import { addMetloConfigTable1667599667595 } from "migrations/1667599667595-add-metlo-config-table"
 import { updateDisabledPathsColumnBlockFieldsTable1667606447208 } from "migrations/1667606447208-update-disabledPaths-column-blockFields-table"
 import { removeApiKeyTypeEnum1669778297643 } from "migrations/1669778297643-remove-apiKeyType-enum"
+import { addWebhookTable1670447292139 } from "migrations/1670447292139-add-webhook-table"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -47,6 +49,7 @@ export const AppDataSource: DataSource = new DataSource({
     AggregateTraceDataHourly,
     Attack,
     MetloConfig,
+    Webhook,
   ],
   synchronize: false,
   migrations: [
@@ -59,6 +62,7 @@ export const AppDataSource: DataSource = new DataSource({
     addMetloConfigTable1667599667595,
     updateDisabledPathsColumnBlockFieldsTable1667606447208,
     removeApiKeyTypeEnum1669778297643,
+    addWebhookTable1670447292139,
   ],
   migrationsRun: runMigration,
   logging: false,
