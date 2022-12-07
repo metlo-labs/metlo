@@ -1,5 +1,6 @@
 import { AlertType } from "@common/enums"
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
+import { Alert } from "./alert"
 import MetloBaseEntity from "./metlo-base-entity"
 
 @Entity()
@@ -17,5 +18,5 @@ export class Webhook extends MetloBaseEntity {
   alertTypes: AlertType[]
 
   @Column({ type: "jsonb", nullable: false, default: [] })
-  runs: Array<{ ok: boolean; msg: string }>
+  runs: Array<{ ok: boolean; msg: string; payload: Alert }>
 }

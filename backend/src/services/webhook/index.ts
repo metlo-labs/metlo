@@ -48,13 +48,13 @@ export const sendWebhookRequests = async (
           )
           await getQB(ctx, queryRunner)
             .update(Webhook)
-            .set({ runs: [...runs, { ok: true, msg: "" }] })
+            .set({ runs: [...runs, { ok: true, msg: "", payload: alert }] })
             .andWhere("uuid = :id", { id: webhook.uuid })
             .execute()
         } catch (err) {
           await getQB(ctx, queryRunner)
             .update(Webhook)
-            .set({ runs: [...runs, { ok: false, msg: err }] })
+            .set({ runs: [...runs, { ok: false, msg: err, payload: alert }] })
             .andWhere("uuid = :id", { id: webhook.uuid })
             .execute()
         }
