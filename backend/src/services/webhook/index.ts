@@ -46,7 +46,6 @@ export const sendWebhookRequests = async (
             () => axios.post(webhook.url, alert),
             webhook.maxRetries,
           )
-          console.log("success")
           await getQB(ctx, queryRunner)
             .update(Webhook)
             .set({ runs: [...runs, { ok: true, msg: "" }] })
