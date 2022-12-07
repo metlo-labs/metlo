@@ -10,12 +10,12 @@ export class Webhook extends MetloBaseEntity {
   @Column({ nullable: false })
   url: string
 
-  @Column({ type: "integer", nullable: false, default: 4 })
+  @Column({ type: "integer", nullable: false, default: 3 })
   maxRetries: number
 
   @Column({ type: "varchar", array: true, default: [] })
   alertTypes: AlertType[]
 
-  @Column({ type: "varchar", array: true, default: [] })
-  errors: string[]
+  @Column({ type: "jsonb", nullable: false, default: [] })
+  runs: Array<{ ok: boolean; msg: string }>
 }

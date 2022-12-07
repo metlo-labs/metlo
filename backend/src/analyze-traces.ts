@@ -179,10 +179,9 @@ const analyze = async (
       5,
     )
   }
-
-  await sendWebhookRequests(ctx, alerts, queryRunner)
-
   await queryRunner.commitTransaction()
+
+  await sendWebhookRequests(ctx, alerts)
 }
 
 const generateEndpoint = async (
