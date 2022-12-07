@@ -36,7 +36,6 @@ export const sendWebhookRequests = async (
         .from(Webhook, "webhook")
         .andWhere(`:type = ANY("alertTypes")`, { type: alert.type })
         .getRawMany()
-      console.log(webhooks)
       for (const webhook of webhooks) {
         try {
           await retryRequest(
