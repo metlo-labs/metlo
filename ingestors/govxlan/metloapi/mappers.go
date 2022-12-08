@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/google/gopacket"
@@ -14,7 +15,7 @@ func MapHttpToMetloTrace(
 	resp *http.Response,
 	netFlow gopacket.Flow,
 	transferFlow gopacket.Flow,
-) MetloTrace {
+) (*MetloTrace, error) {
 	resHeaders := make([]NV, len(resp.Header))
 	for k := range resp.Header {
 		resHeaders = append(resHeaders, NV{Name: k, Value: strings.Join(resp.Header[k], ",")})
@@ -43,7 +44,16 @@ func MapHttpToMetloTrace(
 	reqBody, _ := io.ReadAll(req.Body)
 	respBody, _ := io.ReadAll(resp.Body)
 
-	return MetloTrace{
+	sourcePort, srcPortErr := strconv.Atoi(transferFlow.Dst().String())
+	if srcPortErr != nil {
+		return nil, srcPortErr
+	}
+	destinationPort, dstPortErr := strconv.Atoi(transferFlow.Src().String())
+	if dstPortErr != nil {
+		return nil, dstPortErr
+	}
+
+	return &MetloTrace{
 		Response: TraceRes{
 			Status:  resp.StatusCode,
 			Headers: resHeaders,
@@ -65,8 +75,8 @@ func MapHttpToMetloTrace(
 			MetloSource:     "govxlan",
 			Source:          netFlow.Dst().String(),
 			Destination:     netFlow.Src().String(),
-			SourcePort:      123,
-			DestinationPort: 123,
+			SourcePort:      sourcePort,
+			DestinationPort: destinationPort,
 		},
-	}
+	}, nil
 }
