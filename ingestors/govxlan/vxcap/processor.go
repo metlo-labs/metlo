@@ -7,6 +7,7 @@ import (
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/tcpassembly"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/assemblers"
+	"github.com/metlo-labs/metlo/ingestors/govxlan/metloapi"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/parsers"
 )
 
@@ -18,14 +19,17 @@ type Processor interface {
 }
 
 type PacketProcessor struct {
+	metloAPI      *metloapi.Metlo
 	httpAssembler *assemblers.HttpAssembler
 	reqAssembler  *tcpassembly.Assembler
 	respAssembler *tcpassembly.Assembler
 	ready         bool
 }
 
-func NewPacketProcessor() (*PacketProcessor, error) {
-	proc := PacketProcessor{}
+func NewPacketProcessor(metloAPI *metloapi.Metlo) (*PacketProcessor, error) {
+	proc := PacketProcessor{
+		metloAPI: metloAPI,
+	}
 	return &proc, nil
 }
 

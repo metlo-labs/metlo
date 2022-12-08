@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/gopacket"
+	"github.com/metlo-labs/metlo/ingestors/govxlan/metloapi"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/utils"
 	"github.com/sirupsen/logrus"
 )
@@ -17,6 +18,7 @@ type pendingRequest struct {
 }
 
 type HttpAssembler struct {
+	metloAPI              *metloapi.Metlo
 	totalRequestCount     uint64
 	totalResponseCount    uint64
 	totalMatchedResponses uint64
@@ -41,7 +43,9 @@ func (h *HttpAssembler) AddResponse(resp *http.Response, netFlow gopacket.Flow, 
 		delete(h.requestMap, reverseKey)
 		h.totalMatchedResponses += 1
 		defer req.Body.Close()
-		// TODO send to metlo
+		if h.metloAPI.Allow() {
+			h.metloAPI.Send(metloapi.MapHttpToMetloTrace(req, resp, netFlow, transferFlow))
+		}
 	}
 }
 

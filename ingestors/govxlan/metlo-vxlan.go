@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/metlo-labs/metlo/ingestors/govxlan/metloapi"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/utils"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/vxcap"
 	"github.com/sirupsen/logrus"
@@ -21,8 +22,8 @@ var logLevelMap = map[string]logrus.Level{
 }
 
 type MetloArgs struct {
-	apiKey   string
-	metloUrl string
+	apiKey    string
+	metloHost string
 }
 
 func main() {
@@ -47,9 +48,9 @@ func main() {
 			Destination: &args.apiKey,
 		},
 		cli.StringFlag{
-			Name:        "metlo-url, u",
+			Name:        "metlo-host, u",
 			Usage:       "Your Metlo Collector URL",
-			Destination: &args.metloUrl,
+			Destination: &args.metloHost,
 		},
 	}
 
@@ -65,7 +66,8 @@ func main() {
 			"logLevel":                logLevel,
 		}).Debug("Given options")
 
-		proc, err := vxcap.NewPacketProcessor()
+		metloAPI := metloapi.InitMetlo(args.metloHost, args.apiKey, 10)
+		proc, err := vxcap.NewPacketProcessor(metloAPI)
 		if err != nil {
 			return err
 		}
