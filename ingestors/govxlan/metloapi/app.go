@@ -57,6 +57,8 @@ func (m *Metlo) Send(data MetloTrace) {
 			"Code":    resp.Status,
 			"Message": string(message),
 		}).Debug("Error Sending Request.")
+	} else {
+		utils.Log.Trace("Sent Request.")
 	}
 }
 
