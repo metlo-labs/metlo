@@ -13,6 +13,7 @@ import (
 func MapHttpToMetloTrace(
 	req *http.Request,
 	resp *http.Response,
+	reqBody string,
 	netFlow gopacket.Flow,
 	transferFlow gopacket.Flow,
 ) (*MetloTrace, error) {
@@ -45,7 +46,6 @@ func MapHttpToMetloTrace(
 		host = fmt.Sprintf("%s:%s", netFlow.Src().String(), transferFlow.Src().String())
 	}
 
-	reqBody, _ := io.ReadAll(req.Body)
 	respBody, _ := io.ReadAll(resp.Body)
 
 	sourcePort, srcPortErr := strconv.Atoi(transferFlow.Dst().String())
@@ -71,7 +71,7 @@ func MapHttpToMetloTrace(
 				Parameters: reqURLParams,
 			},
 			Headers: reqHeaders,
-			Body:    string(reqBody),
+			Body:    reqBody,
 		},
 		Meta: TraceMeta{
 			Incoming:        true,

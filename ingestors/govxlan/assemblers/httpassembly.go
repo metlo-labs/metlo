@@ -1,6 +1,7 @@
 package assemblers
 
 import (
+	"io"
 	"net/http"
 	"time"
 
@@ -14,6 +15,7 @@ type key [2]gopacket.Flow
 
 type pendingRequest struct {
 	req     *http.Request
+	body    string
 	created time.Time
 }
 
@@ -43,9 +45,8 @@ func (h *HttpAssembler) AddResponse(resp *http.Response, netFlow gopacket.Flow, 
 		req := matchedReq.req
 		delete(h.requestMap, reverseKey)
 		h.totalMatchedResponses += 1
-		defer req.Body.Close()
 		if h.metloAPI.Allow() {
-			trace, err := metloapi.MapHttpToMetloTrace(req, resp, netFlow, transferFlow)
+			trace, err := metloapi.MapHttpToMetloTrace(req, resp, matchedReq.body, netFlow, transferFlow)
 			if err == nil {
 				h.metloAPI.Send(*trace)
 			}
@@ -55,10 +56,12 @@ func (h *HttpAssembler) AddResponse(resp *http.Response, netFlow gopacket.Flow, 
 
 func (h *HttpAssembler) AddRequest(req *http.Request, netFlow gopacket.Flow, transferFlow gopacket.Flow) {
 	defer req.Body.Close()
+	reqBody, _ := io.ReadAll(req.Body)
 	h.totalRequestCount += 1
 	key := key{netFlow, transferFlow}
 	h.requestMap[key] = pendingRequest{
 		req:     req,
+		body:    string(reqBody),
 		created: time.Now(),
 	}
 }
