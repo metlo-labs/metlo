@@ -1,4 +1,5 @@
 import Fastify, { FastifyInstance } from "fastify"
+import fastifyMultipart from "@fastify/multipart"
 import dotenv from "dotenv"
 import { User } from "models"
 import { AppDataSource } from "data-source"
@@ -30,6 +31,8 @@ declare module "fastify" {
 
 const app: FastifyInstance = Fastify({})
 const port = Number(process.env.PORT) || 8080
+
+app.register(fastifyMultipart)
 
 app.register((fastify, options, next) => {
   fastify.get("/", async (request, reply) => {
@@ -72,6 +75,24 @@ app.register((fastify, options, next) => {
 
   fastify.get("/product", getProductsHandler)
   fastify.post("/product/new", createNewProductHandler)
+
+  fastify.post("/file-upload", async function (req, res) {
+    try {
+      const data = await req.file()
+      await ApiResponseHandler.success(res, "Success")
+    } catch (err) {
+      await ApiResponseHandler.error(res, err)
+    }
+  })
+
+  fastify.post("/file-upload/multiple", async function (req, res) {
+    try {
+      const files = req.files()
+      await ApiResponseHandler.success(res, "Success")
+    } catch (err) {
+      await ApiResponseHandler.error(res, err)
+    }
+  })
 
   next()
 })
