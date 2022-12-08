@@ -89,6 +89,14 @@ const shouldUpdateEndpoint = (
   prevLastActive: Date,
   apiEndpoint: ApiEndpoint,
 ) => {
+  if (
+    !prevRiskScore ||
+    !prevLastActive ||
+    !apiEndpoint?.lastActive ||
+    !apiEndpoint?.riskScore
+  ) {
+    return true
+  }
   return (
     prevRiskScore !== apiEndpoint.riskScore ||
     apiEndpoint.lastActive.getTime() - prevLastActive.getTime() > 30_000
