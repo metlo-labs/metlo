@@ -34,7 +34,7 @@ func NewPacketProcessor(metloAPI *metloapi.Metlo) (*PacketProcessor, error) {
 }
 
 func (x *PacketProcessor) Setup() error {
-	httpAssembler := assemblers.NewHttpAssembler()
+	httpAssembler := assemblers.NewHttpAssembler(x.metloAPI)
 
 	reqStreamFac := &parsers.HttpReqStreamFactory{
 		Assembler: httpAssembler,

@@ -25,8 +25,9 @@ type HttpAssembler struct {
 	requestMap            map[key]pendingRequest
 }
 
-func NewHttpAssembler() *HttpAssembler {
+func NewHttpAssembler(metloAPI *metloapi.Metlo) *HttpAssembler {
 	return &HttpAssembler{
+		metloAPI:              metloAPI,
 		totalRequestCount:     0,
 		totalResponseCount:    0,
 		totalMatchedResponses: 0,

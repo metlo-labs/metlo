@@ -38,11 +38,13 @@ func MapHttpToMetloTrace(
 			Body:    "",
 		},
 		Meta: TraceMeta{
-			Incoming:    true,
-			Environment: "production",
-			MetloSource: "govxlan",
-			Source:      netFlow.Dst().String(),
-			Destination: netFlow.Src().String(),
+			Incoming:        true,
+			Environment:     "production",
+			MetloSource:     "govxlan",
+			Source:          netFlow.Dst().String(),
+			Destination:     netFlow.Src().String(),
+			SourcePort:      123,
+			DestinationPort: 123,
 		},
 	}
 }
