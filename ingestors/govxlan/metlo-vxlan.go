@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/metloapi"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/utils"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/vxcap"
@@ -57,14 +58,23 @@ func main() {
 	app.Action = func(c *cli.Context) error {
 		level, ok := logLevelMap[logLevel]
 		if !ok {
-			return fmt.Errorf("Invalid log level: %s", logLevel)
+			return fmt.Errorf("INVALID LOG LEVEL: %s", logLevel)
 		}
 		utils.Log.SetLevel(level)
 
+		godotenv.Load(".env", "/opt/metlo/credentials", "~/.metlo/credentials")
+		if args.apiKey == "" {
+			args.apiKey = os.Getenv("API_KEY")
+		}
+		if args.metloHost == "" {
+			args.metloHost = os.Getenv("METLO_HOST")
+		}
+
 		utils.Log.WithFields(logrus.Fields{
-			"PacketProcessorArgument": args,
-			"logLevel":                logLevel,
-		}).Debug("Given options")
+			"logLevel":  logLevel,
+			"apiKey":    args.apiKey[:10] + "...",
+			"metloHost": args.metloHost,
+		}).Info("Configuration")
 
 		metloAPI := metloapi.InitMetlo(args.metloHost, args.apiKey, 10)
 		proc, err := vxcap.NewPacketProcessor(metloAPI)
