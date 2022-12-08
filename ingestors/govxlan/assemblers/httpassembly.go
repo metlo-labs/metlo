@@ -42,6 +42,17 @@ func NewHttpAssembler(metloAPI *metloapi.Metlo) *HttpAssembler {
 func (h *HttpAssembler) AddResponse(resp *http.Response, netFlow gopacket.Flow, transferFlow gopacket.Flow) {
 	defer resp.Body.Close()
 	h.totalResponseCount += 1
+	respBody, _ := io.ReadAll(resp.Body)
+	respBodyLen := len(respBody)
+	if respBodyLen > utils.MAX_BODY_SIZE {
+		key := key{netFlow, transferFlow}
+		utils.Log.WithFields(logrus.Fields{
+			"key":     key,
+			"size":    respBodyLen,
+			"maxSize": utils.MAX_BODY_SIZE,
+		}).Debug("Skipped Large Response.")
+		return
+	}
 	reverseKey := key{netFlow.Reverse(), transferFlow.Reverse()}
 	h.mu.Lock()
 	matchedReq, found := h.requestMap[reverseKey]
@@ -53,9 +64,13 @@ func (h *HttpAssembler) AddResponse(resp *http.Response, netFlow gopacket.Flow, 
 		req := matchedReq.req
 		h.totalMatchedResponses += 1
 		if h.metloAPI.Allow() {
-			trace, err := metloapi.MapHttpToMetloTrace(req, resp, matchedReq.body, netFlow, transferFlow)
+			trace, err := metloapi.MapHttpToMetloTrace(
+				req, resp, matchedReq.body, string(respBody), netFlow, transferFlow,
+			)
 			if err == nil {
 				h.metloAPI.Send(*trace)
+			} else {
+				utils.Log.WithError(err).Warn("Unable To Create Metlo Trace")
 			}
 		} else {
 			utils.Log.Trace("Request Rate Limited On Client Side")

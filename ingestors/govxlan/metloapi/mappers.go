@@ -2,7 +2,6 @@ package metloapi
 
 import (
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -14,6 +13,7 @@ func MapHttpToMetloTrace(
 	req *http.Request,
 	resp *http.Response,
 	reqBody string,
+	respBody string,
 	netFlow gopacket.Flow,
 	transferFlow gopacket.Flow,
 ) (*MetloTrace, error) {
@@ -46,8 +46,6 @@ func MapHttpToMetloTrace(
 		host = fmt.Sprintf("%s:%s", netFlow.Src().String(), transferFlow.Src().String())
 	}
 
-	respBody, _ := io.ReadAll(resp.Body)
-
 	sourcePort, srcPortErr := strconv.Atoi(transferFlow.Dst().String())
 	if srcPortErr != nil {
 		return nil, srcPortErr
@@ -61,7 +59,7 @@ func MapHttpToMetloTrace(
 		Response: TraceRes{
 			Status:  resp.StatusCode,
 			Headers: resHeaders,
-			Body:    string(respBody),
+			Body:    respBody,
 		},
 		Request: TraceReq{
 			Method: req.Method,
