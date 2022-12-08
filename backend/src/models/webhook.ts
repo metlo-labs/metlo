@@ -1,12 +1,20 @@
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from "typeorm"
 import { AlertType } from "@common/enums"
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
-import { Alert } from "./alert"
+import { WebhookRun } from "@common/types"
 import MetloBaseEntity from "./metlo-base-entity"
 
 @Entity()
 export class Webhook extends MetloBaseEntity {
   @PrimaryGeneratedColumn("uuid")
   uuid: string
+
+  @CreateDateColumn({ type: "timestamptz" })
+  createdAt: Date
 
   @Column({ nullable: false })
   url: string
@@ -18,5 +26,5 @@ export class Webhook extends MetloBaseEntity {
   alertTypes: AlertType[]
 
   @Column({ type: "jsonb", nullable: false, default: [] })
-  runs: Array<{ ok: boolean; msg: string; payload: Alert }>
+  runs: WebhookRun[]
 }

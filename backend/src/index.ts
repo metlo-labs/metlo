@@ -46,6 +46,11 @@ import {
   getMetloConfigHandler,
   updateMetloConfigHandler,
 } from "api/metlo-config"
+import {
+  createWebhookHandler,
+  deleteWebhookHandler,
+  getWebhooksHandler,
+} from "api/webhook"
 
 const port = process.env.PORT || 8080
 RedisClient.getInstance()
@@ -127,6 +132,10 @@ apiRouter.get("/api/v1/keys/onboarding", getOnboardingKeys)
 
 apiRouter.put("/api/v1/metlo-config", updateMetloConfigHandler)
 apiRouter.get("/api/v1/metlo-config", getMetloConfigHandler)
+
+apiRouter.get("/api/v1/webhooks", getWebhooksHandler)
+apiRouter.post("/api/v1/webhook", createWebhookHandler)
+apiRouter.delete("/api/v1/webhook/:webhookId", deleteWebhookHandler)
 
 app.use(apiRouter)
 

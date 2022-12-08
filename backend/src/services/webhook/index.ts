@@ -1,8 +1,12 @@
 import axios from "axios"
+import { Brackets } from "typeorm"
 import { Alert, Webhook } from "models"
-import { getQB } from "services/database/utils"
+import { createQB, getQB, insertValueBuilder } from "services/database/utils"
 import { MetloContext } from "types"
 import { AppDataSource } from "data-source"
+import { CreateWebhookParams } from "@common/types"
+import Error400BadRequest from "errors/error-400-bad-request"
+import Error500InternalServer from "errors/error-500-internal-server"
 
 const delay = (fn: any, ms: number) =>
   new Promise(resolve => setTimeout(() => resolve(fn()), ms))
@@ -34,7 +38,13 @@ export const sendWebhookRequests = async (
     for (const alert of alerts) {
       const webhooks: Webhook[] = await getQB(ctx, queryRunner)
         .from(Webhook, "webhook")
-        .andWhere(`:type = ANY("alertTypes")`, { type: alert.type })
+        .andWhere(
+          new Brackets(qb => {
+            qb.where(`:type = ANY("alertTypes")`, { type: alert.type }).orWhere(
+              `cardinality("alertTypes") = 0`,
+            )
+          }),
+        )
         .getRawMany()
       for (const webhook of webhooks) {
         let runs = webhook.runs
@@ -61,6 +71,67 @@ export const sendWebhookRequests = async (
       }
     }
   } catch {
+  } finally {
+    await queryRunner.release()
+  }
+}
+
+export const getWebhooks = async (ctx: MetloContext) => {
+  return await createQB(ctx)
+    .from(Webhook, "webhook")
+    .orderBy(`"createdAt"`, "DESC")
+    .getRawMany()
+}
+
+export const createNewWebhook = async (
+  ctx: MetloContext,
+  createWebhookParams: CreateWebhookParams,
+) => {
+  if (!createWebhookParams.url) {
+    throw new Error400BadRequest("Must provide url for webhook.")
+  }
+  const queryRunner = AppDataSource.createQueryRunner()
+  try {
+    await queryRunner.connect()
+    const webhook = new Webhook()
+    webhook.url = createWebhookParams.url.trim()
+    if (createWebhookParams.alertTypes?.length > 0) {
+      webhook.alertTypes = createWebhookParams.alertTypes
+    }
+    await insertValueBuilder(ctx, queryRunner, Webhook, webhook).execute()
+    return await getQB(ctx, queryRunner)
+      .from(Webhook, "webhook")
+      .orderBy(`"createdAt"`, "DESC")
+      .getRawMany()
+  } catch {
+    throw new Error500InternalServer(
+      "Encountered error while creating new webhook.",
+    )
+  } finally {
+    await queryRunner.release()
+  }
+}
+
+export const deleteWebhook = async (ctx: MetloContext, webhookId: string) => {
+  if (!webhookId) {
+    throw new Error400BadRequest("Must provide id of webhook to delete.")
+  }
+  const queryRunner = AppDataSource.createQueryRunner()
+  try {
+    await queryRunner.connect()
+    await getQB(ctx, queryRunner)
+      .delete()
+      .from(Webhook, "webhook")
+      .andWhere("uuid = :id", { id: webhookId })
+      .execute()
+    return await getQB(ctx, queryRunner)
+      .from(Webhook, "webhook")
+      .orderBy(`"createdAt"`, "DESC")
+      .getRawMany()
+  } catch {
+    throw new Error500InternalServer(
+      "Encountered error while deleting webhook.",
+    )
   } finally {
     await queryRunner.release()
   }
