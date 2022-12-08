@@ -3,6 +3,7 @@ package assemblers
 import (
 	"io"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/google/gopacket"
@@ -20,6 +21,7 @@ type pendingRequest struct {
 }
 
 type HttpAssembler struct {
+	mu                    sync.Mutex
 	metloAPI              *metloapi.Metlo
 	totalRequestCount     uint64
 	totalResponseCount    uint64
@@ -41,9 +43,14 @@ func (h *HttpAssembler) AddResponse(resp *http.Response, netFlow gopacket.Flow, 
 	defer resp.Body.Close()
 	h.totalResponseCount += 1
 	reverseKey := key{netFlow.Reverse(), transferFlow.Reverse()}
-	if matchedReq, found := h.requestMap[reverseKey]; found {
-		req := matchedReq.req
+	h.mu.Lock()
+	matchedReq, found := h.requestMap[reverseKey]
+	if found {
 		delete(h.requestMap, reverseKey)
+	}
+	h.mu.Unlock()
+	if found {
+		req := matchedReq.req
 		h.totalMatchedResponses += 1
 		if h.metloAPI.Allow() {
 			trace, err := metloapi.MapHttpToMetloTrace(req, resp, matchedReq.body, netFlow, transferFlow)
@@ -61,6 +68,8 @@ func (h *HttpAssembler) AddRequest(req *http.Request, netFlow gopacket.Flow, tra
 	reqBody, _ := io.ReadAll(req.Body)
 	h.totalRequestCount += 1
 	key := key{netFlow, transferFlow}
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	h.requestMap[key] = pendingRequest{
 		req:     req,
 		body:    string(reqBody),
@@ -71,6 +80,8 @@ func (h *HttpAssembler) AddRequest(req *http.Request, netFlow gopacket.Flow, tra
 func (h *HttpAssembler) Tick(now time.Time) {
 	// Cleanup old unmatched requests
 	numCleaned := 0
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	for key, pendingReq := range h.requestMap {
 		if pendingReq.created.Before(now.Add(-1 * time.Minute)) {
 			numCleaned += 1
