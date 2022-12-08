@@ -2,6 +2,7 @@ package metloapi
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -39,11 +40,14 @@ func MapHttpToMetloTrace(
 		host = fmt.Sprintf("%s:%s", netFlow.Src().String(), transferFlow.Src().String())
 	}
 
+	reqBody, _ := io.ReadAll(req.Body)
+	respBody, _ := io.ReadAll(resp.Body)
+
 	return MetloTrace{
 		Response: TraceRes{
 			Status:  resp.StatusCode,
 			Headers: resHeaders,
-			Body:    "",
+			Body:    string(respBody),
 		},
 		Request: TraceReq{
 			Method: req.Method,
@@ -53,7 +57,7 @@ func MapHttpToMetloTrace(
 				Parameters: reqURLParams,
 			},
 			Headers: reqHeaders,
-			Body:    "",
+			Body:    string(reqBody),
 		},
 		Meta: TraceMeta{
 			Incoming:        true,
