@@ -1,6 +1,7 @@
 package metloapi
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -17,11 +18,27 @@ func MapHttpToMetloTrace(
 	for k := range resp.Header {
 		resHeaders = append(resHeaders, NV{Name: k, Value: strings.Join(resp.Header[k], ",")})
 	}
-	reqURLParams := make([]NV, 0)
 	reqHeaders := make([]NV, len(req.Header))
 	for k := range req.Header {
 		reqHeaders = append(reqHeaders, NV{Name: k, Value: strings.Join(resp.Header[k], ",")})
 	}
+
+	reqURLParams := make([]NV, 0)
+
+	host := ""
+	absRequestURI := strings.HasPrefix(req.RequestURI, "http://") || strings.HasPrefix(req.RequestURI, "https://")
+	if !absRequestURI {
+		if host == "" && req.Host != "" {
+			host = req.Host
+		}
+		if host == "" && req.URL != nil {
+			host = req.URL.Host
+		}
+	}
+	if host == "" {
+		host = fmt.Sprintf("%s:%s", netFlow.Src().String(), transferFlow.Src().String())
+	}
+
 	return MetloTrace{
 		Response: TraceRes{
 			Status:  resp.StatusCode,
@@ -29,8 +46,9 @@ func MapHttpToMetloTrace(
 			Body:    "",
 		},
 		Request: TraceReq{
+			Method: req.Method,
 			Url: TraceUrl{
-				Host:       req.URL.Host,
+				Host:       host,
 				Path:       req.URL.Path,
 				Parameters: reqURLParams,
 			},
