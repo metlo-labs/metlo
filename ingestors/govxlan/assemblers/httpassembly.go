@@ -46,7 +46,7 @@ func (h *HttpAssembler) AddResponse(resp *http.Response, netFlow gopacket.Flow, 
 		defer req.Body.Close()
 		if h.metloAPI.Allow() {
 			trace, err := metloapi.MapHttpToMetloTrace(req, resp, netFlow, transferFlow)
-			if err != nil {
+			if err == nil {
 				h.metloAPI.Send(*trace)
 			}
 		}
