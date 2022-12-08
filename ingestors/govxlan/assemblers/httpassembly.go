@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/gopacket"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/utils"
+	"github.com/sirupsen/logrus"
 )
 
 type key [2]gopacket.Flow
@@ -64,13 +65,13 @@ func (h *HttpAssembler) Tick(now time.Time) {
 		}
 	}
 	if numCleaned > 0 {
-		utils.Log.Info("Cleaned %d requests from map\n", numCleaned)
+		utils.Log.WithFields(logrus.Fields{
+			"numCleaned": numCleaned,
+		}).Info("Cleaned Up Requests")
 	}
-	utils.Log.Debug(
-		"Reqs: %d, Resps: %d, Matches: %d, RequestMapLength: %d\n",
-		h.totalRequestCount,
-		h.totalResponseCount,
-		h.totalMatchedResponses,
-		len(h.requestMap),
-	)
+	utils.Log.WithFields(logrus.Fields{
+		"totalRequestCount":     h.totalRequestCount,
+		"totalResponseCount":    h.totalResponseCount,
+		"totalMatchedResponses": h.totalMatchedResponses,
+	}).Debug("Http Assembler Stats")
 }
