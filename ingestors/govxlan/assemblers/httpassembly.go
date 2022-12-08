@@ -68,6 +68,16 @@ func (h *HttpAssembler) AddRequest(req *http.Request, netFlow gopacket.Flow, tra
 	reqBody, _ := io.ReadAll(req.Body)
 	h.totalRequestCount += 1
 	key := key{netFlow, transferFlow}
+	reqBodyLen := len(reqBody)
+	if reqBodyLen > utils.MAX_BODY_SIZE {
+		utils.Log.WithFields(logrus.Fields{
+			"path":    req.URL.Path,
+			"key":     key,
+			"size":    reqBodyLen,
+			"maxSize": utils.MAX_BODY_SIZE,
+		}).Debug("Skipped Large Request.")
+		return
+	}
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h.requestMap[key] = pendingRequest{
