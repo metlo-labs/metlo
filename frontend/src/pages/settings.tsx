@@ -14,7 +14,7 @@ import {
   useToast,
   VStack,
 } from "@chakra-ui/react"
-import { ApiKey } from "@common/types"
+import { ApiKey, WebhookResp } from "@common/types"
 import { getKeys, addKey as addKeyReq } from "api/keys"
 import { getMetloConfig, updateMetloConfig } from "api/metlo-config"
 import KeyAddedModal from "components/Keys/keyAddedPrompt"
@@ -28,9 +28,12 @@ import superjson from "superjson"
 import { makeToast } from "utils"
 import Editor from "@monaco-editor/react"
 import { SectionHeader } from "components/utils/Card"
+import { getWebhooks } from "api/webhook"
+import { Integrations } from "components/Integrations"
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const apiKeys = await getKeys()
+  const webhooks = await getWebhooks()
   let metloConfig = ""
   try {
     metloConfig = (await getMetloConfig()).configString
@@ -40,12 +43,16 @@ export const getServerSideProps: GetServerSideProps = async context => {
     props: {
       keys: superjson.stringify(apiKeys),
       metloConfig,
+      webhooks: superjson.stringify(webhooks),
     },
   }
 }
 
-const Settings = ({ keys: _keysString, metloConfig }) => {
+const Settings = ({ keys: _keysString, metloConfig, webhooks }) => {
   const [keys, setKeys] = useState<Array<ApiKey>>(superjson.parse(_keysString))
+  const [parsedWebhooks, setParsedWebhooks] = useState<WebhookResp[]>(
+    superjson.parse(webhooks),
+  )
   const [configString, setConfigString] = useState<string>(metloConfig)
   const [[newKey, newKeyName], setNewKeyValue] = useState<[string, string]>([
     "",
@@ -133,6 +140,9 @@ const Settings = ({ keys: _keysString, metloConfig }) => {
               <Tab>
                 <SectionHeader text="Metlo Config" />
               </Tab>
+              <Tab>
+                <SectionHeader text="Integrations" />
+              </Tab>
             </TabList>
             <TabPanels flexGrow="1" h="full">
               <TabPanel px="0" overflow="auto" h="full">
@@ -205,6 +215,12 @@ const Settings = ({ keys: _keysString, metloConfig }) => {
                     }}
                   />
                 </Box>
+              </TabPanel>
+              <TabPanel px="0" overflow="auto" h="full">
+                <Integrations
+                  webhooks={parsedWebhooks}
+                  setWebhooks={setParsedWebhooks}
+                />
               </TabPanel>
             </TabPanels>
           </Tabs>

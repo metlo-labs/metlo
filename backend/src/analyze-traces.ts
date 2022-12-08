@@ -26,6 +26,7 @@ import {
   insertValueBuilder,
   insertValuesBuilder,
 } from "services/database/utils"
+import { sendWebhookRequests } from "services/webhook"
 
 const getEndpointQuery = (ctx: MetloContext) => `
 SELECT
@@ -179,6 +180,8 @@ const analyze = async (
     )
   }
   await queryRunner.commitTransaction()
+
+  await sendWebhookRequests(ctx, alerts)
 }
 
 const generateEndpoint = async (
