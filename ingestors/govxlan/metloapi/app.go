@@ -3,10 +3,14 @@ package metloapi
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/metlo-labs/metlo/ingestors/govxlan/utils"
+	"github.com/sirupsen/logrus"
 )
 
 type Metlo struct {
@@ -36,13 +40,24 @@ func (m *Metlo) Send(data MetloTrace) {
 	}
 	req, err := http.NewRequest("POST", m.metloHost, bytes.NewBuffer(json))
 	if err != nil {
-		// TODO log
+		utils.Log.WithError(err).Debug("Error Building Request.")
 		return
 	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", m.metloKey)
 	client := http.DefaultClient
-	client.Do(req)
+	resp, err := client.Do(req)
+	if err != nil {
+		utils.Log.WithError(err).Debug("Error Sending Request.")
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		message, _ := io.ReadAll(resp.Body)
+		utils.Log.WithFields(logrus.Fields{
+			"Code":    resp.Status,
+			"Message": string(message),
+		}).Debug("Error Sending Request.")
+	}
 }
 
 func (m *Metlo) Allow() bool {

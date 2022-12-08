@@ -50,6 +50,8 @@ func (h *HttpAssembler) AddResponse(resp *http.Response, netFlow gopacket.Flow, 
 			if err == nil {
 				h.metloAPI.Send(*trace)
 			}
+		} else {
+			utils.Log.Trace("Request Rate Limited On Client Side")
 		}
 	}
 }
