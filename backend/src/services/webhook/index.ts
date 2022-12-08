@@ -8,6 +8,12 @@ import { CreateWebhookParams } from "@common/types"
 import Error400BadRequest from "errors/error-400-bad-request"
 import Error500InternalServer from "errors/error-500-internal-server"
 
+const urlRegexp = new RegExp(
+  /[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/,
+)
+
+const validUrl = (url: string) => urlRegexp.test(url)
+
 const delay = (fn: any, ms: number) =>
   new Promise(resolve => setTimeout(() => resolve(fn()), ms))
 
@@ -19,9 +25,7 @@ const retryRequest = async (fn: any, maxRetries: number) => {
       if (err?.response?.status > 400 && attempt <= maxRetries) {
         return delay(() => executeRequest(attempt + 1), 500)
       } else {
-        const errResp = err.response
-        const { request, ...errorObject } = errResp
-        throw errorObject?.data ?? err
+        throw err?.response?.data ?? err?.message
       }
     }
   }
@@ -53,7 +57,7 @@ export const sendWebhookRequests = async (
         }
         try {
           await retryRequest(
-            () => axios.post(webhook.url, alert),
+            () => axios.post(webhook.url, alert, { timeout: 250 }),
             webhook.maxRetries,
           )
           await getQB(ctx, queryRunner)
@@ -89,6 +93,9 @@ export const createNewWebhook = async (
 ) => {
   if (!createWebhookParams.url) {
     throw new Error400BadRequest("Must provide url for webhook.")
+  }
+  if (!validUrl(createWebhookParams.url)) {
+    throw new Error400BadRequest("Please enter a valid url.")
   }
   const queryRunner = AppDataSource.createQueryRunner()
   try {

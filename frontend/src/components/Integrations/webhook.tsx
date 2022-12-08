@@ -117,21 +117,21 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
         borderWidth="1px"
         p="30px"
       >
-        <VStack w="full" spacing={4} alignItems="flex-start">
-          <Heading fontWeight="medium" size="sm">
-            Webhooks
-          </Heading>
-          <Divider />
-        </VStack>
-        <HStack w="full" justifyContent="space-between">
-          <Text>
+        <VStack w="full" spacing={1} alignItems="flex-start">
+          <HStack w="full" justifyContent="space-between">
+            <Heading fontWeight="bold" fontSize={26}>
+              Webhooks
+            </Heading>
+            <Button leftIcon={<HiPlus />} colorScheme="blue" onClick={onOpen}>
+              Add Webhook
+            </Button>
+          </HStack>
+          <Text fontSize="sm">
             You can add webhooks you would like us to send data to whenever an
             alert is triggered.
           </Text>
-          <Button leftIcon={<HiPlus />} colorScheme="blue" onClick={onOpen}>
-            Add Webhook
-          </Button>
-        </HStack>
+          <Divider pt={3} />
+        </VStack>
         {webhooks.length > 0 ? (
           webhooks.map(e => (
             <VStack
@@ -144,7 +144,9 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
               alignItems="flex-start"
             >
               <HStack w="full" justifyContent="space-between">
-                <Text fontWeight="medium">{e.url}</Text>
+                <Text fontFamily="mono" fontWeight="bold" fontSize="md">
+                  {e.url}
+                </Text>
                 <Button
                   colorScheme="red"
                   isLoading={deletingWebhook}
@@ -153,7 +155,7 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
                   Delete
                 </Button>
               </HStack>
-              <Text>Created {getDateTimeRelative(e.createdAt)}</Text>
+              <Text>Added {getDateTimeRelative(e.createdAt)}</Text>
             </VStack>
           ))
         ) : (
