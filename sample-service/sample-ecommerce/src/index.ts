@@ -94,6 +94,25 @@ app.register((fastify, options, next) => {
     }
   })
 
+  fastify.post("/file-upload/large-response", async function (req, res) {
+    try {
+      const data = await req.file()
+      const resp = "x".repeat(10 * 1024 * 1024)
+      await ApiResponseHandler.success(res, resp)
+    } catch (err) {
+      await ApiResponseHandler.error(res, err)
+    }
+  })
+
+  fastify.get("/large-response", async function (req, res) {
+    try {
+      const resp = "x".repeat(10 * 1024 * 1024)
+      await ApiResponseHandler.success(res, resp)
+    } catch (err) {
+      await ApiResponseHandler.error(res, err)
+    }
+  })
+
   next()
 })
 
