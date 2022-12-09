@@ -17,14 +17,14 @@ func MapHttpToMetloTrace(
 	netFlow gopacket.Flow,
 	transferFlow gopacket.Flow,
 ) (*MetloTrace, error) {
-	resHeaders := make([]NV, len(resp.Header))
+	resHeaders := make([]NV, 0)
 	for k := range resp.Header {
 		if k == "" {
 			continue
 		}
 		resHeaders = append(resHeaders, NV{Name: k, Value: strings.Join(resp.Header[k], ",")})
 	}
-	reqHeaders := make([]NV, len(req.Header))
+	reqHeaders := make([]NV, 0)
 	for k := range req.Header {
 		if k == "" {
 			continue
