@@ -26,10 +26,11 @@ const (
 
 func parseVXLAN(raw []byte, length int) (*packetData, error) {
 	if length < vxlanHeaderLength {
-		return nil, fmt.Errorf("Too short data for VXLAN header: %d", length)
+		return nil, fmt.Errorf("TOO SHORT DATA FOR VXLAN HEADER: %d", length)
 	}
 
-	pkt := newPacketData(raw[vxlanHeaderLength:length])
+	VNI := binary.BigEndian.Uint32(append([]byte{0}, raw[4:7]...))
+	pkt := newPacketData(raw[vxlanHeaderLength:length], VNI)
 
 	buffer := bytes.NewBuffer(raw)
 	if err := binary.Read(buffer, binary.BigEndian, &pkt.Header); err != nil {

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/google/gopacket/layers"
-	"github.com/google/gopacket/tcpassembly"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/assemblers"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/metloapi"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/parsers"
@@ -21,8 +20,8 @@ type Processor interface {
 type PacketProcessor struct {
 	metloAPI      *metloapi.Metlo
 	httpAssembler *assemblers.HttpAssembler
-	reqAssembler  *tcpassembly.Assembler
-	respAssembler *tcpassembly.Assembler
+	reqAssembler  *assemblers.Assembler
+	respAssembler *assemblers.Assembler
 	ready         bool
 }
 
@@ -43,11 +42,11 @@ func (x *PacketProcessor) Setup() error {
 		Assembler: httpAssembler,
 	}
 
-	reqStreamPool := tcpassembly.NewStreamPool(reqStreamFac)
-	respStreamPool := tcpassembly.NewStreamPool(respStreamFac)
+	reqStreamPool := assemblers.NewStreamPool(reqStreamFac)
+	respStreamPool := assemblers.NewStreamPool(respStreamFac)
 
-	x.reqAssembler = tcpassembly.NewAssembler(reqStreamPool)
-	x.respAssembler = tcpassembly.NewAssembler(respStreamPool)
+	x.reqAssembler = assemblers.NewAssembler(reqStreamPool)
+	x.respAssembler = assemblers.NewAssembler(respStreamPool)
 	x.httpAssembler = httpAssembler
 
 	x.ready = true
@@ -59,11 +58,13 @@ func (x *PacketProcessor) Put(pkt *packetData) error {
 		return fmt.Errorf("PacketProcessor is not ready, run Setup() at first")
 	}
 	packet := *pkt.Packet
+
 	networkFlow := packet.NetworkLayer().NetworkFlow()
+
 	tcp := packet.TransportLayer().(*layers.TCP)
 	timestamp := packet.Metadata().Timestamp
-	x.reqAssembler.AssembleWithTimestamp(networkFlow, tcp, timestamp)
-	x.respAssembler.AssembleWithTimestamp(networkFlow, tcp, timestamp)
+	x.reqAssembler.AssembleWithTimestamp(pkt.VNI, networkFlow, tcp, timestamp)
+	x.respAssembler.AssembleWithTimestamp(pkt.VNI, networkFlow, tcp, timestamp)
 	return nil
 }
 

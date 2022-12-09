@@ -12,8 +12,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type key [2]gopacket.Flow
-
 type pendingRequest struct {
 	req     *http.Request
 	body    string
@@ -39,13 +37,13 @@ func NewHttpAssembler(metloAPI *metloapi.Metlo) *HttpAssembler {
 	}
 }
 
-func (h *HttpAssembler) AddResponse(resp *http.Response, netFlow gopacket.Flow, transferFlow gopacket.Flow) {
+func (h *HttpAssembler) AddResponse(resp *http.Response, vid uint32, netFlow gopacket.Flow, transferFlow gopacket.Flow) {
 	defer resp.Body.Close()
 	h.totalResponseCount += 1
 	respBody, _ := io.ReadAll(resp.Body)
 	respBodyLen := len(respBody)
 	if respBodyLen > utils.MAX_BODY_SIZE {
-		key := key{netFlow, transferFlow}
+		key := key{vid, netFlow, transferFlow}
 		utils.Log.WithFields(logrus.Fields{
 			"key":     key,
 			"size":    respBodyLen,
@@ -53,7 +51,7 @@ func (h *HttpAssembler) AddResponse(resp *http.Response, netFlow gopacket.Flow, 
 		}).Debug("Skipped Large Response.")
 		return
 	}
-	reverseKey := key{netFlow.Reverse(), transferFlow.Reverse()}
+	reverseKey := key{vid, netFlow.Reverse(), transferFlow.Reverse()}
 	h.mu.Lock()
 	matchedReq, found := h.requestMap[reverseKey]
 	if found {
@@ -78,11 +76,11 @@ func (h *HttpAssembler) AddResponse(resp *http.Response, netFlow gopacket.Flow, 
 	}
 }
 
-func (h *HttpAssembler) AddRequest(req *http.Request, netFlow gopacket.Flow, transferFlow gopacket.Flow) {
+func (h *HttpAssembler) AddRequest(req *http.Request, vid uint32, netFlow gopacket.Flow, transferFlow gopacket.Flow) {
 	defer req.Body.Close()
 	reqBody, _ := io.ReadAll(req.Body)
 	h.totalRequestCount += 1
-	key := key{netFlow, transferFlow}
+	key := key{vid, netFlow, transferFlow}
 	reqBodyLen := len(reqBody)
 	if reqBodyLen > utils.MAX_BODY_SIZE {
 		utils.Log.WithFields(logrus.Fields{
