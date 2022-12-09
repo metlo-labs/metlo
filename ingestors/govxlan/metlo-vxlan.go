@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/metloapi"
@@ -75,17 +76,32 @@ func main() {
 		if args.metloHost == "" {
 			args.metloHost = os.Getenv("METLO_HOST")
 		}
+		envRps := os.Getenv("MAX_RPS")
+		if args.maxRps == 0 && envRps != "" {
+			intEnvRps, err := strconv.Atoi(envRps)
+			if err != nil {
+				return fmt.Errorf("INVALID MAX RPS: %s", &envRps)
+			}
+			args.maxRps = intEnvRps
+		}
 		if args.maxRps == 0 {
 			args.maxRps = metloapi.MetloDefaultRPS
 		}
 
 		if args.maxRps < 0 || args.maxRps > 300 {
-			return fmt.Errorf("INVALID MAX RPS: %d", args.maxRps)
+			return fmt.Errorf("INVALID MAX RPS: %d. MUST BE BETWEEN 0 AND 300", args.maxRps)
+		}
+
+		truncatedAPIKey := ""
+		if len(args.apiKey) >= 10 {
+			truncatedAPIKey = args.apiKey[:10] + "..."
+		} else {
+			truncatedAPIKey = args.apiKey
 		}
 
 		utils.Log.WithFields(logrus.Fields{
 			"logLevel":  logLevel,
-			"apiKey":    args.apiKey[:10] + "...",
+			"apiKey":    truncatedAPIKey,
 			"metloHost": args.metloHost,
 			"maxRps":    args.maxRps,
 		}).Info("Configuration")
