@@ -114,7 +114,7 @@ func (h *HttpAssembler) Tick(now time.Time) {
 	if numCleaned > 0 {
 		utils.Log.WithFields(logrus.Fields{
 			"numCleaned": numCleaned,
-		}).Info("Cleaned Up Requests")
+		}).Debug("Cleaned Up Requests")
 	}
 	utils.Log.WithFields(logrus.Fields{
 		"totalRequestCount":     h.totalRequestCount,
