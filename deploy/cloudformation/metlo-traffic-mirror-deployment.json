@@ -190,16 +190,22 @@
                         "AMI"
                     ]
                 },
-                "SubnetId": {
-                    "Ref": "SubnetId"
-                },
                 "AvailabilityZone": {
                     "Ref": "AvailabilityZone"
                 },
                 "InstanceType": "t3.small",
-                "SecurityGroupIds": [
+                "NetworkInterfaces": [
                     {
-                        "Ref": "MetloTrafficMirroringSecurityGroup"
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "GroupSet": [
+                            {
+                                "Ref" : "MetloTrafficMirroringSecurityGroup"
+                            }
+                        ],
+                        "SubnetId": {
+                            "Ref" : "SubnetId"
+                        }
                     }
                 ]
             },
