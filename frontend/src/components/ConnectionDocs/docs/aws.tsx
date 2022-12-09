@@ -14,7 +14,7 @@ import { ExternalLinkIcon } from "@chakra-ui/icons"
 import { ListNumber } from "components/utils/ListNumber"
 import { useEffect, useState } from "react"
 import {
-  getAWSIngestorLaunchStackURL,
+  getAWSTrafficMirrorLaunchStackURL,
   INGESTOR_AWS_REGIONS,
   getAWSDeployAmiURL,
 } from "~/constants"
@@ -208,7 +208,7 @@ sudo systemctl start metlo-ingestor.service`}</SyntaxHighlighter>
                   colorScheme="blue"
                   target="_blank"
                   pointerEvents={selectedRegion === "" ? "none" : "initial"}
-                  href={getAWSIngestorLaunchStackURL(
+                  href={getAWSTrafficMirrorLaunchStackURL(
                     selectedRegion,
                     metloAddress,
                     apiKey,
