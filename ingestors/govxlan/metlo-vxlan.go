@@ -13,7 +13,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-const version = "0.0.1"
+const version = "0.0.2"
 
 var logLevelMap = map[string]logrus.Level{
 	"trace": logrus.TraceLevel,
@@ -69,9 +69,9 @@ func main() {
 		}
 		utils.Log.SetLevel(level)
 
-		godotenv.Load(".env", "/opt/metlo/credentials", "~/.metlo/credentials")
+		godotenv.Load("/opt/metlo/credentials", "~/.metlo/credentials", ".env")
 		if args.apiKey == "" {
-			args.apiKey = os.Getenv("API_KEY")
+			args.apiKey = os.Getenv("METLO_KEY")
 		}
 		if args.metloHost == "" {
 			args.metloHost = os.Getenv("METLO_HOST")
@@ -88,10 +88,6 @@ func main() {
 			args.maxRps = metloapi.MetloDefaultRPS
 		}
 
-		if args.maxRps < 0 || args.maxRps > 300 {
-			return fmt.Errorf("INVALID MAX RPS: %d. MUST BE BETWEEN 0 AND 300", args.maxRps)
-		}
-
 		truncatedAPIKey := ""
 		if len(args.apiKey) >= 10 {
 			truncatedAPIKey = args.apiKey[:10] + "..."
@@ -105,6 +101,16 @@ func main() {
 			"metloHost": args.metloHost,
 			"maxRps":    args.maxRps,
 		}).Info("Configuration")
+
+		if args.metloHost == "" {
+			return fmt.Errorf("INVALID METLO HOST: %s", args.metloHost)
+		}
+		if args.apiKey == "" {
+			return fmt.Errorf("INVALID API KEY: %s", truncatedAPIKey)
+		}
+		if args.maxRps < 0 || args.maxRps > 300 {
+			return fmt.Errorf("INVALID MAX RPS: %d. MUST BE BETWEEN 0 AND 300", args.maxRps)
+		}
 
 		metloAPI := metloapi.InitMetlo(args.metloHost, args.apiKey, args.maxRps)
 		proc, err := vxcap.NewPacketProcessor(metloAPI)
