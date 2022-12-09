@@ -1,21 +1,3 @@
-// Copyright 2012 Google, Inc. All rights reserved.
-//
-// Use of this source code is governed by a BSD-style license
-// that can be found in the LICENSE file in the root of the source
-// tree.
-
-// Package tcpassembly provides TCP stream re-assembly.
-//
-// The tcpassembly package implements uni-directional TCP reassembly, for use in
-// packet-sniffing applications.  The caller reads packets off the wire, then
-// presents them to an Assembler in the form of gopacket layers.TCP packets
-// (github.com/google/gopacket, github.com/google/gopacket/layers).
-//
-// The Assembler uses a user-supplied
-// StreamFactory to create a user-defined Stream interface, then passes packet
-// data in stream order to that object.  A concurrency-safe StreamPool keeps
-// track of all current Streams being reassembled, so multiple Assemblers may
-// run at once to assemble packets while taking advantage of multiple cores.
 package assemblers
 
 import (
