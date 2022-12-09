@@ -19,10 +19,16 @@ func MapHttpToMetloTrace(
 ) (*MetloTrace, error) {
 	resHeaders := make([]NV, len(resp.Header))
 	for k := range resp.Header {
+		if k == "" {
+			continue
+		}
 		resHeaders = append(resHeaders, NV{Name: k, Value: strings.Join(resp.Header[k], ",")})
 	}
 	reqHeaders := make([]NV, len(req.Header))
 	for k := range req.Header {
+		if k == "" {
+			continue
+		}
 		reqHeaders = append(reqHeaders, NV{Name: k, Value: strings.Join(resp.Header[k], ",")})
 	}
 
