@@ -1,5 +1,6 @@
-name: metlo
+project_name: metlo
 
 builds:
-  - main: ./ingestors/govxlan/metlo-vxlan.go
+  - main: metlo-vxlan.go
+    dir: ./ingestors/govxlan
     binary: metlo-vxlan
