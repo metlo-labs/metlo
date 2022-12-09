@@ -25,6 +25,7 @@ var logLevelMap = map[string]logrus.Level{
 type MetloArgs struct {
 	apiKey    string
 	metloHost string
+	maxRps    int
 }
 
 func main() {
@@ -53,6 +54,11 @@ func main() {
 			Usage:       "Your Metlo Collector URL",
 			Destination: &args.metloHost,
 		},
+		cli.IntFlag{
+			Name:        "max-rps, r",
+			Usage:       "Your Metlo Collector URL",
+			Destination: &args.maxRps,
+		},
 	}
 
 	app.Action = func(c *cli.Context) error {
@@ -69,6 +75,13 @@ func main() {
 		if args.metloHost == "" {
 			args.metloHost = os.Getenv("METLO_HOST")
 		}
+		if args.maxRps == 0 {
+			args.maxRps = metloapi.MetloDefaultRPS
+		}
+
+		if args.maxRps < 0 || args.maxRps > 300 {
+			return fmt.Errorf("INVALID MAX RPS: %d", args.maxRps)
+		}
 
 		utils.Log.WithFields(logrus.Fields{
 			"logLevel":  logLevel,
@@ -76,7 +89,7 @@ func main() {
 			"metloHost": args.metloHost,
 		}).Info("Configuration")
 
-		metloAPI := metloapi.InitMetlo(args.metloHost, args.apiKey, 10)
+		metloAPI := metloapi.InitMetlo(args.metloHost, args.apiKey, args.maxRps)
 		proc, err := vxcap.NewPacketProcessor(metloAPI)
 		if err != nil {
 			return err
