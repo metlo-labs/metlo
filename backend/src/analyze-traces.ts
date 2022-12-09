@@ -50,7 +50,7 @@ LIMIT
   1
 `
 
-const getDataFieldsQuery = (ctx: MetloContext) => `
+export const getDataFieldsQuery = (ctx: MetloContext) => `
 SELECT
   uuid,
   "dataClasses"::text[],
@@ -189,7 +189,7 @@ const analyze = async (
   }
   await queryRunner.commitTransaction()
 
-  await sendWebhookRequests(ctx, alerts)
+  await sendWebhookRequests(ctx, alerts, apiEndpoint)
 }
 
 const generateEndpoint = async (

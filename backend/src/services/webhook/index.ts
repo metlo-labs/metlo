@@ -1,12 +1,13 @@
 import axios from "axios"
 import { Brackets } from "typeorm"
-import { Alert, Webhook } from "models"
+import { Alert, ApiEndpoint, DataField, Webhook } from "models"
 import { createQB, getQB, insertValueBuilder } from "services/database/utils"
 import { MetloContext } from "types"
 import { AppDataSource } from "data-source"
 import { CreateWebhookParams } from "@common/types"
 import Error400BadRequest from "errors/error-400-bad-request"
 import Error500InternalServer from "errors/error-500-internal-server"
+import { getDataFieldsQuery } from "analyze-traces"
 
 const urlRegexp = new RegExp(
   /[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/,
@@ -22,7 +23,7 @@ const retryRequest = async (fn: any, maxRetries: number) => {
     try {
       return await fn()
     } catch (err) {
-      if (err?.response?.status > 400 && attempt <= maxRetries) {
+      if (err?.response?.status >= 500 && attempt <= maxRetries) {
         return delay(() => executeRequest(attempt + 1), 500)
       } else {
         throw err?.response?.data ?? err?.message
@@ -35,10 +36,17 @@ const retryRequest = async (fn: any, maxRetries: number) => {
 export const sendWebhookRequests = async (
   ctx: MetloContext,
   alerts: Alert[],
+  apiEndpoint: ApiEndpoint,
 ) => {
   const queryRunner = AppDataSource.createQueryRunner()
   try {
     await queryRunner.connect()
+    let dataFields: DataField[] = []
+    if (alerts?.length > 0) {
+      dataFields = await queryRunner.query(getDataFieldsQuery(ctx), [
+        apiEndpoint.uuid,
+      ])
+    }
     for (const alert of alerts) {
       const webhooks: Webhook[] = await getQB(ctx, queryRunner)
         .from(Webhook, "webhook")
@@ -50,6 +58,8 @@ export const sendWebhookRequests = async (
           }),
         )
         .getRawMany()
+      alert.apiEndpoint = apiEndpoint
+      alert.apiEndpoint.dataFields = dataFields
       for (const webhook of webhooks) {
         let runs = webhook.runs
         if (runs.length >= 10) {
