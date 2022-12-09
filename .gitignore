@@ -25,3 +25,4 @@ ingestors/java/spring/gradle.properties
 ingestors/java/spring/target/
 
 .meta/*
+ingestors/govxlan/govxlan
