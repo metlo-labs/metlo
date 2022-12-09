@@ -1,0 +1,5 @@
+name: metlo
+
+builds:
+  - main: ./ingestors/govxlan/metlo-vxlan.go
+    binary: metlo-vxlan
