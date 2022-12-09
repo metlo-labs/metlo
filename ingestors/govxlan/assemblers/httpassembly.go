@@ -24,7 +24,7 @@ type HttpAssembler struct {
 	totalRequestCount     uint64
 	totalResponseCount    uint64
 	totalMatchedResponses uint64
-	requestMap            map[key]pendingRequest
+	requestMap            map[string]pendingRequest
 }
 
 func NewHttpAssembler(metloAPI *metloapi.Metlo) *HttpAssembler {
@@ -33,7 +33,7 @@ func NewHttpAssembler(metloAPI *metloapi.Metlo) *HttpAssembler {
 		totalRequestCount:     0,
 		totalResponseCount:    0,
 		totalMatchedResponses: 0,
-		requestMap:            make(map[key]pendingRequest, 4096),
+		requestMap:            make(map[string]pendingRequest, 4096),
 	}
 }
 
@@ -53,9 +53,9 @@ func (h *HttpAssembler) AddResponse(resp *http.Response, vid uint32, netFlow gop
 	}
 	reverseKey := key{vid, netFlow.Reverse(), transferFlow.Reverse()}
 	h.mu.Lock()
-	matchedReq, found := h.requestMap[reverseKey]
+	matchedReq, found := h.requestMap[reverseKey.String()]
 	if found {
-		delete(h.requestMap, reverseKey)
+		delete(h.requestMap, reverseKey.String())
 	}
 	h.mu.Unlock()
 	if found {
@@ -93,7 +93,7 @@ func (h *HttpAssembler) AddRequest(req *http.Request, vid uint32, netFlow gopack
 	}
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	h.requestMap[key] = pendingRequest{
+	h.requestMap[key.String()] = pendingRequest{
 		req:     req,
 		body:    string(reqBody),
 		created: time.Now(),
