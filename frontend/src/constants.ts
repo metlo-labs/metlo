@@ -94,16 +94,16 @@ export const INGESTOR_AWS_REGIONS = [
   "sa-east-1",
 ]
 
-export const INGESTOR_AWS_TEMPLATE =
-  "https://cf-templates-7639qxxr319s-us-west-1.s3.us-west-1.amazonaws.com/metlo-ingestor.template"
-export const INGESTOR_STACK_NAME = "metlo-ingestor"
+export const TRAFFIC_MIRROR_AWS_TEMPLATE =
+  "https://cf-templates-7639qxxr319s-us-west-1.s3.us-west-1.amazonaws.com/metlo-traffic-mirror.template"
+export const TRAFFIC_MIRROR_STACK_NAME = "metlo-traffic-mirror"
 
-export const getAWSIngestorLaunchStackURL = (
+export const getAWSTrafficMirrorLaunchStackURL = (
   region: string,
   metloAddress: string,
   metloApiKey: string,
 ) =>
-  `https://${region}.console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review?templateURL=${INGESTOR_AWS_TEMPLATE}&stackName=${INGESTOR_STACK_NAME}${
+  `https://${region}.console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review?templateURL=${TRAFFIC_MIRROR_AWS_TEMPLATE}&stackName=${TRAFFIC_MIRROR_STACK_NAME}${
     metloAddress ? `&param_metloAddress=${metloAddress}` : ""
   }${
     metloApiKey && metloApiKey.length === 46
