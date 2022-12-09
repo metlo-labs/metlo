@@ -87,6 +87,7 @@ func main() {
 			"logLevel":  logLevel,
 			"apiKey":    args.apiKey[:10] + "...",
 			"metloHost": args.metloHost,
+			"maxRps":    args.maxRps,
 		}).Info("Configuration")
 
 		metloAPI := metloapi.InitMetlo(args.metloHost, args.apiKey, args.maxRps)
