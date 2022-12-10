@@ -93,59 +93,31 @@ const AWSDocs: React.FC<DocsParams> = React.memo(({ host, apiKey }) => {
       <VStack w="full" alignItems="start" spacing="8">
         {manual ? (
           <>
-            <ListNumber
-              num={1}
-              title="Deploy a Metlo Traffic Mirroring Instance"
-            >
-              Deploy Metlo:
-              <HStack>
-                <Select
-                  placeholder="Select region"
-                  defaultValue={deployRegion}
-                  w="200px"
-                  onChange={e => setDeployRegion(e.target.value)}
-                >
-                  {INGESTOR_AWS_REGIONS.map(e => (
-                    <option key={e} value={e}>
-                      {e}
-                    </option>
-                  ))}
-                </Select>
-                <Button
-                  as="a"
-                  colorScheme="blue"
-                  target="_blank"
-                  pointerEvents={deployRegion === "" ? "none" : "initial"}
-                  href={getAWSDeployAmiURL(deployRegion)}
-                  isDisabled={deployRegion === ""}
-                >
-                  Deploy
-                </Button>
-              </HStack>
+            <ListNumber num={1} title="Deploy an EC2 Instance">
               <Text>
-                We have AMI&apos;s ready in different AWS Regions so you can
-                deploy right away. When setting up your instance open up port
-                4789 to UDP Connections.
+                Be sure your instance has at least <strong>2 Cores</strong> and{" "}
+                <strong>4 GB of Ram</strong>.
               </Text>
               <Text>
-                Under Advanced details {">"} User Data paste the following {"("}
-                replace YOUR_METLO_HOST and YOUR_METLO_API_KEY with the right
-                values
-                {")"}:
+                Open up port <strong>4789 to UDP Connections</strong> from the
+                instances you would like to mirror.
               </Text>
+            </ListNumber>
+            <ListNumber num={2} title="Install Metlo's Traffic Mirroring Service">
               <Code w="full" p={2}>
                 <SyntaxHighlighter
                   customStyle={{ background: "none", padding: 0 }}
                   language="bash"
-                >{`#!/bin/bash
-echo "METLO_ADDR=${host}" >> /opt/metlo/credentials
-echo "METLO_KEY=${apiKey}" >> /opt/metlo/credentials
-sudo systemctl enable metlo-ingestor.service
-sudo systemctl start metlo-ingestor.service`}</SyntaxHighlighter>
+                >{`$ sudo mkdir /opt/metlo
+$ sudo bash -c "echo 'METLO_HOST=${host}' >> /opt/metlo/credentials"
+$ sudo bash -c "echo 'METLO_KEY=${apiKey}' >> /opt/metlo/credentials"
+$ wget https://raw.githubusercontent.com/metlo-labs/metlo/master/deploy/govxlan/install.sh
+$ chmod +x install.sh
+$ sudo -E ./install.sh`}</SyntaxHighlighter>
               </Code>
             </ListNumber>
-            <KeyStep num={2} />
-            <ListNumber num={3} title="Install Metlo's CLI Tool">
+            <KeyStep num={3} />
+            <ListNumber num={4} title="Install Metlo's CLI Tool">
               <Text>
                 You can install metlo from npm by running the following:
               </Text>
@@ -156,7 +128,7 @@ sudo systemctl start metlo-ingestor.service`}</SyntaxHighlighter>
                 >{`$ npm i -g @metlo/cli`}</SyntaxHighlighter>
               </Code>
             </ListNumber>
-            <ListNumber num={4} title="Set up Traffic Mirroring">
+            <ListNumber num={5} title="Set up Traffic Mirroring">
               <Text>To set up traffic mirroring run the following:</Text>
               <Code w="full" p={2}>
                 <VStack>
