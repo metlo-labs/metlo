@@ -9,6 +9,7 @@ import (
 	"github.com/metlo-labs/metlo/ingestors/govxlan/metloapi"
 	pcap "github.com/metlo-labs/metlo/ingestors/govxlan/pcap"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/utils"
+	"github.com/metlo-labs/metlo/ingestors/govxlan/vxcap"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
@@ -24,14 +25,14 @@ var logLevelMap = map[string]logrus.Level{
 }
 
 type MetloArgs struct {
-	apiKey    string
-	metloHost string
-	maxRps    int
+	apiKey      string
+	metloHost   string
+	maxRps      int
+	liveOrVxlan string
 }
 
 func main() {
-	// cap := vxcap.New()
-	cap := pcap.New()
+
 	var args MetloArgs
 	var logLevel string
 
@@ -55,6 +56,11 @@ func main() {
 			Name:        "metlo-host, u",
 			Usage:       "Your Metlo Collector URL",
 			Destination: &args.metloHost,
+		}, cli.StringFlag{
+			Name:        "mode, m",
+			Usage:       "Capture live data or vxlan data",
+			Value:       "live",
+			Destination: &args.liveOrVxlan,
 		},
 		cli.IntFlag{
 			Name:        "max-rps, r",
@@ -114,13 +120,27 @@ func main() {
 		}
 
 		metloAPI := metloapi.InitMetlo(args.metloHost, args.apiKey, args.maxRps)
-		proc, err := pcap.NewPacketProcessor(metloAPI)
-		if err != nil {
-			return err
-		}
+		if args.liveOrVxlan == "live" {
+			cap := pcap.New()
+			proc, err := pcap.NewPacketProcessor(metloAPI)
+			if err != nil {
+				return err
+			}
 
-		if err := cap.Start(proc); err != nil {
-			return err
+			if err := cap.Start(proc); err != nil {
+				return err
+			}
+		} else {
+			cap := vxcap.New()
+			proc, err := vxcap.NewPacketProcessor(metloAPI)
+			if err != nil {
+				return err
+			}
+
+			if err := cap.Start(proc); err != nil {
+				return err
+			}
+
 		}
 		return nil
 	}
