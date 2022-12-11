@@ -11,6 +11,7 @@ import runAllTests from "services/testing/runAllTests"
 import { logAggregatedStats } from "services/logging"
 import { DateTime } from "luxon"
 import { MetloContext } from "types"
+import { updateEndpointIps } from "analyze/jobs"
 
 const log = (logMessage: string, newLine?: boolean) =>
   console.log(
@@ -77,6 +78,12 @@ const main = async () => {
       log("Finished clearing Api Trace data.")
       clearApiTracesSem.leave()
     })
+  })
+
+  schedule.scheduleJob("0 */4 * * *", async () => {
+      log("Updating Endpoint IPs...", true)
+      await updateEndpointIps(ctx)
+      log("Finished updating endpoint IPs.")
   })
 
   if ((process.env.DISABLE_LOGGING_STATS || "false").toLowerCase() == "false") {

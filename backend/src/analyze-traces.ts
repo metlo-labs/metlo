@@ -27,6 +27,7 @@ import {
   insertValuesBuilder,
 } from "services/database/utils"
 import { sendWebhookRequests } from "services/webhook"
+import { updateIPs } from "analyze/update-ips"
 
 const getEndpointQuery = (ctx: MetloContext) => `
 SELECT
@@ -187,6 +188,7 @@ const analyze = async (
       5,
     )
   }
+  await updateIPs(ctx, trace, apiEndpoint, queryRunner)
   await queryRunner.commitTransaction()
 
   await sendWebhookRequests(ctx, alerts, apiEndpoint)

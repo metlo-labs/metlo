@@ -29,6 +29,7 @@ import { addMetloConfigTable1667599667595 } from "migrations/1667599667595-add-m
 import { updateDisabledPathsColumnBlockFieldsTable1667606447208 } from "migrations/1667606447208-update-disabledPaths-column-blockFields-table"
 import { removeApiKeyTypeEnum1669778297643 } from "migrations/1669778297643-remove-apiKeyType-enum"
 import { addWebhookTable1670447292139 } from "migrations/1670447292139-add-webhook-table"
+import { addEndpointIps1670653006577 } from "migrations/1670653006577-add_endpoint_ips"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -63,6 +64,7 @@ export const AppDataSource: DataSource = new DataSource({
     updateDisabledPathsColumnBlockFieldsTable1667606447208,
     removeApiKeyTypeEnum1669778297643,
     addWebhookTable1670447292139,
+    addEndpointIps1670653006577
   ],
   migrationsRun: runMigration,
   logging: false,
