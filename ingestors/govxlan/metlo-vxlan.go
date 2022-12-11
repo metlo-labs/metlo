@@ -7,8 +7,8 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/metloapi"
+	pcap "github.com/metlo-labs/metlo/ingestors/govxlan/pcap"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/utils"
-	"github.com/metlo-labs/metlo/ingestors/govxlan/vxcap"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
@@ -30,7 +30,8 @@ type MetloArgs struct {
 }
 
 func main() {
-	cap := vxcap.New()
+	// cap := vxcap.New()
+	cap := pcap.New()
 	var args MetloArgs
 	var logLevel string
 
@@ -113,7 +114,7 @@ func main() {
 		}
 
 		metloAPI := metloapi.InitMetlo(args.metloHost, args.apiKey, args.maxRps)
-		proc, err := vxcap.NewPacketProcessor(metloAPI)
+		proc, err := pcap.NewPacketProcessor(metloAPI)
 		if err != nil {
 			return err
 		}

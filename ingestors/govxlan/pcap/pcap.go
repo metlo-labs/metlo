@@ -1,6 +1,7 @@
-package vxcap
+package pcap
 
 import (
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -16,22 +17,20 @@ func init() {
 }
 
 // VXCap is one of main components of the package
-type VXCap struct {
-	RecvPort  int
+type Pcap struct {
 	QueueSize int
 }
 
 // New is constructor of VXCap
-func New() *VXCap {
-	cap := VXCap{
-		RecvPort:  DefaultVxlanPort,
-		QueueSize: DefaultReceiverQueueSize,
+func New() *Pcap {
+	cap := Pcap{
+		QueueSize: 1024,
 	}
 	return &cap
 }
 
 // Start invokes UDP listener for VXLAN and forward captured packets to processor.
-func (x *VXCap) Start(proc Processor) error {
+func (x *Pcap) Start(proc Processor) error {
 	utils.Log.Trace("Setting up processor...")
 	if err := proc.Setup(); err != nil {
 		return err
@@ -39,10 +38,9 @@ func (x *VXCap) Start(proc Processor) error {
 
 	// Setup channels
 	utils.Log.WithFields(logrus.Fields{
-		"port":      x.RecvPort,
 		"queueSize": x.QueueSize,
 	}).Trace("Opening UDP port...")
-	queueCh := listenVXLAN(x.RecvPort, x.QueueSize)
+	queueCh := listenPCAP(x.QueueSize)
 
 	utils.Log.Trace("Setting up channels")
 	ticker := time.NewTicker(time.Second)
@@ -53,13 +51,14 @@ func (x *VXCap) Start(proc Processor) error {
 	signal.Notify(signalCh, syscall.SIGTERM)
 	signal.Notify(signalCh, syscall.SIGINT)
 	defer signal.Stop(signalCh)
-	utils.Log.Infof("In vxlan")
-	utils.Log.Infof("Starting loop: port %d", x.RecvPort)
+	utils.Log.Infof("In pcap")
+	utils.Log.Infof("Starting loop, listening on all ports")
 
 MainLoop:
 	for {
 		select {
 		case q := <-queueCh:
+			log.Println("Received packet")
 			if q.Err != nil {
 				return errors.Wrap(q.Err, "Fail to receive UDP")
 			}
