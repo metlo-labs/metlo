@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 
@@ -25,10 +26,11 @@ var logLevelMap = map[string]logrus.Level{
 }
 
 type MetloArgs struct {
-	apiKey      string
-	metloHost   string
-	maxRps      int
-	liveOrVxlan string
+	apiKey     string
+	metloHost  string
+	maxRps     int
+	runAsVxlan bool
+	runAsLive  bool
 }
 
 func main() {
@@ -56,11 +58,16 @@ func main() {
 			Name:        "metlo-host, u",
 			Usage:       "Your Metlo Collector URL",
 			Destination: &args.metloHost,
-		}, cli.StringFlag{
-			Name:        "mode, m",
-			Usage:       "Capture live data or vxlan data",
-			Value:       "live",
-			Destination: &args.liveOrVxlan,
+		}, cli.BoolFlag{
+			Name:        "vxlan",
+			Usage:       "Capture vxlan data. Default false",
+			Required:    false,
+			Destination: &args.runAsVxlan,
+		}, cli.BoolFlag{
+			Name:        "live",
+			Usage:       "Capture live data. Default false",
+			Required:    false,
+			Destination: &args.runAsLive,
 		},
 		cli.IntFlag{
 			Name:        "max-rps, r",
@@ -120,7 +127,12 @@ func main() {
 		}
 
 		metloAPI := metloapi.InitMetlo(args.metloHost, args.apiKey, args.maxRps)
-		if args.liveOrVxlan == "live" {
+
+		if args.runAsLive && args.runAsVxlan {
+			log.Fatalln("Cannot run in both live and vxlan mode")
+		} else if !args.runAsLive && !args.runAsVxlan {
+			log.Fatalln("Must run in either live or vxlan mode")
+		} else if args.runAsLive {
 			cap := pcap.New()
 			proc, err := pcap.NewPacketProcessor(metloAPI)
 			if err != nil {
