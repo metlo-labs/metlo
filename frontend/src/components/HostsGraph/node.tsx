@@ -25,7 +25,6 @@ export const CustomHostNode = React.memo(
           router.push({
             pathname: "/endpoints",
             query: {
-              tab: "list",
               hosts: data.host,
             },
           })
