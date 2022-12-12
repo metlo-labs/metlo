@@ -11,28 +11,18 @@ import ReactFlow, {
 import "reactflow/dist/style.css"
 import { getLayoutedElements } from "./layout"
 import { CustomHostNode } from "./node"
+import { HostGraph } from "@common/types"
 
-export interface HostGraphEdge {
-  srcHost: string
-  dstHost: string
-  numEndpoints: number
-}
-
-export interface HostGraphProps {
-  hosts: string[]
-  edges: HostGraphEdge[]
-}
-
-const HostGraph: React.FC<HostGraphProps> = React.memo(params => {
+const HostGraphComponent: React.FC<HostGraph> = React.memo(params => {
   const connectedHosts = new Set(
     params.edges.map(e => e.srcHost).concat(params.edges.map(e => e.dstHost)),
   )
   const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-    params.hosts
-      .filter(e => connectedHosts.has(e))
-      .map(e => ({
-        id: e,
-        data: { label: e },
+    Object.entries(params.hosts)
+      .filter(([host, data]) => connectedHosts.has(host))
+      .map(([host, data]) => ({
+        id: host,
+        data: { label: host, ...data },
         position: { x: 0, y: 0 },
         type: "host",
       })),
@@ -75,4 +65,4 @@ const HostGraph: React.FC<HostGraphProps> = React.memo(params => {
   )
 })
 
-export default HostGraph
+export default HostGraphComponent

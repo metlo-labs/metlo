@@ -565,3 +565,12 @@ export interface CreateWebhookParams {
   url: string
   alertTypes: AlertType[]
 }
+
+export interface HostGraph {
+  hosts: { [key: string]: { numEndpoints: number } }
+  edges: {
+    srcHost: string
+    dstHost: string
+    numEndpoints: number
+  }[]
+}

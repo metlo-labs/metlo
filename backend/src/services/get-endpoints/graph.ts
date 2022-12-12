@@ -2,23 +2,29 @@ import { AppDataSource } from "data-source"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { ApiEndpoint } from "models"
 import { getQB } from "services/database/utils"
+import { HostGraph } from "@common/types"
 import { MetloContext } from "types"
 import { RedisClient } from "utils/redis"
 
-export const getHostGraphInner = async (ctx: MetloContext) => {
+export const getHostGraphInner = async (
+  ctx: MetloContext,
+): Promise<HostGraph> => {
   const queryRunner = AppDataSource.createQueryRunner()
   await queryRunner.connect()
   try {
     const endpoints: ApiEndpoint[] = await getQB(ctx, queryRunner)
       .from(ApiEndpoint, "endpoint")
       .getRawMany()
-    let hosts = new Set<string>()
+    let hosts: { [key: string]: { numEndpoints: number } } = {}
     let ipToHostsMap: { [key: string]: Set<string> } = {}
     let hostToSrcIPMap: { [key: string]: Set<string> } = {}
     let hostSrcIPToEndpoints: { [key: string]: Set<string> } = {}
 
     for (const e of endpoints) {
-      hosts.add(e.host)
+      if (!hosts[e.host]) {
+        hosts[e.host] = { numEndpoints: 0 }
+      }
+      hosts[e.host].numEndpoints = hosts[e.host].numEndpoints + 1
       for (const hostIP of Object.keys(e.hostIps)) {
         if (!ipToHostsMap[hostIP]) {
           ipToHostsMap[hostIP] = new Set<string>()
@@ -53,7 +59,7 @@ export const getHostGraphInner = async (ctx: MetloContext) => {
     }
 
     return {
-      hosts: [...hosts],
+      hosts,
       edges,
     }
   } catch (err) {

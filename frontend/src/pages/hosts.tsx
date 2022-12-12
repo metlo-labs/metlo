@@ -3,12 +3,12 @@ import { useState } from "react"
 import superjson from "superjson"
 import { Box, Badge, Heading, HStack, VStack } from "@chakra-ui/react"
 import { getHostsGraph, getHostsList } from "api/endpoints"
-import { GetHostParams, HostResponse } from "@common/types"
+import { GetHostParams, HostGraph, HostResponse } from "@common/types"
 import { HOST_PAGE_LIMIT } from "~/constants"
 import { PageWrapper } from "components/PageWrapper"
 import { ContentContainer } from "components/utils/ContentContainer"
 import HostList from "components/HostList"
-import HostGraph, { HostGraphProps } from "components/HostsGraph"
+import HostGraphComponent from "components/HostsGraph"
 import { useRouter } from "next/router"
 
 const Hosts = ({ initHosts, hostsGraph, initTotalCount }) => {
@@ -26,7 +26,7 @@ const Hosts = ({ initHosts, hostsGraph, initTotalCount }) => {
   }
 
   const parsedInitHosts = superjson.parse<HostResponse[]>(initHosts)
-  const parsedHostsGraph = superjson.parse<HostGraphProps>(hostsGraph)
+  const parsedHostsGraph = superjson.parse<HostGraph>(hostsGraph)
 
   const [graph, setGraph] = useState<boolean>(getDefaultTab())
   const [fetching, setFetching] = useState<boolean>(false)
@@ -115,7 +115,7 @@ const Hosts = ({ initHosts, hostsGraph, initTotalCount }) => {
           </HStack>
           {graph ? (
             <Box flex="1" w="full">
-              <HostGraph {...parsedHostsGraph} />
+              <HostGraphComponent {...parsedHostsGraph} />
             </Box>
           ) : (
             <Box w="full" px="8" pb="8">
