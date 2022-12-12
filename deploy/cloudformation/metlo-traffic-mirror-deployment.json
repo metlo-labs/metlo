@@ -143,9 +143,9 @@
                                         }
                                     ]
                                 },
-                                "[ ! -z $user_exists ] || sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/master/deploy/govxlan/install.sh",
-                                "[ ! -z $user_exists ] || sudo chmod +x install.sh",
-                                "[ ! -z $user_exists ] || sudo -E ./install.sh",
+                                "[ ! -z $user_exists ] || sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/master/deploy/govxlan/install-vxlan.sh",
+                                "[ ! -z $user_exists ] || sudo chmod +x install-vxlan.sh",
+                                "[ ! -z $user_exists ] || sudo -E ./install-vxlan.sh",
                                 "sudo apt-get update -y",
                                 "sudo apt-get install -y python python-setuptools",
                                 "sudo mkdir -p /opt/aws/bin",
