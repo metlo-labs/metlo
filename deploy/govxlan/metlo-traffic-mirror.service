@@ -4,7 +4,7 @@ After=network-online.target
 
 [Service]
 Restart=on-failure
-ExecStart=/usr/local/bin/metlo-pcap -vxlan
+ExecStart=/usr/local/bin/metlo-pcap
 
 [Install]
 WantedBy=multi-user.target
