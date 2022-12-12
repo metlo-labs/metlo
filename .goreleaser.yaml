@@ -1,8 +1,0 @@
-project_name: metlo
-
-builds:
-  - main: metlo-pcap.go
-    dir: ./ingestors/govxlan
-    binary: metlo-pcap
-    goarch:
-      - amd64
