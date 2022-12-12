@@ -343,9 +343,10 @@ const create_mig = async (
         export user_exists=$(getent passwd suricata)
         [ ! -z $user_exists ] || echo "METLO_ADDR=${machineInfoResp['_url']}" >> /opt/metlo/credentials
         [ ! -z $user_exists ] || echo "METLO_KEY=${machineInfoResp['_apiKey']}" >>  /opt/metlo/credentials
-        [ ! -z $user_exists ] || sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/master/deploy/suricata/install-pcap.sh
-        [ ! -z $user_exists ] || sudo chmod +x install-pcap.sh
-        [ ! -z $user_exists ] || sudo -E ./install-pcap.sh
+        [ ! -z $user_exists ] || echo "VXLAN_ENABLED=false" | sudo tee -a /opt/metlo/credentials
+        [ ! -z $user_exists ] || sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/master/deploy/suricata/install.sh
+        [ ! -z $user_exists ] || sudo chmod +x install.sh
+        [ ! -z $user_exists ] || sudo -E ./install.sh
         `
     })
     let img_resp = await wait_for_global_operation(

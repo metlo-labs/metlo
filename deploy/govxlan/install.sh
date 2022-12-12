@@ -18,7 +18,6 @@ INTERFACE=$(ip link | egrep "ens[0-9]*" -o)
 [ ! -z "$INTERFACE" ] || INTERFACE=$(ip link | egrep "eth[0-9]*" -o)
 echo "Placing packet capture on interface $INTERFACE"
 echo "INTERFACE=$INTERFACE" | sudo tee -a /opt/metlo/credentials
-echo "VXLAN_ENABLED=true" | sudo tee -a /opt/metlo/credentials
 
 echo "ADDING SERVICE"
 echo "metlo" | sudo mv /home/$WHOAMI/metlo/metlo-traffic-mirror.service /lib/systemd/system/metlo-traffic-mirror.service -f
