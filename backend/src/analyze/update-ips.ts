@@ -63,7 +63,7 @@ export const updateIPs = async (
   }
 
   if (updated) {
-    getQB(ctx, queryRunner)
+    await getQB(ctx, queryRunner)
       .update(ApiEndpoint)
       .set({
         hostIps: apiEndpoint.hostIps,
