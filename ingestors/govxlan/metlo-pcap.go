@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/metloapi"
@@ -101,6 +100,14 @@ func main() {
 		if args.maxRps == 0 {
 			args.maxRps = metloapi.MetloDefaultRPS
 		}
+		envInterface := os.Getenv("INTERFACE")
+		if !args.runAsVxlan && args.captureInterface == "" {
+			if envInterface != "" {
+				args.captureInterface = envInterface
+			} else {
+				log.Fatalln("Packet capture in live mode must provide an interface")
+			}
+		}
 
 		truncatedAPIKey := ""
 		if len(args.apiKey) >= 10 {
@@ -114,6 +121,8 @@ func main() {
 			"apiKey":    truncatedAPIKey,
 			"metloHost": args.metloHost,
 			"maxRps":    args.maxRps,
+			"vxlan":     args.runAsVxlan,
+			"interface": args.captureInterface,
 		}).Info("Configuration")
 
 		if args.metloHost == "" {
@@ -141,11 +150,8 @@ func main() {
 	}
 }
 
-func runLive(metloAPI *metloapi.Metlo, metloInterface string) error {
-	if strings.Compare(metloInterface, "") == 0 {
-		log.Fatalln("Packet capture in live mode must provide an interface")
-	}
-	cap := pcap.New(metloInterface)
+func runLive(metloAPI *metloapi.Metlo, captureInterface string) error {
+	cap := pcap.New(captureInterface)
 	proc, err := pcap.NewPacketProcessor(metloAPI)
 	if err != nil {
 		return err
