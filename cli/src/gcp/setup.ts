@@ -344,7 +344,7 @@ const create_mig = async (
         [ ! -z $user_exists ] || echo "METLO_ADDR=${machineInfoResp['_url']}" >> /opt/metlo/credentials
         [ ! -z $user_exists ] || echo "METLO_KEY=${machineInfoResp['_apiKey']}" >>  /opt/metlo/credentials
         [ ! -z $user_exists ] || echo "VXLAN_ENABLED=false" | sudo tee -a /opt/metlo/credentials
-        [ ! -z $user_exists ] || sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/master/deploy/suricata/install.sh
+        [ ! -z $user_exists ] || sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/master/deploy/govxlan/install.sh
         [ ! -z $user_exists ] || sudo chmod +x install.sh
         [ ! -z $user_exists ] || sudo -E ./install.sh
         `
