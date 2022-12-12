@@ -15,14 +15,13 @@ type udpQueue struct {
 	Err error
 }
 
-func listenPCAP(queueSize int) chan *udpQueue {
+func listenPCAP(queueSize int, captureInterface string) chan *udpQueue {
 	ch := make(chan *udpQueue, queueSize)
 
 	go func() {
 		defer close(ch)
 
-		// sock, err := net.ListenPacket("udp", fmt.Sprintf(":%d", port))
-		handle, err := pcap.OpenLive("en0", 65535, true, pcap.BlockForever)
+		handle, err := pcap.OpenLive(captureInterface, 65535, true, pcap.BlockForever)
 		if err != nil {
 			ch <- &udpQueue{Err: errors.Wrap(err, "Fail to create UDP socket")}
 			return
@@ -35,35 +34,27 @@ func listenPCAP(queueSize int) chan *udpQueue {
 			if packet == nil {
 				return
 			}
+			var tmpPacket gopacket.Packet
+			if packet.Layers()[0].LayerType() == layers.LayerTypeLoopback {
+				tmpPacket = gopacket.NewPacket(packet.Data(), layers.LayerTypeLoopback, gopacket.Lazy)
+			} else if packet.Layers()[0].LayerType() == layers.LayerTypeEthernet {
+				tmpPacket = gopacket.NewPacket(packet.Data(), layers.LayerTypeEthernet, gopacket.Lazy)
+			} else {
+				log.Fatalf("Trying to capture unknown interface: %s", packet.Layers()[0].LayerType())
+			}
 
-			if packet.NetworkLayer() == nil || packet.TransportLayer() == nil || packet.TransportLayer().LayerType() != layers.LayerTypeTCP {
-				if packet.NetworkLayer() == nil {
-					log.Println("Network layer nil")
-				} else if packet.TransportLayer() == nil {
-					log.Println("Transport layer nil")
-				} else if packet.TransportLayer().LayerType() != layers.LayerTypeTCP {
-					log.Println("No TCP Data found")
-				}
-				log.Println("Unusable packet")
+			if tmpPacket.NetworkLayer() == nil || tmpPacket.TransportLayer() == nil || tmpPacket.TransportLayer().LayerType() != layers.LayerTypeTCP {
 				continue
 			}
-			// tcp := packet.TransportLayer().(*layers.TCP)
-			// log.Println("Acceptable packet found")
 			q := new(udpQueue)
 
 			pkt := new(packetData)
 			pkt.Timestamp = time.Now()
-			pkt.Packet = &packet
+			pkt.Packet = &tmpPacket
 			pkt.VNI = 0
 			pkt.Data = (*pkt.Packet).Data()
-			// eth := packet.Layer(layers.LayerTypeEthernet)
-
 			q.Pkt = pkt
 			ch <- q
-			// q.Pkt = newPacketData(tcp.LayerContents(), 0)
-			// if q.Pkt.Packet != nil {
-			// 	ch <- q
-			// }
 
 		}
 

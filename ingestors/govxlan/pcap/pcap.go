@@ -1,7 +1,6 @@
 package pcap
 
 import (
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -18,13 +17,20 @@ func init() {
 
 // VXCap is one of main components of the package
 type Pcap struct {
-	QueueSize int
+	QueueSize        int
+	captureInterface string
 }
 
+const (
+	// DefaultReceiverQueueSize is default queue size of channel from UDP server to packet processor.
+	DefaultReceiverQueueSize = 1024
+)
+
 // New is constructor of VXCap
-func New() *Pcap {
+func New(captureInterface string) *Pcap {
 	cap := Pcap{
-		QueueSize: 1024,
+		QueueSize:        DefaultReceiverQueueSize,
+		captureInterface: captureInterface,
 	}
 	return &cap
 }
@@ -40,7 +46,7 @@ func (x *Pcap) Start(proc Processor) error {
 	utils.Log.WithFields(logrus.Fields{
 		"queueSize": x.QueueSize,
 	}).Trace("Opening UDP port...")
-	queueCh := listenPCAP(x.QueueSize)
+	queueCh := listenPCAP(x.QueueSize, x.captureInterface)
 
 	utils.Log.Trace("Setting up channels")
 	ticker := time.NewTicker(time.Second)
@@ -51,18 +57,15 @@ func (x *Pcap) Start(proc Processor) error {
 	signal.Notify(signalCh, syscall.SIGTERM)
 	signal.Notify(signalCh, syscall.SIGINT)
 	defer signal.Stop(signalCh)
-	utils.Log.Infof("In pcap")
-	utils.Log.Infof("Starting loop, listening on all ports")
+	utils.Log.Infof("Starting loop, listening on interface %s", x.captureInterface)
 
 MainLoop:
 	for {
 		select {
 		case q := <-queueCh:
-			log.Println("Received packet")
 			if q.Err != nil {
 				return errors.Wrap(q.Err, "Fail to receive UDP")
 			}
-
 			if err := proc.Put(q.Pkt); err != nil {
 				return errors.Wrap(err, "Fail to handle packet")
 			}

@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/metloapi"
@@ -26,11 +27,12 @@ var logLevelMap = map[string]logrus.Level{
 }
 
 type MetloArgs struct {
-	apiKey     string
-	metloHost  string
-	maxRps     int
-	runAsVxlan bool
-	runAsLive  bool
+	apiKey         string
+	metloHost      string
+	maxRps         int
+	runAsVxlan     bool
+	runAsLive      bool
+	metloInterface string
 }
 
 func main() {
@@ -65,7 +67,7 @@ func main() {
 			Destination: &args.runAsVxlan,
 		}, cli.BoolFlag{
 			Name:        "live",
-			Usage:       "Capture live data. Default false",
+			Usage:       "Capture live data. Default True",
 			Required:    false,
 			Destination: &args.runAsLive,
 		},
@@ -73,6 +75,10 @@ func main() {
 			Name:        "max-rps, r",
 			Usage:       "Your Metlo Collector URL",
 			Destination: &args.maxRps,
+		}, cli.StringFlag{
+			Name:        "interface, i",
+			Usage:       "Interface for Metlo to listen on",
+			Destination: &args.metloInterface,
 		},
 	}
 
@@ -131,28 +137,11 @@ func main() {
 		if args.runAsLive && args.runAsVxlan {
 			log.Fatalln("Cannot run in both live and vxlan mode")
 		} else if !args.runAsLive && !args.runAsVxlan {
-			log.Fatalln("Must run in either live or vxlan mode")
+			runLive(metloAPI, args.metloInterface)
 		} else if args.runAsLive {
-			cap := pcap.New()
-			proc, err := pcap.NewPacketProcessor(metloAPI)
-			if err != nil {
-				return err
-			}
-
-			if err := cap.Start(proc); err != nil {
-				return err
-			}
+			runLive(metloAPI, args.metloInterface)
 		} else {
-			cap := vxcap.New()
-			proc, err := vxcap.NewPacketProcessor(metloAPI)
-			if err != nil {
-				return err
-			}
-
-			if err := cap.Start(proc); err != nil {
-				return err
-			}
-
+			runVXLAN(metloAPI)
 		}
 		return nil
 	}
@@ -160,4 +149,33 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		utils.Log.WithError(err).Fatal("Fatal Error")
 	}
+}
+
+func runLive(metloAPI *metloapi.Metlo, metloInterface string) error {
+	if strings.Compare(metloInterface, "") == 0 {
+		log.Fatalln("Packet capture in live mode must provide an interface")
+	}
+	cap := pcap.New(metloInterface)
+	proc, err := pcap.NewPacketProcessor(metloAPI)
+	if err != nil {
+		return err
+	}
+
+	if err := cap.Start(proc); err != nil {
+		return err
+	}
+	return nil
+}
+
+func runVXLAN(metloAPI *metloapi.Metlo) error {
+	cap := vxcap.New()
+	proc, err := vxcap.NewPacketProcessor(metloAPI)
+	if err != nil {
+		return err
+	}
+
+	if err := cap.Start(proc); err != nil {
+		return err
+	}
+	return nil
 }

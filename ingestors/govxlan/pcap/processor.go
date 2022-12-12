@@ -2,7 +2,6 @@ package pcap
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/google/gopacket/layers"
@@ -59,10 +58,7 @@ func (x *PacketProcessor) Put(pkt *packetData) error {
 		return fmt.Errorf("PacketProcessor is not ready, run Setup() at first")
 	}
 	packet := *pkt.Packet
-	log.Println((*(*pkt).Packet).NetworkLayer())
-
 	networkFlow := packet.NetworkLayer().NetworkFlow()
-
 	tcp := packet.TransportLayer().(*layers.TCP)
 	timestamp := packet.Metadata().Timestamp
 	x.reqAssembler.AssembleWithTimestamp(pkt.VNI, networkFlow, tcp, timestamp)
