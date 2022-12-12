@@ -1,7 +1,6 @@
 package pcap
 
 import (
-	"log"
 	"time"
 
 	"github.com/google/gopacket"
@@ -23,7 +22,7 @@ func listenPCAP(queueSize int, captureInterface string) chan *udpQueue {
 
 		handle, err := pcap.OpenLive(captureInterface, 65535, true, pcap.BlockForever)
 		if err != nil {
-			ch <- &udpQueue{Err: errors.Wrap(err, "Fail to create UDP socket")}
+			ch <- &udpQueue{Err: errors.Wrapf(err, "Fail to bind to interface %s", captureInterface)}
 			return
 		}
 		defer handle.Close()
@@ -34,14 +33,7 @@ func listenPCAP(queueSize int, captureInterface string) chan *udpQueue {
 			if packet == nil {
 				return
 			}
-			var tmpPacket gopacket.Packet
-			if packet.Layers()[0].LayerType() == layers.LayerTypeLoopback {
-				tmpPacket = gopacket.NewPacket(packet.Data(), layers.LayerTypeLoopback, gopacket.Lazy)
-			} else if packet.Layers()[0].LayerType() == layers.LayerTypeEthernet {
-				tmpPacket = gopacket.NewPacket(packet.Data(), layers.LayerTypeEthernet, gopacket.Lazy)
-			} else {
-				log.Fatalf("Trying to capture unknown interface: %s", packet.Layers()[0].LayerType())
-			}
+			tmpPacket := gopacket.NewPacket(packet.Data(), packet.Layers()[0].LayerType(), gopacket.Lazy)
 
 			if tmpPacket.NetworkLayer() == nil || tmpPacket.TransportLayer() == nil || tmpPacket.TransportLayer().LayerType() != layers.LayerTypeTCP {
 				continue

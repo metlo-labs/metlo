@@ -22,7 +22,7 @@ type Pcap struct {
 }
 
 const (
-	// DefaultReceiverQueueSize is default queue size of channel from UDP server to packet processor.
+	// DefaultReceiverQueueSize is default queue size of channel from packet server to packet processor.
 	DefaultReceiverQueueSize = 1024
 )
 
@@ -35,7 +35,7 @@ func New(captureInterface string) *Pcap {
 	return &cap
 }
 
-// Start invokes UDP listener for VXLAN and forward captured packets to processor.
+// Start invokes packet listener and forwards captured packets to processor.
 func (x *Pcap) Start(proc Processor) error {
 	utils.Log.Trace("Setting up processor...")
 	if err := proc.Setup(); err != nil {
@@ -44,8 +44,9 @@ func (x *Pcap) Start(proc Processor) error {
 
 	// Setup channels
 	utils.Log.WithFields(logrus.Fields{
-		"queueSize": x.QueueSize,
-	}).Trace("Opening UDP port...")
+		"queueSize":        x.QueueSize,
+		"captureInterface": x.captureInterface,
+	}).Trace("Starting listening on interface...")
 	queueCh := listenPCAP(x.QueueSize, x.captureInterface)
 
 	utils.Log.Trace("Setting up channels")
@@ -64,7 +65,7 @@ MainLoop:
 		select {
 		case q := <-queueCh:
 			if q.Err != nil {
-				return errors.Wrap(q.Err, "Fail to receive UDP")
+				return errors.Wrap(q.Err, "Failed to receive packet data")
 			}
 			if err := proc.Put(q.Pkt); err != nil {
 				return errors.Wrap(err, "Fail to handle packet")
