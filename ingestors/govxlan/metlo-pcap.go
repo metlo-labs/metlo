@@ -27,12 +27,11 @@ var logLevelMap = map[string]logrus.Level{
 }
 
 type MetloArgs struct {
-	apiKey         string
-	metloHost      string
-	maxRps         int
-	runAsVxlan     bool
-	runAsLive      bool
-	metloInterface string
+	apiKey           string
+	metloHost        string
+	maxRps           int
+	runAsVxlan       bool
+	captureInterface string
 }
 
 func main() {
@@ -47,7 +46,8 @@ func main() {
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name: "log-level, l", Value: "info",
+			Name:        "log-level, l",
+			Value:       "info",
 			Usage:       "Log level [trace,debug,info,warn,error]",
 			Destination: &logLevel,
 		},
@@ -65,20 +65,14 @@ func main() {
 			Usage:       "Capture vxlan data. Default false",
 			Required:    false,
 			Destination: &args.runAsVxlan,
-		}, cli.BoolFlag{
-			Name:        "live",
-			Usage:       "Capture live data. Default True",
-			Required:    false,
-			Destination: &args.runAsLive,
-		},
-		cli.IntFlag{
+		}, cli.IntFlag{
 			Name:        "max-rps, r",
 			Usage:       "Your Metlo Collector URL",
 			Destination: &args.maxRps,
 		}, cli.StringFlag{
 			Name:        "interface, i",
 			Usage:       "Interface for Metlo to listen on",
-			Destination: &args.metloInterface,
+			Destination: &args.captureInterface,
 		},
 	}
 
@@ -134,12 +128,8 @@ func main() {
 
 		metloAPI := metloapi.InitMetlo(args.metloHost, args.apiKey, args.maxRps)
 
-		if args.runAsLive && args.runAsVxlan {
-			log.Fatalln("Cannot run in both live and vxlan mode")
-		} else if !args.runAsLive && !args.runAsVxlan {
-			runLive(metloAPI, args.metloInterface)
-		} else if args.runAsLive {
-			runLive(metloAPI, args.metloInterface)
+		if !args.runAsVxlan {
+			runLive(metloAPI, args.captureInterface)
 		} else {
 			runVXLAN(metloAPI)
 		}
