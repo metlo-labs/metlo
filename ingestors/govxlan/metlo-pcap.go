@@ -100,6 +100,18 @@ func main() {
 		if args.maxRps == 0 {
 			args.maxRps = metloapi.MetloDefaultRPS
 		}
+		envVXLANEnabled := os.Getenv("VXLAN_ENABLED")
+		if !args.runAsVxlan {
+			if envVXLANEnabled != "" {
+				vxlan_enabled, err := strconv.ParseBool(envVXLANEnabled)
+				if err != nil {
+					vxlan_enabled = false
+				}
+				args.runAsVxlan = vxlan_enabled
+			} else {
+				args.runAsVxlan = false
+			}
+		}
 		envInterface := os.Getenv("INTERFACE")
 		if !args.runAsVxlan && args.captureInterface == "" {
 			if envInterface != "" {
