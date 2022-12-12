@@ -21,6 +21,7 @@
     "chakra-react-select": "^4.1.4",
     "chart.js": "^3.9.1",
     "chartjs-adapter-date-fns": "^2.0.0",
+    "dagre": "^0.8.5",
     "date-fns": "^2.29.1",
     "file-saver": "^2.0.5",
     "framer-motion": "^6.3.0",
@@ -38,12 +39,14 @@
     "react-select": "^5.4.0",
     "react-split-pane": "^0.1.92",
     "react-syntax-highlighter": "^15.5.0",
+    "reactflow": "^11.3.3",
     "styled-components": "^5.3.5",
     "superjson": "^1.9.1",
     "uuid": "^8.3.2",
     "yaml": "^2.1.1"
   },
   "devDependencies": {
+    "@types/dagre": "^0.7.48",
     "@types/file-saver": "^2.0.5",
     "@types/js-yaml": "^4.0.5",
     "@types/luxon": "^3.0.0",
