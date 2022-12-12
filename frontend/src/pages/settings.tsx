@@ -126,7 +126,7 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks }) => {
   }
 
   return (
-    <PageWrapper title="API Specs">
+    <PageWrapper title="Settings">
       <ContentContainer maxContentW="100rem" px="8" py="8">
         <VStack h="full" w="full" alignItems="flex-start" spacing="0">
           <Heading fontWeight="medium" size="lg" mb="4">

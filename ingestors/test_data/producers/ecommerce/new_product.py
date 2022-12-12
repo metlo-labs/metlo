@@ -4,6 +4,7 @@ from uuid import uuid4
 import json
 from random import randint
 
+from producers.ecommerce.utils import sources, destinations
 from producers.utils import get_auth_header, get_meta, JSON_HEADER
 from producers.base import BaseProducer
 
@@ -41,7 +42,7 @@ class EcommerceMakeProductProducer(BaseProducer):
                 "headers": [JSON_HEADER],
                 "body": json.dumps(resp_body),
             },
-            "meta": get_meta(),
+            "meta": get_meta(sources, destinations),
         }
 
     def get_data_points(self, time: datetime) -> List[dict]:

@@ -2,6 +2,7 @@ from datetime import timedelta
 from uuid import uuid4
 import json
 
+from producers.paymentprocessor.utils import sources, destinations
 from producers.utils import get_meta, JSON_HEADER
 from producers.base import BaseProducer
 
@@ -37,5 +38,5 @@ class PaymentProcessorGetBillingProducer(BaseProducer):
                 "headers": [JSON_HEADER],
                 "body": json.dumps(resp_body),
             },
-            "meta": get_meta(),
+            "meta": get_meta(sources, destinations),
         }
