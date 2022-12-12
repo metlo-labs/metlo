@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 
 	"github.com/joho/godotenv"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/metloapi"
+	pcap "github.com/metlo-labs/metlo/ingestors/govxlan/pcap"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/utils"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/vxcap"
 	"github.com/sirupsen/logrus"
@@ -24,13 +26,15 @@ var logLevelMap = map[string]logrus.Level{
 }
 
 type MetloArgs struct {
-	apiKey    string
-	metloHost string
-	maxRps    int
+	apiKey           string
+	metloHost        string
+	maxRps           int
+	runAsVxlan       bool
+	captureInterface string
 }
 
 func main() {
-	cap := vxcap.New()
+
 	var args MetloArgs
 	var logLevel string
 
@@ -41,7 +45,8 @@ func main() {
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name: "log-level, l", Value: "info",
+			Name:        "log-level, l",
+			Value:       "info",
 			Usage:       "Log level [trace,debug,info,warn,error]",
 			Destination: &logLevel,
 		},
@@ -54,11 +59,19 @@ func main() {
 			Name:        "metlo-host, u",
 			Usage:       "Your Metlo Collector URL",
 			Destination: &args.metloHost,
-		},
-		cli.IntFlag{
+		}, cli.BoolFlag{
+			Name:        "vxlan",
+			Usage:       "Capture vxlan data. Default false",
+			Required:    false,
+			Destination: &args.runAsVxlan,
+		}, cli.IntFlag{
 			Name:        "max-rps, r",
 			Usage:       "Your Metlo Collector URL",
 			Destination: &args.maxRps,
+		}, cli.StringFlag{
+			Name:        "interface, i",
+			Usage:       "Interface for Metlo to listen on",
+			Destination: &args.captureInterface,
 		},
 	}
 
@@ -87,6 +100,26 @@ func main() {
 		if args.maxRps == 0 {
 			args.maxRps = metloapi.MetloDefaultRPS
 		}
+		envVXLANEnabled := os.Getenv("VXLAN_ENABLED")
+		if !args.runAsVxlan {
+			if envVXLANEnabled != "" {
+				vxlan_enabled, err := strconv.ParseBool(envVXLANEnabled)
+				if err != nil {
+					vxlan_enabled = false
+				}
+				args.runAsVxlan = vxlan_enabled
+			} else {
+				args.runAsVxlan = false
+			}
+		}
+		envInterface := os.Getenv("INTERFACE")
+		if !args.runAsVxlan && args.captureInterface == "" {
+			if envInterface != "" {
+				args.captureInterface = envInterface
+			} else {
+				log.Fatalln("Packet capture in live mode must provide an interface")
+			}
+		}
 
 		truncatedAPIKey := ""
 		if len(args.apiKey) >= 10 {
@@ -100,6 +133,8 @@ func main() {
 			"apiKey":    truncatedAPIKey,
 			"metloHost": args.metloHost,
 			"maxRps":    args.maxRps,
+			"vxlan":     args.runAsVxlan,
+			"interface": args.captureInterface,
 		}).Info("Configuration")
 
 		if args.metloHost == "" {
@@ -113,13 +148,11 @@ func main() {
 		}
 
 		metloAPI := metloapi.InitMetlo(args.metloHost, args.apiKey, args.maxRps)
-		proc, err := vxcap.NewPacketProcessor(metloAPI)
-		if err != nil {
-			return err
-		}
 
-		if err := cap.Start(proc); err != nil {
-			return err
+		if !args.runAsVxlan {
+			runLive(metloAPI, args.captureInterface)
+		} else {
+			runVXLAN(metloAPI)
 		}
 		return nil
 	}
@@ -127,4 +160,30 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		utils.Log.WithError(err).Fatal("Fatal Error")
 	}
+}
+
+func runLive(metloAPI *metloapi.Metlo, captureInterface string) error {
+	cap := pcap.New(captureInterface)
+	proc, err := pcap.NewPacketProcessor(metloAPI)
+	if err != nil {
+		return err
+	}
+
+	if err := cap.Start(proc); err != nil {
+		return err
+	}
+	return nil
+}
+
+func runVXLAN(metloAPI *metloapi.Metlo) error {
+	cap := vxcap.New()
+	proc, err := vxcap.NewPacketProcessor(metloAPI)
+	if err != nil {
+		return err
+	}
+
+	if err := cap.Start(proc); err != nil {
+		return err
+	}
+	return nil
 }

@@ -1,6 +1,6 @@
 project_name: metlo
 
 builds:
-  - main: metlo-vxlan.go
+  - main: metlo-pcap.go
     dir: ./ingestors/govxlan
-    binary: metlo-vxlan
+    binary: metlo-pcap
