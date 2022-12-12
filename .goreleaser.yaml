@@ -3,8 +3,6 @@ project_name: metlo
 builds:
   - main: metlo-pcap.go
     dir: ./ingestors/govxlan
-    env:
-      - CGO_ENABLED=1
     binary: metlo-pcap
     goarch:
       - amd64
