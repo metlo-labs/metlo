@@ -12,6 +12,7 @@ from producers.paymentprocessor.add_charge import PaymentProcessorAddChargeProdu
 from producers.paymentprocessor.get_user import PaymentProcessorGetUserProducer
 from producers.paymentprocessor.new_user import PaymentProcessorUserProducer
 from producers.paymentprocessor.user_verify import PaymentProcessorUserVerifyProducer
+from producers.user.get_user import UserServiceGetUserProducer
 
 
 PRODUCER_CLS_MAP = {
@@ -29,4 +30,5 @@ PRODUCER_CLS_MAP = {
     "payment_processor_add_billing": PaymentProcessorAddBillingProducer,
     "payment_processor_get_billing": PaymentProcessorGetBillingProducer,
     "payment_processor_add_charge": PaymentProcessorAddChargeProducer,
+    "user_service_get_user": UserServiceGetUserProducer,
 }
