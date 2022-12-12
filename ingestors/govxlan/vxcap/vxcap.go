@@ -53,6 +53,7 @@ func (x *VXCap) Start(proc Processor) error {
 	signal.Notify(signalCh, syscall.SIGTERM)
 	signal.Notify(signalCh, syscall.SIGINT)
 	defer signal.Stop(signalCh)
+
 	utils.Log.Infof("Starting loop: port %d", x.RecvPort)
 
 MainLoop:
