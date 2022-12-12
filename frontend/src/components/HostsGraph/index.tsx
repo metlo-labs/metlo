@@ -13,6 +13,8 @@ import { getLayoutedElements } from "./layout"
 import { CustomHostNode } from "./node"
 import { HostGraph } from "@common/types"
 
+const nodeTypes = { host: CustomHostNode }
+
 const HostGraphComponent: React.FC<HostGraph> = React.memo(params => {
   const connectedHosts = new Set(
     params.edges.map(e => e.srcHost).concat(params.edges.map(e => e.dstHost)),
@@ -22,7 +24,7 @@ const HostGraphComponent: React.FC<HostGraph> = React.memo(params => {
       .filter(([host, data]) => connectedHosts.has(host))
       .map(([host, data]) => ({
         id: host,
-        data: { label: host, ...data },
+        data: { host, ...data },
         position: { x: 0, y: 0 },
         type: "host",
       })),
@@ -43,7 +45,7 @@ const HostGraphComponent: React.FC<HostGraph> = React.memo(params => {
     <VStack w="full" h="full">
       <div style={{ height: "100%", width: "100%" }}>
         <ReactFlow
-          nodeTypes={{ host: CustomHostNode }}
+          nodeTypes={nodeTypes}
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
