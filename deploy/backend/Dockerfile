@@ -1,4 +1,4 @@
-FROM node:alpine
+FROM node:alpine AS builder
 
 WORKDIR /usr/src/app
 
@@ -11,10 +11,22 @@ RUN yarn build
 
 WORKDIR /usr/src/app/backend
 RUN yarn
-EXPOSE 8080
 RUN yarn build
 
-RUN rm -rf src
-RUN yarn cache clean
+FROM node:alpine
 
+WORKDIR /usr/src/app
+
+WORKDIR /usr/src/app/common
+COPY --from=builder /usr/src/app/common/package.json ./package.json
+COPY --from=builder /usr/src/app/common/dist ./dist
+COPY --from=builder /usr/src/app/common/node_modules ./node_modules
+
+WORKDIR /usr/src/app/backend
+COPY --from=builder /usr/src/app/backend/package.json ./package.json
+COPY --from=builder /usr/src/app/backend/dist ./dist
+COPY --from=builder /usr/src/app/backend/node_modules ./node_modules
+COPY --from=builder /usr/src/app/backend/tsconfig.json ./tsconfig.json
+
+EXPOSE 8080
 CMD [ "yarn", "start" ]
