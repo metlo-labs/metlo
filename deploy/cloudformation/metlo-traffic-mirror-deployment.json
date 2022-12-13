@@ -1,0 +1,322 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Cloudformation Template for Metlo Traffic Mirroring.",
+    "Metadata": {
+        "AWS::CloudFormation::Designer": {
+            "12d7e160-0a80-41e1-9076-14d9d321b425": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 180,
+                    "y": 60
+                },
+                "z": 1,
+                "embeds": [],
+                "isassociatedwith": [
+                    "75ee4d4d-5387-4e64-a6e7-df69e2be9de2"
+                ]
+            },
+            "75ee4d4d-5387-4e64-a6e7-df69e2be9de2": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 330,
+                    "y": 60
+                },
+                "z": 1,
+                "embeds": []
+            }
+        },
+        "AWS::CloudFormation::Interface" : {
+            "ParameterGroups": [
+                {
+                    "Label": "Network Config",
+                    "Parameters": [
+                        "VPC",
+                        "SubnetId",
+                        "AvailabilityZone" 
+                    ]
+                },
+                {
+                    "Label": "Metlo Config",
+                    "Parameters": [
+                        "metloAddress",
+                        "metloKey"
+                    ]
+                },
+                {
+                    "Label": "Instance Config",
+                    "Parameters": [
+                        "metloKeyPair"
+                    ]
+                }
+            ]
+        }
+    },
+    "Resources": {
+        "MetloTrafficMirroringSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "GroupDescription": "Enable the ports metlo traffic mirroring requires (tcp 22, udp 4789)",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 22,
+                        "ToPort": 22,
+                        "CidrIp": "0.0.0.0/0"
+                    },
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": 4789,
+                        "ToPort": 4789,
+                        "CidrIp": "10.0.0.0/8"
+                    },
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": 4789,
+                        "ToPort": 4789,
+                        "CidrIp": "172.16.0.0/12"
+                    },
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": 4789,
+                        "ToPort": 4789,
+                        "CidrIp": "192.168.0.0/16"
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 0,
+                        "ToPort": 65535,
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ]
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "75ee4d4d-5387-4e64-a6e7-df69e2be9de2"
+                }
+            }
+        },
+        "MetloTrafficMirroringInstance": {
+            "Type": "AWS::EC2::Instance",
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "12d7e160-0a80-41e1-9076-14d9d321b425"
+                }
+            },
+            "Properties": {
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "\n",
+                            [
+                                "#!/bin/bash -xve",
+                                "sudo mkdir -p /opt/metlo",
+                                "sudo touch /opt/metlo/credentials",
+                                "export user_exists=$(getent passwd metlo)",
+                               {
+                                    "Fn::Sub": [
+                                        "[ ! -z $user_exists ] || echo 'METLO_HOST=${METADDR}' >> /opt/metlo/credentials",
+                                        {
+                                            "METADDR": {
+                                                "Ref": "metloAddress"
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Fn::Sub": [
+                                        "[ ! -z $user_exists ] || echo 'METLO_KEY=${METKEY}' >> /opt/metlo/credentials",
+                                        {
+                                            "METKEY": {
+                                                "Ref": "metloKey"
+                                            }
+                                        }
+                                    ]
+                                },
+                                "[ ! -z $user_exists ] || echo 'VXLAN_ENABLED=true' | sudo tee -a /opt/metlo/credentials",
+                                "[ ! -z $user_exists ] || sudo wget https://raw.githubusercontent.com/metlo-labs/metlo/master/deploy/govxlan/install.sh",
+                                "[ ! -z $user_exists ] || sudo chmod +x install.sh",
+                                "[ ! -z $user_exists ] || sudo -E ./install.sh",
+                                "sudo apt-get update -y",
+                                "sudo apt-get install -y python python-setuptools",
+                                "sudo mkdir -p /opt/aws/bin",
+                                "sudo wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz",
+                                "sudo python -m easy_install --script-dir /opt/aws/bin aws-cfn-bootstrap-latest.tar.gz",
+                                {
+                                    "Fn::Join": [
+                                        " ",
+                                        [
+                                            "sudo /opt/aws/bin/cfn-signal -s true",
+                                            "--stack ",
+                                            {
+                                                "Ref": "AWS::StackName"
+                                            },
+                                            "--resource MetloTrafficMirroringInstance",
+                                            "--region ",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            }
+                                        ]
+                                    ]
+                                }
+                            ]
+                        ]
+                    }
+                },
+                "KeyName": {
+                    "Ref": "metloKeyPair"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Metlo-Traffic-Mirroring"
+                    }
+                ],
+                "ImageId": {
+                    "Fn::FindInMap": [
+                        "RegionMap",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        "AMI"
+                    ]
+                },
+                "AvailabilityZone": {
+                    "Ref": "AvailabilityZone"
+                },
+                "InstanceType": "t3.small",
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "GroupSet": [
+                            {
+                                "Ref" : "MetloTrafficMirroringSecurityGroup"
+                            }
+                        ],
+                        "SubnetId": {
+                            "Ref" : "SubnetId"
+                        }
+                    }
+                ]
+            },
+            "CreationPolicy": {
+                "ResourceSignal": {
+                    "Timeout": "PT10M"
+                }
+            }
+        }
+    },
+    "Parameters": {
+        "metloKeyPair": {
+            "Description": "Key pair to access the box running Metlo",
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        },
+        "VPC": {
+            "Description": "The VPC to run Metlo inside of",
+            "Type": "AWS::EC2::VPC::Id"
+        },
+        "AvailabilityZone": {
+            "Description": "The availability zone to run Metlo in",
+            "Type": "AWS::EC2::AvailabilityZone::Name"
+        },
+        "SubnetId": {
+            "Description": "The subnet to run Metlo in",
+            "Type": "AWS::EC2::Subnet::Id"
+        },
+        "metloAddress": {
+            "Description": "Host address where the Metlo Collector resides (http[s]://<YOUR_METLO_HOST>:8081)",
+            "Type": "String"
+        },
+        "metloKey": {
+            "Description": "API KEY for Metlo Collector. You can generate an API Key on the settings page",
+            "Type": "String"
+        }
+    },
+    "Mappings": {
+        "RegionMap": {
+            "af-south-1": {
+                "AMI": "ami-062cdcd18683ee84e"
+            },
+            "ap-east-1": {
+                "AMI": "ami-0476827462b538638"
+            },
+            "ap-northeast-1": {
+                "AMI": "ami-05c9a233b97c2a78e"
+            },
+            "ap-northeast-2": {
+                "AMI": "ami-05f5974ae1e61d78e"
+            },
+            "ap-northeast-3": {
+                "AMI": "ami-04144e5c57e5820b0"
+            },
+            "ap-south-1": {
+                "AMI": "ami-052639b6127cfb32d"
+            },
+            "ap-southeast-1": {
+                "AMI": "ami-03d4b39cdeb4b7339"
+            },
+            "ap-southeast-2": {
+                "AMI": "ami-0c9b6758e5d5a9558"
+            },
+            "ap-southeast-3": {
+                "AMI": "ami-04ff67f9643e6df11"
+            },
+            "ca-central-1": {
+                "AMI": "ami-0872f26db03af5118"
+            },
+            "eu-central-1": {
+                "AMI": "ami-00648c36e527032ec"
+            },
+            "eu-central-2": {
+                "AMI": "ami-0dae81a048b6cc0be"
+            },
+            "eu-north-1": {
+                "AMI": "ami-03d20f9dd906ec688"
+            },
+            "eu-south-1": {
+                "AMI": "ami-0d31fd2c8fa64baf0"
+            },
+            "eu-west-1": {
+                "AMI": "ami-0c1bebf6df0bafa23"
+            },
+            "eu-west-2": {
+                "AMI": "ami-05bfd03d0709e3ecb"
+            },
+            "eu-west-3": {
+                "AMI": "ami-058cbb29e232feceb"
+            },
+            "me-central-1": {
+                "AMI": "ami-09bc076c1e48cc663"
+            },
+            "me-south-1": {
+                "AMI": "ami-0799b0ab527e14c62"
+            },
+            "sa-east-1": {
+                "AMI": "ami-06eb89b14ac4f4029"
+            },
+            "us-east-1": {
+                "AMI": "ami-072d6c9fae3253f26"
+            },
+            "us-east-2": {
+                "AMI": "ami-0cb81cb394fc2e305"
+            },
+            "us-west-1": {
+                "AMI": "ami-0ff4dd898acfb0e67"
+            },
+            "us-west-2": {
+                "AMI": "ami-0080e1081b2c5aef6"
+            }
+        }
+    }
+}

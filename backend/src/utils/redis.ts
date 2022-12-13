@@ -105,6 +105,19 @@ export class RedisClient {
     }
   }
 
+  public static async isSetMember(
+    ctx: MetloContext,
+    key: string,
+    data: string,
+  ) {
+    try {
+      const res = await this.getInstance().sismember(key, data)
+      return res == 1
+    } catch (err) {
+      return false
+    }
+  }
+
   public static async getListValueFromRedis(
     ctx: MetloContext,
     key: string,

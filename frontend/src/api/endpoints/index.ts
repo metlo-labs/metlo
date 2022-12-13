@@ -5,6 +5,7 @@ import {
   GetEndpointParams,
   GetHostParams,
   HostResponse,
+  HostGraph,
   Usage,
 } from "@common/types"
 import { getAPIURL } from "~/constants"
@@ -105,6 +106,17 @@ export const getHostsList = async (
 ): Promise<[HostResponse[], number]> => {
   const resp = await axios.get<[HostResponse[], number]>(
     `${getAPIURL()}/hosts`,
+    { params, headers },
+  )
+  return resp.data
+}
+
+export const getHostsGraph = async (
+  params: GetHostParams,
+  headers?: AxiosRequestHeaders,
+): Promise<HostGraph> => {
+  const resp = await axios.get<HostGraph>(
+    `${getAPIURL()}/hosts-graph`,
     { params, headers },
   )
   return resp.data

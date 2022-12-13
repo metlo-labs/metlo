@@ -1,5 +1,4 @@
 import {
-  BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
@@ -79,6 +78,12 @@ export class ApiEndpoint extends MetloBaseEntity {
 
   @Column({ type: "bool", default: false })
   isGraphQl: boolean
+
+  @Column({ type: "jsonb", nullable: false, default: {} })
+  hostIps: { [key: string]: number }
+
+  @Column({ type: "jsonb", nullable: false, default: {} })
+  srcIps: { [key: string]: number }
 
   @Column({ nullable: true })
   openapiSpecName: string

@@ -377,11 +377,11 @@ export interface STEP_RESPONSE<T extends ConnectionType = ConnectionType> {
     err: string
   }
   data: CONNECTIONS_BASE &
-  (T extends ConnectionType.AWS
-    ? Partial<AWS_CONNECTION & AWS_CONNECTION_MISC & SSH_INFO>
-    : T extends ConnectionType.GCP
-    ? Partial<GCP_CONNECTION & GCP_CONNECTION_MISC>
-    : never)
+    (T extends ConnectionType.AWS
+      ? Partial<AWS_CONNECTION & AWS_CONNECTION_MISC & SSH_INFO>
+      : T extends ConnectionType.GCP
+      ? Partial<GCP_CONNECTION & GCP_CONNECTION_MISC>
+      : never)
   returns?: {
     os_types?: [{ name: string; ami: string }]
     instance_types?: string[]
@@ -532,7 +532,7 @@ export interface DisabledPathSection {
 export interface BlockFieldEntry {
   path: string
   pathRegex: string
-  method: DisableRestMethod,
+  method: DisableRestMethod
   numberParams: number
   disabledPaths: DisabledPathSection
 }
@@ -544,4 +544,33 @@ export interface UpdateMetloConfigParams {
 export interface MetloConfigResp {
   uuid: string
   configString: string
+}
+
+export interface WebhookRun {
+  ok: boolean
+  msg: string
+  payload: Alert
+}
+
+export interface WebhookResp {
+  uuid: string
+  createdAt: Date
+  url: string
+  maxRetries: number
+  alertTypes: AlertType[]
+  runs: WebhookRun[]
+}
+
+export interface CreateWebhookParams {
+  url: string
+  alertTypes: AlertType[]
+}
+
+export interface HostGraph {
+  hosts: { [key: string]: { numEndpoints: number } }
+  edges: {
+    srcHost: string
+    dstHost: string
+    numEndpoints: number
+  }[]
 }

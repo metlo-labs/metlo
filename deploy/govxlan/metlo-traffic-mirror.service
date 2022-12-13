@@ -1,0 +1,10 @@
+[Unit]
+Description=Metlo GoVXLAN Ingestor
+After=network-online.target
+
+[Service]
+Restart=on-failure
+ExecStart=/usr/local/bin/metlo-pcap
+
+[Install]
+WantedBy=multi-user.target

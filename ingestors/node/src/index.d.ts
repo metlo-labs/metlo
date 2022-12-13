@@ -1,1 +1,0 @@
-export default function (apiKey: string, metloHost: string): void;
