@@ -147,3 +147,22 @@ export const updateSpecHandler = async (
     await ApiResponseHandler.error(res, err)
   }
 }
+
+export const getSpecZipHandler = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const zipContents = await SpecService.getSpecZip(req.ctx)
+    const fileName = "openapi_specs.zip"
+    const fileType = "application/zip"
+    res.set({
+      "Content-Length": Buffer.byteLength(zipContents),
+      "Content-Disposition": `attachment; filename="${fileName}"`,
+      "Content-Type": fileType,
+    })
+    res.status(200).send(zipContents.toString("hex"))
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}

@@ -18,6 +18,7 @@ import {
   deleteSpecHandler,
   getSpecHandler,
   getSpecListHandler,
+  getSpecZipHandler,
   updateSpecHandler,
   uploadNewSpecHandler,
 } from "api/spec"
@@ -111,6 +112,7 @@ apiRouter.put(
 )
 apiRouter.get("/api/v1/specs", getSpecListHandler)
 apiRouter.get("/api/v1/spec/:specFileName", getSpecHandler)
+apiRouter.get("/api/v1/specs/zip", getSpecZipHandler)
 
 apiRouter.post(
   "/api/v1/data-field/:dataFieldId/update-classes",

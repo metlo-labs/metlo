@@ -4,6 +4,7 @@ import SwaggerParser from "@apidevtools/swagger-parser"
 import Converter from "swagger2openapi"
 import yaml from "js-yaml"
 import YAML from "yaml"
+import AdmZip from "adm-zip"
 import OpenAPIResponseValidator, {
   OpenAPIResponseValidatorValidationError,
 } from "@leoscope/openapi-response-validator"
@@ -55,6 +56,28 @@ interface EndpointsMap {
 }
 
 export class SpecService {
+  static async getSpecZip(ctx: MetloContext) {
+    const specs = await getRepository(ctx, OpenApiSpec).find({
+      select: {
+        name: true,
+        spec: true,
+        extension: true,
+      },
+    })
+    const zip = new AdmZip()
+    if (specs.length === 0) {
+      throw new Error500InternalServer("No OpenAPI Specs found.")
+    }
+    for (const spec of specs) {
+      const encodedName = encodeURIComponent(spec.name)
+      zip.addFile(
+        `${encodedName}.${spec.extension}`,
+        Buffer.alloc(spec.spec.length, spec.spec),
+      )
+    }
+    return zip.toBuffer()
+  }
+
   static async getSpec(
     ctx: MetloContext,
     specName: string,

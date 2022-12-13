@@ -7,9 +7,11 @@ import {
   InputGroup,
   useToast,
 } from "@chakra-ui/react"
+import { saveAs } from "file-saver"
+import { FiDownload } from "icons/fi/FiDownload"
 import { OpenApiSpec } from "@common/types"
 import List from "./List"
-import { uploadSpec } from "api/apiSpecs"
+import { getSpecZip, uploadSpec } from "api/apiSpecs"
 import { useRouter } from "next/router"
 import { makeToast } from "utils"
 
@@ -20,6 +22,7 @@ interface APISpecListProps {
 const APISpecList: React.FC<APISpecListProps> = React.memo(({ apiSpecs }) => {
   const router = useRouter()
   const [fetching, setFetching] = useState<boolean>(false)
+  const [downloading, setDownloading] = useState<boolean>(false)
   const toast = useToast()
   const inputRef = useRef<HTMLInputElement | null>(null)
   const handleClick = () => inputRef.current?.click()
@@ -54,6 +57,26 @@ const APISpecList: React.FC<APISpecListProps> = React.memo(({ apiSpecs }) => {
     }
     setFetching(false)
   }
+
+  const handleDownloadAll = async () => {
+    setDownloading(true)
+    try {
+      const resp = await getSpecZip()
+      const buff = Buffer.from(resp, "hex")
+      const blob = new Blob([buff], { type: "application/zip" })
+      saveAs(blob, "openapi_specs.zip")
+    } catch (err) {
+      toast(
+        makeToast({
+          title: "Failed to download zip",
+          status: "error",
+          description: err.response?.data,
+        }),
+      )
+    }
+    setDownloading(false)
+  }
+
   return (
     <VStack
       w="full"
@@ -80,6 +103,13 @@ const APISpecList: React.FC<APISpecListProps> = React.memo(({ apiSpecs }) => {
               </Button>
             </InputGroup>
           </Box>
+          <Button
+            leftIcon={<FiDownload />}
+            isLoading={downloading}
+            onClick={handleDownloadAll}
+          >
+            Download All
+          </Button>
         </HStack>
       </Box>
       <Box w="full">
