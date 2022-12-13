@@ -14,8 +14,8 @@ sudo tar -xf /home/$WHOAMI/metlo.tar.gz -C /home/$WHOAMI/metlo
 sudo cp /home/$WHOAMI/metlo/metlo-pcap /usr/local/bin
 sudo chmod +x /usr/local/bin/metlo-pcap
 
-INTERFACE=$(ip link | egrep "ens[0-9]*" -o)
-[ ! -z "$INTERFACE" ] || INTERFACE=$(ip link | egrep "eth[0-9]*" -o)
+INTERFACE=$(ip link | egrep "ens[0-9]*" -o -m 1 || true)
+[ ! -z "$INTERFACE" ] || INTERFACE=$(ip link | egrep "eth[0-9]*" -o -m 1 || true)
 echo "Placing packet capture on interface $INTERFACE"
 echo "INTERFACE=$INTERFACE" | sudo tee -a /opt/metlo/credentials
 
