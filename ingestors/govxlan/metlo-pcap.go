@@ -123,17 +123,11 @@ func main() {
 				if err != nil {
 					log.Println(err)
 				}
-			CheckLoop:
 				for _, i := range ifaces {
-					if err != nil {
-						fmt.Print(fmt.Errorf("%+v\n", err.Error()))
-						log.Fatalln("Couldn't find interface beginning with ens/eth.")
-					}
-
 					if strings.HasPrefix(i.Name, "eth") || strings.HasPrefix(i.Name, "ens") {
 						log.Printf("Found match on interface %s which matches expected pattern. Binding to it", i.Name)
 						args.captureInterface = i.Name
-						break CheckLoop
+						break
 					}
 				}
 			}
