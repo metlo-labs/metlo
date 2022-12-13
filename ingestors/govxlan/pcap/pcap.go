@@ -1,7 +1,6 @@
 package pcap
 
 import (
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -66,23 +65,18 @@ MainLoop:
 		select {
 		case q := <-queueCh:
 			if q.Err != nil {
-				log.Println(q.Err)
-				log.Println("Failed to receive packet data")
 				return errors.Wrap(q.Err, "Failed to receive packet data")
 			}
 			if err := proc.Put(q.Pkt); err != nil {
-				log.Println("Fail to handle packet")
 				return errors.Wrap(err, "Fail to handle packet")
 			}
 
 		case t := <-tickerCh:
 			if err := proc.Tick(t); err != nil {
-				log.Println("Fail in tick process")
 				return errors.Wrap(err, "Fail in tick process")
 			}
 
 		case s := <-signalCh:
-			log.Println("Shutting Down")
 			utils.Log.WithField("signal", s).Warn("Caught signal, Shutting down...")
 			if err := proc.Shutdown(); err != nil {
 				return errors.Wrap(err, "Fail in shutdown process")
