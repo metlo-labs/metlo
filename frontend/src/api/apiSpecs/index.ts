@@ -57,8 +57,15 @@ export const deleteSpec = async (
   name: string,
   headers?: AxiosRequestHeaders,
 ) => {
-  const resp = await axios.delete<OpenApiSpec>(`/api/v1/spec/${name}`, {
+  const resp = await axios.delete<OpenApiSpec>(`${getAPIURL()}/spec/${name}`, {
     headers,
   })
+  return resp.data
+}
+
+export const getSpecZip = async (
+  headers?: AxiosRequestHeaders,
+) => {
+  const resp = await axios.get(`${getAPIURL()}/specs/zip`, { headers })
   return resp.data
 }
