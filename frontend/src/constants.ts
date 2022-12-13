@@ -1,4 +1,4 @@
-import { RiskScore, DataClass, DataTag, Status } from "@common/enums"
+import { RiskScore, DataClass, DataTag, Status, SpecExtension } from "@common/enums"
 
 export const PIE_BACKGROUND_COLORS = [
   "rgba(255, 99, 132, 0.8)",
@@ -53,6 +53,11 @@ export const RISK_SCORE_ORDER: Record<RiskScore, number> = {
   [RiskScore.MEDIUM]: 2,
   [RiskScore.LOW]: 1,
   [RiskScore.NONE]: 0,
+}
+
+export const EXTENSION_TO_TYPE: Record<SpecExtension, string> = {
+  [SpecExtension.YAML]: "application/yaml;charset=utf-8",
+  [SpecExtension.JSON]: "application/json;charset=utf-8",
 }
 
 export const statusToColor = (statusCode: number) => {

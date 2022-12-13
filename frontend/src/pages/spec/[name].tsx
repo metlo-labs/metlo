@@ -14,7 +14,7 @@ const Spec = ({ spec }) => {
   }
   return (
     <PageWrapper>
-      <ContentContainer maxContentW="5xl" height="full">
+      <ContentContainer maxContentW="6xl" height="full" px="8" py="8">
         <SpecPage spec={parsedSpec} />
       </ContentContainer>
     </PageWrapper>
