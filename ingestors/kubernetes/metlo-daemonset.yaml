@@ -18,8 +18,8 @@ spec:
         - key: node-role.kubernetes.io/master
           effect: NoSchedule
       containers:
-        - name: suricata-daemon
-          image: metlo/suricata-daemon
+        - name: metlo-agent
+          image: metlo/agent
           resources:
             requests:
               ephemeral-storage: "32Mi"
@@ -31,7 +31,7 @@ spec:
             - mountPath: /tmp
               name: socket-volume
           env:
-            - name: METLO_ADDR
+            - name: METLO_HOST
               value: http://<METLO_HOST_URL>:8081
             - name: METLO_KEY
               value: <YOUR_METLO_API_KEY>

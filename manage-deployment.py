@@ -15,7 +15,7 @@ ENV_PATH = os.path.join(METLO_DIR, ".env")
 LICENSE_PATH = os.path.join(METLO_DIR, "LICENSE_KEY")
 FILES_TO_PULL = ["docker-compose.yaml", "init.sql", "metlo-config.yaml"]
 UPDATE_FILES_TO_PULL = ["docker-compose.yaml", "init.sql"]
-IMAGES = ["backend", "frontend", "jobrunner", "suricata-daemon"]
+IMAGES = ["backend", "frontend", "jobrunner"]
 
 
 def get_file(file_name):

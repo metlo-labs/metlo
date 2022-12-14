@@ -12,7 +12,7 @@ spec:
     - "-text=Hello World! This is a Metlo Kubernetes with kind App"
   # Metlo Sidecar
   - name: metlo-sidecar
-    image: metlo/suricata-daemon
+    image: metlo/agent
     resources:
       requests:
         ephemeral-storage: "32Mi"
@@ -24,7 +24,7 @@ spec:
       - mountPath: /tmp
         name: socket-volume
     env:
-      - name: METLO_ADDR
+      - name: METLO_HOST
         value: http://<METLO_HOST_URL>:8081
       - name: METLO_KEY
         value: <YOUR_METLO_API_KEY>

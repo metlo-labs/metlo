@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/metloapi"
@@ -117,6 +119,19 @@ func main() {
 			if envInterface != "" {
 				args.captureInterface = envInterface
 			} else {
+				ifaces, err := net.Interfaces()
+				if err != nil {
+					log.Println(err)
+				}
+				for _, i := range ifaces {
+					if strings.HasPrefix(i.Name, "eth") || strings.HasPrefix(i.Name, "ens") {
+						log.Printf("Found match on interface %s which matches expected pattern. Binding to it", i.Name)
+						args.captureInterface = i.Name
+						break
+					}
+				}
+			}
+			if args.captureInterface == "" {
 				log.Fatalln("Packet capture in live mode must provide an interface")
 			}
 		}
