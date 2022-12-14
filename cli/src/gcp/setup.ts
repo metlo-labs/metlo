@@ -340,7 +340,7 @@ const create_mig = async (
         startupScript: `#!/bin/bash -e
         sudo mkdir -p /opt/metlo
         sudo touch /opt/metlo/credentials
-        export user_exists=$(getent passwd suricata)
+        export user_exists=$(getent passwd metlo)
         [ ! -z $user_exists ] || echo "METLO_HOST=${machineInfoResp['_url']}" >> /opt/metlo/credentials
         [ ! -z $user_exists ] || echo "METLO_KEY=${machineInfoResp['_apiKey']}" >>  /opt/metlo/credentials
         [ ! -z $user_exists ] || echo "VXLAN_ENABLED=false" | sudo tee -a /opt/metlo/credentials
