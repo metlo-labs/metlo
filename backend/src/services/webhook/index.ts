@@ -155,12 +155,12 @@ export const updateWebhook = async (
   }
   if (!updateWebhookParams.alertTypes) {
     throw new Error400BadRequest(
-      "must provide alert type filters for webhook or an empty list.",
+      "Must provide alert type filters for webhook or an empty list.",
     )
   }
   if (!updateWebhookParams.hosts) {
     throw new Error400BadRequest(
-      "must provide host filters for webhook or an empty list.",
+      "Must provide host filters for webhook or an empty list.",
     )
   }
   const queryRunner = AppDataSource.createQueryRunner()
