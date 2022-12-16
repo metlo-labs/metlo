@@ -25,6 +25,9 @@ export class Webhook extends MetloBaseEntity {
   @Column({ type: "varchar", array: true, default: [] })
   alertTypes: AlertType[]
 
+  @Column({ type: "varchar", array: true, default: [] })
+  hosts: string[]
+
   @Column({ type: "jsonb", nullable: false, default: [] })
   runs: WebhookRun[]
 }

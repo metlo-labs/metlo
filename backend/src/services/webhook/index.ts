@@ -57,6 +57,13 @@ export const sendWebhookRequests = async (
             )
           }),
         )
+        .andWhere(
+          new Brackets(qb => {
+            qb.where(`:host = ANY("hosts")`, {
+              host: apiEndpoint.host,
+            }).orWhere(`cardinality("hosts") = 0`)
+          }),
+        )
         .getRawMany()
       alert.apiEndpoint = apiEndpoint
       alert.apiEndpoint.dataFields = dataFields
@@ -115,6 +122,9 @@ export const createNewWebhook = async (
     if (createWebhookParams.alertTypes?.length > 0) {
       webhook.alertTypes = createWebhookParams.alertTypes
     }
+    if (createWebhookParams.hosts?.length > 0) {
+      webhook.hosts = createWebhookParams.hosts
+    }
     await insertValueBuilder(ctx, queryRunner, Webhook, webhook).execute()
     return await getQB(ctx, queryRunner)
       .from(Webhook, "webhook")
@@ -123,6 +133,55 @@ export const createNewWebhook = async (
   } catch {
     throw new Error500InternalServer(
       "Encountered error while creating new webhook.",
+    )
+  } finally {
+    await queryRunner.release()
+  }
+}
+
+export const updateWebhook = async (
+  ctx: MetloContext,
+  webhookId: string,
+  updateWebhookParams: CreateWebhookParams,
+) => {
+  if (!webhookId) {
+    throw new Error400BadRequest("Must provide id of webhook to update.")
+  }
+  if (!updateWebhookParams.url) {
+    throw new Error400BadRequest("Must provide url for webhook.")
+  }
+  if (!validUrl(updateWebhookParams.url)) {
+    throw new Error400BadRequest("Please enter a valid url.")
+  }
+  if (!updateWebhookParams.alertTypes) {
+    throw new Error400BadRequest(
+      "Must provide alert type filters for webhook or an empty list.",
+    )
+  }
+  if (!updateWebhookParams.hosts) {
+    throw new Error400BadRequest(
+      "Must provide host filters for webhook or an empty list.",
+    )
+  }
+  const queryRunner = AppDataSource.createQueryRunner()
+  try {
+    await queryRunner.connect()
+    await getQB(ctx, queryRunner)
+      .update(Webhook)
+      .set({
+        url: updateWebhookParams.url,
+        alertTypes: updateWebhookParams.alertTypes,
+        hosts: updateWebhookParams.hosts,
+      })
+      .andWhere("uuid = :id", { id: webhookId })
+      .execute()
+    return await getQB(ctx, queryRunner)
+      .from(Webhook, "webhook")
+      .orderBy(`"createdAt"`, "DESC")
+      .getRawMany()
+  } catch {
+    throw new Error500InternalServer(
+      "Encountered error while updating webhook.",
     )
   } finally {
     await queryRunner.release()

@@ -30,10 +30,14 @@ import Editor from "@monaco-editor/react"
 import { SectionHeader } from "components/utils/Card"
 import { getWebhooks } from "api/webhook"
 import { Integrations } from "components/Integrations"
+import { getHosts } from "api/endpoints"
 
 export const getServerSideProps: GetServerSideProps = async context => {
-  const apiKeys = await getKeys()
-  const webhooks = await getWebhooks()
+  const [apiKeys, webhooks, hosts] = await Promise.all([
+    getKeys(),
+    getWebhooks(),
+    getHosts(),
+  ])
   let metloConfig = ""
   try {
     metloConfig = (await getMetloConfig()).configString
@@ -44,11 +48,12 @@ export const getServerSideProps: GetServerSideProps = async context => {
       keys: superjson.stringify(apiKeys),
       metloConfig,
       webhooks: superjson.stringify(webhooks),
+      hosts,
     },
   }
 }
 
-const Settings = ({ keys: _keysString, metloConfig, webhooks }) => {
+const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
   const [keys, setKeys] = useState<Array<ApiKey>>(superjson.parse(_keysString))
   const [parsedWebhooks, setParsedWebhooks] = useState<WebhookResp[]>(
     superjson.parse(webhooks),
@@ -220,6 +225,7 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks }) => {
                 <Integrations
                   webhooks={parsedWebhooks}
                   setWebhooks={setParsedWebhooks}
+                  hostList={hosts}
                 />
               </TabPanel>
             </TabPanels>

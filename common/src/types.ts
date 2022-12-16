@@ -558,12 +558,14 @@ export interface WebhookResp {
   url: string
   maxRetries: number
   alertTypes: AlertType[]
+  hosts: string[]
   runs: WebhookRun[]
 }
 
 export interface CreateWebhookParams {
   url: string
   alertTypes: AlertType[]
+  hosts: string[]
 }
 
 export interface HostGraph {
