@@ -35,6 +35,7 @@ import { getDateTimeRelative, makeToast } from "utils"
 import EmptyView from "components/utils/EmptyView"
 import { createWebhook, deleteWebhook, updateWebhook } from "api/webhook"
 import { AlertType } from "@common/enums"
+import { DataHeading } from "components/utils/Card"
 
 interface WebhookProps {
   webhooks: WebhookResp[]
@@ -200,77 +201,83 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
         {webhooks.length > 0 ? (
           webhooks.map(e => (
             <VStack
-              spacing={4}
+              spacing={3}
               key={e.uuid}
               rounded="md"
               p="20px"
               borderWidth="1px"
               w="full"
               alignItems="flex-start"
+              position="relative"
+              minH="150px"
             >
-              <HStack w="full" justifyContent="space-between">
-                <Text
-                  wordBreak="break-all"
-                  fontFamily="mono"
-                  fontWeight="bold"
-                  fontSize="md"
+              <Text
+                wordBreak="break-all"
+                fontFamily="mono"
+                fontWeight="bold"
+                fontSize="md"
+                maxW="calc(100% - 155px)"
+              >
+                {e.url}
+              </Text>
+              <HStack position="absolute" top="0" right="20px" spacing={2}>
+                <Button
+                  size="md"
+                  borderWidth="1px"
+                  onClick={() => openModal(e)}
                 >
-                  {e.url}
-                </Text>
-                <HStack spacing={2}>
-                  <Button borderWidth="1px" onClick={() => openModal(e)}>
-                    Edit
-                  </Button>
-                  <Button
-                    colorScheme="red"
-                    isLoading={deletingWebhook}
-                    onClick={() => openDialog(e.uuid)}
-                  >
-                    Delete
-                  </Button>
-                </HStack>
+                  Edit
+                </Button>
+                <Button
+                  size="md"
+                  colorScheme="red"
+                  isLoading={deletingWebhook}
+                  onClick={() => openDialog(e.uuid)}
+                >
+                  Delete
+                </Button>
               </HStack>
-              {e?.hosts?.length > 0 ? (
-                <HStack w="full" spacing={4}>
-                  <Text w="100px" alignSelf="flex-start" fontWeight="bold">
-                    Hosts
-                  </Text>
-                  <Wrap w="calc(100% - 100px)" spacing={2}>
-                    {e.hosts.map(host => (
-                      <Badge
-                        borderWidth="1px"
-                        key={host}
-                        textTransform="none"
-                        rounded="sm"
-                        colorScheme="gray"
-                      >
-                        {host}
-                      </Badge>
-                    ))}
-                  </Wrap>
-                </HStack>
-              ) : null}
-              {e?.alertTypes?.length > 0 ? (
-                <HStack w="full" spacing={4}>
-                  <Text w="100px" alignSelf="flex-start" fontWeight="bold">
-                    Alert Types
-                  </Text>
-                  <Wrap w="calc(100% - 100px)" spacing={2}>
-                    {e.alertTypes.map(type => (
-                      <Badge
-                        borderWidth="1px"
-                        key={type}
-                        textTransform="none"
-                        rounded="sm"
-                        colorScheme="gray"
-                      >
-                        {type}
-                      </Badge>
-                    ))}
-                  </Wrap>
-                </HStack>
-              ) : null}
-              <Text>Added {getDateTimeRelative(e.createdAt)}</Text>
+              <VStack spacing={3} w="full" pb={8}>
+                {e?.hosts?.length > 0 ? (
+                  <VStack w="full" alignItems="flex-start" spacing={1}>
+                    <DataHeading>Hosts</DataHeading>
+                    <Wrap spacing={2}>
+                      {e.hosts.map(host => (
+                        <Badge
+                          borderWidth="1px"
+                          key={host}
+                          textTransform="none"
+                          rounded="sm"
+                          colorScheme="gray"
+                        >
+                          {host}
+                        </Badge>
+                      ))}
+                    </Wrap>
+                  </VStack>
+                ) : null}
+                {e?.alertTypes?.length > 0 ? (
+                  <VStack alignItems="flex-start" w="full" spacing={1}>
+                    <DataHeading>Alert Types</DataHeading>
+                    <Wrap spacing={2}>
+                      {e.alertTypes.map(type => (
+                        <Badge
+                          borderWidth="1px"
+                          key={type}
+                          textTransform="none"
+                          rounded="sm"
+                          colorScheme="gray"
+                        >
+                          {type}
+                        </Badge>
+                      ))}
+                    </Wrap>
+                  </VStack>
+                ) : null}
+              </VStack>
+              <Text position="absolute" bottom="20px" right="20px">
+                Added {getDateTimeRelative(e.createdAt)}
+              </Text>
             </VStack>
           ))
         ) : (
