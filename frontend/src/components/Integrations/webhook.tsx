@@ -6,6 +6,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogOverlay,
+  Badge,
   Box,
   Button,
   Divider,
@@ -25,6 +26,7 @@ import {
   useDisclosure,
   useToast,
   VStack,
+  Wrap,
 } from "@chakra-ui/react"
 import { Select } from "chakra-react-select"
 import { HiPlus } from "icons/hi/HiPlus"
@@ -228,6 +230,46 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
                   </Button>
                 </HStack>
               </HStack>
+              {e?.hosts?.length > 0 ? (
+                <HStack w="full" spacing={4}>
+                  <Text w="100px" alignSelf="flex-start" fontWeight="bold">
+                    Hosts
+                  </Text>
+                  <Wrap w="calc(100% - 100px)" spacing={2}>
+                    {e.hosts.map(host => (
+                      <Badge
+                        borderWidth="1px"
+                        key={host}
+                        textTransform="none"
+                        rounded="sm"
+                        colorScheme="gray"
+                      >
+                        {host}
+                      </Badge>
+                    ))}
+                  </Wrap>
+                </HStack>
+              ) : null}
+              {e?.alertTypes?.length > 0 ? (
+                <HStack w="full" spacing={4}>
+                  <Text w="100px" alignSelf="flex-start" fontWeight="bold">
+                    Alert Types
+                  </Text>
+                  <Wrap w="calc(100% - 100px)" spacing={2}>
+                    {e.alertTypes.map(type => (
+                      <Badge
+                        borderWidth="1px"
+                        key={type}
+                        textTransform="none"
+                        rounded="sm"
+                        colorScheme="gray"
+                      >
+                        {type}
+                      </Badge>
+                    ))}
+                  </Wrap>
+                </HStack>
+              ) : null}
               <Text>Added {getDateTimeRelative(e.createdAt)}</Text>
             </VStack>
           ))
