@@ -46,7 +46,12 @@ export class BlockFieldsService {
         .getMany()
 
       cachedBlockFields = blockFieldEntries
-      RedisClient.addToRedis(ctx, redisKey, JSON.stringify(blockFieldEntries))
+      RedisClient.addToRedis(
+        ctx,
+        redisKey,
+        JSON.stringify(blockFieldEntries),
+        600,
+      )
       RedisClient.addValueToSet(ctx, BLOCK_FIELDS_LIST_KEY, [
         `block_fields_${apiTrace.host}`,
       ])
