@@ -23,6 +23,19 @@ export const createWebhook = async (
   return resp.data
 }
 
+export const updateWebhook = async (
+  updateWebhookParams: CreateWebhookParams,
+  webhookId: string,
+  headers?: AxiosRequestHeaders,
+): Promise<WebhookResp[]> => {
+  const resp = await axios.put<WebhookResp[]>(
+    `${getAPIURL()}/webhook/${webhookId}`,
+    updateWebhookParams,
+    { headers },
+  )
+  return resp.data
+}
+
 export const deleteWebhook = async (
   webhookId: string,
   headers?: AxiosRequestHeaders,

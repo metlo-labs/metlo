@@ -6,6 +6,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogOverlay,
+  Box,
   Button,
   Divider,
   FormControl,
@@ -25,22 +26,47 @@ import {
   useToast,
   VStack,
 } from "@chakra-ui/react"
+import { Select } from "chakra-react-select"
 import { HiPlus } from "icons/hi/HiPlus"
 import { WebhookResp } from "@common/types"
 import { getDateTimeRelative, makeToast } from "utils"
 import EmptyView from "components/utils/EmptyView"
-import { createWebhook, deleteWebhook } from "api/webhook"
+import { createWebhook, deleteWebhook, updateWebhook } from "api/webhook"
+import { AlertType } from "@common/enums"
 
 interface WebhookProps {
   webhooks: WebhookResp[]
   setWebhooks: React.Dispatch<React.SetStateAction<WebhookResp[]>>
+  hostList: string[]
+}
+
+interface CreateState {
+  url: string
+  alertTypes: AlertType[]
+  hosts: string[]
+}
+
+interface UpdateState {
+  uuid: string
+  url: string
+  alertTypes: AlertType[]
+  hosts: string[]
+}
+
+const initialCreateState: CreateState = {
+  url: "",
+  alertTypes: [],
+  hosts: [],
 }
 
 export const Webhook: React.FC<WebhookProps> = React.memo(
-  ({ webhooks, setWebhooks }) => {
+  ({ webhooks, setWebhooks, hostList }) => {
     const [creatingWebhook, setCreatingWebhook] = useState(false)
     const [deletingWebhook, setDeletingWebhook] = useState(false)
-    const [url, setUrl] = useState("")
+    const [updatingWebhook, setUpdatingWebhook] = useState(false)
+    const [createState, setCreateState] =
+      useState<CreateState>(initialCreateState)
+    const [editState, setEditState] = useState<UpdateState>(null)
     const toast = useToast()
     const { isOpen, onOpen, onClose } = useDisclosure()
     const {
@@ -54,7 +80,7 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
     const createNewWebhookHandler = async () => {
       setCreatingWebhook(true)
       try {
-        const resp = await createWebhook({ url, alertTypes: [] })
+        const resp = await createWebhook(createState)
         setWebhooks(resp)
         closeModal()
       } catch (err) {
@@ -67,6 +93,26 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
         )
       } finally {
         setCreatingWebhook(false)
+      }
+    }
+
+    const updateWebhookHandler = async () => {
+      setUpdatingWebhook(true)
+      try {
+        const { uuid } = editState
+        const resp = await updateWebhook(editState, uuid)
+        setWebhooks(resp)
+        closeModal()
+      } catch (err) {
+        toast(
+          makeToast({
+            title: "Updating Webhook failed",
+            status: "error",
+            description: err?.response?.data,
+          }),
+        )
+      } finally {
+        setUpdatingWebhook(false)
       }
     }
 
@@ -92,8 +138,21 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
       }
     }
 
+    const openModal = (webhook?: WebhookResp) => {
+      if (webhook) {
+        setEditState({
+          uuid: webhook.uuid,
+          url: webhook.url,
+          alertTypes: webhook.alertTypes,
+          hosts: webhook.hosts,
+        })
+      }
+      onOpen()
+    }
+
     const closeModal = () => {
-      setUrl("")
+      setCreateState(initialCreateState)
+      setEditState(null)
       onClose()
     }
 
@@ -122,7 +181,11 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
             <Heading fontWeight="bold" fontSize={26}>
               Webhooks
             </Heading>
-            <Button leftIcon={<HiPlus />} colorScheme="blue" onClick={onOpen}>
+            <Button
+              leftIcon={<HiPlus />}
+              colorScheme="blue"
+              onClick={() => openModal()}
+            >
               Add Webhook
             </Button>
           </HStack>
@@ -144,16 +207,26 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
               alignItems="flex-start"
             >
               <HStack w="full" justifyContent="space-between">
-                <Text fontFamily="mono" fontWeight="bold" fontSize="md">
+                <Text
+                  wordBreak="break-all"
+                  fontFamily="mono"
+                  fontWeight="bold"
+                  fontSize="md"
+                >
                   {e.url}
                 </Text>
-                <Button
-                  colorScheme="red"
-                  isLoading={deletingWebhook}
-                  onClick={() => openDialog(e.uuid)}
-                >
-                  Delete
-                </Button>
+                <HStack spacing={2}>
+                  <Button borderWidth="1px" onClick={() => openModal(e)}>
+                    Edit
+                  </Button>
+                  <Button
+                    colorScheme="red"
+                    isLoading={deletingWebhook}
+                    onClick={() => openDialog(e.uuid)}
+                  >
+                    Delete
+                  </Button>
+                </HStack>
               </HStack>
               <Text>Added {getDateTimeRelative(e.createdAt)}</Text>
             </VStack>
@@ -164,21 +237,117 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
         <Modal size="2xl" isOpen={isOpen} onClose={closeModal}>
           <ModalOverlay />
           <ModalContent>
-            <ModalHeader>New Webhook</ModalHeader>
+            <ModalHeader>{editState ? "Update" : "New"} Webhook</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
-              <FormControl>
-                <HStack w="full" justifyContent="space-between">
-                  <FormLabel>Url</FormLabel>
-                  <Input
-                    type="text"
-                    spellCheck={false}
-                    w="60%"
-                    onChange={e => setUrl(e.target.value)}
-                    value={url}
-                  />
-                </HStack>
-              </FormControl>
+              <VStack w="full" alignItems="flex-start" spacing={4}>
+                <FormControl>
+                  <HStack w="full" justifyContent="space-between">
+                    <FormLabel>Url</FormLabel>
+                    <Input
+                      type="text"
+                      maxLength={200}
+                      spellCheck={false}
+                      w="60%"
+                      onChange={e =>
+                        editState
+                          ? setEditState({ ...editState, url: e.target.value })
+                          : setCreateState({
+                              ...createState,
+                              url: e.target.value,
+                            })
+                      }
+                      value={editState ? editState.url : createState.url}
+                    />
+                  </HStack>
+                </FormControl>
+                <FormControl>
+                  <HStack
+                    alignItems="flex-start"
+                    w="full"
+                    justifyContent="space-between"
+                  >
+                    <FormLabel>Hosts</FormLabel>
+                    <Box w="60%">
+                      <Select
+                        value={
+                          editState
+                            ? editState.hosts.map(host => ({
+                                label: host,
+                                value: host,
+                              }))
+                            : createState.hosts.map(host => ({
+                                label: host,
+                                value: host,
+                              }))
+                        }
+                        isMulti={true}
+                        size="sm"
+                        options={hostList.map(e => ({
+                          label: e,
+                          value: e,
+                        }))}
+                        placeholder="Host Filters..."
+                        instanceId="host-filter"
+                        onChange={e =>
+                          editState
+                            ? setEditState({
+                                ...editState,
+                                hosts: e.map(host => host.label),
+                              })
+                            : setCreateState({
+                                ...createState,
+                                hosts: e.map(host => host.label),
+                              })
+                        }
+                      />
+                    </Box>
+                  </HStack>
+                </FormControl>
+                <FormControl>
+                  <HStack
+                    alignItems="flex-start"
+                    w="full"
+                    justifyContent="space-between"
+                  >
+                    <FormLabel>Alert Types</FormLabel>
+                    <Box w="60%">
+                      <Select
+                        value={
+                          editState
+                            ? editState.alertTypes.map(type => ({
+                                label: type,
+                                value: type,
+                              }))
+                            : createState.alertTypes.map(type => ({
+                                label: type,
+                                value: type,
+                              }))
+                        }
+                        isMulti={true}
+                        size="sm"
+                        options={Object.keys(AlertType).map(e => ({
+                          label: AlertType[e],
+                          value: AlertType[e],
+                        }))}
+                        placeholder="Alert Type Filters..."
+                        instanceId="alert-type-filter"
+                        onChange={e =>
+                          editState
+                            ? setEditState({
+                                ...editState,
+                                alertTypes: e.map(type => type.label),
+                              })
+                            : setCreateState({
+                                ...createState,
+                                alertTypes: e.map(type => type.label),
+                              })
+                        }
+                      />
+                    </Box>
+                  </HStack>
+                </FormControl>
+              </VStack>
             </ModalBody>
             <ModalFooter>
               <Button mr={3} onClick={closeModal}>
@@ -186,10 +355,12 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
               </Button>
               <Button
                 colorScheme="blue"
-                onClick={createNewWebhookHandler}
-                isLoading={creatingWebhook}
+                onClick={
+                  editState ? updateWebhookHandler : createNewWebhookHandler
+                }
+                isLoading={editState ? updatingWebhook : creatingWebhook}
               >
-                Create
+                {editState ? "Update" : "Create"}
               </Button>
             </ModalFooter>
           </ModalContent>

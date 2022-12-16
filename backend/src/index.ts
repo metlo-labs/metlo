@@ -52,6 +52,7 @@ import {
   createWebhookHandler,
   deleteWebhookHandler,
   getWebhooksHandler,
+  updateWebhookHandler,
 } from "api/webhook"
 
 const port = process.env.PORT || 8080
@@ -140,6 +141,7 @@ apiRouter.get("/api/v1/metlo-config", getMetloConfigHandler)
 apiRouter.get("/api/v1/webhooks", getWebhooksHandler)
 apiRouter.post("/api/v1/webhook", createWebhookHandler)
 apiRouter.delete("/api/v1/webhook/:webhookId", deleteWebhookHandler)
+apiRouter.put("/api/v1/webhook/:webhookId", updateWebhookHandler)
 
 app.use(apiRouter)
 

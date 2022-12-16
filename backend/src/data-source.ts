@@ -30,6 +30,7 @@ import { updateDisabledPathsColumnBlockFieldsTable1667606447208 } from "migratio
 import { removeApiKeyTypeEnum1669778297643 } from "migrations/1669778297643-remove-apiKeyType-enum"
 import { addWebhookTable1670447292139 } from "migrations/1670447292139-add-webhook-table"
 import { addEndpointIps1670653006577 } from "migrations/1670653006577-add_endpoint_ips"
+import { addHostsColumnToWebhook1671143857165 } from "migrations/1671143857165-add-hosts-column-to-webhook"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -64,7 +65,8 @@ export const AppDataSource: DataSource = new DataSource({
     updateDisabledPathsColumnBlockFieldsTable1667606447208,
     removeApiKeyTypeEnum1669778297643,
     addWebhookTable1670447292139,
-    addEndpointIps1670653006577
+    addEndpointIps1670653006577,
+    addHostsColumnToWebhook1671143857165,
   ],
   migrationsRun: runMigration,
   logging: false,
