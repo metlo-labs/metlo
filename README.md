@@ -13,7 +13,7 @@
 [![Prs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields)](http://makeapullrequest.com)
 [![Join Discord Server](https://img.shields.io/badge/discord%20community-join-blue)](https://discord.gg/4xhumff9BX)
 ![Github Commit Activity](https://img.shields.io/github/commit-activity/m/metlo-labs/metlo)
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/metlo-labs/metlo/build)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/metlo-labs/metlo/build.yml?branch=develop)
 [![License](https://img.shields.io/badge/license-MIT-brightgreen)](/LICENSE)
 
 </div>
