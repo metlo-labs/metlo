@@ -1,0 +1,57 @@
+// Generated from originalTraces.proto
+
+namespace ;
+
+table Empty {
+}
+
+table BasicResponse {
+  status:string;
+}
+
+table Trace {
+  request:Trace_.Request;
+  response:Trace_.Response;
+  meta:Trace_.Meta;
+}
+
+table BulkTrace {
+  items:[Trace];
+}
+
+namespace Trace_;
+
+table Url {
+  host:string;
+  path:string;
+  parameters:[Trace_.NVPair];
+}
+
+table NVPair {
+  name:string;
+  value:string;
+}
+
+table Request {
+  url:Trace_.Url;
+  headers:[Trace_.NVPair];
+  method:string;
+  body:string;
+}
+
+table Response {
+  status:uint;
+  headers:[Trace_.NVPair];
+  body:string;
+}
+
+table Meta {
+  environment:string;
+  incoming:bool;
+  source:string;
+  sourcePort:string;
+  destination:string;
+  destinationPort:string;
+  metloSource:string;
+}
+

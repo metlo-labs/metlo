@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+// import "google/protobuf/any.proto";
+
+service EventService {
+    rpc LogSingleTrace (Trace) returns (BasicResponse) {}
+    rpc LogBulkTrace (BulkTrace) returns (BasicResponse) {}
+    rpc Ping (Empty) returns (BasicResponse) {}
+}
+
+message Empty {}
+
+message BasicResponse {
+    string status = 1;
+}
+
+message Trace {
+
+    message Url {
+        string host = 1;
+        string path = 2;
+        repeated NVPair parameters = 3;
+    }
+
+    message NVPair {
+        string name = 1;
+        string value = 2;
+    }
+
+    message Request {
+        Url url = 1;
+        repeated NVPair headers = 2;
+        string method = 3;
+        string body = 4;
+    }
+
+    message Response {
+        uint32 status = 1;
+        repeated NVPair headers = 2;
+        string body = 3;
+    }
+
+    message Meta {
+        string environment = 1;
+        bool incoming = 2;
+        string source = 3;
+        string sourcePort = 4;            
+        string destination = 5;        
+        string destinationPort = 6;            
+        string metloSource = 7;
+    }
+
+    Request request = 1;
+    Response response = 2;
+    Meta meta = 3;
+}
+
+message BulkTrace {
+    repeated Trace items = 1;
+}

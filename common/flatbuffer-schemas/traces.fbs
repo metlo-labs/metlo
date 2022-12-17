@@ -1,0 +1,126 @@
+// Generated from traces.proto
+
+namespace Trace_;
+
+enum RuleAction : int {
+  LOG = 0,
+  BLOCK = 1,
+}
+
+namespace ;
+
+table Empty {
+}
+
+table BasicResponse {
+  status:string;
+}
+
+table Trace {
+  requestTime:uint;
+  responseTime:uint;
+  request:Trace_.Request;
+  response:Trace_.Response;
+  dbQueries:[Trace_.DBQuery];
+  fileAccess:[Trace_.FileAccess];
+  detectedAttacks:[Trace_.Attack];
+  matchesRules:[Trace_.MatchedRule];
+  blocked:bool;
+  meta:Trace_.Meta;
+}
+
+namespace Trace_;
+
+table Url {
+  host:string;
+  path:string;
+  parameters:[Trace_.NVPair];
+}
+
+table NVPair {
+  name:string;
+  value:string;
+}
+
+table Request {
+  url:Trace_.Url;
+  routerPath:string;
+  headers:[Trace_.NVPair];
+  method:string;
+  body:string;
+}
+
+table Response {
+  status:uint;
+  headers:[Trace_.NVPair];
+  body:string;
+}
+
+table DBQuery {
+  dbHost:string;
+  query:string;
+  tablesAccessed:[string];
+  columnsAccessed:Trace_.DBQuery_.Columnsaccessed;
+  time:uint;
+  queryTime:uint;
+  resRows:uint;
+}
+
+namespace Trace_.DBQuery_;
+
+table Columnsaccessed {
+  tablename:[string];
+}
+
+namespace Trace_;
+
+table Attack {
+  blocked:bool;
+  type:string;
+  meta:[Trace_.Attack_.MetaEntry];
+}
+
+namespace Trace_.Attack_;
+
+table MetaEntry {
+  key:string (key);
+  value:string;
+}
+
+namespace Trace_;
+
+table FileAccess {
+  filePath:string;
+  time:uint;
+}
+
+table AuthEvent {
+  time:uint;
+  type:string;
+  loginType:string;
+  success:bool;
+  userId:string;
+}
+
+table Meta {
+  environment:string;
+  incoming:bool;
+  source:string;
+  sourcePort:string;
+  destination:string;
+  destinationPort:string;
+  metloSource:string;
+  user:string;
+}
+
+table MatchedRule {
+  rule:string;
+  action:Trace_.RuleAction;
+}
+
+namespace ;
+
+table BulkTrace {
+  items:[Trace];
+}
+

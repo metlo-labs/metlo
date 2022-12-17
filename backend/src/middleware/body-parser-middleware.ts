@@ -128,6 +128,7 @@ export const bodyParserMiddleware = async (
 
     next()
   } catch (err) {
+    console.log(err)
     await ApiResponseHandler.error(res, new Error500InternalServer(err))
   }
 }

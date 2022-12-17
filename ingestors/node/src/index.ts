@@ -3,7 +3,8 @@ import SetupMiddleware from "./middleware"
 import WorkerPool from "./pool"
 
 const pool = new WorkerPool(os.cpus().length, "./workerTarget.js")
-const endpoint = "api/v1/log-request/single"
+// const endpoint = "api/v1/log-request/single"
+const endpoint = "api/v1/flatbuffers/test"
 
 function exit() {
   pool.close()

@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
+    "postbuild": "mkdir -p dist/ && cp -R proto dist",
     "watch": "tsc -w",
     "format": "prettier --write './src/**/*.{ts,tsx}'"
   },

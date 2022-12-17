@@ -1038,6 +1038,11 @@ finalhandler@1.2.0:
     statuses "2.0.1"
     unpipe "~1.0.0"
 
+flatbuffers@^22.12.6:
+  version "22.12.6"
+  resolved "https://registry.yarnpkg.com/flatbuffers/-/flatbuffers-22.12.6.tgz#1a462160f325a0575067b364af7c7cab090a85b1"
+  integrity sha512-CEwO0TRo6Z2dQ9iIfVAUC+BipwUnP2g8paCNqnrSsTh/axisRgzOwWyqTiPJMh8Si9QwhROjZ/FsFMfoESP33A==
+
 follow-redirects@^1.14.9:
   version "1.15.1"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.1.tgz#0ca6a452306c9b276e4d3127483e29575e207ad5"

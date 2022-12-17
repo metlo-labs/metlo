@@ -28,9 +28,20 @@
     "resolveJsonModule": true,
     "importHelpers": false,
     "baseUrl": "./src",
+    "paths": {
+      "@common/*": [
+        "../../../common/dist/*"
+      ],
+    }
   },
   "include": [
-    "src/**/*.ts", "src/modules/index.js", "src/modules/koa.js", "src/modules/express.js", "src/pool/workerTarget.js", "src/pool/index.js", "src/index.js",
+    "src/**/*.ts",
+    "src/modules/index.js",
+    "src/modules/koa.js",
+    "src/modules/express.js",
+    "src/pool/workerTarget.js",
+    "src/pool/index.js",
+    "src/index.js",
   ],
   "exclude": [
     "node_modules",
