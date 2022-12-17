@@ -26,3 +26,4 @@ ingestors/java/spring/target/
 
 .meta/*
 ingestors/govxlan/govxlan
+ingestors/govxlan/metlo-pcap

@@ -18,15 +18,17 @@ type HttpReqStream struct {
 	net, transport gopacket.Flow
 	r              tcputils.ReaderStream
 	assembler      *assemblers.HttpAssembler
+	totalReqCount  uint
 }
 
 func (h *HttpReqStreamFactory) New(vid uint32, net gopacket.Flow, transport gopacket.Flow) assemblers.Stream {
 	hstream := &HttpReqStream{
-		vid:       vid,
-		net:       net,
-		transport: transport,
-		r:         tcputils.NewReaderStream(),
-		assembler: h.Assembler,
+		vid:           vid,
+		net:           net,
+		transport:     transport,
+		r:             tcputils.NewReaderStream(),
+		assembler:     h.Assembler,
+		totalReqCount: 0,
 	}
 	go hstream.run() // Important... we must guarantee that data from the reader stream is read.
 
@@ -43,7 +45,8 @@ func (h *HttpReqStream) run() {
 		} else if err != nil {
 			// log.Println("Error reading stream", h.net, h.transport, ":", err)
 		} else {
-			h.assembler.AddRequest(req, h.vid, h.net, h.transport)
+			h.assembler.AddRequest(req, h.totalReqCount, h.vid, h.net, h.transport)
+			h.totalReqCount += 1
 		}
 	}
 }
