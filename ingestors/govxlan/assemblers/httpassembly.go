@@ -1,6 +1,7 @@
 package assemblers
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"sync"
@@ -37,13 +38,18 @@ func NewHttpAssembler(metloAPI *metloapi.Metlo) *HttpAssembler {
 	}
 }
 
-func (h *HttpAssembler) AddResponse(resp *http.Response, vid uint32, netFlow gopacket.Flow, transferFlow gopacket.Flow) {
+func makeReqMapKey(vid uint32, netFlow gopacket.Flow, transferFlow gopacket.Flow, cnt uint) string {
+	k := key{vid, netFlow, transferFlow}
+	return fmt.Sprintf("%s:%d", k.String(), cnt)
+}
+
+func (h *HttpAssembler) AddResponse(resp *http.Response, respCount uint, vid uint32, netFlow gopacket.Flow, transferFlow gopacket.Flow) {
 	defer resp.Body.Close()
 	h.totalResponseCount += 1
 	respBody, _ := io.ReadAll(resp.Body)
 	respBodyLen := len(respBody)
 	if respBodyLen > utils.MAX_BODY_SIZE {
-		key := key{vid, netFlow, transferFlow}
+		key := makeReqMapKey(vid, netFlow, transferFlow, respCount)
 		utils.Log.WithFields(logrus.Fields{
 			"key":     key,
 			"size":    respBodyLen,
@@ -51,11 +57,11 @@ func (h *HttpAssembler) AddResponse(resp *http.Response, vid uint32, netFlow gop
 		}).Debug("Skipped Large Response.")
 		return
 	}
-	reverseKey := key{vid, netFlow.Reverse(), transferFlow.Reverse()}
+	reverseKey := makeReqMapKey(vid, netFlow.Reverse(), transferFlow.Reverse(), respCount)
 	h.mu.Lock()
-	matchedReq, found := h.requestMap[reverseKey.String()]
+	matchedReq, found := h.requestMap[reverseKey]
 	if found {
-		delete(h.requestMap, reverseKey.String())
+		delete(h.requestMap, reverseKey)
 	}
 	h.mu.Unlock()
 	if found {
@@ -76,11 +82,11 @@ func (h *HttpAssembler) AddResponse(resp *http.Response, vid uint32, netFlow gop
 	}
 }
 
-func (h *HttpAssembler) AddRequest(req *http.Request, vid uint32, netFlow gopacket.Flow, transferFlow gopacket.Flow) {
+func (h *HttpAssembler) AddRequest(req *http.Request, reqCount uint, vid uint32, netFlow gopacket.Flow, transferFlow gopacket.Flow) {
 	defer req.Body.Close()
 	reqBody, _ := io.ReadAll(req.Body)
 	h.totalRequestCount += 1
-	key := key{vid, netFlow, transferFlow}
+	key := makeReqMapKey(vid, netFlow, transferFlow, reqCount)
 	reqBodyLen := len(reqBody)
 	if reqBodyLen > utils.MAX_BODY_SIZE {
 		utils.Log.WithFields(logrus.Fields{
@@ -93,7 +99,7 @@ func (h *HttpAssembler) AddRequest(req *http.Request, vid uint32, netFlow gopack
 	}
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	h.requestMap[key.String()] = pendingRequest{
+	h.requestMap[key] = pendingRequest{
 		req:     req,
 		body:    string(reqBody),
 		created: time.Now(),
