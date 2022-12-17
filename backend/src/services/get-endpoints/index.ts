@@ -19,7 +19,6 @@ import {
   HostResponse,
 } from "@common/types"
 import Error500InternalServer from "errors/error-500-internal-server"
-import { Test } from "@metlo/testing"
 import Error404NotFound from "errors/error-404-not-found"
 import { getRiskScore } from "utils"
 import { getEndpointsCountQuery, getEndpointsQuery } from "./queries"
@@ -333,7 +332,7 @@ export class GetEndpointsService {
         dataFields,
         openapiSpec,
         traces: [...traces],
-        tests: tests as Array<Test>,
+        tests: tests as Array<any>,
       }
     } catch (err) {
       console.error(`Error in Get Endpoints service: ${err}`)

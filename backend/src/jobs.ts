@@ -7,7 +7,6 @@ import {
   clearApiTraces,
   generateOpenApiSpec,
 } from "services/jobs"
-import runAllTests from "services/testing/runAllTests"
 import { logAggregatedStats } from "services/logging"
 import { DateTime } from "luxon"
 import { MetloContext } from "types"
@@ -29,7 +28,6 @@ const main = async () => {
 
   const generateSpecSem = semaphore(1)
   const unsecuredAlertsSem = semaphore(1)
-  const testsSem = semaphore(1)
   const clearApiTracesSem = semaphore(1)
   const logAggregateStatsSem = semaphore(1)
   const checkForUnauthenticatedSem = semaphore(1)
@@ -59,15 +57,6 @@ const main = async () => {
       await monitorEndpointForHSTS(ctx)
       log("Finished generating alerts for Unsecured Endpoints.")
       unsecuredAlertsSem.leave()
-    })
-  })
-
-  schedule.scheduleJob("30 * * * *", () => {
-    testsSem.take(async () => {
-      log("Running Tests...", true)
-      await runAllTests(ctx)
-      log("Finished running tests.")
-      testsSem.leave()
     })
   })
 

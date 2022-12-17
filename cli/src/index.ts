@@ -6,7 +6,6 @@ import { awsTrafficMirrorList } from "./aws/list"
 import { awsTrafficMirrorRemove } from "./aws/remove"
 import { gcpTrafficMirrorSetup } from "./gcp/setup"
 import init from "./init"
-import testAPI from "./testAPI"
 import { gcpTrafficMirrorList } from "./gcp/list"
 import { gcpTrafficMirrorDelete } from "./gcp/remove"
 import { gcpTrafficMirrorCleanUp } from "./gcp/cleanup"
@@ -19,12 +18,6 @@ program
   .option("-b, --backend_url <string>", "The backend address for Metlo")
   .option("-k, --api_key <string>", "An API key for Metlo")
   .action(init)
-program
-  .command("test")
-  .description("Run Metlo API tests against a specified host.")
-  .requiredOption("-h, --host <string>", "The production host in Metlo.")
-  .option("-t, --target <string>", "The host to run tests against against.")
-  .action(testAPI)
 const trafficMirror = program
   .command("traffic-mirror")
   .description("Set up traffic mirroring for metlo")

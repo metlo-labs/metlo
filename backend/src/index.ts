@@ -28,13 +28,6 @@ import { getEndpointTrackedHandler, getSummaryHandler } from "api/summary"
 import { MetloRequest } from "types"
 import { AppDataSource } from "data-source"
 import { MulterSource } from "multer-source"
-import {
-  deleteTest,
-  getTest,
-  listTests,
-  runTestHandler,
-  saveTest,
-} from "./api/tests"
 import { RedisClient } from "utils/redis"
 import { getSensitiveDataSummaryHandler } from "api/data-field/sensitive-data"
 import { getVulnerabilitySummaryHandler } from "api/alert/vulnerability"
@@ -123,12 +116,6 @@ apiRouter.delete("/api/v1/data-field/:dataFieldId", deleteDataFieldHandler)
 
 apiRouter.get("/api/v1/alerts", getAlertsHandler)
 apiRouter.put("/api/v1/alert/:alertId", updateAlertHandler)
-
-apiRouter.post("/api/v1/test/run", runTestHandler)
-apiRouter.post("/api/v1/test/save", saveTest)
-apiRouter.get("/api/v1/test/list", listTests)
-apiRouter.get("/api/v1/test/list/:uuid", getTest)
-apiRouter.delete("/api/v1/test/:uuid/delete", deleteTest)
 
 apiRouter.get("/api/v1/keys/list", listKeys)
 apiRouter.post("/api/v1/keys/create", createKey)
