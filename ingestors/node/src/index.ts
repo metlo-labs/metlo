@@ -2,6 +2,8 @@ import os from "node:os"
 import SetupMiddleware from "./middleware"
 import WorkerPool from "./pool"
 
+const RPS = 10
+
 const pool = new WorkerPool(os.cpus().length, "./workerTarget.js")
 const endpoint = "api/v1/log-request/single"
 
@@ -12,7 +14,7 @@ function exit() {
 process.on("exit", exit)
 process.on("SIGTERM", exit)
 
-const init = (key: string, host: string) => {
+export const init = (key: string, host: string, rps: number = RPS) => {
   try {
     new URL(host)
   } catch (err) {
@@ -24,7 +26,7 @@ const init = (key: string, host: string) => {
     metlo_host += "/"
   }
   metlo_host += endpoint
-  SetupMiddleware({ host: metlo_host, key, pool })
+  SetupMiddleware({ host: metlo_host, key, pool, rps })
 }
 
 export default init

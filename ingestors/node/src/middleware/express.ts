@@ -1,3 +1,4 @@
+import { Throttler } from "../utils/throttling"
 import { METLO_POOL } from "."
 
 const ritm = require("require-in-the-middle")
@@ -12,11 +13,12 @@ const initialize = () => {
   }
 
   function compileInformation(_req, _res, responseBody) {
+    // const url = _req.baseUrl + (_req.url.length > 0 ? _req.url.at(-1) == "/" ? _req.url.slice(0, -1) : _req.url : _req.url)
     const data = JSON.stringify({
       request: {
         url: {
           host: _req.socket.remoteAddress,
-          path: _req.baseUrl + _req.url,
+          path: _req.baseUrl + _req.url.length,
           parameters: Object.entries(_req.query).map(([k, v]) => ({
             name: k,
             value: v,
@@ -60,10 +62,11 @@ const initialize = () => {
     const original_send = exports.response.send
     const original_json = exports.response.json
     const original_sendFile = exports.response.sendFile
+    const throttler = new Throttler(METLO_POOL.rps)
 
     function modifiedSend() {
       const resp = original_send.apply(this, arguments)
-      compileInformation(this.req, resp, arguments[arguments.length - 1])
+      throttler.allow(() => { compileInformation(this.req, resp, arguments[arguments.length - 1]) },)
       return resp
     }
 
@@ -77,14 +80,14 @@ const initialize = () => {
       } else {
         // JSON wasn't triggered by patched send.
         // Feel free to compile Information here.
-        compileInformation(this.req, resp, arguments[arguments.length - 1])
+        throttler.allow(() => { compileInformation(this.req, resp, arguments[arguments.length - 1]) })
       }
       return resp
     }
 
     function modifiedSendFile() {
       const resp = original_sendFile.apply(this, arguments)
-      compileInformation(this.req, this, arguments[0])
+      throttler.allow(() => { compileInformation(this.req, this, arguments[0]) })
       return resp
     }
 

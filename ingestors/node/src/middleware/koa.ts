@@ -1,3 +1,4 @@
+import { Throttler } from "../utils/throttling"
 import { METLO_POOL } from "."
 
 const ritm = require("require-in-the-middle")
@@ -12,7 +13,6 @@ function initialize() {
   }
 
   async function compileInformation(ctx, next) {
-    await next()
     const data = JSON.stringify({
       request: {
         url: {
@@ -32,7 +32,7 @@ function initialize() {
       },
       response: {
         url: `${ctx.response.socket.localAddress}:${ctx.response.socket.localPort}`,
-        status: ctx.response.statusCode,
+        status: ctx.response.statusCode || 200,
         headers: Object.entries(ctx.response.headers).map(([k, v]) => ({
           name: k,
           value: v,
@@ -66,6 +66,14 @@ function initialize() {
     // If it does, then take it out and move it down to our preffered location
 
     const original_use = exports.prototype.use
+    const throttler = new Throttler(METLO_POOL.rps)
+
+    const informationCompilationFunction = async (ctx: any, next: any) => {
+      await next();
+      throttler.allow(
+        () => { compileInformation(ctx, next) },
+      )
+    }
 
     function modifiedUse() {
       const idx = this.middleware.findIndex(fn => fn["_meta_"] !== undefined)
@@ -75,13 +83,13 @@ function initialize() {
             // Remove function at same index where metlo middleware was found
             .filter((_, _idx) => _idx !== idx)
             // Set Metlo middleware at idx 0
-            .unshift(compileInformation)
+            .unshift(informationCompilationFunction)
         }
       } else {
         if (this.middleware.length === 0) {
-          this.middleware = [compileInformation]
+          this.middleware = [informationCompilationFunction]
         } else {
-          Array.from(this.middleware).unshift([compileInformation])
+          Array.from(this.middleware).unshift([informationCompilationFunction])
         }
       }
       let resp = original_use.apply(this, arguments)

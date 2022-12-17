@@ -9,6 +9,7 @@ export let METLO_POOL: InitMiddlewareParams = {
   key: "",
   host: "",
   pool: null,
+  rps: 0,
 }
 
 import ExpressModule from "./express"
@@ -26,6 +27,7 @@ const InitMiddleware = (params: InitMiddlewareParams) => {
   METLO_POOL.key = params.key
   METLO_POOL.host = params.host
   METLO_POOL.pool = params.pool
+  METLO_POOL.rps = params.rps
   let dependencies = getDependencies()
   Object.entries(nameToModule).forEach(([name, module]) => {
     try {

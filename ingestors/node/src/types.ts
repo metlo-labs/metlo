@@ -1,6 +1,7 @@
 export interface MetloConfig {
   host: string
   key: string
+  rps: number
 }
 
 export interface PostTraceTask {

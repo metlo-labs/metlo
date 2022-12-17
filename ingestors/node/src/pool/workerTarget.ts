@@ -1,7 +1,7 @@
 import { parentPort } from "node:worker_threads"
 import axios from "axios";
 
-parentPort.on('message', ({ data: postData, host, key }) => {
+parentPort.on('message', async ({ data: postData, host, key }) => {
     axios({
         method: 'post',
         url: host,

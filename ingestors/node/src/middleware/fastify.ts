@@ -1,3 +1,4 @@
+import { Throttler } from "../utils/throttling"
 import { METLO_POOL } from "."
 
 const ritm = require("require-in-the-middle")
@@ -58,10 +59,12 @@ const initialize = () => {
 
   ritm(["fastify"], function (exports, name, basedir) {
     const originalFastify = exports
+    const throttler = new Throttler(METLO_POOL.rps)
+
     function modifiedFastify() {
       let fastifyInst = originalFastify.apply(this, arguments)
       fastifyInst.addHook("onSend", async (request, reply, payload) => {
-        compileInformation(request, reply, payload)
+        throttler.allow(() => { compileInformation(request, reply, payload) })
         return payload
       })
       return fastifyInst
