@@ -90,43 +90,6 @@ export enum SpecExtension {
   YAML = "yaml",
 }
 
-export enum AWS_STEPS {
-  // SETUP MIRROR INSTANCE
-  AWS_KEY_SETUP = 1,
-  SOURCE_INSTANCE_ID = 2,
-  SELECT_OS = 3,
-  SELECT_INSTANCE_TYPE = 4,
-  CREATE_INSTANCE = 5,
-  INSTANCE_IP = 6,
-  CREATE_MIRROR_TARGET = 7,
-  CREATE_MIRROR_FILTER = 8,
-  CREATE_MIRROR_SESSION = 9,
-  TEST_SSH = 10,
-  PUSH_FILES = 11,
-  EXEC_COMMAND = 12,
-}
-
-export enum GCP_STEPS {
-  GCP_KEY_SETUP = 1, // Get key, region, network
-  SOURCE_INSTANCE_ID = 2, // Get GCP Source Instance ID/Name. Also get subnet info from that
-  CREATE_DESTINATION_SUBNET = 3, // Reserve an Address, use that to create subnet from that and delete address
-  CREATE_FIREWALL = 4, // Create firewall targeting certain things, say tags, also create rules
-  CREATE_CLOUD_ROUTER = 5, // Includes creation of NAT
-  CREATE_MIG = 6, // Create Image template and MIG in one step
-  CREATE_HEALTH_CHECK = 7,
-  CREATE_BACKEND_SERVICE = 8, // Also add health check to backend service
-  CREATE_ILB = 9,
-  START_PACKET_MIRRORING = 10,
-  TEST_SSH = 11,
-  PUSH_FILES = 12,
-  EXEC_COMMAND = 13,
-}
-
-export enum protocols {
-  TCP = 6,
-  UDP = 17,
-}
-
 export enum DataType {
   INTEGER = "integer",
   NUMBER = "number",
@@ -144,14 +107,6 @@ export enum DataSection {
   REQUEST_BODY = "reqBody",
   RESPONSE_HEADER = "resHeaders",
   RESPONSE_BODY = "resBody",
-}
-
-export enum TestTags {
-  BROKEN_OBJECT_LEVEL_AUTHORIZATION = "Broken Object Level Authorization",
-  BROKEN_USER_AUTHENTICATION = "Broken User Authentication",
-  BROKEN_FUNCTION_LEVEL_AUTHORIZATION = "Broken Function Level Authorization",
-  MASS_ASSIGNMENT = "Mass Assignment",
-  SECURITY_MISCONFIGURATION = "Security Misconfiguration",
 }
 
 export enum Status {

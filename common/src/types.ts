@@ -5,22 +5,16 @@ import {
   DataSection,
   DataTag,
   DataType,
-  protocols,
   RestMethod,
   RiskScore,
   SpecExtension,
   Status,
-  AWS_STEPS,
   UpdateAlertType,
-  GCP_STEPS,
-  AWS_SOURCE_TYPE,
-  GCP_SOURCE_TYPE,
   AuthType,
   AttackType,
   API_KEY_TYPE,
   DisableRestMethod,
 } from "./enums"
-import { Test, Request as TestRequest } from "@metlo/testing"
 import "axios"
 
 export interface Meta {
@@ -230,21 +224,13 @@ export interface ApiEndpointDetailed extends ApiEndpoint {
   openapiSpec: OpenApiSpec
   alerts: Alert[]
   traces: ApiTrace[]
-  tests: Test[]
+  tests: any[]
   dataFields: DataField[]
 }
 
 export interface HostResponse {
   host: string
   numEndpoints: number
-}
-
-export interface TestDetailed {
-  uuid: string
-  name: string
-  tags: string[]
-  requests: TestRequest[]
-  apiEndpoint: ApiEndpoint
 }
 
 export interface OpenApiSpec {
@@ -365,140 +351,10 @@ export interface AttackDetailResponse {
   validLicense: boolean
 }
 
-export interface STEP_RESPONSE<T extends ConnectionType = ConnectionType> {
-  success: "OK" | "FAIL" | "FETCHING"
-  status: "STARTED" | "COMPLETE" | "IN-PROGRESS"
-  retry_id?: string
-  next_step: AWS_STEPS | GCP_STEPS
-  step_number: AWS_STEPS | GCP_STEPS
-  last_completed: AWS_STEPS | GCP_STEPS
-  message: string
-  error?: {
-    err: string
-  }
-  data: CONNECTIONS_BASE &
-    (T extends ConnectionType.AWS
-      ? Partial<AWS_CONNECTION & AWS_CONNECTION_MISC & SSH_INFO>
-      : T extends ConnectionType.GCP
-      ? Partial<GCP_CONNECTION & GCP_CONNECTION_MISC>
-      : never)
-  returns?: {
-    os_types?: [{ name: string; ami: string }]
-    instance_types?: string[]
-  }
-}
-
-export interface MachineSpecifications {
-  minCpu: number
-  maxCpu: number
-  minMem: number
-  maxMem?: number
-}
-
-export interface TrafficFilterRuleSpecs {
-  destination_CIDR: string
-  source_CIDR: string
-  source_port?: string
-  destination_port?: string
-  protocol: protocols
-  direction: "out" | "in"
-}
-
 export interface InstanceSettings {
   uuid: string
   updateEmail: string
   skippedUpdateEmail: boolean
-}
-
-export interface CONNECTIONS_BASE {
-  id: string
-  name: string
-}
-
-export interface SSH_INFO {
-  keypair: string
-  username: string
-  remote_machine_url: string
-}
-
-export interface AWS_CONNECTION {
-  secret_access_key: string
-  access_id: string
-  mirror_source_id: string
-  source_type: AWS_SOURCE_TYPE
-  region: string
-  ami: string
-  selected_instance_type: string
-  mirror_instance_id: string
-  mirror_target_id: string
-  mirror_filter_id: string
-  mirror_session_id: string
-  mirror_rules: Array<TrafficFilterRuleSpecs>
-  destination_eni_id: string
-  source_eni_id: string
-  backend_url: string
-  keypair_id: string
-  keypair_name: string
-  source_private_ip: string
-}
-
-export interface AWS_CONNECTION_MISC {
-  instance_types: string[]
-  virtualization_type: string
-  machine_specs: MachineSpecifications
-}
-
-export interface ENCRYPTED_AWS_CONNECTION__META {
-  keypair_tag: string
-  keypair_iv: string
-  secret_access_key_tag: string
-  secret_access_key_iv: string
-  access_id_tag: string
-  access_id_iv: string
-}
-
-export interface GCP_CONNECTION {
-  key_file: string
-  project: string
-  zone: string
-  network_url: string
-  ip_range: string
-  source_subnetwork_url: string
-  firewall_rule_url: string
-  destination_subnetwork_url: string
-  router_url: string
-  machine_type: string
-  source_image: string
-  image_template_url: string
-  instance_url: string
-  managed_group_url: string
-  health_check_url: string
-  backend_service_url: string
-  forwarding_rule_url: string
-  source_instance_url: string
-  packet_mirror_url: string
-  mirror_source_value: [string]
-  source_type: GCP_SOURCE_TYPE
-  source_private_ip: string
-}
-
-export interface GCP_CONNECTION_MISC {
-  network_name: string
-}
-
-export interface ENCRYPTED_GCP_CONNECTION__META {
-  key_file_tag: string
-  key_file_iv: string
-}
-
-export interface ConnectionInfo {
-  uuid: string
-  connectionType: ConnectionType
-  createdAt: Date
-  updatedAt: Date
-  name: string
-  aws?: Omit<AWS_CONNECTION, "secret_access_key" | "access_id" | "keypair">
-  gcp?: Omit<GCP_CONNECTION, "key_file">
 }
 
 export interface MinimizedSpecContext {
