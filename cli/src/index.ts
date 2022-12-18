@@ -9,6 +9,7 @@ import init from "./init"
 import { gcpTrafficMirrorList } from "./gcp/list"
 import { gcpTrafficMirrorDelete } from "./gcp/remove"
 import { gcpTrafficMirrorCleanUp } from "./gcp/cleanup"
+import { generateTest } from "./testing/generate"
 import { runTestPath } from "@metlo/testing"
 
 program.name("metlo").description("Metlo's command line tool.").version("0.0.0")
@@ -23,6 +24,12 @@ program
 const test = program
   .command("test")
 
+const testGenerate = test.command("generate")
+  .option("-p,--path", "Path to generate the test at")
+  .option("-t,--testType", "Type of test to generate")
+  .option("-h,--host", "The host to generate this test for")
+  .option("-e,--endpoint", "The endpoint to generate this test for")
+  .action(generateTest);
 const testRun = test.command("run")
   .argument('<paths...>')
   .action(runTestPath);
