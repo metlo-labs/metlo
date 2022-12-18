@@ -1,6 +1,6 @@
 {
   "name": "@metlo/testing",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,13 +11,18 @@
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
+    "@types/js-yaml": "^4.0.5",
+    "@types/chalk": "^2.2.0",
     "prettier": "^2.7.1",
     "tslib": "^2.4.0",
     "typescript": "^4.7.4"
   },
   "dependencies": {
     "axios": "^0.27.2",
+    "chalk": "^4.1.2",
     "expect": "^29.0.2",
-    "vm2": "^3.9.11"
+    "js-yaml": "^4.1.0",
+    "vm2": "^3.9.11",
+    "zod": "^3.20.2"
   }
 }

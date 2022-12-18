@@ -19,6 +19,7 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "importHelpers": true,
+    "strict": true,
     "baseUrl": "src"
   },
   "include": ["src/**/*.ts"],
