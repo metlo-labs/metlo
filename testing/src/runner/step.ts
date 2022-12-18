@@ -1,40 +1,52 @@
-import axios, { AxiosRequestHeaders } from "axios"
-
-import { TestStep } from "../types/test"
+import { TestStep, TestResult } from "../types/test"
 import { Context } from "../types/context"
+import { makeRequest } from "./request"
 
-export const runStep = async (step: TestStep, ctx: Context): Promise<Context> => {
-    const currentUrl = step.request.url as string
-    const queryParams = step.request.query?.map(({ name, value }) => (`${name}=${value}`)).join(",")
-    const currentUrlCookies = ctx.cookies.get(currentUrl) || new Map<string, string>()
-    const headers: Record<string, string> = {}
-    let data: any = undefined
+export const runStep = async (
+  idx: number,
+  step: TestStep,
+  nextSteps: TestStep[],
+  ctx: Context,
+): Promise<TestResult> => {
+  // Make Request
+  const res = await makeRequest(step.request, ctx)
 
-    if (step.request.form) {
-        headers["Content-Type"] = "multipart/form-data"
-        const formData = new FormData()
-        step.request.form.forEach(({ name, value }) => formData.append(name, value))
-        data = formData
-    } else {
-        data = step.request.data
+  // Set Cookies
+  const host = new URL(step.request.url).host
+  const currUrlCookies = ctx.cookies.get(host) || new Map<string, string>()
+  res.headers["set-cookie"]?.forEach(cookie => {
+    const [name, value] = (cookie.split(";").at(-1) || "").split("=")
+    if (name && value) {
+      currUrlCookies.set(name, value)
     }
+  })
+  ctx.cookies.set(host, currUrlCookies)
 
-    headers["Cookie"] = Object.entries(currentUrlCookies).map(([k, v]) => { return `${k}=${v}` }).join(";")
+  // Run Extractors
+  // Add stuff to the contexts env
 
-    const res = await axios({
-        url: currentUrl + ((queryParams || "").length > 0 ? `?${queryParams}` : ""),
-        method: step.request.method,
-        headers: headers,
-        data: step.request.data,
-    })
+  // Run Assertions
+  let assertions: boolean[] = []
+  // Add Assertion results
 
-    res.headers["set-cookie"]?.forEach((cookie) => {
-        const [name, value] = (cookie.split(";").at(-1) || "").split("=");
-        if (name && value) {
-            currentUrlCookies.set(name, value)
-        }
-    })
+  const stepResult = {
+    idx,
+    ctx,
+    success: assertions.every(e => e),
+    assertions,
+    err: "",
+  }
 
-    ctx.cookies.set(currentUrl, currentUrlCookies)
-    return ctx
+  const nextStep = nextSteps.shift()
+  if (!nextStep) {
+    return {
+      success: stepResult.success,
+      results: [[stepResult]],
+    }
+  }
+  const nextRes = await runStep(idx + 1, nextStep, nextSteps, ctx)
+  return {
+    success: stepResult.success && nextRes.success,
+    results: [[stepResult]].concat(nextRes.results),
+  }
 }
