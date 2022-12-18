@@ -53,6 +53,7 @@ export const TestConfigSchema = z.object({
   test: TestStepSchema.array(),
 })
 
+export type Extractor = z.infer<typeof ExtractorSchema>
 export type Assertion = z.infer<typeof AssertionSchema>
 export type TestRequest = z.infer<typeof RequestSchema>
 export type TestStep = z.infer<typeof TestStepSchema>

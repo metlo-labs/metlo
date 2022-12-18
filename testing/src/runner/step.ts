@@ -1,6 +1,8 @@
 import { TestStep, TestResult } from "../types/test"
 import { Context } from "../types/context"
 import { makeRequest } from "./request"
+import { runAssertion } from "./assertions"
+import { runExtractor } from "./extractors"
 
 export const runStep = async (
   idx: number,
@@ -8,10 +10,8 @@ export const runStep = async (
   nextSteps: TestStep[],
   ctx: Context,
 ): Promise<TestResult> => {
-  // Make Request
   const res = await makeRequest(step.request, ctx)
 
-  // Set Cookies
   const host = new URL(step.request.url).host
   const currUrlCookies = ctx.cookies.get(host) || new Map<string, string>()
   res.headers["set-cookie"]?.forEach(cookie => {
@@ -22,12 +22,12 @@ export const runStep = async (
   })
   ctx.cookies.set(host, currUrlCookies)
 
-  // Run Extractors
-  // Add stuff to the contexts env
-
-  // Run Assertions
-  let assertions: boolean[] = []
-  // Add Assertion results
+  for (const e of step.extract || []) {
+    ctx = runExtractor(e, res, ctx)
+  }
+  let assertions: boolean[] = (step.assert || []).map(e =>
+    runAssertion(e, res, ctx),
+  )
 
   const stepResult = {
     idx,

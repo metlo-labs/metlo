@@ -21,7 +21,7 @@ export const makeRequest = async (req: TestRequest, ctx: Context) => {
     req.form.forEach(({ name, value }) => formData.append(name, value))
     data = formData
   } else {
-    data = processEnvVars(req.data, ctx.envVars)
+    data = req.data
   }
 
   headers["Cookie"] = Object.entries(currUrlCookies)
