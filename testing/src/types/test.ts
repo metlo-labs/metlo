@@ -5,8 +5,9 @@ import { IDRegex } from "./constants"
 import { Context } from "./context"
 
 export const MetaSchema = z.object({
-  name: z.string(),
-  severity: Severity,
+  name: z.string().optional(),
+  severity: Severity.optional(),
+  tags: z.string().array().optional(),
 })
 
 export const KeyValSchema = z.object({
@@ -37,7 +38,6 @@ export const PrimitiveValueSchema = z.union([
 
 export const AssertionSchema = z.object({
   type: AssertionType.default(AssertionType.enum.EQ),
-  // key: z.string().optional(),
   key: z.string(),
   val: z.union([PrimitiveValueSchema, PrimitiveValueSchema.array()]),
 })
@@ -51,6 +51,7 @@ export const TestStepSchema = z.object({
 export const TestConfigSchema = z.object({
   id: z.string().regex(IDRegex),
   meta: MetaSchema.optional(),
+  env: KeyValSchema.array().optional(),
   test: TestStepSchema.array(),
 })
 

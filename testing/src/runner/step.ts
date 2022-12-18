@@ -44,15 +44,14 @@ export const runStep = async (
     }
   }
 
-  const cookiesCopy = Object.entries(ctx.cookies).map(
-    ([key, value]) => ({ key: { ...value } })
+  const cookiesCopy = Object.fromEntries(
+    Object.entries(ctx.cookies).map(([key, value]) => [key, { ...value }]),
   )
 
   const nextRes = await runStep(idx + 1, nextStep, nextSteps, {
     envVars: { ...ctx.envVars },
-    cookies: {},
-  },
-  )
+    cookies: cookiesCopy,
+  })
   return {
     success: stepResult.success && nextRes.success,
     results: [[stepResult]].concat(nextRes.results),
