@@ -24,13 +24,13 @@ program
 const test = program
   .command("test")
 
-const testGenerate = test.command("generate")
+test.command("generate")
   .option("-p,--path", "Path to generate the test at")
   .option("-t,--testType", "Type of test to generate")
   .option("-h,--host", "The host to generate this test for")
   .option("-e,--endpoint", "The endpoint to generate this test for")
   .action(generateTest);
-const testRun = test.command("run")
+test.command("run")
   .argument('<paths...>')
   .action(runTestPath);
 
