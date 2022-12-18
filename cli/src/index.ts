@@ -12,7 +12,7 @@ import { gcpTrafficMirrorCleanUp } from "./gcp/cleanup"
 import { generateTest } from "./testing/generate"
 import { runTestPath } from "@metlo/testing"
 
-program.name("metlo").description("Metlo's command line tool.").version("0.0.0")
+program.name("metlo").description("Metlo's command line tool.").version("0.1.1")
 
 program
   .command("init")
