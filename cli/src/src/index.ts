@@ -1,12 +1,9 @@
 import chalk from "chalk"
 import yaml from "js-yaml"
-import fs from "fs"
-import ora from "ora"
+import fs from "node:fs"
 
 import { TestConfig, TestConfigSchema } from "./types/test"
 import { runTest } from "./runner"
-
-const spinner = ora()
 
 export const loadTestConfig = (path: string): TestConfig => {
   const data = yaml.load(fs.readFileSync(path, "utf8"))
@@ -18,16 +15,11 @@ export const loadTestConfig = (path: string): TestConfig => {
   return parseRes.data
 }
 
-export const runTestPath = (paths: string[]) => {
-  for (let path of paths) {
-    spinner.start(chalk.dim("Loading test..."))
-    const test = loadTestConfig(path)
-    spinner.succeed(chalk.green("Done loading test"))
-    spinner.stop()
-
-    spinner.start(chalk.dim("Running test..."))
-    const res = runTest(test)
-    spinner.succeed(chalk.green("Done running test..."))
-    spinner.stop()
-  }
+export const runTestPath = (path: string) => {
+  console.log(chalk.dim("Loading test..."))
+  const test = loadTestConfig(path)
+  console.log(chalk.dim("Running test..."))
+  const res = runTest(test)
 }
+
+runTestPath("../.meta/test.yaml")

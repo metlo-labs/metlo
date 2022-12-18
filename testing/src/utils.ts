@@ -13,7 +13,7 @@ export const processEnvVars = (base: string, envVars: Record<string, string>) =>
 }
 
 const createVM = (resp: AxiosResponse, ctx: Context) => {
-  const vm = new vm2.VM({ timeout: SCRIPT_DEFAULT_TIMEOUT, allowAsync: false, eval: false, wasm: false })
+  const vm = new vm2.VM({ timeout: SCRIPT_DEFAULT_TIMEOUT, allowAsync: false, eval: false, wasm: false, })
   const sandboxItems = {}
   Object.entries(ctx.envVars).forEach(([k, v]) => vm.freeze(v, k))
   vm.freeze(resp, "resp")
@@ -26,6 +26,7 @@ export const executeScript = (script: string, resp: AxiosResponse, ctx: Context)
   if (ALLOWED_DATA_TYPES.includes((typeof execResponse).toLowerCase())) {
     return execResponse
   } else {
-    throw new Error(`Returned invalid type of response from JS code. Required one of ${ALLOWED_DATA_TYPES.join(",")},found ${typeof execResponse}`)
+    const errMsg = `Returned invalid type of response from JS code. Required one of ${ALLOWED_DATA_TYPES.join(",")},found ${typeof execResponse}`
+    throw new Error(errMsg)
   }
 }

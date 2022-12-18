@@ -9,6 +9,7 @@ import init from "./init"
 import { gcpTrafficMirrorList } from "./gcp/list"
 import { gcpTrafficMirrorDelete } from "./gcp/remove"
 import { gcpTrafficMirrorCleanUp } from "./gcp/cleanup"
+import { runTestPath } from "@metlo/testing"
 
 program.name("metlo").description("Metlo's command line tool.").version("0.0.0")
 
@@ -18,6 +19,14 @@ program
   .option("-b, --backend_url <string>", "The backend address for Metlo")
   .option("-k, --api_key <string>", "An API key for Metlo")
   .action(init)
+
+const test = program
+  .command("test")
+
+const testRun = test.command("run")
+  .argument('<paths...>')
+  .action(runTestPath);
+
 const trafficMirror = program
   .command("traffic-mirror")
   .description("Set up traffic mirroring for metlo")
