@@ -2,9 +2,10 @@ import axios from "axios"
 
 import { TestRequest } from "../types/test"
 import { Context } from "../types/context"
+import { processEnvVars } from "../utils"
 
 export const makeRequest = async (req: TestRequest, ctx: Context) => {
-  const currentUrl = req.url
+  const currentUrl = processEnvVars(req.url, ctx.envVars)
   const urlObj = new URL(req.url)
   const host = urlObj.host
   const queryParams = req.query
@@ -20,7 +21,7 @@ export const makeRequest = async (req: TestRequest, ctx: Context) => {
     req.form.forEach(({ name, value }) => formData.append(name, value))
     data = formData
   } else {
-    data = req.data
+    data = processEnvVars(req.data, ctx.envVars)
   }
 
   headers["Cookie"] = Object.entries(currUrlCookies)

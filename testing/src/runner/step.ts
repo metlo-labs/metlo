@@ -44,7 +44,12 @@ export const runStep = async (
       results: [[stepResult]],
     }
   }
-  const nextRes = await runStep(idx + 1, nextStep, nextSteps, ctx)
+  const nextRes = await runStep(idx + 1, nextStep, nextSteps, {
+    envVars: new Map(ctx.envVars),
+    cookies: new Map(
+      Object.entries(ctx.cookies).map(([k, v]) => [k, new Map(v)]),
+    ),
+  })
   return {
     success: stepResult.success && nextRes.success,
     results: [[stepResult]].concat(nextRes.results),
