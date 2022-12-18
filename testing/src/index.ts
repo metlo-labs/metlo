@@ -18,16 +18,23 @@ export const loadTestConfig = (path: string): TestConfig => {
   return parseRes.data
 }
 
-export const runTestPath = (paths: string[]) => {
+export const runTestPath = async (paths: string[]) => {
   for (let path of paths) {
     spinner.start(chalk.dim("Loading test..."))
     const test = loadTestConfig(path)
-    spinner.succeed(chalk.green("Done loading test"))
+    spinner.succeed(chalk.green("Done loading test..."))
     spinner.stop()
 
     spinner.start(chalk.dim("Running test..."))
-    const res = runTest(test)
+    const res = await runTest(test)
     spinner.succeed(chalk.green("Done running test..."))
     spinner.stop()
+
+    if (res.success) {
+      console.log(chalk.bold.green("All Tests Succeeded!"))
+    } else {
+      console.log(chalk.bold.red("Some Tests Failed."))
+      console.log(JSON.stringify(res.results, null, 4))
+    }
   }
 }

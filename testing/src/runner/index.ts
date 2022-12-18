@@ -10,7 +10,6 @@ export const runTest = async (test: TestConfig): Promise<TestResult> => {
     if (testStack.length > 0) {
         const firstStack = testStack.shift() as TestStep
         const resp = await runStep(0, firstStack, testStack, context)
-        console.log(JSON.stringify(resp))
         return {
             success: resp.success,
             results: resp.results
