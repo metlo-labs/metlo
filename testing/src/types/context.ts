@@ -1,5 +1,5 @@
 export interface Context {
   // host -> name -> value
-  cookies: Map<string, Map<string, string>>
-  envVars: Map<string, string>
+  cookies: Record<string, Record<string, string>>
+  envVars: Record<string, string>
 }

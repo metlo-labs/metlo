@@ -11,7 +11,7 @@ export const makeRequest = async (req: TestRequest, ctx: Context) => {
   const queryParams = req.query
     ?.map(({ name, value }) => `${name}=${value}`)
     .join(",")
-  const currUrlCookies = ctx.cookies.get(host) || new Map<string, string>()
+  const currUrlCookies = ctx.cookies[host] || {}
   const headers: Record<string, string> = {}
 
   let data: any = undefined

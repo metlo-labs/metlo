@@ -37,7 +37,8 @@ export const PrimitiveValueSchema = z.union([
 
 export const AssertionSchema = z.object({
   type: AssertionType.default(AssertionType.enum.EQ),
-  key: z.string().optional(),
+  // key: z.string().optional(),
+  key: z.string(),
   val: z.union([PrimitiveValueSchema, PrimitiveValueSchema.array()]),
 })
 

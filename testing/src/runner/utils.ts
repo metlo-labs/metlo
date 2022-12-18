@@ -1,6 +1,6 @@
 import { AxiosResponse } from "axios"
 import get from "lodash.get"
-import { Context } from "types/context"
+import { Context } from "../types/context"
 
 export const getKeyValue = (
   key: string,
@@ -11,6 +11,7 @@ export const getKeyValue = (
     status: resp.status,
     resp,
     ctx,
+    ...ctx.envVars
   }
   return get(data, key)
 }

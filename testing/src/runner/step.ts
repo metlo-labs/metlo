@@ -11,16 +11,15 @@ export const runStep = async (
   ctx: Context,
 ): Promise<TestResult> => {
   const res = await makeRequest(step.request, ctx)
-
   const host = new URL(step.request.url).host
-  const currUrlCookies = ctx.cookies.get(host) || new Map<string, string>()
+  const currUrlCookies = ctx.cookies[host] || {}
   res.headers["set-cookie"]?.forEach(cookie => {
     const [name, value] = (cookie.split(";").at(-1) || "").split("=")
     if (name && value) {
-      currUrlCookies.set(name, value)
+      currUrlCookies[name] = value
     }
   })
-  ctx.cookies.set(host, currUrlCookies)
+  ctx.cookies[host] = currUrlCookies
 
   for (const e of step.extract || []) {
     ctx = runExtractor(e, res, ctx)
@@ -44,12 +43,16 @@ export const runStep = async (
       results: [[stepResult]],
     }
   }
+
+  const cookiesCopy = Object.entries(ctx.cookies).map(
+    ([key, value]) => ({ key: { ...value } })
+  )
+
   const nextRes = await runStep(idx + 1, nextStep, nextSteps, {
-    envVars: new Map(ctx.envVars),
-    cookies: new Map(
-      Object.entries(ctx.cookies).map(([k, v]) => [k, new Map(v)]),
-    ),
-  })
+    envVars: { ...ctx.envVars },
+    cookies: {},
+  },
+  )
   return {
     success: stepResult.success && nextRes.success,
     results: [[stepResult]].concat(nextRes.results),
