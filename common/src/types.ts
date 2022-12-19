@@ -206,6 +206,9 @@ export interface DataField {
   updatedAt: Date
   matches: Record<DataClass, string[]>
   apiEndpointUuid: string
+  statusCode: number
+  contentType: string
+  arrayFields: Record<string, number>
 }
 
 export interface ApiEndpoint {

@@ -16,6 +16,8 @@ import {
   OpenApiSpec,
   Alert,
   AggregateTraceDataHourly,
+  ApiEndpointTest,
+  Attack,
 } from "models"
 import {
   JSONValue,
@@ -390,6 +392,18 @@ export class SpecService {
             .andWhere(`"apiEndpointUuid" IN(:...ids)`, {
               ids: similarEndpointUuids,
             })
+          const updateAttacksQb = getQB(ctx, queryRunner)
+            .update(Attack)
+            .set({ apiEndpointUuid: item.endpoint.uuid })
+            .andWhere(`"apiEndpointUuid" IN(:...ids)`, {
+              ids: similarEndpointUuids,
+            })
+          const deleteEndpointTestsQb = getQB(ctx, queryRunner)
+            .delete()
+            .from(ApiEndpointTest)
+            .andWhere(`"apiEndpointUuid" IN(:...ids)`, {
+              ids: similarEndpointUuids,
+            })
           const deleteDataFieldsQb = getQB(ctx, queryRunner)
             .delete()
             .from(DataField)
@@ -436,10 +450,8 @@ export class SpecService {
             concatUuids,
             item.endpoint.uuid,
           ])
-          await queryRunner.query(insertDataFieldQuery, [
-            similarEndpointUuids,
-            item.endpoint.uuid,
-          ])
+          await deleteEndpointTestsQb.execute()
+          await updateAttacksQb.execute()
           await deleteDataFieldsQb.execute()
           await updateAlertsQb.execute()
           await deleteAlertsQb.execute()
