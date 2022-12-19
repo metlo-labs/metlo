@@ -8,6 +8,24 @@ import { runTest } from "./runner"
 
 const spinner = ora()
 
+export const dumpTestConfig = (config: TestConfig): string => {
+  const parts: any[] = [
+    {
+      id: config.id,
+    },
+  ]
+  if (config.meta) {
+    parts.push({ meta: config.meta })
+  }
+  if (config.env) {
+    parts.push({ env: config.env })
+  }
+  if (config.test) {
+    parts.push({ test: config.test })
+  }
+  return parts.map(e => yaml.dump(e)).join("\n")
+}
+
 export const loadTestConfig = (path: string): TestConfig => {
   const data = yaml.load(fs.readFileSync(path, "utf8"))
   const parseRes = TestConfigSchema.safeParse(data)
@@ -39,5 +57,6 @@ export const runTestPath = async (paths: string[]) => {
   }
 }
 
+export { AssertionType } from "./types/enums"
 export { TestConfig, TestResult, TestConfigSchema } from "./types/test"
 export { runTest } from "./runner"

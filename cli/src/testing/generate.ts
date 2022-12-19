@@ -1,8 +1,9 @@
+import fs from "fs"
 import path from "path"
 import chalk from "chalk"
 import axios from "axios"
 import { getConfig } from "../utils"
-import { TestConfig } from "@metlo/testing"
+import { TestConfig, dumpTestConfig } from "@metlo/testing"
 
 export interface GenerateTestRes {
   success: boolean
@@ -39,10 +40,15 @@ export const generateTest = async ({
     )
     return
   }
-  console.log(res.data)
   if (!res.data.success) {
     console.log(chalk.bold.red(`Failed to generate test - ${res.data.msg}`))
     return
   }
-  console.log(res.data.test)
+  const testYaml = dumpTestConfig(res.data.test)
+  if (filePath) {
+    fs.writeFileSync(filePath, testYaml)
+    console.log(chalk.bold.green(`Success! Wrote test template to "${filePath}"`))
+  } else {
+    console.log(testYaml)
+  }
 }

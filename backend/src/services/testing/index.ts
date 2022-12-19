@@ -3,36 +3,25 @@ import { GenerateTestParams, GenerateTestRes } from "@common/types"
 import { GENERATED_TEST_TYPE } from "@common/enums"
 import { MetloContext } from "types"
 import { generateBrokenAuthTest } from "./broken-auth"
-import { AppDataSource } from "data-source"
-import { getEntityManager } from "services/database/utils"
+import { getRepository } from "services/database/utils"
 import { ApiEndpoint } from "models"
 
 export const generateTest = async (
   ctx: MetloContext,
   { type, host, endpoint }: GenerateTestParams,
 ): Promise<GenerateTestRes> => {
-  let endpointObj: ApiEndpoint = null
-  const queryRunner = AppDataSource.createQueryRunner()
-  try {
-    await queryRunner.connect()
-    if (validator.isUUID(endpoint)) {
-      endpointObj = await getEntityManager(ctx, queryRunner).findOneBy(
-        ApiEndpoint,
-        { uuid: endpoint },
-      )
-    } else {
-      endpointObj = await getEntityManager(ctx, queryRunner).findOneBy(
-        ApiEndpoint,
-        { path: endpoint, host: host },
-      )
-    }
-  } catch (err) {
-    return {
-      success: false,
-      msg: `INTERNAL ERROR: ${err.message}`,
-    }
-  } finally {
-    await queryRunner.release()
+  let endpointObj: ApiEndpoint | null = null
+  const apiEndpointRepository = getRepository(ctx, ApiEndpoint)
+  if (validator.isUUID(endpoint)) {
+    endpointObj = await apiEndpointRepository.findOne({
+      where: { uuid: endpoint },
+      relations: { dataFields: true },
+    })
+  } else {
+    endpointObj = await apiEndpointRepository.findOne({
+      where: { path: endpoint, host: host },
+      relations: { dataFields: true },
+    })
   }
   if (!endpointObj) {
     return {
@@ -41,7 +30,7 @@ export const generateTest = async (
     }
   }
   if (type == GENERATED_TEST_TYPE.BROKEN_AUTHENTICATION) {
-    return generateBrokenAuthTest(ctx, endpointObj)
+    return generateBrokenAuthTest(endpointObj)
   }
   return {
     success: false,
