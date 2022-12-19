@@ -300,7 +300,6 @@ export class DataFieldService {
       return
     }
     const jsonBody = parsedJson(body)
-    console.log(jsonBody)
     if (jsonBody) {
       if (Array.isArray(jsonBody)) {
         const l = jsonBody.length

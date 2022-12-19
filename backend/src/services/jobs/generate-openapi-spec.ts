@@ -1,6 +1,6 @@
 import { IsNull } from "typeorm"
 import { DataSection, DataType, SpecExtension } from "@common/enums"
-import { ApiEndpoint, OpenApiSpec, ApiTrace, DataField } from "models"
+import { ApiEndpoint, OpenApiSpec, DataField } from "models"
 import { DatabaseService } from "services/database"
 import { getPathTokens } from "@common/utils"
 import { isParameter, parsedJsonNonNull } from "utils"
@@ -23,7 +23,83 @@ const replacer = (key, value) => {
   }
 }
 
-const addRequestBodyDataFieldToSchema = (
+const addArrayToSchema = (
+  schema: Map<string, any>,
+  arrayFieldDepth: number,
+  name?: string,
+) => {
+  if (name) {
+    if (!schema.get(name) || !schema.get(name)?.get("items")) {
+      schema.set(
+        name,
+        new Map<string, any>([
+          ["type", DataType.ARRAY],
+          ["items", new Map<string, any>()],
+        ]),
+      )
+    }
+    schema = schema.get(name).get("items")
+  }
+
+  for (let j = name ? 1 : 0; j < arrayFieldDepth; j++) {
+    schema.delete("nullable")
+    schema.delete("properties")
+    if (!schema.get("items")) {
+      schema.set("type", DataType.ARRAY)
+      schema.set("items", new Map<string, any>())
+    }
+    schema = schema.get("items")
+  }
+  return schema
+}
+
+const addLeafToSchema = (
+  schema: Map<string, any>,
+  dataType: DataType,
+  name?: string,
+) => {
+  schema.delete("properties")
+  schema.delete("items")
+  if (dataType === DataType.UNKNOWN) {
+    if (name) {
+      schema.set(name, new Map<string, any>([["nullable", true]]))
+    } else {
+      schema.set("nullable", true)
+    }
+  } else {
+    if (name) {
+      schema.set(name, new Map<string, any>([["type", dataType]]))
+    } else {
+      schema.set("type", dataType)
+    }
+  }
+}
+
+const addObjectToSchema = (schema: Map<string, any>, name?: string) => {
+  if (name) {
+    if (!schema.get(name) || !schema.get(name)?.get("properties")) {
+      schema.set(
+        name,
+        new Map<string, any>([
+          ["type", DataType.OBJECT],
+          ["properties", new Map<string, any>()],
+        ]),
+      )
+    }
+    schema = schema.get(name).get("properties")
+  } else {
+    schema.delete("items")
+    schema.delete("nullable")
+    if (!schema.get("properties")) {
+      schema.set("type", DataType.OBJECT)
+      schema.set("properties", new Map<string, any>())
+    }
+    schema = schema.get("properties")
+  }
+  return schema
+}
+
+const addBodyDataFieldToSchema = (
   schema: Map<string, any>,
   dataField: DataField,
   mapTokens: string[],
@@ -36,57 +112,26 @@ const addRequestBodyDataFieldToSchema = (
     )
   }
   schema = schema.get(contentType).get("schema")
-  const arrayFieldDepth = dataField.arrayFields?.[""]
-  if (arrayFieldDepth) {
-    schema.delete("nullable")
-    schema.delete("properties")
-    for (let j = 0; j < arrayFieldDepth; j++) {
-      if (!schema.get("items")) {
-        schema.set("type", DataType.ARRAY)
-        schema.set("items", new Map<string, any>())
-      }
-      schema = schema.get("items")
-    }
-  }
-  if (mapTokens[0]?.length > 0) {
-    schema.delete("items")
-    schema.delete("nullable")
-    if (!schema.get("properties")) {
-      schema.set("type", DataType.OBJECT)
-      schema.set("properties", new Map<string, any>())
-    }
-    schema = schema.get("properties")
-  }
 
-  addDataFieldToSchema(schema, dataField, mapTokens)
+  addDataFieldToSchema(schema, dataField, mapTokens, true)
 }
 
 const addDataFieldToSchema = (
   schema: Map<string, any>,
   dataField: DataField,
   mapTokens: string[],
+  isBody?: boolean,
 ) => {
   let curr = schema
   const arrayFieldDepth = dataField.arrayFields?.[""]
   if (arrayFieldDepth) {
-    curr.delete("nullable")
-    curr.delete("properties")
-    for (let j = 0; j < arrayFieldDepth; j++) {
-      if (!curr.get("items")) {
-        curr.set("type", DataType.ARRAY)
-        curr.set("items", new Map<string, any>())
-      }
-      curr = curr.get("items")
-    }
+    curr = addArrayToSchema(curr, arrayFieldDepth)
+  }
+  if (isBody && mapTokens[0]?.length > 0) {
+    curr = addObjectToSchema(curr)
   }
   if (mapTokens.length === 0 || mapTokens[0]?.length === 0) {
-    curr.delete("properties")
-    curr.delete("items")
-    if (dataField.dataType === DataType.UNKNOWN) {
-      curr.set("nullable", true)
-    } else {
-      curr.set("type", dataField.dataType)
-    }
+    addLeafToSchema(curr, dataField.dataType)
     return
   }
   let i: number
@@ -98,76 +143,18 @@ const addDataFieldToSchema = (
     if (i === l - 1) {
       const arrayFieldDepth = dataField.arrayFields?.[fullPath]
       if (arrayFieldDepth) {
-        if (!curr.get(name) || !curr.get(name)?.get("items")) {
-          curr.set(
-            name,
-            new Map<string, any>([
-              ["type", DataType.ARRAY],
-              ["items", new Map<string, any>()],
-            ]),
-          )
-        }
-        curr = curr.get(name).get("items")
-        for (let j = 1; j < arrayFieldDepth; j++) {
-          if (!curr.get("items")) {
-            curr.delete("properties")
-            curr.set("type", DataType.ARRAY)
-            curr.set("items", new Map<string, any>())
-          }
-          curr = curr.get("items")
-        }
-        curr.delete("properties")
-        curr.delete("items")
-        if (dataField.dataType === DataType.UNKNOWN) {
-          curr.set("nullable", true)
-        } else {
-          curr.set("type", dataField.dataType)
-        }
+        curr = addArrayToSchema(curr, arrayFieldDepth, name)
+        addLeafToSchema(curr, dataField.dataType)
       } else {
-        curr.delete("properties")
-        curr.delete("items")
-        if (dataField.dataType === DataType.UNKNOWN) {
-          curr.set(name, new Map<string, any>([["nullable", true]]))
-        } else {
-          curr.set(name, new Map<string, any>([["type", dataField.dataType]]))
-        }
+        addLeafToSchema(curr, dataField.dataType, name)
       }
     } else {
       const arrayFieldDepth = dataField.arrayFields?.[fullPath]
       if (arrayFieldDepth) {
-        if (!curr.get(name) || !curr.get(name)?.get("items")) {
-          curr.set(
-            name,
-            new Map<string, any>([
-              ["type", DataType.ARRAY],
-              ["items", new Map<string, any>()],
-            ]),
-          )
-        }
-        curr = curr.get(name).get("items")
-        for (let j = 1; j < arrayFieldDepth; j++) {
-          if (!curr.get("items")) {
-            curr.set("type", DataType.ARRAY)
-            curr.set("items", new Map<string, any>())
-          }
-          curr = curr.get("items")
-        }
-        if (!curr?.get("properties")) {
-          curr.set("type", DataType.OBJECT)
-          curr.set("properties", new Map<string, any>())
-        }
-        curr = curr.get("properties")
+        curr = addArrayToSchema(curr, arrayFieldDepth, name)
+        curr = addObjectToSchema(curr)
       } else {
-        if (!curr.get(name) || !curr.get(name)?.get("properties")) {
-          curr.set(
-            name,
-            new Map<string, any>([
-              ["type", DataType.OBJECT],
-              ["properties", new Map<string, any>()],
-            ]),
-          )
-        }
-        curr = curr.get(name).get("properties")
+        curr = addObjectToSchema(curr, name)
       }
     }
   }
@@ -274,7 +261,7 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
           } else if (dataField.dataSection === DataSection.REQUEST_BODY) {
             mapTokens = mapTokens ?? [""]
             if (contentType) {
-              addRequestBodyDataFieldToSchema(
+              addBodyDataFieldToSchema(
                 reqBodySchema,
                 dataField,
                 mapTokens,
@@ -306,7 +293,7 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
                   content: new Map<string, any>(),
                 }
               }
-              addRequestBodyDataFieldToSchema(
+              addBodyDataFieldToSchema(
                 responses[responseStatus].content,
                 dataField,
                 mapTokens,
