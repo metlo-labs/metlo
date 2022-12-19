@@ -58,5 +58,11 @@ export const runTestPath = async (paths: string[]) => {
 }
 
 export { AssertionType } from "./types/enums"
-export { TestConfig, TestResult, TestConfigSchema } from "./types/test"
+export {
+  KeyValType,
+  TestConfig,
+  TestRequest,
+  TestResult,
+  TestConfigSchema,
+} from "./types/test"
 export { runTest } from "./runner"

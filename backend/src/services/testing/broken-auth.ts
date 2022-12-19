@@ -1,13 +1,34 @@
+import path from "path"
 import { v4 as uuidv4 } from "uuid"
 import { GenerateTestRes } from "@common/types"
-import { ApiEndpoint } from "models"
-import { TestConfig, AssertionType } from "@metlo/testing"
-import path from "path"
+import { ApiEndpoint, AuthenticationConfig } from "models"
+import {
+  KeyValType,
+  TestConfig,
+  TestRequest,
+  AssertionType,
+} from "@metlo/testing"
+import { MetloContext } from "types"
+import { getRepository } from "services/database/utils"
+import { addAuthToRequest } from "./utils"
 
-export const generateBrokenAuthTest = (
+export const generateBrokenAuthTest = async (
+  ctx: MetloContext,
   endpoint: ApiEndpoint,
-): GenerateTestRes => {
-  const dataFields = endpoint.dataFields
+): Promise<GenerateTestRes> => {
+  const authConfigRepo = getRepository(ctx, AuthenticationConfig)
+  const authConfig = await authConfigRepo.findOneBy({
+    host: endpoint.host,
+  })
+  if (!authConfig) {
+    return {
+      success: false,
+      msg: `No auth config defined for host: "${endpoint.host}"`,
+    }
+  }
+
+  let env: KeyValType[] | undefined = undefined
+
   const unauthAssertion = {
     type: AssertionType.enum.EQ,
     key: "status",
@@ -17,11 +38,16 @@ export const generateBrokenAuthTest = (
     type: AssertionType.enum.JS,
     val: "status < 400",
   }
-  const unauthRequest = {
+
+  const unauthRequest: TestRequest = {
     method: endpoint.method,
     url: path.join(`https://${endpoint.host}`, endpoint.path),
   }
-  let authRequest = { ...unauthRequest }
+  const [authRequest, authEnv] = addAuthToRequest(
+    { ...unauthRequest },
+    authConfig,
+  )
+  env = (env || []).concat(...authEnv)
 
   let test: TestConfig = {
     id: uuidv4(),
@@ -30,6 +56,7 @@ export const generateBrokenAuthTest = (
       severity: "HIGH",
       tags: ["BROKEN_AUTHENTICATION"],
     },
+    env,
     test: [
       {
         request: unauthRequest,

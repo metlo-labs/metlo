@@ -30,7 +30,7 @@ export const generateTest = async (
     }
   }
   if (type == GENERATED_TEST_TYPE.BROKEN_AUTHENTICATION) {
-    return generateBrokenAuthTest(endpointObj)
+    return await generateBrokenAuthTest(ctx, endpointObj)
   }
   return {
     success: false,

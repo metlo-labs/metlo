@@ -57,6 +57,7 @@ export const TestConfigSchema = z.object({
 
 export type Extractor = z.infer<typeof ExtractorSchema>
 export type Assertion = z.infer<typeof AssertionSchema>
+export type KeyValType = z.infer<typeof KeyValSchema>
 export type TestRequest = z.infer<typeof RequestSchema>
 export type TestStep = z.infer<typeof TestStepSchema>
 export type TestConfig = z.infer<typeof TestConfigSchema>
