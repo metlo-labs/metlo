@@ -1,4 +1,3 @@
-import path from "path"
 import { v4 as uuidv4 } from "uuid"
 import { GenerateTestRes } from "@common/types"
 import { ApiEndpoint, AuthenticationConfig } from "models"
@@ -31,17 +30,17 @@ export const generateBrokenAuthTest = async (
 
   const unauthAssertion = {
     type: AssertionType.enum.EQ,
-    key: "status",
+    key: "resp.status",
     val: [401, 403],
   }
   const authAssertion = {
     type: AssertionType.enum.JS,
-    val: "status < 400",
+    val: "resp.status < 400",
   }
 
   const unauthRequest: TestRequest = {
     method: endpoint.method,
-    url: path.join(`https://${endpoint.host}`, endpoint.path),
+    url: `https://${endpoint.host}` + endpoint.path,
   }
   const [authRequest, authEnv] = addAuthToRequest(
     { ...unauthRequest },
