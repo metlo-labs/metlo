@@ -63,7 +63,10 @@ SELECT
   "createdAt",
   "updatedAt",
   "dataPath",
-  "apiEndpointUuid"
+  "apiEndpointUuid",
+  "statusCode",
+  "contentType",
+  "arrayFields"
 FROM
   ${DataField.getTableName(ctx)} data_field
 WHERE
@@ -162,8 +165,10 @@ const analyze = async (
             "dataType",
             "dataTag",
             "matches",
+            "arrayFields",
+            "updatedAt",
           ],
-          ["dataSection", "dataPath", "apiEndpointUuid"],
+          ["dataSection", "dataPath", "apiEndpointUuid", "statusCode", "contentType"],
         )
         .execute(),
     5,

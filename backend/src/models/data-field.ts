@@ -82,6 +82,15 @@ export class DataField extends MetloBaseEntity {
   @Column({ nullable: false, default: "" })
   dataPath: string
 
+  @Column({ nullable: true })
+  statusCode: number
+
+  @Column({ nullable: true })
+  contentType: string
+
+  @Column({ type: "jsonb", nullable: true })
+  arrayFields: Record<string, number>
+
   @Column({ type: "jsonb", nullable: false, default: {} })
   matches: Record<DataClass, string[]>
 
