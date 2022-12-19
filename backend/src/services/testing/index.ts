@@ -6,6 +6,7 @@ import { generateBrokenAuthTest } from "./broken-auth"
 import { getRepository } from "services/database/utils"
 import { ApiEndpoint } from "models"
 import { generateBolaTest } from "./bola"
+import { generateGenericTest } from "./generic"
 
 export const generateTest = async (
   ctx: MetloContext,
@@ -34,6 +35,8 @@ export const generateTest = async (
     return await generateBrokenAuthTest(ctx, endpointObj)
   } else if (type == GENERATED_TEST_TYPE.BOLA) {
     return await generateBolaTest(ctx, endpointObj)
+  } else if (type == GENERATED_TEST_TYPE.GENERIC) {
+    return await generateGenericTest(ctx, endpointObj)
   }
   return {
     success: false,
