@@ -6,7 +6,7 @@ import { MetloContext } from "types"
 import { getRepository } from "services/database/utils"
 import { addAuthToRequest, makeTestRequest } from "./utils"
 
-export const generateBrokenAuthTest = async (
+export const generateBolaTest = async (
   ctx: MetloContext,
   endpoint: ApiEndpoint,
 ): Promise<GenerateTestRes> => {
@@ -33,35 +33,67 @@ export const generateBrokenAuthTest = async (
     val: "resp.status < 400",
   }
 
-  const [unauthRequest, reqEnv] = makeTestRequest(endpoint)
-  if (reqEnv.length > 0) {
-    env = (env || []).concat(...reqEnv)
+  const [unauthUserAReq, userAReqEnv] = makeTestRequest(endpoint, "USER_A")
+  if (userAReqEnv.length > 0) {
+    env = (env || []).concat(...userAReqEnv)
+  }
+  const [unauthUserBReq, userBReqEnv] = makeTestRequest(endpoint, "USER_B")
+  if (userBReqEnv.length > 0) {
+    env = (env || []).concat(...userBReqEnv)
   }
 
-  const [authRequest, authEnv] = addAuthToRequest(
-    { ...unauthRequest },
+  const [authUserAReq, userAAuthEnv] = addAuthToRequest(
+    { ...unauthUserAReq },
     authConfig,
+    "USER_A",
   )
-  if (authEnv.length > 0) {
-    env = (env || []).concat(...authEnv)
+  if (userAAuthEnv.length > 0) {
+    env = (env || []).concat(...userAAuthEnv)
   }
+  const [bolaUserAReq, bolaUserAEnv] = addAuthToRequest(
+    { ...unauthUserAReq },
+    authConfig,
+    "USER_B",
+  )
+
+  const [authUserBReq, userBAuthEnv] = addAuthToRequest(
+    { ...unauthUserBReq },
+    authConfig,
+    "USER_B",
+  )
+  if (userBAuthEnv.length > 0) {
+    env = (env || []).concat(...userBAuthEnv)
+  }
+  const [bolaUserBReq, bolaUserBEnv] = addAuthToRequest(
+    { ...unauthUserAReq },
+    authConfig,
+    "USER_B",
+  )
 
   let test: TestConfig = {
     id: uuidv4(),
     meta: {
       name: `${endpoint.path} Broken Authentication`,
       severity: "HIGH",
-      tags: ["BROKEN_AUTHENTICATION"],
+      tags: ["BOLA"],
     },
     env,
     test: [
       {
-        request: unauthRequest,
+        request: authUserAReq,
+        assert: [authAssertion],
+      },
+      {
+        request: authUserBReq,
+        assert: [authAssertion],
+      },
+      {
+        request: bolaUserAReq,
         assert: [unauthAssertion],
       },
       {
-        request: authRequest,
-        assert: [authAssertion],
+        request: bolaUserBReq,
+        assert: [unauthAssertion],
       },
     ],
   }
