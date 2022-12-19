@@ -12,8 +12,8 @@ export const runAssertion = (
 ): boolean => {
   if (assertion.type == AssertionType.enum.JS) {
     if ((typeof assertion.val).toLowerCase() === "string") {
-      const assertionKey = stringReplacement(assertion.val as string, ctx.envVars)
-      if (executeScript(assertionKey, response, ctx)) {
+      const assertionValue = stringReplacement(assertion.val as string, ctx.envVars)
+      if (executeScript(assertionValue, response, ctx)) {
         return true
       }
     } else {
@@ -26,21 +26,27 @@ export const runAssertion = (
     throw new Error("Must specify a key for assertion")
   }
   let assertionKey = undefined
-  if (typeof (assertion.key).toLowerCase() == "string") {
+  let assertionValue = undefined
+  if ((typeof assertion.key).toLowerCase() == "string") {
     assertionKey = stringReplacement(assertion.key as string, ctx.envVars)
   } else {
     assertionKey = assertion.key
   }
-  const assertionValue = getKeyValue(assertionKey, response, ctx)
+  if ((typeof assertion.val).toLowerCase() == "string") {
+    assertionValue = stringReplacement(assertion.val as string, ctx.envVars)
+  } else {
+    assertionValue = assertion.val
+  }
+  const currentValue = getKeyValue(assertionKey, response, ctx)
   if (assertion.type == AssertionType.enum.EQ) {
-    if (assertion.val instanceof Array) {
-      assertion.val.some(e => e == assertionValue)
+    if (assertionValue instanceof Array) {
+      assertionValue.some(e => e == currentValue)
     } else {
       return assertionValue === assertion.val
     }
   } else if (assertion.type == AssertionType.enum.REGEXP) {
-    const regex = new RegExp(assertion.val as string)
-    return regex.test(assertionValue)
+    const regex = new RegExp(assertionValue as string)
+    return regex.test(currentValue)
   }
   return false
 }
