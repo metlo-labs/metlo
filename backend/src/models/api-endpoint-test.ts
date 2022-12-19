@@ -5,7 +5,6 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm"
-import { Request } from "@metlo/testing"
 import { ApiEndpoint } from "models/api-endpoint"
 import MetloBaseEntity from "./metlo-base-entity"
 
@@ -21,7 +20,7 @@ export class ApiEndpointTest extends MetloBaseEntity {
   tags: string[]
 
   @Column({ type: "jsonb", nullable: true })
-  requests: Request[]
+  requests: any[]
 
   @ManyToOne(() => ApiEndpoint)
   @JoinColumn()

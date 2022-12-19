@@ -1,17 +1,18 @@
 #!/usr/bin/env node
 
 import { program } from "commander"
+import init from "./init"
 import { awsTrafficMirrorSetup } from "./aws/setup"
 import { awsTrafficMirrorList } from "./aws/list"
 import { awsTrafficMirrorRemove } from "./aws/remove"
 import { gcpTrafficMirrorSetup } from "./gcp/setup"
-import init from "./init"
-import testAPI from "./testAPI"
 import { gcpTrafficMirrorList } from "./gcp/list"
 import { gcpTrafficMirrorDelete } from "./gcp/remove"
 import { gcpTrafficMirrorCleanUp } from "./gcp/cleanup"
+import { generateTest } from "./testing/generate"
+import { runTestPath } from "@metlo/testing"
 
-program.name("metlo").description("Metlo's command line tool.").version("0.0.0")
+program.name("metlo").description("Metlo's command line tool.").version("0.1.1")
 
 program
   .command("init")
@@ -19,12 +20,19 @@ program
   .option("-b, --backend_url <string>", "The backend address for Metlo")
   .option("-k, --api_key <string>", "An API key for Metlo")
   .action(init)
-program
+
+const test = program
   .command("test")
-  .description("Run Metlo API tests against a specified host.")
-  .requiredOption("-h, --host <string>", "The production host in Metlo.")
-  .option("-t, --target <string>", "The host to run tests against against.")
-  .action(testAPI)
+test.command("generate")
+  .option("-p,--path <string>", "Path to generate the test at")
+  .requiredOption("-t,--testType <string>", "Type of test to generate")
+  .requiredOption("-e,--endpoint <string>", "The endpoint to generate this test for")
+  .option("-h,--host <string>", "The host to generate this test for")
+  .action(generateTest);
+test.command("run")
+  .argument('<paths...>')
+  .action(runTestPath);
+
 const trafficMirror = program
   .command("traffic-mirror")
   .description("Set up traffic mirroring for metlo")

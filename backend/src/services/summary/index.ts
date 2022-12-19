@@ -1,6 +1,5 @@
 import { Summary as SummaryResponse } from "@common/types"
 import { ApiEndpoint } from "models"
-import { ConnectionsService } from "services/connections"
 import { createQB } from "services/database/utils"
 import { MetloContext } from "types"
 import { getAlertTypeAggCached, getTopAlertsCached } from "./alerts"
@@ -17,14 +16,13 @@ export const getSummaryData = async (
   const piiDataTypeCount = await getPIIDataTypeCountCached(ctx)
   const usageStats = await getUsageStatsCached(ctx)
   const counts = await getCountsCached(ctx)
-  const numConnections = await ConnectionsService.getNumConnections(ctx)
   return {
     piiDataTypeCount: piiDataTypeCount as any,
     alertTypeCount: alertTypeCount as any,
     topAlerts,
     topEndpoints,
     usageStats,
-    numConnections,
+    numConnections: 0,
     ...counts,
   }
 }

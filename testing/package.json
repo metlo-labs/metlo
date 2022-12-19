@@ -1,23 +1,34 @@
 {
   "name": "@metlo/testing",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "format": "prettier --write './src/**/*.{ts,tsx}'"
+    "format": "prettier --write './src/**/*.{ts,tsx}'",
+    "test": "ts-node src/index.ts"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
+    "@types/chalk": "^2.2.0",
+    "@types/js-yaml": "^4.0.5",
+    "@types/lodash.get": "^4.4.7",
     "prettier": "^2.7.1",
+    "ts-node": "^10.9.1",
     "tslib": "^2.4.0",
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "axios": "^0.27.2",
+    "axios": "^1.2.1",
+    "chalk": "^4.1.2",
     "expect": "^29.0.2",
-    "vm2": "^3.9.11"
+    "handlebars": "^4.7.7",
+    "js-yaml": "^4.1.0",
+    "lodash.get": "^4.4.2",
+    "ora": "^5.4.1",
+    "vm2": "^3.9.13",
+    "zod": "^3.20.2"
   }
 }

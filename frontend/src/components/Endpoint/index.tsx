@@ -5,7 +5,6 @@ import { BsSearch } from "icons/bs/BsSearch"
 import { GrStackOverflow } from "icons/gr/GrStackOverflow"
 import { TiFlowSwitch } from "icons/ti/TiFlowSwitch"
 import { FaBell } from "icons/fa/FaBell"
-import { BiTestTube } from "icons/bi/BiTestTube"
 import {
   Badge,
   Code,
@@ -41,7 +40,6 @@ import DataFieldList from "./DataFieldList"
 import TraceList from "./TraceList"
 import { AlertTab } from "./AlertTab"
 import EndpointOverview from "./Overview"
-import TestList from "./TestList"
 import { deleteEndpoint } from "api/endpoints"
 import { makeToast } from "utils"
 
@@ -160,9 +158,6 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
             <Tab>
               <SectionHeader text="Alerts" sym={FaBell} />
             </Tab>
-            <Tab>
-              <SectionHeader text="Tests" sym={BiTestTube} />
-            </Tab>
           </TabList>
           <TabPanels flexGrow="1" h="full" overflow="hidden">
             <TabPanel p="0" overflow="auto" h="full">
@@ -185,9 +180,6 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
                 providedSpecString={endpoint.openapiSpec?.spec}
                 providedSpecExtension={endpoint.openapiSpec?.extension}
               />
-            </TabPanel>
-            <TabPanel p="0" h="full">
-              <TestList endpoint={endpoint} />
             </TabPanel>
           </TabPanels>
         </Tabs>

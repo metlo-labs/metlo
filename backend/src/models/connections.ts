@@ -7,13 +7,6 @@ import {
   BeforeInsert,
 } from "typeorm"
 import { ConnectionType } from "@common/enums"
-import {
-  AWS_CONNECTION,
-  ENCRYPTED_AWS_CONNECTION__META,
-  ENCRYPTED_GCP_CONNECTION__META,
-  GCP_CONNECTION,
-  SSH_INFO,
-} from "@common/types"
 import { encrypt, generate_iv } from "utils/encryption"
 import MetloBaseEntity from "./metlo-base-entity"
 
@@ -39,16 +32,16 @@ export class Connections extends MetloBaseEntity {
   name: string
 
   @Column({ nullable: true, type: "jsonb" })
-  aws?: AWS_CONNECTION & SSH_INFO
+  aws?: any
 
   @Column({ nullable: true, type: "jsonb" })
-  aws_meta?: ENCRYPTED_AWS_CONNECTION__META
+  aws_meta?: any
 
   @Column({ nullable: true, type: "jsonb" })
-  gcp?: GCP_CONNECTION
+  gcp?: any
 
   @Column({ nullable: true, type: "jsonb" })
-  gcp_meta?: ENCRYPTED_GCP_CONNECTION__META
+  gcp_meta?: any
 
   @BeforeInsert()
   beforeInsert() {
