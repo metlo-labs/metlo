@@ -1,6 +1,7 @@
 import { AxiosResponse } from "axios"
 import { Context } from "types/context"
 import vm2 from "vm2"
+import * as Handlebars from "handlebars"
 const SCRIPT_DEFAULT_TIMEOUT = 1000
 
 export const ALLOWED_DATA_TYPES = ["string", "bigint", "number", "boolean", "undefined", "null"]
@@ -29,4 +30,10 @@ export const executeScript = (script: string, resp: AxiosResponse, ctx: Context)
     const errMsg = `Returned invalid type of response from JS code. Required one of ${ALLOWED_DATA_TYPES.join(",")},found ${typeof execResponse}`
     throw new Error(errMsg)
   }
+}
+
+export const stringReplacement = (string: string, envVars: Context["envVars"]) => {
+  const template = Handlebars.compile(string);
+  const templated = (template(envVars));
+  return templated
 }

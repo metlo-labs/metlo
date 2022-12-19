@@ -1,5 +1,5 @@
 import { AxiosResponse } from "axios"
-import { executeScript } from "../utils"
+import { executeScript, stringReplacement } from "../utils"
 import { Context } from "../types/context"
 import { AssertionType } from "../types/enums"
 import { Assertion } from "../types/test"
@@ -12,7 +12,8 @@ export const runAssertion = (
 ): boolean => {
   if (assertion.type == AssertionType.enum.JS) {
     if ((typeof assertion.val).toLowerCase() === "string") {
-      if (executeScript(assertion.val as string, response, ctx)) {
+      const assertionKey = stringReplacement(assertion.val as string, ctx.envVars)
+      if (executeScript(assertionKey, response, ctx)) {
         return true
       }
     } else {
@@ -24,7 +25,13 @@ export const runAssertion = (
   if (!assertion.key) {
     throw new Error("Must specify a key for assertion")
   }
-  const assertionValue = getKeyValue(assertion.key, response, ctx)
+  let assertionKey = undefined
+  if (typeof (assertion.key).toLowerCase() == "string") {
+    assertionKey = stringReplacement(assertion.key as string, ctx.envVars)
+  } else {
+    assertionKey = assertion.key
+  }
+  const assertionValue = getKeyValue(assertionKey, response, ctx)
   if (assertion.type == AssertionType.enum.EQ) {
     if (assertion.val instanceof Array) {
       assertion.val.some(e => e == assertionValue)
