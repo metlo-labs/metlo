@@ -95,17 +95,9 @@ export class DataFieldService {
     if (newFieldKeys.length !== oldFieldKeys.length) {
       return true
     }
-    let res = false
-    for (const field of newFieldKeys) {
-      if (!oldFields[field]) {
-        res = true
-        break
-      } else if (oldFields[field] !== newFields[field]) {
-        res = true
-        break
-      }
-    }
-    return res
+    return newFieldKeys.some(
+      e => !oldFields[e] || oldFields[e] !== newFields[e],
+    )
   }
 
   static saveDataField(
@@ -196,10 +188,11 @@ export class DataFieldService {
         }
 
         if (
+          this.traceCreatedAt > existingDataField.updatedAt &&
           this.isArrayFieldsDiff(existingDataField.arrayFields, arrayFields)
         ) {
-          updated = true
           existingDataField.arrayFields = arrayFields
+          updated = true
         }
 
         if (

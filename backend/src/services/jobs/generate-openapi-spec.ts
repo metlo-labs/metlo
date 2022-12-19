@@ -160,6 +160,87 @@ const addDataFieldToSchema = (
   }
 }
 
+const generateSchemas = (dataFields: DataField[]) => {
+  let specParameterList = []
+  let reqBodySchema = new Map<string, any>()
+  let responses = {}
+  let reqHeaderSchema = new Map<string, any>()
+  let reqQuerySchema = new Map<string, any>()
+
+  for (const dataField of dataFields) {
+    const responseStatus = dataField?.statusCode?.toString()
+    let mapTokens = dataField.dataPath?.split(".")
+    const contentType = dataField.contentType
+    if (dataField.dataSection === DataSection.REQUEST_PATH) {
+      specParameterList.push({
+        name: dataField.dataPath,
+        in: "path",
+        schema: {
+          type: dataField.dataType,
+        },
+      })
+    } else if (dataField.dataSection === DataSection.REQUEST_HEADER) {
+      if (mapTokens[0]?.length > 0) {
+        addDataFieldToSchema(reqHeaderSchema, dataField, mapTokens)
+      }
+    } else if (dataField.dataSection === DataSection.REQUEST_QUERY) {
+      if (mapTokens[0]?.length > 0) {
+        addDataFieldToSchema(reqQuerySchema, dataField, mapTokens)
+      }
+    } else if (dataField.dataSection === DataSection.REQUEST_BODY) {
+      mapTokens = mapTokens ?? [""]
+      if (contentType) {
+        addBodyDataFieldToSchema(
+          reqBodySchema,
+          dataField,
+          mapTokens,
+          contentType,
+        )
+      }
+    } else if (dataField.dataSection === DataSection.RESPONSE_HEADER) {
+      if (mapTokens[0]?.length > 0 && responseStatus) {
+        if (!responses[responseStatus]?.headers) {
+          responses[responseStatus] = {
+            description: `${responseStatus} description`,
+            ...responses[responseStatus],
+            headers: new Map<string, any>(),
+          }
+        }
+        addDataFieldToSchema(
+          responses[responseStatus].headers,
+          dataField,
+          mapTokens,
+        )
+      }
+    } else if (dataField.dataSection === DataSection.RESPONSE_BODY) {
+      mapTokens = mapTokens ?? [""]
+      if (contentType && responseStatus) {
+        if (!responses[responseStatus]?.content) {
+          responses[responseStatus] = {
+            description: `${responseStatus} description`,
+            ...responses[responseStatus],
+            content: new Map<string, any>(),
+          }
+        }
+        addBodyDataFieldToSchema(
+          responses[responseStatus].content,
+          dataField,
+          mapTokens,
+          contentType,
+        )
+      }
+    }
+  }
+
+  return {
+    specParameterList,
+    reqHeaderSchema,
+    reqQuerySchema,
+    reqBodySchema,
+    responses,
+  }
+}
+
 const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
   const queryRunner = AppDataSource.createQueryRunner()
   try {
@@ -232,76 +313,14 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
           [method]: {},
         }
 
-        let specParameterList = []
-        let reqBodySchema = new Map<string, any>()
-        let responses = {}
-        let reqHeaderSchema = new Map<string, any>()
-        let reqQuerySchema = new Map<string, any>()
+        const {
+          specParameterList,
+          reqHeaderSchema,
+          reqQuerySchema,
+          reqBodySchema,
+          responses,
+        } = generateSchemas(dataFields)
 
-        for (const dataField of dataFields) {
-          const responseStatus = dataField?.statusCode?.toString()
-          let mapTokens = dataField.dataPath?.split(".")
-          const contentType = dataField.contentType
-          if (dataField.dataSection === DataSection.REQUEST_PATH) {
-            specParameterList.push({
-              name: dataField.dataPath,
-              in: "path",
-              schema: {
-                type: dataField.dataType,
-              },
-            })
-          } else if (dataField.dataSection === DataSection.REQUEST_HEADER) {
-            if (mapTokens[0]?.length > 0) {
-              addDataFieldToSchema(reqHeaderSchema, dataField, mapTokens)
-            }
-          } else if (dataField.dataSection === DataSection.REQUEST_QUERY) {
-            if (mapTokens[0]?.length > 0) {
-              addDataFieldToSchema(reqQuerySchema, dataField, mapTokens)
-            }
-          } else if (dataField.dataSection === DataSection.REQUEST_BODY) {
-            mapTokens = mapTokens ?? [""]
-            if (contentType) {
-              addBodyDataFieldToSchema(
-                reqBodySchema,
-                dataField,
-                mapTokens,
-                contentType,
-              )
-            }
-          } else if (dataField.dataSection === DataSection.RESPONSE_HEADER) {
-            if (mapTokens[0]?.length > 0 && responseStatus) {
-              if (!responses[responseStatus]?.headers) {
-                responses[responseStatus] = {
-                  description: `${responseStatus} description`,
-                  ...responses[responseStatus],
-                  headers: new Map<string, any>(),
-                }
-              }
-              addDataFieldToSchema(
-                responses[responseStatus].headers,
-                dataField,
-                mapTokens,
-              )
-            }
-          } else if (dataField.dataSection === DataSection.RESPONSE_BODY) {
-            mapTokens = mapTokens ?? [""]
-            if (contentType && responseStatus) {
-              if (!responses[responseStatus]?.content) {
-                responses[responseStatus] = {
-                  description: `${responseStatus} description`,
-                  ...responses[responseStatus],
-                  content: new Map<string, any>(),
-                }
-              }
-              addBodyDataFieldToSchema(
-                responses[responseStatus].content,
-                dataField,
-                mapTokens,
-                contentType,
-              )
-            }
-          }
-        }
         for (const [parameter, schema] of reqQuerySchema) {
           specParameterList.push({
             name: parameter,
