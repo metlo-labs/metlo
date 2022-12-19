@@ -3,7 +3,7 @@ import yaml from "js-yaml"
 import fs from "fs"
 import ora from "ora"
 
-import { TestConfig, TestResult, TestConfigSchema } from "./types/test"
+import { TestConfig, TestConfigSchema } from "./types/test"
 import { runTest } from "./runner"
 
 const spinner = ora()
@@ -18,8 +18,7 @@ export const loadTestConfig = (path: string): TestConfig => {
   return parseRes.data
 }
 
-export const runTestPath = async (paths: string[]): Promise<TestResult[]> => {
-  let results: TestResult[] = []
+export const runTestPath = async (paths: string[]) => {
   for (let path of paths) {
     spinner.start(chalk.dim("Loading test..."))
     const test = loadTestConfig(path)
@@ -37,9 +36,7 @@ export const runTestPath = async (paths: string[]): Promise<TestResult[]> => {
       console.log(chalk.bold.red("Some Tests Failed."))
       console.log(JSON.stringify(res.results, null, 4))
     }
-    results.push(res)
   }
-  return results
 }
 
 export { TestConfig, TestResult, TestConfigSchema } from "./types/test"

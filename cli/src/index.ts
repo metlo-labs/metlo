@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 import { program } from "commander"
+import init from "./init"
 import { awsTrafficMirrorSetup } from "./aws/setup"
 import { awsTrafficMirrorList } from "./aws/list"
 import { awsTrafficMirrorRemove } from "./aws/remove"
 import { gcpTrafficMirrorSetup } from "./gcp/setup"
-import init from "./init"
 import { gcpTrafficMirrorList } from "./gcp/list"
 import { gcpTrafficMirrorDelete } from "./gcp/remove"
 import { gcpTrafficMirrorCleanUp } from "./gcp/cleanup"
@@ -23,12 +23,11 @@ program
 
 const test = program
   .command("test")
-
 test.command("generate")
-  .option("-p,--path", "Path to generate the test at")
-  .option("-t,--testType", "Type of test to generate")
-  .option("-h,--host", "The host to generate this test for")
-  .option("-e,--endpoint", "The endpoint to generate this test for")
+  .option("-p,--path <string>", "Path to generate the test at")
+  .requiredOption("-t,--testType <string>", "Type of test to generate")
+  .requiredOption("-e,--endpoint <string>", "The endpoint to generate this test for")
+  .option("-h,--host <string>", "The host to generate this test for")
   .action(generateTest);
 test.command("run")
   .argument('<paths...>')

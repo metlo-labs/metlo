@@ -151,3 +151,8 @@ export enum OperationType {
   QUERY = "query",
   MUTATION = "mutation",
 }
+
+export enum GENERATED_TEST_TYPE {
+  BROKEN_AUTHENTICATION = "BROKEN_AUTHENTICATION",
+  BOLA = "BOLA",
+}

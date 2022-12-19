@@ -47,6 +47,7 @@ import {
   getWebhooksHandler,
   updateWebhookHandler,
 } from "api/webhook"
+import registerTestingRoutes from "api/testing"
 
 const port = process.env.PORT || 8080
 RedisClient.getInstance()
@@ -116,6 +117,8 @@ apiRouter.delete("/api/v1/data-field/:dataFieldId", deleteDataFieldHandler)
 
 apiRouter.get("/api/v1/alerts", getAlertsHandler)
 apiRouter.put("/api/v1/alert/:alertId", updateAlertHandler)
+
+registerTestingRoutes(apiRouter)
 
 apiRouter.get("/api/v1/keys/list", listKeys)
 apiRouter.post("/api/v1/keys/create", createKey)
