@@ -46,7 +46,7 @@ export const makeTestRequest = (
 ): [TestRequest, KeyValType[]] => {
   const pre = valPrefix ? valPrefix + "_" : ""
   let env: KeyValType[] = []
-  const paramRegex = new RegExp("{(.*)}", "g")
+  const paramRegex = new RegExp("{([^{}]+)}", "g")
   const params = endpoint.path.matchAll(paramRegex)
   for (const param of params) {
     env.push({
