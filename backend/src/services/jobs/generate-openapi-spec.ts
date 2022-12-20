@@ -269,11 +269,9 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
         description: "An auto-generated OpenAPI 3.0 specification.",
       },
     }
-    const endpointIds = []
 
     for (let i = 0; i < endpointsToUpdate.length; i++) {
       const endpoint = endpointsToUpdate[i]
-      endpointIds.push(endpoint.uuid)
       if (hostMap[endpoint.host]) {
         hostMap[endpoint.host].push(endpoint)
       } else {
@@ -371,6 +369,7 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
       spec.updatedAt = currTime
       spec.specUpdatedAt = currTime
 
+      const endpointIds = endpoints.map(e => e.uuid)
       await getEntityManager(ctx, queryRunner).save(spec)
       if (endpointIds?.length > 0) {
         await getQB(ctx, queryRunner)
