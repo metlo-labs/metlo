@@ -303,6 +303,7 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
         paths: {},
       }
       const endpoints = hostMap[host]
+      const paths = openApiSpec["paths"]
       for (let i = 0; i < endpoints.length; i++) {
         const endpoint = endpoints[i]
         const dataFields: DataField[] = await getQB(ctx, queryRunner)
@@ -312,11 +313,11 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
           })
           .orderBy(`"updatedAt"`, "ASC")
           .getRawMany()
-        const paths = openApiSpec["paths"]
         const path = endpoint.path
         const method = endpoint.method.toLowerCase()
 
         paths[path] = {
+          ...paths[path],
           [method]: {},
         }
 
