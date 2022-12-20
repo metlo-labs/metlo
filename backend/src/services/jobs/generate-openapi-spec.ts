@@ -206,10 +206,11 @@ const generateSchemas = (dataFields: DataField[]) => {
             headers: new Map<string, any>(),
           }
         }
-        addDataFieldToSchema(
+        addBodyDataFieldToSchema(
           responses[responseStatus].headers,
           dataField,
-          mapTokens,
+          mapTokens.slice(1),
+          mapTokens[0],
         )
       }
     } else if (dataField.dataSection === DataSection.RESPONSE_BODY) {
