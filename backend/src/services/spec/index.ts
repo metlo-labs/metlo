@@ -8,7 +8,7 @@ import AdmZip from "adm-zip"
 import OpenAPIResponseValidator, {
   OpenAPIResponseValidatorValidationError,
 } from "@leoscope/openapi-response-validator"
-import { AlertType, RestMethod, SpecExtension } from "@common/enums"
+import { AlertType, RestMethod, RiskScore, SpecExtension } from "@common/enums"
 import {
   ApiEndpoint,
   ApiTrace,
@@ -368,18 +368,11 @@ export class SpecService {
     try {
       await getEntityManager(ctx, queryRunner).save(existingSpec)
       for (const item of Object.values(endpointsMap)) {
+        item.endpoint.riskScore = RiskScore.NONE
         await getEntityManager(ctx, queryRunner).save(item.endpoint)
         const similarEndpointUuids = []
         for (const e of Object.values(item.similarEndpoints)) {
           similarEndpointUuids.push(e.uuid)
-          if (
-            !item.endpoint.riskScore ||
-            (item.endpoint.riskScore &&
-              RISK_SCORE_ORDER[item.endpoint.riskScore] <
-                RISK_SCORE_ORDER[e.riskScore])
-          ) {
-            item.endpoint.riskScore = e.riskScore
-          }
           item.endpoint.updateDates(e.firstDetected)
           item.endpoint.updateDates(e.lastActive)
         }
@@ -392,9 +385,9 @@ export class SpecService {
             .andWhere(`"apiEndpointUuid" IN(:...ids)`, {
               ids: similarEndpointUuids,
             })
-          const updateAttacksQb = getQB(ctx, queryRunner)
-            .update(Attack)
-            .set({ apiEndpointUuid: item.endpoint.uuid })
+          const deleteAttacksQb = getQB(ctx, queryRunner)
+            .delete()
+            .from(Attack)
             .andWhere(`"apiEndpointUuid" IN(:...ids)`, {
               ids: similarEndpointUuids,
             })
@@ -410,23 +403,11 @@ export class SpecService {
             .andWhere(`"apiEndpointUuid" IN(:...ids)`, {
               ids: similarEndpointUuids,
             })
-          const updateAlertsQb = getQB(ctx, queryRunner)
-            .update(Alert)
-            .set({ apiEndpointUuid: item.endpoint.uuid })
-            .andWhere(`"apiEndpointUuid" IN(:...ids)`, {
-              ids: similarEndpointUuids,
-            })
-            .andWhere(`type NOT IN(:...types)`, {
-              types: [AlertType.NEW_ENDPOINT, AlertType.OPEN_API_SPEC_DIFF],
-            })
           const deleteAlertsQb = getQB(ctx, queryRunner)
             .delete()
             .from(Alert)
             .andWhere(`"apiEndpointUuid" IN(:...ids)`, {
               ids: similarEndpointUuids,
-            })
-            .andWhere(`type IN(:...types)`, {
-              types: [AlertType.NEW_ENDPOINT, AlertType.OPEN_API_SPEC_DIFF],
             })
           const deleteAggregateHourlyQb = getQB(ctx, queryRunner)
             .delete()
@@ -451,9 +432,8 @@ export class SpecService {
             item.endpoint.uuid,
           ])
           await deleteEndpointTestsQb.execute()
-          await updateAttacksQb.execute()
+          await deleteAttacksQb.execute()
           await deleteDataFieldsQb.execute()
-          await updateAlertsQb.execute()
           await deleteAlertsQb.execute()
           await queryRunner.query(insertAggregateHourlyQuery, [
             item.endpoint.uuid,
