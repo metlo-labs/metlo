@@ -304,6 +304,7 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
       }
       const endpoints = hostMap[host]
       const paths = openApiSpec["paths"]
+      const endpointIds = []
       for (let i = 0; i < endpoints.length; i++) {
         const endpoint = endpoints[i]
         const dataFields: DataField[] = await getQB(ctx, queryRunner)
@@ -361,6 +362,10 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
             delete paths[path]
           }
         }
+
+        if (paths[path]?.[method]) {
+          endpointIds.push(endpoint.uuid)
+        }
       }
       spec.spec = JSON.stringify(openApiSpec, replacer, 2)
       spec.extension = SpecExtension.JSON
@@ -370,7 +375,6 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
       spec.updatedAt = currTime
       spec.specUpdatedAt = currTime
 
-      const endpointIds = endpoints.map(e => e.uuid)
       await queryRunner.startTransaction()
       await getEntityManager(ctx, queryRunner).save(spec)
       if (endpointIds?.length > 0) {
