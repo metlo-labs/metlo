@@ -65,7 +65,8 @@ SELECT
   "apiEndpointUuid",
   "statusCode",
   "contentType",
-  "arrayFields"
+  "arrayFields",
+  "isNullable"
 FROM
   ${DataField.getTableName(ctx)} data_field
 WHERE

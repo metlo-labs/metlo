@@ -208,6 +208,7 @@ export interface DataField {
   apiEndpointUuid: string
   statusCode: number
   contentType: string
+  isNullable: boolean
   arrayFields: Record<string, number>
 }
 
