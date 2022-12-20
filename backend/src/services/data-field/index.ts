@@ -148,6 +148,10 @@ export class DataFieldService {
         existingDataField.arrayFields = { ...arrayFields }
       }
 
+      if (!existingDataField.isNullable && dataType === DataType.UNKNOWN) {
+        existingDataField.isNullable = true
+      }
+
       if (
         existingDataField.dataType !== dataType &&
         this.traceCreatedAt > existingDataField.updatedAt &&
@@ -176,6 +180,7 @@ export class DataFieldService {
           dataField.updatedAt = this.traceCreatedAt
           dataField.contentType = contentType
           dataField.statusCode = statusCode
+          dataField.isNullable = dataType === DataType.UNKNOWN
           dataField.arrayFields = { ...arrayFields }
           if (dataClass) {
             addDataClass(dataField, dataClass)
@@ -198,6 +203,11 @@ export class DataFieldService {
           this.isArrayFieldsDiff(existingDataField.arrayFields, arrayFields)
         ) {
           existingDataField.arrayFields = { ...arrayFields }
+          updated = true
+        }
+
+        if (!existingDataField.isNullable && dataType === DataType.UNKNOWN) {
+          existingDataField.isNullable = true
           updated = true
         }
 

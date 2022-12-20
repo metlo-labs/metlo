@@ -14,6 +14,9 @@ export class addApiSpecColumnsToDataField1671340964662
       `ALTER TABLE "data_field" ADD COLUMN IF NOT EXISTS "arrayFields" jsonb`,
     )
     await queryRunner.query(
+      `ALTER TABLE "data_field" ADD COLUMN IF NOT EXISTS "isNullable" boolean`
+    )
+    await queryRunner.query(
       `ALTER TABLE "data_field" DROP CONSTRAINT "unique_constraint_data_field"`,
     )
     await queryRunner.query(
@@ -33,6 +36,9 @@ export class addApiSpecColumnsToDataField1671340964662
     )
     await queryRunner.query(
       `ALTER TABLE "data_field" DROP COLUMN IF EXISTS "arrayFields"`,
+    )
+    await queryRunner.query(
+      `ALTER TABLE "data_field" DROP COLUMN IF EXISTS "isNullable"`,
     )
     await queryRunner.query(
       `ALTER TABLE "data_field" ADD CONSTRAINT "unique_constraint_data_field" UNIQUE ("dataSection", "dataPath", "apiEndpointUuid")`,

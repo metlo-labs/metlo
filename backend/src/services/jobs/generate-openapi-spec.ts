@@ -46,22 +46,32 @@ const addArrayToSchema = (
 const addLeafToSchema = (
   schema: Map<string, any>,
   dataType: DataType,
+  isNullable: boolean,
   name?: string,
 ) => {
-  schema.delete("properties")
-  schema.delete("items")
   if (dataType === DataType.UNKNOWN) {
     if (name) {
-      schema.set(name, new Map<string, any>([["nullable", true]]))
-    } else {
-      schema.set("nullable", true)
+      if (!schema.get(name)) {
+        schema.set(name, new Map<string, any>())
+      }
+      schema = schema.get(name)
     }
+    schema.delete("properties")
+    schema.delete("items")
+    schema.set("nullable", true)
   } else {
     if (name) {
-      schema.set(name, new Map<string, any>([["type", dataType]]))
-    } else {
-      schema.set("type", dataType)
+      if (!schema.get(name)) {
+        schema.set(name, new Map<string, any>())
+      }
+      schema = schema.get(name)
     }
+    schema.delete("properties")
+    schema.delete("items")
+    if (isNullable) {
+      schema.set("nullable", true)
+    }
+    schema.set("type", dataType)
   }
 }
 
@@ -121,7 +131,7 @@ const addDataFieldToSchema = (
     curr = addObjectToSchema(curr)
   }
   if (mapTokens.length === 0 || mapTokens[0]?.length === 0) {
-    addLeafToSchema(curr, dataField.dataType)
+    addLeafToSchema(curr, dataField.dataType, dataField.isNullable)
     return
   }
   let i: number
@@ -134,9 +144,9 @@ const addDataFieldToSchema = (
       const arrayFieldDepth = dataField.arrayFields?.[fullPath]
       if (arrayFieldDepth) {
         curr = addArrayToSchema(curr, arrayFieldDepth, name)
-        addLeafToSchema(curr, dataField.dataType)
+        addLeafToSchema(curr, dataField.dataType, dataField.isNullable)
       } else {
-        addLeafToSchema(curr, dataField.dataType, name)
+        addLeafToSchema(curr, dataField.dataType, dataField.isNullable, name)
       }
     } else {
       const arrayFieldDepth = dataField.arrayFields?.[fullPath]
