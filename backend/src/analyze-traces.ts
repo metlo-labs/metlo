@@ -144,6 +144,14 @@ const analyze = async (
   }
 
   await queryRunner.startTransaction()
+
+  if (Array.isArray(trace.requestBody)) {
+    trace.requestBody = JSON.stringify(trace.requestBody)
+  }
+  if (Array.isArray(trace.responseBody)) {
+    trace.responseBody = JSON.stringify(trace.responseBody)
+  }
+
   await retryTypeormTransaction(
     () =>
       getEntityManager(ctx, queryRunner).insert(ApiTrace, [
