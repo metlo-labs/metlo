@@ -1,3 +1,4 @@
+import MIMEType from "whatwg-mimetype"
 import { PairObject, QueuedApiTrace } from "@common/types"
 import { DataClass, DataSection, DataTag, DataType } from "@common/enums"
 import { ApiEndpoint, DataField } from "models"
@@ -25,15 +26,19 @@ export class DataFieldService {
     for (const requestHeader of requestHeaders) {
       const lower = requestHeader.name.toLowerCase()
       if (lower === "content-type") {
-        reqContentType = requestHeader.value
-        break
+        try {
+          reqContentType = new MIMEType(requestHeader.value)?.essence
+          break
+        } catch {}
       }
     }
     for (const responseHeader of responseHeaders) {
       const lower = responseHeader.name.toLowerCase()
       if (lower === "content-type") {
-        resContentType = responseHeader.value
-        break
+        try {
+          resContentType = new MIMEType(responseHeader.value)?.essence
+          break
+        } catch {}
       }
     }
     return {
