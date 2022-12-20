@@ -370,6 +370,7 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
       spec.specUpdatedAt = currTime
 
       const endpointIds = endpoints.map(e => e.uuid)
+      await queryRunner.startTransaction()
       await getEntityManager(ctx, queryRunner).save(spec)
       if (endpointIds?.length > 0) {
         await getQB(ctx, queryRunner)
@@ -378,6 +379,7 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
           .andWhere("uuid IN(:...ids)", { ids: endpointIds })
           .execute()
       }
+      await queryRunner.commitTransaction()
     }
   } catch (err) {
     console.error(`Encountered error while generating OpenAPI specs: ${err}`)
