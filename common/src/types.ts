@@ -259,6 +259,7 @@ export interface OpenApiSpec {
   createdAt: Date
   updatedAt: Date
   hosts: string[]
+  specUpdatedAt: Date
 }
 
 export interface Connection {

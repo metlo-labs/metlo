@@ -40,8 +40,8 @@ const APISpecList: React.FC<APISpecListProps> = React.memo(({ apiSpecs }) => {
       const title = errMessage
         ? `Upload Failed: ${errMessage}`
         : "Upload Failed..."
-      const errorMsg = err.response.data?.error
-      const description = errorMsg ?? err.response.data
+      const msgDetail = err.response.data?.error
+      const description = msgDetail ?? err.response.data
       toast(
         makeToast(
           {
