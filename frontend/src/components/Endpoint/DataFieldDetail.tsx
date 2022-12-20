@@ -21,6 +21,7 @@ import {
 import { deleteDataField, updateDataFieldClasses } from "api/dataFields"
 import { DataClass, RiskScore } from "@common/enums"
 import { DataFieldTagList } from "./DataFieldTags"
+import { statusCodeToColor } from "components/utils/StatusCode"
 
 interface DataFieldDetailProps {
   dataField: DataField
@@ -149,6 +150,44 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
               </Code>
             </VStack>
           </GridItem>
+          {currDataField.statusCode ? (
+            <GridItem>
+              <VStack alignItems="flex-start">
+                <Text fontWeight="semibold">Status Code</Text>
+                <Badge
+                  fontSize="sm"
+                  px="2"
+                  py="1"
+                  colorScheme={
+                    statusCodeToColor(currDataField.statusCode) || "gray"
+                  }
+                  data-tag="allowRowEvents"
+                >
+                  {currDataField.statusCode}
+                </Badge>
+              </VStack>
+            </GridItem>
+          ) : null}
+          {currDataField.contentType ? (
+            <GridItem>
+              <VStack alignItems="flex-start">
+                <Text fontWeight="semibold">Content Type</Text>
+                <Code p="1" rounded="md" fontSize="sm">
+                  {currDataField.contentType}
+                </Code>
+              </VStack>
+            </GridItem>
+          ) : null}
+          {currDataField.isNullable !== null ? (
+            <GridItem>
+              <VStack alignItems="flex-start">
+                <Text fontWeight="semibold">Nullable</Text>
+                <Code p="1" rounded="md" fontSize="sm">
+                  {currDataField.isNullable.toString()}
+                </Code>
+              </VStack>
+            </GridItem>
+          ) : null}
           {currDataField.dataTag && (
             <GridItem>
               <VStack alignItems="flex-start">

@@ -202,6 +202,10 @@ export interface DataField {
   updatedAt: Date
   matches: Record<DataClass, string[]>
   apiEndpointUuid: string
+  statusCode: number
+  contentType: string
+  isNullable: boolean
+  arrayFields: Record<string, number>
 }
 
 export interface ApiEndpoint {
@@ -243,6 +247,7 @@ export interface OpenApiSpec {
   createdAt: Date
   updatedAt: Date
   hosts: string[]
+  specUpdatedAt: Date
 }
 
 export interface Connection {

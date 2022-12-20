@@ -32,7 +32,7 @@ const main = async () => {
   const logAggregateStatsSem = semaphore(1)
   const checkForUnauthenticatedSem = semaphore(1)
 
-  schedule.scheduleJob("*/10 * * * *", () => {
+  schedule.scheduleJob("*/60 * * * *", () => {
     generateSpecSem.take(async () => {
       log("Generating OpenAPI Spec Files...", true)
       await generateOpenApiSpec(ctx)

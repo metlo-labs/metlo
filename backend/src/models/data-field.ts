@@ -82,6 +82,23 @@ export class DataField extends MetloBaseEntity {
   @Column({ nullable: false, default: "" })
   dataPath: string
 
+  @Column({ nullable: true })
+  statusCode: number
+
+  @Column({ nullable: true })
+  contentType: string
+
+  /**
+   * Used to indicate which fields in the object of the dataPath are of type array.
+   * The key of the Record indicates the field path in the object (e.g., field1.field2)
+   * and the value is a number which indicates how deeply nested the array is (must be at least 1).
+   */
+  @Column({ type: "jsonb", nullable: true })
+  arrayFields: Record<string, number>
+
+  @Column({ nullable: true })
+  isNullable: boolean
+
   @Column({ type: "jsonb", nullable: false, default: {} })
   matches: Record<DataClass, string[]>
 

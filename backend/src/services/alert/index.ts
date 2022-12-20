@@ -517,12 +517,12 @@ export class AlertService {
           }
           newAlert.description = key
           alerts.push(newAlert)
+          await getQB(ctx, queryRunner)
+            .update(OpenApiSpec)
+            .set({ minimizedSpecContext: openApiSpec.minimizedSpecContext })
+            .andWhere("name = :name", { name: openApiSpec.name })
+            .execute()
         }
-        await getQB(ctx, queryRunner)
-          .update(OpenApiSpec)
-          .set({ minimizedSpecContext: openApiSpec.minimizedSpecContext })
-          .andWhere("name = :name", { name: openApiSpec.name })
-          .execute()
       }
       return alerts
     } catch (err) {

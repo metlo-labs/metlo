@@ -77,7 +77,8 @@ const SpecList: React.FC<SpecListProps> = React.memo(({ apiSpecs }) => {
     {
       name: "Last Updated",
       sortable: true,
-      selector: (row: OpenApiSpec) => getDateTimeString(row.updatedAt) || "",
+      selector: (row: OpenApiSpec) =>
+        getDateTimeString(row.specUpdatedAt ?? row.updatedAt) || "",
       id: "lastUpdated",
     },
   ]
