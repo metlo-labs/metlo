@@ -12,6 +12,7 @@ import { MetloContext } from "types"
 export class DataFieldService {
   static dataFields: Record<string, DataField>
   static updatedFields: Record<string, DataField>
+  static newFields: Record<string, DataField>
   static traceCreatedAt: Date
   static dataFieldsLength: number
 
@@ -144,7 +145,7 @@ export class DataFieldService {
       }
 
       if (this.isArrayFieldsDiff(existingDataField.arrayFields, arrayFields)) {
-        existingDataField.arrayFields = arrayFields
+        existingDataField.arrayFields = { ...arrayFields }
       }
 
       if (
@@ -156,7 +157,12 @@ export class DataFieldService {
       }
 
       existingDataField.updatedAt = this.traceCreatedAt
-      this.updatedFields[existingMatch] = existingDataField
+      this.dataFields[existingMatch] = existingDataField
+      if (this.newFields[existingMatch]) {
+        this.newFields[existingMatch] = existingDataField
+      } else {
+        this.updatedFields[existingMatch] = existingDataField
+      }
     } else {
       if (!this.dataFields[existingMatch]) {
         if (this.dataFieldsLength < 200) {
@@ -170,13 +176,13 @@ export class DataFieldService {
           dataField.updatedAt = this.traceCreatedAt
           dataField.contentType = contentType
           dataField.statusCode = statusCode
-          dataField.arrayFields = arrayFields
+          dataField.arrayFields = { ...arrayFields }
           if (dataClass) {
             addDataClass(dataField, dataClass)
             dataField.dataTag = DataTag.PII
           }
           this.dataFields[existingMatch] = dataField
-          this.updatedFields[existingMatch] = dataField
+          this.newFields[existingMatch] = dataField
           this.dataFieldsLength += 1
         }
       } else {
@@ -191,7 +197,7 @@ export class DataFieldService {
           this.traceCreatedAt > existingDataField.updatedAt &&
           this.isArrayFieldsDiff(existingDataField.arrayFields, arrayFields)
         ) {
-          existingDataField.arrayFields = arrayFields
+          existingDataField.arrayFields = { ...arrayFields }
           updated = true
         }
 
@@ -205,7 +211,12 @@ export class DataFieldService {
         }
         if (updated) {
           existingDataField.updatedAt = this.traceCreatedAt
-          this.updatedFields[existingMatch] = existingDataField
+          this.dataFields[existingMatch] = existingDataField
+          if (this.newFields[existingMatch]) {
+            this.newFields[existingMatch] = existingDataField
+          } else {
+            this.updatedFields[existingMatch] = existingDataField
+          }
         }
       }
     }
@@ -399,7 +410,7 @@ export class DataFieldService {
     apiTrace: QueuedApiTrace,
     apiEndpoint: ApiEndpoint,
     returnAllFields?: boolean,
-  ): DataField[] {
+  ): { newFields: DataField[]; updatedFields: DataField[] } {
     const statusCode = apiTrace.responseStatus
     const { reqContentType, resContentType } = this.getContentTypes(
       apiTrace.requestHeaders,
@@ -415,6 +426,7 @@ export class DataFieldService {
     }, {})
     this.dataFieldsLength = apiEndpoint.dataFields.length ?? 0
     this.updatedFields = {}
+    this.newFields = {}
     this.traceCreatedAt = apiTrace.createdAt
     this.findPathDataFields(apiTrace.path, apiEndpoint)
     if (statusCode < 400) {
@@ -455,10 +467,10 @@ export class DataFieldService {
       statusCode,
     )
     const res = Object.values(this.dataFields)
-    if (returnAllFields) {
-      return res
-    }
     apiEndpoint.riskScore = getRiskScore(res)
-    return Object.values(this.updatedFields)
+    return {
+      newFields: Object.values(this.newFields) ?? [],
+      updatedFields: Object.values(this.updatedFields) ?? [],
+    }
   }
 }
