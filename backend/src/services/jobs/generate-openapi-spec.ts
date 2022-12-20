@@ -273,6 +273,7 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
 
     for (let i = 0; i < endpointsToUpdate.length; i++) {
       const endpoint = endpointsToUpdate[i]
+      endpointIds.push(endpoint.uuid)
       if (hostMap[endpoint.host]) {
         hostMap[endpoint.host].push(endpoint)
       } else {
@@ -354,7 +355,6 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
           }
         }
         if (Object.keys(responses).length > 0) {
-          endpointIds.push(endpoint.uuid)
           paths[path][method]["responses"] = { ...responses }
         } else {
           delete paths[path][method]
