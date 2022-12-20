@@ -361,11 +361,13 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
       spec.specUpdatedAt = currTime
 
       await getEntityManager(ctx, queryRunner).save(spec)
-      await getQB(ctx, queryRunner)
-        .update(ApiEndpoint)
-        .set({ openapiSpecName: spec.name })
-        .andWhere("uuid IN(:...ids)", { ids: endpointIds })
-        .execute()
+      if (endpointIds?.length > 0) {
+        await getQB(ctx, queryRunner)
+          .update(ApiEndpoint)
+          .set({ openapiSpecName: spec.name })
+          .andWhere("uuid IN(:...ids)", { ids: endpointIds })
+          .execute()
+      }
     }
   } catch (err) {
     console.error(`Encountered error while generating OpenAPI specs: ${err}`)
