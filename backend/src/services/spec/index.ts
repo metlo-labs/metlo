@@ -215,7 +215,7 @@ export class SpecService {
     if (validationErrors?.length > 0) {
       throw new Error422UnprocessableEntity("Invalid OpenAPI Spec", {
         message: "Invalid OpenAPI Spec",
-        errors: validationErrors,
+        error: validationErrors[0],
       })
     }
     if (specVersion === 2) {
