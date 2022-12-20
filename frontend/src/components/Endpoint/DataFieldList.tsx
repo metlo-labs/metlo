@@ -25,6 +25,7 @@ import DataFieldDetail from "./DataFieldDetail"
 import EmptyView from "components/utils/EmptyView"
 import { DataSection } from "@common/enums"
 import { DATA_SECTION_TO_LABEL_MAP } from "@common/maps"
+import { statusCodeToColor } from "components/utils/StatusCode"
 
 interface DataFieldListProps {
   dataFields: DataField[]
@@ -76,6 +77,36 @@ const columns: TableColumn<DataField>[] = [
     ),
     id: "riskScore",
     grow: 0.5,
+  },
+  {
+    name: "Status",
+    selector: (row: DataField) => row.statusCode,
+    cell: (row: DataField) => (
+      <Box pointerEvents="none">
+        {row.statusCode ? (
+          <Badge
+            fontSize="sm"
+            px="2"
+            py="1"
+            colorScheme={statusCodeToColor(row.statusCode) || "gray"}
+            data-tag="allowRowEvents"
+          >
+            {row.statusCode}
+          </Badge>
+        ) : null}
+      </Box>
+    ),
+    grow: 0.5,
+  },
+  {
+    name: "Content Type",
+    selector: (row: DataField) => row.contentType,
+    cell: (row: DataField) => (
+      <Box pointerEvents="none">
+        {row.contentType ? <Code p="1">{row.contentType}</Code> : null}
+      </Box>
+    ),
+    grow: 1,
   },
   {
     name: "Sensitive Data Classes",

@@ -53,6 +53,8 @@ WHERE
   "apiEndpointUuid" = $1
 ORDER BY
   "dataTag" ASC,
+  "statusCode" ASC,
+  "contentType" ASC,
   "dataPath" ASC
 `
 
