@@ -102,7 +102,7 @@ const columns: TableColumn<DataField>[] = [
     name: "Content Type",
     selector: (row: DataField) => row.contentType,
     cell: (row: DataField) => (
-      <Box pointerEvents="none">
+      <Box pointerEvents="none" py={2}>
         {row.contentType ? <Code p="1">{row.contentType}</Code> : null}
       </Box>
     ),
