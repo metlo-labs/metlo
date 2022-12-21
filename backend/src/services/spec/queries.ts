@@ -36,7 +36,6 @@ export const insertAggregateHourlyQuery = (ctx: MetloContext) => `
       SUM("numCalls") as "numCalls",
       $1 as "apiEndpointUuid"
   FROM ${AggregateTraceDataHourly.getTableName(ctx)} agg
-  FROM "aggregate_trace_data_hourly"
   WHERE "apiEndpointUuid" = ANY($2)
   GROUP BY 1
 `
