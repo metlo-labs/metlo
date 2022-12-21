@@ -10,6 +10,7 @@ import {
   getEndpointsHandler,
   getHostsHandler,
   getHostsListHandler,
+  getSuggestedPathsHandler,
   getUsageHandler,
   updateEndpointIsAuthenticated,
 } from "api/get-endpoints"
@@ -48,6 +49,7 @@ import {
   updateWebhookHandler,
 } from "api/webhook"
 import registerTestingRoutes from "api/testing"
+import { getTopSuggestedPaths } from "services/get-endpoints/path-heuristic"
 
 const port = process.env.PORT || 8080
 RedisClient.getInstance()
@@ -90,6 +92,7 @@ apiRouter.put(
   updateEndpointIsAuthenticated,
 )
 apiRouter.delete("/api/v1/endpoint/:endpointId", deleteEndpointHandler)
+apiRouter.get("/api/v1/endpoint/:endpointId/suggested-paths", getSuggestedPathsHandler)
 apiRouter.delete("/api/v1/host", deleteHostHandler)
 apiRouter.get("/api/v1/hosts", getHostsListHandler)
 apiRouter.get("/api/v1/hosts-graph", getHostsGraphHandler)
