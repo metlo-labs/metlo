@@ -1,5 +1,6 @@
 package com.metlo.spring.utils;
 
+// Min Java version 7 (since GSON 2.9)
 import com.google.gson.Gson;
 
 import java.io.IOException;

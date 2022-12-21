@@ -3,9 +3,12 @@ package com.metlo.spring;
 import com.metlo.spring.utils.ContentCachingResponseWrapperWithHeaderNames;
 import com.metlo.spring.utils.RateLimitingRequests;
 
+// Should be supported in every version 2003+
 import org.springframework.web.filter.OncePerRequestFilter;
+// Min spring version 4.1.3, Java Version 8
 import org.springframework.web.util.ContentCachingRequestWrapper;
 
+// Min Servlet 2.3
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -68,6 +71,7 @@ public class Metlo extends OncePerRequestFilter {
                     response.getCharacterEncoding());
 
             this.req.send(createDataBinding(requestWrapper, responseWrapper, requestBody, responseBody));
+            // copyBodyToResponse requires min Spring 4.2.0
             responseWrapper.copyBodyToResponse();
         }
     }
@@ -112,6 +116,22 @@ public class Metlo extends OncePerRequestFilter {
         } catch (Exception e) {
             RESPONSE.put("headers", new ArrayList<Map<String, String>>());
         }
+        boolean foundContentType = false;
+        for (Map<String, String> header : (ArrayList<Map<String, String>>) RESPONSE.get("headers")) {
+            if (header.get("name").equals("Content-Type")) {
+                header.put("value", response.getResponse().getContentType());
+                foundContentType = true;
+                break;
+            }
+        }
+        if (!foundContentType) {
+            Map<String, String> entry = new HashMap<String, String>();
+            entry.put("name", "Content-Type");
+            entry.put("value", response.getResponse().getContentType());
+            ((ArrayList<Map<String, String>>) RESPONSE.get("headers")).add(entry);
+        }
+
+
         RESPONSE.put("body", response_body);
 
         META.put("source", request.getRemoteAddr());
@@ -142,8 +162,8 @@ public class Metlo extends OncePerRequestFilter {
 
     private List<Map<String, String>> listRequestHeaderFormat(Enumeration<String> headerNames, Function<String, String> headerValueForName) throws Exception {
         List<Map<String, String>> headers = new ArrayList<Map<String, String>>();
-        for (Iterator<String> headerNameIter = headerNames.asIterator(); headerNameIter.hasNext(); ) {
-            String headerName = headerNameIter.next();
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
             String headerValue = headerValueForName.apply(headerName);
             Map<String, String> individualHeader = new HashMap<String, String>();
             individualHeader.put("name", headerName);

@@ -1,5 +1,6 @@
 package com.metlo.spring.utils;
 
+// Min spring version 4.1.3
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import javax.servlet.http.HttpServletResponse;
