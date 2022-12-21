@@ -22,7 +22,7 @@ const clearApiTraces = async (ctx: MetloContext): Promise<void> => {
 
     if (maxTime) {
       await queryRunner.startTransaction()
-      await queryRunner.query(aggregateTracesDataHourlyQuery, [maxTime])
+      await queryRunner.query(aggregateTracesDataHourlyQuery(ctx), [maxTime])
       await getQB(ctx, queryRunner)
         .delete()
         .from(ApiTrace)
