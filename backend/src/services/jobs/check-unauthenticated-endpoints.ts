@@ -15,7 +15,7 @@ const checkForUnauthenticatedEndpoints = async (
   const queryRunner = AppDataSource.createQueryRunner()
   try {
     await queryRunner.connect()
-    await queryRunner.query(updateUnauthenticatedEndpoints)
+    await queryRunner.query(updateUnauthenticatedEndpoints(ctx))
     const endpointsToAlert = await queryRunner.query(
       getUnauthenticatedEndpointsSensitiveData(ctx),
       [
