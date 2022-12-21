@@ -316,7 +316,7 @@ export class DataFieldService {
     statusCode: number,
   ): void {
     if (!body) {
-      return
+      body = ""
     }
     const jsonBody = parsedJson(body)
     if (jsonBody) {
