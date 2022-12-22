@@ -146,7 +146,7 @@
     ajv "^8.4.0"
     openapi-types "^12.0.2"
 
-"@metlo/testing@^0.1.4":
+"@metlo/testing@^0.1.5":
   version "0.1.5"
   resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.1.5.tgz#645da821b28678c86ca7adb45625cbd9c70fd44b"
   integrity sha512-PCB3mtF1MdHtkW/JMtfsT8pDnF1MrwFm4BIxcByj6fXR7rUA62wIcIHonLs2vqos9kc0hFGKfJcGvBNEErBcfQ==
