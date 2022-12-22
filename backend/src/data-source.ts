@@ -32,6 +32,7 @@ import { addWebhookTable1670447292139 } from "migrations/1670447292139-add-webho
 import { addEndpointIps1670653006577 } from "migrations/1670653006577-add_endpoint_ips"
 import { addHostsColumnToWebhook1671143857165 } from "migrations/1671143857165-add-hosts-column-to-webhook"
 import { addApiSpecColumnsToDataField1671511060114 } from "migrations/1671511060114-add-api-spec-columns-to-data-field"
+import { addUniqueNullIndexForDataField1671609270282 } from "migrations/1671609270282-add-unique-null-index-for-data-field"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -69,6 +70,7 @@ export const AppDataSource: DataSource = new DataSource({
     addEndpointIps1670653006577,
     addHostsColumnToWebhook1671143857165,
     addApiSpecColumnsToDataField1671511060114,
+    addUniqueNullIndexForDataField1671609270282,
   ],
   migrationsRun: runMigration,
   logging: false,
