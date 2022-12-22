@@ -1,8 +1,27 @@
-import { TestStep, TestResult } from "../types/test"
+import { TestStep, TestResult, StepResult, StepResponse } from "../types/test"
 import { Context } from "../types/context"
 import { makeRequest } from "./request"
 import { runAssertion } from "./assertions"
 import { runExtractor } from "./extractors"
+import { AxiosResponse } from "axios"
+
+const axiosRespToStepResponse = (res: AxiosResponse): StepResponse => ({
+  data: res.data,
+  status: res.status,
+  statusText: res.statusText,
+  headers: Object.entries(res.headers).map(([key, val]) => {
+    let strVal: string = ""
+    if (Array.isArray(val)) {
+      strVal = val.join(",")
+    } else if (val) {
+      strVal = val
+    }
+    return {
+      name: key,
+      value: strVal,
+    }
+  }),
+})
 
 export const runStep = async (
   idx: number,
@@ -10,47 +29,49 @@ export const runStep = async (
   nextSteps: TestStep[],
   ctx: Context,
 ): Promise<TestResult> => {
-  const res = await makeRequest(step.request, ctx)
+  let res: AxiosResponse | null = null
+  let err: string | null = null
+  try {
+    res = await makeRequest(step.request, ctx)
+  } catch (e: any) {
+    err = e.message
+  }
+
   const host = new URL(step.request.url).host
   const currUrlCookies = ctx.cookies[host] || {}
-  res.headers["set-cookie"]?.forEach(cookie => {
-    const [name, value] = (cookie.split(";").at(-1) || "").split("=")
-    if (name && value) {
-      currUrlCookies[name] = value
+
+  let stepResult: StepResult | null = null
+  if (res !== null) {
+    res.headers["set-cookie"]?.forEach(cookie => {
+      const [name, value] = (cookie.split(";").at(-1) || "").split("=")
+      if (name && value) {
+        currUrlCookies[name] = value
+      }
+    })
+    ctx.cookies[host] = currUrlCookies
+
+    for (const e of step.extract || []) {
+      ctx = runExtractor(e, res, ctx)
     }
-  })
-  ctx.cookies[host] = currUrlCookies
+    let assertions: boolean[] = (step.assert || []).map(e =>
+      runAssertion(e, res as AxiosResponse, ctx),
+    )
 
-  for (const e of step.extract || []) {
-    ctx = runExtractor(e, res, ctx)
-  }
-  let assertions: boolean[] = (step.assert || []).map(e =>
-    runAssertion(e, res, ctx),
-  )
-
-  const stepResult = {
-    idx,
-    ctx,
-    success: assertions.every(e => e),
-    assertions,
-    res: {
-      data: res.data,
-      status: res.status,
-      statusText: res.statusText,
-      headers: Object.entries(res.headers).map(([key, val]) => {
-        let strVal: string = ""
-        if (Array.isArray(val)) {
-          strVal = val.join(",")
-        } else if (val) {
-          strVal = val
-        }
-        return {
-          name: key,
-          value: strVal,
-        }
-      }),
-    },
-    err: "",
+    stepResult = {
+      idx,
+      ctx,
+      success: assertions.every(e => e),
+      assertions,
+      res: axiosRespToStepResponse(res),
+    }
+  } else {
+    stepResult = {
+      idx,
+      ctx,
+      success: false,
+      assertions: [],
+      err: err as string,
+    }
   }
 
   const nextStep = nextSteps.shift()
