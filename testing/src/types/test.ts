@@ -4,6 +4,12 @@ import { AssertionType, ExtractorType, Severity, Method } from "./enums"
 import { IDRegex } from "./constants"
 import { Context } from "./context"
 
+export const PrimitiveValueSchema = z.union([
+  z.string(),
+  z.number(),
+  z.boolean(),
+])
+
 export const MetaSchema = z.object({
   name: z.string().optional(),
   severity: Severity.optional(),
@@ -12,7 +18,12 @@ export const MetaSchema = z.object({
 
 export const KeyValSchema = z.object({
   name: z.string(),
-  value: z.string(),
+  value: PrimitiveValueSchema.transform(e => {
+    if (typeof e == "string") {
+      return e
+    }
+    return JSON.stringify(e)
+  }),
 })
 
 export const RequestSchema = z.object({
@@ -27,19 +38,13 @@ export const RequestSchema = z.object({
 export const ExtractorSchema = z.object({
   name: z.string(),
   type: ExtractorType.default(ExtractorType.enum.VALUE),
-  val: z.string(),
+  value: z.string(),
 })
-
-export const PrimitiveValueSchema = z.union([
-  z.string(),
-  z.number(),
-  z.boolean(),
-])
 
 export const AssertionSchema = z.object({
   type: AssertionType.default(AssertionType.enum.EQ),
   key: z.string().optional(),
-  val: z.union([PrimitiveValueSchema, PrimitiveValueSchema.array()]),
+  value: z.union([PrimitiveValueSchema, PrimitiveValueSchema.array()]),
 })
 
 export const TestStepSchema = z.object({
@@ -62,15 +67,33 @@ export type TestRequest = z.infer<typeof RequestSchema>
 export type TestStep = z.infer<typeof TestStepSchema>
 export type TestConfig = z.infer<typeof TestConfigSchema>
 
+export interface StepResponse {
+  data: any
+  status: number
+  statusText: string
+  headers: KeyValType[]
+}
+
 export interface StepResult {
   idx: number
   ctx: Context
   success: boolean
   err: string
   assertions: boolean[]
+  res: StepResponse
+}
+
+export interface FailedAssertion {
+  stepIdx: number
+  stepRunIdx: number
+  assertionIdx: number
+  ctx: Context
+  assertion: Assertion
+  res: StepResponse
 }
 
 export interface TestResult {
   success: boolean
+  test?: TestConfig
   results: StepResult[][]
 }

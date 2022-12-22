@@ -2,26 +2,49 @@ import axios from "axios"
 
 import { TestRequest } from "../types/test"
 import { Context } from "../types/context"
-import { processEnvVars } from "../utils"
+import { stringReplacement } from "../utils"
+
+const BLOCKED_HOSTS = new Set(process.env.METLO_TEST_BLOCKED_HOSTS?.split(","))
 
 export const makeRequest = async (req: TestRequest, ctx: Context) => {
-  const currentUrl = processEnvVars(req.url, ctx.envVars)
+  const currentUrl = stringReplacement(req.url, ctx.envVars)
   const urlObj = new URL(req.url)
+
+  if (BLOCKED_HOSTS.has(urlObj.host)) {
+    throw new Error(`Host ${urlObj.host} is not allowed...`)
+  }
+
   const host = urlObj.host
   const queryParams = req.query
-    ?.map(({ name, value }) => `${name}=${value}`)
-    .join(",")
+    ?.map(
+      ({ name, value }) =>
+        `${stringReplacement(name, ctx.envVars)}=${stringReplacement(
+          value,
+          ctx.envVars,
+        )}`,
+    )
+    .join("&")
   const currUrlCookies = ctx.cookies[host] || {}
-  const headers: Record<string, string> = {}
+  const headers: Record<string, string> = Object.fromEntries(
+    (req.headers || []).map(({ name, value }) => [
+      stringReplacement(name, ctx.envVars),
+      stringReplacement(value, ctx.envVars),
+    ]),
+  )
 
   let data: any = undefined
   if (req.form) {
     headers["Content-Type"] = "multipart/form-data"
     const formData = new FormData()
-    req.form.forEach(({ name, value }) => formData.append(name, value))
+    req.form.forEach(({ name, value }) =>
+      formData.append(
+        stringReplacement(name, ctx.envVars),
+        stringReplacement(value, ctx.envVars),
+      ),
+    )
     data = formData
-  } else {
-    data = req.data
+  } else if (req.data) {
+    data = stringReplacement(req.data, ctx.envVars)
   }
 
   headers["Cookie"] = Object.entries(currUrlCookies)
@@ -30,8 +53,13 @@ export const makeRequest = async (req: TestRequest, ctx: Context) => {
     })
     .join(";")
 
+  let url = currentUrl
+  if ((queryParams || "").length > 0) {
+    url = currentUrl + `?${queryParams}`
+  }
+
   return await axios({
-    url: currentUrl + ((queryParams || "").length > 0 ? `?${queryParams}` : ""),
+    url,
     method: req.method,
     headers: headers,
     data: req.data,

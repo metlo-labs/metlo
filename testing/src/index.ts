@@ -3,7 +3,12 @@ import yaml from "js-yaml"
 import fs from "fs"
 import ora from "ora"
 
-import { TestConfig, TestConfigSchema } from "./types/test"
+import {
+  FailedAssertion,
+  TestConfig,
+  TestConfigSchema,
+  TestResult,
+} from "./types/test"
 import { runTest } from "./runner"
 
 const spinner = ora()
@@ -36,8 +41,34 @@ export const loadTestConfig = (path: string): TestConfig => {
   return parseRes.data
 }
 
+export const getFailedAssertions = (res: TestResult) => {
+  if (!res.test) {
+    throw new Error("Result doesn't have test")
+  }
+  const test = res.test
+  let failedAssertions: FailedAssertion[] = []
+  res.results.forEach((steps, stepIdx) => {
+    steps.forEach((stepRun, stepRunIdx) => {
+      stepRun.assertions.forEach((success, assertionIdx) => {
+        if (!success) {
+          failedAssertions.push({
+            stepIdx,
+            stepRunIdx,
+            assertionIdx,
+            ctx: stepRun.ctx,
+            assertion: (test.test[stepIdx].assert || [])[assertionIdx],
+            res: stepRun.res,
+          })
+        }
+      })
+    })
+  })
+  return failedAssertions
+}
+
 export const runTestPath = async (paths: string[]) => {
   for (let path of paths) {
+    console.log(chalk.gray(`Running test at path "${path}":`))
     spinner.start(chalk.dim("Loading test..."))
     const test = loadTestConfig(path)
     spinner.succeed(chalk.green("Done loading test..."))
@@ -52,17 +83,21 @@ export const runTestPath = async (paths: string[]) => {
       console.log(chalk.bold.green("All Tests Succeeded!"))
     } else {
       console.log(chalk.bold.red("Some Tests Failed."))
-      console.log(JSON.stringify(res.results, null, 4))
+      const failedAssertions = getFailedAssertions(res)
+      for (const failure of failedAssertions) {
+        console.log(chalk.bold.red(`Request ${failure.stepIdx} Assertion ${failure.assertionIdx} Failed:`))
+        console.log(chalk.red(JSON.stringify(failure.assertion, null, 4)))
+      }
     }
   }
 }
 
-export { AssertionType } from "./types/enums"
 export {
   KeyValType,
   TestConfig,
   TestRequest,
   TestResult,
   TestConfigSchema,
+  FailedAssertion,
 } from "./types/test"
 export { runTest } from "./runner"

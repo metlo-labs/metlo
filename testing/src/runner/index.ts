@@ -11,9 +11,10 @@ export const runTest = async (test: TestConfig): Promise<TestResult> => {
   }
   const testStack = [...test.test]
   if (testStack.length > 0) {
-    const firstStack = testStack.shift() as TestStep
-    const resp = await runStep(0, firstStack, testStack, context)
+    const firstStep = testStack.shift() as TestStep
+    const resp = await runStep(0, firstStep, testStack, context)
     return {
+      test,
       success: resp.success,
       results: resp.results,
     }
