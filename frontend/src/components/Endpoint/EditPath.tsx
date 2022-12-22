@@ -22,18 +22,18 @@ import { useRouter } from "next/router"
 import { HiPlus } from "icons/hi/HiPlus"
 import { makeToast } from "utils"
 import { ImCheckmark } from "icons/im/ImCheckmark"
-import { updatePaths } from "api/endpoints"
+import { getSuggestedPaths, updatePaths } from "api/endpoints"
 
 interface EditPathProps {
   endpointId: string
   endpointPath: string
-  suggestedPaths: string[]
 }
 
 export const EditPath: React.FC<EditPathProps> = React.memo(
-  ({ endpointId, endpointPath, suggestedPaths }) => {
+  ({ endpointId, endpointPath }) => {
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [newEndpoints, setNewEndpoints] = useState<string[]>([])
+    const [suggestedPaths, setSuggestedPaths] = useState<string[]>([])
     const [updating, setUpdating] = useState<boolean>(false)
     const toast = useToast()
     const router = useRouter()
@@ -70,6 +70,19 @@ export const EditPath: React.FC<EditPathProps> = React.memo(
     const closeModal = () => {
       setNewEndpoints([])
       onClose()
+    }
+
+    const openModal = () => {
+      const fetch = async () => {
+        try {
+          const resp = await getSuggestedPaths(endpointId)
+          setSuggestedPaths(resp)
+        } catch {}
+      }
+      if (suggestedPaths?.length === 0) {
+        fetch()
+      }
+      onOpen()
     }
 
     const updateHandler = async () => {
@@ -110,7 +123,7 @@ export const EditPath: React.FC<EditPathProps> = React.memo(
 
     return (
       <Box>
-        <Button colorScheme="blue" onClick={onOpen}>
+        <Button colorScheme="blue" onClick={openModal}>
           Edit
         </Button>
         <Modal size="4xl" isCentered isOpen={isOpen} onClose={closeModal}>

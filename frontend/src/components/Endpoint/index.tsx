@@ -51,7 +51,6 @@ interface EndpointPageProps {
   alerts: Alert[]
   totalAlertsCount: number
   initAlertParams: GetAlertParams
-  suggestedPaths: string[]
 }
 
 const EndpointPage: React.FC<EndpointPageProps> = React.memo(
@@ -61,7 +60,6 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
     alerts,
     totalAlertsCount,
     initAlertParams,
-    suggestedPaths,
   }) => {
     const router = useRouter()
     const headerColor = useColorModeValue(
@@ -146,7 +144,6 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
               <EditPath
                 endpointPath={endpoint.path}
                 endpointId={endpoint.uuid}
-                suggestedPaths={suggestedPaths}
               />
               <Button colorScheme="red" isLoading={deleting} onClick={onOpen}>
                 Delete
