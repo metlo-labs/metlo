@@ -26,11 +26,11 @@ export const generateBolaTest = async (
   const unauthAssertion = {
     type: AssertionType.enum.EQ,
     key: "resp.status",
-    val: [401, 403],
+    value: [401, 403],
   }
   const authAssertion = {
     type: AssertionType.enum.JS,
-    val: "resp.status < 400",
+    value: "resp.status < 400",
   }
 
   const [unauthUserAReq, userAReqEnv] = makeTestRequest(endpoint, "USER_A")

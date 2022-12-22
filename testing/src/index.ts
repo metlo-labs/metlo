@@ -85,13 +85,18 @@ export const runTestPath = async (paths: string[]) => {
       console.log(chalk.bold.red("Some Tests Failed."))
       const failedAssertions = getFailedAssertions(res)
       for (const failure of failedAssertions) {
-        console.log(chalk.bold.red(`Request ${failure.stepIdx} Assertion ${failure.assertionIdx} Failed:`))
+        console.log(
+          chalk.bold.red(
+            `Request ${failure.stepIdx} Assertion ${failure.assertionIdx} Failed:`,
+          ),
+        )
         console.log(chalk.red(JSON.stringify(failure.assertion, null, 4)))
       }
     }
   }
 }
 
+export { AssertionType } from "./types/enums"
 export {
   KeyValType,
   TestConfig,

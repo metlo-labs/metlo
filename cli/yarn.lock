@@ -855,9 +855,9 @@
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
 "@metlo/testing@^0.1.2":
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.1.2.tgz#cdec50e6fc9c2f407621c3537427a18fc9514ee5"
-  integrity sha512-9KsHt7ROJqlJxB+MkHMsYNvnmvMmfhk7GXL5nDxf+ozGQsq1Aw/3YFMDKn1QAgGioAIazRw2lF3MJTLsyiwh2w==
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.1.3.tgz#247b2fbc6e1d429bc623d56899c84cafea034c1a"
+  integrity sha512-/DvXKWW+OAuWCA2YRzHW0d8CMqH5cyNRzZZJlnzhrFns/9+lIrLFP6eFW31kpxQnnKj3wWJ9VOGDJz427UoapA==
   dependencies:
     axios "^1.2.1"
     chalk "^4.1.2"
