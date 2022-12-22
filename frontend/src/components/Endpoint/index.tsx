@@ -42,6 +42,8 @@ import { AlertTab } from "./AlertTab"
 import EndpointOverview from "./Overview"
 import { deleteEndpoint } from "api/endpoints"
 import { makeToast } from "utils"
+import { HiPencil } from "icons/hi/HiPencil"
+import { EditPath } from "./EditPath"
 
 interface EndpointPageProps {
   endpoint: ApiEndpointDetailed
@@ -49,10 +51,18 @@ interface EndpointPageProps {
   alerts: Alert[]
   totalAlertsCount: number
   initAlertParams: GetAlertParams
+  suggestedPaths: string[]
 }
 
 const EndpointPage: React.FC<EndpointPageProps> = React.memo(
-  ({ endpoint, usage, alerts, totalAlertsCount, initAlertParams }) => {
+  ({
+    endpoint,
+    usage,
+    alerts,
+    totalAlertsCount,
+    initAlertParams,
+    suggestedPaths,
+  }) => {
     const router = useRouter()
     const headerColor = useColorModeValue(
       "rgb(179, 181, 185)",
@@ -132,9 +142,16 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
                 </Code>
               </HStack>
             </VStack>
-            <Button colorScheme="red" isLoading={deleting} onClick={onOpen}>
-              Delete
-            </Button>
+            <HStack>
+              <EditPath
+                endpointPath={endpoint.path}
+                endpointId={endpoint.uuid}
+                suggestedPaths={suggestedPaths}
+              />
+              <Button colorScheme="red" isLoading={deleting} onClick={onOpen}>
+                Delete
+              </Button>
+            </HStack>
           </HStack>
         </VStack>
         <Tabs

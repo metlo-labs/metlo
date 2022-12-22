@@ -115,10 +115,10 @@ export const getHostsGraph = async (
   params: GetHostParams,
   headers?: AxiosRequestHeaders,
 ): Promise<HostGraph> => {
-  const resp = await axios.get<HostGraph>(
-    `${getAPIURL()}/hosts-graph`,
-    { params, headers },
-  )
+  const resp = await axios.get<HostGraph>(`${getAPIURL()}/hosts-graph`, {
+    params,
+    headers,
+  })
   return resp.data
 }
 
@@ -140,5 +140,28 @@ export const deleteEndpoint = async (
   const resp = await axios.delete(`${getAPIURL()}/endpoint/${endpointId}`, {
     headers,
   })
+  return resp.data
+}
+
+export const getSuggestedPaths = async (
+  endpointId: string,
+  headers?: AxiosRequestHeaders,
+): Promise<string[]> => {
+  const resp = await axios.get<string[]>(
+    `${getAPIURL()}/endpoint/${endpointId}/suggested-paths`,
+    { headers },
+  )
+  return resp.data
+}
+
+export const updatePaths = async (
+  endpointId: string,
+  paths: string[],
+  headers?: AxiosRequestHeaders,
+) => {
+  const resp = await axios.post(
+    `${getAPIURL()}/endpoint/${endpointId}/update-paths`,
+    { paths, headers },
+  )
   return resp.data
 }

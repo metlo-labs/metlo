@@ -3,7 +3,7 @@ import ErrorPage from "next/error"
 import superjson from "superjson"
 import { PageWrapper } from "components/PageWrapper"
 import EndpointPage from "components/Endpoint"
-import { getEndpoint, getUsage } from "api/endpoints"
+import { getEndpoint, getSuggestedPaths, getUsage } from "api/endpoints"
 import { ApiEndpointDetailed, Usage, Alert } from "@common/types"
 import { getAlerts } from "api/alerts"
 import { Status } from "@common/enums"
@@ -15,6 +15,7 @@ const Endpoint = ({
   alerts,
   totalAlertsCount,
   initAlertParams,
+  suggestedPaths,
 }) => {
   const parsedEndpoint = superjson.parse(endpoint) as ApiEndpointDetailed | null
   const parsedUsage = superjson.parse(usage) as Usage[] | []
@@ -30,6 +31,7 @@ const Endpoint = ({
         alerts={parsedAlerts}
         initAlertParams={initAlertParams}
         totalAlertsCount={totalAlertsCount}
+        suggestedPaths={suggestedPaths ?? []}
       />
     </PageWrapper>
   )
@@ -49,8 +51,16 @@ export const getServerSideProps: GetServerSideProps = async context => {
   const endpointPromise = getEndpoint(context.query.endpointUUID as string)
   const usagePromise = getUsage(context.query.endpointUUID as string)
   const alertPromise = getAlerts(initAlertParams)
-  const promises = [endpointPromise, usagePromise, alertPromise]
-  let [endpoint, usage, alerts] = await Promise.all(promises)
+  const suggestedPathsPromise = getSuggestedPaths(
+    context.query.endpointUUID as string,
+  )
+  const promises = [
+    endpointPromise,
+    usagePromise,
+    alertPromise,
+    suggestedPathsPromise,
+  ]
+  let [endpoint, usage, alerts, suggestedPaths] = await Promise.all(promises)
   return {
     props: {
       endpoint: superjson.stringify(endpoint),
@@ -58,6 +68,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
       alerts: superjson.stringify(alerts[0]),
       totalAlertsCount: alerts[1],
       initAlertParams,
+      suggestedPaths,
     },
   }
 }

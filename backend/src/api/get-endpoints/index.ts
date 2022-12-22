@@ -6,7 +6,10 @@ import ApiResponseHandler from "api-response-handler"
 import Error404NotFound from "errors/error-404-not-found"
 import { MetloRequest } from "types"
 import Error400BadRequest from "errors/error-400-bad-request"
-import { getTopSuggestedPaths } from "services/get-endpoints/path-heuristic"
+import {
+  getTopSuggestedPaths,
+  updatePaths,
+} from "services/get-endpoints/path-heuristic"
 
 export const getEndpointsHandler = async (
   req: MetloRequest,
@@ -145,6 +148,23 @@ export const getSuggestedPathsHandler = async (
     }
     const suggestedPaths = await getTopSuggestedPaths(req.ctx, endpointId)
     await ApiResponseHandler.success(res, suggestedPaths)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}
+
+export const updatePathsHandler = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
+  const { endpointId } = req.params
+  const { paths } = req.body
+  try {
+    if (!validator.isUUID(endpointId)) {
+      throw new Error404NotFound("Endpoint does not exist.")
+    }
+    await updatePaths(req.ctx, paths, endpointId)
+    await ApiResponseHandler.success(res)
   } catch (err) {
     await ApiResponseHandler.error(res, err)
   }
