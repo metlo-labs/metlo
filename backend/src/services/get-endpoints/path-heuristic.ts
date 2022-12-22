@@ -190,7 +190,7 @@ export const generateEndpointsMap = async (
     }
     set.add(validPath.path)
   }
-  console.log([...set])
+
   for (const path of [...set]) {
     const pathRegex = getPathRegex(path)
     const apiEndpoint = new ApiEndpoint()
