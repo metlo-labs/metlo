@@ -85,8 +85,8 @@
     </scm>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -104,7 +104,7 @@
 
     <groupId>com.metlo</groupId>
     <artifactId>spring</artifactId>
-    <version>0.3</version>
+    <version>0.4.0</version>
 
     <dependencies>
         <dependency>
@@ -116,7 +116,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
-            <version>4.3.7.RELEASE</version>
+            <version>4.2.0.RELEASE</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
