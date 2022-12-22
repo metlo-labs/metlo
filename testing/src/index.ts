@@ -1,7 +1,6 @@
 import chalk from "chalk"
 import yaml from "js-yaml"
 import fs from "fs"
-import ora from "ora"
 
 import {
   FailedAssertion,
@@ -10,9 +9,6 @@ import {
   TestConfigSchema,
   TestResult,
 } from "./types/test"
-import { runTest } from "./runner"
-
-const spinner = ora()
 
 export const dumpTestConfig = (config: TestConfig): string => {
   const parts: any[] = [
@@ -89,42 +85,7 @@ export const getFailedRequests = (res: TestResult) => {
   return failedRequests
 }
 
-export const runTestPath = async (paths: string[]) => {
-  for (let path of paths) {
-    console.log(chalk.gray(`Running test at path "${path}":`))
-    spinner.start(chalk.dim("Loading test..."))
-    const test = loadTestConfig(path)
-    spinner.succeed(chalk.green("Done loading test..."))
-    spinner.stop()
-
-    spinner.start(chalk.dim("Running test..."))
-    const res = await runTest(test)
-    spinner.succeed(chalk.green("Done running test..."))
-    spinner.stop()
-
-    if (res.success) {
-      console.log(chalk.bold.green("All Tests Succeeded!"))
-    } else {
-      console.log(chalk.bold.red("Some Tests Failed."))
-      const failedAssertions = getFailedAssertions(res)
-      const failedRequests = getFailedRequests(res)
-      for (const failure of failedRequests) {
-        console.log(chalk.bold.red(`Request ${failure.stepIdx} Failed With Error "${failure.err}":`))
-        console.log(chalk.red(JSON.stringify(failure.req, null, 4)))
-      }
-      for (const failure of failedAssertions) {
-        console.log(
-          chalk.bold.red(
-            `Request ${failure.stepIdx} Assertion ${failure.assertionIdx} Failed:`,
-          ),
-        )
-        console.log(chalk.red(JSON.stringify(failure.assertion, null, 4)))
-      }
-    }
-  }
-}
-
-export { AssertionType } from "./types/enums"
+export { AssertionType, ExtractorType } from "./types/enums"
 export {
   KeyValType,
   TestConfig,
@@ -132,5 +93,6 @@ export {
   TestResult,
   TestConfigSchema,
   FailedAssertion,
+  FailedRequest,
 } from "./types/test"
 export { runTest } from "./runner"

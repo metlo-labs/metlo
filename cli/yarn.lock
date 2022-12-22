@@ -854,10 +854,10 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@metlo/testing@^0.1.4":
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.1.4.tgz#341a4f51b73001ac4c2cf47ba2433c2fe3b74f28"
-  integrity sha512-IFS2HSgjDH0tbsb2woT7R9ys22JM5Mp0E6b3Iyn8RMdRTE/xYe1NmHo2svLQdI941CvZWUkBGYyKz7OovEr3gw==
+"@metlo/testing@^0.1.5":
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.1.5.tgz#645da821b28678c86ca7adb45625cbd9c70fd44b"
+  integrity sha512-PCB3mtF1MdHtkW/JMtfsT8pDnF1MrwFm4BIxcByj6fXR7rUA62wIcIHonLs2vqos9kc0hFGKfJcGvBNEErBcfQ==
   dependencies:
     axios "^1.2.1"
     chalk "^4.1.2"
@@ -865,7 +865,6 @@
     handlebars "^4.7.7"
     js-yaml "^4.1.0"
     lodash.get "^4.4.2"
-    ora "^5.4.1"
     vm2 "^3.9.13"
     zod "^3.20.2"
 

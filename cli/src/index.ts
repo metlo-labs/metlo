@@ -10,7 +10,7 @@ import { gcpTrafficMirrorList } from "./gcp/list"
 import { gcpTrafficMirrorDelete } from "./gcp/remove"
 import { gcpTrafficMirrorCleanUp } from "./gcp/cleanup"
 import { generateTest } from "./testing/generate"
-import { runTestPath } from "@metlo/testing"
+import { runTestPath } from "./testing/run"
 
 program.name("metlo").description("Metlo's command line tool.").version("0.1.1")
 
@@ -21,17 +21,18 @@ program
   .option("-k, --api_key <string>", "An API key for Metlo")
   .action(init)
 
-const test = program
-  .command("test")
-test.command("generate")
+const test = program.command("test")
+test
+  .command("generate")
   .option("-p,--path <string>", "Path to generate the test at")
   .requiredOption("-t,--testType <string>", "Type of test to generate")
-  .requiredOption("-e,--endpoint <string>", "The endpoint to generate this test for")
+  .requiredOption(
+    "-e,--endpoint <string>",
+    "The endpoint to generate this test for",
+  )
   .option("-h,--host <string>", "The host to generate this test for")
-  .action(generateTest);
-test.command("run")
-  .argument('<paths...>')
-  .action(runTestPath);
+  .action(generateTest)
+test.command("run").argument("<paths...>").action(runTestPath)
 
 const trafficMirror = program
   .command("traffic-mirror")
@@ -47,7 +48,10 @@ trafficMirrorAws.command("remove").action(awsTrafficMirrorRemove)
 const trafficMirrorGcp = trafficMirror
   .command("gcp")
   .description("Set up traffic mirroring for GCP")
-trafficMirrorGcp.command("new").action(gcpTrafficMirrorSetup).option("-f,--force", "Force creation of new instance")
+trafficMirrorGcp
+  .command("new")
+  .action(gcpTrafficMirrorSetup)
+  .option("-f,--force", "Force creation of new instance")
 trafficMirrorGcp.command("list").action(gcpTrafficMirrorList)
 trafficMirrorGcp.command("remove").action(gcpTrafficMirrorDelete)
 trafficMirrorGcp.command("cleanup").action(gcpTrafficMirrorCleanUp)
