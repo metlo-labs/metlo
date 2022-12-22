@@ -7,7 +7,7 @@ import Error400BadRequest from "errors/error-400-bad-request"
 import { ApiEndpoint, ApiTrace } from "models"
 import { getEntityManager, getQB, getRepository } from "services/database/utils"
 import { MetloContext } from "types"
-import { endpointAddNumberParams, getPathRegex } from "utils"
+import { endpointAddNumberParams, getPathRegex, getValidPath } from "utils"
 import Error404NotFound from "errors/error-404-not-found"
 import { GetEndpointsService } from "."
 import Error500InternalServer from "errors/error-500-internal-server"
@@ -104,7 +104,6 @@ export const updatePaths = async (
   if (!providedPaths || !Array.isArray(providedPaths)) {
     throw new Error400BadRequest("Must provide list of paths to create.")
   }
-  const set = new Set([...providedPaths])
   const queryRunner = AppDataSource.createQueryRunner()
   try {
     await queryRunner.connect()
@@ -117,10 +116,11 @@ export const updatePaths = async (
     }
     const endpointsMap = await generateEndpointsMap(
       ctx,
-      [...set],
+      providedPaths,
       endpoint.method,
       endpoint.host,
       queryRunner,
+      getPathTokens(endpoint.path).length,
     )
     await queryRunner.startTransaction()
     await updateEndpointsFromMap(ctx, endpointsMap, queryRunner)
@@ -129,9 +129,7 @@ export const updatePaths = async (
     if (queryRunner.isTransactionActive) {
       await queryRunner.rollbackTransaction()
     }
-    throw new Error500InternalServer(
-      "Encountered error while creating new endpoints.",
-    )
+    throw err
   } finally {
     await queryRunner.release()
   }
@@ -160,36 +158,48 @@ export const updateEndpointsFromMap = async (
 
 export const generateEndpointsMap = async (
   ctx: MetloContext,
-  pathKeys: string[],
+  providedPaths: string[],
   method: RestMethod,
   host: string,
   queryRunner: QueryRunner,
+  numTokens: number,
 ) => {
   const endpointsMap: Record<string, EndpointsMap> = {}
-  for (const path of pathKeys) {
-    if (!path) {
-      continue
+  const set = new Set<string>()
+  for (const item of providedPaths) {
+    const validPath = getValidPath(item, numTokens)
+    if (!validPath.isValid) {
+      throw new Error400BadRequest(
+        `${item ? `${item}:` : ""} ${validPath.errMsg}`,
+      )
     }
-    const pathRegex = getPathRegex(path)
     let apiEndpoint = await getEntityManager(ctx, queryRunner).findOne(
       ApiEndpoint,
       {
         where: {
-          path,
+          path: validPath.path,
           method,
           host,
         },
       },
     )
-    if (!apiEndpoint) {
-      apiEndpoint = new ApiEndpoint()
-      apiEndpoint.uuid = uuidv4()
-      apiEndpoint.path = path
-      apiEndpoint.pathRegex = pathRegex
-      apiEndpoint.method = method
-      apiEndpoint.host = host
-      endpointAddNumberParams(apiEndpoint)
+    if (apiEndpoint) {
+      throw new Error400BadRequest(
+        `${item}: An endpoint with this path already exists for this method and host.`,
+      )
     }
+    set.add(validPath.path)
+  }
+  console.log([...set])
+  for (const path of [...set]) {
+    const pathRegex = getPathRegex(path)
+    const apiEndpoint = new ApiEndpoint()
+    apiEndpoint.uuid = uuidv4()
+    apiEndpoint.path = path
+    apiEndpoint.pathRegex = pathRegex
+    apiEndpoint.method = method
+    apiEndpoint.host = host
+    endpointAddNumberParams(apiEndpoint)
     endpointsMap[apiEndpoint.uuid] = {
       endpoint: apiEndpoint,
       similarEndpoints: {},

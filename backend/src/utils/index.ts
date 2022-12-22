@@ -181,3 +181,67 @@ export const endpointAddNumberParams = (apiEndpoint: ApiEndpoint) => {
     apiEndpoint.numberParams = numParams
   }
 }
+
+export const getValidPath = (
+  path: string,
+  requiredNumTokens?: number,
+): { isValid: boolean; path: string; errMsg: string } => {
+  if (!path) return { isValid: false, path: "", errMsg: "No path provided." }
+  if (!path.startsWith("/"))
+    return {
+      isValid: false,
+      path: "",
+      errMsg: "Path does not start with a leading slash.",
+    }
+
+  const invalidCharacterRegex = new RegExp("[\\:*?\"'<>&=]")
+  if (invalidCharacterRegex.test(path)) {
+    return {
+      isValid: false,
+      path: "",
+      errMsg: "Path contains an invalid character.",
+    }
+  }
+
+  const tokens = path.split("/")
+  let emptyTokens = 0
+  const validPathTokens = []
+
+  if (path === "/") {
+    if (requiredNumTokens && requiredNumTokens > 0) {
+      return {
+        isValid: false,
+        path: "",
+        errMsg: "Path does not match endpoint length",
+      }
+    }
+    return { isValid: true, path: "/", errMsg: "" }
+  }
+
+  for (const token of tokens) {
+    if (token.length === 0) emptyTokens += 1
+    else validPathTokens.push(token)
+  }
+
+  if (emptyTokens > 2) {
+    return {
+      isValid: false,
+      path: "",
+      errMsg: "Too many trailing or leading slashes in path.",
+    }
+  }
+
+  const validPath = `/${validPathTokens.join("/")}`
+  const numTokens = getPathTokens(validPath).length
+
+  if (requiredNumTokens && numTokens !== requiredNumTokens) {
+    return {
+      isValid: false,
+      path: "",
+      errMsg:
+        "Path does not have the same number of tokens as the current path.",
+    }
+  }
+
+  return { isValid: true, path: `/${validPathTokens.join("/")}`, errMsg: "" }
+}
