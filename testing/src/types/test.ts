@@ -78,9 +78,9 @@ export interface StepResult {
   idx: number
   ctx: Context
   success: boolean
-  err: string
+  err?: string
   assertions: boolean[]
-  res: StepResponse
+  res?: StepResponse
 }
 
 export interface FailedAssertion {
@@ -89,7 +89,15 @@ export interface FailedAssertion {
   assertionIdx: number
   ctx: Context
   assertion: Assertion
-  res: StepResponse
+  res?: StepResponse
+}
+
+export interface FailedRequest {
+  stepIdx: number
+  stepRunIdx: number
+  req: TestRequest
+  ctx: Context
+  err: string
 }
 
 export interface TestResult {

@@ -63,5 +63,7 @@ export const makeRequest = async (req: TestRequest, ctx: Context) => {
     method: req.method,
     headers: headers,
     data: req.data,
+    timeout: 10000,
+    validateStatus: () => true,
   })
 }

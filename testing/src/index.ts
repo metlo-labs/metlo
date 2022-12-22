@@ -5,6 +5,7 @@ import ora from "ora"
 
 import {
   FailedAssertion,
+  FailedRequest,
   TestConfig,
   TestConfigSchema,
   TestResult,
@@ -66,6 +67,28 @@ export const getFailedAssertions = (res: TestResult) => {
   return failedAssertions
 }
 
+export const getFailedRequests = (res: TestResult) => {
+  if (!res.test) {
+    throw new Error("Result doesn't have test")
+  }
+  const test = res.test
+  let failedRequests: FailedRequest[] = []
+  res.results.forEach((steps, stepIdx) => {
+    steps.forEach((stepRun, stepRunIdx) => {
+      if (!stepRun.success && stepRun.err) {
+        failedRequests.push({
+          stepIdx: stepIdx,
+          stepRunIdx: stepRunIdx,
+          req: test.test[stepIdx].request,
+          ctx: stepRun.ctx,
+          err: stepRun.err,
+        })
+      }
+    })
+  })
+  return failedRequests
+}
+
 export const runTestPath = async (paths: string[]) => {
   for (let path of paths) {
     console.log(chalk.gray(`Running test at path "${path}":`))
@@ -84,6 +107,11 @@ export const runTestPath = async (paths: string[]) => {
     } else {
       console.log(chalk.bold.red("Some Tests Failed."))
       const failedAssertions = getFailedAssertions(res)
+      const failedRequests = getFailedRequests(res)
+      for (const failure of failedRequests) {
+        console.log(chalk.bold.red(`Request ${failure.stepIdx} Failed With Error "${failure.err}":`))
+        console.log(chalk.red(JSON.stringify(failure.req, null, 4)))
+      }
       for (const failure of failedAssertions) {
         console.log(
           chalk.bold.red(
