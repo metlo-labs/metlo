@@ -10,7 +10,7 @@ export const runExtractor = (
   response: AxiosResponse,
   ctx: Context,
 ): Context => {
-  const extractorVal = stringReplacement(extractor.val, ctx.envVars)
+  const extractorVal = stringReplacement(extractor.value, ctx.envVars)
   if (extractor.type == ExtractorType.enum.VALUE) {
     const keyValue = getKeyValue(extractorVal, response, ctx)
     ctx.envVars[extractor.name] = keyValue

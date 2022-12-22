@@ -33,6 +33,23 @@ export const runStep = async (
     ctx,
     success: assertions.every(e => e),
     assertions,
+    res: {
+      data: res.data,
+      status: res.status,
+      statusText: res.statusText,
+      headers: Object.entries(res.headers).map(([key, val]) => {
+        let strVal: string = ""
+        if (Array.isArray(val)) {
+          strVal = val.join(",")
+        } else if (val) {
+          strVal = val
+        }
+        return {
+          name: key,
+          value: strVal,
+        }
+      }),
+    },
     err: "",
   }
 
