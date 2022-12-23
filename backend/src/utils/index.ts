@@ -243,5 +243,5 @@ export const getValidPath = (
     }
   }
 
-  return { isValid: true, path: `/${validPathTokens.join("/")}`, errMsg: "" }
+  return { isValid: true, path: validPath, errMsg: "" }
 }

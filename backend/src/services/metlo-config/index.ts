@@ -10,7 +10,7 @@ import {
   BLOCK_FIELDS_ALL_REGEX,
   BLOCK_FIELDS_LIST_KEY,
 } from "~/constants"
-import { getPathRegex } from "utils"
+import { getPathRegex, getValidPath } from "utils"
 import { AuthenticationConfig, BlockFields } from "models"
 import { RedisClient } from "utils/redis"
 import Error500InternalServer from "errors/error-500-internal-server"
@@ -149,8 +149,13 @@ const populateBlockFields = async (
             allDisablePaths,
           )
         }
-        for (const endpoint in hostObj) {
+        for (let endpoint in hostObj) {
           if (endpoint && endpoint !== "ALL") {
+            const validPath = getValidPath(endpoint)
+            if (!validPath.isValid) {
+              throw new Error400BadRequest(`${endpoint}: ${validPath.errMsg}`)
+            }
+            endpoint = validPath.path
             let endpointDisablePaths = allDisablePaths
             if (hostObj[endpoint]["ALL"]) {
               endpointDisablePaths = endpointDisablePaths?.concat(

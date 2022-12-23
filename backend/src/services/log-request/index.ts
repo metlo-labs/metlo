@@ -5,6 +5,7 @@ import { AuthenticationConfigService } from "services/authentication-config"
 import { RedisClient } from "utils/redis"
 import { TRACES_QUEUE } from "~/constants"
 import { MetloContext } from "types"
+import { getValidPath } from "utils"
 
 export class LogRequestService {
   static async logRequest(
@@ -21,7 +22,13 @@ export class LogRequestService {
       if (queueLength > 1000) {
         return
       }
-      const path = traceParams?.request?.url?.path
+
+      const validPath = getValidPath(traceParams?.request?.url?.path)
+      if (!validPath.isValid) {
+        return
+      }
+
+      const path = validPath.path
       const method = traceParams?.request?.method
       const host = traceParams?.request?.url?.host
       const requestParameters = traceParams?.request?.url?.parameters ?? []
