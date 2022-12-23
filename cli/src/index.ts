@@ -12,7 +12,7 @@ import { gcpTrafficMirrorCleanUp } from "./gcp/cleanup"
 import { generateTest } from "./testing/generate"
 import { runTestPath } from "./testing/run"
 
-program.name("metlo").description("Metlo's command line tool.").version("0.1.1")
+program.name("metlo").description("Metlo's command line tool.").version("0.1.4")
 
 program
   .command("init")
@@ -26,6 +26,7 @@ test
   .command("generate")
   .option("-p,--path <string>", "Path to generate the test at")
   .requiredOption("-t,--testType <string>", "Type of test to generate")
+  .requiredOption("-v,--version <number>", "The version of the test templste")
   .requiredOption(
     "-e,--endpoint <string>",
     "The endpoint to generate this test for",

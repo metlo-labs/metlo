@@ -146,10 +146,10 @@
     ajv "^8.4.0"
     openapi-types "^12.0.2"
 
-"@metlo/testing@^0.1.5":
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.1.5.tgz#645da821b28678c86ca7adb45625cbd9c70fd44b"
-  integrity sha512-PCB3mtF1MdHtkW/JMtfsT8pDnF1MrwFm4BIxcByj6fXR7rUA62wIcIHonLs2vqos9kc0hFGKfJcGvBNEErBcfQ==
+"@metlo/testing@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.2.0.tgz#21b3d1f4f9acf12aaec51886d550e1ac69fce4af"
+  integrity sha512-qiHyqTxa7D+BHTVXCUa+pmq5Q1CTMdMFERltgCpCMB61gCjU21MRBSmiK/36Hm4wxz20j3JCsXZm6a2aVVjaqw==
   dependencies:
     axios "^1.2.1"
     chalk "^4.1.2"
@@ -157,6 +157,7 @@
     handlebars "^4.7.7"
     js-yaml "^4.1.0"
     lodash.get "^4.4.2"
+    uuid "^9.0.0"
     vm2 "^3.9.13"
     zod "^3.20.2"
 
@@ -2449,6 +2450,11 @@ uuid@^8.3.2:
   version "8.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
+
+uuid@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.0.tgz#592f550650024a38ceb0c562f2f6aa435761efb5"
+  integrity sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==
 
 v8-compile-cache-lib@^3.0.1:
   version "3.0.1"
