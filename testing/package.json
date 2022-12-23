@@ -1,6 +1,6 @@
 {
   "name": "@metlo/testing",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,6 +15,7 @@
     "@types/chalk": "^2.2.0",
     "@types/js-yaml": "^4.0.5",
     "@types/lodash.get": "^4.4.7",
+    "@types/uuid": "^9.0.0",
     "prettier": "^2.7.1",
     "ts-node": "^10.9.1",
     "tslib": "^2.4.0",
@@ -27,6 +28,7 @@
     "handlebars": "^4.7.7",
     "js-yaml": "^4.1.0",
     "lodash.get": "^4.4.2",
+    "uuid": "^9.0.0",
     "vm2": "^3.9.13",
     "zod": "^3.20.2"
   }

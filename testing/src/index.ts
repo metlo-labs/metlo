@@ -95,4 +95,11 @@ export {
   FailedAssertion,
   FailedRequest,
 } from "./types/test"
+export {
+  GenTestEndpoint,
+  GenTestContext,
+  GeneratedTestRequest,
+  GenTestEndpointDataField,
+} from "./generate/types"
+export { TestBuilder, TestStepBuilder } from "./generate/builder"
 export { runTest } from "./runner"
