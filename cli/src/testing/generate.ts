@@ -3,7 +3,11 @@ import path from "path"
 import chalk from "chalk"
 import axios from "axios"
 import { getConfig } from "../utils"
-import { TestConfig, dumpTestConfig } from "@metlo/testing"
+import { TestConfig, dumpTestConfig, GenTestEndpoint } from "@metlo/testing"
+import { TEMPLATES } from "@metlo/testing/dist/templates"
+import groupBy from "lodash.groupby"
+
+const TYPE_TO_TEMPLATES = groupBy(TEMPLATES, e => e.name)
 
 export interface GenerateTestRes {
   success: boolean
@@ -16,13 +20,13 @@ export const generateTest = async ({
   testType,
   host,
   endpoint,
+  version,
 }) => {
   const config = getConfig()
-  const res = await axios.get<GenerateTestRes>(
-    path.join(config.metloHost, "api/v1/generate-test"),
+  const res = await axios.get<GenTestEndpoint>(
+    path.join(config.metloHost, "api/v1/gen-test-endpoint"),
     {
       params: {
-        type: testType,
         endpoint: endpoint,
         host: host,
       },
@@ -40,14 +44,30 @@ export const generateTest = async ({
     )
     return
   }
-  if (!res.data.success) {
-    console.log(chalk.bold.red(`Failed to generate test - ${res.data.msg}`))
+  const genTestEndpoint = res.data
+  const templates = TYPE_TO_TEMPLATES[testType.toUpperCase()]
+  if (!templates) {
+    console.log(chalk.bold.red(`INVALID TEMPLATE TYPE: ${testType}`))
     return
   }
-  const testYaml = dumpTestConfig(res.data.test)
+  const sortedTemplates = templates.sort((a, b) => b.version - a.version)
+  let template = sortedTemplates[0]
+  if (version) {
+    template = sortedTemplates.find(e => e.version == version)
+  }
+  if (!template) {
+    console.log(
+      chalk.bold.red(`INVALID VERSION FOR TEMPLATE "${testType}": ${version}`),
+    )
+    return
+  }
+  const test = template.builder(genTestEndpoint).getTest()
+  const testYaml = dumpTestConfig(test)
   if (filePath) {
     fs.writeFileSync(filePath, testYaml)
-    console.log(chalk.bold.green(`Success! Wrote test template to "${filePath}"`))
+    console.log(
+      chalk.bold.green(`Success! Wrote test template to "${filePath}"`),
+    )
   } else {
     console.log(testYaml)
   }

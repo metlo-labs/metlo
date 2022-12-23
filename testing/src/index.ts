@@ -3,6 +3,10 @@ import yaml from "js-yaml"
 import fs from "fs"
 
 import {
+  AssertionType as ZAssertionType,
+  ExtractorType as ZExtractorType,
+} from "./types/enums"
+import {
   FailedAssertion,
   FailedRequest,
   TestConfig,
@@ -85,7 +89,8 @@ export const getFailedRequests = (res: TestResult) => {
   return failedRequests
 }
 
-export { AssertionType, ExtractorType } from "./types/enums"
+export const AssertionType = ZAssertionType.enum
+export const ExtractorType = ZExtractorType.enum
 export {
   KeyValType,
   TestConfig,
@@ -102,4 +107,5 @@ export {
   GenTestEndpointDataField,
 } from "./generate/types"
 export { TestBuilder, TestStepBuilder } from "./generate/builder"
+export { TestTemplate } from "./templates/types"
 export { runTest } from "./runner"

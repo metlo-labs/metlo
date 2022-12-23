@@ -115,7 +115,7 @@ export class TestBuilder {
     return this
   }
 
-  addTest(stepBuilder: TestStepBuilder): TestBuilder {
+  addTestStep(stepBuilder: TestStepBuilder): TestBuilder {
     const filteredEnv = stepBuilder.env.filter(
       e => !this.currentEnvKeys.has(e.name),
     )

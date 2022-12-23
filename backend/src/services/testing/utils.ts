@@ -1,62 +1,53 @@
-import { AuthType } from "@common/enums"
-import { TestRequest, KeyValType } from "@metlo/testing"
+import validator from "validator"
+import { MetloContext } from "types"
+import { getRepository } from "services/database/utils"
 import { ApiEndpoint, AuthenticationConfig } from "models"
+import { GenTestEndpoint } from "@metlo/testing"
 
-export const addAuthToRequest = (
-  req: TestRequest,
-  authConfig: AuthenticationConfig,
-  valPrefix?: string,
-): [TestRequest, KeyValType[]] => {
-  let env: KeyValType[] = []
-  const pre = valPrefix ? valPrefix + "_" : ""
-  if (authConfig.authType == AuthType.BASIC) {
-    req.headers = (req.headers || []).concat({
-      name: "Authorization",
-      value: `Basic {{${pre}BASIC_AUTH_CRED}}`,
+export const getGenTestEndpoint = async (
+  ctx: MetloContext,
+  endpoint: string,
+  host?: string,
+): Promise<GenTestEndpoint | null> => {
+  let endpointObj: ApiEndpoint | null = null
+  const apiEndpointRepository = getRepository(ctx, ApiEndpoint)
+  if (validator.isUUID(endpoint)) {
+    endpointObj = await apiEndpointRepository.findOne({
+      where: { uuid: endpoint },
+      relations: { dataFields: true },
     })
-    env.push({
-      name: `${pre}BASIC_AUTH_CRED`,
-      value: `<<${pre}BASIC_AUTH_CRED>>`,
-    })
-  } else if (authConfig.authType == AuthType.HEADER) {
-    req.headers = (req.headers || []).concat({
-      name: authConfig.headerKey,
-      value: `{{${pre}CREDENTIALS}}`,
-    })
-    env.push({
-      name: `${pre}CREDENTIALS`,
-      value: `<<${pre}CREDENTIALS>>`,
-    })
-  } else if (authConfig.authType == AuthType.JWT) {
-    req.headers = (req.headers || []).concat({
-      name: authConfig.headerKey,
-      value: `{{${pre}JWT}}`,
-    })
-    env.push({
-      name: `${pre}JWT`,
-      value: `<<${pre}JWT>>`,
+  } else {
+    endpointObj = await apiEndpointRepository.findOne({
+      where: { path: endpoint, host: host },
+      relations: { dataFields: true },
     })
   }
-  return [req, env]
-}
-
-export const makeTestRequest = (
-  endpoint: ApiEndpoint,
-  valPrefix?: string,
-): [TestRequest, KeyValType[]] => {
-  const pre = valPrefix ? valPrefix + "_" : ""
-  let env: KeyValType[] = []
-  const paramRegex = new RegExp("{([^{}]+)}", "g")
-  const params = endpoint.path.matchAll(paramRegex)
-  for (const param of params) {
-    env.push({
-      name: `${pre}${param[1]}`,
-      value: `<<${pre}${param[1]}>>`,
-    })
+  if (!endpointObj) {
+    return null
   }
-  const req = {
-    method: endpoint.method,
-    url: `https://${endpoint.host}` + endpoint.path.replace(paramRegex, `{{${pre}$1}}`),
+  let genTestEndpoint: GenTestEndpoint = {
+    host: endpointObj.host,
+    path: endpointObj.path,
+    method: endpointObj.method,
+    dataFields: endpointObj.dataFields.map(e => ({
+      dataSection: e.dataSection,
+      arrayFields: e.arrayFields,
+      contentType: e.contentType,
+      dataPath: e.dataPath,
+      dataType: e.dataType,
+    })),
   }
-  return [req, env]
+  const authConfigRepo = getRepository(ctx, AuthenticationConfig)
+  const authConfig = await authConfigRepo.findOneBy({
+    host: endpointObj.host,
+  })
+  if (authConfig) {
+    genTestEndpoint.authConfig = {
+      authType: authConfig.authType,
+      headerKey: authConfig.headerKey,
+      jwtUserPath: authConfig.jwtUserPath,
+      cookieName: authConfig.cookieName,
+    }
+  }
+  return genTestEndpoint
 }

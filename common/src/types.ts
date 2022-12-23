@@ -14,7 +14,6 @@ import {
   AttackType,
   API_KEY_TYPE,
   DisableRestMethod,
-  GENERATED_TEST_TYPE,
 } from "./enums"
 import "axios"
 import { TestConfig } from "@metlo/testing"
@@ -441,13 +440,16 @@ export interface HostGraph {
 }
 
 export interface GenerateTestParams {
-  type: GENERATED_TEST_TYPE
+  type: string
   endpoint: string
+  version?: number
   host?: string
 }
 
 export interface GenerateTestRes {
   success: boolean
+  templateName?: string,
+  templateVersion?: number,
   msg?: string
   test?: TestConfig
 }
