@@ -6,6 +6,7 @@ import { RedisClient } from "utils/redis"
 import { TRACES_QUEUE } from "~/constants"
 import { MetloContext } from "types"
 import { getValidPath } from "utils"
+import Error400BadRequest from "errors/error-400-bad-request"
 
 export class LogRequestService {
   static async logRequest(
@@ -25,7 +26,9 @@ export class LogRequestService {
 
       const validPath = getValidPath(traceParams?.request?.url?.path)
       if (!validPath.isValid) {
-        return
+        throw new Error400BadRequest(
+          `Invalid path ${traceParams?.request?.url?.path}: ${validPath.errMsg}`,
+        )
       }
 
       const path = validPath.path
@@ -64,6 +67,9 @@ export class LogRequestService {
         }),
       )
     } catch (err) {
+      if (err?.code < 500) {
+        throw err
+      }
       console.error(`Error in Log Request service: ${err}`)
       throw new Error500InternalServer(err)
     }
