@@ -5,6 +5,8 @@ import { AuthenticationConfigService } from "services/authentication-config"
 import { RedisClient } from "utils/redis"
 import { TRACES_QUEUE } from "~/constants"
 import { MetloContext } from "types"
+import { getValidPath } from "utils"
+import Error400BadRequest from "errors/error-400-bad-request"
 
 export class LogRequestService {
   static async logRequest(
@@ -21,7 +23,15 @@ export class LogRequestService {
       if (queueLength > 1000) {
         return
       }
-      const path = traceParams?.request?.url?.path
+
+      const validPath = getValidPath(traceParams?.request?.url?.path)
+      if (!validPath.isValid) {
+        throw new Error400BadRequest(
+          `Invalid path ${traceParams?.request?.url?.path}: ${validPath.errMsg}`,
+        )
+      }
+
+      const path = validPath.path
       const method = traceParams?.request?.method
       const host = traceParams?.request?.url?.host
       const requestParameters = traceParams?.request?.url?.parameters ?? []
@@ -57,6 +67,9 @@ export class LogRequestService {
         }),
       )
     } catch (err) {
+      if (err?.code < 500) {
+        throw err
+      }
       console.error(`Error in Log Request service: ${err}`)
       throw new Error500InternalServer(err)
     }

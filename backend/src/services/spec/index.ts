@@ -25,7 +25,7 @@ import {
   QueuedApiTrace,
 } from "@common/types"
 import { AppDataSource } from "data-source"
-import { getPathRegex, parsedJsonNonNull } from "utils"
+import { getPathRegex, getValidPath, parsedJsonNonNull } from "utils"
 import Error409Conflict from "errors/error-409-conflict"
 import Error422UnprocessableEntity from "errors/error-422-unprocessable-entity"
 import {
@@ -50,6 +50,7 @@ import {
 } from "./queries"
 import { MetloContext } from "types"
 import { getEntityManager, getQB, getRepository } from "services/database/utils"
+import Error400BadRequest from "errors/error-400-bad-request"
 
 interface EndpointsMap {
   endpoint: ApiEndpoint
@@ -255,7 +256,12 @@ export class SpecService {
     const endpointsMap: Record<string, EndpointsMap> = {}
     let specHosts: Set<string> = new Set()
     for (const path of pathKeys) {
-      const pathRegex = getPathRegex(path)
+      const validPath = getValidPath(path)
+      if (!validPath.isValid) {
+        throw new Error400BadRequest(`${path}: ${validPath.errMsg}`)
+      }
+      const validPathString = validPath.path
+      const pathRegex = getPathRegex(validPathString)
       const methods = Object.keys(paths[path])?.filter(key =>
         Object.values(RestMethod).includes(key.toUpperCase() as RestMethod),
       )
@@ -276,7 +282,7 @@ export class SpecService {
           const methodEnum = method.toUpperCase() as RestMethod
           let apiEndpoint = await apiEndpointRepository.findOne({
             where: {
-              path,
+              path: validPathString,
               method: methodEnum,
               host,
             },
@@ -285,12 +291,13 @@ export class SpecService {
           if (!apiEndpoint) {
             apiEndpoint = new ApiEndpoint()
             apiEndpoint.uuid = uuidv4()
-            apiEndpoint.path = path
+            apiEndpoint.path = validPathString
             apiEndpoint.pathRegex = pathRegex
             apiEndpoint.method = methodEnum
             apiEndpoint.host = host
             apiEndpoint.openapiSpec = existingSpec
             apiEndpoint.addNumberParams()
+            apiEndpoint.riskScore = RiskScore.NONE
             created = true
           } else if (
             apiEndpoint &&
@@ -310,43 +317,40 @@ export class SpecService {
             similarEndpoints: {},
           }
 
+          const similarEndpoints = await apiEndpointRepository.find({
+            where: {
+              path: Raw(alias => `${alias} ~ :pathRegex`, { pathRegex }),
+              method: methodEnum,
+              host,
+            },
+          })
+          similarEndpoints.forEach(item => {
+            let exists = false
+            if (!endpointsMap[item.uuid]) {
+              Object.keys(endpointsMap).forEach(uuid => {
+                if (endpointsMap[uuid]?.similarEndpoints?.[item.uuid]) {
+                  exists = true
+                  if (
+                    apiEndpoint.numberParams === item.numberParams ||
+                    (endpointsMap[uuid].endpoint?.numberParams !==
+                      item.numberParams &&
+                      apiEndpoint.numberParams <
+                        endpointsMap[uuid].endpoint?.numberParams)
+                  ) {
+                    delete endpointsMap[uuid].similarEndpoints[item.uuid]
+                    exists = false
+                  }
+                }
+              })
+            }
+            if (!exists) {
+              endpointsMap[apiEndpoint.uuid].similarEndpoints[item.uuid] = item
+            }
+          })
           if (updated) {
             Object.keys(endpointsMap).forEach(uuid => {
               if (endpointsMap[uuid]?.similarEndpoints?.[apiEndpoint.uuid]) {
                 delete endpointsMap[uuid]?.similarEndpoints[apiEndpoint.uuid]
-              }
-            })
-          }
-          if (created) {
-            const similarEndpoints = await apiEndpointRepository.find({
-              where: {
-                path: Raw(alias => `${alias} ~ :pathRegex`, { pathRegex }),
-                method: methodEnum,
-                host,
-              },
-            })
-            similarEndpoints.forEach(item => {
-              let exists = false
-              if (!endpointsMap[item.uuid]) {
-                Object.keys(endpointsMap).forEach(uuid => {
-                  if (endpointsMap[uuid]?.similarEndpoints?.[item.uuid]) {
-                    exists = true
-                    if (
-                      apiEndpoint.numberParams === item.numberParams ||
-                      (endpointsMap[uuid].endpoint?.numberParams !==
-                        item.numberParams &&
-                        apiEndpoint.numberParams <
-                          endpointsMap[uuid].endpoint?.numberParams)
-                    ) {
-                      delete endpointsMap[uuid].similarEndpoints[item.uuid]
-                      exists = false
-                    }
-                  }
-                })
-              }
-              if (!exists) {
-                endpointsMap[apiEndpoint.uuid].similarEndpoints[item.uuid] =
-                  item
               }
             })
           }
@@ -367,7 +371,6 @@ export class SpecService {
     try {
       await getEntityManager(ctx, queryRunner).save(existingSpec)
       for (const item of Object.values(endpointsMap)) {
-        item.endpoint.riskScore = RiskScore.NONE
         await getEntityManager(ctx, queryRunner).save(item.endpoint)
         const similarEndpointUuids = []
         for (const e of Object.values(item.similarEndpoints)) {

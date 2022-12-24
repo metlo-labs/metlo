@@ -10,7 +10,7 @@ import {
   BLOCK_FIELDS_ALL_REGEX,
   BLOCK_FIELDS_LIST_KEY,
 } from "~/constants"
-import { getPathRegex } from "utils"
+import { getPathRegex, getValidPath } from "utils"
 import { AuthenticationConfig, BlockFields } from "models"
 import { RedisClient } from "utils/redis"
 import Error500InternalServer from "errors/error-500-internal-server"
@@ -90,22 +90,25 @@ const addToBlockFields = (
   pathRegex: string,
   disabledPaths: string[],
 ) => {
-  const disabledPathsObj = {
-    reqQuery: [],
-    reqHeaders: [],
-    reqBody: [],
-    resHeaders: [],
-    resBody: [],
-  }
+  const reqQueryPaths = new Set<string>()
+  const reqHeadersPaths = new Set<string>()
+  const reqBodyPaths = new Set<string>()
+  const resHeadersPaths = new Set<string>()
+  const resBodyPaths = new Set<string>()
   disabledPaths.forEach(path => {
-    if (path.includes("req.query")) disabledPathsObj.reqQuery.push(path)
-    else if (path.includes("req.headers"))
-      disabledPathsObj.reqHeaders.push(path)
-    else if (path.includes("req.body")) disabledPathsObj.reqBody.push(path)
-    else if (path.includes("res.headers"))
-      disabledPathsObj.resHeaders.push(path)
-    else if (path.includes("res.body")) disabledPathsObj.resBody.push(path)
+    if (path.includes("req.query")) reqQueryPaths.add(path)
+    else if (path.includes("req.headers")) reqHeadersPaths.add(path)
+    else if (path.includes("req.body")) reqBodyPaths.add(path)
+    else if (path.includes("res.headers")) resHeadersPaths.add(path)
+    else if (path.includes("res.body")) resBodyPaths.add(path)
   })
+  const disabledPathsObj = {
+    reqQuery: [...reqQueryPaths],
+    reqHeaders: [...reqHeadersPaths],
+    reqBody: [...reqBodyPaths],
+    resHeaders: [...resHeadersPaths],
+    resBody: [...resBodyPaths],
+  }
   const blockFieldEntry = BlockFields.create()
   blockFieldEntry.host = host
   blockFieldEntry.method = method
@@ -151,17 +154,22 @@ const populateBlockFields = async (
         }
         for (const endpoint in hostObj) {
           if (endpoint && endpoint !== "ALL") {
+            const validPath = getValidPath(endpoint)
+            if (!validPath.isValid) {
+              throw new Error400BadRequest(`${endpoint}: ${validPath.errMsg}`)
+            }
+            const validPathString = validPath.path
+            const pathRegex = getPathRegex(validPathString)
             let endpointDisablePaths = allDisablePaths
             if (hostObj[endpoint]["ALL"]) {
               endpointDisablePaths = endpointDisablePaths?.concat(
                 hostObj[endpoint]["ALL"]["disable_paths"] ?? [],
               )
-              const pathRegex = getPathRegex(endpoint)
               addToBlockFields(
                 blockFieldsEntries,
                 host,
                 DisableRestMethod.ALL,
-                endpoint,
+                validPathString,
                 pathRegex,
                 endpointDisablePaths,
               )
@@ -169,7 +177,6 @@ const populateBlockFields = async (
             for (const method in hostObj[endpoint]) {
               if (method && method !== "ALL") {
                 const blockFieldMethod = DisableRestMethod[method]
-                const pathRegex = getPathRegex(endpoint)
                 const disabledPaths = endpointDisablePaths?.concat(
                   hostObj[endpoint][method]?.["disable_paths"] ?? [],
                 )
@@ -177,7 +184,7 @@ const populateBlockFields = async (
                   blockFieldsEntries,
                   host,
                   blockFieldMethod,
-                  endpoint,
+                  validPathString,
                   pathRegex,
                   disabledPaths,
                 )
