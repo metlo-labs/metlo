@@ -194,7 +194,7 @@ export const getValidPath = (
       errMsg: "Path does not start with a leading slash.",
     }
 
-  const invalidCharacterRegex = new RegExp("[\\:*?\"'<>&=]")
+  const invalidCharacterRegex = new RegExp(/[\\?<>&=]/)
   if (invalidCharacterRegex.test(path)) {
     return {
       isValid: false,
