@@ -13,9 +13,7 @@ export const runAssertion = (
   if (assertion.type == AssertionType.enum.JS) {
     if ((typeof assertion.value).toLowerCase() === "string") {
       const assertionValue = stringReplacement(assertion.value as string, ctx.envVars)
-      if (executeScript(assertionValue, response, ctx)) {
-        return true
-      }
+      return !!executeScript(assertionValue, response, ctx)
     } else {
       throw new Error(
         `Script must be of type string. Received script of type ${typeof assertion.value}`,
