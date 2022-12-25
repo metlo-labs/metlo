@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import {
   Badge,
   Box,
@@ -13,13 +13,12 @@ import EmptyView from "components/utils/EmptyView"
 import dynamic from "next/dynamic"
 import { SortOrder, TableColumn } from "react-data-table-component"
 import { RISK_TO_COLOR } from "~/constants"
-import { DATA_CLASS_TO_RISK_SCORE } from "@common/maps"
 import {
   getCustomStyles,
   rowStyles,
   SkeletonCell,
 } from "components/utils/TableUtils"
-import { ApiEndpoint } from "@common/types"
+import { ApiEndpoint, DataClass } from "@common/types"
 import { getDateTimeRelative, getDateTimeString } from "utils"
 
 const DataTable = dynamic(() => import("react-data-table-component"), {
@@ -36,6 +35,7 @@ interface EndpointTablesProps {
   fetching: boolean
   setOrdering: (e: "ASC" | "DESC") => void
   setOrderBy: (e: string | undefined) => void
+  dataClasses: DataClass[]
 }
 
 interface TableLoaderProps {
@@ -113,6 +113,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
     setCurrentPage,
     setOrdering,
     setOrderBy,
+    dataClasses,
   }) => {
     const router = useRouter()
     const colorMode = useColorMode()
@@ -168,17 +169,24 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         cell: (row: ApiEndpoint) => {
           return (
             <Box>
-              {row.dataClasses?.map(e => (
-                <Tag
-                  p="1"
-                  m="2px"
-                  fontSize="xx-small"
-                  key={e}
-                  colorScheme={RISK_TO_COLOR[DATA_CLASS_TO_RISK_SCORE[e]]}
-                >
-                  {e}
-                </Tag>
-              ))}
+              {row.dataClasses?.map(e => {
+                return (
+                  <Tag
+                    p="1"
+                    m="2px"
+                    fontSize="xx-small"
+                    key={e}
+                    colorScheme={
+                      RISK_TO_COLOR[
+                        dataClasses.find(({ className }) => className == e)
+                          .severity
+                      ]
+                    }
+                  >
+                    {e}
+                  </Tag>
+                )
+              })}
             </Box>
           )
         },

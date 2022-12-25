@@ -1,17 +1,16 @@
-import { DataClass } from "@common/enums"
 import {
   GetSensitiveDataAggParams,
   PIIDataClassAggItem,
   SensitiveDataSummary,
 } from "@common/types"
-import { DATA_CLASS_TO_RISK_SCORE } from "@common/maps"
 import { DatabaseService } from "services/database"
 import { ApiEndpoint, DataField } from "models"
 import { MetloContext } from "types"
 import { RedisClient } from "utils/redis"
+import { getCombinedDataClasses } from "utils/dataclasses"
 
 export const getPIIDataTypeCount = async (ctx: MetloContext) => {
-  const piiDataTypeCountRes: { type: DataClass; cnt: number }[] =
+  const piiDataTypeCountRes: { type: string; cnt: number }[] =
     await DatabaseService.executeRawQuery(`
       SELECT data_class as type, CAST(COUNT(*) AS INTEGER) as cnt
       FROM (SELECT UNNEST("dataClasses") as data_class FROM ${DataField.getTableName(
@@ -23,7 +22,7 @@ export const getPIIDataTypeCount = async (ctx: MetloContext) => {
 }
 
 export const getPIIDataTypeCountCached = async (ctx: MetloContext) => {
-  const cacheRes: Record<DataClass, number> | null =
+  const cacheRes: Record<string, number> | null =
     await RedisClient.getFromRedis(ctx, "PIIDataTypeCount")
   if (cacheRes) {
     return cacheRes
@@ -55,10 +54,12 @@ export const getPIIDataTypeAgg = async (
     riskFilter = `WHERE risk = ANY($${queryParams.length + 1})`
     queryParams.push(params.riskScores)
   }
-  const riskMap = Object.values(DataClass)
+
+  const DataClassInfo = await getCombinedDataClasses(ctx)
+  const riskMap = (DataClassInfo)
     .map(
-      e =>
-        `WHEN unnest_fields.data_class = '${e}' THEN '${DATA_CLASS_TO_RISK_SCORE[e]}'`,
+      ({ className, severity }) =>
+        `WHEN unnest_fields.data_class = '${className}' THEN '${severity}'`,
     )
     .join("\n")
   const riskCase = `CASE ${riskMap} END`

@@ -16,6 +16,7 @@ import registerWebhookRoutes from "api/webhook"
 import registerTestingRoutes from "api/testing"
 import registerSpecRoutes from "api/spec"
 import registerEndpointRoutes from "api/endpoints"
+import { getDataClassInfo } from "api/data-class"
 
 const port = process.env.PORT || 8080
 RedisClient.getInstance()
@@ -53,6 +54,9 @@ registerTestingRoutes(apiRouter)
 registerKeyRoutes(apiRouter)
 registerMetloConfigRoutes(apiRouter)
 registerWebhookRoutes(apiRouter)
+
+// DataClass
+apiRouter.get("/api/v1/data-class", getDataClassInfo)
 
 app.use(apiRouter)
 

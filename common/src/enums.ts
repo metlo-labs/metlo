@@ -23,7 +23,7 @@ export enum DisableRestMethod {
   ALL = "ALL",
 }
 
-export enum DataClass {
+export enum __DataClass_INTERNAL__ {
   EMAIL = "Email",
   CREDIT_CARD = "Credit Card Number",
   SSN = "Social Security Number",

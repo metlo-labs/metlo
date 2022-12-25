@@ -1,4 +1,4 @@
-import { RiskScore, DataClass, DataTag, Status, SpecExtension } from "@common/enums"
+import { RiskScore, DataTag, Status, SpecExtension } from "@common/enums"
 
 export const PIE_BACKGROUND_COLORS = [
   "rgba(255, 99, 132, 0.8)",

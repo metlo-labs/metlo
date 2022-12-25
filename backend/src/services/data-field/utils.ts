@@ -1,24 +1,23 @@
-import { DataClass } from "@common/enums"
 import { DataField } from "models"
 
 export const addDataClass = (
   dataField: DataField,
-  dataClass: DataClass,
+  dataClass: string,
 ): boolean => {
   if (dataField.dataClasses === null || dataField.dataClasses === undefined) {
-    dataField.dataClasses = Array<DataClass>()
+    dataField.dataClasses = Array<string>()
   }
   if (
     dataField.falsePositives === null ||
     dataField.falsePositives === undefined
   ) {
-    dataField.falsePositives = Array<DataClass>()
+    dataField.falsePositives = Array<string>()
   }
   if (
     dataField.scannerIdentified === null ||
     dataField.scannerIdentified === undefined
   ) {
-    dataField.scannerIdentified = Array<DataClass>()
+    dataField.scannerIdentified = Array<string>()
   }
   if (
     dataClass === null ||

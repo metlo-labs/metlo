@@ -117,7 +117,7 @@ const analyze = async (
   const prevRiskScore = apiEndpoint.riskScore
   const prevLastActive = apiEndpoint.lastActive
   endpointUpdateDates(trace.createdAt, apiEndpoint)
-  const dataFields = DataFieldService.findAllDataFields(trace, apiEndpoint)
+  const dataFields = await DataFieldService.findAllDataFields(ctx, trace, apiEndpoint)
   let alerts = await SpecService.findOpenApiSpecDiff(
     ctx,
     trace,

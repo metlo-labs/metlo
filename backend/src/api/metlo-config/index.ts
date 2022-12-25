@@ -3,6 +3,7 @@ import { UpdateMetloConfigParams } from "@common/types"
 import { getMetloConfig, updateMetloConfig } from "services/metlo-config"
 import ApiResponseHandler from "api-response-handler"
 import { MetloRequest } from "types"
+import { clearDataClassCache } from "utils/dataclasses"
 
 export const updateMetloConfigHandler = async (
   req: MetloRequest,
@@ -11,6 +12,7 @@ export const updateMetloConfigHandler = async (
   try {
     const updateMetloConfigParams: UpdateMetloConfigParams = req.body
     await updateMetloConfig(req.ctx, updateMetloConfigParams)
+    await clearDataClassCache(req.ctx)
     await ApiResponseHandler.success(res, null)
   } catch (err) {
     await ApiResponseHandler.error(res, err)

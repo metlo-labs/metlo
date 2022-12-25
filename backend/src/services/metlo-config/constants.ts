@@ -1,4 +1,7 @@
-import { AuthType } from "@common/enums"
+import { AuthType, RiskScore } from "@common/enums"
+import { Schema } from "ajv"
+
+const patternName = String.raw`^[- \w]+$`
 
 export const METLO_CONFIG_SCHEMA = {
   type: "object",
@@ -108,6 +111,29 @@ export const METLO_CONFIG_SCHEMA = {
         },
       },
     },
+    sensitiveData: {
+      type: "object",
+      patternProperties: {
+        [patternName]: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            "severity": {
+              enum: Object.keys(RiskScore)
+            },
+            "patterns": {
+              type: "array",
+              uniqueItems: true,
+              items: {
+                type: "string",
+                format: "regex"
+              }
+            }
+          }
+        }
+      },
+      additionalProperties: false,
+    }
   },
   additionalProperties: false,
   definitions: {
@@ -125,4 +151,4 @@ export const METLO_CONFIG_SCHEMA = {
       additionalProperties: false,
     },
   },
-}
+} as Schema

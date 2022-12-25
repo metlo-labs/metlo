@@ -1,5 +1,6 @@
 import yaml from "js-yaml"
 import Ajv from "ajv"
+import formatsPlugin from "ajv-formats"
 import SourceMap from "js-yaml-source-map"
 import { QueryRunner } from "typeorm"
 import { AuthType, DisableRestMethod } from "@common/enums"
@@ -43,6 +44,8 @@ export const validateMetloConfig = (configString: string) => {
     throw new Error400BadRequest("Config is not a valid yaml file")
   }
   const ajv = new Ajv()
+  formatsPlugin(ajv)
+
   const validate = ajv.compile(METLO_CONFIG_SCHEMA)
   const valid = validate(metloConfig)
   if (!valid) {

@@ -10,7 +10,7 @@ import {
   useToast,
   Button,
 } from "@chakra-ui/react"
-import { DataField } from "@common/types"
+import { DataClass, DataField } from "@common/types"
 import { RISK_TO_COLOR, TAG_TO_COLOR } from "~/constants"
 import {
   getDateTimeString,
@@ -19,33 +19,45 @@ import {
   makeToast,
 } from "utils"
 import { deleteDataField, updateDataFieldClasses } from "api/dataFields"
-import { DataClass, RiskScore } from "@common/enums"
+import { RiskScore } from "@common/enums"
 import { DataFieldTagList } from "./DataFieldTags"
 import { statusCodeToColor } from "components/utils/StatusCode"
 
 interface DataFieldDetailProps {
   dataField: DataField
   dataFieldList: DataField[]
+  dataClasses: DataClass[]
   setdataFieldList: React.Dispatch<React.SetStateAction<DataField[]>>
   setDataField: (value: React.SetStateAction<DataField>) => void
 }
 
 const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
-  ({ dataField, dataFieldList, setdataFieldList, setDataField }) => {
+  ({
+    dataField,
+    dataFieldList,
+    dataClasses,
+    setdataFieldList,
+    setDataField,
+  }) => {
+    const toast = useToast()
     const [currDataField, setCurrDataField] = useState<DataField>(dataField)
     const [updating, setUpdating] = useState<boolean>(false)
     const [riskScore, setRiskScore] = useState<RiskScore>()
-    const toast = useToast()
 
     useEffect(() => {
       setCurrDataField(dataField)
     }, [dataField])
 
-    useEffect(() => {
-      setRiskScore(
-        getMaxRiskScoreFromList(getRiskScores(currDataField.dataClasses)),
-      )
-    }, [currDataField])
+    useEffect(
+      (...rest) => {
+        setRiskScore(
+          getMaxRiskScoreFromList(
+            getRiskScores(currDataField.dataClasses, dataClasses),
+          ),
+        )
+      },
+      [currDataField, dataClasses],
+    )
 
     const handleDeleteDataField = async () => {
       setUpdating(true)
@@ -77,7 +89,7 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
       }
     }
 
-    const handleUpdateTags = async (newTags: DataClass[]) => {
+    const handleUpdateTags = async (newTags: string[]) => {
       setUpdating(true)
       return updateDataFieldClasses(currDataField.uuid, {
         dataClasses: newTags,
@@ -212,6 +224,7 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
             tags={currDataField.dataClasses}
             updateTags={handleUpdateTags}
             updating={updating}
+            dataClasses={dataClasses}
           />
         </VStack>
         <Box mt="10" pt="4" borderTopWidth={1} w="full" textAlign="end">

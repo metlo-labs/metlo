@@ -8,7 +8,7 @@ import {
   Unique,
   Index,
 } from "typeorm"
-import { DataClass, DataTag, DataType, DataSection } from "@common/enums"
+import { DataTag, DataType, DataSection } from "@common/enums"
 import { ApiEndpoint } from "models/api-endpoint"
 import MetloBaseEntity from "./metlo-base-entity"
 
@@ -23,31 +23,25 @@ export class DataField extends MetloBaseEntity {
   uuid: string
 
   @Column({
-    type: "enum",
-    enum: DataClass,
+    type: "text",
     array: true,
-    default: [],
-    enumName: "data_class_enum",
+    default: []
   })
-  dataClasses: DataClass[]
+  dataClasses: string[]
 
   @Column({
-    type: "enum",
-    enum: DataClass,
+    type: "text",
     array: true,
-    default: [],
-    enumName: "data_class_enum",
+    default: []
   })
-  falsePositives: DataClass[]
+  falsePositives: string[]
 
   @Column({
-    type: "enum",
-    enum: DataClass,
+    type: "text",
     array: true,
-    default: [],
-    enumName: "data_class_enum",
+    default: []
   })
-  scannerIdentified: DataClass[]
+  scannerIdentified: string[]
 
   @Column({
     type: "enum",
@@ -100,7 +94,7 @@ export class DataField extends MetloBaseEntity {
   isNullable: boolean
 
   @Column({ type: "jsonb", nullable: false, default: {} })
-  matches: Record<DataClass, string[]>
+  matches: Record<string, string[]>
 
   @Column({ nullable: false })
   @Index("apiEndpointUuid_data_field")
@@ -109,18 +103,18 @@ export class DataField extends MetloBaseEntity {
   @ManyToOne(() => ApiEndpoint, apiEndpoint => apiEndpoint.dataFields)
   apiEndpoint: ApiEndpoint
 
-  addDataClass(dataClass: DataClass): boolean {
+  addDataClass(dataClass: string): boolean {
     if (this.dataClasses === null || this.dataClasses === undefined) {
-      this.dataClasses = Array<DataClass>()
+      this.dataClasses = Array<string>()
     }
     if (this.falsePositives === null || this.falsePositives === undefined) {
-      this.falsePositives = Array<DataClass>()
+      this.falsePositives = Array<string>()
     }
     if (
       this.scannerIdentified === null ||
       this.scannerIdentified === undefined
     ) {
-      this.scannerIdentified = Array<DataClass>()
+      this.scannerIdentified = Array<string>()
     }
     if (
       dataClass === null ||
@@ -134,9 +128,9 @@ export class DataField extends MetloBaseEntity {
     return true
   }
 
-  updateMatches(dataClass: DataClass, match: string): boolean {
+  updateMatches(dataClass: string, match: string): boolean {
     if (this.dataClasses === null || this.dataClasses === undefined) {
-      this.dataClasses = Array<DataClass>()
+      this.dataClasses = Array<string>()
     }
     if (!match || dataClass === null || !this.dataClasses.includes(dataClass)) {
       return false
@@ -144,7 +138,7 @@ export class DataField extends MetloBaseEntity {
 
     let updated = false
     if (this.matches === null || this.matches === undefined) {
-      this.matches = {} as Record<DataClass, string[]>
+      this.matches = {} as Record<string, string[]>
     }
     if (
       this.matches[dataClass] == null ||

@@ -2,18 +2,34 @@ import { Heading, VStack } from "@chakra-ui/react"
 import superjson from "superjson"
 import { useState } from "react"
 import { GetServerSideProps } from "next"
-import { ApiEndpoint, GetEndpointParams } from "@common/types"
-import { DataClass, RiskScore } from "@common/enums"
+import { ApiEndpoint, DataClass, GetEndpointParams } from "@common/types"
+import { RiskScore } from "@common/enums"
 import EndpointList from "components/EndpointList"
 import { PageWrapper } from "components/PageWrapper"
 import { ContentContainer } from "components/utils/ContentContainer"
 import { getEndpoints, getHosts } from "api/endpoints"
 import { ENDPOINT_PAGE_LIMIT } from "~/constants"
+import { getDataClasses } from "api/dataClasses"
 
-const Endpoints = ({ initParams, initEndpoints, initTotalCount, hosts }) => {
+interface EndpointsProps {
+  initParams: string
+  initEndpoints: string
+  initTotalCount: number
+  hosts: string
+  dataClasses: string
+}
+
+const Endpoints: React.FC<EndpointsProps> = ({
+  initParams,
+  initEndpoints,
+  initTotalCount,
+  hosts,
+  dataClasses,
+}) => {
   const parsedInitParams = superjson.parse<GetEndpointParams>(initParams)
   const parsedInitEndpoints = superjson.parse<ApiEndpoint[]>(initEndpoints)
-  const parsedHosts = superjson.parse<string[]>(hosts ?? [])
+  const parsedHosts = superjson.parse<string[]>(hosts) ?? []
+  const parsedDataClasses = superjson.parse<DataClass[]>(dataClasses) ?? []
 
   const [fetching, setFetching] = useState<boolean>(false)
   const [endpoints, setEndpoints] = useState<ApiEndpoint[]>(parsedInitEndpoints)
@@ -51,6 +67,7 @@ const Endpoints = ({ initParams, initEndpoints, initTotalCount, hosts }) => {
             params={params}
             totalCount={totalCount}
             setParams={setParams}
+            dataClasses={parsedDataClasses}
           />
         </VStack>
       </ContentContainer>
@@ -59,6 +76,8 @@ const Endpoints = ({ initParams, initEndpoints, initTotalCount, hosts }) => {
 }
 
 export const getServerSideProps: GetServerSideProps = async context => {
+  const dataClasses: DataClass[] = await getDataClasses({})
+  console.log(dataClasses)
   const initParams: GetEndpointParams = {
     riskScores: ((context.query.riskScores as string) || "")
       .split(",")
@@ -67,8 +86,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
     hosts: ((context.query.hosts as string) || null)?.split(",") ?? [],
     dataClasses: ((context.query.dataClasses as string) || "")
       .split(",")
-      .filter(e => Object.values(DataClass).includes(e as DataClass))
-      .map(e => e as DataClass),
+      .filter(e => dataClasses.find(({ className }) => className == e)),
     offset: 0,
     searchQuery: "",
     isAuthenticated: null,
@@ -85,6 +103,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
       initEndpoints: superjson.stringify(initEndpoints),
       initTotalCount: totalCount,
       hosts: superjson.stringify(hosts),
+      dataClasses: superjson.stringify(dataClasses),
     },
   }
 }
