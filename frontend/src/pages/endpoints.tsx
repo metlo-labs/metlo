@@ -77,7 +77,6 @@ const Endpoints: React.FC<EndpointsProps> = ({
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const dataClasses: DataClass[] = await getDataClasses({})
-  console.log(dataClasses)
   const initParams: GetEndpointParams = {
     riskScores: ((context.query.riskScores as string) || "")
       .split(",")

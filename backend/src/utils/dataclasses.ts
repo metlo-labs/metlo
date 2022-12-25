@@ -27,7 +27,7 @@ const customDataClass = Zod.object({
     patterns: Zod.string().array()
 })
 
-const DATA_CLASS_KEY = (uuid?: string) => `METLO_DATA_CLASS-${uuid || "default"}`
+const DATA_CLASS_KEY = `METLO_DATA_CLASS`
 
 
 async function getOrSet(ctx: MetloContext, key: string, fn: () => Promise<DataClass[]>) {
@@ -91,10 +91,10 @@ export async function getCombinedDataClasses(ctx: MetloContext) {
             }
         ) as DataClass[]
     }
-    return getOrSet(ctx, DATA_CLASS_KEY(), () => innerFunction())
+    return getOrSet(ctx, DATA_CLASS_KEY, () => innerFunction())
 }
 
 export async function clearDataClassCache(ctx: MetloContext) {
-    RedisClient.deleteFromRedis(ctx, [DATA_CLASS_KEY()])
+    RedisClient.deleteFromRedis(ctx, [DATA_CLASS_KEY])
 }
 
