@@ -91,7 +91,9 @@ export class RedisClient {
     data: string[],
   ) {
     try {
-      await this.getInstance().sadd(key, ...data)
+      if (data?.length > 0) {
+        await this.getInstance().sadd(key, ...data)
+      }
     } catch (err) {
       console.error(`Error adding value to redis set: ${err}`)
     }
