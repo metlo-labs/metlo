@@ -17,7 +17,7 @@ export async function getDataClasses({ headers, setLocal }: fetchDataClassesInte
 }
 
 
-export function fetchDataClassesHook(): [DataClass[], boolean] {
+export function FetchDataClassesHook(): [DataClass[], boolean] {
     const [fetching, setFetching] = useState(true);
     const [dataClasses, setDataClasses] = useState<DataClass[]>([]);
 
