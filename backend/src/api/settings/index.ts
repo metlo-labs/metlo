@@ -1,4 +1,4 @@
-import { Response } from "express"
+import { Response, Router } from "express"
 import ApiResponseHandler from "api-response-handler"
 import { InstanceSettings } from "models"
 import { getRepository } from "services/database/utils"
@@ -36,4 +36,9 @@ export const putInstanceSettingsHandler = async (
   } catch (err) {
     await ApiResponseHandler.error(res, err)
   }
+}
+
+export default function registerInstanceSettingsRoutes(router: Router) {
+  router.get("/api/v1/instance-settings", getInstanceSettingsHandler)
+  router.put("/api/v1/instance-settings", putInstanceSettingsHandler)
 }

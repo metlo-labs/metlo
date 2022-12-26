@@ -1,4 +1,4 @@
-import { Response } from "express"
+import { Response, Router } from "express"
 import ApiResponseHandler from "api-response-handler"
 import {
   createNewWebhook,
@@ -63,4 +63,11 @@ export const deleteWebhookHandler = async (
   } catch (err) {
     await ApiResponseHandler.error(res, err)
   }
+}
+
+export default function registerWebhookRoutes(router: Router) {
+  router.get("/api/v1/webhooks", getWebhooksHandler)
+  router.post("/api/v1/webhook", createWebhookHandler)
+  router.delete("/api/v1/webhook/:webhookId", deleteWebhookHandler)
+  router.put("/api/v1/webhook/:webhookId", updateWebhookHandler)
 }

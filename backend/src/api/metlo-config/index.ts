@@ -1,8 +1,7 @@
-import { Response } from "express"
+import { Response, Router } from "express"
 import { UpdateMetloConfigParams } from "@common/types"
 import { getMetloConfig, updateMetloConfig } from "services/metlo-config"
 import ApiResponseHandler from "api-response-handler"
-import Error404NotFound from "errors/error-404-not-found"
 import { MetloRequest } from "types"
 
 export const updateMetloConfigHandler = async (
@@ -34,4 +33,9 @@ export const getMetloConfigHandler = async (
   } catch (err) {
     await ApiResponseHandler.error(res, err)
   }
+}
+
+export default function registerMetloConfigRoutes(router: Router) {
+  router.put("/api/v1/metlo-config", updateMetloConfigHandler)
+  router.get("/api/v1/metlo-config", getMetloConfigHandler)
 }

@@ -3,53 +3,19 @@ dotenv.config()
 
 import express, { Express, Response } from "express"
 import { InstanceSettings } from "models"
-import {
-  deleteEndpointHandler,
-  deleteHostHandler,
-  getEndpointHandler,
-  getEndpointsHandler,
-  getHostsHandler,
-  getHostsListHandler,
-  getSuggestedPathsHandler,
-  getUsageHandler,
-  updateEndpointIsAuthenticated,
-  updatePathsHandler,
-} from "api/get-endpoints"
-import { getHostsGraphHandler } from "api/get-endpoints/graph"
-import {
-  deleteSpecHandler,
-  getSpecHandler,
-  getSpecListHandler,
-  getSpecZipHandler,
-  updateSpecHandler,
-  uploadNewSpecHandler,
-} from "api/spec"
-import { getAlertsHandler, updateAlertHandler } from "api/alert"
-import { deleteDataFieldHandler, updateDataFieldClasses } from "api/data-field"
-import { getEndpointTrackedHandler, getSummaryHandler } from "api/summary"
 import { MetloRequest } from "types"
 import { AppDataSource } from "data-source"
-import { MulterSource } from "multer-source"
 import { RedisClient } from "utils/redis"
-import { getSensitiveDataSummaryHandler } from "api/data-field/sensitive-data"
-import { getVulnerabilitySummaryHandler } from "api/alert/vulnerability"
 import { inSandboxMode } from "utils"
-import { createKey, deleteKey, getOnboardingKeys, listKeys } from "api/keys"
-import {
-  getInstanceSettingsHandler,
-  putInstanceSettingsHandler,
-} from "api/settings"
-import {
-  getMetloConfigHandler,
-  updateMetloConfigHandler,
-} from "api/metlo-config"
-import {
-  createWebhookHandler,
-  deleteWebhookHandler,
-  getWebhooksHandler,
-  updateWebhookHandler,
-} from "api/webhook"
+import registerKeyRoutes from "api/keys"
+import registerInstanceSettingsRoutes from "api/settings"
+import registerAlertRoutes from "api/alert"
+import registerSummaryRoutes from "api/summary"
+import registerMetloConfigRoutes from "api/metlo-config"
+import registerWebhookRoutes from "api/webhook"
 import registerTestingRoutes from "api/testing"
+import registerSpecRoutes from "api/spec"
+import registerEndpointRoutes from "api/endpoints"
 
 const port = process.env.PORT || 8080
 RedisClient.getInstance()
@@ -77,68 +43,16 @@ app.get("/api/v1", (req: MetloRequest, res: Response) => {
 })
 
 const apiRouter = express.Router()
-apiRouter.get("/api/v1/summary", getSummaryHandler)
-apiRouter.get("/api/v1/summary/endpoint-tracked", getEndpointTrackedHandler)
-apiRouter.get("/api/v1/instance-settings", getInstanceSettingsHandler)
-apiRouter.put("/api/v1/instance-settings", putInstanceSettingsHandler)
-apiRouter.get("/api/v1/sensitive-data-summary", getSensitiveDataSummaryHandler)
-apiRouter.get("/api/v1/vulnerability-summary", getVulnerabilitySummaryHandler)
-apiRouter.get("/api/v1/endpoints/hosts", getHostsHandler)
-apiRouter.get("/api/v1/endpoints", getEndpointsHandler)
-apiRouter.get("/api/v1/endpoint/:endpointId", getEndpointHandler)
-apiRouter.get("/api/v1/endpoint/:endpointId/usage", getUsageHandler)
-apiRouter.put(
-  "/api/v1/endpoint/:endpointId/authenticated",
-  updateEndpointIsAuthenticated,
-)
-apiRouter.delete("/api/v1/endpoint/:endpointId", deleteEndpointHandler)
-apiRouter.get(
-  "/api/v1/endpoint/:endpointId/suggested-paths",
-  getSuggestedPathsHandler,
-)
-apiRouter.post("/api/v1/endpoint/:endpointId/update-paths", updatePathsHandler)
-apiRouter.delete("/api/v1/host", deleteHostHandler)
-apiRouter.get("/api/v1/hosts", getHostsListHandler)
-apiRouter.get("/api/v1/hosts-graph", getHostsGraphHandler)
 
-apiRouter.post(
-  "/api/v1/spec/new",
-  MulterSource.single("file"),
-  uploadNewSpecHandler,
-)
-apiRouter.delete("/api/v1/spec/:specFileName", deleteSpecHandler)
-apiRouter.put(
-  "/api/v1/spec/:specFileName",
-  MulterSource.single("file"),
-  updateSpecHandler,
-)
-apiRouter.get("/api/v1/specs", getSpecListHandler)
-apiRouter.get("/api/v1/spec/:specFileName", getSpecHandler)
-apiRouter.get("/api/v1/specs/zip", getSpecZipHandler)
-
-apiRouter.post(
-  "/api/v1/data-field/:dataFieldId/update-classes",
-  updateDataFieldClasses,
-)
-apiRouter.delete("/api/v1/data-field/:dataFieldId", deleteDataFieldHandler)
-
-apiRouter.get("/api/v1/alerts", getAlertsHandler)
-apiRouter.put("/api/v1/alert/:alertId", updateAlertHandler)
-
+registerSummaryRoutes(apiRouter)
+registerInstanceSettingsRoutes(apiRouter)
+registerEndpointRoutes(apiRouter)
+registerSpecRoutes(apiRouter)
+registerAlertRoutes(apiRouter)
 registerTestingRoutes(apiRouter)
-
-apiRouter.get("/api/v1/keys/list", listKeys)
-apiRouter.post("/api/v1/keys/create", createKey)
-apiRouter.delete("/api/v1/keys/:name/delete", deleteKey)
-apiRouter.get("/api/v1/keys/onboarding", getOnboardingKeys)
-
-apiRouter.put("/api/v1/metlo-config", updateMetloConfigHandler)
-apiRouter.get("/api/v1/metlo-config", getMetloConfigHandler)
-
-apiRouter.get("/api/v1/webhooks", getWebhooksHandler)
-apiRouter.post("/api/v1/webhook", createWebhookHandler)
-apiRouter.delete("/api/v1/webhook/:webhookId", deleteWebhookHandler)
-apiRouter.put("/api/v1/webhook/:webhookId", updateWebhookHandler)
+registerKeyRoutes(apiRouter)
+registerMetloConfigRoutes(apiRouter)
+registerWebhookRoutes(apiRouter)
 
 app.use(apiRouter)
 

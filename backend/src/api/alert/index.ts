@@ -1,4 +1,4 @@
-import { Request, Response } from "express"
+import { Request, Response, Router } from "express"
 import { AlertService } from "services/alert"
 import { GetAlertParams, UpdateAlertParams } from "@common/types"
 import ApiResponseHandler from "api-response-handler"
@@ -33,4 +33,9 @@ export const updateAlertHandler = async (
   } catch (err) {
     await ApiResponseHandler.error(res, err)
   }
+}
+
+export default function registerAlertRoutes(router: Router) {
+  router.get("/api/v1/alerts", getAlertsHandler)
+  router.put("/api/v1/alert/:alertId", updateAlertHandler)
 }

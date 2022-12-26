@@ -1,15 +1,21 @@
-import { Response } from "express"
+import { Response, Router } from "express"
 import validator from "validator"
 import { GetEndpointsService } from "services/get-endpoints"
-import { GetEndpointParams, GetHostParams } from "@common/types"
+import { GetEndpointParams } from "@common/types"
 import ApiResponseHandler from "api-response-handler"
 import Error404NotFound from "errors/error-404-not-found"
 import { MetloRequest } from "types"
-import Error400BadRequest from "errors/error-400-bad-request"
 import {
   getTopSuggestedPaths,
   updatePaths,
 } from "services/get-endpoints/path-heuristic"
+import { getHostsGraphHandler } from "./graph"
+import { deleteDataFieldHandler, updateDataFieldClasses } from "./data-fields"
+import {
+  deleteHostHandler,
+  getHostsHandler,
+  getHostsListHandler,
+} from "./hosts"
 
 export const getEndpointsHandler = async (
   req: MetloRequest,
@@ -38,18 +44,6 @@ export const getEndpointHandler = async (
     }
     const endpoint = await GetEndpointsService.getEndpoint(req.ctx, endpointId)
     await ApiResponseHandler.success(res, endpoint)
-  } catch (err) {
-    await ApiResponseHandler.error(res, err)
-  }
-}
-
-export const getHostsHandler = async (
-  req: MetloRequest,
-  res: Response,
-): Promise<void> => {
-  try {
-    const hosts = await GetEndpointsService.getHosts(req.ctx)
-    await ApiResponseHandler.success(res, hosts)
   } catch (err) {
     await ApiResponseHandler.error(res, err)
   }
@@ -108,35 +102,6 @@ export const deleteEndpointHandler = async (
   }
 }
 
-export const deleteHostHandler = async (
-  req: MetloRequest,
-  res: Response,
-): Promise<void> => {
-  try {
-    const { host } = req.body
-    if (!host) {
-      throw new Error400BadRequest("Must provide host.")
-    }
-    await GetEndpointsService.deleteHost(req.ctx, host)
-    await ApiResponseHandler.success(res, "Success")
-  } catch (err) {
-    await ApiResponseHandler.error(res, err)
-  }
-}
-
-export const getHostsListHandler = async (
-  req: MetloRequest,
-  res: Response,
-): Promise<void> => {
-  const hostsParams: GetHostParams = req.query
-  try {
-    const resp = await GetEndpointsService.getHostsList(req.ctx, hostsParams)
-    await ApiResponseHandler.success(res, resp)
-  } catch (err) {
-    await ApiResponseHandler.error(res, err)
-  }
-}
-
 export const getSuggestedPathsHandler = async (
   req: MetloRequest,
   res: Response,
@@ -168,4 +133,29 @@ export const updatePathsHandler = async (
   } catch (err) {
     await ApiResponseHandler.error(res, err)
   }
+}
+
+export default function registerEndpointRoutes(router: Router) {
+  router.get("/api/v1/endpoints/hosts", getHostsHandler)
+  router.get("/api/v1/endpoints", getEndpointsHandler)
+  router.get("/api/v1/endpoint/:endpointId", getEndpointHandler)
+  router.get("/api/v1/endpoint/:endpointId/usage", getUsageHandler)
+  router.delete("/api/v1/host", deleteHostHandler)
+  router.get("/api/v1/hosts", getHostsListHandler)
+  router.get("/api/v1/hosts-graph", getHostsGraphHandler)
+  router.delete("/api/v1/endpoint/:endpointId", deleteEndpointHandler)
+  router.get(
+    "/api/v1/endpoint/:endpointId/suggested-paths",
+    getSuggestedPathsHandler,
+  )
+  router.put(
+    "/api/v1/endpoint/:endpointId/authenticated",
+    updateEndpointIsAuthenticated,
+  )
+  router.post("/api/v1/endpoint/:endpointId/update-paths", updatePathsHandler)
+  router.post(
+    "/api/v1/data-field/:dataFieldId/update-classes",
+    updateDataFieldClasses,
+  )
+  router.delete("/api/v1/data-field/:dataFieldId", deleteDataFieldHandler)
 }

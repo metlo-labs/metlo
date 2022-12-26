@@ -1,5 +1,5 @@
 import ApiResponseHandler from "api-response-handler"
-import { Response } from "express"
+import { Response, Router } from "express"
 import { ApiKey } from "models"
 import { ApiKey as ApiKeyType } from "@common/types"
 import Error404NotFound from "errors/error-404-not-found"
@@ -116,4 +116,11 @@ export const getOnboardingKeys = async (
   } catch (err) {
     await ApiResponseHandler.error(res, err)
   }
+}
+
+export default function registerKeyRoutes(router: Router) {
+  router.get("/api/v1/keys/list", listKeys)
+  router.post("/api/v1/keys/create", createKey)
+  router.delete("/api/v1/keys/:name/delete", deleteKey)
+  router.get("/api/v1/keys/onboarding", getOnboardingKeys)
 }
