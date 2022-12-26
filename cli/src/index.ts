@@ -26,7 +26,7 @@ test
   .command("generate")
   .option("-p,--path <string>", "Path to generate the test at")
   .requiredOption("-t,--testType <string>", "Type of test to generate")
-  .requiredOption("-v,--version <number>", "The version of the test templste")
+  .option("-v,--version <number>", "The version of the test templste")
   .requiredOption(
     "-e,--endpoint <string>",
     "The endpoint to generate this test for",
