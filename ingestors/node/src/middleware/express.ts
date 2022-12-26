@@ -16,7 +16,7 @@ const initialize = () => {
       request: {
         url: {
           host: _req.socket.remoteAddress,
-          path: _req.path,
+          path: _req.baseUrl + _req.path,
           parameters: Object.entries(_req.query).map(([k, v]) => ({
             name: k,
             value: v,
