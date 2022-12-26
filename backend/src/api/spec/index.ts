@@ -1,4 +1,5 @@
-import { Response } from "express"
+import { Response, Router } from "express"
+import { MulterSource } from "multer-source"
 import yaml from "js-yaml"
 import { JSONValue } from "@common/types"
 import { SpecService } from "services/spec"
@@ -165,4 +166,21 @@ export const getSpecZipHandler = async (
   } catch (err) {
     await ApiResponseHandler.error(res, err)
   }
+}
+
+export default function registerSpecRoutes(router: Router) {
+  router.post(
+    "/api/v1/spec/new",
+    MulterSource.single("file"),
+    uploadNewSpecHandler,
+  )
+  router.delete("/api/v1/spec/:specFileName", deleteSpecHandler)
+  router.put(
+    "/api/v1/spec/:specFileName",
+    MulterSource.single("file"),
+    updateSpecHandler,
+  )
+  router.get("/api/v1/specs", getSpecListHandler)
+  router.get("/api/v1/spec/:specFileName", getSpecHandler)
+  router.get("/api/v1/specs/zip", getSpecZipHandler)
 }
