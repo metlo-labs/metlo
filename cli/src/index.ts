@@ -10,7 +10,7 @@ import { gcpTrafficMirrorList } from "./gcp/list"
 import { gcpTrafficMirrorDelete } from "./gcp/remove"
 import { gcpTrafficMirrorCleanUp } from "./gcp/cleanup"
 import { generateTest } from "./testing/generate"
-import { runTestPath } from "./testing/run"
+import { runTests } from "./testing/run"
 
 program.name("metlo").description("Metlo's command line tool.").version("0.1.4")
 
@@ -33,7 +33,13 @@ test
   )
   .option("-h,--host <string>", "The host to generate this test for")
   .action(generateTest)
-test.command("run").argument("<paths...>").action(runTestPath)
+const testRun = test.command("run")
+  .argument("[paths...]", "Path to yaml test files")
+  .option('-e, --endpoint [endpoint]', 'endpoint pattern or uuid')
+  .option('-n, --host [hostname]', 'hostname for which tests are to be run.')
+  .option("-k, --api_key [string]", "[Optional] An API key for Metlo. If not provided, metlo cli will look in /opt/metlo/credentials for an api key")
+  .option("-u, --url <string>", "Your Metlo instance URL")
+  .action(runTests)
 
 const trafficMirror = program
   .command("traffic-mirror")
