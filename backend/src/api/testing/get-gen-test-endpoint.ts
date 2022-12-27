@@ -3,6 +3,7 @@ import ApiResponseHandler from "api-response-handler"
 import Error400BadRequest from "errors/error-400-bad-request"
 import { MetloRequest } from "types"
 import { getGenTestEndpoint } from "services/testing/utils"
+import Error404NotFound from "errors/error-404-not-found"
 
 export const getGenTestEndpointHandler = async (
   req: MetloRequest,
@@ -21,6 +22,12 @@ export const getGenTestEndpointHandler = async (
       queryParams.endpoint,
       queryParams.host,
     )
+    if (!endpoint) {
+      return await ApiResponseHandler.error(
+        res,
+        new Error404NotFound("Could not find endpoint."),
+      )
+    }
     await ApiResponseHandler.success(res, endpoint)
   } catch (err) {
     await ApiResponseHandler.error(res, err)

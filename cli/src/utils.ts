@@ -1,3 +1,4 @@
+import chalk from "chalk"
 import os from "os"
 import fs from "fs"
 import path from "path"
@@ -28,6 +29,7 @@ export const getConfig = (): MetloConfig => {
     res.apiKey = process.env.METLO_API_KEY
   }
   if (!res.metloHost || !res.apiKey) {
+    console.log(chalk.red.bold(`Run "metlo init" to setup metlo...`))
     throw new Error(`INVALID MELTO CONFIG: ${JSON.stringify(res, null, 4)}`)
   }
   return res as MetloConfig
