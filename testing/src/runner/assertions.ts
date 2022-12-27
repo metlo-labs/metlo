@@ -38,7 +38,7 @@ export const runAssertion = (
   const currentValue = getKeyValue(assertionKey, response, ctx)
   if (assertion.type == AssertionType.enum.EQ) {
     if (assertionValue instanceof Array) {
-      assertionValue.some(e => e == currentValue)
+      return assertionValue.some(e => e == currentValue)
     } else {
       return assertionValue === currentValue
     }
