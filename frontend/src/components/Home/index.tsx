@@ -39,12 +39,12 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ summary }) => {
         <UsageChart
           usageData={summary.usageStats}
           w={{ base: "full", xl: "50%" }}
-          h="sm"
+          h="xs"
         />
         <AggPIIChart
           piiDataTypeCount={summary.piiDataTypeCount}
           w={{ base: "full", xl: "50%" }}
-          h="sm"
+          h="xs"
         />
       </Stack>
       <TopEndpoints
