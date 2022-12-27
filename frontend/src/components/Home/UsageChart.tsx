@@ -39,7 +39,7 @@ interface UsageChartProps extends StackProps {
 const UsageChart: React.FC<UsageChartProps> = React.memo(
   ({ usageData, ...props }) => {
     const options = {
-      responsive: true,
+      maintainAspectRatio: false,
       interaction: {
         mode: "nearest",
         intersect: false,
@@ -107,23 +107,23 @@ const UsageChart: React.FC<UsageChartProps> = React.memo(
         <Heading px="4" size="md" color="gray.800">
           API Activity
         </Heading>
-        <HStack px="4" w="full" alignItems="flex-start" spacing="8">
-          <Box w="65%">
+        <HStack h="full" px="4" w="full" alignItems="flex-start" spacing="8">
+          <Box h="full" w="65%">
             <Bar options={options as any} data={data} />
           </Box>
           <VStack alignItems="flex-start">
-            <HStack justifyContent="flex-end">
+            <VStack alignItems="flex-start">
               <Text w="12" fontWeight="semibold" fontSize="lg">
                 {usageData.last1MinCnt || 0}
               </Text>
               <Text color="gray.600">Calls Per Minute</Text>
-            </HStack>
-            <HStack justifyContent="flex-end">
+            </VStack>
+            <VStack alignItems="flex-start">
               <Text w="12" fontWeight="semibold" fontSize="lg">
                 {usageData.last60MinCnt || 0}
               </Text>
               <Text color="gray.600">Calls Last Hour</Text>
-            </HStack>
+            </VStack>
           </VStack>
         </HStack>
       </VStack>

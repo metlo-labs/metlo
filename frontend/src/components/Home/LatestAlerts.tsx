@@ -69,16 +69,14 @@ const LatestAlerts: React.FC<LatestAlertsProps> = React.memo(
           <Heading size="md" color="gray.800">
             Latest Alerts
           </Heading>
-          <Link href="/alerts">
-            View All Alerts →
-          </Link>
+          <Link href="/alerts">View All Alerts →</Link>
         </HStack>
         {alerts.length === 0 ? (
           <EmptyView text="No New Alerts." />
         ) : (
           <VStack
             alignItems="flex-start"
-            py="2"
+            pb="2"
             overflow="auto"
             w="full"
             spacing="0"

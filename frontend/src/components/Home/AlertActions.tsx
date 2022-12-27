@@ -8,8 +8,10 @@ import {
   Heading,
   Text,
   VStack,
+  Icon,
 } from "@chakra-ui/react"
 import { AlertType } from "@common/enums"
+import { alertTypeToIcon } from "components/Alert/utils"
 
 interface AlertActionsProps extends StackProps {
   totalAlerts: number
@@ -24,20 +26,52 @@ interface AlertAction {
 
 const Action: React.FC<AlertAction> = React.memo(
   ({ alertTypeCount, alertTypes, description }) => {
+    const count = alertTypes
+      .map(e => alertTypeCount[e] || 0)
+      .reduce((a, b) => a + b)
+    let color = "initial"
+    if (count === 0) {
+      color = "green.600"
+    } else {
+      color = "orange.400"
+    }
     return (
-      <HStack spacing="8">
-        <Text fontSize="xl" fontWeight="semibold" w="8">
-          {alertTypes.map(e => alertTypeCount[e] || 0).reduce((a, b) => a + b)}
-        </Text>
-        <VStack alignItems="flex-start">
-          <Text fontSize="md" fontWeight="medium">
-            {description}
-          </Text>
-          <Link href={encodeURI(`/alerts?alertTypes=${alertTypes.join(",")}`)}>
-            View Alerts →
-          </Link>
-        </VStack>
-      </HStack>
+      <Link
+        href={encodeURI(`/alerts?alertTypes=${alertTypes.join(",")}`)}
+        legacyBehavior
+      >
+        <HStack
+          py="4"
+          px="4"
+          cursor="pointer"
+          _hover={{ bg: "gray.50" }}
+          w="full"
+          spacing={4}
+        >
+          <Icon
+            as={alertTypeToIcon(alertTypes[0])}
+            boxSize="25px"
+            color={color}
+          />
+          <VStack w="full" alignItems="flex-start" spacing="1">
+            <HStack w="full" justifyContent="space-between">
+              <HStack>
+                <Text
+                  w="50px"
+                  color={color}
+                  as="span"
+                  fontSize="xl"
+                  fontWeight="semibold"
+                >
+                  {count}
+                </Text>{" "}
+                <Text fontSize="lg">{description}</Text>
+              </HStack>
+              <Text fontSize="lg">View Alerts →</Text>
+            </HStack>
+          </VStack>
+        </HStack>
+      </Link>
     )
   },
 )
@@ -49,46 +83,40 @@ const AlertActions: React.FC<AlertActionsProps> = React.memo(
         borderWidth="1px"
         rounded="md"
         overflow="hidden"
-        py="4"
+        pt="4"
         alignItems="flex-start"
-        spacing="2"
+        spacing={0}
         divider={<StackDivider />}
         bg="cellBG"
         {...props}
       >
-        <Heading px="4" size="md" color="gray.800">
+        <Heading px="4" pb="2" size="md" color="gray.800">
           Action Items
         </Heading>
-        <HStack px="8" pt="2" spacing="20" h="full" w="full">
-          <VStack>
-            <Text fontSize="2xl" fontWeight="semibold">
-              {totalAlerts}
-            </Text>
-            <Text fontSize="md" fontWeight="medium" pb="2">
-              Total Unresolved Alerts
-            </Text>
-            <Link href={encodeURI(`/alerts`)}>
-              <Button>View All Alerts →</Button>
-            </Link>
-          </VStack>
-          <VStack alignItems="flex-start" spacing="6">
-            <Action
-              alertTypeCount={alertTypeCount}
-              alertTypes={[AlertType.NEW_ENDPOINT]}
-              description="Unidentified Endpoints"
-            />
-            <Action
-              alertTypeCount={alertTypeCount}
-              alertTypes={[AlertType.OPEN_API_SPEC_DIFF]}
-              description="OpenAPI Spec Diffs Detected"
-            />
-            <Action
-              alertTypeCount={alertTypeCount}
-              alertTypes={[AlertType.PII_DATA_DETECTED]}
-              description="PII Data Fields Detected"
-            />
-          </VStack>
-        </HStack>
+        <VStack
+          alignItems="flex-start"
+          overflow="auto"
+          w="full"
+          spacing="0"
+          pb="2"
+          divider={<StackDivider />}
+        >
+          <Action
+            alertTypeCount={alertTypeCount}
+            alertTypes={[AlertType.NEW_ENDPOINT]}
+            description="Unidentified Endpoints"
+          />
+          <Action
+            alertTypeCount={alertTypeCount}
+            alertTypes={[AlertType.OPEN_API_SPEC_DIFF]}
+            description="OpenAPI Spec Diffs Detected"
+          />
+          <Action
+            alertTypeCount={alertTypeCount}
+            alertTypes={[AlertType.PII_DATA_DETECTED]}
+            description="PII Data Fields Detected"
+          />
+        </VStack>
       </VStack>
     )
   },

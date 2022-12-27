@@ -28,7 +28,7 @@ const Index = ({ summary, instanceSettings }) => {
   }
 
   let page = (
-    <ContentContainer maxContentW="100rem" px="8" py="8">
+    <ContentContainer maxContentW="100rem" px="6" py="6">
       <HomePage summary={parsedSummary} />
     </ContentContainer>
   )
