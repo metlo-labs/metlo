@@ -63,9 +63,9 @@ const ActionItem: React.FC<ActionItemProps> = React.memo(
                 >
                   {count}
                 </Text>{" "}
-                <Text fontSize="lg">{description}</Text>
+                <Text fontSize="md">{description}</Text>
               </HStack>
-              <Text fontSize="lg">{cta} →</Text>
+              <Text fontSize="md">{cta} →</Text>
             </HStack>
           </VStack>
         </HStack>
