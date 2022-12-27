@@ -24,11 +24,16 @@ interface AlertAction {
   alertTypes: AlertType[]
 }
 
-const Action: React.FC<AlertAction> = React.memo(
-  ({ alertTypeCount, alertTypes, description }) => {
-    const count = alertTypes
-      .map(e => alertTypeCount[e] || 0)
-      .reduce((a, b) => a + b)
+interface ActionItemProps {
+  link: string
+  icon: any
+  count: number
+  description: string
+  cta: string
+}
+
+const ActionItem: React.FC<ActionItemProps> = React.memo(
+  ({ link, icon, count, description, cta }) => {
     let color = "initial"
     if (count === 0) {
       color = "green.600"
@@ -36,10 +41,7 @@ const Action: React.FC<AlertAction> = React.memo(
       color = "orange.400"
     }
     return (
-      <Link
-        href={encodeURI(`/alerts?alertTypes=${alertTypes.join(",")}`)}
-        legacyBehavior
-      >
+      <Link href={encodeURI(link)} legacyBehavior>
         <HStack
           py="4"
           px="4"
@@ -48,11 +50,7 @@ const Action: React.FC<AlertAction> = React.memo(
           w="full"
           spacing={4}
         >
-          <Icon
-            as={alertTypeToIcon(alertTypes[0])}
-            boxSize="25px"
-            color={color}
-          />
+          <Icon as={icon} boxSize="25px" color={color} />
           <VStack w="full" alignItems="flex-start" spacing="1">
             <HStack w="full" justifyContent="space-between">
               <HStack>
@@ -67,11 +65,30 @@ const Action: React.FC<AlertAction> = React.memo(
                 </Text>{" "}
                 <Text fontSize="lg">{description}</Text>
               </HStack>
-              <Text fontSize="lg">View Alerts →</Text>
+              <Text fontSize="lg">{cta} →</Text>
             </HStack>
           </VStack>
         </HStack>
       </Link>
+    )
+  },
+)
+
+const Action: React.FC<AlertAction> = React.memo(
+  ({ alertTypeCount, alertTypes, description }) => {
+    const count = alertTypes
+      .map(e => alertTypeCount[e] || 0)
+      .reduce((a, b) => a + b)
+    const link = `/alerts?alertTypes=${alertTypes.join(",")}`
+    const icon = alertTypeToIcon(alertTypes[0])
+    return (
+      <ActionItem
+        link={link}
+        icon={icon}
+        count={count}
+        description={description}
+        cta={"View Alerts"}
+      />
     )
   },
 )
