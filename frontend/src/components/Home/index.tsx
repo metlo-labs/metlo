@@ -27,24 +27,24 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ summary }) => {
           totalAlerts={summary.newAlerts}
           alertTypeCount={summary.alertTypeCount}
           w={{ base: "full", xl: "50%" }}
-          h="xs"
+          h="sm"
         />
         <LatestAlerts
           alerts={summary.topAlerts}
           w={{ base: "full", xl: "50%" }}
-          h="xs"
+          h="sm"
         />
       </Stack>
       <Stack direction={{ base: "column", xl: "row" }} w="full" spacing="4">
         <UsageChart
           usageData={summary.usageStats}
           w={{ base: "full", xl: "50%" }}
-          h="xs"
+          h="sm"
         />
         <AggPIIChart
           piiDataTypeCount={summary.piiDataTypeCount}
           w={{ base: "full", xl: "50%" }}
-          h="xs"
+          h="sm"
         />
       </Stack>
       <TopEndpoints

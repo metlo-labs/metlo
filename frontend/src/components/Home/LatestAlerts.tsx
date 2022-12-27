@@ -78,7 +78,7 @@ const LatestAlerts: React.FC<LatestAlertsProps> = React.memo(
         ) : (
           <VStack
             alignItems="flex-start"
-            py="2"
+            pb="2"
             overflow="auto"
             w="full"
             spacing="0"

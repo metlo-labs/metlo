@@ -44,8 +44,7 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
       ],
     }
     const options = {
-      responsive: true,
-      cutout: "60%",
+      maintainAspectRatio: false,
       plugins: {
         legend: {
           display: false,
@@ -111,10 +110,10 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
             h="full"
             py="8"
           >
-            <Grid templateColumns="repeat(2, 1fr)" gap="4">
+            <Grid templateColumns="repeat(2, 1fr)" gap="2">
               {labels.map((e, i) => (
                 <GridItem key={i}>
-                  <HStack>
+                  <HStack alignItems="baseline">
                     <Box bg={PIE_BACKGROUND_COLORS[i]} px="2" py="1" />
                     <Text fontSize="sm">{e}</Text>
                   </HStack>

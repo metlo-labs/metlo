@@ -19,6 +19,7 @@ import {
   Box,
   Heading,
   StackDivider,
+  Stack,
 } from "@chakra-ui/react"
 import { DataClass } from "@common/enums"
 import { PIE_BACKGROUND_COLORS, PIE_BORDER_COLORS } from "~/constants"
@@ -46,7 +47,7 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
       ],
     }
     const options = {
-      responsive: true,
+      maintainAspectRatio: false,
       cutout: "60%",
       plugins: {
         legend: {
@@ -69,16 +70,32 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
         <Heading px="4" size="md" color="gray.800">
           Sensitive Data
         </Heading>
-        <HStack w="full" pt="2" px="4" alignItems="flex-start" spacing="8">
-          <Box w="30%">
+        <Stack
+          direction={{ base: "column", sm: "row" }}
+          h="full"
+          w="full"
+          pt="2"
+          px="4"
+          alignItems="flex-start"
+          spacing="8"
+        >
+          <Box
+            h={{ base: "70%", sm: "initial" }}
+            w={{ base: "100%", sm: "30%" }}
+          >
             <Doughnut options={options} data={chartData} />
           </Box>
-          <VStack w="70%" alignItems="flex-start" spacing="4">
+          <VStack
+            display={{ base: "none", sm: "initial" }}
+            w="70%"
+            alignItems="flex-start"
+            spacing="4"
+          >
             <Text fontWeight="semibold">{`${totalFields} Total PII Fields`}</Text>
             <Grid templateColumns="repeat(2, 1fr)" gap="4">
               {labels.map((e, i) => (
                 <GridItem key={i}>
-                  <HStack>
+                  <HStack alignItems="baseline">
                     <Box bg={PIE_BACKGROUND_COLORS[i]} px="2" py="1" />
                     <Text fontSize="sm">{e}</Text>
                   </HStack>
@@ -89,7 +106,17 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
               <Button mt="4">View Sensitive Data Dashboard →</Button>
             </Link>
           </VStack>
-        </HStack>
+          <Box
+            textAlign="center"
+            alignSelf="center"
+            display={{ base: "initial", sm: "none" }}
+          >
+            <Text fontWeight="semibold">{`${totalFields} Total PII Fields`}</Text>
+            <Link href="/sensitive-data">
+              <Button mt="4">View Sensitive Data Dashboard →</Button>
+            </Link>
+          </Box>
+        </Stack>
       </VStack>
     )
   },
