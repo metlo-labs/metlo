@@ -29,11 +29,11 @@ interface ActionItemProps {
   icon: any
   count: number
   description: string
-  subtext: string
+  cta: string
 }
 
 const ActionItem: React.FC<ActionItemProps> = React.memo(
-  ({ link, icon, count, description, subtext }) => {
+  ({ link, icon, count, description, cta }) => {
     let color = "initial"
     if (count === 0) {
       color = "green.600"
@@ -65,7 +65,7 @@ const ActionItem: React.FC<ActionItemProps> = React.memo(
                 </Text>{" "}
                 <Text fontSize="lg">{description}</Text>
               </HStack>
-              <Text fontSize="lg">{subtext} →</Text>
+              <Text fontSize="lg">{cta} →</Text>
             </HStack>
           </VStack>
         </HStack>
@@ -87,7 +87,7 @@ const Action: React.FC<AlertAction> = React.memo(
         icon={icon}
         count={count}
         description={description}
-        subtext={"View Alerts"}
+        cta={"View Alerts"}
       />
     )
   },
