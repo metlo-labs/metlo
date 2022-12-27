@@ -7,17 +7,22 @@ import { INTERNAL_IP_SET_KEY } from "./constants"
 
 export const updateEndpointIps = async (ctx: MetloContext) => {
   const queryRunner = AppDataSource.createQueryRunner()
-  const hostIps: { hostIps: { [key: string]: number } }[] = await getQB(
-    ctx,
-    queryRunner,
-  )
-    .select(['"hostIps"'])
-    .from(ApiEndpoint, "endpoint")
-    .execute()
-  await RedisClient.deleteKeyFromRedis(ctx, INTERNAL_IP_SET_KEY)
-  await RedisClient.addValueToSet(
-    ctx,
-    INTERNAL_IP_SET_KEY,
-    [...new Set(hostIps.map(e => Object.keys(e.hostIps)).flat())],
-  )
+  try {
+    await queryRunner.connect()
+    const hostIps: { hostIps: { [key: string]: number } }[] = await getQB(
+      ctx,
+      queryRunner,
+    )
+      .select(['"hostIps"'])
+      .from(ApiEndpoint, "endpoint")
+      .execute()
+    await RedisClient.deleteKeyFromRedis(ctx, INTERNAL_IP_SET_KEY)
+    await RedisClient.addValueToSet(ctx, INTERNAL_IP_SET_KEY, [
+      ...new Set(hostIps.map(e => Object.keys(e.hostIps)).flat()),
+    ])
+  } catch (err) {
+    console.error(`Encountered error while updating endpoint IPs: ${err}`)
+  } finally {
+    await queryRunner.release()
+  }
 }
