@@ -20,7 +20,8 @@ export const updateEndpointIps = async (ctx: MetloContext) => {
     await RedisClient.addValueToSet(ctx, INTERNAL_IP_SET_KEY, [
       ...new Set(hostIps.map(e => Object.keys(e.hostIps)).flat()),
     ])
-  } catch {
+  } catch (err) {
+    console.error(`Encountered error while updating endpoint IPs: ${err}`)
   } finally {
     await queryRunner.release()
   }
