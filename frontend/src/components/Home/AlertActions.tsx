@@ -41,7 +41,7 @@ const ActionItem: React.FC<ActionItemProps> = React.memo(
       color = "orange.400"
     }
     return (
-      <Link href={encodeURI(link)} legacyBehavior>
+      <Link href={link} legacyBehavior>
         <HStack
           py="4"
           px="4"
@@ -79,7 +79,7 @@ const Action: React.FC<AlertAction> = React.memo(
     const count = alertTypes
       .map(e => alertTypeCount[e] || 0)
       .reduce((a, b) => a + b)
-    const link = `/alerts?alertTypes=${alertTypes.join(",")}`
+    const link = encodeURI(`/alerts?alertTypes=${alertTypes.join(",")}`)
     const icon = alertTypeToIcon(alertTypes[0])
     return (
       <ActionItem
