@@ -86,6 +86,16 @@ export const EditPath: React.FC<EditPathProps> = React.memo(
     }
 
     const updateHandler = async () => {
+      if (newEndpoints.length === 0) {
+        toast(
+          makeToast({
+            title: "Updating Paths Failed...",
+            status: "error",
+            description: "Must have at least 1 new endpoint defined",
+          }),
+        )
+        return
+      }
       if (newEndpoints.includes(endpointPath)) {
         toast(
           makeToast({

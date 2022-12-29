@@ -42,7 +42,7 @@ const NodeDocs: React.FC<DocsParams> = React.memo(({ apiKey, host }) => {
               customStyle={{ background: "none", padding: 0 }}
               language="java"
             >
-              {`var metlo = require("metlo")\nmetlo("${apiKey}", "${host}")`}
+              {`var metlo = require("metlo").default\nmetlo("${apiKey}", "${host}")`}
             </SyntaxHighlighter>
           </Code>
         </VStack>
