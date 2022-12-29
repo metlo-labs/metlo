@@ -132,7 +132,7 @@ const main = async () => {
           const threshold = JOB_NAME_MAP[job.name as JobName].threshold
           if (Date.now() - job?.timestamp > threshold) {
             log(
-              `Job ${job.name} taking too long, exceeded threshold of ${threshold} ms. Killing job process.`,
+              `Job ${job.name} taking too long, exceeded threshold of ${threshold} ms. Killing job with pid ${job.data?.pid}.`,
               true,
             )
             await killJob(queue, job.id)
@@ -143,6 +143,21 @@ const main = async () => {
   })
 
   process.on("SIGINT", () => {
+    schedule.gracefulShutdown().then(async () => {
+      console.log("Stopping all queues and jobs...")
+      for (const queue of queues) {
+        const activeJobs = await queue.getActive()
+        for (const job of activeJobs) {
+          await killJob(queue, job.id)
+        }
+        await cleanQueue(queue)
+        await queue.close()
+      }
+      process.exit(0)
+    })
+  })
+
+  process.on("SIGTERM", () => {
     schedule.gracefulShutdown().then(async () => {
       console.log("Stopping all queues and jobs...")
       for (const queue of queues) {
