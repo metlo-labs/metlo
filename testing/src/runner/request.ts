@@ -53,6 +53,14 @@ export const makeRequest = async (req: TestRequest, ctx: Context) => {
     })
     .join(";")
 
+  if (
+    !Object.keys(headers)
+      .map(e => e.toLowerCase())
+      .includes("accept-encoding")
+  ) {
+    headers["Accept-Encoding"] = "*"
+  }
+
   let url = currentUrl
   if ((queryParams || "").length > 0) {
     url = currentUrl + `?${queryParams}`
