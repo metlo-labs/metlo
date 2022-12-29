@@ -1,5 +1,7 @@
 import axios from "axios"
 import chalk from "chalk"
+import dotenv from "dotenv"
+import fs from "fs"
 import ora from "ora"
 import groupBy from "lodash.groupby"
 
@@ -23,25 +25,28 @@ export const runTests = async (
     endpoint,
     host,
     verbose,
-  }: { endpoint: string; host: string; verbose: boolean },
+    env,
+  }: { endpoint: string; host: string; verbose: boolean; env: string },
 ) => {
+  let initEnv: { [key: string]: string } = {}
+  if (env) {
+    initEnv = dotenv.parse(fs.readFileSync(env, "utf8"))
+    console.log(chalk.gray(`Loaded env at path "${env}".`))
+  }
   if (paths && paths.length) {
-    await runTestPath(paths)
+    await runTestPath(paths, initEnv)
     return
   }
-  await runTestsFromEndpointInfo(endpoint, host, verbose)
+  await runTestsFromEndpointInfo(endpoint, host, initEnv, verbose)
 }
 
-const runTestPath = async (paths: string[]) => {
+const runTestPath = async (paths: string[], env: { [key: string]: string }) => {
   for (let path of paths) {
     console.log(chalk.gray(`Running test at path "${path}":`))
-    spinner.start(chalk.dim("Loading test..."))
     const test = loadTestConfig(path)
-    spinner.succeed(chalk.green("Done loading test..."))
-    spinner.stop()
 
     spinner.start(chalk.dim("Running test..."))
-    const res = await runTest(test)
+    const res = await runTest(test, env)
     spinner.succeed(chalk.green("Done running test..."))
     spinner.stop()
 
@@ -86,6 +91,7 @@ interface TestConfigResp {
 const runTestsFromEndpointInfo = async (
   endpoint: string,
   host: string,
+  env: { [key: string]: string },
   verbose: boolean,
 ) => {
   const config = getConfig()
@@ -108,7 +114,7 @@ const runTestsFromEndpointInfo = async (
     console.log(chalk.bold.dim(`${warnMsg}.`))
     return
   }
-  await runTestConfigs(configs, verbose)
+  await runTestConfigs(configs, env, verbose)
 }
 
 interface TestResWithUUID {
@@ -119,7 +125,11 @@ interface TestResWithUUID {
   result: TestResult
 }
 
-const runTestConfigs = async (tests: TestConfigResp[], verbose: boolean) => {
+const runTestConfigs = async (
+  tests: TestConfigResp[],
+  env: { [key: string]: string },
+  verbose: boolean,
+) => {
   const results: TestResWithUUID[] = []
 
   spinner.start(chalk.dim(`Running tests...`))
@@ -127,7 +137,7 @@ const runTestConfigs = async (tests: TestConfigResp[], verbose: boolean) => {
     const test = tests[i]
     const parsedTest = TestConfigSchema.safeParse(test.test)
     if (parsedTest.success) {
-      const res = await runTest(parsedTest.data)
+      const res = await runTest(parsedTest.data, env)
       results.push({
         uuid: test.uuid,
         host: test.host,

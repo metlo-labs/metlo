@@ -146,10 +146,10 @@
     ajv "^8.4.0"
     openapi-types "^12.0.2"
 
-"@metlo/testing@^0.2.4":
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.2.4.tgz#b8f11a470e42f02bb9bdb1d42b52584b37026192"
-  integrity sha512-RxoFvQfhZovQvdmlC0MG4hfYg+ckbTXD2s6oiLUwAwiyTTVTNPRlmIn0rjGjQGKSh6bHiUzY5eJdk90OnnfiLQ==
+"@metlo/testing@^0.2.5":
+  version "0.2.5"
+  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.2.5.tgz#0ffe63ae60f998f54bc81a3685be0905911ac634"
+  integrity sha512-UlZDOb7MsZiARrTs3ih4eoLOFX+B8vZAvPMVOtPRIupDB0WuWxPV0YW2SxZndxsQMREjfVhrTY65oqQSXvjtcg==
   dependencies:
     axios "^1.2.1"
     chalk "^4.1.2"

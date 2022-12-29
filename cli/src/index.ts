@@ -39,6 +39,7 @@ test
   .option("-e,--endpoint <string>", "endpoint pattern or uuid")
   .option("-n,--host <string>", "hostname for which tests are to be")
   .option("-v,--verbose", "print detailed test errors")
+  .option("--env <string>", "path for your env file")
   .action(runTests)
 
 const trafficMirror = program
