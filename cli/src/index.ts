@@ -10,7 +10,7 @@ import { gcpTrafficMirrorList } from "./gcp/list"
 import { gcpTrafficMirrorDelete } from "./gcp/remove"
 import { gcpTrafficMirrorCleanUp } from "./gcp/cleanup"
 import { generateTest } from "./testing/generate"
-import { runTestPath } from "./testing/run"
+import { runTests } from "./testing/run"
 
 program.name("metlo").description("Metlo's command line tool.").version("0.1.4")
 
@@ -33,7 +33,13 @@ test
   )
   .option("-h,--host <string>", "The host to generate this test for")
   .action(generateTest)
-test.command("run").argument("<paths...>").action(runTestPath)
+test
+  .command("run")
+  .argument("[paths...]", "Path to yaml test files")
+  .option("-e,--endpoint <string>", "endpoint pattern or uuid")
+  .option("-n,--host <string>", "hostname for which tests are to be")
+  .option("-v,--verbose", "print detailed test errors")
+  .action(runTests)
 
 const trafficMirror = program
   .command("traffic-mirror")
