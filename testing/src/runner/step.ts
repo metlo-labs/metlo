@@ -30,11 +30,13 @@ export const runStep = async (
   ctx: Context,
 ): Promise<TestResult> => {
   let res: AxiosResponse | null = null
-  let err: string | null = null
+  let err: string | undefined = undefined
+  let errStack: string | undefined = undefined
   try {
     res = await makeRequest(step.request, ctx)
   } catch (e: any) {
     err = e.message
+    errStack = e.stack
   }
 
   const host = new URL(step.request.url).host
@@ -70,7 +72,8 @@ export const runStep = async (
       ctx,
       success: false,
       assertions: [],
-      err: err as string,
+      err: err,
+      errStack: errStack,
     }
   }
 

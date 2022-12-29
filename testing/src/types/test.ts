@@ -80,6 +80,7 @@ export interface StepResult {
   ctx: Context
   success: boolean
   err?: string
+  errStack?: string
   assertions: boolean[]
   res?: StepResponse
 }
