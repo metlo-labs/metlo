@@ -128,9 +128,9 @@ export const METLO_CONFIG_SCHEMA = {
                 type: "string",
                 format: "regex"
               }
-            },
-            required: ["severity", "patterns"]
-          }
+            }
+          },
+          required: ["severity", "patterns"]
         }
       },
       additionalProperties: false,
