@@ -31,7 +31,7 @@ export const runTests = async (
   let initEnv: { [key: string]: string } = {}
   if (env) {
     initEnv = dotenv.parse(fs.readFileSync(env, "utf8"))
-    console.log(chalk.gray(`Loaded env at path "${env}".`))
+    console.log(chalk.gray(`Loaded ${Object.keys(initEnv).length} env vars at path ${env}`))
   }
   if (paths && paths.length) {
     await runTestPath(paths, initEnv)
@@ -59,8 +59,7 @@ const runTestPath = async (paths: string[], env: { [key: string]: string }) => {
       for (const failure of failedRequests) {
         console.log(
           chalk.bold.red(
-            `Request ${failure.stepIdx + 1} Failed With Error "${
-              failure.err
+            `Request ${failure.stepIdx + 1} Failed With Error "${failure.err
             }":`,
           ),
         )
@@ -69,8 +68,7 @@ const runTestPath = async (paths: string[], env: { [key: string]: string }) => {
       for (const failure of failedAssertions) {
         console.log(
           chalk.bold.red(
-            `Request ${failure.stepIdx + 1} Assertion ${
-              failure.assertionIdx + 1
+            `Request ${failure.stepIdx + 1} Assertion ${failure.assertionIdx + 1
             } Failed:`,
           ),
         )
@@ -179,8 +177,7 @@ const runTestConfigs = async (
           for (const failure of failedRequests) {
             console.log(
               chalk.bold.dim(
-                `Request ${failure.stepIdx + 1} Failed With Error "${
-                  failure.err
+                `Request ${failure.stepIdx + 1} Failed With Error "${failure.err
                 }":`,
               ),
             )
@@ -189,8 +186,7 @@ const runTestConfigs = async (
           for (const failure of failedAssertions) {
             console.log(
               chalk.bold.dim(
-                `Request ${failure.stepIdx + 1} Assertion ${
-                  failure.assertionIdx + 1
+                `Request ${failure.stepIdx + 1} Assertion ${failure.assertionIdx + 1
                 } Failed:`,
               ),
             )
