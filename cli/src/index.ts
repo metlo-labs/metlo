@@ -33,12 +33,11 @@ test
   )
   .option("-h,--host <string>", "The host to generate this test for")
   .action(generateTest)
-const testRun = test.command("run")
+test
+  .command("run")
   .argument("[paths...]", "Path to yaml test files")
-  .option('-e, --endpoint [endpoint]', 'endpoint pattern or uuid')
-  .option('-n, --host [hostname]', 'hostname for which tests are to be run.')
-  .option("-k, --api_key [string]", "[Optional] An API key for Metlo. If not provided, metlo cli will look in /opt/metlo/credentials for an api key")
-  .option("-u, --url <string>", "Your Metlo instance URL")
+  .option("-e,--endpoint <string>", "endpoint pattern or uuid")
+  .option("-n,--host <string>", "hostname for which tests are to be run.")
   .action(runTests)
 
 const trafficMirror = program
