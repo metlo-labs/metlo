@@ -57,6 +57,7 @@ services:
     restart: unless-stopped
     environment:
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
+      - REDIS_URL=redis://:eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81@cache:6379
   analyzer:
     build:
       context: ./
