@@ -3,7 +3,8 @@ import { UpdateMetloConfigParams } from "@common/types"
 import { getMetloConfig, updateMetloConfig } from "services/metlo-config"
 import ApiResponseHandler from "api-response-handler"
 import { MetloRequest } from "types"
-import { clearDataClassCache } from "utils/dataclasses"
+import { cleanupStoredDataClasses, clearDataClassCache, ensureValidCustomDataClasses } from "services/data-classes"
+import Error422UnprocessableEntity from "errors/error-422-unprocessable-entity"
 
 export const updateMetloConfigHandler = async (
   req: MetloRequest,
@@ -11,7 +12,14 @@ export const updateMetloConfigHandler = async (
 ): Promise<void> => {
   try {
     const updateMetloConfigParams: UpdateMetloConfigParams = req.body
+    const currentMetloConfig = await getMetloConfig(req.ctx)
+    const { success, msg, err } = await ensureValidCustomDataClasses(req.ctx, updateMetloConfigParams.configString)
+    if (!success) {
+      await ApiResponseHandler.error(res, new Error422UnprocessableEntity(msg))
+      return
+    }
     await updateMetloConfig(req.ctx, updateMetloConfigParams)
+    await cleanupStoredDataClasses(req.ctx, currentMetloConfig, updateMetloConfigParams.configString)
     await clearDataClassCache(req.ctx)
     await ApiResponseHandler.success(res, null)
   } catch (err) {

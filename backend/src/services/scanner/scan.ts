@@ -11,7 +11,7 @@ import {
   VIN_REGEXP,
 } from "services/scanner/regexp"
 import { MetloContext } from "types"
-import { getCombinedDataClasses } from "utils/dataclasses"
+import { getCombinedDataClasses } from "services/data-classes"
 
 export const __DATA_CLASS_REGEX_MAP_INTERNAL__ = {
   [__DataClass_INTERNAL__.ADDRESS]: ADDRESS_REGEXP,

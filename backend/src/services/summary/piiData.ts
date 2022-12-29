@@ -7,7 +7,7 @@ import { DatabaseService } from "services/database"
 import { ApiEndpoint, DataField } from "models"
 import { MetloContext } from "types"
 import { RedisClient } from "utils/redis"
-import { getCombinedDataClasses } from "utils/dataclasses"
+import { getCombinedDataClasses } from "services/data-classes"
 
 export const getPIIDataTypeCount = async (ctx: MetloContext) => {
   const piiDataTypeCountRes: { type: string; cnt: number }[] =
