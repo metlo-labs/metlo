@@ -38,7 +38,8 @@ const main = async () => {
   try {
     const datasource = await AppDataSource.initialize()
     console.log(
-      `Is AppDataSource Initialized? ${datasource.isInitialized ? "Yes" : "No"
+      `Is AppDataSource Initialized? ${
+        datasource.isInitialized ? "Yes" : "No"
       }`,
     )
     try {
@@ -50,7 +51,7 @@ const main = async () => {
       if (configString?.length > 0 && !existingMetloConfig) {
         await populateMetloConfig(ctx, configString)
       }
-    } catch (err) { }
+    } catch (err) {}
     app.listen(port, () => {
       console.log(`⚡️[server]: Server is running at http://localhost:${port}`)
     })
