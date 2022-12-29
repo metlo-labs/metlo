@@ -29,6 +29,18 @@ export const getAlertTypeAggCached = async (ctx: MetloContext) => {
 export const getTopAlerts = async (ctx: MetloContext) => {
   const alertRepository = getRepository(ctx, Alert)
   return await alertRepository.find({
+    select: {
+      uuid: true,
+      type: true,
+      riskScore: true,
+      createdAt: true,
+      apiEndpointUuid: true,
+      apiEndpoint: {
+        host: true,
+        path: true,
+        method: true,
+      }
+    },
     where: {
       status: Status.OPEN,
     },
