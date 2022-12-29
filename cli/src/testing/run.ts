@@ -2,6 +2,7 @@ import axios from "axios"
 import chalk from "chalk"
 import path from "path"
 import ora from "ora"
+import groupBy from "lodash.groupby"
 
 import {
   getFailedAssertions,
@@ -18,7 +19,11 @@ const spinner = ora()
 
 export const runTests = async (
   paths: string[],
-  { endpoint, host }: { endpoint: string; host: string },
+  {
+    endpoint,
+    host,
+    verbose,
+  }: { endpoint: string; host: string; verbose: boolean },
 ) => {
   if (paths && paths.length) {
     await runTestPath(paths)
@@ -28,7 +33,7 @@ export const runTests = async (
     console.log(chalk.bold.red("Must specify a test file, endpoint or host..."))
     return
   }
-  await runTestsFromEndpointInfo(endpoint, host)
+  await runTestsFromEndpointInfo(endpoint, host, verbose)
 }
 
 const runTestPath = async (paths: string[]) => {
@@ -53,7 +58,9 @@ const runTestPath = async (paths: string[]) => {
       for (const failure of failedRequests) {
         console.log(
           chalk.bold.red(
-            `Request ${failure.stepIdx} Failed With Error "${failure.err}":`,
+            `Request ${failure.stepIdx + 1} Failed With Error "${
+              failure.err
+            }":`,
           ),
         )
         console.log(chalk.red(JSON.stringify(failure.req, null, 4)))
@@ -61,7 +68,9 @@ const runTestPath = async (paths: string[]) => {
       for (const failure of failedAssertions) {
         console.log(
           chalk.bold.red(
-            `Request ${failure.stepIdx} Assertion ${failure.assertionIdx} Failed:`,
+            `Request ${failure.stepIdx + 1} Assertion ${
+              failure.assertionIdx + 1
+            } Failed:`,
           ),
         )
         console.log(chalk.red(JSON.stringify(failure.assertion, null, 4)))
@@ -70,38 +79,117 @@ const runTestPath = async (paths: string[]) => {
   }
 }
 
-const runTestsFromEndpointInfo = async (endpoint: string, host: string) => {
+interface TestConfigResp {
+  uuid: string
+  apiEndpointUuid: string
+  host: string
+  path: string
+  test: TestConfig
+}
+
+const runTestsFromEndpointInfo = async (
+  endpoint: string,
+  host: string,
+  verbose: boolean,
+) => {
   const config = getConfig()
   let url = path.join(config.metloHost, "api/v1/testing/by-endpoint/list")
-  const { data: configs } = await axios.get<TestConfig[]>(url, {
+  const { data: configs } = await axios.get<TestConfigResp[]>(url, {
     headers: { Authorization: config.apiKey },
     params: {
       endpoint,
       host,
     },
   })
-  await runTestConfigs(configs)
+  await runTestConfigs(configs, verbose)
 }
 
-const runTestConfigs = async (tests: TestConfig[]) => {
-  const results: TestResult[] = []
-  let idx = 1
-  for (const test of tests) {
-    const parsedTest = TestConfigSchema.safeParse(test)
+interface TestResWithUUID {
+  uuid: string
+  apiEndpointUuid: string
+  path: string
+  host: string
+  result: TestResult
+}
+
+const runTestConfigs = async (tests: TestConfigResp[], verbose: boolean) => {
+  const results: TestResWithUUID[] = []
+
+  spinner.start(chalk.dim(`Running tests...`))
+  for (let i = 0; i < tests.length; i++) {
+    const test = tests[i]
+    const parsedTest = TestConfigSchema.safeParse(test.test)
     if (parsedTest.success) {
-      spinner.start(chalk.dim(`Running test ${idx}...`))
       const res = await runTest(parsedTest.data)
-      results.push(res)
-      spinner.succeed(chalk.green("Done running test..."))
-      spinner.stop()
-      if (res.success) {
-        console.log(chalk.bold.green("All Tests Succeeded!"))
-      } else {
-        console.log(chalk.bold.red("Some Tests Failed."))
-      }
+      results.push({
+        uuid: test.uuid,
+        host: test.host,
+        path: test.path,
+        apiEndpointUuid: test.apiEndpointUuid,
+        result: res,
+      })
     } else {
-      console.log(chalk.redBright.bold("Error in parsing test..."))
+      console.log(chalk.redBright.bold(`Error parsing test: ${test.uuid}...`))
     }
-    idx++
+  }
+  const totalTests = results.length
+  const failedTests = results.filter(e => !e.result.success).length
+  const successTests = results.filter(e => e.result.success).length
+  if (failedTests) {
+    spinner.fail(chalk.bold.red(`${failedTests}/${totalTests} tests failed...`))
+    const config = getConfig()
+    Object.entries(
+      groupBy(
+        results.filter(e => !e.result.success),
+        e => `${e.host}${e.path}`,
+      ),
+    ).forEach(([key, results]) => {
+      console.log(
+        chalk.bold.red(`${results.length} tests failed on endpoint ${key}:`),
+      )
+      results.forEach(res => {
+        console.log(
+          chalk.red(
+            path.join(
+              config.metloHost,
+              `/endpoint/${res.apiEndpointUuid}/test/${res.uuid}`,
+            ),
+          ),
+        )
+        if (verbose) {
+          const failedAssertions = getFailedAssertions(res.result)
+          const failedRequests = getFailedRequests(res.result)
+          for (const failure of failedRequests) {
+            console.log(
+              chalk.bold.dim(
+                `Request ${failure.stepIdx + 1} Failed With Error "${
+                  failure.err
+                }":`,
+              ),
+            )
+            console.log(chalk.red(JSON.stringify(failure.req, null, 4)))
+          }
+          for (const failure of failedAssertions) {
+            console.log(
+              chalk.bold.dim(
+                `Request ${failure.stepIdx + 1} Assertion ${
+                  failure.assertionIdx + 1
+                } Failed:`,
+              ),
+            )
+            console.log(chalk.dim(JSON.stringify(failure.assertion, null, 4)))
+          }
+        }
+      })
+      console.log()
+    })
+    if (!verbose) {
+      console.log(chalk.dim("Use the --verbose flag for more information."))
+    }
+    process.exit(1)
+  } else {
+    spinner.succeed(
+      chalk.green(`${successTests}/${totalTests} tests succeeded...`),
+    )
   }
 }

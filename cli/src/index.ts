@@ -37,7 +37,8 @@ test
   .command("run")
   .argument("[paths...]", "Path to yaml test files")
   .option("-e,--endpoint <string>", "endpoint pattern or uuid")
-  .option("-n,--host <string>", "hostname for which tests are to be run.")
+  .option("-n,--host <string>", "hostname for which tests are to be")
+  .option("-v,--verbose", "print detailed test errors")
   .action(runTests)
 
 const trafficMirror = program
