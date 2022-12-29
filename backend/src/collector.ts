@@ -10,7 +10,7 @@ import { MetloContext, MetloRequest } from "types"
 import { populateMetloConfig } from "services/metlo-config"
 import { MetloConfig } from "models/metlo-config"
 import { getRepoQB } from "services/database/utils"
-import registerLoggingRoutes from "collector_src"
+import registerLoggingRoutes from "api/collector"
 
 const app: Express = express()
 const port = process.env.PORT || 8081
