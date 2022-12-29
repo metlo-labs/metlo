@@ -1,6 +1,5 @@
 import axios from "axios"
 import chalk from "chalk"
-import { table } from "table"
 import path from "path"
 import ora from "ora"
 
@@ -85,7 +84,7 @@ const runTestsFromEndpointInfo = async (endpoint: string, host: string) => {
 }
 
 const runTestConfigs = async (tests: TestConfig[]) => {
-  const results = [] as TestResult[]
+  const results: TestResult[] = []
   let idx = 1
   for (const test of tests) {
     const parsedTest = TestConfigSchema.safeParse(test)
@@ -105,105 +104,4 @@ const runTestConfigs = async (tests: TestConfig[]) => {
     }
     idx++
   }
-  showTableData(results)
-}
-
-const showTableData = (res: TestResult[]) => {
-  const dataConfig = {
-    columns: [
-      { alignment: "center", width: 10 },
-      { alignment: "center", width: 10 },
-      { alignment: "right" },
-      { alignment: "right" },
-      { alignment: "right", width: 10 },
-      { alignment: "right", width: 10 },
-    ],
-    spanningCells: [
-      { col: 0, row: 0, colSpan: 6 },
-      { col: 4, row: 1, colSpan: 2, verticalAlignment: "middle" },
-    ],
-  } as Record<string, any>
-  let rowCount = 2
-  const dataTableBase = [
-    ["Tests Status", "", "", "", "", ""],
-    ["Test", "Request", "Assertion", "Successes/Failure", "Error", ""],
-  ]
-
-  const data = []
-
-  res.forEach((testRes, i1, a1) => {
-    let totalTestRows = 0
-    let startingRow = rowCount
-    let totalSucceeded = 0
-    let totalFailed = 0
-    testRes.results.map((requestRes, i2, a2) => {
-      dataConfig.spanningCells.push({
-        col: 1,
-        row: rowCount,
-        rowSpan: requestRes[0].assertions.length || 1,
-      })
-      if (requestRes[0].assertions.length == 0) {
-        data.push([
-          i1 + 1,
-          i2 + 1,
-          1,
-          chalk.redBright("✘"),
-          JSON.stringify(requestRes[0].err, null, 4),
-          "",
-        ])
-        dataConfig.spanningCells.push({ col: 4, row: rowCount, colSpan: 2 })
-        rowCount += 1
-        totalTestRows += 1
-        totalFailed += 1
-      }
-      // RequestRes is always 1 element deep if no branching happens
-      requestRes[0].assertions.map((assertionRes, i3, a3) => {
-        if (assertionRes) {
-          totalSucceeded += 1
-        } else {
-          totalFailed += 1
-        }
-        if (i3 == 0) {
-          data.push([
-            i1 + 1,
-            i3 == 0 ? i2 + 1 : "",
-            i3 + 1,
-            assertionRes ? chalk.green("✓") : chalk.redBright("✘"),
-            assertionRes ? "" : JSON.stringify(assertionRes, null, 4),
-            "",
-          ])
-        } else {
-          data.push([
-            "",
-            "",
-            i3 + 1,
-            assertionRes ? chalk.green("✓") : chalk.redBright("✘"),
-            "",
-            "",
-          ])
-        }
-        dataConfig.spanningCells.push({ col: 4, row: rowCount, colSpan: 2 })
-        rowCount += 1
-        totalTestRows += 1
-      })
-    })
-    data.push([
-      chalk.gray("Succeeded"),
-      chalk.green(`${totalSucceeded}/${totalFailed + totalSucceeded}`),
-      "",
-      chalk.gray("Failed"),
-      chalk.redBright(`${totalFailed}/${totalSucceeded + totalFailed}`),
-      "",
-    ])
-    dataConfig.spanningCells.push({
-      col: 0,
-      row: startingRow,
-      rowSpan: totalTestRows || 1,
-    })
-    dataConfig.spanningCells.push({ col: 1, row: rowCount, colSpan: 2 })
-    dataConfig.spanningCells.push({ col: 4, row: rowCount, colSpan: 2 })
-    rowCount += 1
-  })
-
-  console.log(table([...dataTableBase, ...data], dataConfig))
 }
