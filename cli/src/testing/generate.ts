@@ -1,5 +1,4 @@
 import fs from "fs"
-import path from "path"
 import chalk from "chalk"
 import axios from "axios"
 import ts, { ModuleKind } from "typescript"
@@ -14,7 +13,7 @@ import {
 import * as MetloTesting from "@metlo/testing"
 import { TEMPLATES } from "@metlo/testing/dist/templates"
 import groupBy from "lodash.groupby"
-import { validateTemplateObj } from "./utils"
+import { urlJoin, validateTemplateObj } from "./utils"
 
 const TYPE_TO_TEMPLATES = groupBy(TEMPLATES, e => e.name)
 
@@ -64,7 +63,9 @@ const genTestFromFile = (
   if (err) {
     return [null, err]
   }
-  const res = vm.run(`${contents}\nmodule.exports = exports.default.builder(endpoint);`)
+  const res = vm.run(
+    `${contents}\nmodule.exports = exports.default.builder(endpoint);`,
+  )
   return [res, ""]
 }
 
@@ -96,7 +97,7 @@ export const generateTest = async ({
 }) => {
   const config = getConfig()
   const res = await axios.get<GenTestEndpoint>(
-    path.join(config.metloHost, "api/v1/gen-test-endpoint"),
+    urlJoin(config.metloHost, "api/v1/gen-test-endpoint"),
     {
       params: {
         endpoint: endpoint,

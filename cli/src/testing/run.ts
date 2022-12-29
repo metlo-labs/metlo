@@ -1,6 +1,5 @@
 import axios from "axios"
 import chalk from "chalk"
-import path from "path"
 import ora from "ora"
 import groupBy from "lodash.groupby"
 
@@ -14,6 +13,7 @@ import {
   TestResult,
 } from "@metlo/testing"
 import { getConfig } from "../utils"
+import { urlJoin } from "./utils"
 
 const spinner = ora()
 
@@ -89,7 +89,7 @@ const runTestsFromEndpointInfo = async (
   verbose: boolean,
 ) => {
   const config = getConfig()
-  let url = path.join(config.metloHost, "api/v1/tests-by-endpoint")
+  let url = urlJoin(config.metloHost, "api/v1/tests-by-endpoint")
   const { data: configs } = await axios.get<TestConfigResp[]>(url, {
     headers: { Authorization: config.apiKey },
     params: {
@@ -157,7 +157,7 @@ const runTestConfigs = async (tests: TestConfigResp[], verbose: boolean) => {
       results.forEach(res => {
         console.log(
           chalk.red(
-            path.join(
+            urlJoin(
               config.metloHost,
               `/endpoint/${res.apiEndpointUuid}/test/${res.uuid}`,
             ),
