@@ -26,8 +26,8 @@ app.get("/api/v1", (req: Request, res: Response) => {
   res.send("OK")
 })
 
-app.use(express.json({ limit: "250mb" }))
-app.use(express.urlencoded({ limit: "250mb", extended: true }))
+app.use(express.json({ limit: "10mb" }))
+app.use(express.urlencoded({ limit: "10mb", extended: true }))
 app.use(verifyApiKeyMiddleware)
 app.use(bodyParserMiddleware)
 app.use("/api/v1", router)
