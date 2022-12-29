@@ -27,3 +27,12 @@ export interface Responses {
     content?: BodyContent
   }
 }
+
+export enum JobName {
+  GENERATE_OPENAPI_SPEC = "generate_openapi_spec",
+  CHECK_UNAUTH_ENDPOINTS = "check_unauth_endpoints",
+  MONITOR_ENDPOINT_HSTS = "monitor_endpoint_hsts",
+  CLEAR_API_TRACES = "clear_api_traces",
+  UPDATE_ENDPOINT_IPS = "update_endpoint_ips",
+  LOG_AGGREGATED_STATS = "log_aggregated_stats",
+}
