@@ -1,13 +1,20 @@
 import { TestConfig, TestResult, TestStep } from "../types/test"
 import { runStep } from "./step"
 
-export const runTest = async (test: TestConfig): Promise<TestResult> => {
+export const runTest = async (
+  test: TestConfig,
+  env?: Record<string, string>,
+): Promise<TestResult> => {
   const context = {
     cookies: {},
-    envVars: {},
+    envVars: env || {},
   }
   if (test.env) {
-    context.envVars = Object.fromEntries(test.env.map(e => [e.name, e.value]))
+    context.envVars = Object.fromEntries(
+      Object.entries(context.envVars).concat(
+        test.env.map(e => [e.name, e.value]),
+      ),
+    )
   }
   const testStack = [...test.test]
   if (testStack.length > 0) {
