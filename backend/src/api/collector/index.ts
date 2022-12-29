@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { logRequestSingleHandler, logRequestBatchHandler } from "./log-request"
-import { validateCall } from "../../collector_src/validate"
+import { validateCall } from "./validate"
 
 export default function registerLoggingRoutes(router: Router) {
     router.get("/verify", validateCall)
