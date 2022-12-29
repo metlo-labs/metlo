@@ -60,6 +60,7 @@ services:
     restart: unless-stopped
     environment:
       - LICENSE_KEY=${LICENSE_KEY}
+      - REDIS_URL=redis://:eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81@cache:6379
       - DB_URL=postgres://postgres:postgres@db:5432/metlo_api_security
       - DISABLE_LOGGING_STATS=${DISABLE_LOGGING_STATS}
   analyzer:
