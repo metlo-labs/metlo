@@ -29,10 +29,6 @@ export const runTests = async (
     await runTestPath(paths)
     return
   }
-  if (!endpoint && !host) {
-    console.log(chalk.bold.red("Must specify a test file, endpoint or host..."))
-    return
-  }
   await runTestsFromEndpointInfo(endpoint, host, verbose)
 }
 
@@ -93,7 +89,7 @@ const runTestsFromEndpointInfo = async (
   verbose: boolean,
 ) => {
   const config = getConfig()
-  let url = path.join(config.metloHost, "api/v1/testing/by-endpoint/list")
+  let url = path.join(config.metloHost, "api/v1/tests-by-endpoint")
   const { data: configs } = await axios.get<TestConfigResp[]>(url, {
     headers: { Authorization: config.apiKey },
     params: {
@@ -101,6 +97,17 @@ const runTestsFromEndpointInfo = async (
       host,
     },
   })
+  if (configs.length == 0) {
+    let warnMsg = "No tests found for"
+    if (endpoint) {
+      warnMsg = `${warnMsg} endpoint "${endpoint}"`
+    }
+    if (host) {
+      warnMsg = `${warnMsg} host "${host}"`
+    }
+    console.log(chalk.bold.dim(`${warnMsg}.`))
+    return
+  }
   await runTestConfigs(configs, verbose)
 }
 
