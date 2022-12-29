@@ -129,7 +129,7 @@ export const METLO_CONFIG_SCHEMA = {
                 format: "regex"
               }
             },
-            required: ["severity", "pattern"]
+            required: ["severity", "patterns"]
           }
         }
       },
