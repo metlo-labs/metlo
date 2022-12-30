@@ -198,6 +198,41 @@ const addBodyToRequest = (
   return gen
 }
 
+const addQueryParamsToRequest = (
+  gen: GeneratedTestRequest,
+  ctx: GenTestContext,
+): GeneratedTestRequest => {
+  const endpoint = ctx.endpoint
+  const dataFields = endpoint.dataFields.filter(
+    e => e.dataSection == DataSection.REQUEST_QUERY,
+  )
+  if (dataFields.length == 0) {
+    return gen
+  }
+  const pre = ctx.prefix
+  let queryParams: KeyValType[] = []
+  let env: KeyValType[] = []
+  dataFields.forEach(e => {
+    const name = e.dataPath
+    env.push({
+      name: `${pre}${name}`,
+      value: `<<${pre}${name}>>`,
+    })
+    queryParams.push({
+      name: e.dataPath,
+      value: `{{${pre}${name}}}`,
+    })
+  })
+  return {
+    ...gen,
+    env: gen.env.concat(env),
+    req: {
+      ...gen.req,
+      query: (gen.req.query || []).concat(queryParams),
+    },
+  }
+}
+
 export const makeSampleRequestNoAuth = (
   endpoint: GenTestEndpoint,
   name?: string,
@@ -221,6 +256,7 @@ export const makeSampleRequestNoAuth = (
     env,
   }
   const ctx: GenTestContext = { endpoint, prefix }
+  gen = addQueryParamsToRequest(gen, ctx)
   gen = addBodyToRequest(gen, ctx)
   return gen
 }
