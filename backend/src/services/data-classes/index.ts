@@ -195,7 +195,7 @@ export async function ensureValidCustomDataClasses(
   ctx: MetloContext,
   newConfigResp: string,
 ) {
-  const newConfig = jsyaml.load(newConfigResp) as object
+  const newConfig = (jsyaml.load(newConfigResp) as object) || {}
   if ("sensitiveData" in newConfig) {
     const existingClasses = DEFAULT_CLASSES as string[]
     for (const configName of Object.keys(newConfig["sensitiveData"])) {
