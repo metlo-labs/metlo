@@ -1,4 +1,4 @@
-import { AuthType, RiskScore } from "@common/enums"
+import { AuthType, RiskScore, __DataClass_INTERNAL__ } from "@common/enums"
 import { Schema } from "ajv"
 
 const patternName = String.raw`^[- \w]+$`
@@ -136,6 +136,12 @@ export const METLO_CONFIG_SCHEMA = {
         },
       },
       additionalProperties: false,
+    },
+    disabledDataClass: {
+      type: "array",
+      items: {
+        enum: Object.keys(__DataClass_INTERNAL__),
+      },
     },
   },
   additionalProperties: false,
