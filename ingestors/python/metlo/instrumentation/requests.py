@@ -49,7 +49,7 @@ def requests_wrapper(wrapped, instance, args, kwargs):
     try:
         response_time = perf_counter() - start_time
         response_time_ms = int(response_time * 1000)
-        if ctx_store.requests[-1]:
+        if ctx_store._get_obj() and ctx_store.requests[-1]:
             ctx_store.requests[-1]["responseTime"] = response_time_ms
             ctx_store.requests[-1]["response"] = {
                 "status": res.status_code,
