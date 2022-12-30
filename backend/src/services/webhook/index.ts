@@ -104,7 +104,7 @@ export const sendWebhookRequests = async (
               axios.post(
                 webhook.url,
                 {
-                  payload,
+                  ...payload,
                 },
                 { timeout: 250 },
               ),
