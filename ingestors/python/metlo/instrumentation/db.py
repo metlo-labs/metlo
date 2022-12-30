@@ -1,9 +1,9 @@
-from wrapt import ObjectProxy
+import wrapt
 from time import perf_counter
 from sql_metadata import Parser
 
 from ..utils.time_utils import get_time_elapsed
-from ..utils.request_context import ctx_store, request_context
+from ..utils.request_context import ctx_store
 
 
 def get_query_metadata(query):
@@ -50,7 +50,7 @@ def fetch_handler(wrapped, *args, **kwargs):
     return res
 
 
-class CursorProxy(ObjectProxy):
+class CursorProxy(wrapt.ObjectProxy):
     def execute(self, *args, **kwargs):
         return execute_handler(self.__wrapped__.execute, *args, **kwargs)
 
@@ -67,7 +67,7 @@ class CursorProxy(ObjectProxy):
         return fetch_handler(self.__wrapped__.fetchall, *args, **kwargs)
 
 
-class ConnectionProxy(ObjectProxy):
+class ConnectionProxy(wrapt.ObjectProxy):
     def cursor(self, *args, **kwargs):
         return CursorProxy(self.__wrapped__.cursor(*args, **kwargs))
 
@@ -94,3 +94,17 @@ def connect_wrapper(wrapped, instance, args, kwargs):
     if hasattr(real_conn, "execute"):
         return ConnectionProxyExtended(real_conn)
     return ConnectionProxy(real_conn)
+
+
+def apply_db_patches():
+    @wrapt.when_imported("sqlite3.dbapi2")
+    def apply_patches(module):
+        wrapt.wrap_function_wrapper(module, "connect", connect_wrapper)
+
+    @wrapt.when_imported("MySQLdb")
+    def apply_patches(module):
+        wrapt.wrap_function_wrapper(module, "connect", connect_wrapper)
+
+    @wrapt.when_imported("psycopg2")
+    def apply_patches(module):
+        wrapt.wrap_function_wrapper(module, "connect", connect_wrapper)

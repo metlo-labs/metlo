@@ -52,6 +52,7 @@ class MetloFlask(Framework):
                     )
                     files_accessed = ctx_store.get("files_accessed", [])
                     db_queries = ctx_store.get("db_queries", [])
+                    requests_data = ctx_store.get("requests", [])
                     data = {
                         "responseTime": response_time_ms,
                         "request": {
@@ -98,6 +99,7 @@ class MetloFlask(Framework):
                         },
                         "fileAccess": files_accessed,
                         "dbQueries": db_queries,
+                        "requests": requests_data,
                     }
                     self.pool.submit(self.perform_request, data=data)
                 except Exception as e:
