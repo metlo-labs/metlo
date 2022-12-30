@@ -13,7 +13,7 @@ import {
 import SplitPane from "react-split-pane"
 import { ImCross } from "icons/im/ImCross"
 import DataTable, { TableColumn } from "react-data-table-component"
-import { DataField } from "@common/types"
+import { DataClass, DataField } from "@common/types"
 import { getCustomStyles, rowStyles } from "components/utils/TableUtils"
 import { RISK_TO_COLOR, TAG_TO_COLOR } from "~/constants"
 import {
@@ -30,6 +30,7 @@ import { statusCodeToColor } from "components/utils/StatusCode"
 interface DataFieldListProps {
   dataFields: DataField[]
   uuid?: string
+  dataClasses: DataClass[]
 }
 
 interface FieldSection {
@@ -37,110 +38,123 @@ interface FieldSection {
   dataFields: DataField[]
 }
 
-const columns: TableColumn<DataField>[] = [
-  {
-    name: "Tag",
-    selector: (row: DataField) => row.dataTag,
-    cell: (row: DataField) => (
-      <Box pointerEvents="none">
-        {row.dataTag && (
-          <Badge
-            py="1"
-            px="2"
-            fontSize="sm"
-            colorScheme={TAG_TO_COLOR[row.dataTag]}
-            pointerEvents="none"
-          >
-            {row.dataTag}
-          </Badge>
-        )}
-      </Box>
-    ),
-    grow: 0,
-  },
-  {
-    name: "Risk Score",
-    sortable: true,
-    selector: (row: DataField) =>
-      getMaxRiskScoreFromList(getRiskScores(row.dataClasses)) || "",
-    cell: (row: DataField) => (
-      <Badge
-        p="1"
-        fontSize="sm"
-        colorScheme={
-          RISK_TO_COLOR[getMaxRiskScoreFromList(getRiskScores(row.dataClasses))]
-        }
-        pointerEvents="none"
-      >
-        {getMaxRiskScoreFromList(getRiskScores(row.dataClasses))}
-      </Badge>
-    ),
-    id: "riskScore",
-    grow: 0.5,
-  },
-  {
-    name: "Status",
-    selector: (row: DataField) => row.statusCode,
-    cell: (row: DataField) => (
-      <Box pointerEvents="none">
-        {row.statusCode ? (
-          <Badge
-            fontSize="sm"
-            px="2"
-            py="1"
-            colorScheme={statusCodeToColor(row.statusCode) || "gray"}
-            data-tag="allowRowEvents"
-          >
-            {row.statusCode}
-          </Badge>
-        ) : null}
-      </Box>
-    ),
-    grow: 0.5,
-  },
-  {
-    name: "Content Type",
-    selector: (row: DataField) => row.contentType,
-    cell: (row: DataField) => (
-      <Box pointerEvents="none" py={2}>
-        {row.contentType ? <Code p="1">{row.contentType}</Code> : null}
-      </Box>
-    ),
-    grow: 1,
-  },
-  {
-    name: "Sensitive Data Classes",
-    sortable: true,
-    selector: (row: DataField) => row.dataClasses.join(", ") || "",
-    id: "dataClasses",
-    grow: 1,
-  },
-  {
-    name: "Field",
-    sortable: true,
-    selector: (row: DataField) => row.dataPath,
-    cell: (row: DataField) => (
-      <Box pointerEvents="none">
-        {row.dataPath ? (
-          <Code p="1" pointerEvents="none">
-            {row.dataPath}
-          </Code>
-        ) : (
-          <Text>None</Text>
-        )}
-      </Box>
-    ),
-    id: "dataPath",
-    grow: 1,
-  },
-  {
-    name: "Date Identified",
-    sortable: true,
-    selector: (row: DataField) => getDateTimeString(row.createdAt) || "",
-    id: "dateIdentified",
-    grow: 1,
-  },
-]
+const columns = (dataClassInfo: DataClass[]): TableColumn<DataField>[] => {
+  return [
+    {
+      name: "Tag",
+      selector: (row: DataField) => row.dataTag,
+      cell: (row: DataField) => (
+        <Box pointerEvents="none">
+          {row.dataTag && (
+            <Badge
+              py="1"
+              px="2"
+              fontSize="sm"
+              colorScheme={TAG_TO_COLOR[row.dataTag]}
+              pointerEvents="none"
+            >
+              {row.dataTag}
+            </Badge>
+          )}
+        </Box>
+      ),
+      grow: 0,
+    },
+    {
+      name: "Risk Score",
+      sortable: true,
+      selector: (row: DataField) => {
+        return (
+          getMaxRiskScoreFromList(
+            getRiskScores(row.dataClasses, dataClassInfo),
+          ) || ""
+        )
+      },
+      cell: (row: DataField) => (
+        <Badge
+          p="1"
+          fontSize="sm"
+          colorScheme={
+            RISK_TO_COLOR[
+              getMaxRiskScoreFromList(
+                getRiskScores(row.dataClasses, dataClassInfo),
+              )
+            ]
+          }
+          pointerEvents="none"
+        >
+          {getMaxRiskScoreFromList(
+            getRiskScores(row.dataClasses, dataClassInfo),
+          )}
+        </Badge>
+      ),
+      id: "riskScore",
+      grow: 0.5,
+    },
+    {
+      name: "Status",
+      selector: (row: DataField) => row.statusCode,
+      cell: (row: DataField) => (
+        <Box pointerEvents="none">
+          {row.statusCode ? (
+            <Badge
+              fontSize="sm"
+              px="2"
+              py="1"
+              colorScheme={statusCodeToColor(row.statusCode) || "gray"}
+              data-tag="allowRowEvents"
+            >
+              {row.statusCode}
+            </Badge>
+          ) : null}
+        </Box>
+      ),
+      grow: 0.5,
+    },
+    {
+      name: "Content Type",
+      selector: (row: DataField) => row.contentType,
+      cell: (row: DataField) => (
+        <Box pointerEvents="none" py={2}>
+          {row.contentType ? <Code p="1">{row.contentType}</Code> : null}
+        </Box>
+      ),
+      grow: 1,
+    },
+    {
+      name: "Sensitive Data Classes",
+      sortable: true,
+      selector: (row: DataField) => row.dataClasses.join(", ") || "",
+      id: "dataClasses",
+      grow: 1,
+    },
+    {
+      name: "Field",
+      sortable: true,
+      selector: (row: DataField) => row.dataPath,
+      cell: (row: DataField) => (
+        <Box pointerEvents="none">
+          {row.dataPath ? (
+            <Code p="1" pointerEvents="none">
+              {row.dataPath}
+            </Code>
+          ) : (
+            <Text>None</Text>
+          )}
+        </Box>
+      ),
+      id: "dataPath",
+      grow: 1,
+    },
+    {
+      name: "Date Identified",
+      sortable: true,
+      selector: (row: DataField) => getDateTimeString(row.createdAt) || "",
+      id: "dateIdentified",
+      grow: 1,
+    },
+  ]
+}
 
 const expandableTableColumns: TableColumn<FieldSection>[] = [
   {
@@ -150,7 +164,7 @@ const expandableTableColumns: TableColumn<FieldSection>[] = [
 ]
 
 const DataFieldList: React.FC<DataFieldListProps> = React.memo(
-  ({ dataFields, uuid }) => {
+  ({ dataFields, uuid, dataClasses }) => {
     const [dataFieldList, setDataFieldList] = useState<DataField[]>(dataFields)
     const colorMode = useColorMode()
     const headerBg = useColorModeValue("rgb(252, 252, 252)", "rgb(17, 19, 23)")
@@ -183,6 +197,7 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
         dataFields: [],
       },
     ])
+
     const selectedRowColor = useColorModeValue(
       "rgb(242, 242, 242)",
       "rgb(34, 37, 42)",
@@ -270,7 +285,7 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
     const expandedComponent = (data: FieldSection) => (
       <DataTable
         data={data.dataFields}
-        columns={columns}
+        columns={columns(dataClasses)}
         noTableHead
         onRowClicked={setDataField}
         style={rowStyles}
@@ -304,7 +319,7 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
         fixedHeader={true}
         fixedHeaderScrollHeight="100%"
         style={rowStyles}
-        columns={columns}
+        columns={columns(dataClasses)}
         data={[]}
         persistTableHead={dataFieldList.length > 0}
         customStyles={getCustomStyles(colorMode.colorMode)}
@@ -342,6 +357,7 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
             dataFieldList={dataFieldList}
             setdataFieldList={setDataFieldList}
             setDataField={setDataField}
+            dataClasses={dataClasses}
           />
         </Box>
       </Box>

@@ -11,8 +11,7 @@ import {
 import { Select } from "chakra-react-select"
 import { BsSearch } from "icons/bs/BsSearch"
 import { GetEndpointParams } from "@common/types"
-import { DataClass, RiskScore } from "@common/enums"
-import { useEffect } from "react"
+import { RiskScore } from "@common/enums"
 import debounce from "lodash/debounce"
 
 interface EndpointFilterProps {
@@ -115,7 +114,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
               onChange={e =>
                 setParams(oldParams => ({
                   ...oldParams,
-                  dataClasses: e.map(dataClass => dataClass.label as DataClass),
+                  dataClasses: e.map(dataClass => dataClass.label),
                   offset: 0,
                 }))
               }

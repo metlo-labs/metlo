@@ -1,9 +1,9 @@
 import {
   DataSection,
-  DataClass,
   RiskScore,
   AlertType,
   AttackType,
+  __DataClass_INTERNAL__,
 } from "./enums"
 
 export const DATA_SECTION_TO_LABEL_MAP: Record<DataSection, string> = {
@@ -15,17 +15,17 @@ export const DATA_SECTION_TO_LABEL_MAP: Record<DataSection, string> = {
   [DataSection.RESPONSE_BODY]: "Response Body",
 }
 
-export const DATA_CLASS_TO_RISK_SCORE: Record<DataClass | "", RiskScore> = {
-  [DataClass.ADDRESS]: RiskScore.HIGH,
-  [DataClass.EMAIL]: RiskScore.MEDIUM,
-  [DataClass.CREDIT_CARD]: RiskScore.HIGH,
-  [DataClass.SSN]: RiskScore.HIGH,
-  [DataClass.PHONE_NUMBER]: RiskScore.MEDIUM,
-  [DataClass.IP_ADDRESS]: RiskScore.MEDIUM,
-  [DataClass.DOB]: RiskScore.MEDIUM,
-  [DataClass.VIN]: RiskScore.LOW,
-  [DataClass.COORDINATE]: RiskScore.MEDIUM,
-  [DataClass.DL_NUMBER]: RiskScore.MEDIUM,
+export const __DATA_CLASS_TO_RISK_SCORE_INTERNAL__: Record<__DataClass_INTERNAL__ | "", RiskScore> = {
+  [__DataClass_INTERNAL__.ADDRESS]: RiskScore.HIGH,
+  [__DataClass_INTERNAL__.EMAIL]: RiskScore.MEDIUM,
+  [__DataClass_INTERNAL__.CREDIT_CARD]: RiskScore.HIGH,
+  [__DataClass_INTERNAL__.SSN]: RiskScore.HIGH,
+  [__DataClass_INTERNAL__.PHONE_NUMBER]: RiskScore.MEDIUM,
+  [__DataClass_INTERNAL__.IP_ADDRESS]: RiskScore.MEDIUM,
+  [__DataClass_INTERNAL__.DOB]: RiskScore.MEDIUM,
+  [__DataClass_INTERNAL__.VIN]: RiskScore.LOW,
+  [__DataClass_INTERNAL__.COORDINATE]: RiskScore.MEDIUM,
+  [__DataClass_INTERNAL__.DL_NUMBER]: RiskScore.MEDIUM,
   "": RiskScore.NONE,
 }
 
