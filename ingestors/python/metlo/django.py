@@ -49,6 +49,7 @@ class MetloDjango(Framework):
                 files_accessed = ctx_store.get("files_accessed", [])
                 db_queries = ctx_store.get("db_queries", [])
                 requests_data = ctx_store.get("requests", [])
+                system_commands = ctx_store.get("system_commands", [])
                 params = request.GET if request.method == "GET" else request.POST
                 dest_ip = (
                     request.META.get("SERVER_NAME")
@@ -111,6 +112,7 @@ class MetloDjango(Framework):
                     "fileAccess": files_accessed,
                     "dbQueries": db_queries,
                     "requests": requests_data,
+                    "systemCommands": system_commands,
                 }
                 self.pool.submit(self.perform_request, data=data)
             except Exception as e:

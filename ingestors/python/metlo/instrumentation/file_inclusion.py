@@ -9,6 +9,6 @@ def wrapped_open(*args, **kwargs):
     return builtins.builtinOpen(*args, **kwargs)
 
 
-def open_wrapper():
+def apply_open_patches():
     builtins.builtinOpen = builtins.open
     builtins.open = wrapped_open
