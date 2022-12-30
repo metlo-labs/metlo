@@ -9,7 +9,9 @@ import {
   Heading,
   Button,
   Text,
+  Stack,
 } from "@chakra-ui/react"
+import { Select } from "chakra-react-select"
 import SplitPane from "react-split-pane"
 import { ImCross } from "icons/im/ImCross"
 import DataTable, { TableColumn } from "react-data-table-component"
@@ -35,6 +37,12 @@ interface DataFieldListProps {
 interface FieldSection {
   section: DataSection
   dataFields: DataField[]
+}
+
+interface Filters {
+  statusCodes: string[]
+  contentTypes: string[]
+  sensitiveDataClasses: string[]
 }
 
 const columns: TableColumn<DataField>[] = [
@@ -157,6 +165,16 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
     const divColor = useColorModeValue("rgb(216, 216, 216)", "black")
     const headerTextColor = useColorModeValue("gray.700", "gray.200")
     const [dataField, setDataField] = useState<DataField | undefined>()
+    const [statusCodes, setStatusCodes] = useState<Set<string>>(new Set())
+    const [contentTypes, setContentTypes] = useState<Set<string>>(new Set())
+    const [sensitiveDataClasses, setSensitiveDataClasses] = useState<
+      Set<string>
+    >(new Set())
+    const [filters, setFilters] = useState<Filters>({
+      statusCodes: [],
+      contentTypes: [],
+      sensitiveDataClasses: [],
+    })
     const [dataSections, setDataSections] = useState<FieldSection[]>([
       {
         section: DataSection.REQUEST_PATH,
@@ -199,7 +217,39 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
       const tempReqBody = []
       const tempResHeader = []
       const tempResBody = []
-      dataFieldList.forEach(currDataField => {
+      const tmpStatusCodes = new Set<string>()
+      const tmpContentTypes = new Set<string>()
+      let tmpSensitiveDataClasses = new Set<string>()
+      const { statusCodes, contentTypes, sensitiveDataClasses } = filters
+      const filteredDataFields = dataFieldList.filter(e => {
+        if (e.statusCode) {
+          tmpStatusCodes.add(e.statusCode.toString())
+        }
+        if (e.contentType) {
+          tmpContentTypes.add(e.contentType)
+        }
+        if (e.dataClasses) {
+          tmpSensitiveDataClasses = new Set([
+            ...tmpSensitiveDataClasses,
+            ...e.dataClasses,
+          ])
+        }
+        return (
+          (statusCodes.length === 0 ||
+            !e.statusCode ||
+            statusCodes.includes(e.statusCode?.toString())) &&
+          (contentTypes.length === 0 ||
+            !e.contentType ||
+            contentTypes.includes(e.contentType)) &&
+          (sensitiveDataClasses.length === 0 ||
+            // @ts-ignore
+            sensitiveDataClasses.some(r => e.dataClasses.includes(r)))
+        )
+      })
+      setStatusCodes(tmpStatusCodes)
+      setContentTypes(tmpContentTypes)
+      setSensitiveDataClasses(tmpSensitiveDataClasses)
+      filteredDataFields.forEach(currDataField => {
         if (currDataField.uuid === uuid) {
           setDataField(currDataField)
         }
@@ -251,7 +301,7 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
           dataFields: tempResBody,
         },
       ])
-    }, [dataFieldList, uuid])
+    }, [dataFieldList, uuid, filters])
 
     const conditionalStyles = [
       {
@@ -348,21 +398,112 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
     ) : null
 
     return (
-      <Box h="full" w="full" position="relative">
-        {dataField ? (
-          /* @ts-ignore */
-          <SplitPane
-            split="vertical"
-            minSize="0"
-            defaultSize="60%"
-            paneStyle={{ overflow: "hidden" }}
-          >
-            {tablePanel}
-            {detailPanel}
-          </SplitPane>
-        ) : (
-          tablePanel
-        )}
+      <Box display="flex" flexDir="column" h="100%">
+        <Stack flex="0 0 auto" p={2} direction={{ base: "column", md: "row" }}>
+          <Box zIndex="1002" w={{ base: "full", md: "lg" }}>
+            <Text fontWeight="semibold" mb="2" fontSize="sm">
+              Status Code
+            </Text>
+            <Select
+              value={
+                filters.statusCodes
+                  ? filters.statusCodes.map(code => ({
+                      label: code,
+                      value: code,
+                    }))
+                  : undefined
+              }
+              isMulti={true}
+              size="sm"
+              options={[...statusCodes].map(code => ({
+                label: code,
+                value: code,
+              }))}
+              placeholder="Filter by Status Code..."
+              instanceId="data-field-status-code"
+              onChange={codes =>
+                setFilters(old => ({
+                  ...old,
+                  statusCodes: codes.map(e => e.label),
+                }))
+              }
+            />
+          </Box>
+          <Box zIndex="1001" w={{ base: "full", md: "lg" }}>
+            <Text fontWeight="semibold" mb="2" fontSize="sm">
+              Content Type
+            </Text>
+            <Select
+              value={
+                filters.contentTypes
+                  ? filters.contentTypes.map(type => ({
+                      label: type,
+                      value: type,
+                    }))
+                  : undefined
+              }
+              isMulti={true}
+              size="sm"
+              options={[...contentTypes].map(type => ({
+                label: type,
+                value: type,
+              }))}
+              placeholder="Filter by Content Type"
+              instanceId="data-field-content-type"
+              onChange={types =>
+                setFilters(old => ({
+                  ...old,
+                  contentTypes: types.map(e => e.label),
+                }))
+              }
+            />
+          </Box>
+          <Box zIndex="1000" w={{ base: "full", md: "lg" }}>
+            <Text fontWeight="semibold" mb="2" fontSize="sm">
+              Sensitive Data Classes
+            </Text>
+            <Select
+              value={
+                filters.sensitiveDataClasses
+                  ? filters.sensitiveDataClasses.map(e => ({
+                      label: e,
+                      value: e,
+                    }))
+                  : undefined
+              }
+              isMulti={true}
+              size="sm"
+              options={[...sensitiveDataClasses].map(e => ({
+                label: e,
+                value: e,
+              }))}
+              placeholder="Filter by Sensitive Data Class"
+              instanceId="data-field-sensitive-data"
+              onChange={data =>
+                setFilters(old => ({
+                  ...old,
+                  sensitiveDataClasses: data.map(e => e.label),
+                }))
+              }
+            />
+          </Box>
+        </Stack>
+        <Box flex="1 1 auto" overflow="auto" w="full" position="relative">
+          {dataField ? (
+            /* @ts-ignore */
+            <SplitPane
+              split="vertical"
+              minSize="0"
+              defaultSize="60%"
+              paneStyle={{ overflow: "hidden" }}
+            >
+              {tablePanel}
+              {detailPanel}
+            </SplitPane>
+          ) : (
+            tablePanel
+          )}
+        </Box>
       </Box>
     )
   },
