@@ -16,6 +16,7 @@ import {
   getHostsHandler,
   getHostsListHandler,
 } from "./hosts"
+import { getDataClassInfo } from "api/data-class"
 
 export const getEndpointsHandler = async (
   req: MetloRequest,
@@ -158,4 +159,6 @@ export default function registerEndpointRoutes(router: Router) {
     updateDataFieldClasses,
   )
   router.delete("/api/v1/data-field/:dataFieldId", deleteDataFieldHandler)
+  // DataClass
+  router.get("/api/v1/data-class", getDataClassInfo)
 }
