@@ -14,6 +14,9 @@ import {
   TestResult,
 } from "./types/test"
 
+const STEP_KEYS = ["request", "extract", "assert"]
+const REQUEST_KEYS = ["method", "url", "query", "headers", "form", "data"]
+
 export const dumpTestConfig = (config: TestConfig): string => {
   const parts: any[] = [
     {
@@ -29,7 +32,28 @@ export const dumpTestConfig = (config: TestConfig): string => {
   if (config.test) {
     parts.push({ test: config.test })
   }
-  return parts.map(e => yaml.dump(e)).join("\n")
+
+  return parts
+    .map(e =>
+      yaml.dump(e, {
+        sortKeys: (a, b) => {
+          if (STEP_KEYS.includes(a) && STEP_KEYS.includes(b)) {
+            return (
+              STEP_KEYS.findIndex(e => e == a) -
+              STEP_KEYS.findIndex(e => e == b)
+            )
+          }
+          if (REQUEST_KEYS.includes(a) && REQUEST_KEYS.includes(b)) {
+            return (
+              REQUEST_KEYS.findIndex(e => e == a) -
+              REQUEST_KEYS.findIndex(e => e == b)
+            )
+          }
+          return a - b
+        },
+      }),
+    )
+    .join("\n")
 }
 
 export const loadTestConfig = (path: string): TestConfig => {
