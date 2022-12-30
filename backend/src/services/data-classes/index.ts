@@ -14,6 +14,8 @@ import { AppDataSource } from "data-source"
 
 const DATA_CLASS_KEY = `METLO_DATA_CLASS`
 
+const DEFAULT_CLASSES = Object.values(__DataClass_INTERNAL__)
+
 async function getOrSet(
   ctx: MetloContext,
   key: string,
@@ -38,12 +40,12 @@ function getValidMetloDataClasses(ctx: MetloContext, jsConfig: object) {
     (jsConfig["disabledDataClass"] as unknown[]).length > 0
   ) {
     const disabledClasses = jsConfig["disabledDataClass"] as string[]
-    const filteredClasses = Object.keys(__DataClass_INTERNAL__).filter(
-      clsName => !disabledClasses.includes(clsName),
-    )
+    const filteredClasses = Object.keys(__DataClass_INTERNAL__)
+      .filter(clsName => !disabledClasses.includes(clsName))
+      .map(clsName => __DataClass_INTERNAL__[clsName])
     return filteredClasses
   } else {
-    return Object.values(__DataClass_INTERNAL__)
+    return DEFAULT_CLASSES
   }
 }
 
@@ -64,7 +66,7 @@ export async function getCombinedDataClasses(ctx: MetloContext) {
         .map(([configName, config]) => {
           const parsedData = customDataClass.safeParse(config)
           if (parsedData.success) {
-            return { [`${configName}`]: parsedData.data }
+            return { [`${configName.toUpperCase()}`]: parsedData.data }
           } else {
             // TODO ?
             return undefined
@@ -105,8 +107,6 @@ export async function clearDataClassCache(ctx: MetloContext) {
   RedisClient.deleteFromRedis(ctx, [DATA_CLASS_KEY])
 }
 
-const DEFAULT_CLASSES = Object.values(__DataClass_INTERNAL__)
-
 export async function cleanupStoredDataClasses(
   ctx: MetloContext,
   currentConfigResp: MetloConfigResp,
@@ -126,12 +126,12 @@ export async function cleanupStoredDataClasses(
   const dataClassesDiff = new Set<string>()
   if ("sensitiveData" in jsConfigCurrent) {
     Object.keys(jsConfigCurrent["sensitiveData"]).forEach(configName => {
-      dataClassesDiff.add(configName)
+      dataClassesDiff.add(configName.toUpperCase())
     })
   }
   if ("sensitiveData" in jsConfigNew) {
     Object.keys(jsConfigNew["sensitiveData"]).forEach(configName => {
-      dataClassesDiff.delete(configName)
+      dataClassesDiff.delete(configName.toUpperCase())
     })
   }
 
@@ -197,7 +197,7 @@ export async function ensureValidCustomDataClasses(
 ) {
   const newConfig = jsyaml.load(newConfigResp) as object
   if ("sensitiveData" in newConfig) {
-    const existingClasses = Object.values(__DataClass_INTERNAL__) as string[]
+    const existingClasses = DEFAULT_CLASSES as string[]
     for (const configName of Object.keys(newConfig["sensitiveData"])) {
       if (existingClasses.includes(configName)) {
         return {
