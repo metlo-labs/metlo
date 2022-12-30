@@ -179,7 +179,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
                     colorScheme={
                       RISK_TO_COLOR[
                         dataClasses.find(({ className }) => className == e)
-                          .severity
+                          ?.severity
                       ]
                     }
                   >

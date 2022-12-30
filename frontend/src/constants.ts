@@ -36,6 +36,7 @@ export const RISK_TO_COLOR = {
   [RiskScore.LOW]: "gray",
   [RiskScore.MEDIUM]: "orange",
   [RiskScore.HIGH]: "red",
+  undefined: "blackAlpha",
 }
 
 export const STATUS_TO_COLOR = {
