@@ -113,28 +113,30 @@ export const METLO_CONFIG_SCHEMA = {
     },
     sensitiveData: {
       type: "object",
+      minProperties: 1,
       patternProperties: {
         [patternName]: {
           type: "object",
           additionalProperties: false,
           properties: {
-            "severity": {
-              enum: Object.keys(RiskScore)
+            severity: {
+              enum: Object.keys(RiskScore),
             },
-            "patterns": {
+            patterns: {
               type: "array",
+              minItems: 1,
               uniqueItems: true,
               items: {
                 type: "string",
-                format: "regex"
-              }
-            }
+                format: "regex",
+              },
+            },
           },
-          required: ["severity", "patterns"]
-        }
+          required: ["severity", "patterns"],
+        },
       },
       additionalProperties: false,
-    }
+    },
   },
   additionalProperties: false,
   definitions: {
