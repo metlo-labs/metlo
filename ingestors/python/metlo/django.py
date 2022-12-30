@@ -1,34 +1,19 @@
-import json
-from concurrent.futures import ThreadPoolExecutor
-from urllib.request import Request, urlopen
 from urllib.parse import urlparse
-import logging
+from time import perf_counter
 
 from django.conf import settings
 
-endpoint = "api/v1/log-request/single"
+from .framework import Framework
+from .utils.request_context import request_context, ctx_store
 
-logger = logging.getLogger("metlo")
 
-
-class MetloDjango(object):
-    def perform_request(self, data):
-        try:
-            urlopen(url=self.saved_request, data=json.dumps(data).encode("utf-8"))
-        except Exception as e:
-            logger.warn(e)
-
+class MetloDjango(Framework):
     def __init__(self, get_response):
         """
         Middleware for Django to communicate with METLO
         :param get_response: Automatically populated by django
         """
         self.get_response = get_response
-        self.pool = ThreadPoolExecutor(
-            max_workers=settings.METLO_CONFIG.get("workers", 4)
-        )
-
-        self.disabled = settings.METLO_CONFIG.get("DISABLED", False)
 
         assert (
             settings.METLO_CONFIG.get("METLO_HOST") is not None
@@ -41,22 +26,28 @@ class MetloDjango(object):
             "https",
         ], f"Metlo for Django has invalid host scheme. Host must be in format http[s]://example.com"
 
-        self.host = settings.METLO_CONFIG["METLO_HOST"]
-        self.host += endpoint if self.host[-1] == "/" else f"/{endpoint}"
-        self.key = settings.METLO_CONFIG["API_KEY"]
-        self.saved_request = Request(
-            url=self.host,
-            headers={
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": self.key,
-            },
-            method="POST",
+        settings_args = {
+            "workers": settings.METLO_CONFIG.get("workers"),
+            "disabled": settings.METLO_CONFIG.get("DISABLED"),
+            "file_inclusion_enabled": settings.METLO_CONFIG.get("FILE_INCLUSION_ENABLED", True),
+            "db_logging_enabled": settings.METLO_CONFIG.get("DB_LOGGING_ENABLED", True)
+        }
+        super(MetloDjango, self).__init__(
+            settings.METLO_CONFIG["METLO_HOST"],
+            settings.METLO_CONFIG["API_KEY"],
+            **settings_args,
         )
 
     def __call__(self, request):
+        request_context.init_at_request()
+        start = perf_counter()
         response = self.get_response(request)
         if not self.disabled:
             try:
+                response_time = perf_counter() - start
+                response_time_ms = int(response_time * 1000)
+                files_accessed = ctx_store.get("files_accessed", [])
+                db_queries = ctx_store.get("db_queries", [])
                 params = request.GET if request.method == "GET" else request.POST
                 dest_ip = (
                     request.META.get("SERVER_NAME")
@@ -73,6 +64,7 @@ class MetloDjango(object):
                 ].stream.raw._sock.getpeername()[1]
                 res_body = response.content.decode("utf-8")
                 data = {
+                    "responseTime": response_time_ms,
                     "request": {
                         "url": {
                             "host": request._current_scheme_host
@@ -115,10 +107,12 @@ class MetloDjango(object):
                         "destinationPort": request.META.get("SERVER_PORT"),
                         "metloSource": "python/django",
                     },
+                    "fileAccess": files_accessed,
+                    "dbQueries": db_queries,
                 }
                 self.pool.submit(self.perform_request, data=data)
             except Exception as e:
-                logger.debug(e)
+                self.logger.debug(e)
         return response
 
     def process_exception(self, request, exception):

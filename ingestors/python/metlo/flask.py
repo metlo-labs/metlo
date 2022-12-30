@@ -1,24 +1,13 @@
-import json
-from concurrent.futures import ThreadPoolExecutor
-from urllib.request import Request, urlopen
 from urllib.parse import urlparse
-import logging
+from time import perf_counter
 
 from flask import request
 
-endpoint = "api/v1/log-request/single"
+from .framework import Framework
+from .utils.request_context import request_context, ctx_store
 
 
-logger = logging.getLogger("metlo")
-
-
-class MetloFlask:
-    def perform_request(self, data):
-        try:
-            urlopen(url=self.saved_request, data=json.dumps(data).encode("utf-8"))
-        except Exception as e:
-            logger.warn(e)
-
+class MetloFlask(Framework):
     def __init__(self, app, metlo_host: str, metlo_api_key: str, **kwargs):
         """
         :param app: Instance of Flask app
@@ -27,8 +16,6 @@ class MetloFlask:
         :param kwargs: optional parameter containing worker count for communicating with metlo
         """
         self.app = app
-        self.pool = ThreadPoolExecutor(max_workers=kwargs.get("workers", 4))
-        self.disabled = kwargs.get("disabled", False)
 
         assert (
             metlo_host is not None
@@ -41,29 +28,32 @@ class MetloFlask:
             "https",
         ], f"Metlo for FLASK has invalid host scheme. Host must be in format http[s]://example.com"
 
-        self.host = metlo_host
-        self.host += endpoint if self.host[-1] == "/" else f"/{endpoint}"
-        self.key = metlo_api_key
-        self.saved_request = Request(
-            url=self.host,
-            headers={
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": self.key,
-            },
-            method="POST",
-        )
+        super(MetloFlask, self).__init__(metlo_host, metlo_api_key, **kwargs)
 
         if not self.disabled:
+
+            @app.before_request
+            def function():
+                request_context.init_at_request()
+                ctx_store.start_time = perf_counter()
 
             @app.after_request
             def function(response, *args, **kwargs):
                 try:
+                    response_time = perf_counter() - ctx_store.start_time
+                    response_time_ms = int(response_time * 1000)
+                    routerPath = request.url_rule.rule.replace("<", "{").replace(
+                        ">", "}"
+                    )
                     dst_host = (
                         request.environ.get("HTTP_HOST")
                         or request.environ.get("HTTP_X_FORWARDED_FOR")
                         or request.environ.get("REMOTE_ADDR")
                     )
+                    files_accessed = ctx_store.get("files_accessed", [])
+                    db_queries = ctx_store.get("db_queries", [])
                     data = {
+                        "responseTime": response_time_ms,
                         "request": {
                             "url": {
                                 "host": dst_host,
@@ -81,6 +71,7 @@ class MetloFlask:
                                     (request.headers).items(),
                                 )
                             ),
+                            "routerPath": routerPath,
                             "body": request.data.decode("utf-8"),
                             "method": request.method,
                         },
@@ -105,8 +96,10 @@ class MetloFlask:
                             "destinationPort": request.environ.get("SERVER_PORT"),
                             "metloSource": "python/flask",
                         },
+                        "fileAccess": files_accessed,
+                        "dbQueries": db_queries,
                     }
                     self.pool.submit(self.perform_request, data=data)
                 except Exception as e:
-                    logger.debug(e)
+                    self.logger.debug(e)
                 return response
