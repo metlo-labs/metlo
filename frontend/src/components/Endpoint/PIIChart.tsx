@@ -49,7 +49,7 @@ const EndpointPIIChart: React.FC<EndpointPIIChartProps> = React.memo(
       "rgb(116, 120, 138)",
     )
     const textColor = useColorModeValue("#000", "#FFF")
-    let dataClassToCount = {}
+    let dataClassToCount = {} as { [k: string]: number }
     piiFields
       .map(e => e.dataClasses)
       .forEach(dataClass =>

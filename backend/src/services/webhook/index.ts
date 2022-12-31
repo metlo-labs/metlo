@@ -8,6 +8,7 @@ import { CreateWebhookParams } from "@common/types"
 import Error400BadRequest from "errors/error-400-bad-request"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { getDataFieldsQuery } from "analyze-traces"
+import { RiskScore } from "@common/enums"
 
 const urlRegexp = new RegExp(
   /[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/,
@@ -47,6 +48,23 @@ export const sendWebhookRequests = async (
         apiEndpoint.uuid,
       ])
     }
+    const totalEndpointsPromise = getQB(ctx, queryRunner)
+      .select(["uuid"])
+      .from(ApiEndpoint, "endpoint")
+      .andWhere("host = :host", { host: apiEndpoint.host })
+      .getCount()
+    const totalSensitiveEndpointsPromise = getQB(ctx, queryRunner)
+      .select(["uuid"])
+      .from(ApiEndpoint, "endpoint")
+      .andWhere("host = :host", { host: apiEndpoint.host })
+      .andWhere(`"riskScore" IN(:...scores)`, {
+        scores: [RiskScore.HIGH, RiskScore.MEDIUM, RiskScore.LOW],
+      })
+      .getCount()
+    const [totalEndpoints, totalSensitiveEndpoints] = await Promise.all([
+      totalEndpointsPromise,
+      totalSensitiveEndpointsPromise,
+    ])
     for (const alert of alerts) {
       const webhooks: Webhook[] = await getQB(ctx, queryRunner)
         .from(Webhook, "webhook")
@@ -67,6 +85,14 @@ export const sendWebhookRequests = async (
         .getRawMany()
       alert.apiEndpoint = apiEndpoint
       alert.apiEndpoint.dataFields = dataFields
+      const payload = {
+        alert: alert,
+        meta: {
+          host: apiEndpoint.host,
+          totalEndpoints,
+          totalSensitiveEndpoints,
+        },
+      }
       for (const webhook of webhooks) {
         let runs = webhook.runs
         if (runs.length >= 10) {
@@ -74,18 +100,25 @@ export const sendWebhookRequests = async (
         }
         try {
           await retryRequest(
-            () => axios.post(webhook.url, alert, { timeout: 250 }),
+            () =>
+              axios.post(
+                webhook.url,
+                {
+                  ...payload,
+                },
+                { timeout: 250 },
+              ),
             webhook.maxRetries,
           )
           await getQB(ctx, queryRunner)
             .update(Webhook)
-            .set({ runs: [...runs, { ok: true, msg: "", payload: alert }] })
+            .set({ runs: [...runs, { ok: true, msg: "", payload }] })
             .andWhere("uuid = :id", { id: webhook.uuid })
             .execute()
         } catch (err) {
           await getQB(ctx, queryRunner)
             .update(Webhook)
-            .set({ runs: [...runs, { ok: false, msg: err, payload: alert }] })
+            .set({ runs: [...runs, { ok: false, msg: err, payload }] })
             .andWhere("uuid = :id", { id: webhook.uuid })
             .execute()
         }

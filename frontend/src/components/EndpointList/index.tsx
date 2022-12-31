@@ -1,10 +1,10 @@
 import React from "react"
 import { Box, VStack } from "@chakra-ui/react"
-import { ApiEndpoint, GetEndpointParams } from "@common/types"
+import { ApiEndpoint, DataClass, GetEndpointParams } from "@common/types"
 import EndpointFilters from "./Filters"
 import List from "./List"
 import { ENDPOINT_PAGE_LIMIT } from "~/constants"
-import { DataClass, RiskScore } from "@common/enums"
+import { RiskScore } from "@common/enums"
 
 interface EndpointListProps {
   fetching: boolean
@@ -13,10 +13,19 @@ interface EndpointListProps {
   setParams: (t: (e: GetEndpointParams) => GetEndpointParams) => void
   params: GetEndpointParams
   hosts: string[]
+  dataClasses: DataClass[]
 }
 
 const EndpointList: React.FC<EndpointListProps> = React.memo(
-  ({ endpoints, fetching, totalCount, params, setParams, hosts }) => {
+  ({
+    endpoints,
+    fetching,
+    totalCount,
+    params,
+    setParams,
+    hosts,
+    dataClasses,
+  }) => {
     const setCurrentPage = (page: number) => {
       setParams(oldParams => ({
         ...oldParams,
@@ -36,7 +45,7 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
           <EndpointFilters
             hostList={hosts}
             riskList={Object.values(RiskScore)}
-            dataClassesList={Object.values(DataClass)}
+            dataClassesList={dataClasses.map(({ className }) => className)}
             params={params}
             setParams={setParams}
           />
@@ -50,6 +59,7 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
             fetching={fetching}
             setOrdering={(e: "ASC" | "DESC") => {}}
             setOrderBy={(e: string | undefined) => {}}
+            dataClasses={dataClasses}
           />
         </Box>
       </VStack>

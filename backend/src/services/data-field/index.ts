@@ -1,6 +1,6 @@
 import MIMEType from "whatwg-mimetype"
 import { PairObject, QueuedApiTrace } from "@common/types"
-import { DataClass, DataSection, DataTag, DataType } from "@common/enums"
+import { DataSection, DataTag, DataType } from "@common/enums"
 import { ApiEndpoint, DataField } from "models"
 import { getDataType, getRiskScore, isParameter, parsedJson } from "utils"
 import { getPathTokens } from "@common/utils"
@@ -71,7 +71,7 @@ export class DataFieldService {
   static async updateDataClasses(
     ctx: MetloContext,
     dataFieldId: string,
-    dataClasses: DataClass[],
+    dataClasses: string[],
     dataPath: string,
     dataSection: DataSection,
   ) {
@@ -107,7 +107,7 @@ export class DataFieldService {
   }
 
   static saveDataField(
-    dataClass: DataClass,
+    dataClass: string,
     dataPath: string,
     dataSection: DataSection,
     apiEndpoint: ApiEndpoint,
@@ -237,7 +237,8 @@ export class DataFieldService {
     }
   }
 
-  static recursiveParseJson(
+  static async recursiveParseJson(
+    ctx: MetloContext,
     dataPathPrefix: string,
     dataSection: DataSection,
     jsonBody: any,
@@ -245,9 +246,9 @@ export class DataFieldService {
     contentType: string,
     statusCode: number,
     arrayFields: Record<string, number>,
-  ): void {
+  ): Promise<void> {
     if (Object(jsonBody) !== jsonBody) {
-      const matches = ScannerService.scan(jsonBody)
+      const matches = await ScannerService.scan(ctx, jsonBody)
       const l = matches.length
       if (l > 0) {
         for (let i = 0; i < l; i++) {
@@ -283,7 +284,8 @@ export class DataFieldService {
         arrayFields[arrayFieldKey] = 1
       }
       for (let i = 0; i < l; i++) {
-        this.recursiveParseJson(
+        await this.recursiveParseJson(
+          ctx,
           dataPathPrefix,
           dataSection,
           jsonBody[i],
@@ -295,7 +297,8 @@ export class DataFieldService {
       }
     } else if (typeof jsonBody === DataType.OBJECT) {
       for (const key in jsonBody) {
-        this.recursiveParseJson(
+        await this.recursiveParseJson(
+          ctx,
           dataPathPrefix ? dataPathPrefix + "." + key : key,
           dataSection,
           jsonBody[key],
@@ -308,13 +311,14 @@ export class DataFieldService {
     }
   }
 
-  static findBodyDataFields(
+  static async findBodyDataFields(
+    ctx: MetloContext,
     dataSection: DataSection,
     body: string,
     apiEndpoint: ApiEndpoint,
     contentType: string,
     statusCode: number,
-  ): void {
+  ): Promise<void> {
     if (!body) {
       body = ""
     }
@@ -326,7 +330,8 @@ export class DataFieldService {
           "": 1,
         }
         for (let i = 0; i < l; i++) {
-          this.recursiveParseJson(
+          await this.recursiveParseJson(
+            ctx,
             null,
             dataSection,
             jsonBody[i],
@@ -338,7 +343,8 @@ export class DataFieldService {
         }
       } else if (typeof jsonBody === DataType.OBJECT) {
         for (let key in jsonBody) {
-          this.recursiveParseJson(
+          await this.recursiveParseJson(
+            ctx,
             key,
             dataSection,
             jsonBody[key],
@@ -349,7 +355,8 @@ export class DataFieldService {
           )
         }
       } else {
-        this.recursiveParseJson(
+        await this.recursiveParseJson(
+          ctx,
           null,
           dataSection,
           jsonBody,
@@ -360,7 +367,8 @@ export class DataFieldService {
         )
       }
     } else {
-      this.recursiveParseJson(
+      await this.recursiveParseJson(
+        ctx,
         null,
         dataSection,
         body,
@@ -372,18 +380,20 @@ export class DataFieldService {
     }
   }
 
-  static findPairObjectDataFields(
+  static async findPairObjectDataFields(
+    ctx: MetloContext,
     dataSection: DataSection,
     data: PairObject[],
     apiEndpoint: ApiEndpoint,
     contentType: string,
     statusCode: number,
-  ): void {
+  ): Promise<void> {
     if (data) {
       for (const item of data) {
         const field = item.name
         const jsonBody = parsedJson(item.value)
-        this.recursiveParseJson(
+        await this.recursiveParseJson(
+          ctx,
           field,
           dataSection,
           jsonBody ?? item.value,
@@ -396,7 +406,11 @@ export class DataFieldService {
     }
   }
 
-  static findPathDataFields(path: string, apiEndpoint: ApiEndpoint): void {
+  static async findPathDataFields(
+    ctx: MetloContext,
+    path: string,
+    apiEndpoint: ApiEndpoint
+  ): Promise<void> {
     if (!path || !apiEndpoint?.path) {
       return
     }
@@ -408,7 +422,8 @@ export class DataFieldService {
     for (let i = 0; i < endpointPathTokens.length; i++) {
       const currToken = endpointPathTokens[i]
       if (isParameter(currToken)) {
-        this.recursiveParseJson(
+        await this.recursiveParseJson(
+          ctx,
           currToken.slice(1, -1),
           DataSection.REQUEST_PATH,
           tracePathTokens[i],
@@ -421,11 +436,12 @@ export class DataFieldService {
     }
   }
 
-  static findAllDataFields(
+  static async findAllDataFields(
+    ctx: MetloContext,
     apiTrace: QueuedApiTrace,
     apiEndpoint: ApiEndpoint,
     returnAllFields?: boolean,
-  ): { newFields: DataField[]; updatedFields: DataField[] } {
+  ): Promise<{ newFields: DataField[]; updatedFields: DataField[] }> {
     const statusCode = apiTrace.responseStatus
     const { reqContentType, resContentType } = this.getContentTypes(
       apiTrace.requestHeaders,
@@ -434,32 +450,38 @@ export class DataFieldService {
     this.dataFields = apiEndpoint.dataFields.reduce((obj, item) => {
       return {
         ...obj,
-        [`${item.statusCode}_${item.contentType}_${item.dataSection}${
-          item.dataPath ? `.${item.dataPath}` : ""
-        }`]: item,
+        [`${item.statusCode}_${item.contentType}_${item.dataSection}${item.dataPath ? `.${item.dataPath}` : ""
+          }`]: item,
       }
     }, {})
     this.dataFieldsLength = apiEndpoint.dataFields.length ?? 0
     this.updatedFields = {}
     this.newFields = {}
     this.traceCreatedAt = apiTrace.createdAt
-    this.findPathDataFields(apiTrace.path, apiEndpoint)
+    this.findPathDataFields(
+      ctx,
+      apiTrace.path,
+      apiEndpoint
+    )
     if (statusCode < 400) {
-      this.findPairObjectDataFields(
+      await this.findPairObjectDataFields(
+        ctx,
         DataSection.REQUEST_QUERY,
         apiTrace.requestParameters,
         apiEndpoint,
         null,
         null,
       )
-      this.findPairObjectDataFields(
+      await this.findPairObjectDataFields(
+        ctx,
         DataSection.REQUEST_HEADER,
         apiTrace.requestHeaders,
         apiEndpoint,
         null,
         null,
       )
-      this.findBodyDataFields(
+      await this.findBodyDataFields(
+        ctx,
         DataSection.REQUEST_BODY,
         apiTrace.requestBody,
         apiEndpoint,
@@ -467,14 +489,16 @@ export class DataFieldService {
         null,
       )
     }
-    this.findPairObjectDataFields(
+    await this.findPairObjectDataFields(
+      ctx,
       DataSection.RESPONSE_HEADER,
       apiTrace.responseHeaders,
       apiEndpoint,
       null,
       statusCode,
     )
-    this.findBodyDataFields(
+    await this.findBodyDataFields(
+      ctx,
       DataSection.RESPONSE_BODY,
       apiTrace.responseBody,
       apiEndpoint,

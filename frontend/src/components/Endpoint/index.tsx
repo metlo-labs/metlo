@@ -32,6 +32,7 @@ import { SectionHeader } from "components/utils/Card"
 import {
   Alert,
   ApiEndpointDetailed,
+  DataClass,
   GetAlertParams,
   Usage,
 } from "@common/types"
@@ -42,13 +43,13 @@ import { AlertTab } from "./AlertTab"
 import EndpointOverview from "./Overview"
 import { deleteEndpoint } from "api/endpoints"
 import { makeToast } from "utils"
-import { HiPencil } from "icons/hi/HiPencil"
 import { EditPath } from "./EditPath"
 
 interface EndpointPageProps {
   endpoint: ApiEndpointDetailed
   usage: Usage[]
   alerts: Alert[]
+  dataClasses: DataClass[]
   totalAlertsCount: number
   initAlertParams: GetAlertParams
 }
@@ -58,6 +59,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
     endpoint,
     usage,
     alerts,
+    dataClasses,
     totalAlertsCount,
     initAlertParams,
   }) => {
@@ -181,6 +183,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
               <DataFieldList
                 dataFields={endpoint.dataFields}
                 uuid={uuid as string}
+                dataClasses={dataClasses}
               />
             </TabPanel>
             <TabPanel p="0" h="full">

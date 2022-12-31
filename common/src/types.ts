@@ -1,7 +1,7 @@
 import {
   AlertType,
   ConnectionType,
-  DataClass,
+  __DataClass_INTERNAL__,
   DataSection,
   DataTag,
   DataType,
@@ -97,7 +97,7 @@ export interface GetAttackParams {
 export interface GetEndpointParams {
   hosts?: string[]
   riskScores?: RiskScore[]
-  dataClasses?: DataClass[]
+  dataClasses?: string[]
   searchQuery?: string
   isAuthenticated?: boolean
   offset?: number
@@ -123,7 +123,7 @@ export interface GetAlertParams {
 }
 
 export interface UpdateDataFieldClassesParams {
-  dataClasses: DataClass[]
+  dataClasses: string[]
   dataSection: DataSection
   dataPath: string
 }
@@ -190,16 +190,16 @@ export interface Alert {
 
 export interface DataField {
   uuid: string
-  dataClasses: DataClass[]
+  dataClasses: string[]
   dataPath: string
   dataSection: DataSection
   dataType: DataType
   dataTag: DataTag
-  falsePositives: DataClass[]
-  scannerIdentified: DataClass[]
+  falsePositives: string[]
+  scannerIdentified: string[]
   createdAt: Date
   updatedAt: Date
-  matches: Record<DataClass, string[]>
+  matches: Record<string, string[]>
   apiEndpointUuid: string
   statusCode: number
   contentType: string
@@ -274,7 +274,7 @@ export interface Summary {
   endpointsTracked: number
   piiDataFields: number
   hostCount: number
-  piiDataTypeCount: Map<DataClass, number>
+  piiDataTypeCount: Map<string, number>
   alertTypeCount: Map<AlertType, number>
   topAlerts: Alert[]
   topEndpoints: EndpointAndUsage[]
@@ -288,7 +288,7 @@ export interface Usage {
 }
 
 export interface PIIDataClassAggItem {
-  dataClass: DataClass
+  dataClass: string
   risk: RiskScore
   count: number
   numEndpoints: number
@@ -296,7 +296,7 @@ export interface PIIDataClassAggItem {
 }
 
 export interface SensitiveDataSummary {
-  piiDataTypeCount: Map<DataClass, number>
+  piiDataTypeCount: Map<string, number>
   piiItems: PIIDataClassAggItem[]
   totalPIIFields: number
   totalEndpoints: number
@@ -452,4 +452,10 @@ export interface GenerateTestRes {
   templateVersion?: number,
   msg?: string
   test?: TestConfig
+}
+
+export interface DataClass {
+  className: string,
+  severity: RiskScore,
+  regex?: string
 }

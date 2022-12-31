@@ -21,13 +21,12 @@ import {
   StackDivider,
   Stack,
 } from "@chakra-ui/react"
-import { DataClass } from "@common/enums"
 import { PIE_BACKGROUND_COLORS, PIE_BORDER_COLORS } from "~/constants"
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
 interface AggPIIChartProps extends StackProps {
-  piiDataTypeCount: Map<DataClass, number>
+  piiDataTypeCount: Map<string, number>
 }
 
 const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(

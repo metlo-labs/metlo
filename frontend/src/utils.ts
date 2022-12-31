@@ -1,9 +1,9 @@
-import { DataClass, RiskScore } from "@common/enums"
+import { RiskScore } from "@common/enums"
 import axios, { AxiosError } from "axios"
 import { DateTime } from "luxon"
 import { RISK_SCORE_ORDER } from "./constants"
-import { DATA_CLASS_TO_RISK_SCORE } from "@common/maps"
 import { UseToastOptions } from "@chakra-ui/react"
+import { DataClass } from "@common/types"
 
 export const getDateTimeString = (date: Date) => {
   if (date) {
@@ -71,8 +71,10 @@ export async function api_call_retry({
   }, INTERVAL)
 }
 
-export const getRiskScores = (dataClasses: DataClass[]) =>
-  dataClasses?.map(dataClass => DATA_CLASS_TO_RISK_SCORE[dataClass])
+export const getRiskScores = (dataClasses: string[], dataClassInfo: DataClass[]) => {
+  const matches = dataClassInfo.filter(({ className }) => dataClasses.includes(className)).map(({ severity }) => severity)
+  return matches
+}
 
 export const getMaxRiskScoreFromList = (riskScores: RiskScore[]): RiskScore => {
   let maxRisk = RiskScore.NONE

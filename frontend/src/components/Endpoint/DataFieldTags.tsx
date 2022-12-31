@@ -1,21 +1,21 @@
 import React, { useEffect, useState } from "react"
 import { Select } from "chakra-react-select"
-import { DataField } from "@common/types"
+import { DataClass, DataField } from "@common/types"
 import { HStack, Tag, Button, Box, Wrap, WrapItem } from "@chakra-ui/react"
 import { FiPlus } from "icons/fi/FiPlus"
 import { HiPencil } from "icons/hi/HiPencil"
-import { DataClass } from "@common/enums"
-import { DATA_CLASS_TO_RISK_SCORE } from "@common/maps"
 import { RISK_TO_COLOR } from "~/constants"
+
 
 interface TagListProps {
   updating: boolean
-  tags: DataClass[]
-  updateTags: (e: DataClass[]) => Promise<void | DataField>
+  tags: string[]
+  dataClasses: DataClass[]
+  updateTags: (e: string[]) => Promise<void | DataField>
 }
 
 export const DataFieldTagList: React.FC<TagListProps> = React.memo(
-  ({ updating, tags, updateTags }) => {
+  ({ updating, tags, dataClasses, updateTags }) => {
     const [editing, setEditing] = useState(false)
     const [editedTags, setEditedTags] = useState(tags)
 
@@ -24,7 +24,7 @@ export const DataFieldTagList: React.FC<TagListProps> = React.memo(
       setEditedTags(tags)
     }, [tags])
 
-    const setEditedTagsWrapper = (ls: DataClass[]) => {
+    const setEditedTagsWrapper = (ls: string[]) => {
       if (updating) {
         return
       }
@@ -52,9 +52,9 @@ export const DataFieldTagList: React.FC<TagListProps> = React.memo(
               }))}
               isMulti={true}
               size="sm"
-              options={Object.values(DataClass).map(e => ({
-                label: e,
-                value: e,
+              options={dataClasses.map(({ className }) => ({
+                label: className,
+                value: className,
               }))}
               placeholder="Select tags..."
               instanceId="endpoint-data-field-edit-tag-selector"
@@ -90,7 +90,11 @@ export const DataFieldTagList: React.FC<TagListProps> = React.memo(
             <WrapItem key={i}>
               <Tag
                 p="2"
-                colorScheme={RISK_TO_COLOR[DATA_CLASS_TO_RISK_SCORE[e]]}
+                colorScheme={
+                  RISK_TO_COLOR[
+                    dataClasses.find(({ className }) => className == e).severity
+                  ]
+                }
               >
                 {e}
               </Tag>
