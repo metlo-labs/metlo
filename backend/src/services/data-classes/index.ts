@@ -66,7 +66,7 @@ export async function getCombinedDataClasses(ctx: MetloContext) {
         .map(([configName, config]) => {
           const parsedData = customDataClass.safeParse(config)
           if (parsedData.success) {
-            return { [`${configName.toUpperCase()}`]: parsedData.data }
+            return { [`${configName}`]: parsedData.data }
           } else {
             // TODO ?
             return undefined
@@ -126,12 +126,12 @@ export async function cleanupStoredDataClasses(
   const dataClassesDiff = new Set<string>()
   if ("sensitiveData" in jsConfigCurrent) {
     Object.keys(jsConfigCurrent["sensitiveData"]).forEach(configName => {
-      dataClassesDiff.add(configName.toUpperCase())
+      dataClassesDiff.add(configName)
     })
   }
   if ("sensitiveData" in jsConfigNew) {
     Object.keys(jsConfigNew["sensitiveData"]).forEach(configName => {
-      dataClassesDiff.delete(configName.toUpperCase())
+      dataClassesDiff.delete(configName)
     })
   }
 
