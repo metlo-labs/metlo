@@ -173,6 +173,9 @@ export async function cleanupStoredDataClasses(
       DF.scannerIdentified = DF.scannerIdentified.filter(
         dc => !dataClassesDiff.has(dc),
       )
+      if (DF.dataClasses.length === 0) {
+        DF.dataTag = null
+      }
       return DF
     })
 
