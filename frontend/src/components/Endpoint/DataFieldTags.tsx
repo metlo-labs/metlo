@@ -6,7 +6,6 @@ import { FiPlus } from "icons/fi/FiPlus"
 import { HiPencil } from "icons/hi/HiPencil"
 import { RISK_TO_COLOR } from "~/constants"
 
-
 interface TagListProps {
   updating: boolean
   tags: string[]
@@ -92,7 +91,8 @@ export const DataFieldTagList: React.FC<TagListProps> = React.memo(
                 p="2"
                 colorScheme={
                   RISK_TO_COLOR[
-                    dataClasses.find(({ className }) => className == e).severity
+                    dataClasses.find(({ className }) => className == e)
+                      ?.severity
                   ]
                 }
               >
