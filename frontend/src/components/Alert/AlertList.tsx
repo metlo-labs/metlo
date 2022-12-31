@@ -168,7 +168,7 @@ export const AlertList: React.FC<AlertListProps> = ({
   const debounceSearch = debounce(setSearchQuery, 500)
 
   const riskFilterPanel = (
-    <Accordion defaultIndex={[0, 1, 2, 3]} w="full" allowToggle allowMultiple>
+    <Accordion defaultIndex={[0, 1, 2, 3]} w="full" allowMultiple>
       <VStack pb="4" borderBottomWidth={1} spacing="8">
         <AccordionItem border="0" w="full">
           <AccordionButton _hover={{ bg: "transparent" }} p="0">
