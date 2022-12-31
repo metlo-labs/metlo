@@ -415,7 +415,7 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
     return (
       <Box display="flex" flexDir="column" h="100%">
         <Stack flex="0 0 auto" p={2} direction={{ base: "column", md: "row" }}>
-          <Box zIndex="1002" w={{ base: "full", md: "lg" }}>
+          <Box zIndex="1002" w={{ base: "full", md: "md" }}>
             <Text fontWeight="semibold" mb="2" fontSize="sm">
               Status Code
             </Text>
@@ -444,7 +444,7 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
               }
             />
           </Box>
-          <Box zIndex="1001" w={{ base: "full", md: "lg" }}>
+          <Box zIndex="1001" w={{ base: "full", md: "md" }}>
             <Text fontWeight="semibold" mb="2" fontSize="sm">
               Content Type
             </Text>
@@ -473,7 +473,7 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
               }
             />
           </Box>
-          <Box zIndex="1000" w={{ base: "full", md: "lg" }}>
+          <Box zIndex="1000" w={{ base: "full", md: "md" }}>
             <Text fontWeight="semibold" mb="2" fontSize="sm">
               Sensitive Data Classes
             </Text>
