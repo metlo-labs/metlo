@@ -48,7 +48,7 @@ export const sendWebhookRequests = async (
         apiEndpoint.uuid,
       ])
     }
-    const totalEndpointsInHostPromise = getQB(ctx, queryRunner)
+    const totalEndpointsPromise = getQB(ctx, queryRunner)
       .select(["uuid"])
       .from(ApiEndpoint, "endpoint")
       .andWhere("host = :host", { host: apiEndpoint.host })
@@ -61,11 +61,10 @@ export const sendWebhookRequests = async (
         scores: [RiskScore.HIGH, RiskScore.MEDIUM, RiskScore.LOW],
       })
       .getCount()
-    const [totalEndpointsInHost, totalSensitiveEndpointsInHost] =
-      await Promise.all([
-        totalEndpointsInHostPromise,
-        totalSensitiveEndpointsPromise,
-      ])
+    const [totalEndpoints, totalSensitiveEndpoints] = await Promise.all([
+      totalEndpointsPromise,
+      totalSensitiveEndpointsPromise,
+    ])
     for (const alert of alerts) {
       const webhooks: Webhook[] = await getQB(ctx, queryRunner)
         .from(Webhook, "webhook")
@@ -88,9 +87,10 @@ export const sendWebhookRequests = async (
       alert.apiEndpoint.dataFields = dataFields
       const payload = {
         alert: alert,
-        aggregates: {
-          totalEndpointsInHost,
-          totalSensitiveEndpointsInHost,
+        meta: {
+          host: apiEndpoint.host,
+          totalEndpoints,
+          totalSensitiveEndpoints,
         },
       }
       for (const webhook of webhooks) {
