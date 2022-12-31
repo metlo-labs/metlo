@@ -257,7 +257,6 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
             !e.contentType ||
             contentTypes.includes(e.contentType)) &&
           (sensitiveDataClasses.length === 0 ||
-            // @ts-ignore
             sensitiveDataClasses.some(r => e.dataClasses.includes(r)))
         )
       })
