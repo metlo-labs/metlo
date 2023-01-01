@@ -6,7 +6,6 @@ import {
 } from "@common/api/alert"
 import ApiResponseHandler from "api-response-handler"
 import { MetloRequest } from "types"
-import Error400BadRequest from "errors/error-400-bad-request"
 
 export const getAlertsHandler = async (
   req: MetloRequest,
@@ -14,11 +13,7 @@ export const getAlertsHandler = async (
 ): Promise<void> => {
   const parsedQuery = GetAlertParamsSchema.safeParse(req.query)
   if (parsedQuery.success == false) {
-    await ApiResponseHandler.error(
-      res,
-      new Error400BadRequest(parsedQuery.error.message),
-    )
-    return
+    return await ApiResponseHandler.zerr(res, parsedQuery.error)
   }
   try {
     const alerts = await AlertService.getAlerts(req.ctx, parsedQuery.data)
@@ -35,11 +30,7 @@ export const updateAlertHandler = async (
   const { alertId } = req.params
   const parsedBody = UpdateAlertParamsSchema.safeParse(req.body)
   if (parsedBody.success == false) {
-    await ApiResponseHandler.error(
-      res,
-      new Error400BadRequest(parsedBody.error.message),
-    )
-    return
+    return await ApiResponseHandler.zerr(res, parsedBody.error)
   }
   try {
     const updatedAlert = await AlertService.updateAlert(

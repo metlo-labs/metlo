@@ -36,6 +36,7 @@ import EmptyView from "components/utils/EmptyView"
 import { createWebhook, deleteWebhook, updateWebhook } from "api/webhook"
 import { AlertType } from "@common/enums"
 import { DataHeading } from "components/utils/Card"
+import { formatMetloAPIErr, MetloAPIErr } from "api/utils"
 
 interface WebhookProps {
   webhooks: WebhookResp[]
@@ -91,7 +92,7 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
           makeToast({
             title: "Creating Webhook failed",
             status: "error",
-            description: err?.response?.data,
+            description: formatMetloAPIErr(err.response.data as MetloAPIErr),
           }),
         )
       } finally {
@@ -111,7 +112,7 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
           makeToast({
             title: "Updating Webhook failed",
             status: "error",
-            description: err?.response?.data,
+            description: formatMetloAPIErr(err.response.data as MetloAPIErr),
           }),
         )
       } finally {

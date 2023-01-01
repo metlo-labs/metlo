@@ -1,6 +1,6 @@
 import { Response } from "express"
+import { z } from "zod"
 import { ClientErrorTypes, ClientError } from "errors/client-errors"
-import Error422UnprocessableEntity from "errors/error-422-unprocessable-entity"
 
 export default class ApiResponseHandler {
   static async success(
@@ -21,7 +21,16 @@ export default class ApiResponseHandler {
       [400, 401, 403, 404, 409, 422].includes((error as ClientError).code)
         ? (error as ClientError).code
         : 500
-    const payload = (error as Error422UnprocessableEntity).paylod ?? null
-    res.status(errorCode).send(payload ?? error.message)
+    res.status(errorCode).send(error.message)
+  }
+
+  static async zerr(res: Response, error: z.ZodError): Promise<void> {
+    res.status(400).send({
+      type: "ZOD",
+      err: error,
+      message: error.issues
+        .map(e => `${e.path.join(".")}: ${e.message}`)
+        .join("\n"),
+    })
   }
 }

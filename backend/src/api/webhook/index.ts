@@ -8,7 +8,6 @@ import {
 } from "services/webhook"
 import { MetloRequest } from "types"
 import { CreateWebhookParamsSchema } from "@common/api/webhook"
-import Error400BadRequest from "errors/error-400-bad-request"
 
 export const getWebhooksHandler = async (
   req: MetloRequest,
@@ -28,11 +27,7 @@ export const createWebhookHandler = async (
 ): Promise<void> => {
   const parsedBody = CreateWebhookParamsSchema.safeParse(req.body)
   if (parsedBody.success == false) {
-    await ApiResponseHandler.error(
-      res,
-      new Error400BadRequest(parsedBody.error.message),
-    )
-    return
+    return await ApiResponseHandler.zerr(res, parsedBody.error)
   }
   try {
     const webhooks = await createNewWebhook(req.ctx, parsedBody.data)
@@ -48,11 +43,7 @@ export const updateWebhookHandler = async (
 ): Promise<void> => {
   const parsedBody = CreateWebhookParamsSchema.safeParse(req.body)
   if (parsedBody.success == false) {
-    await ApiResponseHandler.error(
-      res,
-      new Error400BadRequest(parsedBody.error.message),
-    )
-    return
+    return await ApiResponseHandler.zerr(res, parsedBody.error)
   }
   try {
     const { webhookId } = req.params
