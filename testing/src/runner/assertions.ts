@@ -10,9 +10,19 @@ export const runAssertion = (
   response: AxiosResponse,
   ctx: Context,
 ): boolean => {
+  if (typeof assertion == "string") {
+    assertion = {
+      type: AssertionType.enum.JS,
+      value: assertion,
+    }
+  }
+
   if (assertion.type == AssertionType.enum.JS) {
     if ((typeof assertion.value).toLowerCase() === "string") {
-      const assertionValue = stringReplacement(assertion.value as string, ctx.envVars)
+      const assertionValue = stringReplacement(
+        assertion.value as string,
+        ctx.envVars,
+      )
       return !!executeScript(assertionValue, response, ctx)
     } else {
       throw new Error(
