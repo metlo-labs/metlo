@@ -4,7 +4,7 @@ import { Alert, ApiEndpoint, DataField, Webhook } from "models"
 import { createQB, getQB, insertValueBuilder } from "services/database/utils"
 import { MetloContext } from "types"
 import { AppDataSource } from "data-source"
-import { CreateWebhookParams } from "@common/types"
+import { CreateWebhookParams } from "@common/api/webhook"
 import Error400BadRequest from "errors/error-400-bad-request"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { getDataFieldsQuery } from "analyze-traces"
@@ -141,12 +141,6 @@ export const createNewWebhook = async (
   ctx: MetloContext,
   createWebhookParams: CreateWebhookParams,
 ) => {
-  if (!createWebhookParams.url) {
-    throw new Error400BadRequest("Must provide url for webhook.")
-  }
-  if (!validUrl(createWebhookParams.url)) {
-    throw new Error400BadRequest("Please enter a valid url.")
-  }
   const queryRunner = AppDataSource.createQueryRunner()
   try {
     await queryRunner.connect()

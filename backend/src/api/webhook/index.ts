@@ -7,7 +7,8 @@ import {
   updateWebhook,
 } from "services/webhook"
 import { MetloRequest } from "types"
-import { CreateWebhookParams } from "@common/types"
+import { CreateWebhookParamsSchema } from "@common/api/webhook"
+import Error400BadRequest from "errors/error-400-bad-request"
 
 export const getWebhooksHandler = async (
   req: MetloRequest,
@@ -25,9 +26,16 @@ export const createWebhookHandler = async (
   req: MetloRequest,
   res: Response,
 ): Promise<void> => {
+  const parsedBody = CreateWebhookParamsSchema.safeParse(req.body)
+  if (parsedBody.success == false) {
+    await ApiResponseHandler.error(
+      res,
+      new Error400BadRequest(parsedBody.error.message),
+    )
+    return
+  }
   try {
-    const createWebhookParams: CreateWebhookParams = req.body
-    const webhooks = await createNewWebhook(req.ctx, createWebhookParams)
+    const webhooks = await createNewWebhook(req.ctx, parsedBody.data)
     await ApiResponseHandler.success(res, webhooks)
   } catch (err) {
     await ApiResponseHandler.error(res, err)
@@ -38,14 +46,17 @@ export const updateWebhookHandler = async (
   req: MetloRequest,
   res: Response,
 ): Promise<void> => {
+  const parsedBody = CreateWebhookParamsSchema.safeParse(req.body)
+  if (parsedBody.success == false) {
+    await ApiResponseHandler.error(
+      res,
+      new Error400BadRequest(parsedBody.error.message),
+    )
+    return
+  }
   try {
     const { webhookId } = req.params
-    const updateWebhookParams: CreateWebhookParams = req.body
-    const webhooks = await updateWebhook(
-      req.ctx,
-      webhookId,
-      updateWebhookParams,
-    )
+    const webhooks = await updateWebhook(req.ctx, webhookId, parsedBody.data)
     await ApiResponseHandler.success(res, webhooks)
   } catch (err) {
     await ApiResponseHandler.error(res, err)

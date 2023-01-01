@@ -361,12 +361,6 @@ export interface WebhookResp {
   runs: WebhookRun[]
 }
 
-export interface CreateWebhookParams {
-  url: string
-  alertTypes: AlertType[]
-  hosts: string[]
-}
-
 export interface HostGraph {
   hosts: { [key: string]: { numEndpoints: number } }
   edges: {
