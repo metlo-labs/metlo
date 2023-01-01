@@ -110,18 +110,6 @@ export interface GetHostParams {
   searchQuery?: string
 }
 
-export interface GetAlertParams {
-  uuid?: string
-  apiEndpointUuid?: string
-  riskScores?: RiskScore[]
-  status?: Status[]
-  alertTypes?: AlertType[]
-  hosts?: string[]
-  offset?: number
-  limit?: number
-  order?: "DESC" | "ASC"
-}
-
 export interface UpdateDataFieldClassesParams {
   dataClasses: string[]
   dataSection: DataSection

@@ -29,13 +29,8 @@ import {
 } from "@chakra-ui/react"
 import { useRouter } from "next/router"
 import { SectionHeader } from "components/utils/Card"
-import {
-  Alert,
-  ApiEndpointDetailed,
-  DataClass,
-  GetAlertParams,
-  Usage,
-} from "@common/types"
+import { Alert, ApiEndpointDetailed, DataClass, Usage } from "@common/types"
+import { GetAlertParams } from "@common/api/alert"
 import { METHOD_TO_COLOR } from "~/constants"
 import DataFieldList from "./DataFieldList"
 import TraceList from "./TraceList"

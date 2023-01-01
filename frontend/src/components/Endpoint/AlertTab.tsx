@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useToast, Box } from "@chakra-ui/react"
-import { Alert, GetAlertParams, UpdateAlertParams } from "@common/types"
+import { Alert, UpdateAlertParams } from "@common/types"
+import { GetAlertParams } from "@common/api/alert"
 import { getAlerts, updateAlert } from "api/alerts"
 import { AlertList } from "components/Alert/AlertList"
 import { SpecExtension } from "@common/enums"

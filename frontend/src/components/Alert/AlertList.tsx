@@ -23,7 +23,8 @@ import {
   Input,
 } from "@chakra-ui/react"
 import debounce from "lodash/debounce"
-import { Alert, GetAlertParams, UpdateAlertParams } from "@common/types"
+import { Alert, UpdateAlertParams } from "@common/types"
+import { GetAlertParams } from "@common/api/alert"
 import { AlertType, RiskScore, SpecExtension, Status } from "@common/enums"
 import { ALERT_PAGE_LIMIT } from "~/constants"
 import { AlertComponent } from "components/Alert/AlertComponent"
