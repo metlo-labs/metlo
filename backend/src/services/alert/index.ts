@@ -21,12 +21,8 @@ import {
 } from "@common/enums"
 import { DATA_SECTION_TO_LABEL_MAP } from "@common/maps"
 import { ALERT_TYPE_TO_RISK_SCORE } from "@common/maps"
-import {
-  Alert as AlertResponse,
-  UpdateAlertParams,
-  QueuedApiTrace,
-} from "@common/types"
-import { GetAlertParams } from "@common/api/alert"
+import { Alert as AlertResponse, QueuedApiTrace } from "@common/types"
+import { GetAlertParams, UpdateAlertParams } from "@common/api/alert"
 import Error409Conflict from "errors/error-409-conflict"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { getPathTokens } from "@common/utils"

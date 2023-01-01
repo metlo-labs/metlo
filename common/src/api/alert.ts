@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { AlertType, RiskScore, Status } from "../enums"
+import { AlertType, RiskScore, Status, UpdateAlertType } from "../enums"
 
 export const GetAlertParamsSchema = z.object({
   uuid: z.string().uuid().optional(),
@@ -19,3 +19,10 @@ export const GetAlertParamsSchema = z.object({
 })
 
 export type GetAlertParams = z.infer<typeof GetAlertParamsSchema>
+
+export const UpdateAlertParamsSchema = z.object({
+  updateType: z.nativeEnum(UpdateAlertType),
+  resolutionMessage: z.string().optional(),
+})
+
+export type UpdateAlertParams = z.infer<typeof UpdateAlertParamsSchema>

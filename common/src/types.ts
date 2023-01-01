@@ -9,7 +9,6 @@ import {
   RiskScore,
   SpecExtension,
   Status,
-  UpdateAlertType,
   AuthType,
   AttackType,
   API_KEY_TYPE,
@@ -118,11 +117,6 @@ export interface UpdateDataFieldClassesParams {
 
 export interface UpdateDataFieldParams {
   isRisk: boolean
-}
-
-export interface UpdateAlertParams {
-  updateType: UpdateAlertType
-  resolutionMessage?: string
 }
 
 export type JSONValue =
