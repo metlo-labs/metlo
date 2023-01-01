@@ -14,4 +14,4 @@ export const Method = z.enum([
 ])
 
 export const AssertionType = z.enum(["EQ", "REGEXP", "JS"])
-export const ExtractorType = z.enum(["VALUE", "JS", "HTML"])
+export const ExtractorType = z.enum(["VALUE", "JS", "REGEXP", "HTML"])
