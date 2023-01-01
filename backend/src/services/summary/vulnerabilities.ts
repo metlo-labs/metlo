@@ -1,9 +1,6 @@
 import { AlertType, VULNERABILITY_ALERT_TYPES } from "@common/enums"
-import {
-  GetVulnerabilityAggParams,
-  VulnerabilityAggItem,
-  VulnerabilitySummary,
-} from "@common/types"
+import { VulnerabilityAggItem, VulnerabilitySummary } from "@common/types"
+import { GetVulnerabilityAggParams } from "@common/api/summary"
 import { ALERT_TYPE_TO_RISK_SCORE } from "@common/maps"
 import { Alert } from "models"
 import { MetloContext } from "types"

@@ -1,5 +1,6 @@
 import axios, { AxiosRequestHeaders } from "axios"
-import { CreateWebhookParams, WebhookResp } from "@common/types"
+import { CreateWebhookParams } from "@common/api/webhook"
+import { WebhookResp } from "@common/types"
 import { getAPIURL } from "~/constants"
 
 export const getWebhooks = async (

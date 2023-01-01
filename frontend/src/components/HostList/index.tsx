@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { Box, VStack } from "@chakra-ui/react"
-import { GetHostParams, HostResponse } from "@common/types"
+import { HostResponse } from "@common/types"
+import { GetHostParams } from "@common/api/endpoint"
 import List from "./List"
 import { HOST_PAGE_LIMIT } from "~/constants"
 import HostFilters from "./Filters"

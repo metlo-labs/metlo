@@ -1,7 +1,7 @@
 import React from "react"
 import { Stack, Box, Text } from "@chakra-ui/react"
 import { Select } from "chakra-react-select"
-import { GetSensitiveDataAggParams } from "@common/types"
+import { GetSensitiveDataAggParams } from "@common/api/summary"
 import { DataSection, RiskScore } from "@common/enums"
 import { DATA_SECTION_TO_LABEL_MAP } from "@common/maps"
 

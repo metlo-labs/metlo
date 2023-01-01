@@ -1,6 +1,5 @@
 import {
   AlertType,
-  ConnectionType,
   __DataClass_INTERNAL__,
   DataSection,
   DataTag,
@@ -9,7 +8,6 @@ import {
   RiskScore,
   SpecExtension,
   Status,
-  UpdateAlertType,
   AuthType,
   AttackType,
   API_KEY_TYPE,
@@ -76,65 +74,11 @@ export interface TraceParams {
   meta: Meta
 }
 
-export interface GetSensitiveDataAggParams {
-  hosts?: string[]
-  riskScores?: RiskScore[]
-  locations?: DataSection[]
-}
-
-export interface GetVulnerabilityAggParams {
-  hosts?: string[]
-  riskScores?: RiskScore[]
-}
-
 export interface GetAttackParams {
   hosts?: string[]
   riskScores?: RiskScore[]
   offset?: number
   limit?: number
-}
-
-export interface GetEndpointParams {
-  hosts?: string[]
-  riskScores?: RiskScore[]
-  dataClasses?: string[]
-  searchQuery?: string
-  isAuthenticated?: boolean
-  offset?: number
-  limit?: number
-}
-
-export interface GetHostParams {
-  offset?: number
-  limit?: number
-  searchQuery?: string
-}
-
-export interface GetAlertParams {
-  uuid?: string
-  apiEndpointUuid?: string
-  riskScores?: RiskScore[]
-  status?: Status[]
-  alertTypes?: AlertType[]
-  hosts?: string[]
-  offset?: number
-  limit?: number
-  order?: "DESC" | "ASC"
-}
-
-export interface UpdateDataFieldClassesParams {
-  dataClasses: string[]
-  dataSection: DataSection
-  dataPath: string
-}
-
-export interface UpdateDataFieldParams {
-  isRisk: boolean
-}
-
-export interface UpdateAlertParams {
-  updateType: UpdateAlertType
-  resolutionMessage?: string
 }
 
 export type JSONValue =
@@ -247,13 +191,6 @@ export interface OpenApiSpec {
   updatedAt: Date
   hosts: string[]
   specUpdatedAt: Date
-}
-
-export interface Connection {
-  createdAt: Date
-  uuid: string
-  name: string
-  type: ConnectionType
 }
 
 export interface EndpointAndUsage extends ApiEndpointDetailed {
@@ -424,12 +361,6 @@ export interface WebhookResp {
   runs: WebhookRun[]
 }
 
-export interface CreateWebhookParams {
-  url: string
-  alertTypes: AlertType[]
-  hosts: string[]
-}
-
 export interface HostGraph {
   hosts: { [key: string]: { numEndpoints: number } }
   edges: {
@@ -448,14 +379,14 @@ export interface GenerateTestParams {
 
 export interface GenerateTestRes {
   success: boolean
-  templateName?: string,
-  templateVersion?: number,
+  templateName?: string
+  templateVersion?: number
   msg?: string
   test?: TestConfig
 }
 
 export interface DataClass {
-  className: string,
-  severity: RiskScore,
+  className: string
+  severity: RiskScore
   regex?: string
 }

@@ -1,8 +1,5 @@
-import {
-  GetSensitiveDataAggParams,
-  PIIDataClassAggItem,
-  SensitiveDataSummary,
-} from "@common/types"
+import { PIIDataClassAggItem, SensitiveDataSummary } from "@common/types"
+import { GetSensitiveDataAggParams } from "@common/api/summary"
 import { DatabaseService } from "services/database"
 import { ApiEndpoint, DataField } from "models"
 import { MetloContext } from "types"
@@ -56,12 +53,10 @@ export const getPIIDataTypeAgg = async (
   }
 
   const DataClassInfo = await getCombinedDataClasses(ctx)
-  const riskMap = (DataClassInfo)
-    .map(
-      ({ className, severity }) =>
-        `WHEN unnest_fields.data_class = '${className}' THEN '${severity}'`,
-    )
-    .join("\n")
+  const riskMap = DataClassInfo.map(
+    ({ className, severity }) =>
+      `WHEN unnest_fields.data_class = '${className}' THEN '${severity}'`,
+  ).join("\n")
   const riskCase = `CASE ${riskMap} END`
 
   let dataFieldFilter = ""
@@ -121,14 +116,10 @@ export const getPIIDataTypeAgg = async (
     FROM all_filtered_fields 
   `
 
-  const piiDataTypeRes: PIIDataClassAggItem[] = await DatabaseService.executeRawQuery(
-    piiQuery,
-    queryParams,
-  )
-  const endpointRes: { count: number }[] = await DatabaseService.executeRawQuery(
-    endpointQuery,
-    queryParams,
-  )
+  const piiDataTypeRes: PIIDataClassAggItem[] =
+    await DatabaseService.executeRawQuery(piiQuery, queryParams)
+  const endpointRes: { count: number }[] =
+    await DatabaseService.executeRawQuery(endpointQuery, queryParams)
 
   return {
     piiDataTypeCount: Object.fromEntries(

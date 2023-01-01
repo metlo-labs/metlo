@@ -9,6 +9,7 @@ import { getAlerts } from "api/alerts"
 import { Status } from "@common/enums"
 import { ALERT_PAGE_LIMIT } from "~/constants"
 import { getDataClasses } from "api/dataClasses"
+import { GetAlertParams } from "@common/api/alert"
 
 const Endpoint = ({
   endpoint,
@@ -41,18 +42,18 @@ const Endpoint = ({
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const initAlertParams = {
-    uuid: (context.query.uuid as string) || null,
-    apiEndpointUuid: (context.query.endpointUUID as string) || null,
+    uuid: context.query.uuid || null,
+    apiEndpointUuid: context.query.endpointUUID || null,
     riskScores: [],
     status: [Status.OPEN],
     alertTypes: [],
     order: "DESC" as const,
     offset: 0,
     limit: ALERT_PAGE_LIMIT,
-  }
+  } as GetAlertParams
   const endpointPromise = getEndpoint(context.query.endpointUUID as string)
   const usagePromise = getUsage(context.query.endpointUUID as string)
-  const alertPromise = getAlerts(initAlertParams)
+  const alertPromise = getAlerts({ ...initAlertParams })
   const dataClassesPromise = getDataClasses({})
   const promises = [
     endpointPromise,

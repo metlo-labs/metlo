@@ -1,6 +1,6 @@
 import { Response } from "express"
 import { GetEndpointsService } from "services/get-endpoints"
-import { GetHostParams } from "@common/types"
+import { GetHostParamsSchema } from "@common/api/endpoint"
 import ApiResponseHandler from "api-response-handler"
 import { MetloRequest } from "types"
 import Error400BadRequest from "errors/error-400-bad-request"
@@ -36,9 +36,15 @@ export const getHostsListHandler = async (
   req: MetloRequest,
   res: Response,
 ): Promise<void> => {
-  const hostsParams: GetHostParams = req.query
+  const parsedQuery = GetHostParamsSchema.safeParse(req.query)
+  if (parsedQuery.success == false) {
+    return await ApiResponseHandler.zerr(res, parsedQuery.error)
+  }
   try {
-    const resp = await GetEndpointsService.getHostsList(req.ctx, hostsParams)
+    const resp = await GetEndpointsService.getHostsList(
+      req.ctx,
+      parsedQuery.data,
+    )
     await ApiResponseHandler.success(res, resp)
   } catch (err) {
     await ApiResponseHandler.error(res, err)

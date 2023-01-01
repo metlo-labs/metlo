@@ -1,11 +1,17 @@
+import { z } from "zod"
 import axios, { AxiosRequestHeaders } from "axios"
-import { GetAlertParams, Alert, UpdateAlertParams } from "@common/types"
+import { Alert } from "@common/types"
+import { UpdateAlertParams } from "@common/api/alert"
+import { GetAlertParams } from "@common/api/alert"
 import { getAPIURL } from "~/constants"
 
 export const getAlerts = async (
   params: GetAlertParams,
   headers?: AxiosRequestHeaders,
 ): Promise<[Alert[], number]> => {
+  if (!z.string().uuid().safeParse(params.uuid).success) {
+    params.uuid = undefined
+  }
   const resp = await axios.get<[Alert[], number]>(`${getAPIURL()}/alerts`, {
     params,
     headers,
