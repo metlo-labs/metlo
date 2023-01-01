@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react"
 import { Select } from "chakra-react-select"
 import { BsSearch } from "icons/bs/BsSearch"
-import { GetEndpointParams } from "@common/types"
+import { GetEndpointParams } from "@common/api/endpoint"
 import { RiskScore } from "@common/enums"
 import debounce from "lodash/debounce"
 

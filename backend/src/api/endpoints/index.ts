@@ -1,7 +1,7 @@
 import { Response, Router } from "express"
 import validator from "validator"
 import { GetEndpointsService } from "services/get-endpoints"
-import { GetEndpointParams } from "@common/types"
+import { GetEndpointParamsSchema } from "@common/api/endpoint"
 import ApiResponseHandler from "api-response-handler"
 import Error404NotFound from "errors/error-404-not-found"
 import { MetloRequest } from "types"
@@ -17,16 +17,24 @@ import {
   getHostsListHandler,
 } from "./hosts"
 import { getDataClassInfo } from "api/data-class"
+import Error400BadRequest from "errors/error-400-bad-request"
 
 export const getEndpointsHandler = async (
   req: MetloRequest,
   res: Response,
 ): Promise<void> => {
-  const getEndpointParams: GetEndpointParams = req.query
+  const parsedQuery = GetEndpointParamsSchema.safeParse(req.query)
+  if (parsedQuery.success == false) {
+    await ApiResponseHandler.error(
+      res,
+      new Error400BadRequest(parsedQuery.error.message),
+    )
+    return
+  }
   try {
     const endpoints = await GetEndpointsService.getEndpoints(
       req.ctx,
-      getEndpointParams,
+      parsedQuery.data,
     )
     await ApiResponseHandler.success(res, endpoints)
   } catch (err) {

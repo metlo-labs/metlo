@@ -93,16 +93,6 @@ export interface GetAttackParams {
   limit?: number
 }
 
-export interface GetEndpointParams {
-  hosts?: string[]
-  riskScores?: RiskScore[]
-  dataClasses?: string[]
-  searchQuery?: string
-  isAuthenticated?: boolean
-  offset?: number
-  limit?: number
-}
-
 export interface GetHostParams {
   offset?: number
   limit?: number

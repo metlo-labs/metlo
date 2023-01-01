@@ -2,12 +2,12 @@ import axios, { AxiosRequestHeaders } from "axios"
 import {
   ApiEndpoint,
   ApiEndpointDetailed,
-  GetEndpointParams,
   GetHostParams,
   HostResponse,
   HostGraph,
   Usage,
 } from "@common/types"
+import { GetEndpointParams } from "@common/api/endpoint"
 import { getAPIURL } from "~/constants"
 
 export const getEndpoints = async (

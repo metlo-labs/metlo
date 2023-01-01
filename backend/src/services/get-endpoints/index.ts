@@ -11,13 +11,13 @@ import {
   Attack,
 } from "models"
 import {
-  GetEndpointParams,
   ApiEndpoint as ApiEndpointResponse,
   ApiEndpointDetailed as ApiEndpointDetailedResponse,
   Usage as UsageResponse,
   GetHostParams,
   HostResponse,
 } from "@common/types"
+import { GetEndpointParams } from "@common/api/endpoint"
 import Error500InternalServer from "errors/error-500-internal-server"
 import Error404NotFound from "errors/error-404-not-found"
 import { getRiskScore } from "utils"

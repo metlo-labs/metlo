@@ -1,6 +1,7 @@
 import React from "react"
 import { Box, VStack } from "@chakra-ui/react"
-import { ApiEndpoint, DataClass, GetEndpointParams } from "@common/types"
+import { ApiEndpoint, DataClass } from "@common/types"
+import { GetEndpointParams } from "@common/api/endpoint"
 import EndpointFilters from "./Filters"
 import List from "./List"
 import { ENDPOINT_PAGE_LIMIT } from "~/constants"
