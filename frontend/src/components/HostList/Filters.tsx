@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react"
 import { BsSearch } from "icons/bs/BsSearch"
 import debounce from "lodash/debounce"
-import { GetHostParams } from "@common/types"
+import { GetHostParams } from "@common/api/endpoint"
 import { deleteHost } from "api/endpoints"
 import { makeToast } from "utils"
 

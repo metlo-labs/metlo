@@ -82,12 +82,6 @@ export interface GetAttackParams {
   limit?: number
 }
 
-export interface GetHostParams {
-  offset?: number
-  limit?: number
-  searchQuery?: string
-}
-
 export type JSONValue =
   | string
   | number

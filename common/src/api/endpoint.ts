@@ -27,3 +27,14 @@ export const UpdateDataFieldClassesParamsSchema = z.object({
 export type UpdateDataFieldClassesParams = z.infer<
   typeof UpdateDataFieldClassesParamsSchema
 >
+
+export const GetHostParamsSchema = z.object({
+  searchQuery: z.string().optional(),
+  offset: z
+    .union([z.number(), z.string().regex(/^\d+$/).transform(Number)])
+    .optional(),
+  limit: z
+    .union([z.number(), z.string().regex(/^\d+$/).transform(Number)])
+    .optional(),
+})
+export type GetHostParams = z.infer<typeof GetHostParamsSchema>
