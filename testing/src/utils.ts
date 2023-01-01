@@ -81,6 +81,9 @@ export const extractRegexp = (
   if (typeof resp.data == "string") {
     strData = resp.data
   }
+  if (typeof resp.data == "object") {
+    strData = JSON.stringify(resp.data)
+  }
   const match = strData.match(new RegExp(regexp))
   if (match) {
     return match[0]
