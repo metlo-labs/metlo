@@ -62,11 +62,15 @@ export const getUsageHandler = async (
   req: MetloRequest,
   res: Response,
 ): Promise<void> => {
+  const { endpointId } = req.params
+  if (!validator.isUUID(endpointId)) {
+    await ApiResponseHandler.error(
+      res,
+      new Error404NotFound("Endpoint does not exist."),
+    )
+    return
+  }
   try {
-    const { endpointId } = req.params
-    if (!validator.isUUID(endpointId)) {
-      throw new Error404NotFound("Endpoint does not exist.")
-    }
     const usageData = await GetEndpointsService.getUsage(req.ctx, endpointId)
     await ApiResponseHandler.success(res, usageData)
   } catch (err) {
@@ -78,11 +82,15 @@ export const updateEndpointIsAuthenticated = async (
   req: MetloRequest,
   res: Response,
 ): Promise<void> => {
+  const { endpointId } = req.params
+  if (!validator.isUUID(endpointId)) {
+    await ApiResponseHandler.error(
+      res,
+      new Error404NotFound("Endpoint does not exist."),
+    )
+    return
+  }
   try {
-    const { endpointId } = req.params
-    if (!validator.isUUID(endpointId)) {
-      throw new Error404NotFound("Endpoint does not exist.")
-    }
     const params: { authenticated: boolean } = req.body
     await GetEndpointsService.updateIsAuthenticated(
       req.ctx,
@@ -99,11 +107,15 @@ export const deleteEndpointHandler = async (
   req: MetloRequest,
   res: Response,
 ): Promise<void> => {
+  const { endpointId } = req.params
+  if (!validator.isUUID(endpointId)) {
+    await ApiResponseHandler.error(
+      res,
+      new Error404NotFound("Endpoint does not exist."),
+    )
+    return
+  }
   try {
-    const { endpointId } = req.params
-    if (!validator.isUUID(endpointId)) {
-      throw new Error404NotFound("Endpoint does not exist.")
-    }
     await GetEndpointsService.deleteEndpoint(req.ctx, endpointId)
     await ApiResponseHandler.success(res, "Success")
   } catch (err) {
@@ -116,10 +128,14 @@ export const getSuggestedPathsHandler = async (
   res: Response,
 ): Promise<void> => {
   const { endpointId } = req.params
+  if (!validator.isUUID(endpointId)) {
+    await ApiResponseHandler.error(
+      res,
+      new Error404NotFound("Endpoint does not exist."),
+    )
+    return
+  }
   try {
-    if (!validator.isUUID(endpointId)) {
-      throw new Error404NotFound("Endpoint does not exist.")
-    }
     const suggestedPaths = await getTopSuggestedPaths(req.ctx, endpointId)
     await ApiResponseHandler.success(res, suggestedPaths)
   } catch (err) {
