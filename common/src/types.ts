@@ -1,6 +1,5 @@
 import {
   AlertType,
-  ConnectionType,
   __DataClass_INTERNAL__,
   DataSection,
   DataTag,
@@ -192,13 +191,6 @@ export interface OpenApiSpec {
   updatedAt: Date
   hosts: string[]
   specUpdatedAt: Date
-}
-
-export interface Connection {
-  createdAt: Date
-  uuid: string
-  name: string
-  type: ConnectionType
 }
 
 export interface EndpointAndUsage extends ApiEndpointDetailed {
@@ -393,14 +385,14 @@ export interface GenerateTestParams {
 
 export interface GenerateTestRes {
   success: boolean
-  templateName?: string,
-  templateVersion?: number,
+  templateName?: string
+  templateVersion?: number
   msg?: string
   test?: TestConfig
 }
 
 export interface DataClass {
-  className: string,
-  severity: RiskScore,
+  className: string
+  severity: RiskScore
   regex?: string
 }
