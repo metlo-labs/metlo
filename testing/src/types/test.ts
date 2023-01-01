@@ -41,11 +41,14 @@ export const ExtractorSchema = z.object({
   value: z.string(),
 })
 
-export const AssertionSchema = z.object({
-  type: AssertionType.default(AssertionType.enum.EQ),
-  key: z.string().optional(),
-  value: z.union([PrimitiveValueSchema, PrimitiveValueSchema.array()]),
-})
+export const AssertionSchema = z.union([
+  z.object({
+    type: AssertionType.default(AssertionType.enum.EQ),
+    key: z.string().optional(),
+    value: z.union([PrimitiveValueSchema, PrimitiveValueSchema.array()]),
+  }),
+  z.string(),
+])
 
 export const TestStepSchema = z.object({
   request: RequestSchema,
