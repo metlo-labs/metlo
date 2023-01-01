@@ -38,11 +38,7 @@ export const getHostsListHandler = async (
 ): Promise<void> => {
   const parsedQuery = GetHostParamsSchema.safeParse(req.query)
   if (parsedQuery.success == false) {
-    await ApiResponseHandler.error(
-      res,
-      new Error400BadRequest(parsedQuery.error.message),
-    )
-    return
+    return await ApiResponseHandler.zerr(res, parsedQuery.error)
   }
   try {
     const resp = await GetEndpointsService.getHostsList(

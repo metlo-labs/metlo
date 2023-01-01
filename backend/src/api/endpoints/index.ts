@@ -17,7 +17,6 @@ import {
   getHostsListHandler,
 } from "./hosts"
 import { getDataClassInfo } from "api/data-class"
-import Error400BadRequest from "errors/error-400-bad-request"
 
 export const getEndpointsHandler = async (
   req: MetloRequest,
@@ -25,11 +24,7 @@ export const getEndpointsHandler = async (
 ): Promise<void> => {
   const parsedQuery = GetEndpointParamsSchema.safeParse(req.query)
   if (parsedQuery.success == false) {
-    await ApiResponseHandler.error(
-      res,
-      new Error400BadRequest(parsedQuery.error.message),
-    )
-    return
+    return await ApiResponseHandler.zerr(res, parsedQuery.error)
   }
   try {
     const endpoints = await GetEndpointsService.getEndpoints(
@@ -46,11 +41,14 @@ export const getEndpointHandler = async (
   req: MetloRequest,
   res: Response,
 ): Promise<void> => {
+  const { endpointId } = req.params
+  if (!validator.isUUID(endpointId)) {
+    return await ApiResponseHandler.error(
+      res,
+      new Error404NotFound("Endpoint does not exist."),
+    )
+  }
   try {
-    const { endpointId } = req.params
-    if (!validator.isUUID(endpointId)) {
-      throw new Error404NotFound("Endpoint does not exist.")
-    }
     const endpoint = await GetEndpointsService.getEndpoint(req.ctx, endpointId)
     await ApiResponseHandler.success(res, endpoint)
   } catch (err) {
@@ -64,11 +62,10 @@ export const getUsageHandler = async (
 ): Promise<void> => {
   const { endpointId } = req.params
   if (!validator.isUUID(endpointId)) {
-    await ApiResponseHandler.error(
+    return await ApiResponseHandler.error(
       res,
       new Error404NotFound("Endpoint does not exist."),
     )
-    return
   }
   try {
     const usageData = await GetEndpointsService.getUsage(req.ctx, endpointId)
@@ -84,11 +81,10 @@ export const updateEndpointIsAuthenticated = async (
 ): Promise<void> => {
   const { endpointId } = req.params
   if (!validator.isUUID(endpointId)) {
-    await ApiResponseHandler.error(
+    return await ApiResponseHandler.error(
       res,
       new Error404NotFound("Endpoint does not exist."),
     )
-    return
   }
   try {
     const params: { authenticated: boolean } = req.body
@@ -109,11 +105,10 @@ export const deleteEndpointHandler = async (
 ): Promise<void> => {
   const { endpointId } = req.params
   if (!validator.isUUID(endpointId)) {
-    await ApiResponseHandler.error(
+    return await ApiResponseHandler.error(
       res,
       new Error404NotFound("Endpoint does not exist."),
     )
-    return
   }
   try {
     await GetEndpointsService.deleteEndpoint(req.ctx, endpointId)
@@ -129,11 +124,10 @@ export const getSuggestedPathsHandler = async (
 ): Promise<void> => {
   const { endpointId } = req.params
   if (!validator.isUUID(endpointId)) {
-    await ApiResponseHandler.error(
+    return await ApiResponseHandler.error(
       res,
       new Error404NotFound("Endpoint does not exist."),
     )
-    return
   }
   try {
     const suggestedPaths = await getTopSuggestedPaths(req.ctx, endpointId)

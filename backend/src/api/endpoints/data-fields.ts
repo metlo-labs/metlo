@@ -2,7 +2,6 @@ import { Response } from "express"
 import { DataFieldService } from "services/data-field"
 import { UpdateDataFieldClassesParamsSchema } from "@common/api/endpoint"
 import ApiResponseHandler from "api-response-handler"
-import Error400BadRequest from "errors/error-400-bad-request"
 import { GetEndpointsService } from "services/get-endpoints"
 import { MetloRequest } from "types"
 
@@ -13,11 +12,7 @@ export const updateDataFieldClasses = async (
   const { dataFieldId } = req.params
   const parsedBody = UpdateDataFieldClassesParamsSchema.safeParse(req.body)
   if (parsedBody.success == false) {
-    await ApiResponseHandler.error(
-      res,
-      new Error400BadRequest(parsedBody.error.message),
-    )
-    return
+    return await ApiResponseHandler.zerr(res, parsedBody.error)
   }
   try {
     const { dataClasses, dataPath, dataSection } = parsedBody.data
