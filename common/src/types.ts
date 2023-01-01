@@ -75,17 +75,6 @@ export interface TraceParams {
   meta: Meta
 }
 
-export interface GetSensitiveDataAggParams {
-  hosts?: string[]
-  riskScores?: RiskScore[]
-  locations?: DataSection[]
-}
-
-export interface GetVulnerabilityAggParams {
-  hosts?: string[]
-  riskScores?: RiskScore[]
-}
-
 export interface GetAttackParams {
   hosts?: string[]
   riskScores?: RiskScore[]

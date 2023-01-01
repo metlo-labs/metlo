@@ -1,4 +1,5 @@
-import { GetVulnerabilityAggParams, VulnerabilitySummary } from "@common/types"
+import { VulnerabilitySummary } from "@common/types"
+import { GetVulnerabilityAggParams } from "@common/api/summary"
 import axios, { AxiosRequestHeaders } from "axios"
 import { getAPIURL } from "~/constants"
 

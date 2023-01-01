@@ -1,6 +1,7 @@
 import { z } from "zod"
 import axios, { AxiosRequestHeaders } from "axios"
-import { Alert, UpdateAlertParams } from "@common/types"
+import { Alert } from "@common/types"
+import { UpdateAlertParams } from "@common/api/alert"
 import { GetAlertParams } from "@common/api/alert"
 import { getAPIURL } from "~/constants"
 

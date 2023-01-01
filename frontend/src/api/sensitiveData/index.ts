@@ -1,5 +1,6 @@
 import axios, { AxiosRequestHeaders } from "axios"
-import { GetSensitiveDataAggParams, SensitiveDataSummary } from "@common/types"
+import { SensitiveDataSummary } from "@common/types"
+import { GetSensitiveDataAggParams } from "@common/api/summary"
 import { getAPIURL } from "~/constants"
 
 export const getSensitiveDataSummary = async (

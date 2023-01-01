@@ -6,7 +6,8 @@ import EmptyView from "components/utils/EmptyView"
 import { TableColumn } from "react-data-table-component"
 import { RISK_TO_COLOR } from "~/constants"
 import { getCustomStyles, rowStyles } from "components/utils/TableUtils"
-import { PIIDataClassAggItem, GetSensitiveDataAggParams } from "@common/types"
+import { PIIDataClassAggItem } from "@common/types"
+import { GetSensitiveDataAggParams } from "@common/api/summary"
 const DataTable = dynamic(() => import("react-data-table-component"), {
   ssr: false,
 })
