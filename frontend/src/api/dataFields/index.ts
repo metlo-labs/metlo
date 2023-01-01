@@ -1,5 +1,6 @@
-import axios, { Axios, AxiosRequestHeaders } from "axios"
-import { DataField, UpdateDataFieldClassesParams } from "@common/types"
+import axios, { AxiosRequestHeaders } from "axios"
+import { DataField } from "@common/types"
+import { UpdateDataFieldClassesParams } from "@common/api/endpoint"
 import { getAPIURL } from "~/constants"
 
 export const updateDataFieldClasses = async (

@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { RiskScore } from "../enums"
+import { DataSection, RiskScore } from "../enums"
 
 export const GetEndpointParamsSchema = z.object({
   hosts: z.string().array().optional(),
@@ -17,3 +17,13 @@ export const GetEndpointParamsSchema = z.object({
 })
 
 export type GetEndpointParams = z.infer<typeof GetEndpointParamsSchema>
+
+export const UpdateDataFieldClassesParamsSchema = z.object({
+  dataClasses: z.string().array(),
+  dataSection: z.nativeEnum(DataSection),
+  dataPath: z.string(),
+})
+
+export type UpdateDataFieldClassesParams = z.infer<
+  typeof UpdateDataFieldClassesParamsSchema
+>

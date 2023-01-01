@@ -1,6 +1,6 @@
 import { Response } from "express"
 import { DataFieldService } from "services/data-field"
-import { UpdateDataFieldClassesParams } from "@common/types"
+import { UpdateDataFieldClassesParamsSchema } from "@common/api/endpoint"
 import ApiResponseHandler from "api-response-handler"
 import Error400BadRequest from "errors/error-400-bad-request"
 import { GetEndpointsService } from "services/get-endpoints"
@@ -10,19 +10,17 @@ export const updateDataFieldClasses = async (
   req: MetloRequest,
   res: Response,
 ): Promise<void> => {
+  const { dataFieldId } = req.params
+  const parsedBody = UpdateDataFieldClassesParamsSchema.safeParse(req.body)
+  if (parsedBody.success == false) {
+    await ApiResponseHandler.error(
+      res,
+      new Error400BadRequest(parsedBody.error.message),
+    )
+    return
+  }
   try {
-    const { dataFieldId } = req.params
-    const { dataClasses, dataPath, dataSection }: UpdateDataFieldClassesParams =
-      req.body
-    if (!dataClasses) {
-      throw new Error400BadRequest("No data class provided.")
-    }
-    if (!dataPath) {
-      throw new Error400BadRequest("No data path provided.")
-    }
-    if (!dataSection) {
-      throw new Error400BadRequest("No data section provided.")
-    }
+    const { dataClasses, dataPath, dataSection } = parsedBody.data
     const updatedDataField = await DataFieldService.updateDataClasses(
       req.ctx,
       dataFieldId,

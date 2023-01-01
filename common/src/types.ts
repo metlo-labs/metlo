@@ -88,16 +88,6 @@ export interface GetHostParams {
   searchQuery?: string
 }
 
-export interface UpdateDataFieldClassesParams {
-  dataClasses: string[]
-  dataSection: DataSection
-  dataPath: string
-}
-
-export interface UpdateDataFieldParams {
-  isRisk: boolean
-}
-
 export type JSONValue =
   | string
   | number
