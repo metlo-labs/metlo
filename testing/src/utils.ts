@@ -47,6 +47,19 @@ export const extractFromHTML = (querySelectorKey: string, resp: AxiosResponse, c
   return execResponse
 }
 
+export const extractRegexp = (querySelectorKey: string, resp: AxiosResponse, ctx: Context) => {
+  const vm = createVM(resp, ctx)
+  vm.freeze(jsdom.JSDOM.fragment, "jsdom")
+  const dom = jsdom.JSDOM.fragment(resp.data)
+
+  vm.freeze(resp.data, "body")
+  const execResponse = vm.run(`
+    const dom = jsdom(body);
+    dom.querySelector("${querySelectorKey}")
+  `)
+  return execResponse
+}
+
 export const stringReplacement = (string: string, envVars: Context["envVars"]) => {
   const template = Handlebars.compile(string);
   const templated = (template(envVars));
