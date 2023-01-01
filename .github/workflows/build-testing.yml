@@ -1,0 +1,31 @@
+name: build
+
+on:
+  push:
+    branches: [ "master", "develop" ]
+    paths:
+    - 'testing/**'
+  pull_request:
+    branches: [ "master", "develop" ]
+    paths:
+    - 'testing/**'
+
+jobs:
+  build-testing:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 'testing'
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        cache-dependency-path: ./testing/yarn.lock
+        node-version: '18.x'
+        cache: 'yarn'
+    - name: Yarn Install
+      run: yarn
+      working-directory: 'testing'
+    - name: Yarn Build
+      run: yarn build
+      working-directory: 'testing'
