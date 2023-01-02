@@ -35,6 +35,9 @@ Metlo does this by scanning your API traffic using one of our connectors and the
 <a href="https://app.metlo.com">
   <img src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/cloud-button.svg" alt="drawing" height="40"/>
 </a>
+<a href="https://my.metlo.com">
+  <img src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/self-hosted-button.svg" alt="drawing" height="40"/>
+</a>
 <a href="https://demo.metlo.com">
   <img src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/demo-button.svg" alt="drawing" height="40"/>
 </a>
