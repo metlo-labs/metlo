@@ -63,17 +63,49 @@ You can also join our [Discord community](https://discord.gg/4xhumff9BX) if you 
 * **Attack Context** - Metlo’s UI gives you full context around any attack to help quickly fix the vulnerability.
 
 ## Testing
-![Testing Screenshot](https://storage.googleapis.com/metlo-security-public-images/testing.png)
+![Testing Screenshot](https://metlo-api-security-public.s3.us-west-2.amazonaws.com/testing-screenshot.png)
 
-For tests that we can't autogenerate, our built in testing framework helps you get to **100% Security Coverage on your highest risk APIs.** You can build requests in an http editor and write javascript assertions to make sure your API is working as intendend.
+For tests that we can't autogenerate, our built in testing framework helps you get to **100% Security Coverage on your highest risk APIs.** You can build tests in a yaml format to make sure your API is working as intendend.
 
-For example the following checks if an API returns a `401`:
+For example the following test checks for broken authentication:
 
-```javascript
-m.test("Test Status Code Unauthorized", () => {
-    expect(m.response.status).toBe(401)
-})
+```yaml
+id: test-payment-processor-metlo.com-user-billing
+
+meta:
+  name: test-payment-processor.metlo.com/user/billing Test Auth
+  severity: CRITICAL
+  tags:
+    - BROKEN_AUTHENTICATION
+
+test:
+  - request:
+      method: POST
+      url: https://test-payment-processor.metlo.com/user/billing
+      headers:
+        - name: Content-Type
+          value: application/json
+        - name: Authorization
+          value: ...
+      data: |-
+        { "ccn": "...", "cc_exp": "...", "cc_code": "..." }
+    assert:
+      - key: resp.status
+        value: 200
+  - request:
+      method: POST
+      url: https://test-payment-processor.metlo.com/user/billing
+      headers:
+        - name: Content-Type
+          value: application/json
+      data: |-
+        { "ccn": "...", "cc_exp": "...", "cc_code": "..." }
+    assert:
+      - key: resp.status
+        value: [ 401, 403 ]
 ```
+
+You can see more information on our [docs](https://docs.metlo.com/docs/writing-a-test).
 
 ## Why Metlo?
 
