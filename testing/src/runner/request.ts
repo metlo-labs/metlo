@@ -4,6 +4,35 @@ import { TestRequest } from "../types/test"
 import { Context } from "../types/context"
 import { stringReplacement } from "../utils"
 
+axios.interceptors.request.use(
+  function (config) {
+    // @ts-ignore
+    config.metadata = { startTime: new Date() }
+    return config
+  },
+  function (error) {
+    return Promise.reject(error)
+  },
+)
+
+axios.interceptors.response.use(
+  function (response) {
+    // @ts-ignore
+    response.config.metadata.endTime = new Date()
+    // @ts-ignore
+    response.duration =
+      // @ts-ignore
+      response.config.metadata.endTime - response.config.metadata.startTime
+    return response
+  },
+  function (error) {
+    error.config.metadata.endTime = new Date()
+    error.duration =
+      error.config.metadata.endTime - error.config.metadata.startTime
+    return Promise.reject(error)
+  },
+)
+
 const BLOCKED_HOSTS = new Set(process.env.METLO_TEST_BLOCKED_HOSTS?.split(","))
 
 export const makeRequest = (

@@ -1,6 +1,12 @@
 import { z } from "zod"
 
-import { AssertionType, ExtractorType, Severity, Method } from "./enums"
+import {
+  AssertionType,
+  ExtractorType,
+  Severity,
+  Method,
+  AttackType,
+} from "./enums"
 import { IDRegex } from "./constants"
 import { Context } from "./context"
 
@@ -54,6 +60,16 @@ export const TestStepSchema = z.object({
   request: RequestSchema,
   extract: ExtractorSchema.array().optional(),
   assert: AssertionSchema.array().optional(),
+  payload: z
+    .object({
+      key: z.string(),
+      values: z.union([AttackType, z.string()]).array(),
+    })
+    .optional(),
+})
+
+export const ConfigSchema = z.object({
+  stopOnFailedAssertion: z.boolean(),
 })
 
 export const TestConfigSchema = z.object({
@@ -61,6 +77,7 @@ export const TestConfigSchema = z.object({
   meta: MetaSchema.optional(),
   env: KeyValSchema.array().optional(),
   test: TestStepSchema.array(),
+  config: ConfigSchema.optional(),
 })
 
 export type TestMeta = z.infer<typeof MetaSchema>
@@ -70,6 +87,7 @@ export type KeyValType = z.infer<typeof KeyValSchema>
 export type TestRequest = z.infer<typeof RequestSchema>
 export type TestStep = z.infer<typeof TestStepSchema>
 export type TestConfig = z.infer<typeof TestConfigSchema>
+export type Config = z.infer<typeof ConfigSchema>
 
 export interface StepRequest {
   url: string

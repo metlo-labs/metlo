@@ -1,4 +1,4 @@
-import { TestConfig, TestResult, TestStep } from "../types/test"
+import { Config, TestConfig, TestResult, TestStep } from "../types/test"
 import { runStep } from "./step"
 import * as Handlebars from "handlebars"
 
@@ -26,7 +26,8 @@ export const runTest = async (
   const testStack = [...test.test]
   if (testStack.length > 0) {
     const firstStep = testStack.shift() as TestStep
-    const resp = await runStep(0, firstStep, testStack, context)
+    const config = test.config as Config
+    const resp = await runStep(0, firstStep, testStack, context, config)
     return {
       test,
       success: resp.success,
