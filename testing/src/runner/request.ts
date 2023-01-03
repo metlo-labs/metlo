@@ -1,4 +1,4 @@
-import axios from "axios"
+import axios, { AxiosRequestConfig } from "axios"
 
 import { TestRequest } from "../types/test"
 import { Context } from "../types/context"
@@ -6,7 +6,10 @@ import { stringReplacement } from "../utils"
 
 const BLOCKED_HOSTS = new Set(process.env.METLO_TEST_BLOCKED_HOSTS?.split(","))
 
-export const makeRequest = async (req: TestRequest, ctx: Context) => {
+export const makeRequest = (
+  req: TestRequest,
+  ctx: Context,
+): AxiosRequestConfig<any> => {
   const currentUrl = stringReplacement(req.url, ctx.envVars)
   const urlObj = new URL(req.url)
 
@@ -66,12 +69,12 @@ export const makeRequest = async (req: TestRequest, ctx: Context) => {
     url = currentUrl + `?${queryParams}`
   }
 
-  return await axios({
+  return {
     url,
     method: req.method,
     headers: headers,
     data: req.data,
     timeout: 10000,
     validateStatus: () => true,
-  })
+  }
 }
