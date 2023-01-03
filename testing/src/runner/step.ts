@@ -1,4 +1,5 @@
-import { TestStep, TestResult, StepResult, StepResponse } from "../types/test"
+import axios from "axios"
+import { TestStep, TestResult, StepResult, StepResponse, StepRequest } from "../types/test"
 import { Context } from "../types/context"
 import { makeRequest } from "./request"
 import { runAssertion } from "./assertions"
@@ -32,8 +33,17 @@ export const runStep = async (
   let res: AxiosResponse | null = null
   let err: string | undefined = undefined
   let errStack: string | undefined = undefined
+
+  const reqConfig = makeRequest(step.request, ctx)
+  const stepRequest = {
+    url: reqConfig.url,
+    method: reqConfig.method,
+    headers: reqConfig.headers,
+    data: reqConfig.data,
+  } as StepRequest
+
   try {
-    res = await makeRequest(step.request, ctx)
+    res = await axios(reqConfig)
   } catch (e: any) {
     err = e.message
     errStack = e.stack
@@ -64,6 +74,7 @@ export const runStep = async (
       ctx,
       success: assertions.every(e => e),
       assertions,
+      req: stepRequest,
       res: axiosRespToStepResponse(res),
     }
   } else {
@@ -73,6 +84,7 @@ export const runStep = async (
       success: false,
       assertions: [],
       err: err,
+      req: stepRequest,
       errStack: errStack,
     }
   }

@@ -71,6 +71,13 @@ export type TestRequest = z.infer<typeof RequestSchema>
 export type TestStep = z.infer<typeof TestStepSchema>
 export type TestConfig = z.infer<typeof TestConfigSchema>
 
+export interface StepRequest {
+  url: string
+  method: string
+  headers: Record<string, string>
+  data?: string
+}
+
 export interface StepResponse {
   data: any
   status: number
@@ -85,6 +92,7 @@ export interface StepResult {
   err?: string
   errStack?: string
   assertions: boolean[]
+  req: StepRequest
   res?: StepResponse
 }
 
