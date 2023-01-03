@@ -138,4 +138,4 @@ export {
 } from "./generate/types"
 export { TestBuilder, TestStepBuilder } from "./generate/builder"
 export { TestTemplate } from "./templates/types"
-export { runTest } from "./runner"
+export { runTest, estimateTest } from "./runner"

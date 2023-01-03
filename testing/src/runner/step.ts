@@ -126,3 +126,47 @@ export const runStep = async (
     results: [[stepResult]].concat(nextRes.results),
   }
 }
+
+export function runStepComplexity(
+  idx: number,
+  step: TestStep,
+  nextSteps: TestStep[],
+  ctx: Context,
+  config: Config,
+): number {
+  if (step.payload) {
+    const payloadValues: string[] = []
+    step.payload.values.map(payload => {
+      if (AttackTypeArray.includes(payload)) {
+        payloadValues.push(...getValues(payload))
+      } else {
+        throw new Error("Invalid property for payload type")
+      }
+    })
+    const results = payloadValues.map(e => {
+      const key = step.payload?.key as string
+      const newCtx = {
+        ...ctx,
+        envVars: { ...ctx.envVars, [key]: e },
+      }
+      return runStepComplexity(
+        idx,
+        {
+          extract: step.extract,
+          assert: step.assert,
+          request: step.request,
+        },
+        nextSteps,
+        newCtx,
+        config,
+      )
+    })
+    return results.reduce((prev, curr) => prev + curr, 0)
+  } else {
+    const next = nextSteps.shift()
+    if (!next) {
+      return 1
+    }
+    return 1 + runStepComplexity(idx + 1, next, nextSteps, ctx, config)
+  }
+}

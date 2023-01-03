@@ -10,12 +10,14 @@ import {
   getFailedRequests,
   loadTestConfig,
   runTest,
+  estimateTest,
   TestConfig,
   TestConfigSchema,
   TestResult,
 } from "@metlo/testing"
 import { getConfig } from "../utils"
 import { urlJoin } from "./utils"
+import { prompt } from "enquirer"
 
 const spinner = ora()
 
@@ -77,6 +79,8 @@ export const runTests = async (
   await runTestsFromEndpointInfo(endpoint, method, host, initEnv, verbose)
 }
 
+const UPPER_ESTIMATE_LIMIT = 250
+
 const runTestPath = async (
   paths: string[],
   verbose: boolean,
@@ -86,8 +90,28 @@ const runTestPath = async (
     console.log(chalk.gray(`Running test at path "${path}":`))
     const test = loadTestConfig(path)
 
-    spinner.start(chalk.dim("Running test..."))
-    const res = await runTest(test, env)
+    const estimate = estimateTest(test, env)
+    let res
+    if (estimate > UPPER_ESTIMATE_LIMIT) {
+      // @ts-ignore Destructuring is improperly done
+      const { _continue }: object = await prompt([
+        {
+          type: "confirm",
+          name: "_continue",
+          message: `Estimated request count is high (${estimate}). Would you like to continue ?`,
+        },
+      ])
+      if (_continue) {
+        spinner.start(chalk.dim("Running test..."))
+        res = await runTest(test, env)
+      } else {
+        console.log(chalk.redBright("Exiting ..."))
+        return
+      }
+    } else {
+      spinner.start(chalk.dim("Running test..."))
+      res = await runTest(test, env)
+    }
     spinner.succeed(chalk.green("Done running test..."))
     spinner.stop()
 
