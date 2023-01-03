@@ -52,7 +52,6 @@ export const runTest = async (
   if (testStack.length > 0) {
     const firstStep = testStack.shift() as TestStep
     const config = test.config as Config
-    console.log(runStepComplexity(0, firstStep, testStack, context, config))
     const resp = await runStep(0, firstStep, testStack, context, config)
     return {
       test,
