@@ -119,7 +119,7 @@ export class DataFieldService {
     const existingMatch = `${statusCode}_${contentType}_${dataSection}${
       dataPath ? `.${dataPath}` : ""
     }`
-    const existingNullMatch = `null_null_${dataSection}${
+    const existingNullMatch = `-1__${dataSection}${
       dataPath ? `.${dataPath}` : ""
     }`
     const dataType = getDataType(dataValue)
@@ -135,12 +135,12 @@ export class DataFieldService {
     ) {
       const existingDataField = this.dataFields[existingNullMatch]
       if (dataSection === DataSection.REQUEST_BODY) {
-        existingDataField.contentType = contentType
+        existingDataField.contentType = contentType ?? ""
       } else if (dataSection === DataSection.RESPONSE_HEADER) {
-        existingDataField.statusCode = statusCode
+        existingDataField.statusCode = statusCode ?? -1
       } else if (dataSection === DataSection.RESPONSE_BODY) {
-        existingDataField.contentType = contentType
-        existingDataField.statusCode = statusCode
+        existingDataField.contentType = contentType ?? ""
+        existingDataField.statusCode = statusCode ?? -1
       }
 
       let additionalUpdates = false
@@ -183,8 +183,8 @@ export class DataFieldService {
           dataField.dataClasses = []
           dataField.createdAt = this.traceCreatedAt
           dataField.updatedAt = this.traceCreatedAt
-          dataField.contentType = contentType
-          dataField.statusCode = statusCode
+          dataField.contentType = contentType ?? ""
+          dataField.statusCode = statusCode ?? -1
           dataField.isNullable = dataType === DataType.UNKNOWN
           dataField.arrayFields = { ...arrayFields }
           if (dataClass) {

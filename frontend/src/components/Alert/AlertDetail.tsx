@@ -103,19 +103,21 @@ const handleOpenApiSpec = (
             defaultLanguage="yaml"
             value={specString || "No spec generated yet."}
             onMount={(editor, monaco) => {
-              editor.revealLineInCenter(lineNumber)
-              editor.deltaDecorations(
-                [],
-                [
-                  {
-                    range: new monaco.Range(lineNumber, 1, lineNumber, 1),
-                    options: {
-                      isWholeLine: true,
-                      className: "highlight-line.light",
+              if (lineNumber) {
+                editor.revealLineInCenter(lineNumber)
+                editor.deltaDecorations(
+                  [],
+                  [
+                    {
+                      range: new monaco.Range(lineNumber, 1, lineNumber, 1),
+                      options: {
+                        isWholeLine: true,
+                        className: "highlight-line.light",
+                      },
                     },
-                  },
-                ],
-              )
+                  ],
+                )
+              }
             }}
             options={{
               minimap: {
