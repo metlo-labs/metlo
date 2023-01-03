@@ -102,6 +102,7 @@ export interface FailedAssertion {
   assertionIdx: number
   ctx: Context
   assertion: Assertion
+  stepReq: StepRequest
   res?: StepResponse
 }
 
@@ -109,6 +110,7 @@ export interface FailedRequest {
   stepIdx: number
   stepRunIdx: number
   req: TestRequest
+  stepReq: StepRequest
   ctx: Context
   err: string
 }

@@ -81,6 +81,7 @@ export const getFailedAssertions = (res: TestResult) => {
             stepRunIdx,
             assertionIdx,
             ctx: stepRun.ctx,
+            stepReq: stepRun.req,
             assertion: (test.test[stepIdx].assert || [])[assertionIdx],
             res: stepRun.res,
           })
@@ -103,6 +104,7 @@ export const getFailedRequests = (res: TestResult) => {
         failedRequests.push({
           stepIdx: stepIdx,
           stepRunIdx: stepRunIdx,
+          stepReq: stepRun.req,
           req: test.test[stepIdx].request,
           ctx: stepRun.ctx,
           err: stepRun.err,
