@@ -329,7 +329,7 @@ export class DataFieldService {
       body = ""
     }
     const jsonBody = parsedJsonNonNull(body, true)
-    if (jsonBody) {
+    if (jsonBody || dataSection === DataSection.RESPONSE_BODY) {
       if (Array.isArray(jsonBody)) {
         const l = jsonBody.length
         const arrayFields = {
