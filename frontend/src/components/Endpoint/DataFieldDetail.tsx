@@ -162,7 +162,7 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
               </Code>
             </VStack>
           </GridItem>
-          {currDataField.statusCode ? (
+          {currDataField?.statusCode > 0 ? (
             <GridItem>
               <VStack alignItems="flex-start">
                 <Text fontWeight="semibold">Status Code</Text>

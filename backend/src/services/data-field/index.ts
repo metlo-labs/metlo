@@ -2,7 +2,13 @@ import MIMEType from "whatwg-mimetype"
 import { PairObject, QueuedApiTrace } from "@common/types"
 import { DataSection, DataTag, DataType } from "@common/enums"
 import { ApiEndpoint, DataField } from "models"
-import { getDataType, getRiskScore, isParameter, parsedJson } from "utils"
+import {
+  getDataType,
+  getRiskScore,
+  isParameter,
+  parsedJson,
+  parsedJsonNonNull,
+} from "utils"
 import { getPathTokens } from "@common/utils"
 import { ScannerService } from "services/scanner/scan"
 import Error404NotFound from "errors/error-404-not-found"
@@ -319,10 +325,10 @@ export class DataFieldService {
     contentType: string,
     statusCode: number,
   ): Promise<void> {
-    if (!body) {
+    if (!body && dataSection === DataSection.RESPONSE_BODY) {
       body = ""
     }
-    const jsonBody = parsedJson(body)
+    const jsonBody = parsedJsonNonNull(body, true)
     if (jsonBody) {
       if (Array.isArray(jsonBody)) {
         const l = jsonBody.length
@@ -366,17 +372,6 @@ export class DataFieldService {
           {},
         )
       }
-    } else {
-      await this.recursiveParseJson(
-        ctx,
-        null,
-        dataSection,
-        body,
-        apiEndpoint,
-        contentType,
-        statusCode,
-        {},
-      )
     }
   }
 
@@ -409,7 +404,7 @@ export class DataFieldService {
   static async findPathDataFields(
     ctx: MetloContext,
     path: string,
-    apiEndpoint: ApiEndpoint
+    apiEndpoint: ApiEndpoint,
   ): Promise<void> {
     if (!path || !apiEndpoint?.path) {
       return
@@ -450,19 +445,16 @@ export class DataFieldService {
     this.dataFields = apiEndpoint.dataFields.reduce((obj, item) => {
       return {
         ...obj,
-        [`${item.statusCode}_${item.contentType}_${item.dataSection}${item.dataPath ? `.${item.dataPath}` : ""
-          }`]: item,
+        [`${item.statusCode}_${item.contentType}_${item.dataSection}${
+          item.dataPath ? `.${item.dataPath}` : ""
+        }`]: item,
       }
     }, {})
     this.dataFieldsLength = apiEndpoint.dataFields.length ?? 0
     this.updatedFields = {}
     this.newFields = {}
     this.traceCreatedAt = apiTrace.createdAt
-    this.findPathDataFields(
-      ctx,
-      apiTrace.path,
-      apiEndpoint
-    )
+    this.findPathDataFields(ctx, apiTrace.path, apiEndpoint)
     if (statusCode < 400) {
       await this.findPairObjectDataFields(
         ctx,
