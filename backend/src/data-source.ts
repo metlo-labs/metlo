@@ -34,6 +34,7 @@ import { addHostsColumnToWebhook1671143857165 } from "migrations/1671143857165-a
 import { addApiSpecColumnsToDataField1671511060114 } from "migrations/1671511060114-add-api-spec-columns-to-data-field"
 import { addUniqueNullIndexForDataField1671609270282 } from "migrations/1671609270282-add-unique-null-index-for-data-field"
 import { customDataClasses1671813043343 } from "migrations/1671813043343-custom-data-classes"
+import { dataFieldUniqueConstraint1672708787156 } from "migrations/1672708787156-data-field-unique-constraint"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -72,7 +73,8 @@ export const AppDataSource: DataSource = new DataSource({
     addHostsColumnToWebhook1671143857165,
     addApiSpecColumnsToDataField1671511060114,
     addUniqueNullIndexForDataField1671609270282,
-    customDataClasses1671813043343
+    customDataClasses1671813043343,
+    dataFieldUniqueConstraint1672708787156,
   ],
   migrationsRun: runMigration,
   logging: false,

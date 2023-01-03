@@ -104,7 +104,7 @@ const columns = (dataClassInfo: DataClass[]): TableColumn<DataField>[] => {
       selector: (row: DataField) => row.statusCode,
       cell: (row: DataField) => (
         <Box pointerEvents="none">
-          {row.statusCode ? (
+          {row.statusCode && row.statusCode > 0 ? (
             <Badge
               fontSize="sm"
               px="2"
@@ -237,7 +237,7 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
       let tmpSensitiveDataClasses = new Set<string>()
       const { statusCodes, contentTypes, sensitiveDataClasses } = filters
       const filteredDataFields = dataFieldList.filter(e => {
-        if (e.statusCode) {
+        if (e.statusCode && e.statusCode > 0) {
           tmpStatusCodes.add(e.statusCode.toString())
         }
         if (e.contentType) {
@@ -252,6 +252,7 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
         return (
           (statusCodes.length === 0 ||
             !e.statusCode ||
+            e.statusCode < 0 ||
             statusCodes.includes(e.statusCode?.toString())) &&
           (contentTypes.length === 0 ||
             !e.contentType ||
