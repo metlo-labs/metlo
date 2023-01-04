@@ -286,21 +286,22 @@ export const generateAlertMessageFromRespErrors = (
 export const getSpecRequestParameters = (
   specObject: OpenAPI.Document,
   endpoint: ApiEndpoint,
+  pathString: string,
 ): SpecValue => {
   const paths = specObject?.["paths"]
-  const path = paths?.[endpoint.path]
+  const path = paths?.[pathString]
   const operation = path?.[endpoint.method.toLowerCase()]
 
   let parameters = operation?.["parameters"] ?? []
   let pathToParameters = [
     "paths",
-    endpoint.path,
+    pathString,
     endpoint.method.toLowerCase(),
     "parameters",
   ]
   if (!parameters) {
     parameters = path?.["parameters"]
-    pathToParameters = ["paths", endpoint.path, "parameters"]
+    pathToParameters = ["paths", pathString, "parameters"]
     if (!parameters) {
       parameters = specObject?.["components"]?.["parameters"]
       pathToParameters = parameters ? ["components", "parameters"] : []
@@ -348,14 +349,15 @@ export const recursiveTransformSpec = (schema: any) => {
 export const getSpecResponses = (
   specObject: OpenAPI.Document,
   endpoint: ApiEndpoint,
+  pathString: string,
 ): SpecValue => {
   const operation =
-    specObject["paths"][endpoint.path][endpoint.method.toLowerCase()]
+    specObject["paths"]?.[pathString]?.[endpoint.method.toLowerCase()]
 
   let responses = operation["responses"] ?? []
   let pathToResponses = [
     "paths",
-    endpoint.path,
+    pathString,
     endpoint.method.toLowerCase(),
     "responses",
   ]
@@ -382,9 +384,10 @@ export const getSpecResponses = (
 export const getSpecRequestBody = (
   specObject: OpenAPI.Document,
   endpoint: ApiEndpoint,
+  pathString: string,
 ): SpecValue => {
   const operation =
-    specObject?.paths?.[endpoint.path]?.[endpoint.method.toLowerCase()]
+    specObject?.paths?.[pathString]?.[endpoint.method.toLowerCase()]
 
   let requestBody = operation?.["requestBody"]
   let pathToRequestBody = null
@@ -393,7 +396,7 @@ export const getSpecRequestBody = (
     const content = requestBody["content"]
     pathToRequestBody = [
       "paths",
-      endpoint.path,
+      pathString,
       endpoint.method.toLowerCase(),
       "requestBody",
     ]
