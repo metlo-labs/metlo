@@ -119,6 +119,9 @@ export class DataFieldService {
     dataPath: string,
     arrayFields: Record<string, number>,
   ) {
+    if (dataSection === DataSection.REQUEST_PATH) {
+      return
+    }
     const arrayFieldsKeys = Object.keys(arrayFields)
     const arrayFieldsLen = arrayFieldsKeys.length
     const sortedArrayFields = arrayFieldsKeys
