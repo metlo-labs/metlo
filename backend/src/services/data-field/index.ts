@@ -1,4 +1,5 @@
 import MIMEType from "whatwg-mimetype"
+import crypto from "crypto"
 import { PairObject, QueuedApiTrace } from "@common/types"
 import { DataSection, DataTag, DataType } from "@common/enums"
 import { ApiEndpoint, DataField } from "models"
@@ -22,6 +23,7 @@ export class DataFieldService {
   static newFields: Record<string, DataField>
   static traceCreatedAt: Date
   static dataFieldsLength: number
+  static traceHashObj: Record<string, string[]>
 
   static getContentTypes(
     requestHeaders: PairObject[],
@@ -112,8 +114,28 @@ export class DataFieldService {
     )
   }
 
+  static updateTraceHashObj(
+    dataSection: DataSection,
+    dataPath: string,
+    arrayFields: Record<string, number>,
+  ) {
+    const arrayFieldsKeys = Object.keys(arrayFields)
+    const arrayFieldsLen = arrayFieldsKeys.length
+    const sortedArrayFields = arrayFieldsKeys
+      .sort()
+      .reduce((acc: string, key: string, idx: number) => {
+        acc += `${key}#${arrayFields[key]}${
+          idx < arrayFieldsLen - 1 ? "::" : ""
+        }`
+        return acc
+      }, "")
+    const key =
+      (dataPath ?? "") + (sortedArrayFields ? `<>${sortedArrayFields}` : "")
+    this.traceHashObj[dataSection].push(key)
+  }
+
   static saveDataField(
-    dataClass: string,
+    dataClasses: string[],
     dataPath: string,
     dataSection: DataSection,
     apiEndpoint: ApiEndpoint,
@@ -134,7 +156,7 @@ export class DataFieldService {
       DataSection.RESPONSE_BODY,
       DataSection.RESPONSE_HEADER,
     ]
-
+    this.updateTraceHashObj(dataSection, dataPath, arrayFields)
     if (
       this.dataFields[existingNullMatch] &&
       nonNullDataSections.includes(dataSection)
@@ -150,7 +172,7 @@ export class DataFieldService {
       }
 
       let additionalUpdates = false
-      additionalUpdates = addDataClass(existingDataField, dataClass)
+      additionalUpdates = addDataClass(existingDataField, dataClasses)
       if (additionalUpdates) {
         existingDataField.dataTag = DataTag.PII
       }
@@ -187,14 +209,15 @@ export class DataFieldService {
           dataField.dataSection = dataSection
           dataField.apiEndpointUuid = apiEndpoint.uuid
           dataField.dataClasses = []
+          dataField.traceHash = {}
           dataField.createdAt = this.traceCreatedAt
           dataField.updatedAt = this.traceCreatedAt
           dataField.contentType = contentType ?? ""
           dataField.statusCode = statusCode ?? -1
           dataField.isNullable = dataType === DataType.UNKNOWN
           dataField.arrayFields = { ...arrayFields }
-          if (dataClass) {
-            addDataClass(dataField, dataClass)
+          if (dataClasses) {
+            addDataClass(dataField, dataClasses)
             dataField.dataTag = DataTag.PII
           }
           this.dataFields[existingMatch] = dataField
@@ -204,7 +227,7 @@ export class DataFieldService {
       } else {
         const existingDataField = this.dataFields[existingMatch]
         let updated = false
-        updated = addDataClass(existingDataField, dataClass)
+        updated = addDataClass(existingDataField, dataClasses)
         if (updated) {
           existingDataField.dataTag = DataTag.PII
         }
@@ -214,12 +237,10 @@ export class DataFieldService {
           this.isArrayFieldsDiff(existingDataField.arrayFields, arrayFields)
         ) {
           existingDataField.arrayFields = { ...arrayFields }
-          updated = true
         }
 
         if (!existingDataField.isNullable && dataType === DataType.UNKNOWN) {
           existingDataField.isNullable = true
-          updated = true
         }
 
         if (
@@ -228,16 +249,13 @@ export class DataFieldService {
           dataType !== DataType.UNKNOWN
         ) {
           existingDataField.dataType = dataType
-          updated = true
         }
-        if (updated) {
-          existingDataField.updatedAt = this.traceCreatedAt
-          this.dataFields[existingMatch] = existingDataField
-          if (this.newFields[existingMatch]) {
-            this.newFields[existingMatch] = existingDataField
-          } else {
-            this.updatedFields[existingMatch] = existingDataField
-          }
+        existingDataField.updatedAt = this.traceCreatedAt
+        this.dataFields[existingMatch] = existingDataField
+        if (this.newFields[existingMatch]) {
+          this.newFields[existingMatch] = existingDataField
+        } else {
+          this.updatedFields[existingMatch] = existingDataField
         }
       }
     }
@@ -255,32 +273,16 @@ export class DataFieldService {
   ): Promise<void> {
     if (Object(jsonBody) !== jsonBody) {
       const matches = await ScannerService.scan(ctx, jsonBody)
-      const l = matches.length
-      if (l > 0) {
-        for (let i = 0; i < l; i++) {
-          this.saveDataField(
-            matches[i],
-            dataPathPrefix,
-            dataSection,
-            apiEndpoint,
-            jsonBody,
-            contentType,
-            statusCode,
-            arrayFields,
-          )
-        }
-      } else {
-        this.saveDataField(
-          null,
-          dataPathPrefix,
-          dataSection,
-          apiEndpoint,
-          jsonBody,
-          contentType,
-          statusCode,
-          arrayFields,
-        )
-      }
+      this.saveDataField(
+        matches,
+        dataPathPrefix,
+        dataSection,
+        apiEndpoint,
+        jsonBody,
+        contentType,
+        statusCode,
+        arrayFields,
+      )
     } else if (jsonBody && Array.isArray(jsonBody)) {
       let l = jsonBody.length
       const arrayFieldKey = dataPathPrefix ?? ""
@@ -423,8 +425,8 @@ export class DataFieldService {
           DataSection.REQUEST_PATH,
           tracePathTokens[i],
           apiEndpoint,
-          null,
-          null,
+          "",
+          -1,
           {},
         )
       }
@@ -453,6 +455,13 @@ export class DataFieldService {
     this.dataFieldsLength = apiEndpoint.dataFields.length ?? 0
     this.updatedFields = {}
     this.newFields = {}
+    this.traceHashObj = {
+      [DataSection.REQUEST_HEADER]: [],
+      [DataSection.REQUEST_QUERY]: [],
+      [DataSection.REQUEST_BODY]: [],
+      [DataSection.RESPONSE_HEADER]: [],
+      [DataSection.RESPONSE_BODY]: [],
+    }
     this.traceCreatedAt = apiTrace.createdAt
     this.findPathDataFields(ctx, apiTrace.path, apiEndpoint)
     if (statusCode < 400) {
@@ -461,16 +470,16 @@ export class DataFieldService {
         DataSection.REQUEST_QUERY,
         apiTrace.requestParameters,
         apiEndpoint,
-        null,
-        null,
+        "",
+        -1,
       )
       await this.findPairObjectDataFields(
         ctx,
         DataSection.REQUEST_HEADER,
         apiTrace.requestHeaders,
         apiEndpoint,
-        null,
-        null,
+        "",
+        -1,
       )
       await this.findBodyDataFields(
         ctx,
@@ -478,7 +487,7 @@ export class DataFieldService {
         apiTrace.requestBody,
         apiEndpoint,
         reqContentType,
-        null,
+        -1,
       )
     }
     await this.findPairObjectDataFields(
@@ -486,7 +495,7 @@ export class DataFieldService {
       DataSection.RESPONSE_HEADER,
       apiTrace.responseHeaders,
       apiEndpoint,
-      null,
+      "",
       statusCode,
     )
     await this.findBodyDataFields(
@@ -497,11 +506,31 @@ export class DataFieldService {
       resContentType,
       statusCode,
     )
+
+    let concatArray = []
+    for (const section of Object.keys(this.traceHashObj).sort()) {
+      concatArray = concatArray.concat(this.traceHashObj[section].sort())
+    }
+    const hash = crypto
+      .createHash("sha256")
+      .update(concatArray.join())
+      .digest("base64")
+
     const res = Object.values(this.dataFields)
     apiEndpoint.riskScore = getRiskScore(res)
+    const newFields = []
+    const updatedFields = []
+    for (const field in this.newFields) {
+      this.newFields[field].traceHash[hash] = this.traceCreatedAt.getTime()
+      newFields.push(this.newFields[field])
+    }
+    for (const field in this.updatedFields) {
+      this.updatedFields[field].traceHash[hash] = this.traceCreatedAt.getTime()
+      updatedFields.push(this.updatedFields[field])
+    }
     return {
-      newFields: Object.values(this.newFields) ?? [],
-      updatedFields: Object.values(this.updatedFields) ?? [],
+      newFields: newFields ?? [],
+      updatedFields: updatedFields ?? [],
     }
   }
 }

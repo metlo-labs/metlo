@@ -2,7 +2,7 @@ import { DataField } from "models"
 
 export const addDataClass = (
   dataField: DataField,
-  dataClass: string,
+  dataClasses: string[],
 ): boolean => {
   if (dataField.dataClasses === null || dataField.dataClasses === undefined) {
     dataField.dataClasses = Array<string>()
@@ -19,14 +19,16 @@ export const addDataClass = (
   ) {
     dataField.scannerIdentified = Array<string>()
   }
-  if (
-    dataClass === null ||
-    dataField.dataClasses.includes(dataClass) ||
-    dataField.falsePositives.includes(dataClass)
-  ) {
-    return false
+  let res = false
+  for (const dataClass of dataClasses) {
+    if (
+      !dataField.dataClasses.includes(dataClass) &&
+      !dataField.falsePositives.includes(dataClass)
+    ) {
+      dataField.dataClasses.push(dataClass)
+      dataField.scannerIdentified.push(dataClass)
+      res = true
+    }
   }
-  dataField.dataClasses.push(dataClass)
-  dataField.scannerIdentified.push(dataClass)
-  return true
+  return res
 }

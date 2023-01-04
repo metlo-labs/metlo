@@ -94,6 +94,9 @@ export class DataField extends MetloBaseEntity {
   isNullable: boolean
 
   @Column({ type: "jsonb", nullable: false, default: {} })
+  traceHash: Record<string, number>
+
+  @Column({ type: "jsonb", nullable: false, default: {} })
   matches: Record<string, string[]>
 
   @Column({ nullable: false })
