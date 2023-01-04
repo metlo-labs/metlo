@@ -171,9 +171,8 @@ export class DataFieldService {
         existingDataField.statusCode = statusCode ?? -1
       }
 
-      let additionalUpdates = false
-      additionalUpdates = addDataClass(existingDataField, dataClasses)
-      if (additionalUpdates) {
+      addDataClass(existingDataField, dataClasses)
+      if (existingDataField.dataClasses.length > 0) {
         existingDataField.dataTag = DataTag.PII
       }
 
@@ -216,8 +215,8 @@ export class DataFieldService {
           dataField.statusCode = statusCode ?? -1
           dataField.isNullable = dataType === DataType.UNKNOWN
           dataField.arrayFields = { ...arrayFields }
-          if (dataClasses) {
-            addDataClass(dataField, dataClasses)
+          addDataClass(dataField, dataClasses)
+          if (dataField.dataClasses.length > 0) {
             dataField.dataTag = DataTag.PII
           }
           this.dataFields[existingMatch] = dataField
@@ -226,9 +225,8 @@ export class DataFieldService {
         }
       } else {
         const existingDataField = this.dataFields[existingMatch]
-        let updated = false
-        updated = addDataClass(existingDataField, dataClasses)
-        if (updated) {
+        addDataClass(existingDataField, dataClasses)
+        if (existingDataField.dataClasses.length > 0) {
           existingDataField.dataTag = DataTag.PII
         }
 

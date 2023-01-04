@@ -3,7 +3,7 @@ import { DataField } from "models"
 export const addDataClass = (
   dataField: DataField,
   dataClasses: string[],
-): boolean => {
+) => {
   if (dataField.dataClasses === null || dataField.dataClasses === undefined) {
     dataField.dataClasses = Array<string>()
   }
@@ -19,7 +19,6 @@ export const addDataClass = (
   ) {
     dataField.scannerIdentified = Array<string>()
   }
-  let res = false
   for (const dataClass of dataClasses) {
     if (
       !dataField.dataClasses.includes(dataClass) &&
@@ -27,8 +26,6 @@ export const addDataClass = (
     ) {
       dataField.dataClasses.push(dataClass)
       dataField.scannerIdentified.push(dataClass)
-      res = true
     }
   }
-  return res
 }
