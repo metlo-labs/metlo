@@ -38,3 +38,8 @@ export const GetHostParamsSchema = z.object({
     .optional(),
 })
 export type GetHostParams = z.infer<typeof GetHostParamsSchema>
+
+export const DeleteHostsParamsSchema = z.object({
+  hosts: z.string().array(),
+})
+export type DeleteHostBatchParams = z.infer<typeof DeleteHostsParamsSchema>

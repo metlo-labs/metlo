@@ -121,12 +121,12 @@ export const getHostsGraph = async (
   return resp.data
 }
 
-export const deleteHost = async (
-  host: string,
+export const deleteHosts = async (
+  hosts: string[],
   headers?: AxiosRequestHeaders,
 ): Promise<any> => {
-  const resp = await axios.delete(`${getAPIURL()}/host`, {
-    data: { host },
+  const resp = await axios.delete(`${getAPIURL()}/hosts`, {
+    data: { hosts },
     headers,
   })
   return resp.data

@@ -22,7 +22,7 @@ const HostList: React.FC<HostListProps> = React.memo(
         offset: (page - 1) * HOST_PAGE_LIMIT,
       }))
     }
-    const [selectedHost, setSelectedHost] = useState<string>(null)
+    const [selectedHosts, setSelectedHosts] = useState<string[]>([])
 
     return (
       <VStack
@@ -37,8 +37,8 @@ const HostList: React.FC<HostListProps> = React.memo(
           <HostFilters
             params={params}
             setParams={setParams}
-            selectedHost={selectedHost}
-            setSelectedHost={setSelectedHost}
+            selectedHosts={selectedHosts}
+            setSelectedHosts={setSelectedHosts}
           />
         </Box>
         <Box w="full">
@@ -48,7 +48,7 @@ const HostList: React.FC<HostListProps> = React.memo(
             currentPage={params.offset / HOST_PAGE_LIMIT + 1}
             setCurrentPage={setCurrentPage}
             fetching={fetching}
-            setSelectedHost={setSelectedHost}
+            setSelectedHosts={setSelectedHosts}
           />
         </Box>
       </VStack>

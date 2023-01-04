@@ -16,7 +16,7 @@ import {
   Usage as UsageResponse,
   HostResponse,
 } from "@common/types"
-import { GetHostParams } from "@common/api/endpoint"
+import { DeleteHostBatchParams, GetHostParams } from "@common/api/endpoint"
 import { GetEndpointParams } from "@common/api/endpoint"
 import Error500InternalServer from "errors/error-500-internal-server"
 import Error404NotFound from "errors/error-404-not-found"
@@ -210,6 +210,16 @@ export class GetEndpointsService {
       throw err
     } finally {
       await queryRunner.release()
+    }
+  }
+
+  static async deleteHosts(
+    ctx: MetloContext,
+    deleteHostsParams: DeleteHostBatchParams,
+  ): Promise<void> {
+    const hosts = deleteHostsParams.hosts
+    for (const host of hosts) {
+      await this.deleteHost(ctx, host)
     }
   }
 

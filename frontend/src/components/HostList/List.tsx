@@ -1,10 +1,5 @@
 import React from "react"
-import {
-  Box,
-  useColorMode,
-  Wrap,
-  WrapItem,
-} from "@chakra-ui/react"
+import { Box, useColorMode, Wrap, WrapItem } from "@chakra-ui/react"
 import { useRouter } from "next/router"
 import EmptyView from "components/utils/EmptyView"
 import dynamic from "next/dynamic"
@@ -28,7 +23,7 @@ interface HostTableProps {
   currentPage: number
   setCurrentPage: (e: number) => void
   fetching: boolean
-  setSelectedHost: React.Dispatch<React.SetStateAction<string>>
+  setSelectedHosts: React.Dispatch<React.SetStateAction<string[]>>
 }
 
 interface TableLoaderProps {
@@ -51,7 +46,7 @@ const TableLoader: React.FC<TableLoaderProps> = ({
       name: "Endpoints",
       id: "endpoints",
       grow: 1,
-    }
+    },
   ].map(e => ({
     ...e,
     sortable: false,
@@ -84,16 +79,16 @@ const List: React.FC<HostTableProps> = React.memo(
     currentPage,
     fetching,
     setCurrentPage,
-    setSelectedHost,
+    setSelectedHosts,
   }) => {
     const router = useRouter()
     const colorMode = useColorMode()
 
-    const handleRowSelect = (state) => {
+    const handleRowSelect = state => {
       if (state.selectedRows?.length > 0) {
-        setSelectedHost(state.selectedRows[0]?.host)
+        setSelectedHosts(state.selectedRows?.map(e => e.host) ?? [])
       } else {
-        setSelectedHost(null)
+        setSelectedHosts([])
       }
     }
 
@@ -135,7 +130,7 @@ const List: React.FC<HostTableProps> = React.memo(
         ),
         id: "endpoints",
         grow: 1,
-      }
+      },
     ]
 
     const getTable = () => (
@@ -155,7 +150,6 @@ const List: React.FC<HostTableProps> = React.memo(
         pagination
         paginationDefaultPage={currentPage}
         selectableRows
-        selectableRowsSingle
         onSelectedRowsChange={handleRowSelect}
         selectableRowsHighlight
       />
