@@ -237,12 +237,10 @@ export class DataFieldService {
           this.isArrayFieldsDiff(existingDataField.arrayFields, arrayFields)
         ) {
           existingDataField.arrayFields = { ...arrayFields }
-          updated = true
         }
 
         if (!existingDataField.isNullable && dataType === DataType.UNKNOWN) {
           existingDataField.isNullable = true
-          updated = true
         }
 
         if (
@@ -251,21 +249,14 @@ export class DataFieldService {
           dataType !== DataType.UNKNOWN
         ) {
           existingDataField.dataType = dataType
-          updated = true
         }
-        if (
-          updated ||
-          this.traceCreatedAt.getTime() -
-            existingDataField.updatedAt.getTime() >
-            60_000
-        ) {
-          existingDataField.updatedAt = this.traceCreatedAt
-          this.dataFields[existingMatch] = existingDataField
-          if (this.newFields[existingMatch]) {
-            this.newFields[existingMatch] = existingDataField
-          } else {
-            this.updatedFields[existingMatch] = existingDataField
-          }
+
+        existingDataField.updatedAt = this.traceCreatedAt
+        this.dataFields[existingMatch] = existingDataField
+        if (this.newFields[existingMatch]) {
+          this.newFields[existingMatch] = existingDataField
+        } else {
+          this.updatedFields[existingMatch] = existingDataField
         }
       }
     }
@@ -533,11 +524,21 @@ export class DataFieldService {
     const newFields = []
     const updatedFields = []
     for (const field in this.newFields) {
-      this.newFields[field].traceHash[hash] = timestamp
+      if (
+        !this.newFields[field].traceHash[hash] ||
+        timestamp - this.newFields[field]?.traceHash?.[hash] > 60_000
+      ) {
+        this.newFields[field].traceHash[hash] = timestamp
+      }
       newFields.push(this.newFields[field])
     }
     for (const field in this.updatedFields) {
-      this.updatedFields[field].traceHash[hash] = timestamp
+      if (
+        !this.updatedFields[field].traceHash[hash] ||
+        timestamp - this.updatedFields[field]?.traceHash?.[hash] > 60_000
+      ) {
+        this.updatedFields[field].traceHash[hash] = timestamp
+      }
       updatedFields.push(this.updatedFields[field])
     }
     return {
