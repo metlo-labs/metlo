@@ -17,18 +17,19 @@ import {
 import { BsSearch } from "icons/bs/BsSearch"
 import debounce from "lodash/debounce"
 import { GetHostParams } from "@common/api/endpoint"
-import { deleteHost } from "api/endpoints"
+import { deleteHosts } from "api/endpoints"
 import { makeToast } from "utils"
+import { formatMetloAPIErr, MetloAPIErr } from "api/utils"
 
 interface HostFilterProps {
   params: GetHostParams
   setParams: (t: (e: GetHostParams) => GetHostParams) => void
-  selectedHost: string
-  setSelectedHost: React.Dispatch<React.SetStateAction<string>>
+  selectedHosts: string[]
+  setSelectedHosts: React.Dispatch<React.SetStateAction<string[]>>
 }
 
 const HostFilters: React.FC<HostFilterProps> = React.memo(
-  ({ params, setParams, selectedHost, setSelectedHost }) => {
+  ({ params, setParams, selectedHosts, setSelectedHosts }) => {
     const setSearchQuery = (val: string) => {
       setParams(oldParams => ({
         ...oldParams,
@@ -42,34 +43,29 @@ const HostFilters: React.FC<HostFilterProps> = React.memo(
     const { isOpen, onOpen, onClose } = useDisclosure()
     const cancelRef = React.useRef()
 
-    const handleDeleteHostClick = async () => {
+    const handleDeleteHostsClick = async () => {
       try {
         setDeleting(true)
         onClose()
-        await deleteHost(selectedHost)
+        await deleteHosts(selectedHosts)
         toast(
-          makeToast(
-            {
-              title: `Deleted host ${selectedHost}`,
-              status: "success"
-            }
-          )
+          makeToast({
+            title: `Deleted hosts ${selectedHosts.join(", ")}`,
+            status: "success",
+          }),
         )
-        setSelectedHost(null)
+        setSelectedHosts([])
         setParams(oldParams => ({
           ...oldParams,
           offset: 0,
         }))
       } catch (err) {
         toast(
-          makeToast(
-            {
-              title: "Deleting host failed...",
-              status: "error",
-              description: err.response?.data
-            },
-            err.response?.status
-          )
+          makeToast({
+            title: "Deleting hosts failed...",
+            status: "error",
+            description: formatMetloAPIErr(err.response.data as MetloAPIErr),
+          }),
         )
       } finally {
         setDeleting(false)
@@ -95,7 +91,12 @@ const HostFilters: React.FC<HostFilterProps> = React.memo(
             bg="white"
           />
         </InputGroup>
-        <Button colorScheme="red" isDisabled={selectedHost === null} isLoading={deleting} onClick={onOpen}>
+        <Button
+          colorScheme="red"
+          isDisabled={selectedHosts.length === 0}
+          isLoading={deleting}
+          onClick={onOpen}
+        >
           Delete
         </Button>
         <AlertDialog
@@ -110,14 +111,20 @@ const HostFilters: React.FC<HostFilterProps> = React.memo(
               </AlertDialogHeader>
 
               <AlertDialogBody>
-                Are you sure you want to delete host <strong>{selectedHost}</strong> ?
+                Are you sure you want to delete hosts{" "}
+                <strong>{selectedHosts.join(", ")}</strong> ?
               </AlertDialogBody>
 
               <AlertDialogFooter>
                 <Button ref={cancelRef} onClick={onClose}>
                   Cancel
                 </Button>
-                <Button isLoading={deleting} colorScheme="red" onClick={handleDeleteHostClick} ml={3}>
+                <Button
+                  isLoading={deleting}
+                  colorScheme="red"
+                  onClick={handleDeleteHostsClick}
+                  ml={3}
+                >
                   Delete
                 </Button>
               </AlertDialogFooter>

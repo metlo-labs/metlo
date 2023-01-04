@@ -12,7 +12,7 @@ import {
 import { getHostsGraphHandler } from "./graph"
 import { deleteDataFieldHandler, updateDataFieldClasses } from "./data-fields"
 import {
-  deleteHostHandler,
+  deleteHostsHandler,
   getHostsHandler,
   getHostsListHandler,
 } from "./hosts"
@@ -159,7 +159,7 @@ export default function registerEndpointRoutes(router: Router) {
   router.get("/api/v1/endpoints", getEndpointsHandler)
   router.get("/api/v1/endpoint/:endpointId", getEndpointHandler)
   router.get("/api/v1/endpoint/:endpointId/usage", getUsageHandler)
-  router.delete("/api/v1/host", deleteHostHandler)
+  router.delete("/api/v1/hosts", deleteHostsHandler)
   router.get("/api/v1/hosts", getHostsListHandler)
   router.get("/api/v1/hosts-graph", getHostsGraphHandler)
   router.delete("/api/v1/endpoint/:endpointId", deleteEndpointHandler)

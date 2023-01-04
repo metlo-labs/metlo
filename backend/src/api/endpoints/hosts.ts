@@ -1,9 +1,11 @@
 import { Response } from "express"
 import { GetEndpointsService } from "services/get-endpoints"
-import { GetHostParamsSchema } from "@common/api/endpoint"
+import {
+  GetHostParamsSchema,
+  DeleteHostsParamsSchema,
+} from "@common/api/endpoint"
 import ApiResponseHandler from "api-response-handler"
 import { MetloRequest } from "types"
-import Error400BadRequest from "errors/error-400-bad-request"
 
 export const getHostsHandler = async (
   req: MetloRequest,
@@ -16,16 +18,16 @@ export const getHostsHandler = async (
     await ApiResponseHandler.error(res, err)
   }
 }
-export const deleteHostHandler = async (
+export const deleteHostsHandler = async (
   req: MetloRequest,
   res: Response,
 ): Promise<void> => {
   try {
-    const { host } = req.body
-    if (!host) {
-      throw new Error400BadRequest("Must provide host.")
+    const parsedBody = DeleteHostsParamsSchema.safeParse(req.body)
+    if (parsedBody.success === false) {
+      return await ApiResponseHandler.zerr(res, parsedBody.error)
     }
-    await GetEndpointsService.deleteHost(req.ctx, host)
+    await GetEndpointsService.deleteHosts(req.ctx, parsedBody.data)
     await ApiResponseHandler.success(res, "Success")
   } catch (err) {
     await ApiResponseHandler.error(res, err)
