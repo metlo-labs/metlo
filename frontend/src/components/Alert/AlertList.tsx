@@ -449,7 +449,7 @@ export const AlertList: React.FC<AlertListProps> = ({
               criteria?
             </AlertDialogHeader>
             <AlertDialogBody>
-              <VStack spacing={3} w="full" pb={8}>
+              <VStack spacing={3} w="full" pb={4}>
                 {params?.uuid ? (
                   <VStack w="full" alignItems="flex-start" spacing={1}>
                     <DataHeading>Alert UUID</DataHeading>
@@ -531,22 +531,26 @@ export const AlertList: React.FC<AlertListProps> = ({
                   </VStack>
                 ) : null}
               </VStack>
+              <Text>
+                This will {allActionState} <strong>{totalCount}</strong> alerts.
+              </Text>
             </AlertDialogBody>
             <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={closeDialog}>
-                Cancel
-              </Button>
-              <Button
-                isLoading={updating}
-                colorScheme="blue"
-                onClick={async () => {
-                  await handleAllUpdateAction(allActionState)
-                  closeDialog()
-                }}
-                ml={3}
-              >
-                Update
-              </Button>
+              <HStack>
+                <Button ref={cancelRef} onClick={closeDialog}>
+                  Cancel
+                </Button>
+                <Button
+                  isLoading={updating}
+                  colorScheme="blue"
+                  onClick={async () => {
+                    await handleAllUpdateAction(allActionState)
+                    closeDialog()
+                  }}
+                >
+                  Update
+                </Button>
+              </HStack>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialogOverlay>
