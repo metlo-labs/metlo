@@ -3,9 +3,11 @@ package metloapi
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -34,6 +36,13 @@ func InitMetlo(metloHost string, metloKey string, rps int) *Metlo {
 }
 
 func (m *Metlo) Send(data MetloTrace) {
+	traceHost := data.Request.Url.Host
+	httpTraceHost := fmt.Sprintf("http://%s", traceHost)
+	httpsTraceHost := fmt.Sprintf("https://%s", traceHost)
+	if strings.HasPrefix(m.metloHost, httpTraceHost) || strings.HasPrefix(m.metloHost, httpsTraceHost) {
+		utils.Log.Trace("Skipped Request to Metlo Host.")
+		return
+	}
 	json, err := json.Marshal(data)
 	if err != nil {
 		log.Fatal(err)
