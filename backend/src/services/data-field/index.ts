@@ -237,10 +237,12 @@ export class DataFieldService {
           this.isArrayFieldsDiff(existingDataField.arrayFields, arrayFields)
         ) {
           existingDataField.arrayFields = { ...arrayFields }
+          updated = true
         }
 
         if (!existingDataField.isNullable && dataType === DataType.UNKNOWN) {
           existingDataField.isNullable = true
+          updated = true
         }
 
         if (
@@ -249,13 +251,21 @@ export class DataFieldService {
           dataType !== DataType.UNKNOWN
         ) {
           existingDataField.dataType = dataType
+          updated = true
         }
-        existingDataField.updatedAt = this.traceCreatedAt
-        this.dataFields[existingMatch] = existingDataField
-        if (this.newFields[existingMatch]) {
-          this.newFields[existingMatch] = existingDataField
-        } else {
-          this.updatedFields[existingMatch] = existingDataField
+        if (
+          updated ||
+          this.traceCreatedAt.getTime() -
+            existingDataField.updatedAt.getTime() >
+            60_000
+        ) {
+          existingDataField.updatedAt = this.traceCreatedAt
+          this.dataFields[existingMatch] = existingDataField
+          if (this.newFields[existingMatch]) {
+            this.newFields[existingMatch] = existingDataField
+          } else {
+            this.updatedFields[existingMatch] = existingDataField
+          }
         }
       }
     }
