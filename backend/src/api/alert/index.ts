@@ -2,6 +2,7 @@ import { Response, Router } from "express"
 import { AlertService } from "services/alert"
 import {
   GetAlertParamsSchema,
+  UpdateAlertBatchParamsSchema,
   UpdateAlertParamsSchema,
 } from "@common/api/alert"
 import ApiResponseHandler from "api-response-handler"
@@ -44,7 +45,24 @@ export const updateAlertHandler = async (
   }
 }
 
+export const updateAlertBatchHandler = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
+  const parsedBody = UpdateAlertBatchParamsSchema.safeParse(req.body)
+  if (parsedBody.success === false) {
+    return await ApiResponseHandler.zerr(res, parsedBody.error)
+  }
+  try {
+    await AlertService.updateAlertBatch(req.ctx, parsedBody.data)
+    await ApiResponseHandler.success(res, null)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}
+
 export default function registerAlertRoutes(router: Router) {
   router.get("/api/v1/alerts", getAlertsHandler)
   router.put("/api/v1/alert/:alertId", updateAlertHandler)
+  router.put("/api/v1/alerts", updateAlertBatchHandler)
 }

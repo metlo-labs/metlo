@@ -15,11 +15,12 @@ import { GetAlertParams } from "@common/api/alert"
 import { PageWrapper } from "components/PageWrapper"
 import { AlertList } from "components/Alert/AlertList"
 import { ALERT_PAGE_LIMIT } from "~/constants"
-import { getAlerts, updateAlert } from "api/alerts"
-import { AlertType, RiskScore, Status } from "@common/enums"
+import { getAlerts, updateAlert, updateAlertBatch } from "api/alerts"
+import { AlertType, RiskScore, Status, UpdateAlertType } from "@common/enums"
 import { GetServerSideProps } from "next"
 import { getHosts } from "api/endpoints"
 import { makeToast } from "utils"
+import { formatMetloAPIErr, MetloAPIErr } from "api/utils"
 
 enum Order {
   DESC = "DESC",
@@ -72,21 +73,49 @@ const Alerts = ({ initParams, initAlerts, initTotalCount, initHosts }) => {
       const resp: Alert = await updateAlert(alertId, updateAlertParams)
       toast(
         makeToast({
-          title: `Updating alert successful`,
+          title: "Updating Alert successful",
           status: "success",
         }),
       )
       fetchAlerts(params)
     } catch (err) {
       toast(
-        makeToast(
-          {
-            title: "Updating Alert failed",
-            status: "error",
-            description: err.response?.data,
-          },
-          err.response?.status,
-        ),
+        makeToast({
+          title: "Updating Alert failed",
+          status: "error",
+          description: formatMetloAPIErr(err.response.data as MetloAPIErr),
+        }),
+      )
+    } finally {
+      setUpdating(false)
+    }
+  }
+
+  const handleAllUpdateAction = async (type: UpdateAlertType) => {
+    try {
+      const resp = await updateAlertBatch({
+        uuid: params.uuid,
+        riskScores: params.riskScores,
+        status: params.status,
+        alertTypes: params.alertTypes,
+        hosts: params.hosts,
+        updateType: type,
+        resolutionMessage: "",
+      })
+      toast(
+        makeToast({
+          title: `Updating Alerts successful`,
+          status: "success",
+        }),
+      )
+      fetchAlerts(params)
+    } catch (err) {
+      toast(
+        makeToast({
+          title: "Updating Alerts failed",
+          status: "error",
+          description: formatMetloAPIErr(err.response.data as MetloAPIErr),
+        }),
       )
     } finally {
       setUpdating(false)
@@ -138,6 +167,7 @@ const Alerts = ({ initParams, initAlerts, initTotalCount, initHosts }) => {
             params={params}
             setParams={setParams}
             fetching={fetching}
+            handleAllUpdateAction={handleAllUpdateAction}
             pagination
             totalCount={totalCount}
             hosts={parsedHosts}

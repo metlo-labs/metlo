@@ -1,7 +1,7 @@
 import { z } from "zod"
 import axios, { AxiosRequestHeaders } from "axios"
 import { Alert } from "@common/types"
-import { UpdateAlertParams } from "@common/api/alert"
+import { UpdateAlertBatchParams, UpdateAlertParams } from "@common/api/alert"
 import { GetAlertParams } from "@common/api/alert"
 import { getAPIURL } from "~/constants"
 
@@ -40,6 +40,18 @@ export const updateAlert = async (
   const resp = await axios.put<Alert>(
     `${getAPIURL()}/alert/${alertId}`,
     updateAlertParams,
+    { headers },
+  )
+  return resp.data
+}
+
+export const updateAlertBatch = async (
+  updateAlertBatchParams: UpdateAlertBatchParams,
+  headers?: AxiosRequestHeaders,
+): Promise<void> => {
+  const resp = await axios.put(
+    `${getAPIURL()}/alerts`,
+    updateAlertBatchParams,
     { headers },
   )
   return resp.data
