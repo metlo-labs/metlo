@@ -29,6 +29,7 @@ import {
   AlertDialogFooter,
   Wrap,
   Badge,
+  Stack,
 } from "@chakra-ui/react"
 import debounce from "lodash/debounce"
 import { Alert } from "@common/types"
@@ -328,7 +329,11 @@ export const AlertList: React.FC<AlertListProps> = ({
           {riskFilterPanel}
         </VStack>
         <VStack h="full" w="full" alignSelf="flex-start">
-          <HStack w="full" justifyContent="space-between">
+          <Stack
+            direction={{ base: "column", sm: "row" }}
+            w="full"
+            justifyContent="space-between"
+          >
             <InputGroup mt="1" mr="1">
               <InputLeftElement pointerEvents="none">
                 <BsSearch />
@@ -341,29 +346,37 @@ export const AlertList: React.FC<AlertListProps> = ({
                 placeholder="Search by alert id..."
               />
             </InputGroup>
-            {params.status.length === 1 &&
-            params.status[0] === Status.OPEN &&
-            alerts?.length > 0 ? (
-              <HStack>
-                <Button
-                  leftIcon={<RiEyeOffFill />}
-                  isLoading={updating}
-                  border="1px"
-                  onClick={() => handleAllActionClick(UpdateAlertType.IGNORE)}
-                >
-                  Ignore All
-                </Button>
-                <Button
-                  leftIcon={<FiCheckCircle />}
-                  isLoading={updating}
-                  colorScheme="green"
-                  onClick={() => handleAllActionClick(UpdateAlertType.RESOLVE)}
-                >
-                  Resolve All
-                </Button>
-              </HStack>
-            ) : null}
-          </HStack>
+            <HStack>
+              <Button
+                isDisabled={
+                  fetching ||
+                  params.status.length !== 1 ||
+                  params.status[0] !== Status.OPEN ||
+                  alerts?.length === 0
+                }
+                leftIcon={<RiEyeOffFill />}
+                isLoading={updating}
+                border="1px"
+                onClick={() => handleAllActionClick(UpdateAlertType.IGNORE)}
+              >
+                Ignore All
+              </Button>
+              <Button
+                isDisabled={
+                  fetching ||
+                  params.status.length !== 1 ||
+                  params.status[0] !== Status.OPEN ||
+                  alerts?.length === 0
+                }
+                leftIcon={<FiCheckCircle />}
+                isLoading={updating}
+                colorScheme="green"
+                onClick={() => handleAllActionClick(UpdateAlertType.RESOLVE)}
+              >
+                Resolve All
+              </Button>
+            </HStack>
+          </Stack>
 
           {!fetching && alerts && alerts.length > 0 ? (
             <VStack
