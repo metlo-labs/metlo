@@ -508,24 +508,26 @@ export class DataFieldService {
     )
 
     let concatArray = []
-    for (const section of Object.keys(this.traceHashObj).sort()) {
+    const sortedTraceHashObjKeys = Object.keys(this.traceHashObj).sort()
+    for (const section of sortedTraceHashObjKeys) {
       concatArray = concatArray.concat(this.traceHashObj[section].sort())
     }
     const hash = crypto
       .createHash("sha256")
       .update(concatArray.join())
       .digest("base64")
+    const timestamp = this.traceCreatedAt.getTime()
 
     const res = Object.values(this.dataFields)
     apiEndpoint.riskScore = getRiskScore(res)
     const newFields = []
     const updatedFields = []
     for (const field in this.newFields) {
-      this.newFields[field].traceHash[hash] = this.traceCreatedAt.getTime()
+      this.newFields[field].traceHash[hash] = timestamp
       newFields.push(this.newFields[field])
     }
     for (const field in this.updatedFields) {
-      this.updatedFields[field].traceHash[hash] = this.traceCreatedAt.getTime()
+      this.updatedFields[field].traceHash[hash] = timestamp
       updatedFields.push(this.updatedFields[field])
     }
     return {
