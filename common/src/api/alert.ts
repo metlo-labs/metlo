@@ -26,3 +26,18 @@ export const UpdateAlertParamsSchema = z.object({
 })
 
 export type UpdateAlertParams = z.infer<typeof UpdateAlertParamsSchema>
+
+export const UpdateAlertBatchParamsSchema = z.object({
+  updateType: z.nativeEnum(UpdateAlertType),
+  resolutionMessage: z.string().optional(),
+  uuid: z.string().uuid().optional(),
+  apiEndpointUuid: z.string().uuid().optional(),
+  riskScores: z.nativeEnum(RiskScore).array().optional(),
+  status: z.nativeEnum(Status).array().optional(),
+  alertTypes: z.nativeEnum(AlertType).array().optional(),
+  hosts: z.string().array().optional(),
+})
+
+export type UpdateAlertBatchParams = z.infer<
+  typeof UpdateAlertBatchParamsSchema
+>

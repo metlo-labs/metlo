@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   HStack,
   VStack,
@@ -20,17 +20,36 @@ import {
   InputGroup,
   InputLeftElement,
   Input,
+  Button,
+  AlertDialog,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter,
+  Wrap,
+  Badge,
+  Stack,
 } from "@chakra-ui/react"
 import debounce from "lodash/debounce"
 import { Alert } from "@common/types"
 import { UpdateAlertParams } from "@common/api/alert"
 import { GetAlertParams } from "@common/api/alert"
-import { AlertType, RiskScore, SpecExtension, Status } from "@common/enums"
+import {
+  AlertType,
+  RiskScore,
+  SpecExtension,
+  Status,
+  UpdateAlertType,
+} from "@common/enums"
 import { ALERT_PAGE_LIMIT } from "~/constants"
 import { AlertComponent } from "components/Alert/AlertComponent"
 import EmptyView from "components/utils/EmptyView"
 import { PaginationComponent } from "components/PaginationComponent"
 import { BsSearch } from "icons/bs/BsSearch"
+import { RiEyeOffFill } from "icons/ri/RiEyeOffFill"
+import { FiCheckCircle } from "icons/fi/FiCheckCircle"
+import { DataHeading } from "components/utils/Card"
 
 const RISK_SCORE_TO_LABEL: Record<RiskScore, string> = {
   [RiskScore.HIGH]: "High",
@@ -49,6 +68,7 @@ interface AlertListProps {
   ) => Promise<void>
   updating: boolean
   fetching: boolean
+  handleAllUpdateAction: (type: UpdateAlertType) => Promise<void>
   hosts?: string[]
   pagination?: boolean
   totalCount?: number
@@ -67,12 +87,20 @@ export const AlertList: React.FC<AlertListProps> = ({
   hosts,
   page,
   handleUpdateAlert,
+  handleAllUpdateAction,
   updating,
   providedSpecString,
   providedSpecExtension,
 }) => {
   const scrollDivRef = useRef(null)
   const { isOpen, onOpen, onClose } = useDisclosure()
+  const {
+    isOpen: isDialogOpen,
+    onOpen: openDialog,
+    onClose: closeDialog,
+  } = useDisclosure()
+  const [allActionState, setAllActionState] = useState<UpdateAlertType>(null)
+  const cancelRef = useRef()
 
   const executeScroll = () => scrollDivRef.current?.scrollIntoView()
 
@@ -167,6 +195,11 @@ export const AlertList: React.FC<AlertListProps> = ({
   }
 
   const debounceSearch = debounce(setSearchQuery, 500)
+
+  const handleAllActionClick = (type: UpdateAlertType) => {
+    setAllActionState(type)
+    openDialog()
+  }
 
   const riskFilterPanel = (
     <Accordion defaultIndex={[0, 1, 2, 3]} w="full" allowMultiple>
@@ -296,18 +329,54 @@ export const AlertList: React.FC<AlertListProps> = ({
           {riskFilterPanel}
         </VStack>
         <VStack h="full" w="full" alignSelf="flex-start">
-          <InputGroup mt="1" mr="1">
-            <InputLeftElement pointerEvents="none">
-              <BsSearch />
-            </InputLeftElement>
-            <Input
-              spellCheck={false}
-              defaultValue={params.uuid}
-              onChange={e => debounceSearch(e.target.value)}
-              type="text"
-              placeholder="Search by alert id..."
-            />
-          </InputGroup>
+          <Stack
+            direction={{ base: "column", sm: "row" }}
+            w="full"
+            justifyContent="space-between"
+          >
+            <InputGroup mt="1" mr="1">
+              <InputLeftElement pointerEvents="none">
+                <BsSearch />
+              </InputLeftElement>
+              <Input
+                spellCheck={false}
+                defaultValue={params.uuid}
+                onChange={e => debounceSearch(e.target.value)}
+                type="text"
+                placeholder="Search by alert id..."
+              />
+            </InputGroup>
+            <HStack>
+              <Button
+                isDisabled={
+                  fetching ||
+                  params.status.length !== 1 ||
+                  params.status[0] !== Status.OPEN ||
+                  alerts?.length === 0
+                }
+                leftIcon={<RiEyeOffFill />}
+                isLoading={updating}
+                border="1px"
+                onClick={() => handleAllActionClick(UpdateAlertType.IGNORE)}
+              >
+                Ignore All
+              </Button>
+              <Button
+                isDisabled={
+                  fetching ||
+                  params.status.length !== 1 ||
+                  params.status[0] !== Status.OPEN ||
+                  alerts?.length === 0
+                }
+                leftIcon={<FiCheckCircle />}
+                isLoading={updating}
+                colorScheme="green"
+                onClick={() => handleAllActionClick(UpdateAlertType.RESOLVE)}
+              >
+                Resolve All
+              </Button>
+            </HStack>
+          </Stack>
 
           {!fetching && alerts && alerts.length > 0 ? (
             <VStack
@@ -367,6 +436,126 @@ export const AlertList: React.FC<AlertListProps> = ({
           />
         </HStack>
       )}
+      <AlertDialog
+        isOpen={isDialogOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={closeDialog}
+        size="3xl"
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              Would you like to {allActionState} all open alerts that meet this
+              criteria?
+            </AlertDialogHeader>
+            <AlertDialogBody>
+              <VStack spacing={3} w="full" pb={4}>
+                {params?.uuid ? (
+                  <VStack w="full" alignItems="flex-start" spacing={1}>
+                    <DataHeading>Alert UUID</DataHeading>
+                    <Badge
+                      borderWidth="1px"
+                      textTransform="none"
+                      rounded="sm"
+                      colorScheme="gray"
+                    >
+                      {params.uuid}
+                    </Badge>
+                  </VStack>
+                ) : null}
+                {params?.apiEndpointUuid ? (
+                  <VStack w="full" alignItems="flex-start" spacing={1}>
+                    <DataHeading>Alert Endpoint</DataHeading>
+                    <Badge
+                      borderWidth="1px"
+                      textTransform="none"
+                      rounded="sm"
+                      colorScheme="gray"
+                    >
+                      {params.apiEndpointUuid}
+                    </Badge>
+                  </VStack>
+                ) : null}
+                {params?.riskScores?.length > 0 ? (
+                  <VStack w="full" alignItems="flex-start" spacing={1}>
+                    <DataHeading>Risk Scores</DataHeading>
+                    <Wrap spacing={2}>
+                      {params.riskScores.map(score => (
+                        <Badge
+                          borderWidth="1px"
+                          key={score}
+                          textTransform="none"
+                          rounded="sm"
+                          colorScheme="gray"
+                        >
+                          {score}
+                        </Badge>
+                      ))}
+                    </Wrap>
+                  </VStack>
+                ) : null}
+                {params?.hosts?.length > 0 ? (
+                  <VStack w="full" alignItems="flex-start" spacing={1}>
+                    <DataHeading>Hosts</DataHeading>
+                    <Wrap spacing={2}>
+                      {params.hosts.map(host => (
+                        <Badge
+                          borderWidth="1px"
+                          key={host}
+                          textTransform="none"
+                          rounded="sm"
+                          colorScheme="gray"
+                        >
+                          {host}
+                        </Badge>
+                      ))}
+                    </Wrap>
+                  </VStack>
+                ) : null}
+                {params?.alertTypes?.length > 0 ? (
+                  <VStack alignItems="flex-start" w="full" spacing={1}>
+                    <DataHeading>Alert Types</DataHeading>
+                    <Wrap spacing={2}>
+                      {params.alertTypes.map(type => (
+                        <Badge
+                          borderWidth="1px"
+                          key={type}
+                          textTransform="none"
+                          rounded="sm"
+                          colorScheme="gray"
+                        >
+                          {type}
+                        </Badge>
+                      ))}
+                    </Wrap>
+                  </VStack>
+                ) : null}
+              </VStack>
+              <Text>
+                This will {allActionState} <strong>{totalCount}</strong>
+                {totalCount > 1 ? " alerts" : " alert"}.
+              </Text>
+            </AlertDialogBody>
+            <AlertDialogFooter>
+              <HStack>
+                <Button ref={cancelRef} onClick={closeDialog}>
+                  Cancel
+                </Button>
+                <Button
+                  isLoading={updating}
+                  colorScheme="blue"
+                  onClick={async () => {
+                    await handleAllUpdateAction(allActionState)
+                    closeDialog()
+                  }}
+                >
+                  Update
+                </Button>
+              </HStack>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </VStack>
   )
 }

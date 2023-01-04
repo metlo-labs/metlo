@@ -3,11 +3,12 @@ import { useToast, Box } from "@chakra-ui/react"
 import { Alert } from "@common/types"
 import { UpdateAlertParams } from "@common/api/alert"
 import { GetAlertParams } from "@common/api/alert"
-import { getAlerts, updateAlert } from "api/alerts"
+import { getAlerts, updateAlert, updateAlertBatch } from "api/alerts"
 import { AlertList } from "components/Alert/AlertList"
-import { SpecExtension } from "@common/enums"
+import { SpecExtension, UpdateAlertType } from "@common/enums"
 import { ALERT_PAGE_LIMIT } from "~/constants"
 import { makeToast } from "utils"
+import { formatMetloAPIErr, MetloAPIErr } from "api/utils"
 
 interface AlertTabProps {
   initAlertParams: GetAlertParams
@@ -72,14 +73,43 @@ export const AlertTab: React.FC<AlertTabProps> = ({
       fetchAlerts(params)
     } catch (err) {
       toast(
-        makeToast(
-          {
-            title: "Updating Alert failed",
-            status: "error",
-            description: err.response?.data,
-          },
-          err.response?.status,
-        ),
+        makeToast({
+          title: "Updating Alert failed",
+          status: "error",
+          description: formatMetloAPIErr(err.response.data as MetloAPIErr),
+        }),
+      )
+    } finally {
+      setUpdating(false)
+    }
+  }
+
+  const handleAllUpdateAction = async (type: UpdateAlertType) => {
+    try {
+      const resp = await updateAlertBatch({
+        uuid: params.uuid,
+        apiEndpointUuid: params.apiEndpointUuid,
+        riskScores: params.riskScores,
+        status: params.status,
+        alertTypes: params.alertTypes,
+        hosts: params.hosts,
+        updateType: type,
+        resolutionMessage: "",
+      })
+      toast(
+        makeToast({
+          title: `Updating Alerts successful`,
+          status: "success",
+        }),
+      )
+      fetchAlerts(params)
+    } catch (err) {
+      toast(
+        makeToast({
+          title: "Updating Alerts failed",
+          status: "error",
+          description: formatMetloAPIErr(err.response.data as MetloAPIErr),
+        }),
       )
     } finally {
       setUpdating(false)
@@ -95,6 +125,7 @@ export const AlertTab: React.FC<AlertTabProps> = ({
         params={params}
         setParams={setParams}
         fetching={fetching}
+        handleAllUpdateAction={handleAllUpdateAction}
         totalCount={totalCount}
         pagination
         page={params.offset / ALERT_PAGE_LIMIT + 1}

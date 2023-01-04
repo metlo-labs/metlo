@@ -22,13 +22,23 @@ import {
 import { DATA_SECTION_TO_LABEL_MAP } from "@common/maps"
 import { ALERT_TYPE_TO_RISK_SCORE } from "@common/maps"
 import { Alert as AlertResponse, QueuedApiTrace } from "@common/types"
-import { GetAlertParams, UpdateAlertParams } from "@common/api/alert"
+import {
+  GetAlertParams,
+  UpdateAlertBatchParams,
+  UpdateAlertParams,
+} from "@common/api/alert"
 import Error409Conflict from "errors/error-409-conflict"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { getPathTokens } from "@common/utils"
 import Error404NotFound from "errors/error-404-not-found"
-import { createQB, getQB, getRepository } from "services/database/utils"
+import {
+  createQB,
+  getEntityManager,
+  getQB,
+  getRepository,
+} from "services/database/utils"
 import { MetloContext } from "types"
+import { AppDataSource } from "data-source"
 
 export class AlertService {
   static async updateAlert(
@@ -88,6 +98,85 @@ export class AlertService {
       .andWhere("uuid = :uuid", { uuid: alertId })
       .execute()
     return alert
+  }
+
+  static async updateAlertBatch(
+    ctx: MetloContext,
+    params: UpdateAlertBatchParams,
+  ): Promise<void> {
+    const queryRunner = AppDataSource.createQueryRunner()
+    try {
+      await queryRunner.connect()
+      const alertEntityManager = getEntityManager(ctx, queryRunner)
+      let whereConditions: FindOptionsWhere<Alert>[] | FindOptionsWhere<Alert> =
+        {}
+      let updateFields = {}
+
+      if (params.updateType) {
+        switch (params.updateType) {
+          case UpdateAlertType.IGNORE:
+            updateFields = { status: Status.IGNORED }
+            whereConditions = { ...whereConditions, status: Status.OPEN }
+            break
+          case UpdateAlertType.RESOLVE:
+            updateFields = {
+              status: Status.RESOLVED,
+              resolutionMessage: params.resolutionMessage?.trim() || null,
+            }
+            whereConditions = { ...whereConditions, status: Status.OPEN }
+            break
+          case UpdateAlertType.UNIGNORE:
+            updateFields = { status: Status.OPEN }
+            whereConditions = { ...whereConditions, status: Status.IGNORED }
+            break
+          case UpdateAlertType.UNRESOLVE:
+            updateFields = { status: Status.OPEN }
+            whereConditions = { ...whereConditions, status: Status.RESOLVED }
+          default:
+            break
+        }
+      }
+      if (params.uuid) {
+        whereConditions = { ...whereConditions, uuid: params.uuid }
+      } else {
+        if (params.alertTypes?.length > 0) {
+          whereConditions = { ...whereConditions, type: In(params.alertTypes) }
+        }
+        if (params.apiEndpointUuid) {
+          whereConditions = {
+            ...whereConditions,
+            apiEndpointUuid: params.apiEndpointUuid,
+          }
+        }
+        if (params.hosts?.length > 0) {
+          whereConditions = {
+            ...whereConditions,
+            apiEndpoint: { host: In(params.hosts) },
+          }
+        }
+        if (params.riskScores?.length > 0) {
+          whereConditions = {
+            ...whereConditions,
+            riskScore: In(params.riskScores),
+          }
+        }
+      }
+      const alertUuids = await alertEntityManager.find(Alert, {
+        select: { uuid: true },
+        where: whereConditions,
+        relations: { apiEndpoint: true },
+      })
+      await getQB(ctx, queryRunner)
+        .update(Alert)
+        .set({ ...updateFields })
+        .andWhere("uuid IN(:...ids)", { ids: alertUuids.map(e => e.uuid) })
+        .execute()
+    } catch (err) {
+      throw err
+    } finally {
+      await queryRunner.release()
+    }
+    return
   }
 
   static async getAlerts(
