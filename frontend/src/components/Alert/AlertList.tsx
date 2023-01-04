@@ -532,7 +532,8 @@ export const AlertList: React.FC<AlertListProps> = ({
                 ) : null}
               </VStack>
               <Text>
-                This will {allActionState} <strong>{totalCount}</strong> alerts.
+                This will {allActionState} <strong>{totalCount}</strong>
+                {totalCount > 1 ? " alerts" : " alert"}.
               </Text>
             </AlertDialogBody>
             <AlertDialogFooter>
