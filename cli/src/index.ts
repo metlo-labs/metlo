@@ -11,6 +11,7 @@ import { gcpTrafficMirrorDelete } from "./gcp/remove"
 import { gcpTrafficMirrorCleanUp } from "./gcp/cleanup"
 import { generateTest } from "./testing/generate"
 import { runTests } from "./testing/run"
+import { pushTemplates } from "./testing/push-template"
 
 program.name("metlo").description("Metlo's command line tool.").version("0.1.4")
 
@@ -41,6 +42,12 @@ test
   .option("-v,--verbose", "print detailed test errors")
   .option("--env <string>", "path for your env file")
   .action(runTests)
+
+const template = program.command("template")
+template
+  .command("push")
+  .argument("[paths...]", "Path to template files")
+  .action(pushTemplates)
 
 const trafficMirror = program
   .command("traffic-mirror")
