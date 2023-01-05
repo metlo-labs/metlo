@@ -6,6 +6,7 @@ import clearApiTraces from "./clear-api-traces"
 import { JOB_NAME_MAP } from "./constants"
 import generateOpenApiSpec from "./generate-openapi-spec"
 import monitorEndpointForHSTS from "./monitor-endpoint-hsts"
+import fixEndpoints from "./fix-endpoints"
 import { JobName } from "./types"
 import { wrapProcessor } from "./wrap-processor"
 import { updateEndpointIps } from "analyze/jobs"
@@ -46,6 +47,9 @@ const processor = async (job: Job, done) => {
       break
     case JobName.LOG_AGGREGATED_STATS:
       await logAggregatedStats(ctx)
+      break
+    case JobName.FIX_ENDPOINTS:
+      await fixEndpoints(ctx)
       break
     default:
       break

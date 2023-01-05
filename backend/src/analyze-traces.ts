@@ -144,8 +144,6 @@ const analyze = async (
     alerts = alerts?.concat(newEndpointAlert)
   }
 
-  await queryRunner.startTransaction()
-
   if (Array.isArray(trace.requestBody)) {
     trace.requestBody = JSON.stringify(trace.requestBody)
   }
@@ -153,6 +151,7 @@ const analyze = async (
     trace.responseBody = JSON.stringify(trace.responseBody)
   }
 
+  await queryRunner.startTransaction()
   await retryTypeormTransaction(
     () =>
       getEntityManager(ctx, queryRunner).insert(ApiTrace, [
