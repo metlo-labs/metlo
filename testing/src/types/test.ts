@@ -65,6 +65,7 @@ export const TestStepSchema = z.object({
       key: z.string(),
       values: z.union([AttackType, z.string()]).array(),
     })
+    .array()
     .optional(),
 })
 
