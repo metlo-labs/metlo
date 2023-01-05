@@ -486,9 +486,12 @@ export class SpecService {
       }
       const specObject: JSONValue = yaml.load(openApiSpec.spec) as JSONValue
       const parsedSpec = await SwaggerParser.dereference(specObject as any)
+      const pathString = specObject?.["paths"]?.[endpoint.path]
+        ? endpoint.path
+        : endpoint.path + "/"
 
       // Validate response info
-      const responses = getSpecResponses(parsedSpec, endpoint)
+      const responses = getSpecResponses(parsedSpec, endpoint, pathString)
       const responseValidator = new OpenAPIResponseValidator({
         components: specObject["components"],
         responses: responses?.value,
