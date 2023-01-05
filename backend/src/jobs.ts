@@ -126,7 +126,7 @@ const main = async () => {
     log("Logging Aggregated Stats Disabled...", true)
   }
 
-  schedule.scheduleJob("* * * * *", async () => {
+  schedule.scheduleJob("*/15 * * * *", async () => {
     await fixEndpointsQueue.add(
       `${JobName.FIX_ENDPOINTS}`,
       {},
