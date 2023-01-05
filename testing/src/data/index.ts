@@ -27,8 +27,6 @@ export function getValues(payloadType: string) {
     return getRandomFromArray(250, SQLI)
   } else if (payloadType == AttackType.Enum.SQLI_TIME) {
     return getRandomFromArray(250, SQLI_TIME)
-  } else if (payloadType == AttackType.Enum.TEST) {
-    return ["ABCD", "1234", "ˀ.¸ˇ", "œ˙´˳", "þ¥¨ʼ", "ø,“‘"]
   } else {
     return []
   }

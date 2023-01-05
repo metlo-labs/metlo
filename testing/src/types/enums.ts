@@ -20,6 +20,5 @@ export const AttackTypeArray = [
   "SQLI",
   "SQLI_AUTH_BYPASS",
   "SQLI_TIME",
-  "TEST",
 ] as [string, ...string[]]
 export const AttackType = z.enum(AttackTypeArray)
