@@ -39,13 +39,12 @@ const findTemplatesInPaths = async (
   paths: string[],
 ): Promise<PushTemplateReq[] | null> => {
   let output: PushTemplateReq[] = []
-  const resolvedFiles = getRecursiveFiles(paths)
-  if (resolvedFiles.length > 250) {
+  if (paths.length > 250) {
     const { _continue }: { _continue: boolean } = await prompt([
       {
         type: "confirm",
         name: "_continue",
-        message: `Selected ${resolvedFiles.length} files, are you sure this is the correct template path?`,
+        message: `Selected ${paths.length} files, are you sure this is the correct template path?`,
       },
     ])
     if (!_continue) {
@@ -53,7 +52,7 @@ const findTemplatesInPaths = async (
       return null
     }
   }
-  for (const p of resolvedFiles) {
+  for (const p of paths) {
     let type = ""
     if (p.endsWith(".ts")) {
       type = "TS"
