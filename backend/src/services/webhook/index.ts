@@ -49,6 +49,19 @@ export const sendWebhookRequests = async (
     let dataFields: DataField[] = []
     if (alerts?.length > 0) {
       dataFields = await getEntityManager(ctx, queryRunner).find(DataField, {
+        select: {
+          uuid: true,
+          dataClasses: true,
+          falsePositives: true,
+          scannerIdentified: true,
+          dataType: true,
+          dataTag: true,
+          dataSection: true,
+          createdAt: true,
+          updatedAt: true,
+          dataPath: true,
+          apiEndpointUuid: true,
+        },
         where: { apiEndpointUuid: apiEndpoint.uuid },
       })
       const totalEndpointsPromise = getQB(ctx, queryRunner)
