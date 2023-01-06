@@ -38,13 +38,17 @@ export const runTests = async (
     )
   }
   if (paths && paths.length) {
-    await runTestPath(paths, initEnv)
+    await runTestPath(paths, verbose, initEnv)
     return
   }
   await runTestsFromEndpointInfo(endpoint, host, initEnv, verbose)
 }
 
-const runTestPath = async (paths: string[], env: { [key: string]: string }) => {
+const runTestPath = async (
+  paths: string[],
+  verbose: boolean,
+  env: { [key: string]: string },
+) => {
   for (let path of paths) {
     console.log(chalk.gray(`Running test at path "${path}":`))
     const test = loadTestConfig(path)
@@ -68,7 +72,7 @@ const runTestPath = async (paths: string[], env: { [key: string]: string }) => {
             }":`,
           ),
         )
-        console.log(chalk.red(JSON.stringify(failure.req, null, 4)))
+        console.log(chalk.red(JSON.stringify(failure.stepReq, null, 4)))
       }
       for (const failure of failedAssertions) {
         console.log(
@@ -79,7 +83,26 @@ const runTestPath = async (paths: string[], env: { [key: string]: string }) => {
           ),
         )
         console.log(chalk.red(JSON.stringify(failure.assertion, null, 4)))
+        if (verbose) {
+          console.log(
+            chalk.red(
+              JSON.stringify(
+                {
+                  ctx: failure.ctx,
+                  request: failure.stepReq,
+                  response: failure.res,
+                },
+                null,
+                4,
+              ),
+            ),
+          )
+        }
       }
+      if (!verbose) {
+        console.log(chalk.dim("Use the --verbose flag for more information."))
+      }
+      process.exit(1)
     }
   }
 }
