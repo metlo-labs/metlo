@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from "uuid"
 import { AppDataSource } from "data-source"
 import { ApiTrace, ApiEndpoint, DataField, Alert, OpenApiSpec } from "models"
-import { DataFieldService } from "services/data-field"
 import { SpecService } from "services/spec"
 import { AlertService } from "services/alert"
 import { RedisClient } from "utils/redis"
@@ -27,6 +26,7 @@ import {
 } from "services/database/utils"
 import { sendWebhookRequests } from "services/webhook"
 import { updateIPs } from "analyze/update-ips"
+import { findDataFieldsToSave } from "services/data-field/analyze"
 
 const getEndpointQuery = (ctx: MetloContext) => `
 SELECT
@@ -117,7 +117,7 @@ const analyze = async (
   const prevRiskScore = apiEndpoint.riskScore
   const prevLastActive = apiEndpoint.lastActive
   endpointUpdateDates(trace.createdAt, apiEndpoint)
-  const dataFields = await DataFieldService.findAllDataFields(ctx, trace, apiEndpoint)
+  const dataFields = await findDataFieldsToSave(ctx, trace, apiEndpoint)
   let alerts = await SpecService.findOpenApiSpecDiff(
     ctx,
     trace,
