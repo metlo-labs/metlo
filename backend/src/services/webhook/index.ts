@@ -1,13 +1,17 @@
 import axios from "axios"
 import { Brackets } from "typeorm"
 import { Alert, ApiEndpoint, DataField, Webhook } from "models"
-import { createQB, getQB, insertValueBuilder } from "services/database/utils"
+import {
+  createQB,
+  getEntityManager,
+  getQB,
+  insertValueBuilder,
+} from "services/database/utils"
 import { MetloContext } from "types"
 import { AppDataSource } from "data-source"
 import { CreateWebhookParams } from "@common/api/webhook"
 import Error400BadRequest from "errors/error-400-bad-request"
 import Error500InternalServer from "errors/error-500-internal-server"
-import { getDataFieldsQuery } from "analyze-traces"
 import { RiskScore } from "@common/enums"
 
 const urlRegexp = new RegExp(
@@ -44,83 +48,83 @@ export const sendWebhookRequests = async (
     await queryRunner.connect()
     let dataFields: DataField[] = []
     if (alerts?.length > 0) {
-      dataFields = await queryRunner.query(getDataFieldsQuery(ctx), [
-        apiEndpoint.uuid,
-      ])
-    }
-    const totalEndpointsPromise = getQB(ctx, queryRunner)
-      .select(["uuid"])
-      .from(ApiEndpoint, "endpoint")
-      .andWhere("host = :host", { host: apiEndpoint.host })
-      .getCount()
-    const totalSensitiveEndpointsPromise = getQB(ctx, queryRunner)
-      .select(["uuid"])
-      .from(ApiEndpoint, "endpoint")
-      .andWhere("host = :host", { host: apiEndpoint.host })
-      .andWhere(`"riskScore" IN(:...scores)`, {
-        scores: [RiskScore.HIGH, RiskScore.MEDIUM, RiskScore.LOW],
+      dataFields = await getEntityManager(ctx, queryRunner).find(DataField, {
+        where: { apiEndpointUuid: apiEndpoint.uuid },
       })
-      .getCount()
-    const [totalEndpoints, totalSensitiveEndpoints] = await Promise.all([
-      totalEndpointsPromise,
-      totalSensitiveEndpointsPromise,
-    ])
-    for (const alert of alerts) {
-      const webhooks: Webhook[] = await getQB(ctx, queryRunner)
-        .from(Webhook, "webhook")
-        .andWhere(
-          new Brackets(qb => {
-            qb.where(`:type = ANY("alertTypes")`, { type: alert.type }).orWhere(
-              `cardinality("alertTypes") = 0`,
-            )
-          }),
-        )
-        .andWhere(
-          new Brackets(qb => {
-            qb.where(`:host = ANY("hosts")`, {
-              host: apiEndpoint.host,
-            }).orWhere(`cardinality("hosts") = 0`)
-          }),
-        )
-        .getRawMany()
-      alert.apiEndpoint = apiEndpoint
-      alert.apiEndpoint.dataFields = dataFields
-      const payload = {
-        alert: alert,
-        meta: {
-          host: apiEndpoint.host,
-          totalEndpoints,
-          totalSensitiveEndpoints,
-        },
-      }
-      for (const webhook of webhooks) {
-        let runs = webhook.runs
-        if (runs.length >= 10) {
-          runs = runs.slice(1)
-        }
-        try {
-          await retryRequest(
-            () =>
-              axios.post(
-                webhook.url,
-                {
-                  ...payload,
-                },
-                { timeout: 250 },
-              ),
-            webhook.maxRetries,
+      const totalEndpointsPromise = getQB(ctx, queryRunner)
+        .select(["uuid"])
+        .from(ApiEndpoint, "endpoint")
+        .andWhere("host = :host", { host: apiEndpoint.host })
+        .getCount()
+      const totalSensitiveEndpointsPromise = getQB(ctx, queryRunner)
+        .select(["uuid"])
+        .from(ApiEndpoint, "endpoint")
+        .andWhere("host = :host", { host: apiEndpoint.host })
+        .andWhere(`"riskScore" IN(:...scores)`, {
+          scores: [RiskScore.HIGH, RiskScore.MEDIUM, RiskScore.LOW],
+        })
+        .getCount()
+      const [totalEndpoints, totalSensitiveEndpoints] = await Promise.all([
+        totalEndpointsPromise,
+        totalSensitiveEndpointsPromise,
+      ])
+      for (const alert of alerts) {
+        const webhooks: Webhook[] = await getQB(ctx, queryRunner)
+          .from(Webhook, "webhook")
+          .andWhere(
+            new Brackets(qb => {
+              qb.where(`:type = ANY("alertTypes")`, {
+                type: alert.type,
+              }).orWhere(`cardinality("alertTypes") = 0`)
+            }),
           )
-          await getQB(ctx, queryRunner)
-            .update(Webhook)
-            .set({ runs: [...runs, { ok: true, msg: "", payload }] })
-            .andWhere("uuid = :id", { id: webhook.uuid })
-            .execute()
-        } catch (err) {
-          await getQB(ctx, queryRunner)
-            .update(Webhook)
-            .set({ runs: [...runs, { ok: false, msg: err, payload }] })
-            .andWhere("uuid = :id", { id: webhook.uuid })
-            .execute()
+          .andWhere(
+            new Brackets(qb => {
+              qb.where(`:host = ANY("hosts")`, {
+                host: apiEndpoint.host,
+              }).orWhere(`cardinality("hosts") = 0`)
+            }),
+          )
+          .getRawMany()
+        alert.apiEndpoint = apiEndpoint
+        alert.apiEndpoint.dataFields = dataFields
+        const payload = {
+          alert: alert,
+          meta: {
+            host: apiEndpoint.host,
+            totalEndpoints,
+            totalSensitiveEndpoints,
+          },
+        }
+        for (const webhook of webhooks) {
+          let runs = webhook.runs
+          if (runs.length >= 10) {
+            runs = runs.slice(1)
+          }
+          try {
+            await retryRequest(
+              () =>
+                axios.post(
+                  webhook.url,
+                  {
+                    ...payload,
+                  },
+                  { timeout: 250 },
+                ),
+              webhook.maxRetries,
+            )
+            await getQB(ctx, queryRunner)
+              .update(Webhook)
+              .set({ runs: [...runs, { ok: true, msg: "", payload }] })
+              .andWhere("uuid = :id", { id: webhook.uuid })
+              .execute()
+          } catch (err) {
+            await getQB(ctx, queryRunner)
+              .update(Webhook)
+              .set({ runs: [...runs, { ok: false, msg: err, payload }] })
+              .andWhere("uuid = :id", { id: webhook.uuid })
+              .execute()
+          }
         }
       }
     }

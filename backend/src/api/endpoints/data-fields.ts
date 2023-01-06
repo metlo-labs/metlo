@@ -1,5 +1,5 @@
 import { Response } from "express"
-import { DataFieldService } from "services/data-field"
+import { updateDataClasses, deleteDataField } from "services/data-field"
 import { UpdateDataFieldClassesParamsSchema } from "@common/api/endpoint"
 import ApiResponseHandler from "api-response-handler"
 import { GetEndpointsService } from "services/get-endpoints"
@@ -16,7 +16,7 @@ export const updateDataFieldClasses = async (
   }
   try {
     const { dataClasses, dataPath, dataSection } = parsedBody.data
-    const updatedDataField = await DataFieldService.updateDataClasses(
+    const updatedDataField = await updateDataClasses(
       req.ctx,
       dataFieldId,
       dataClasses,
@@ -41,10 +41,7 @@ export const deleteDataFieldHandler = async (
 ): Promise<void> => {
   try {
     const { dataFieldId } = req.params
-    const removedDataField = await DataFieldService.deleteDataField(
-      req.ctx,
-      dataFieldId,
-    )
+    const removedDataField = await deleteDataField(req.ctx, dataFieldId)
     if (removedDataField) {
       await GetEndpointsService.updateEndpointRiskScore(
         req.ctx,

@@ -25,21 +25,21 @@ export class DataField extends MetloBaseEntity {
   @Column({
     type: "text",
     array: true,
-    default: []
+    default: [],
   })
   dataClasses: string[]
 
   @Column({
     type: "text",
     array: true,
-    default: []
+    default: [],
   })
   falsePositives: string[]
 
   @Column({
     type: "text",
     array: true,
-    default: []
+    default: [],
   })
   scannerIdentified: string[]
 
@@ -105,58 +105,4 @@ export class DataField extends MetloBaseEntity {
 
   @ManyToOne(() => ApiEndpoint, apiEndpoint => apiEndpoint.dataFields)
   apiEndpoint: ApiEndpoint
-
-  addDataClass(dataClass: string): boolean {
-    if (this.dataClasses === null || this.dataClasses === undefined) {
-      this.dataClasses = Array<string>()
-    }
-    if (this.falsePositives === null || this.falsePositives === undefined) {
-      this.falsePositives = Array<string>()
-    }
-    if (
-      this.scannerIdentified === null ||
-      this.scannerIdentified === undefined
-    ) {
-      this.scannerIdentified = Array<string>()
-    }
-    if (
-      dataClass === null ||
-      this.dataClasses.includes(dataClass) ||
-      this.falsePositives.includes(dataClass)
-    ) {
-      return false
-    }
-    this.dataClasses.push(dataClass)
-    this.scannerIdentified.push(dataClass)
-    return true
-  }
-
-  updateMatches(dataClass: string, match: string): boolean {
-    if (this.dataClasses === null || this.dataClasses === undefined) {
-      this.dataClasses = Array<string>()
-    }
-    if (!match || dataClass === null || !this.dataClasses.includes(dataClass)) {
-      return false
-    }
-
-    let updated = false
-    if (this.matches === null || this.matches === undefined) {
-      this.matches = {} as Record<string, string[]>
-    }
-    if (
-      this.matches[dataClass] == null ||
-      this.matches[dataClass] === undefined
-    ) {
-      this.matches[dataClass] = []
-    }
-
-    if (this.matches[dataClass].length >= 10) {
-      return updated
-    }
-    if (!this.matches[dataClass].includes(match)) {
-      this.matches[dataClass].push(match)
-      updated = true
-    }
-    return updated
-  }
 }
