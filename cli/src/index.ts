@@ -13,7 +13,7 @@ import { generateTest } from "./testing/generate"
 import { runTests } from "./testing/run"
 import { pushTemplates } from "./testing/push-template"
 
-program.name("metlo").description("Metlo's command line tool.").version("0.2.1")
+program.name("metlo").description("Metlo's command line tool.").version("0.2.2")
 
 program
   .command("init")
