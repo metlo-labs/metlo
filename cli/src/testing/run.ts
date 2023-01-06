@@ -117,6 +117,7 @@ const runTestPath = async (
 interface TestConfigResp {
   uuid: string
   apiEndpointUuid: string
+  method: string
   host: string
   path: string
   test: TestConfig
@@ -141,6 +142,9 @@ const runTestsFromEndpointInfo = async (
   })
   if (configs.length == 0) {
     let warnMsg = "No tests found for"
+    if (method) {
+      warnMsg = `${warnMsg} method "${method}"`
+    }
     if (endpoint) {
       warnMsg = `${warnMsg} endpoint "${endpoint}"`
     }
@@ -156,6 +160,7 @@ const runTestsFromEndpointInfo = async (
 interface TestResWithUUID {
   uuid: string
   apiEndpointUuid: string
+  method: string
   path: string
   host: string
   result: TestResult
@@ -176,6 +181,7 @@ const runTestConfigs = async (
       const res = await runTest(parsedTest.data, env)
       results.push({
         uuid: test.uuid,
+        method: test.method,
         host: test.host,
         path: test.path,
         apiEndpointUuid: test.apiEndpointUuid,
@@ -194,7 +200,7 @@ const runTestConfigs = async (
     Object.entries(
       groupBy(
         results.filter(e => !e.result.success),
-        e => `${e.host}${e.path}`,
+        e => `${e.method} ${e.host}${e.path}`,
       ),
     ).forEach(([key, results]) => {
       console.log(
