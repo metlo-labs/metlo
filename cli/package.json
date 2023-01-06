@@ -1,6 +1,6 @@
 {
   "name": "@metlo/cli",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -31,7 +31,7 @@
     "@aws-sdk/client-ec2": "^3.198.0",
     "@aws-sdk/client-sts": "^3.198.0",
     "@google-cloud/compute": "^3.5.1",
-    "@metlo/testing": "^0.2.8",
+    "@metlo/testing": "^0.2.9",
     "async-retry": "^1.3.3",
     "axios": "^1.2.1",
     "chalk": "^4.1.2",

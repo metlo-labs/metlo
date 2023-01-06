@@ -13,7 +13,7 @@ import { generateTest } from "./testing/generate"
 import { runTests } from "./testing/run"
 import { pushTemplates } from "./testing/push-template"
 
-program.name("metlo").description("Metlo's command line tool.").version("0.2.1")
+program.name("metlo").description("Metlo's command line tool.").version("0.2.2")
 
 program
   .command("init")
@@ -33,11 +33,13 @@ test
     "The endpoint to generate this test for",
   )
   .option("-h,--host <string>", "The host to generate this test for")
+  .option("-x,--method <string>", "The method of the endpoint")
   .action(generateTest)
 test
   .command("run")
   .argument("[paths...]", "Path to yaml test files")
   .option("-e,--endpoint <string>", "endpoint pattern or uuid")
+  .option("-x,--method <string>", "The method of the endpoint")
   .option("-n,--host <string>", "hostname for which tests are to be")
   .option("-v,--verbose", "print detailed test errors")
   .option("--env <string>", "path for your env file")

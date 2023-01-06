@@ -3,11 +3,13 @@ import { MetloContext } from "types"
 import { getRepository } from "services/database/utils"
 import { ApiEndpoint, AuthenticationConfig } from "models"
 import { GenTestEndpoint } from "@metlo/testing"
+import { RestMethod } from "@common/enums"
 
 export const getGenTestEndpoint = async (
   ctx: MetloContext,
   endpoint: string,
   host?: string,
+  method?: string,
 ): Promise<GenTestEndpoint | null> => {
   let endpointObj: ApiEndpoint | null = null
   const apiEndpointRepository = getRepository(ctx, ApiEndpoint)
@@ -18,7 +20,7 @@ export const getGenTestEndpoint = async (
     })
   } else {
     endpointObj = await apiEndpointRepository.findOne({
-      where: { path: endpoint, host: host },
+      where: { path: endpoint, host: host, method: method as RestMethod },
       relations: { dataFields: true },
     })
   }

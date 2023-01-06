@@ -23,10 +23,17 @@ export const runTests = async (
   paths: string[],
   {
     endpoint,
+    method,
     host,
     verbose,
     env,
-  }: { endpoint: string; host: string; verbose: boolean; env: string },
+  }: {
+    endpoint: string
+    method: string
+    host: string
+    verbose: boolean
+    env: string
+  },
 ) => {
   let initEnv: { [key: string]: string } = {}
   if (env) {
@@ -38,13 +45,17 @@ export const runTests = async (
     )
   }
   if (paths && paths.length) {
-    await runTestPath(paths, initEnv)
+    await runTestPath(paths, verbose, initEnv)
     return
   }
-  await runTestsFromEndpointInfo(endpoint, host, initEnv, verbose)
+  await runTestsFromEndpointInfo(endpoint, method, host, initEnv, verbose)
 }
 
-const runTestPath = async (paths: string[], env: { [key: string]: string }) => {
+const runTestPath = async (
+  paths: string[],
+  verbose: boolean,
+  env: { [key: string]: string },
+) => {
   for (let path of paths) {
     console.log(chalk.gray(`Running test at path "${path}":`))
     const test = loadTestConfig(path)
@@ -68,7 +79,7 @@ const runTestPath = async (paths: string[], env: { [key: string]: string }) => {
             }":`,
           ),
         )
-        console.log(chalk.red(JSON.stringify(failure.req, null, 4)))
+        console.log(chalk.red(JSON.stringify(failure.stepReq, null, 4)))
       }
       for (const failure of failedAssertions) {
         console.log(
@@ -79,7 +90,26 @@ const runTestPath = async (paths: string[], env: { [key: string]: string }) => {
           ),
         )
         console.log(chalk.red(JSON.stringify(failure.assertion, null, 4)))
+        if (verbose) {
+          console.log(
+            chalk.red(
+              JSON.stringify(
+                {
+                  ctx: failure.ctx,
+                  request: failure.stepReq,
+                  response: failure.res,
+                },
+                null,
+                4,
+              ),
+            ),
+          )
+        }
       }
+      if (!verbose) {
+        console.log(chalk.dim("Use the --verbose flag for more information."))
+      }
+      process.exit(1)
     }
   }
 }
@@ -87,6 +117,7 @@ const runTestPath = async (paths: string[], env: { [key: string]: string }) => {
 interface TestConfigResp {
   uuid: string
   apiEndpointUuid: string
+  method: string
   host: string
   path: string
   test: TestConfig
@@ -94,6 +125,7 @@ interface TestConfigResp {
 
 const runTestsFromEndpointInfo = async (
   endpoint: string,
+  method: string,
   host: string,
   env: { [key: string]: string },
   verbose: boolean,
@@ -103,12 +135,16 @@ const runTestsFromEndpointInfo = async (
   const { data: configs } = await axios.get<TestConfigResp[]>(url, {
     headers: { Authorization: config.apiKey },
     params: {
+      method,
       endpoint,
       host,
     },
   })
   if (configs.length == 0) {
     let warnMsg = "No tests found for"
+    if (method) {
+      warnMsg = `${warnMsg} method "${method}"`
+    }
     if (endpoint) {
       warnMsg = `${warnMsg} endpoint "${endpoint}"`
     }
@@ -124,6 +160,7 @@ const runTestsFromEndpointInfo = async (
 interface TestResWithUUID {
   uuid: string
   apiEndpointUuid: string
+  method: string
   path: string
   host: string
   result: TestResult
@@ -144,6 +181,7 @@ const runTestConfigs = async (
       const res = await runTest(parsedTest.data, env)
       results.push({
         uuid: test.uuid,
+        method: test.method,
         host: test.host,
         path: test.path,
         apiEndpointUuid: test.apiEndpointUuid,
@@ -162,7 +200,7 @@ const runTestConfigs = async (
     Object.entries(
       groupBy(
         results.filter(e => !e.result.success),
-        e => `${e.host}${e.path}`,
+        e => `${e.method} ${e.host}${e.path}`,
       ),
     ).forEach(([key, results]) => {
       console.log(
