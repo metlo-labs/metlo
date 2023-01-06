@@ -37,7 +37,7 @@ const getTraceDataFieldMap = async (
   apiTrace: QueuedApiTrace,
   apiEndpointPath: string,
   apiEndpointUuid: string,
-  traceHashObj: Record<string, string[]>,
+  traceHashObj: Record<string, Set<string>>,
 ) => {
   const statusCode = apiTrace.responseStatus
   const { reqContentType, resContentType } = getContentTypes(
@@ -221,12 +221,12 @@ export const findDataFieldsToSave = async (
   apiTrace: QueuedApiTrace,
   apiEndpoint: ApiEndpoint,
 ) => {
-  const traceHashObj: Record<string, string[]> = {
-    [DataSection.REQUEST_HEADER]: [],
-    [DataSection.REQUEST_QUERY]: [],
-    [DataSection.REQUEST_BODY]: [],
-    [DataSection.RESPONSE_HEADER]: [],
-    [DataSection.RESPONSE_BODY]: [],
+  const traceHashObj: Record<string, Set<string>> = {
+    [DataSection.REQUEST_HEADER]: new Set<string>([]),
+    [DataSection.REQUEST_QUERY]: new Set<string>([]),
+    [DataSection.REQUEST_BODY]: new Set<string>([]),
+    [DataSection.RESPONSE_HEADER]: new Set<string>([]),
+    [DataSection.RESPONSE_BODY]: new Set<string>([]),
   }
   const currentDataFieldMap = getCurrentDataFieldsMap(apiEndpoint.dataFields)
   const traceDataFieldMap = await getTraceDataFieldMap(
@@ -240,7 +240,7 @@ export const findDataFieldsToSave = async (
   let traceHashArray = []
   const sortedTraceHashObjKeys = Object.keys(traceHashObj).sort()
   for (const section of sortedTraceHashObjKeys) {
-    traceHashArray = traceHashArray.concat(traceHashObj[section].sort())
+    traceHashArray = traceHashArray.concat([...traceHashObj[section]].sort())
   }
   const hash = crypto
     .createHash("sha256")
