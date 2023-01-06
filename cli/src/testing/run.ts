@@ -23,10 +23,17 @@ export const runTests = async (
   paths: string[],
   {
     endpoint,
+    method,
     host,
     verbose,
     env,
-  }: { endpoint: string; host: string; verbose: boolean; env: string },
+  }: {
+    endpoint: string
+    method: string
+    host: string
+    verbose: boolean
+    env: string
+  },
 ) => {
   let initEnv: { [key: string]: string } = {}
   if (env) {
@@ -41,7 +48,7 @@ export const runTests = async (
     await runTestPath(paths, verbose, initEnv)
     return
   }
-  await runTestsFromEndpointInfo(endpoint, host, initEnv, verbose)
+  await runTestsFromEndpointInfo(endpoint, method, host, initEnv, verbose)
 }
 
 const runTestPath = async (
@@ -117,6 +124,7 @@ interface TestConfigResp {
 
 const runTestsFromEndpointInfo = async (
   endpoint: string,
+  method: string,
   host: string,
   env: { [key: string]: string },
   verbose: boolean,
@@ -126,6 +134,7 @@ const runTestsFromEndpointInfo = async (
   const { data: configs } = await axios.get<TestConfigResp[]>(url, {
     headers: { Authorization: config.apiKey },
     params: {
+      method,
       endpoint,
       host,
     },

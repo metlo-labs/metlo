@@ -93,6 +93,7 @@ export const generateTest = async ({
   path: filePath,
   testType,
   host,
+  method,
   endpoint,
   version,
 }) => {
@@ -101,6 +102,7 @@ export const generateTest = async ({
     urlJoin(config.metloHost, "api/v1/gen-test-endpoint"),
     {
       params: {
+        method: method,
         endpoint: endpoint,
         host: host,
       },
