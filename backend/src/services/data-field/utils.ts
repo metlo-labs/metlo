@@ -84,7 +84,7 @@ const updateTraceHashObj = (
   dataSection: DataSection,
   dataPath: string,
   arrayFields: Record<string, number>,
-  traceHashObj: Record<string, string[]>,
+  traceHashObj: Record<string, Set<string>>,
 ) => {
   if (dataSection === DataSection.REQUEST_PATH) {
     return
@@ -99,7 +99,7 @@ const updateTraceHashObj = (
     }, "")
   const key =
     (dataPath ?? "") + (sortedArrayFields ? `<>${sortedArrayFields}` : "")
-  traceHashObj[dataSection].push(key)
+  traceHashObj[dataSection].add(key)
 }
 
 const createDataField = (
@@ -111,7 +111,7 @@ const createDataField = (
   contentType: string,
   statusCode: number,
   arrayFields: Record<string, number>,
-  traceHashObj: Record<string, string[]>,
+  traceHashObj: Record<string, Set<string>>,
 ) => {
   updateTraceHashObj(dataSection, dataPath, arrayFields, traceHashObj)
   const dataType = getDataType(dataValue)
@@ -144,7 +144,7 @@ const recursiveParseJson = async (
   statusCode: number,
   arrayFields: Record<string, number>,
   dataFieldMap: Record<string, DataField>,
-  traceHashObj: Record<string, string[]>,
+  traceHashObj: Record<string, Set<string>>,
 ) => {
   if (Object(jsonBody) !== jsonBody) {
     const dataClasses = await scan(ctx, jsonBody)
@@ -211,7 +211,7 @@ export const findBodyDataFields = async (
   contentType: string,
   statusCode: number,
   dataFieldMap: Record<string, DataField>,
-  traceHashObj: Record<string, string[]>,
+  traceHashObj: Record<string, Set<string>>,
 ) => {
   if (!body && dataSection === DataSection.RESPONSE_BODY) {
     body = ""
@@ -277,7 +277,7 @@ export const findPairObjectDataFields = async (
   contentType: string,
   statusCode: number,
   dataFieldMap: Record<string, DataField>,
-  traceHashObj: Record<string, string[]>,
+  traceHashObj: Record<string, Set<string>>,
 ) => {
   if (data) {
     for (const item of data) {
@@ -305,7 +305,7 @@ export const findPathDataFields = async (
   endpointPath: string,
   apiEndpointUuid: string,
   dataFieldMap: Record<string, DataField>,
-  traceHashObj: Record<string, string[]>,
+  traceHashObj: Record<string, Set<string>>,
 ) => {
   if (!path || !endpointPath) {
     return
