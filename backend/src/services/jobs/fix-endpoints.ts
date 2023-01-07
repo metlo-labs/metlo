@@ -53,7 +53,11 @@ const fixEndpoint = async (
     .map(t => sanitizePath(t.path).split("/"))
     .filter(t => t.length == currentEndpointTokens.length)
 
-  const getPaths = (tokenizedTraces: string[][], position: number) => {
+  const getPaths = (
+    tokenizedTraces: string[][],
+    position: number,
+    currParams: number,
+  ) => {
     if (tokenizedTraces.length == 0) {
       return []
     }
@@ -78,17 +82,18 @@ const fixEndpoint = async (
     }
     let paths: string[] = []
     if (validTokens.length == 0) {
-      const nextPaths = getPaths(tokenizedTraces, position + 1)
+      const nextPaths = getPaths(tokenizedTraces, position + 1, currParams + 1)
       if (nextPaths.length > 0) {
-        paths = nextPaths.map(e => `/{param${position + 1}}${e}`)
+        paths = nextPaths.map(e => `/{param${currParams + 1}}${e}`)
       } else {
-        paths = [`/{param${position + 1}}`]
+        paths = [`/{param${currParams + 1}}`]
       }
     } else {
       for (const validTok of validTokens) {
         const nextPaths = getPaths(
           tokenizedTraces.filter(e => e[position] == validTok),
           position + 1,
+          currParams,
         )
         if (nextPaths.length > 0) {
           paths = paths.concat(nextPaths.map(e => `/${validTok}${e}`))
@@ -100,7 +105,9 @@ const fixEndpoint = async (
     return paths
   }
 
-  const newPaths = getPaths(tokenizedTraces, 0).filter(e => e != endpoint.path)
+  const newPaths = getPaths(tokenizedTraces, 0, 0).filter(
+    e => e != endpoint.path,
+  )
 
   if (newPaths.length > 0) {
     // TODO use query runner
