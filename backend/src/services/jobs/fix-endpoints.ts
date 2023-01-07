@@ -110,7 +110,6 @@ const fixEndpoint = async (
   )
 
   if (newPaths.length > 0) {
-    // TODO use query runner
     await updatePaths(ctx, newPaths, endpoint.uuid, false, true)
   }
 }
@@ -124,7 +123,9 @@ const fixEndpoints = async (ctx: MetloContext): Promise<void> => {
       .from(ApiEndpoint, "endpoint")
       .getRawMany()
     for (const endpoint of endpoints) {
-      await fixEndpoint(ctx, endpoint, queryRunner)
+      if (!endpoint.userSet) {
+        await fixEndpoint(ctx, endpoint, queryRunner)
+      }
     }
   } catch (err) {
     console.error(`Encountered error while fixing endpoints: ${err}`)
