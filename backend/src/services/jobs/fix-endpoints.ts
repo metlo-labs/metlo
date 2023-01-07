@@ -111,7 +111,7 @@ const fixEndpoint = async (
 
   if (newPaths.length > 0) {
     // TODO use query runner
-    await updatePaths(ctx, newPaths, endpoint.uuid, true)
+    await updatePaths(ctx, newPaths, endpoint.uuid, false, true)
   }
 }
 
