@@ -70,7 +70,7 @@ const fixEndpoint = async (
         .filter(([token, count]) => {
           return (
             (count > tokenizedTraces.length * MIN_CONST_RATIO ||
-              (count > 500 && tokenizedTraces.length * 0.1)) &&
+              (count > 500 && count > tokenizedTraces.length * 0.1)) &&
             token.match(validTokenRegexp)
           )
         })
