@@ -100,6 +100,7 @@ export const updatePaths = async (
   ctx: MetloContext,
   providedPaths: string[],
   endpointId: string,
+  userSet: boolean,
 ) => {
   if (!providedPaths || !Array.isArray(providedPaths)) {
     throw new Error400BadRequest("Must provide list of paths to create.")
@@ -123,7 +124,7 @@ export const updatePaths = async (
       getPathTokens(endpoint.path).length,
     )
     await queryRunner.startTransaction()
-    await updateEndpointsFromMap(ctx, endpointsMap, queryRunner)
+    await updateEndpointsFromMap(ctx, endpointsMap, queryRunner, userSet)
     await queryRunner.commitTransaction()
   } catch (err) {
     if (queryRunner.isTransactionActive) {
@@ -139,9 +140,13 @@ export const updateEndpointsFromMap = async (
   ctx: MetloContext,
   endpointsMap: Record<string, EndpointsMap>,
   queryRunner: QueryRunner,
+  userSet: boolean,
 ) => {
   for (const item of Object.values(endpointsMap)) {
     item.endpoint.riskScore = RiskScore.NONE
+    if (userSet) {
+      item.endpoint.userSet = true
+    }
     await getEntityManager(ctx, queryRunner).save(item.endpoint)
     const similarEndpointUuids = Object.values(item.similarEndpoints).map(
       e => e.uuid,

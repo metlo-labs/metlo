@@ -85,6 +85,9 @@ export class ApiEndpoint extends MetloBaseEntity {
   @Column({ type: "jsonb", nullable: false, default: {} })
   srcIps: { [key: string]: number }
 
+  @Column({ type: "bool", nullable: false, default: false })
+  userSet: boolean
+
   @Column({ nullable: true })
   openapiSpecName: string
 
