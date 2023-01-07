@@ -31,6 +31,7 @@ const fixEndpoint = async (
   endpoint: ApiEndpoint,
   queryRunner: QueryRunner,
 ): Promise<void> => {
+  let currentEndpointPath = sanitizePath(endpoint.path)
   const traces = await getEntityManager(ctx, queryRunner).find(ApiTrace, {
     select: {
       path: true,
@@ -43,7 +44,9 @@ const fixEndpoint = async (
     },
     take: MAX_ANALYZE_TRACES,
   })
-  let currentEndpointPath = sanitizePath(endpoint.path)
+  if (traces.length < MIN_ANALYZE_TRACES) {
+    return
+  }
 
   const currentEndpointTokens = currentEndpointPath.split("/")
   const currentEndpointTokenTypes = currentEndpointTokens.map(e =>
