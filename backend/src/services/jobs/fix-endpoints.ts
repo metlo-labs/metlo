@@ -113,11 +113,11 @@ const fixEndpoints = async (ctx: MetloContext): Promise<void> => {
   try {
     await queryRunner.connect()
     const endpoints: ApiEndpoint[] = await getQB(ctx, queryRunner)
-      .select(["uuid"])
+      .select(["uuid", "path"])
       .from(ApiEndpoint, "endpoint")
       .getRawMany()
     for (const endpoint of endpoints) {
-      fixEndpoint(ctx, endpoint, queryRunner)
+      await fixEndpoint(ctx, endpoint, queryRunner)
     }
   } catch (err) {
     console.error(`Encountered error while fixing endpoints: ${err}`)

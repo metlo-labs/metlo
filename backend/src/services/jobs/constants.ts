@@ -40,6 +40,6 @@ export const JOB_NAME_MAP: Record<JobName, JobMap> = {
   [JobName.FIX_ENDPOINTS]: {
     start: "Fixing endpoints...",
     end: "Finished Fixing endpoints",
-    threshold: 300_000,
+    threshold: 1000 * 60 * 55,
   }
 }
