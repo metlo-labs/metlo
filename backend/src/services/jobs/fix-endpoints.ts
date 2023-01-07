@@ -57,7 +57,7 @@ const fixEndpoint = async (
     if (tokenizedTraces.length == 0) {
       return []
     }
-    if (tokenizedTraces[0].length == 0) {
+    if (position >= tokenizedTraces[0].length) {
       return []
     }
     let validTokens: string[] = []
