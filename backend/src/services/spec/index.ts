@@ -172,7 +172,7 @@ export class SpecService {
       await queryRunner.query(deleteOpenAPISpecDiffAlerts(ctx), [fileName])
       await getQB(ctx, queryRunner)
         .update(ApiEndpoint)
-        .set({ openapiSpecName: null })
+        .set({ openapiSpecName: null, userSet: false })
         .andWhere('"openapiSpecName" = :name', { name: fileName })
         .execute()
       await getQB(ctx, queryRunner)
