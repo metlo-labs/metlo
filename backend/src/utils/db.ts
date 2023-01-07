@@ -11,16 +11,20 @@ export const isQueryFailedError = (
   err: unknown,
 ): err is QueryFailedError & DatabaseError => err instanceof QueryFailedError
 
-export const retryTypeormTransaction = async (fn: any, maxAttempts: number) => {
+export const retryTypeormTransaction = async (
+  fn: any,
+  maxAttempts: number,
+  retryAll?: boolean,
+) => {
   const execute = async (attempt: number) => {
     try {
       return await fn()
     } catch (err) {
       if (isQueryFailedError(err)) {
-        if (err.code === "40P01" || err.code === "55P03") {
+        if (err.code === "40P01" || err.code === "55P03" || retryAll) {
           if (attempt <= maxAttempts) {
             const nextAttempt = attempt + 1
-            const delayInMilliseconds = randInt(200, 1000)
+            const delayInMilliseconds = randInt(200, 500)
             console.error(
               `Retrying after ${delayInMilliseconds} ms due to:`,
               err,

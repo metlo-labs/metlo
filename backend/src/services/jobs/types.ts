@@ -35,4 +35,5 @@ export enum JobName {
   CLEAR_API_TRACES = "clear_api_traces",
   UPDATE_ENDPOINT_IPS = "update_endpoint_ips",
   LOG_AGGREGATED_STATS = "log_aggregated_stats",
+  FIX_ENDPOINTS = "fix_endpoints",
 }

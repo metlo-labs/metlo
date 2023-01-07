@@ -30,6 +30,7 @@ import {
   getRepository,
 } from "services/database/utils"
 import { MetloContext } from "types"
+import { retryTypeormTransaction } from "utils/db"
 
 const getDataFieldsQuery = (ctx: MetloContext) => `
 SELECT
@@ -74,42 +75,77 @@ export class GetEndpointsService {
         throw new Error404NotFound("Endpoint not found.")
       }
       const host = endpoint.host
-      await queryRunner.startTransaction()
-      await getQB(ctx, queryRunner)
-        .delete()
-        .from(AggregateTraceDataHourly)
-        .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
-        .execute()
-      await getQB(ctx, queryRunner)
-        .delete()
-        .from(Alert)
-        .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
-        .execute()
-      await getQB(ctx, queryRunner)
-        .delete()
-        .from(ApiEndpointTest)
-        .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
-        .execute()
-      await getQB(ctx, queryRunner)
-        .delete()
-        .from(ApiTrace)
-        .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
-        .execute()
-      await getQB(ctx, queryRunner)
-        .delete()
-        .from(Attack)
-        .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
-        .execute()
-      await getQB(ctx, queryRunner)
-        .delete()
-        .from(DataField)
-        .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
-        .execute()
-      await getQB(ctx, queryRunner)
-        .delete()
-        .from(ApiEndpoint)
-        .andWhere("uuid = :id", { id: apiEndpointUuid })
-        .execute()
+      await queryRunner.startTransaction("SERIALIZABLE")
+      await retryTypeormTransaction(
+        () =>
+          getQB(ctx, queryRunner)
+            .delete()
+            .from(AggregateTraceDataHourly)
+            .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+            .execute(),
+        5,
+        true,
+      )
+      await retryTypeormTransaction(
+        () =>
+          getQB(ctx, queryRunner)
+            .delete()
+            .from(Alert)
+            .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+            .execute(),
+        5,
+        true,
+      )
+      await retryTypeormTransaction(
+        () =>
+          getQB(ctx, queryRunner)
+            .delete()
+            .from(ApiEndpointTest)
+            .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+            .execute(),
+        5,
+        true,
+      )
+      await retryTypeormTransaction(
+        () =>
+          getQB(ctx, queryRunner)
+            .delete()
+            .from(ApiTrace)
+            .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+            .execute(),
+        5,
+        true,
+      )
+      await retryTypeormTransaction(
+        () =>
+          getQB(ctx, queryRunner)
+            .delete()
+            .from(Attack)
+            .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+            .execute(),
+        5,
+        true,
+      )
+      await retryTypeormTransaction(
+        () =>
+          getQB(ctx, queryRunner)
+            .delete()
+            .from(DataField)
+            .andWhere(`"apiEndpointUuid" = :id`, { id: apiEndpointUuid })
+            .execute(),
+        5,
+        true,
+      )
+      await retryTypeormTransaction(
+        () =>
+          getQB(ctx, queryRunner)
+            .delete()
+            .from(ApiEndpoint)
+            .andWhere("uuid = :id", { id: apiEndpointUuid })
+            .execute(),
+        5,
+        true,
+      )
       const numEndpointsForHost = await getQB(ctx, queryRunner)
         .select(["uuid", "host"])
         .from(ApiEndpoint, "endpoint")
@@ -123,7 +159,12 @@ export class GetEndpointsService {
       if (queryRunner.isTransactionActive) {
         await queryRunner.rollbackTransaction()
       }
-      throw err
+      if (err.code === "25P02") {
+        throw new Error500InternalServer(
+          `Could not delete endpoint ${apiEndpointUuid} while there are incoming requests for endpoint`,
+        )
+      }
+      throw new Error500InternalServer("")
     } finally {
       await queryRunner.release()
     }
@@ -134,41 +175,76 @@ export class GetEndpointsService {
     apiEndpointUuids: string[],
     queryRunner: QueryRunner,
   ): Promise<void> {
-    await getQB(ctx, queryRunner)
-      .delete()
-      .from(AggregateTraceDataHourly)
-      .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
-      .execute()
-    await getQB(ctx, queryRunner)
-      .delete()
-      .from(Alert)
-      .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
-      .execute()
-    await getQB(ctx, queryRunner)
-      .delete()
-      .from(ApiEndpointTest)
-      .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
-      .execute()
-    await getQB(ctx, queryRunner)
-      .delete()
-      .from(ApiTrace)
-      .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
-      .execute()
-    await getQB(ctx, queryRunner)
-      .delete()
-      .from(Attack)
-      .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
-      .execute()
-    await getQB(ctx, queryRunner)
-      .delete()
-      .from(DataField)
-      .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
-      .execute()
-    await getQB(ctx, queryRunner)
-      .delete()
-      .from(ApiEndpoint)
-      .andWhere("uuid IN(:...ids)", { ids: apiEndpointUuids })
-      .execute()
+    await retryTypeormTransaction(
+      () =>
+        getQB(ctx, queryRunner)
+          .delete()
+          .from(AggregateTraceDataHourly)
+          .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
+          .execute(),
+      5,
+      true,
+    )
+    await retryTypeormTransaction(
+      () =>
+        getQB(ctx, queryRunner)
+          .delete()
+          .from(Alert)
+          .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
+          .execute(),
+      5,
+      true,
+    )
+    await retryTypeormTransaction(
+      () =>
+        getQB(ctx, queryRunner)
+          .delete()
+          .from(ApiEndpointTest)
+          .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
+          .execute(),
+      5,
+      true,
+    )
+    await retryTypeormTransaction(
+      () =>
+        getQB(ctx, queryRunner)
+          .delete()
+          .from(ApiTrace)
+          .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
+          .execute(),
+      5,
+      true,
+    )
+    await retryTypeormTransaction(
+      () =>
+        getQB(ctx, queryRunner)
+          .delete()
+          .from(Attack)
+          .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
+          .execute(),
+      5,
+      true,
+    )
+    await retryTypeormTransaction(
+      () =>
+        getQB(ctx, queryRunner)
+          .delete()
+          .from(DataField)
+          .andWhere(`"apiEndpointUuid" IN(:...ids)`, { ids: apiEndpointUuids })
+          .execute(),
+      5,
+      true,
+    )
+    await retryTypeormTransaction(
+      () =>
+        getQB(ctx, queryRunner)
+          .delete()
+          .from(ApiEndpoint)
+          .andWhere("uuid IN(:...ids)", { ids: apiEndpointUuids })
+          .execute(),
+      5,
+      true,
+    )
   }
 
   static async deleteHostAutogeneratedSpec(
@@ -176,12 +252,17 @@ export class GetEndpointsService {
     host: string,
     queryRunner: QueryRunner,
   ): Promise<void> {
-    await getQB(ctx, queryRunner)
-      .delete()
-      .from(OpenApiSpec)
-      .andWhere("name = :name", { name: `${host}-generated` })
-      .andWhere(`"isAutoGenerated" = True`)
-      .execute()
+    await retryTypeormTransaction(
+      () =>
+        getQB(ctx, queryRunner)
+          .delete()
+          .from(OpenApiSpec)
+          .andWhere("name = :name", { name: `${host}-generated` })
+          .andWhere(`"isAutoGenerated" = True`)
+          .execute(),
+      5,
+      true,
+    )
   }
 
   static async deleteHost(ctx: MetloContext, host: string): Promise<void> {
@@ -194,7 +275,7 @@ export class GetEndpointsService {
         .andWhere("host = :host", { host })
         .getRawMany()
       if (endpoints?.length > 0) {
-        await queryRunner.startTransaction()
+        await queryRunner.startTransaction("SERIALIZABLE")
         await this.deleteEndpointsBatch(
           ctx,
           endpoints?.map(e => e.uuid),
@@ -207,7 +288,12 @@ export class GetEndpointsService {
       if (queryRunner.isTransactionActive) {
         await queryRunner.rollbackTransaction()
       }
-      throw err
+      if (err.code === "25P02") {
+        throw new Error500InternalServer(
+          `Could not remove host ${host} while there are incoming requests`,
+        )
+      }
+      throw new Error500InternalServer("")
     } finally {
       await queryRunner.release()
     }

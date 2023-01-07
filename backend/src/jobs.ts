@@ -62,6 +62,7 @@ const main = async () => {
   const clearApiTracesQueue = createQueue(JobName.CLEAR_API_TRACES)
   const updateEndpointIpsQueue = createQueue(JobName.UPDATE_ENDPOINT_IPS)
   const logAggregatedStatsQueue = createQueue(JobName.LOG_AGGREGATED_STATS)
+  const fixEndpointsQueue = createQueue(JobName.FIX_ENDPOINTS)
 
   const queues: QueueInterface[] = [
     specQueue,
@@ -70,6 +71,7 @@ const main = async () => {
     clearApiTracesQueue,
     updateEndpointIpsQueue,
     logAggregatedStatsQueue,
+    fixEndpointsQueue,
   ]
 
   schedule.scheduleJob("*/60 * * * *", async () => {
@@ -123,6 +125,14 @@ const main = async () => {
   } else {
     log("Logging Aggregated Stats Disabled...", true)
   }
+
+  schedule.scheduleJob("*/60 * * * *", async () => {
+    await fixEndpointsQueue.add(
+      `${JobName.FIX_ENDPOINTS}`,
+      {},
+      { ...defaultJobOptions, jobId: JobName.FIX_ENDPOINTS },
+    )
+  })
 
   schedule.scheduleJob("* * * * *", async () => {
     for (const queue of queues) {

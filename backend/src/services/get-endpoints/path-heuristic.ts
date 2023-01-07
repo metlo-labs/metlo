@@ -74,6 +74,7 @@ const getDistinctPaths = (
 export const getTopSuggestedPaths = async (
   ctx: MetloContext,
   endpointId: string,
+  minNumTraces?: number,
 ): Promise<string[]> => {
   const traces = await getRepository(ctx, ApiTrace).find({
     select: {
@@ -88,6 +89,9 @@ export const getTopSuggestedPaths = async (
     },
   })
   const numTraces = traces.length
+  if (minNumTraces && numTraces < minNumTraces) {
+    return []
+  }
   const counterMap = getCounterMap(traces)
   const distinctPaths = getDistinctPaths(counterMap, traces, numTraces)
   const sorted = Object.keys(distinctPaths).sort(
@@ -101,6 +105,7 @@ export const updatePaths = async (
   providedPaths: string[],
   endpointId: string,
   userSet: boolean,
+  isJobRunner?: boolean,
 ) => {
   if (!providedPaths || !Array.isArray(providedPaths)) {
     throw new Error400BadRequest("Must provide list of paths to create.")
@@ -122,10 +127,9 @@ export const updatePaths = async (
       endpoint.host,
       queryRunner,
       getPathTokens(endpoint.path).length,
+      isJobRunner ?? false,
     )
-    await queryRunner.startTransaction()
     await updateEndpointsFromMap(ctx, endpointsMap, queryRunner, userSet)
-    await queryRunner.commitTransaction()
   } catch (err) {
     if (queryRunner.isTransactionActive) {
       await queryRunner.rollbackTransaction()
@@ -143,20 +147,29 @@ export const updateEndpointsFromMap = async (
   userSet: boolean,
 ) => {
   for (const item of Object.values(endpointsMap)) {
-    item.endpoint.riskScore = RiskScore.NONE
-    if (userSet) {
-      item.endpoint.userSet = true
-    }
-    await getEntityManager(ctx, queryRunner).save(item.endpoint)
-    const similarEndpointUuids = Object.values(item.similarEndpoints).map(
-      e => e.uuid,
-    )
-    if (similarEndpointUuids.length > 0) {
-      await GetEndpointsService.deleteEndpointsBatch(
-        ctx,
-        similarEndpointUuids,
-        queryRunner,
+    try {
+      item.endpoint.riskScore = RiskScore.NONE
+      if (userSet) {
+        item.endpoint.userSet = true
+      }
+      await queryRunner.startTransaction()
+      await getEntityManager(ctx, queryRunner).save(item.endpoint)
+      const similarEndpointUuids = Object.values(item.similarEndpoints).map(
+        e => e.uuid,
       )
+      if (similarEndpointUuids.length > 0) {
+        for (const uuid of similarEndpointUuids) {
+          await GetEndpointsService.deleteEndpoint(ctx, uuid)
+        }
+      }
+      await queryRunner.commitTransaction()
+    } catch (err) {
+      console.error(
+        `Encountered error when updating endpoint ${item.endpoint.uuid}: ${err}`,
+      )
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction()
+      }
     }
   }
 }
@@ -168,6 +181,7 @@ export const generateEndpointsMap = async (
   host: string,
   queryRunner: QueryRunner,
   numTokens: number,
+  isJobRunner?: boolean,
 ) => {
   const endpointsMap: Record<string, EndpointsMap> = {}
   const set = new Set<string>()
@@ -188,12 +202,13 @@ export const generateEndpointsMap = async (
         },
       },
     )
-    if (apiEndpoint) {
+    if (apiEndpoint && !isJobRunner) {
       throw new Error400BadRequest(
         `${item}: An endpoint with this path already exists for this method and host.`,
       )
+    } else if (!apiEndpoint) {
+      set.add(validPath.path)
     }
-    set.add(validPath.path)
   }
 
   for (const path of [...set]) {
