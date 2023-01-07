@@ -147,7 +147,7 @@ export const updatePathsHandler = async (
     if (!validator.isUUID(endpointId)) {
       throw new Error404NotFound("Endpoint does not exist.")
     }
-    await updatePaths(req.ctx, paths, endpointId)
+    await updatePaths(req.ctx, paths, endpointId, true)
     await ApiResponseHandler.success(res)
   } catch (err) {
     await ApiResponseHandler.error(res, err)
