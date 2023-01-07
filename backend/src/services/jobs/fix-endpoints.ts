@@ -43,9 +43,9 @@ const fixEndpoint = async (
     },
     take: MAX_ANALYZE_TRACES,
   })
-  let path = sanitizePath(endpoint.path)
+  let currentEndpointPath = sanitizePath(endpoint.path)
 
-  const currentEndpointTokens = path.split("/")
+  const currentEndpointTokens = currentEndpointPath.split("/")
   const currentEndpointTokenTypes = currentEndpointTokens.map(e =>
     e.match(paramRegexp) ? TokenType.PARAM : TokenType.CONSTANT,
   )
@@ -106,7 +106,7 @@ const fixEndpoint = async (
   }
 
   const newPaths = getPaths(tokenizedTraces, 0, 0).filter(
-    e => e != endpoint.path,
+    e => sanitizePath(e) != currentEndpointPath,
   )
 
   if (newPaths.length > 0) {
