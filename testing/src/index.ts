@@ -61,7 +61,11 @@ export const loadTestConfig = (path: string): TestConfig => {
   const parseRes = TestConfigSchema.safeParse(data)
   if (!parseRes.success) {
     console.log(chalk.bold.red("Failed to load test..."))
-    throw new Error(JSON.stringify(parseRes.error.flatten(), null, 4))
+    throw new Error(
+      parseRes.error.issues
+        .map(e => `${e.path.join(".")}: ${e.message}`)
+        .join("\n"),
+    )
   }
   return parseRes.data
 }

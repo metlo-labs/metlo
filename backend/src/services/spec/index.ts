@@ -172,7 +172,7 @@ export class SpecService {
       await queryRunner.query(deleteOpenAPISpecDiffAlerts(ctx), [fileName])
       await getQB(ctx, queryRunner)
         .update(ApiEndpoint)
-        .set({ openapiSpecName: null })
+        .set({ openapiSpecName: null, userSet: false })
         .andWhere('"openapiSpecName" = :name', { name: fileName })
         .execute()
       await getQB(ctx, queryRunner)
@@ -371,6 +371,7 @@ export class SpecService {
     try {
       await getEntityManager(ctx, queryRunner).save(existingSpec)
       for (const item of Object.values(endpointsMap)) {
+        item.endpoint.userSet = true
         await getEntityManager(ctx, queryRunner).save(item.endpoint)
         const similarEndpointUuids = []
         for (const e of Object.values(item.similarEndpoints)) {

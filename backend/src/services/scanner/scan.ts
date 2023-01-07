@@ -25,26 +25,24 @@ export const __DATA_CLASS_REGEX_MAP_INTERNAL__ = {
   [__DataClass_INTERNAL__.VIN]: VIN_REGEXP,
 }
 
-export class ScannerService {
-  static async scan(ctx: MetloContext, text: any): Promise<string[]> {
-    const res: string[] = []
-    let convertedText: string
-    try {
-      convertedText = text.toString()
-    } catch (err) {
-      return res
-    }
-
-    const DataClassInfo = await getCombinedDataClasses(ctx)
-
-    DataClassInfo.forEach(({ className, regex: exp }) => {
-      if (exp) {
-        const match = new RegExp(exp).test(convertedText)
-        if (match) {
-          res.push(className)
-        }
-      }
-    })
+export const scan = async (ctx: MetloContext, text: any): Promise<string[]> => {
+  const res: string[] = []
+  let convertedText: string
+  try {
+    convertedText = text.toString()
+  } catch (err) {
     return res
   }
+
+  const DataClassInfo = await getCombinedDataClasses(ctx)
+
+  DataClassInfo.forEach(({ className, regex: exp }) => {
+    if (exp) {
+      const match = new RegExp(exp).test(convertedText)
+      if (match) {
+        res.push(className)
+      }
+    }
+  })
+  return res
 }

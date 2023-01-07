@@ -104,6 +104,7 @@ export const updatePaths = async (
   ctx: MetloContext,
   providedPaths: string[],
   endpointId: string,
+  userSet: boolean,
   isJobRunner?: boolean,
 ) => {
   if (!providedPaths || !Array.isArray(providedPaths)) {
@@ -128,7 +129,7 @@ export const updatePaths = async (
       getPathTokens(endpoint.path).length,
       isJobRunner ?? false,
     )
-    await updateEndpointsFromMap(ctx, endpointsMap, queryRunner)
+    await updateEndpointsFromMap(ctx, endpointsMap, queryRunner, userSet)
   } catch (err) {
     if (queryRunner.isTransactionActive) {
       await queryRunner.rollbackTransaction()
@@ -143,10 +144,14 @@ export const updateEndpointsFromMap = async (
   ctx: MetloContext,
   endpointsMap: Record<string, EndpointsMap>,
   queryRunner: QueryRunner,
+  userSet: boolean,
 ) => {
   for (const item of Object.values(endpointsMap)) {
     try {
       item.endpoint.riskScore = RiskScore.NONE
+      if (userSet) {
+        item.endpoint.userSet = true
+      }
       await queryRunner.startTransaction()
       await getEntityManager(ctx, queryRunner).save(item.endpoint)
       const similarEndpointUuids = Object.values(item.similarEndpoints).map(

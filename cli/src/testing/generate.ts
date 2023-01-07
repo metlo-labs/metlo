@@ -13,7 +13,8 @@ import {
 import * as MetloTesting from "@metlo/testing"
 import { TEMPLATES } from "@metlo/testing/dist/templates"
 import groupBy from "lodash.groupby"
-import { urlJoin, validateTemplateObj } from "./utils"
+import { urlJoin } from "./utils"
+import { validateTemplateObj } from "./validate"
 
 const TYPE_TO_TEMPLATES = groupBy(TEMPLATES, e => e.name)
 
@@ -92,6 +93,7 @@ export const generateTest = async ({
   path: filePath,
   testType,
   host,
+  method,
   endpoint,
   version,
 }) => {
@@ -100,6 +102,7 @@ export const generateTest = async ({
     urlJoin(config.metloHost, "api/v1/gen-test-endpoint"),
     {
       params: {
+        method: method,
         endpoint: endpoint,
         host: host,
       },

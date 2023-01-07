@@ -35,6 +35,8 @@ import { addApiSpecColumnsToDataField1671511060114 } from "migrations/1671511060
 import { addUniqueNullIndexForDataField1671609270282 } from "migrations/1671609270282-add-unique-null-index-for-data-field"
 import { customDataClasses1671813043343 } from "migrations/1671813043343-custom-data-classes"
 import { dataFieldUniqueConstraint1672708787156 } from "migrations/1672708787156-data-field-unique-constraint"
+import { addTracehashColumnToDataField1672962660470 } from "migrations/1672962660470-add-tracehash-column-to-data-field"
+import { userSetEndpointColumn1673073826153 } from "migrations/1673073826153-user-set-endpoint-column"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -75,6 +77,8 @@ export const AppDataSource: DataSource = new DataSource({
     addUniqueNullIndexForDataField1671609270282,
     customDataClasses1671813043343,
     dataFieldUniqueConstraint1672708787156,
+    addTracehashColumnToDataField1672962660470,
+    userSetEndpointColumn1673073826153,
   ],
   migrationsRun: runMigration,
   logging: false,
