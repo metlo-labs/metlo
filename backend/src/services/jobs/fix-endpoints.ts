@@ -80,9 +80,9 @@ const fixEndpoint = async (
     if (validTokens.length == 0) {
       const nextPaths = getPaths(tokenizedTraces, position + 1)
       if (nextPaths.length > 0) {
-        paths = nextPaths.map(e => `/{param${position}}${e}`)
+        paths = nextPaths.map(e => `/{param${position + 1}}${e}`)
       } else {
-        paths = [`/{param${position}}`]
+        paths = [`/{param${position + 1}}`]
       }
     } else {
       for (const validTok of validTokens) {
