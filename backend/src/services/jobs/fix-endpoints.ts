@@ -26,7 +26,6 @@ const sanitizePath = (path: string) => {
   return path
 }
 
-
 const fixEndpoint = async (
   ctx: MetloContext,
   endpoint: ApiEndpoint,
@@ -80,14 +79,22 @@ const fixEndpoint = async (
     let paths: string[] = []
     if (validTokens.length == 0) {
       const nextPaths = getPaths(tokenizedTraces, position + 1)
-      paths = nextPaths.map(e => `/{param${position}}${e}`)
+      if (nextPaths.length > 0) {
+        paths = nextPaths.map(e => `/{param${position}}${e}`)
+      } else {
+        paths = [`/{param${position}}`]
+      }
     } else {
       for (const validTok of validTokens) {
         const nextPaths = getPaths(
           tokenizedTraces.filter(e => e[position] == validTok),
           position + 1,
         )
-        paths = paths.concat(nextPaths.map(e => `/{param${position}}${e}`))
+        if (nextPaths.length > 0) {
+          paths = paths.concat(nextPaths.map(e => `/${validTok}${e}`))
+        } else {
+          paths = paths.concat([`/${validTok}`])
+        }
       }
     }
     return paths
