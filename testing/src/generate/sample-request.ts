@@ -174,8 +174,12 @@ const addBodyToRequest = (
   const filteredDataFields = dataFields.filter(
     e =>
       e.contentType == contentType &&
-      (!traceHash.hash || e.traceHash[traceHash.hash]),
+      traceHash.hash &&
+      e.traceHash[traceHash.hash],
   )
+  if (filteredDataFields.length === 0) {
+    return gen
+  }
   let body: any = undefined
   for (const dataField of filteredDataFields) {
     const mapTokens = dataField.dataPath?.split(".")
