@@ -37,6 +37,7 @@ export const getGenTestEndpoint = async (
       contentType: e.contentType,
       dataPath: e.dataPath,
       dataType: e.dataType,
+      traceHash: e.traceHash,
     })),
   }
   const authConfigRepo = getRepository(ctx, AuthenticationConfig)
