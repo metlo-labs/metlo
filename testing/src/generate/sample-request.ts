@@ -174,7 +174,8 @@ const addBodyToRequest = (
   const filteredDataFields = dataFields.filter(
     e =>
       e.contentType == contentType &&
-      (!traceHash.hash || e.traceHash[traceHash.hash]),
+      traceHash.hash &&
+      e.traceHash[traceHash.hash],
   )
   let body: any = undefined
   for (const dataField of filteredDataFields) {
