@@ -32,6 +32,7 @@ import { SectionHeader } from "components/utils/Card"
 import { Alert, ApiEndpointDetailed, DataClass, Usage } from "@common/types"
 import { GetAlertParams } from "@common/api/alert"
 import { METHOD_TO_COLOR } from "~/constants"
+import { EndpointTab } from "enums"
 import DataFieldList from "./DataFieldList"
 import TraceList from "./TraceList"
 import { AlertTab } from "./AlertTab"
@@ -68,17 +69,17 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
     const cancelRef = React.useRef()
     const toast = useToast()
     const { tab, uuid } = router.query
-    const getDefaultTab = () => {
+    const getTab = () => {
       switch (tab) {
-        case "overview":
+        case EndpointTab.OVERVIEW:
           return 0
-        case "fields":
+        case EndpointTab.FIELDS:
           return 1
-        case "traces":
+        case EndpointTab.TRACES:
           return 2
-        case "alerts":
+        case EndpointTab.ALERTS:
           return 3
-        case "tests":
+        case EndpointTab.TESTS:
           return 4
         default:
           return 0
@@ -104,6 +105,16 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
       } finally {
         setDeleting(false)
       }
+    }
+
+    const handleTabClick = (newTab: EndpointTab) => {
+      let routerParams = {
+        pathname: `/endpoint/${endpoint.uuid}`,
+      }
+      if (newTab) {
+        routerParams["query"] = { tab: newTab }
+      }
+      router.push(routerParams, undefined, { shallow: true })
     }
 
     return (
@@ -153,20 +164,20 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
           display="flex"
           flexDir="column"
           flexGrow="1"
-          defaultIndex={getDefaultTab()}
+          index={getTab()}
           overflow="hidden"
         >
           <TabList>
-            <Tab>
+            <Tab onClick={() => handleTabClick(null)}>
               <SectionHeader text="Overview" sym={BiInfoCircle} />
             </Tab>
-            <Tab>
+            <Tab onClick={() => handleTabClick(EndpointTab.FIELDS)}>
               <SectionHeader text="Detected Fields" sym={BsSearch} />
             </Tab>
-            <Tab>
+            <Tab onClick={() => handleTabClick(EndpointTab.TRACES)}>
               <SectionHeader text="Traces" sym={GrStackOverflow} />
             </Tab>
-            <Tab>
+            <Tab onClick={() => handleTabClick(EndpointTab.ALERTS)}>
               <SectionHeader text="Alerts" sym={FaBell} />
             </Tab>
           </TabList>

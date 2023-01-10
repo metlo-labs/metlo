@@ -11,6 +11,7 @@ import {
   TabList,
   TabPanels,
 } from "@chakra-ui/react"
+import { useRouter } from "next/router"
 import { ConnectionType } from "@common/enums"
 import AWSdocs from "./docs/aws"
 import GCPDocs from "./docs/gcp"
@@ -19,11 +20,43 @@ import NodeDocs from "./docs/node"
 import JavaDocs from "./docs/java"
 import KubernetesDocs from "./docs/kubernetes"
 import GoDocs from "./docs/go"
+import { ConnectionTab } from "enums"
 
 interface ConnectionDocsListProps {}
 
 const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
   const colorMode = useColorMode()
+  const router = useRouter()
+  const { tab } = router.query
+
+  const getTab = () => {
+    switch (tab) {
+      case ConnectionTab.AWS:
+        return 0
+      case ConnectionTab.GCP:
+        return 1
+      case ConnectionTab.PYTHON:
+        return 2
+      case ConnectionTab.NODEJS:
+        return 3
+      case ConnectionTab.JAVA:
+        return 4
+      case ConnectionTab.GO:
+        return 5
+      case ConnectionTab.KUBERNETES:
+        return 6
+      default:
+        return 0
+    }
+  }
+
+  const handleTabClick = (newTab: ConnectionTab) => {
+    let routerParams = {}
+    if (newTab) {
+      routerParams["query"] = { tab: newTab }
+    }
+    router.push(routerParams, undefined, { shallow: true })
+  }
 
   const host = "http://<YOUR_METLO_HOST>:8081"
   const apiKey = "<YOUR_METLO_API_KEY>"
@@ -31,9 +64,9 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
   return (
     <VStack spacing={12} w={"full"}>
       <VStack spacing={6} w={"full"}>
-        <Tabs w={"full"}>
+        <Tabs w={"full"} index={getTab()}>
           <TabList w={"full"}>
-            <Tab>
+            <Tab onClick={() => handleTabClick(null)}>
               <HStack>
                 <Box>
                   <Image
@@ -45,7 +78,7 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
                 <Box display={{ base: "none", lg: "block" }}>AWS</Box>
               </HStack>
             </Tab>
-            <Tab>
+            <Tab onClick={() => handleTabClick(ConnectionTab.GCP)}>
               <HStack>
                 <Box>
                   <Image
@@ -57,7 +90,7 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
                 <Box display={{ base: "none", lg: "block" }}>GCP</Box>
               </HStack>
             </Tab>
-            <Tab>
+            <Tab onClick={() => handleTabClick(ConnectionTab.PYTHON)}>
               <HStack>
                 <Box>
                   <Image
@@ -69,7 +102,7 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
                 <Box display={{ base: "none", lg: "block" }}>Python</Box>
               </HStack>
             </Tab>
-            <Tab>
+            <Tab onClick={() => handleTabClick(ConnectionTab.NODEJS)}>
               <HStack>
                 <Box>
                   <Image
@@ -81,7 +114,7 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
                 <Box display={{ base: "none", lg: "block" }}>NodeJS</Box>
               </HStack>
             </Tab>
-            <Tab>
+            <Tab onClick={() => handleTabClick(ConnectionTab.JAVA)}>
               <HStack>
                 <Box>
                   <Image
@@ -93,7 +126,7 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
                 <Box display={{ base: "none", lg: "block" }}>Java</Box>
               </HStack>
             </Tab>
-            <Tab>
+            <Tab onClick={() => handleTabClick(ConnectionTab.GO)}>
               <HStack>
                 <Box>
                   <Image
@@ -105,7 +138,7 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
                 <Box display={{ base: "none", lg: "block" }}>Go</Box>
               </HStack>
             </Tab>
-            <Tab>
+            <Tab onClick={() => handleTabClick(ConnectionTab.KUBERNETES)}>
               <HStack>
                 <Box>
                   <Image
