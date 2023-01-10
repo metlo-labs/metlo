@@ -17,7 +17,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-const version = "0.0.2"
+const version = "0.0.4"
 
 var logLevelMap = map[string]logrus.Level{
 	"trace": logrus.TraceLevel,
