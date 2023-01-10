@@ -11,7 +11,7 @@ interface EndpointListProps {
   fetching: boolean
   endpoints: ApiEndpoint[]
   totalCount: number
-  setParams: (t: (e: GetEndpointParams) => GetEndpointParams) => void
+  setParams: (newParams: GetEndpointParams) => void
   params: GetEndpointParams
   hosts: string[]
   dataClasses: DataClass[]
@@ -28,10 +28,9 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
     dataClasses,
   }) => {
     const setCurrentPage = (page: number) => {
-      setParams(oldParams => ({
-        ...oldParams,
+      setParams({
         offset: (page - 1) * ENDPOINT_PAGE_LIMIT,
-      }))
+      })
     }
     return (
       <VStack
