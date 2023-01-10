@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import {
   Stack,
   Box,
@@ -55,7 +55,16 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
         offset: 0,
       })
     }
-    const debounceSearch = debounce(setSearchQuery, 500)
+    const [tmpQuery, setTmpQuery] = useState<string>(params.searchQuery)
+    const debounceSearch = useMemo(() => debounce(setSearchQuery, 500), [])
+
+    useEffect(() => {
+      setTmpQuery(params.searchQuery)
+
+      return () => {
+        debounceSearch.cancel()
+      }
+    }, [params.searchQuery])
 
     return (
       <VStack spacing="6">
@@ -166,9 +175,12 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
             <BsSearch />
           </InputLeftElement>
           <Input
-            defaultValue={params.searchQuery}
+            value={tmpQuery}
             spellCheck={false}
-            onChange={e => debounceSearch(e.target.value)}
+            onChange={e => {
+              debounceSearch(e.target.value)
+              setTmpQuery(e.target.value)
+            }}
             w={{ base: "full", lg: "xs" }}
             type="text"
             placeholder="Search for endpoint..."
