@@ -7,7 +7,7 @@ export const GetEndpointParamsSchema = z.object({
   riskScores: z.nativeEnum(RiskScore).array().optional(),
   dataClasses: z.string().array().optional(),
   searchQuery: z.string().optional(),
-  isAuthenticated: z.boolean().optional(),
+  isAuthenticated: z.string().optional(),
   offset: z
     .union([z.number(), z.string().regex(/^\d+$/).transform(Number)])
     .optional(),

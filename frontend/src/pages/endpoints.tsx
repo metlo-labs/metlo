@@ -1,3 +1,4 @@
+import { useRouter } from "next/router"
 import { Heading, VStack } from "@chakra-ui/react"
 import superjson from "superjson"
 import { useState } from "react"
@@ -13,45 +14,40 @@ import { ENDPOINT_PAGE_LIMIT } from "~/constants"
 import { getDataClasses } from "api/dataClasses"
 
 interface EndpointsProps {
-  initParams: string
-  initEndpoints: string
-  initTotalCount: number
+  params: string
+  endpoints: string
+  totalCount: number
   hosts: string
   dataClasses: string
 }
 
 const Endpoints: React.FC<EndpointsProps> = ({
-  initParams,
-  initEndpoints,
-  initTotalCount,
+  params,
+  endpoints,
+  totalCount,
   hosts,
   dataClasses,
 }) => {
-  const parsedInitParams = superjson.parse<GetEndpointParams>(initParams)
-  const parsedInitEndpoints = superjson.parse<ApiEndpoint[]>(initEndpoints)
+  const parsedInitParams = superjson.parse<GetEndpointParams>(params)
+  const parsedInitEndpoints = superjson.parse<ApiEndpoint[]>(endpoints)
   const parsedHosts = superjson.parse<string[]>(hosts) ?? []
   const parsedDataClasses = superjson.parse<DataClass[]>(dataClasses) ?? []
+  const router = useRouter()
 
   const [fetching, setFetching] = useState<boolean>(false)
-  const [endpoints, setEndpoints] = useState<ApiEndpoint[]>(parsedInitEndpoints)
-  const [totalCount, setTotalCount] = useState<number>(initTotalCount)
-  const [params, setParamsInner] = useState<GetEndpointParams>(parsedInitParams)
 
-  const fetchEndpoints = (fetchParams: GetEndpointParams) => {
+  const setParams = (newParams: GetEndpointParams) => {
     setFetching(true)
-    const fetch = async () => {
-      const res = await getEndpoints(fetchParams)
-      setEndpoints(res[0])
-      setTotalCount(res[1])
-      setFetching(false)
-    }
-    fetch()
-  }
-
-  const setParams = (t: (e: GetEndpointParams) => GetEndpointParams) => {
-    let newParams = t(params)
-    setParamsInner(newParams)
-    fetchEndpoints(newParams)
+    newParams = { ...parsedInitParams, ...newParams }
+    router.push({
+      query: {
+        ...newParams,
+        riskScores: newParams.riskScores?.join(",") ?? "",
+        hosts: newParams.hosts?.join(",") ?? "",
+        dataClasses: newParams.dataClasses?.join(",") ?? "",
+      },
+    })
+    setFetching(false)
   }
 
   return (
@@ -63,9 +59,9 @@ const Endpoints: React.FC<EndpointsProps> = ({
           </Heading>
           <EndpointList
             hosts={parsedHosts}
-            endpoints={endpoints}
+            endpoints={parsedInitEndpoints}
             fetching={fetching}
-            params={params}
+            params={parsedInitParams}
             totalCount={totalCount}
             setParams={setParams}
             dataClasses={parsedDataClasses}
@@ -78,7 +74,7 @@ const Endpoints: React.FC<EndpointsProps> = ({
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const dataClasses: DataClass[] = await getDataClasses({})
-  const initParams: GetEndpointParams = {
+  const params: GetEndpointParams = {
     riskScores: ((context.query.riskScores as string) || "")
       .split(",")
       .filter(e => Object.values(RiskScore).includes(e as RiskScore))
@@ -87,21 +83,24 @@ export const getServerSideProps: GetServerSideProps = async context => {
     dataClasses: ((context.query.dataClasses as string) || "")
       .split(",")
       .filter(e => dataClasses.find(({ className }) => className == e)),
-    offset: 0,
-    searchQuery: "",
-    isAuthenticated: null,
+    offset: parseInt((context.query.offset as string) ?? "0"),
+    searchQuery: (context.query.searchQuery as string) ?? "",
+    isAuthenticated: (context.query.isAuthenticated as string) ?? "",
     limit: ENDPOINT_PAGE_LIMIT,
   }
   const hostsPromise = getHosts()
-  const endpointsPromise = getEndpoints(initParams)
-  const [hosts, endpoints] = await Promise.all([hostsPromise, endpointsPromise])
-  const initEndpoints = endpoints[0]
-  const totalCount = endpoints[1]
+  const endpointsPromise = getEndpoints(params)
+  const [hosts, endpointsResp] = await Promise.all([
+    hostsPromise,
+    endpointsPromise,
+  ])
+  const endpoints = endpointsResp[0]
+  const totalCount = endpointsResp[1]
   return {
     props: {
-      initParams: superjson.stringify(initParams),
-      initEndpoints: superjson.stringify(initEndpoints),
-      initTotalCount: totalCount,
+      params: superjson.stringify(params),
+      endpoints: superjson.stringify(endpoints),
+      totalCount: totalCount,
       hosts: superjson.stringify(hosts),
       dataClasses: superjson.stringify(dataClasses),
     },

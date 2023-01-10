@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import {
   Stack,
   Box,
@@ -19,7 +19,26 @@ interface EndpointFilterProps {
   riskList: string[]
   dataClassesList: string[]
   params: GetEndpointParams
-  setParams: (t: (e: GetEndpointParams) => GetEndpointParams) => void
+  setParams: (newParams: GetEndpointParams) => void
+}
+
+enum AuthenticationFilter {
+  AUTHENTICATED = "true",
+  UNAUTHENTICATED = "false",
+  ALL = "",
+}
+
+const getAuthenticationLabel = (value: AuthenticationFilter) => {
+  switch (value) {
+    case AuthenticationFilter.ALL:
+      return "All"
+    case AuthenticationFilter.AUTHENTICATED:
+      return "Authenticated"
+    case AuthenticationFilter.UNAUTHENTICATED:
+      return "Unauthenticated"
+    default:
+      return "All"
+  }
 }
 
 const FilterHeader: React.FC<{ title: string }> = React.memo(({ title }) => (
@@ -31,13 +50,21 @@ const FilterHeader: React.FC<{ title: string }> = React.memo(({ title }) => (
 const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
   ({ hostList, riskList, dataClassesList, params, setParams }) => {
     const setSearchQuery = (val: string) => {
-      setParams(oldParams => ({
-        ...oldParams,
+      setParams({
         searchQuery: val,
         offset: 0,
-      }))
+      })
     }
-    const debounceSearch = debounce(setSearchQuery, 500)
+    const [tmpQuery, setTmpQuery] = useState<string>(params.searchQuery)
+    const debounceSearch = useMemo(() => debounce(setSearchQuery, 500), [])
+
+    useEffect(() => {
+      setTmpQuery(params.searchQuery)
+
+      return () => {
+        debounceSearch.cancel()
+      }
+    }, [params.searchQuery])
 
     return (
       <VStack spacing="6">
@@ -58,11 +85,10 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
               placeholder="Filter by host..."
               instanceId="endpoint-tbl-env-host"
               onChange={e =>
-                setParams(oldParams => ({
-                  ...oldParams,
+                setParams({
                   hosts: e.map(host => host.label),
                   offset: 0,
-                }))
+                })
               }
             />
           </Box>
@@ -85,18 +111,17 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
               placeholder="Filter by risk..."
               instanceId="endpoint-tbl-env-risk"
               onChange={e =>
-                setParams(oldParams => ({
-                  ...oldParams,
+                setParams({
                   riskScores: e.map(riskScore => riskScore.label as RiskScore),
                   offset: 0,
-                }))
+                })
               }
             />
           </Box>
           <Box w={{ base: "full", lg: "xs" }} zIndex="1001">
             <FilterHeader title="Sensitive Data Class" />
             <Select
-              defaultValue={
+              value={
                 params &&
                 params?.dataClasses?.map(dataClass => ({
                   label: dataClass as string,
@@ -112,32 +137,35 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
               placeholder="Filter by sensitive data class..."
               instanceId="endpoint-tbl-env-dataClass"
               onChange={e =>
-                setParams(oldParams => ({
-                  ...oldParams,
+                setParams({
                   dataClasses: e.map(dataClass => dataClass.label),
                   offset: 0,
-                }))
+                })
               }
             />
           </Box>
           <Box w={{ base: "full", lg: "xs" }} zIndex="1000">
             <FilterHeader title="Authentication" />
             <Select
-              defaultValue={params && { label: "All", value: null }}
+              value={{
+                label: getAuthenticationLabel(
+                  params.isAuthenticated as AuthenticationFilter,
+                ),
+                value: params.isAuthenticated,
+              }}
               size="sm"
-              options={[
-                { label: "All", value: null },
-                { label: "Authenticated", value: true },
-                { label: "Unauthenticated", value: false },
-              ]}
+              options={Object.keys(AuthenticationFilter).map(e => ({
+                label: getAuthenticationLabel(AuthenticationFilter[e]),
+                value: AuthenticationFilter[e],
+              }))}
               placeholder="Filter by Authentication"
               instanceId="endpoint-tbl-env-isAuthenticated"
               onChange={e =>
-                setParams(oldParams => ({
-                  ...oldParams,
+                e.value !== params.isAuthenticated &&
+                setParams({
                   isAuthenticated: e.value,
                   offset: 0,
-                }))
+                })
               }
             />
           </Box>
@@ -147,8 +175,12 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
             <BsSearch />
           </InputLeftElement>
           <Input
+            value={tmpQuery}
             spellCheck={false}
-            onChange={e => debounceSearch(e.target.value)}
+            onChange={e => {
+              debounceSearch(e.target.value)
+              setTmpQuery(e.target.value)
+            }}
             w={{ base: "full", lg: "xs" }}
             type="text"
             placeholder="Search for endpoint..."

@@ -1,3 +1,4 @@
+import { useRouter } from "next/router"
 import {
   Box,
   Button,
@@ -31,6 +32,7 @@ import { SectionHeader } from "components/utils/Card"
 import { getWebhooks } from "api/webhook"
 import { Integrations } from "components/Integrations"
 import { getHosts } from "api/endpoints"
+import { SettingsTab } from "enums"
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const [apiKeys, webhooks, hosts] = await Promise.all([
@@ -72,6 +74,31 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
   const [isAddingKey, setIsAddingKey] = useState(false)
   const [updatingMetloConfig, setUpdatingMetloConfig] = useState(false)
   const toast = useToast()
+  const router = useRouter()
+  const { tab } = router.query
+
+  const getTab = () => {
+    switch (tab) {
+      case SettingsTab.KEYS:
+        return 0
+      case SettingsTab.CONFIG:
+        return 1
+      case SettingsTab.INTEGRATIONS:
+        return 2
+      default:
+        return 0
+    }
+  }
+
+  const handleTabClick = (newTab: SettingsTab) => {
+    let routerParams = {}
+    if (newTab) {
+      routerParams["query"] = { tab: newTab }
+    }
+    router.push(routerParams, undefined, {
+      shallow: true,
+    })
+  }
 
   const addKey = async (key_name: string) => {
     setIsAddingKey(true)
@@ -137,15 +164,21 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
           <Heading fontWeight="medium" size="lg" mb="4">
             Settings
           </Heading>
-          <Tabs w="full" display="flex" flexDir="column" flexGrow="1">
+          <Tabs
+            index={getTab()}
+            w="full"
+            display="flex"
+            flexDir="column"
+            flexGrow="1"
+          >
             <TabList>
-              <Tab>
+              <Tab onClick={() => handleTabClick(null)}>
                 <SectionHeader text="API Keys" />
               </Tab>
-              <Tab>
+              <Tab onClick={() => handleTabClick(SettingsTab.CONFIG)}>
                 <SectionHeader text="Metlo Config" />
               </Tab>
-              <Tab>
+              <Tab onClick={() => handleTabClick(SettingsTab.INTEGRATIONS)}>
                 <SectionHeader text="Integrations" />
               </Tab>
             </TabList>
