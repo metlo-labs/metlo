@@ -45,7 +45,7 @@ func (m *Metlo) Send(data MetloTrace) {
 	}
 	utils.Log.WithFields(logrus.Fields{
 		"Method": data.Request.Method,
-		"URL":    data.Request.Url.Host,
+		"Host":   data.Request.Url.Host,
 		"Path":   data.Request.Url.Path,
 	}).Trace("Sending Request.")
 	json, err := json.Marshal(data)
@@ -72,7 +72,7 @@ func (m *Metlo) Send(data MetloTrace) {
 		message, _ := io.ReadAll(resp.Body)
 		utils.Log.WithFields(logrus.Fields{
 			"Method":  data.Request.Method,
-			"URL":     data.Request.Url.Host,
+			"Host":    data.Request.Url.Host,
 			"Path":    data.Request.Url.Path,
 			"Code":    resp.Status,
 			"Message": string(message),
@@ -80,7 +80,7 @@ func (m *Metlo) Send(data MetloTrace) {
 	} else {
 		utils.Log.WithFields(logrus.Fields{
 			"Method": data.Request.Method,
-			"URL":    data.Request.Url.Host,
+			"Host":   data.Request.Url.Host,
 			"Path":   data.Request.Url.Path,
 		}).Trace("Sent Request.")
 	}

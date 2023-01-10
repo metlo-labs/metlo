@@ -33,9 +33,12 @@ func MapHttpToMetloTrace(
 	}
 
 	reqURLParams := make([]NV, 0)
-	queryMap := req.URL.Query()
-	for k := range queryMap {
-		reqURLParams = append(reqURLParams, NV{Name: k, Value: strings.Join(queryMap[k], ",")})
+
+	if req.URL != nil {
+		queryMap := req.URL.Query()
+		for k := range queryMap {
+			reqURLParams = append(reqURLParams, NV{Name: k, Value: strings.Join(queryMap[k], ",")})
+		}
 	}
 
 	host := ""
@@ -71,7 +74,7 @@ func MapHttpToMetloTrace(
 			Method: req.Method,
 			Url: TraceUrl{
 				Host:       host,
-				Path:       req.URL.Path,
+				Path:       GetPath(req),
 				Parameters: reqURLParams,
 			},
 			Headers: reqHeaders,

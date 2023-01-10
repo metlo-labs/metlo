@@ -57,8 +57,8 @@ func (h *HttpAssembler) AddResponse(resp *http.Response, vid uint32, netFlow gop
 		if found {
 			utils.Log.WithFields(logrus.Fields{
 				"Method":   matchedReq.req.Method,
-				"URL":      matchedReq.req.Host,
-				"Path":     matchedReq.req.URL.Path,
+				"Host":     metloapi.GetHost(matchedReq.req),
+				"Path":     metloapi.GetPath(matchedReq.req),
 				"reqKey":   reverseKey.String(),
 				"respKey":  respKey.String(),
 				"size":     respBodyLen,
@@ -108,8 +108,8 @@ func (h *HttpAssembler) AddRequest(req *http.Request, vid uint32, netFlow gopack
 	if reqBodyLen > utils.MAX_BODY_SIZE {
 		utils.Log.WithFields(logrus.Fields{
 			"Method":  req.Method,
-			"URL":     req.URL.Host,
-			"Path":    req.URL.Path,
+			"Host":    metloapi.GetHost(req),
+			"Path":    metloapi.GetPath(req),
 			"key":     key.String(),
 			"size":    reqBodyLen,
 			"maxSize": utils.MAX_BODY_SIZE,
@@ -135,8 +135,8 @@ func (h *HttpAssembler) Tick(now time.Time) {
 			numCleaned += 1
 			utils.Log.WithFields(logrus.Fields{
 				"Method": h.requestMap[key].req.Method,
-				"URL":    h.requestMap[key].req.Host,
-				"Path":   h.requestMap[key].req.URL.Path,
+				"Host":   metloapi.GetHost(h.requestMap[key].req),
+				"Path":   metloapi.GetPath(h.requestMap[key].req),
 			}).Trace("Cleaned Up Request")
 			delete(h.requestMap, key)
 		}
