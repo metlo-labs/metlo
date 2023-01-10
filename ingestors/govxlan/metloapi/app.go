@@ -43,6 +43,11 @@ func (m *Metlo) Send(data MetloTrace) {
 		utils.Log.Trace("Skipped Request to Metlo Host.")
 		return
 	}
+	utils.Log.WithFields(logrus.Fields{
+		"Method": data.Request.Method,
+		"URL":    data.Request.Url.Host,
+		"Path":   data.Request.Url.Path,
+	}).Trace("Sending Request.")
 	json, err := json.Marshal(data)
 	if err != nil {
 		log.Fatal(err)
@@ -59,15 +64,25 @@ func (m *Metlo) Send(data MetloTrace) {
 	if err != nil {
 		utils.Log.WithError(err).Debug("Error Sending Request.")
 	}
+	if resp == nil {
+		return
+	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 400 {
 		message, _ := io.ReadAll(resp.Body)
 		utils.Log.WithFields(logrus.Fields{
+			"Method":  data.Request.Method,
+			"URL":     data.Request.Url.Host,
+			"Path":    data.Request.Url.Path,
 			"Code":    resp.Status,
 			"Message": string(message),
 		}).Debug("Error Sending Request.")
 	} else {
-		utils.Log.Trace("Sent Request.")
+		utils.Log.WithFields(logrus.Fields{
+			"Method": data.Request.Method,
+			"URL":    data.Request.Url.Host,
+			"Path":   data.Request.Url.Path,
+		}).Trace("Sent Request.")
 	}
 }
 

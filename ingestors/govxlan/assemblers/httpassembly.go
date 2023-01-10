@@ -40,24 +40,43 @@ func NewHttpAssembler(metloAPI *metloapi.Metlo) *HttpAssembler {
 func (h *HttpAssembler) AddResponse(resp *http.Response, vid uint32, netFlow gopacket.Flow, transferFlow gopacket.Flow) {
 	defer resp.Body.Close()
 	h.totalResponseCount += 1
+
 	respBody, _ := io.ReadAll(resp.Body)
 	respBodyLen := len(respBody)
-	if respBodyLen > utils.MAX_BODY_SIZE {
-		key := key{vid, netFlow, transferFlow}
-		utils.Log.WithFields(logrus.Fields{
-			"key":     key,
-			"size":    respBodyLen,
-			"maxSize": utils.MAX_BODY_SIZE,
-		}).Debug("Skipped Large Response.")
-		return
-	}
+	respKey := key{vid, netFlow, transferFlow}
 	reverseKey := key{vid, netFlow.Reverse(), transferFlow.Reverse()}
+
 	h.mu.Lock()
 	matchedReq, found := h.requestMap[reverseKey.String()]
 	if found {
 		delete(h.requestMap, reverseKey.String())
 	}
 	h.mu.Unlock()
+
+	if respBodyLen > utils.MAX_BODY_SIZE {
+		if found {
+			utils.Log.WithFields(logrus.Fields{
+				"Method":   matchedReq.req.Method,
+				"URL":      matchedReq.req.Host,
+				"Path":     matchedReq.req.URL.Path,
+				"reqKey":   reverseKey.String(),
+				"respKey":  respKey.String(),
+				"size":     respBodyLen,
+				"maxSize":  utils.MAX_BODY_SIZE,
+				"reqFound": found,
+			}).Debug("Skipped Large Response.")
+		} else {
+			utils.Log.WithFields(logrus.Fields{
+				"reqKey":   reverseKey.String(),
+				"respKey":  respKey.String(),
+				"size":     respBodyLen,
+				"maxSize":  utils.MAX_BODY_SIZE,
+				"reqFound": found,
+			}).Debug("Skipped Large Response.")
+		}
+		return
+	}
+
 	if found {
 		req := matchedReq.req
 		h.totalMatchedResponses += 1
@@ -84,8 +103,10 @@ func (h *HttpAssembler) AddRequest(req *http.Request, vid uint32, netFlow gopack
 	reqBodyLen := len(reqBody)
 	if reqBodyLen > utils.MAX_BODY_SIZE {
 		utils.Log.WithFields(logrus.Fields{
-			"path":    req.URL.Path,
-			"key":     key,
+			"Method":  req.Method,
+			"URL":     req.URL.Host,
+			"Path":    req.URL.Path,
+			"key":     key.String(),
 			"size":    reqBodyLen,
 			"maxSize": utils.MAX_BODY_SIZE,
 		}).Debug("Skipped Large Request.")
@@ -108,6 +129,11 @@ func (h *HttpAssembler) Tick(now time.Time) {
 	for key, pendingReq := range h.requestMap {
 		if pendingReq.created.Before(now.Add(-1 * time.Minute)) {
 			numCleaned += 1
+			utils.Log.WithFields(logrus.Fields{
+				"Method": h.requestMap[key].req.Method,
+				"URL":    h.requestMap[key].req.Host,
+				"Path":   h.requestMap[key].req.URL.Path,
+			}).Trace("Cleaned Up Request")
 			delete(h.requestMap, key)
 		}
 	}
@@ -117,6 +143,7 @@ func (h *HttpAssembler) Tick(now time.Time) {
 		}).Debug("Cleaned Up Requests")
 	}
 	utils.Log.WithFields(logrus.Fields{
+		"pendingReqs":           len(h.requestMap),
 		"totalRequestCount":     h.totalRequestCount,
 		"totalResponseCount":    h.totalResponseCount,
 		"totalMatchedResponses": h.totalMatchedResponses,
