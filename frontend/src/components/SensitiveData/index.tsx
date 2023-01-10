@@ -1,38 +1,34 @@
 import React, { useState } from "react"
+import { useRouter } from "next/router"
 import { Box, Heading, VStack } from "@chakra-ui/react"
 import { ContentContainer } from "components/utils/ContentContainer"
 import AggPIIChart from "components/SensitiveData/AggPIIChart"
-import {  SensitiveDataSummary } from "@common/types"
+import { SensitiveDataSummary } from "@common/types"
 import { GetSensitiveDataAggParams } from "@common/api/summary"
 import SensitiveDataFilters from "./Filters"
 import List from "./List"
-import { getSensitiveDataSummary } from "api/sensitiveData"
 
 interface SensitiveDataPageProps {
-  initSummary: SensitiveDataSummary
+  summary: SensitiveDataSummary
   hosts: string[]
+  params: GetSensitiveDataAggParams
 }
 
 const SensitiveDataPage: React.FC<SensitiveDataPageProps> = React.memo(
-  ({ initSummary, hosts }) => {
+  ({ summary, hosts, params }) => {
     const [fetching, setFetching] = useState<boolean>(false)
-    const [summary, setSummary] = useState<SensitiveDataSummary>(initSummary)
-    const [params, setParamsInner] = useState<GetSensitiveDataAggParams>({
-      hosts: [],
-      riskScores: [],
-      locations: [],
-    })
+    const router = useRouter()
 
-    const setParams = (
-      t: (params: GetSensitiveDataAggParams) => GetSensitiveDataAggParams,
-    ) => {
+    const setParams = (newParams: GetSensitiveDataAggParams) => {
       setFetching(true)
-      const newParams = t(params)
-      setParamsInner(newParams)
-      getSensitiveDataSummary(newParams)
-        .then(e => setSummary(e))
-        .catch(e => console.error(e))
-        .finally(() => setFetching(false))
+      newParams = { ...params, ...newParams }
+      router.push({
+        query: {
+          hosts: newParams.hosts.join(","),
+          riskScores: newParams.riskScores.join(","),
+          locations: newParams.locations.join(","),
+        },
+      })
     }
 
     return (

@@ -10,9 +10,7 @@ interface SensitiveDataFilterProps {
   riskScores?: string[]
   locations?: DataSection[]
   hostList: string[]
-  setParams: (
-    t: (params: GetSensitiveDataAggParams) => GetSensitiveDataAggParams,
-  ) => void
+  setParams: (params: GetSensitiveDataAggParams) => void
 }
 
 const FilterHeader: React.FC<{ title: string }> = React.memo(({ title }) => (
@@ -45,10 +43,9 @@ const SensitiveDataFilters: React.FC<SensitiveDataFilterProps> = React.memo(
             placeholder="Filter by host..."
             instanceId="sensitive-data-tbl-env-host"
             onChange={e =>
-              setParams(params => ({
-                ...params,
+              setParams({
                 hosts: e.map(host => host.label),
-              }))
+              })
             }
           />
         </Box>
@@ -72,10 +69,9 @@ const SensitiveDataFilters: React.FC<SensitiveDataFilterProps> = React.memo(
             placeholder="Filter by risk..."
             instanceId="sensitive-data-tbl-env-risk"
             onChange={e =>
-              setParams(params => ({
-                ...params,
+              setParams({
                 riskScores: e.map(riskScore => riskScore.label as RiskScore),
-              }))
+              })
             }
           />
         </Box>
@@ -99,10 +95,9 @@ const SensitiveDataFilters: React.FC<SensitiveDataFilterProps> = React.memo(
             placeholder="Filter by location..."
             instanceId="sensitive-data-tbl-env-location"
             onChange={e =>
-              setParams(params => ({
-                ...params,
+              setParams({
                 locations: e.map(location => location.value as DataSection),
-              }))
+              })
             }
           />
         </Box>
