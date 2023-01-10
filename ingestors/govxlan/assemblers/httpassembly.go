@@ -92,6 +92,10 @@ func (h *HttpAssembler) AddResponse(resp *http.Response, vid uint32, netFlow gop
 		} else {
 			utils.Log.Trace("Request Rate Limited On Client Side")
 		}
+	} else {
+		utils.Log.WithFields(logrus.Fields{
+			"respKey": respKey.String(),
+		}).Trace("Unable to find request for response.")
 	}
 }
 
