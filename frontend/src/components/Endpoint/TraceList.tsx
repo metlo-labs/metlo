@@ -74,6 +74,7 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces, uuid }) => {
           py="1"
           colorScheme={statusCodeToColor(row.responseStatus) || "gray"}
           data-tag="allowRowEvents"
+          pointerEvents="none"
         >
           {row.responseStatus}
         </Badge>
@@ -86,7 +87,7 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces, uuid }) => {
       name: "Time",
       selector: (row: ApiTrace) => `${row.createdAt}`,
       cell: (row: ApiTrace) => (
-        <Text fontSize="sm" data-tag="allowRowEvents">
+        <Text pointerEvents="none" fontSize="sm" data-tag="allowRowEvents">
           {getDateTimeString(row.createdAt)}
         </Text>
       ),
@@ -119,12 +120,12 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces, uuid }) => {
           </Code>
         </HStack>
       ),
-      grow: 1,
+      grow: 3,
       id: "path",
     },
     {
       name: "Source",
-      sortable: true,
+      sortable: false,
       selector: (row: ApiTrace) => `${row.meta.source}:${row.meta.sourcePort}`,
       cell: (row: ApiTrace) => (
         <Text
@@ -134,8 +135,7 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces, uuid }) => {
         >{`${row.meta.source}:${row.meta.sourcePort}`}</Text>
       ),
       id: "source",
-      width: "225px",
-      hide: 1400,
+      hide: 1300,
     },
   ]
 
@@ -153,7 +153,7 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces, uuid }) => {
         bg={headerBg}
       >
         <Heading size="md">Details</Heading>
-        <Button variant="ghost" onClick={() => setTrace(undefined)}>
+        <Button border="0" variant="ghost" onClick={() => setTrace(undefined)}>
           <ImCross />
         </Button>
       </HStack>

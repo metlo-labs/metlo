@@ -47,7 +47,7 @@ const NewKeys: React.FC<NewKeysInterface> = ({
 
         <ModalFooter>
           <HStack>
-            <Button colorScheme="red" onClick={onClose} disabled={isAddingKey}>
+            <Button onClick={onClose} disabled={isAddingKey}>
               Close
             </Button>
             <Button

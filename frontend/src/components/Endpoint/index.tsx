@@ -153,7 +153,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
                 endpointPath={endpoint.path}
                 endpointId={endpoint.uuid}
               />
-              <Button colorScheme="red" isLoading={deleting} onClick={onOpen}>
+              <Button variant="delete" isLoading={deleting} onClick={onOpen}>
                 Delete
               </Button>
             </HStack>
@@ -227,7 +227,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
                 </Button>
                 <Button
                   isLoading={deleting}
-                  colorScheme="red"
+                  variant="delete"
                   onClick={handleEndpointDelete}
                   ml={3}
                 >

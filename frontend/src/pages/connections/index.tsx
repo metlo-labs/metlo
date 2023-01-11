@@ -8,7 +8,7 @@ const Connections = () => {
     <PageWrapper title="Connections">
       <ContentContainer maxContentW="100rem" px="8" py="8">
         <VStack w="full" alignItems="flex-start">
-          <Heading fontWeight="medium" size="xl" mb="2">
+          <Heading fontWeight="semibold" size="xl" mb="2">
             Connections
           </Heading>
           <Text fontWeight="medium" pb="6">

@@ -62,7 +62,7 @@ export const DataFieldTagList: React.FC<TagListProps> = React.memo(
           </Box>
           <Button
             colorScheme="blue"
-            rounded="sm"
+            rounded="md"
             size="sm"
             onClick={saveTags}
             isLoading={updating}
@@ -70,7 +70,7 @@ export const DataFieldTagList: React.FC<TagListProps> = React.memo(
             Save
           </Button>
           <Button
-            rounded="sm"
+            rounded="md"
             size="sm"
             onClick={() => {
               setEditing(false)
@@ -103,6 +103,7 @@ export const DataFieldTagList: React.FC<TagListProps> = React.memo(
         </Wrap>
         <Button
           variant="link"
+          border="0"
           leftIcon={editedTags.length > 0 ? <HiPencil /> : <FiPlus />}
           onClick={() => setEditing(true)}
           color="gray.500"

@@ -37,11 +37,18 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
         w="full"
         alignItems="flex-start"
         borderWidth="1px"
-        rounded="md"
+        rounded="xl"
         spacing="0"
         overflow="visible"
       >
-        <Box p="4" borderBottom="1px" borderColor="inherit" w="full">
+        <Box
+          roundedTop="xl"
+          bg="white"
+          p="4"
+          borderBottom="1px"
+          borderColor="inherit"
+          w="full"
+        >
           <EndpointFilters
             hostList={hosts}
             riskList={Object.values(RiskScore)}

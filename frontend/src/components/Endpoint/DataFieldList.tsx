@@ -10,6 +10,7 @@ import {
   Button,
   Text,
   Stack,
+  Divider,
 } from "@chakra-ui/react"
 import { Select } from "chakra-react-select"
 import SplitPane from "react-split-pane"
@@ -82,6 +83,7 @@ const columns = (dataClassInfo: DataClass[]): TableColumn<DataField>[] => {
         <Badge
           p="1"
           fontSize="sm"
+          fontWeight="medium"
           colorScheme={
             RISK_TO_COLOR[
               getMaxRiskScoreFromList(
@@ -397,7 +399,11 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
           bg={headerBg}
         >
           <Heading size="md">Details</Heading>
-          <Button variant="ghost" onClick={() => setDataField(undefined)}>
+          <Button
+            border="0"
+            variant="ghost"
+            onClick={() => setDataField(undefined)}
+          >
             <ImCross />
           </Button>
         </HStack>
@@ -415,7 +421,12 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
 
     return (
       <Box display="flex" flexDir="column" h="100%">
-        <Stack flex="0 0 auto" p={2} direction={{ base: "column", md: "row" }}>
+        <Stack
+          bg="white"
+          flex="0 0 auto"
+          p={4}
+          direction={{ base: "column", md: "row" }}
+        >
           <Box zIndex="1002" w={{ base: "full", md: "md" }}>
             <Text fontWeight="semibold" mb="2" fontSize="sm">
               Status Code
@@ -504,6 +515,7 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
             />
           </Box>
         </Stack>
+        <Divider />
         <Box flex="1 1 auto" overflow="auto" w="full" position="relative">
           {dataField ? (
             /* @ts-ignore */

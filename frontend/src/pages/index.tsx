@@ -34,7 +34,7 @@ const Index = ({ summary, instanceSettings }) => {
   )
   if (parsedSummary.numConnections === 0 && parsedSummary.hostCount === 0) {
     page = (
-      <ContentContainer maxContentW="100rem" height="100vh">
+      <ContentContainer maxContentW="100rem" height="100vh" px="6" py="6">
         <HomeOnboardingView />
       </ContentContainer>
     )

@@ -13,11 +13,12 @@ export const getCustomStyles = (
     colorMode == "light" ? "rgb(252, 252, 252)" : "rgb(17, 19, 23)"
   const headerTextColor =
     colorMode == "light" ? "rgb(163, 165, 170)" : "rgb(98, 100, 116)"
-  const textColor = colorMode == "light" ? "black" : "white"
+  const textColor =
+    colorMode == "light" ? "var(--chakra-colors-gray-600)" : "white"
   const expandIconColor = colorMode == "light" ? "black" : "white"
   const rowColor = colorMode == "light" ? "white" : "rgb(21, 23, 27)"
   const rowColorSubtable =
-    colorMode == "light" ? "rgb(248, 248, 249)" : "rgb(19, 22, 26)"
+    colorMode == "light" ? "rgb(250, 250, 250)" : "rgb(19, 22, 26)"
   const hoverRowColor =
     colorMode == "light" ? "rgb(252, 252, 252)" : "rgb(24, 26, 30)"
   const hoverRowColorSubtable =
@@ -25,10 +26,13 @@ export const getCustomStyles = (
   return {
     rows: {
       style: {
+        paddingTop: "10px",
+        paddingBottom: "10px",
         background: subTable ? rowColorSubtable : rowColor,
         color: textColor,
         minHeight: "64px",
-        fontWeight: "500",
+        fontWeight: "var(--chakra-fontWeights-medium)",
+        fontSize: "var(--chakra-fontSizes-sm)",
         "&:hover": hover
           ? {
               cursor: "pointer",
@@ -39,8 +43,10 @@ export const getCustomStyles = (
     },
     headRow: {
       style: {
-        background: headerBg,
-        color: headerTextColor,
+        background: "rgb(252, 252, 252)",
+        fontWeight: "bold",
+        fontSize: "var(--chakra-fontSizes-sm)",
+        color: "var(--chakra-colors-gray-900)",
       },
     },
     expanderButton: {
@@ -50,16 +56,13 @@ export const getCustomStyles = (
     },
     pagination: {
       style: {
-        background: headerBg,
-        color: textColor,
+        color: "black",
+        borderBottomLeftRadius: "var(--chakra-radii-xl)",
+        borderBottomRightRadius: "var(--chakra-radii-xl)",
       },
       pageButtonsStyle: {
         color: textColor,
         fill: textColor,
-        "&:disabled": {
-          fill: textColor,
-          color: textColor,
-        },
       },
     },
   } as TableStyles

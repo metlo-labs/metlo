@@ -74,7 +74,7 @@ const HostFilters: React.FC<HostFilterProps> = React.memo(
 
     return (
       <Stack
-        direction={{ base: "column", md: "row" }}
+        direction={{ base: "column", sm: "row" }}
         w="full"
         justifyContent="space-between"
       >
@@ -92,7 +92,7 @@ const HostFilters: React.FC<HostFilterProps> = React.memo(
           />
         </InputGroup>
         <Button
-          colorScheme="red"
+          variant="delete"
           isDisabled={selectedHosts.length === 0}
           isLoading={deleting}
           onClick={onOpen}
@@ -121,7 +121,7 @@ const HostFilters: React.FC<HostFilterProps> = React.memo(
                 </Button>
                 <Button
                   isLoading={deleting}
-                  colorScheme="red"
+                  variant="delete"
                   onClick={handleDeleteHostsClick}
                   ml={3}
                 >

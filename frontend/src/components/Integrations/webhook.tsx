@@ -190,7 +190,7 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
               colorScheme="blue"
               onClick={() => openModal()}
             >
-              Add Webhook
+              Add
             </Button>
           </HStack>
           <Text fontSize="sm">
@@ -231,7 +231,7 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
                 </Button>
                 <Button
                   size="md"
-                  colorScheme="red"
+                  variant="delete"
                   isLoading={deletingWebhook}
                   onClick={() => openDialog(e.uuid)}
                 >
@@ -432,7 +432,7 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
                 </Button>
                 <Button
                   isLoading={deletingWebhook}
-                  colorScheme="red"
+                  variant="delete"
                   onClick={deleteWebhookHandler}
                 >
                   Delete

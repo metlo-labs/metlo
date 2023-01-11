@@ -16,6 +16,7 @@ import {
   VStack,
   Box,
   StackDivider,
+  Stack,
 } from "@chakra-ui/react"
 import { PIE_BACKGROUND_COLORS, PIE_BORDER_COLORS } from "~/constants"
 
@@ -57,22 +58,29 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
       },
     } as ChartOptions
     return (
-      <HStack
+      <Stack
+        direction={{ base: "column", md: "row" }}
         overflow="hidden"
         alignItems="flex-start"
         bg="cellBG"
         spacing="0"
         divider={<StackDivider />}
         w="full"
-        h="60"
+        h={{ base: "unset", md: "60" }}
       >
-        <VStack divider={<StackDivider />} spacing="0" h="full">
+        <Stack
+          w={{ base: "full", md: "350px" }}
+          direction={{ base: "row", md: "column" }}
+          divider={<StackDivider />}
+          spacing="0"
+          h="full"
+        >
           <VStack
             bg="cellBG"
             py="4"
             spacing="1"
-            px="20"
             h="50%"
+            w={{ base: "50%", md: "unset" }}
             justifyContent="center"
           >
             <Text fontSize="xl" fontWeight="semibold" rounded="md">
@@ -87,6 +95,7 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
             py="4"
             spacing="1"
             h="50%"
+            w={{ base: "50%", md: "unset" }}
             justifyContent="center"
           >
             <Text fontSize="xl" fontWeight="semibold" rounded="md">
@@ -96,9 +105,16 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
               Endpoints
             </Text>
           </VStack>
-        </VStack>
-        <HStack spacing="12" flexGrow="1" alignItems="center" p="4" h="full">
-          <Box w="220px">
+        </Stack>
+        <HStack
+          w="full"
+          spacing="12"
+          flexGrow="1"
+          alignItems="center"
+          p="4"
+          h="full"
+        >
+          <Box w={{ base: "full", md: "220px" }}>
             <Doughnut options={options} data={chartData} />
           </Box>
           <VStack
@@ -121,7 +137,7 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
             </Grid>
           </VStack>
         </HStack>
-      </HStack>
+      </Stack>
     )
   },
 )
