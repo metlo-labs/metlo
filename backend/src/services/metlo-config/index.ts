@@ -26,6 +26,7 @@ import {
   insertValuesBuilder,
 } from "services/database/utils"
 import { METLO_CONFIG_SCHEMA } from "./constants"
+import Error422UnprocessableEntity from "errors/error-422-unprocessable-entity"
 
 export const getMetloConfig = async (
   ctx: MetloContext,
@@ -232,7 +233,14 @@ const populateAuthentication = async (
     AUTH_CONFIG_LIST_KEY,
   )
   if (authConfigDoc) {
+    const hosts = new Set<string>()
     authConfigDoc.forEach(item => {
+      if (hosts.has(item.host)) {
+        throw new Error422UnprocessableEntity(
+          `Host ${item.host} is included more than once in the authentication config.`,
+        )
+      }
+      hosts.add(item.host)
       const newConfig = new AuthenticationConfig()
       newConfig.host = item.host
       newConfig.authType = item.authType as AuthType
