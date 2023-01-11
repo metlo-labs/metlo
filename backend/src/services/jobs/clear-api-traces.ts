@@ -19,7 +19,7 @@ const clearApiTraces = async (ctx: MetloContext): Promise<void> => {
       .select([`MAX("createdAt") as "maxTime"`])
       .from(ApiTrace, "traces")
       .andWhere('"apiEndpointUuid" IS NOT NULL')
-      .andWhere('"createdAt" < :oneHourAgo', { timeBack })
+      .andWhere('"createdAt" < :timeBack', { timeBack })
       .getRawOne()
     const maxTime: Date = maxTimeRes?.maxTime ?? null
 
