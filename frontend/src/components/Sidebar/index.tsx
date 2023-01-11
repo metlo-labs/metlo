@@ -10,15 +10,14 @@ import {
   IconButton,
   Spacer,
   Stack,
-  Text,
   useColorModeValue,
   useDisclosure,
 } from "@chakra-ui/react"
-import { FiMenu } from "@react-icons/all-files/fi/FiMenu"
 import React from "react"
 import { Logo, SmLogo } from "components/Logo"
 import { SideNavLinkDestination } from "./NavLinkUtils"
 import SideNavLink from "./SideNavLink"
+import { FiMenu } from "icons/fi/FiMenu"
 
 interface SideNavBarProps {
   currentTab?: SideNavLinkDestination
