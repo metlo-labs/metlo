@@ -54,7 +54,7 @@ export const runTests = async (
     })
     globalEnv = data
   } catch (err) {
-    console.log(chalk.red("Could not get global env due to error"))
+    console.log(chalk.red("Couldn't fetch global test environment from Metlo's backend"))
     if (verbose) {
       console.warn(err)
     }
