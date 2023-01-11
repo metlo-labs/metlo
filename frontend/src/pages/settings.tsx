@@ -17,7 +17,6 @@ import {
   useToast,
   VStack,
 } from "@chakra-ui/react"
-import {} from "@react-icons/all-files/vsc/VscKey"
 import { ApiKey, WebhookResp } from "@common/types"
 import { getKeys, addKey as addKeyReq } from "api/keys"
 import { getMetloConfig, updateMetloConfig } from "api/metlo-config"
