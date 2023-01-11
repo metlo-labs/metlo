@@ -28,7 +28,7 @@ const TraceList: React.FC = () => {
   }
 
   return (
-    <PageWrapper title="Endpoints">
+    <PageWrapper title="Traces">
       <ContentContainer maxContentW="100rem" px="8" py="8">
         <VStack w="full" alignItems="flex-start" spacing="4">
           <Heading fontWeight="medium" size="lg" mb="4">
