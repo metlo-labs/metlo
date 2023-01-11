@@ -161,8 +161,7 @@ export const METLO_CONFIG_SCHEMA = {
           uniqueItems: true,
           items: {
             type: "string",
-            pattern:
-              "^(req.query|req.body|req.headers|res.headers|res.body)..+$",
+            pattern: `^(req\\.query|req\\.body|req\\.headers|res\\.headers|res\\.body)\\..+$`,
           },
         },
       },
