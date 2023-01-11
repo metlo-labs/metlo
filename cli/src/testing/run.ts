@@ -45,14 +45,21 @@ export const runTests = async (
     )
   }
   // get global env
-  const config = getConfig()
-  let url = urlJoin(config.metloHost, "api/v1/testing/global-env")
-  const { data: globalEnv } = await axios.get<{ name: string; value: any }[]>(
-    url,
-    {
+  let globalEnv = []
+  try {
+    const config = getConfig()
+    let url = urlJoin(config.metloHost, "api/v1/testing/global-env")
+    const { data } = await axios.get<{ name: string; value: any }[]>(url, {
       headers: { Authorization: config.apiKey },
-    },
-  )
+    })
+    globalEnv = data
+  } catch (err) {
+    // Don't modify the global env if can't find it.
+    if (verbose) {
+      console.warn("Could not get global env due to error")
+      console.warn(err)
+    }
+  }
 
   if (paths && paths.length) {
     await runTestPath(paths, verbose, {
