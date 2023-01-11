@@ -13,7 +13,7 @@ enum TokenType {
 const paramRegexp = new RegExp("{param[0-9]+}")
 const validTokenRegexp = new RegExp("^[A-Za-z-_\.]+$")
 const MAX_ANALYZE_TRACES = 20000
-const MIN_ANALYZE_TRACES = 500
+const MIN_ANALYZE_TRACES = 100
 const MIN_CONST_RATIO = 0.3
 
 const sanitizePath = (path: string) => {
