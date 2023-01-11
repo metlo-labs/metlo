@@ -67,7 +67,7 @@ const SidebarContent = ({
   return (
     <Flex
       height="full"
-      width="full"
+      width={{ base: "full", md: "64" }}
       direction="column"
       bg="secondaryBG"
       color={textColor}
