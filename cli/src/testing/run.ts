@@ -54,9 +54,8 @@ export const runTests = async (
     })
     globalEnv = data
   } catch (err) {
-    // Don't modify the global env if can't find it.
+    console.log(chalk.red("Could not get global env due to error"))
     if (verbose) {
-      console.warn("Could not get global env due to error")
       console.warn(err)
     }
   }
