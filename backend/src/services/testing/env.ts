@@ -9,8 +9,8 @@ export async function getGlobalEnvService(ctx: MetloContext) {
     where: {},
   })
   const config = jsyaml.load(configRaw.configString) as Object
-  if ("metloTestEnv" in config) {
-    return config.metloTestEnv
+  if ("globalTestEnv" in config) {
+    return config.globalTestEnv
   }
   return []
 }

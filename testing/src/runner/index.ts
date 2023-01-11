@@ -4,7 +4,7 @@ import * as Handlebars from "handlebars"
 
 export const runTest = async (
   test: TestConfig,
-  env?: Record<string, string>,
+  env?: Record<string, string | object>,
 ): Promise<TestResult> => {
   const context = {
     cookies: {},
@@ -12,11 +12,11 @@ export const runTest = async (
   }
 
   if (test.env) {
-    context.envVars = Object.fromEntries(
-      Object.entries(context.envVars).concat(
-        test.env.map(e => [e.name, Handlebars.compile(e.value)(env)]),
-      ),
+    let currentEnv = { ...env }
+    test.env.forEach(
+      e => (currentEnv[e.name] = Handlebars.compile(e.value)(currentEnv)),
     )
+    context.envVars = currentEnv
   }
   const testStack = [...test.test]
   if (testStack.length > 0) {

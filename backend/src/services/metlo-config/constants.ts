@@ -149,7 +149,7 @@ export const METLO_CONFIG_SCHEMA = {
         enum: Object.keys(__DataClass_INTERNAL__),
       },
     },
-    metloTestEnv: {
+    globalTestEnv: {
       type: "array",
       items: {
         type: "object",

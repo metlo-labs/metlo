@@ -57,9 +57,7 @@ export const runTests = async (
   if (paths && paths.length) {
     await runTestPath(paths, verbose, {
       ...initEnv,
-      ...Object.fromEntries(
-        globalEnv.map(env => [`global.${env.name}`, env.value]),
-      ),
+      global: Object.fromEntries(globalEnv.map(env => [env.name, env.value])),
     })
     return
   }
@@ -69,7 +67,7 @@ export const runTests = async (
 const runTestPath = async (
   paths: string[],
   verbose: boolean,
-  env: { [key: string]: string },
+  env: { [key: string]: string | Object },
 ) => {
   for (let path of paths) {
     console.log(chalk.gray(`Running test at path "${path}":`))
