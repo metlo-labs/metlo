@@ -13,6 +13,7 @@ export const METLO_CONFIG_SCHEMA = {
         properties: {
           host: {
             type: "string",
+            minLength: 1,
           },
           authType: {
             type: "string",
@@ -20,12 +21,15 @@ export const METLO_CONFIG_SCHEMA = {
           },
           headerKey: {
             type: "string",
+            minLength: 1,
           },
           jwtUserPath: {
             type: "string",
+            minLength: 1,
           },
           cookieName: {
             type: "string",
+            minLength: 1,
           },
         },
         required: ["host", "authType"],
@@ -64,9 +68,11 @@ export const METLO_CONFIG_SCHEMA = {
     },
     blockFields: {
       type: "object",
+      minProperties: 1,
       patternProperties: {
         "^.*$": {
           type: "object",
+          minProperties: 1,
           patternProperties: {
             "^ALL$": {
               $ref: "#/definitions/disable_paths_object",
@@ -151,8 +157,11 @@ export const METLO_CONFIG_SCHEMA = {
       properties: {
         disable_paths: {
           type: "array",
+          minItems: 1,
+          uniqueItems: true,
           items: {
             type: "string",
+            pattern: `^(req\\.query|req\\.body|req\\.headers|res\\.headers|res\\.body)\\..+$`,
           },
         },
       },

@@ -37,6 +37,7 @@ import { customDataClasses1671813043343 } from "migrations/1671813043343-custom-
 import { dataFieldUniqueConstraint1672708787156 } from "migrations/1672708787156-data-field-unique-constraint"
 import { addTracehashColumnToDataField1672962660470 } from "migrations/1672962660470-add-tracehash-column-to-data-field"
 import { userSetEndpointColumn1673073826153 } from "migrations/1673073826153-user-set-endpoint-column"
+import { removeHostPrimaryKeyAuthenticationconfig1673465613593 } from "migrations/1673465613593-remove-host-primary-key-authenticationconfig"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -79,6 +80,7 @@ export const AppDataSource: DataSource = new DataSource({
     dataFieldUniqueConstraint1672708787156,
     addTracehashColumnToDataField1672962660470,
     userSetEndpointColumn1673073826153,
+    removeHostPrimaryKeyAuthenticationconfig1673465613593,
   ],
   migrationsRun: runMigration,
   logging: false,
