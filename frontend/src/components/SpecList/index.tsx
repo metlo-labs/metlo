@@ -82,11 +82,18 @@ const APISpecList: React.FC<APISpecListProps> = React.memo(({ apiSpecs }) => {
       w="full"
       alignItems="flex-start"
       borderWidth="1px"
-      rounded="md"
+      rounded="xl"
       spacing="0"
       overflow="hidden"
     >
-      <Box p="4" borderBottom="1px" borderColor="inherit" w="full">
+      <Box
+        bg="white"
+        roundedTop="xl"
+        p="4"
+        borderBottom="1px"
+        borderColor="inherit"
+        w="full"
+      >
         <HStack w="full">
           <Box marginLeft="auto">
             <InputGroup onChange={handleSubmission} onClick={handleClick}>

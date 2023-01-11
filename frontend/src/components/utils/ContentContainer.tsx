@@ -17,8 +17,8 @@ export const ContentContainer: React.FC<ContentContainerProps> = React.memo(
         <Box
           mx="auto"
           maxW={maxContentW || "7xl"}
-          px={px || "8"}
-          py={py || "8"}
+          px={{ base: "4", md: px || "8" }}
+          py={{ base: "4", md: py || "8" }}
           h={height}
         >
           {children}

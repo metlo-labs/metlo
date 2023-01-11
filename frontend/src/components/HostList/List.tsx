@@ -1,5 +1,12 @@
 import React from "react"
-import { Box, useColorMode, Wrap, WrapItem } from "@chakra-ui/react"
+import {
+  Box,
+  Text,
+  useColorMode,
+  Wrap,
+  WrapItem,
+  Button,
+} from "@chakra-ui/react"
 import { useRouter } from "next/router"
 import EmptyView from "components/utils/EmptyView"
 import dynamic from "next/dynamic"
@@ -97,39 +104,46 @@ const List: React.FC<HostTableProps> = React.memo(
         name: "Host",
         sortable: false,
         selector: (row: HostResponse) => row.host || "",
+        cell: (row: HostResponse) => (
+          <Text color="gray.900" fontWeight="medium">
+            {row.host}
+          </Text>
+        ),
         id: "host",
-        grow: 2,
+        grow: 7,
       },
       {
         name: "Endpoints",
         sortable: false,
         selector: (row: HostResponse) => row.numEndpoints,
         cell: (row: HostResponse) => (
-          <Wrap
-            display="flex"
-            alignItems="center"
-            h="full"
-            pr="5"
-            className="my-box"
-            cursor="pointer"
-          >
-            <WrapItem>{row.numEndpoints}</WrapItem>
-            <WrapItem
-              onClick={() =>
-                router.push({
-                  pathname: "/endpoints",
-                  query: {
-                    hosts: row.host,
-                  },
-                })
-              }
-            >
-              View All →
-            </WrapItem>
-          </Wrap>
+          <Text color="gray.900">{row.numEndpoints}</Text>
         ),
         id: "endpoints",
-        grow: 1,
+        right: true,
+        grow: 4,
+      },
+      {
+        name: "",
+        sortable: false,
+        cell: (row: HostResponse) => (
+          <Button
+            size="xs"
+            fontWeight="medium"
+            variant="createSecondary"
+            onClick={() =>
+              router.push({
+                pathname: "/endpoints",
+                query: {
+                  hosts: row.host,
+                },
+              })
+            }
+          >
+            View
+          </Button>
+        ),
+        right: true,
       },
     ]
 

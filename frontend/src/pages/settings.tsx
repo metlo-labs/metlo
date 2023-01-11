@@ -5,10 +5,12 @@ import {
   Heading,
   HStack,
   Link,
+  Stack,
   Tab,
   TabList,
   TabPanel,
   TabPanels,
+  TabProps,
   Tabs,
   Text,
   useDisclosure,
@@ -28,11 +30,13 @@ import { useState } from "react"
 import superjson from "superjson"
 import { makeToast } from "utils"
 import Editor from "@monaco-editor/react"
-import { SectionHeader } from "components/utils/Card"
 import { getWebhooks } from "api/webhook"
 import { Integrations } from "components/Integrations"
 import { getHosts } from "api/endpoints"
 import { SettingsTab } from "enums"
+import { GrDocumentConfig } from "icons/gr/GrDocumentConfig"
+import { AiOutlineCode } from "icons/ai/AiOutlineCode"
+import { VscKey } from "icons/vsc/VscKey"
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const [apiKeys, webhooks, hosts] = await Promise.all([
@@ -157,68 +161,142 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
     }
   }
 
+  const tabStyles: TabProps = {
+    _hover: { bg: "#F7FBFF" },
+    as: "button",
+    px: 4,
+    py: 6,
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
+    textAlign: "start",
+    w: "full",
+    borderBottomWidth: 1,
+  }
+
   return (
     <PageWrapper title="Settings">
-      <ContentContainer maxContentW="100rem" px="8" py="8">
-        <VStack h="full" w="full" alignItems="flex-start" spacing="0">
-          <Heading fontWeight="medium" size="lg" mb="4">
-            Settings
-          </Heading>
-          <Tabs
-            index={getTab()}
-            w="full"
-            display="flex"
-            flexDir="column"
-            flexGrow="1"
+      <Tabs
+        variant="unstyled"
+        orientation="vertical"
+        index={getTab()}
+        w="full"
+        h="full"
+        alignItems="flex-start"
+      >
+        <HStack
+          borderTopWidth={{ base: 1, md: 0 }}
+          spacing={0}
+          alignItems="flex-start"
+          w="full"
+        >
+          <VStack
+            spacing="0"
+            h="100vh"
+            bg="white"
+            w={{ base: "150px", lg: "300px" }}
+            minW={{ base: "150px", lg: "300px" }}
+            borderRightWidth={1}
           >
-            <TabList>
-              <Tab onClick={() => handleTabClick(null)}>
-                <SectionHeader text="API Keys" />
+            <Box w="full" p={4} borderBottomWidth={1}>
+              <Heading fontWeight="medium" size="lg">
+                Settings
+              </Heading>
+            </Box>
+            <TabList borderInlineStart="0" w="full" alignItems="flex-start">
+              <Tab
+                bg={getTab() === 0 ? "#F7FBFF" : "inital"}
+                {...tabStyles}
+                onClick={() => handleTabClick(null)}
+              >
+                <Stack
+                  w="full"
+                  alignItems="center"
+                  direction={{ base: "column", lg: "row" }}
+                  spacing={4}
+                >
+                  <VscKey size="20px" />
+                  <Text fontWeight="medium">API Keys</Text>
+                </Stack>
               </Tab>
-              <Tab onClick={() => handleTabClick(SettingsTab.CONFIG)}>
-                <SectionHeader text="Metlo Config" />
+              <Tab
+                bg={getTab() === 1 ? "#F7FBFF" : "inital"}
+                {...tabStyles}
+                onClick={() => handleTabClick(SettingsTab.CONFIG)}
+              >
+                <Stack
+                  w="full"
+                  alignItems="center"
+                  direction={{ base: "column", lg: "row" }}
+                  spacing={4}
+                >
+                  <GrDocumentConfig size="20px" />
+                  <Text fontWeight="medium">Metlo Config</Text>
+                </Stack>
               </Tab>
-              <Tab onClick={() => handleTabClick(SettingsTab.INTEGRATIONS)}>
-                <SectionHeader text="Integrations" />
+              <Tab
+                bg={getTab() === 2 ? "#F7FBFF" : "inital"}
+                {...tabStyles}
+                onClick={() => handleTabClick(SettingsTab.INTEGRATIONS)}
+              >
+                <Stack
+                  w="full"
+                  alignItems="center"
+                  direction={{ base: "column", lg: "row" }}
+                  spacing={4}
+                >
+                  <AiOutlineCode size="20px" />
+                  <Text fontWeight="medium">Integrations</Text>
+                </Stack>
               </Tab>
             </TabList>
-            <TabPanels flexGrow="1" h="full">
-              <TabPanel px="0" overflow="auto" h="full">
-                <VStack
-                  w="full"
-                  alignItems="flex-start"
-                  borderWidth="1px"
-                  rounded="md"
-                  spacing="0"
-                  overflow="hidden"
-                >
-                  <Box p="4" borderBottom="1px" borderColor="inherit" w="full">
-                    <HStack justifyContent="space-between">
-                      <Box />
-                      <Button colorScheme="blue" onClick={onOpen}>
-                        New
-                      </Button>
-                      <NewKeys
-                        isOpen={isOpen}
-                        onClose={onClose}
-                        onCreate={addKey}
-                        isAddingKey={isAddingKey}
-                      />
-                      <KeyAddedModal
-                        newKey={newKey}
-                        newKeyName={newKeyName}
-                        isOpen={isNewKeyOpen}
-                        onClose={onNewKeyClose}
-                      />
-                    </HStack>
-                  </Box>
-                  <Box w="full">
-                    <ListKeys keys={keys} setKeys={setKeys} />
-                  </Box>
-                </VStack>
-              </TabPanel>
-              <TabPanel px="0" overflow="auto" h="full">
-                <HStack w="full" justifyContent="space-between" pb="15px">
+          </VStack>
+          <TabPanels w="full" overflow="auto" p={6} h="100vh">
+            <TabPanel px="0" w="full" h="full">
+              <HStack w="full" justifyContent="space-between" mb={4}>
+                <Heading fontWeight="semibold" size="xl">
+                  API Keys
+                </Heading>
+                <Button colorScheme="blue" onClick={onOpen}>
+                  New
+                </Button>
+                <NewKeys
+                  isOpen={isOpen}
+                  onClose={onClose}
+                  onCreate={addKey}
+                  isAddingKey={isAddingKey}
+                />
+                <KeyAddedModal
+                  newKey={newKey}
+                  newKeyName={newKeyName}
+                  isOpen={isNewKeyOpen}
+                  onClose={onNewKeyClose}
+                />
+              </HStack>
+              <VStack
+                w="full"
+                alignItems="flex-start"
+                borderWidth="1px"
+                rounded="xl"
+                spacing="0"
+                overflow="hidden"
+              >
+                <Box w="full">
+                  <ListKeys keys={keys} setKeys={setKeys} />
+                </Box>
+              </VStack>
+            </TabPanel>
+            <TabPanel w="full" px="0" h="full">
+              <HStack
+                w="full"
+                justifyContent="space-between"
+                mb={4}
+                alignItems="start"
+              >
+                <VStack w="full" alignItems="flex-start">
+                  <Heading fontWeight="semibold" size="xl">
+                    Metlo Config
+                  </Heading>
+
                   <Text>
                     View our{" "}
                     <Link
@@ -230,41 +308,44 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
                     </Link>{" "}
                     on how to set up a metlo config.
                   </Text>
-                  <Button
-                    colorScheme="blue"
-                    onClick={() => updateMetloConfigHandler()}
-                    isLoading={updatingMetloConfig}
-                  >
-                    Save
-                  </Button>
-                </HStack>
-                <Box pt="2" rounded="md" h="700px" w="full" borderWidth="1px">
-                  <Editor
-                    width="100%"
-                    defaultLanguage="yaml"
-                    value={configString}
-                    onChange={val => setConfigString(val)}
-                    options={{
-                      minimap: {
-                        enabled: false,
-                      },
-                      automaticLayout: true,
-                      scrollBeyondLastLine: false,
-                    }}
-                  />
-                </Box>
-              </TabPanel>
-              <TabPanel px="0" overflow="auto" h="full">
-                <Integrations
-                  webhooks={parsedWebhooks}
-                  setWebhooks={setParsedWebhooks}
-                  hostList={hosts}
+                </VStack>
+                <Button
+                  colorScheme="blue"
+                  onClick={() => updateMetloConfigHandler()}
+                  isLoading={updatingMetloConfig}
+                >
+                  Save
+                </Button>
+              </HStack>
+              <Box rounded="md" h="700px" w="full" borderWidth="1px">
+                <Editor
+                  width="100%"
+                  defaultLanguage="yaml"
+                  value={configString}
+                  onChange={val => setConfigString(val)}
+                  options={{
+                    minimap: {
+                      enabled: false,
+                    },
+                    automaticLayout: true,
+                    scrollBeyondLastLine: false,
+                  }}
                 />
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        </VStack>
-      </ContentContainer>
+              </Box>
+            </TabPanel>
+            <TabPanel px="0" w="full" h="full">
+              <Heading fontWeight="semibold" size="xl" mb={4}>
+                Integrations
+              </Heading>
+              <Integrations
+                webhooks={parsedWebhooks}
+                setWebhooks={setParsedWebhooks}
+                hostList={hosts}
+              />
+            </TabPanel>
+          </TabPanels>
+        </HStack>
+      </Tabs>
     </PageWrapper>
   )
 }

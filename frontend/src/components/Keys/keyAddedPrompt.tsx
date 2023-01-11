@@ -51,9 +51,7 @@ const KeyAddedModal: React.FC<KeyAddedInterface> = ({
 
         <ModalFooter>
           <HStack>
-            <Button colorScheme="red" onClick={onClose}>
-              Close
-            </Button>
+            <Button onClick={onClose}>Close</Button>
           </HStack>
         </ModalFooter>
       </ModalContent>

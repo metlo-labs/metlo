@@ -133,9 +133,7 @@ export const EditPath: React.FC<EditPathProps> = React.memo(
 
     return (
       <Box>
-        <Button colorScheme="blue" onClick={openModal}>
-          Edit
-        </Button>
+        <Button onClick={openModal}>Edit</Button>
         <Modal size="4xl" isCentered isOpen={isOpen} onClose={closeModal}>
           <ModalOverlay />
           <ModalContent>
@@ -156,6 +154,7 @@ export const EditPath: React.FC<EditPathProps> = React.memo(
                   </HStack>
                   <VStack
                     borderWidth="1px"
+                    rounded="md"
                     w="full"
                     maxH="300px"
                     overflowY="auto"
@@ -175,7 +174,9 @@ export const EditPath: React.FC<EditPathProps> = React.memo(
                               }
                             />
                             <Button
-                              colorScheme="red"
+                              size="sm"
+                              variant="deleteSecondary"
+                              fontWeight="medium"
                               onClick={() => deletePathHandler(i)}
                             >
                               Delete
@@ -191,6 +192,7 @@ export const EditPath: React.FC<EditPathProps> = React.memo(
                   <VStack w="full" spacing={2} alignItems="flex-start">
                     <Text>Suggested Endpoints</Text>
                     <VStack
+                      rounded="md"
                       borderWidth="1px"
                       w="full"
                       maxH="300px"
@@ -200,7 +202,7 @@ export const EditPath: React.FC<EditPathProps> = React.memo(
                         return (
                           <Box w="full" key={i}>
                             <HStack
-                              p={2}
+                              p={3}
                               w="full"
                               justifyContent="space-between"
                             >
@@ -209,7 +211,9 @@ export const EditPath: React.FC<EditPathProps> = React.memo(
                                 <ImCheckmark color="green" />
                               ) : (
                                 <Button
-                                  colorScheme="blue"
+                                  size="sm"
+                                  variant="createSecondary"
+                                  fontWeight="medium"
                                   onClick={() => addPathHandler(e)}
                                 >
                                   Add

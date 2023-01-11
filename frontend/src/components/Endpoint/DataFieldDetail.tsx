@@ -229,7 +229,7 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
         </VStack>
         <Box mt="10" pt="4" borderTopWidth={1} w="full" textAlign="end">
           <Button
-            colorScheme="red"
+            variant="delete"
             isLoading={updating}
             onClick={handleDeleteDataField}
           >

@@ -54,7 +54,7 @@ const Endpoints: React.FC<EndpointsProps> = ({
     <PageWrapper title="Endpoints">
       <ContentContainer maxContentW="100rem" px="8" py="8">
         <VStack w="full" alignItems="flex-start" spacing="0">
-          <Heading fontWeight="medium" size="lg" mb="4">
+          <Heading fontWeight="semibold" size="xl" mb="4">
             Endpoints
           </Heading>
           <EndpointList

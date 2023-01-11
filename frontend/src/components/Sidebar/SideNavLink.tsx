@@ -6,6 +6,7 @@ import {
   BoxProps,
   Text,
   useColorModeValue,
+  Tooltip,
 } from "@chakra-ui/react"
 import NextLink from "next/link"
 import React from "react"
@@ -18,21 +19,26 @@ import {
 
 interface SideNavLinkProps extends BoxProps {
   destination: SideNavLinkDestination
+  onClose?: () => void
   isActive?: boolean
   isComingSoon?: boolean
 }
 
 const SideNavLink: React.FC<SideNavLinkProps> = React.memo(
-  ({ isActive, destination, isComingSoon, ...rest }) => {
+  ({ isActive, destination, onClose, isComingSoon, ...rest }) => {
     const colorModeValue = useColorModeValue(
       "rgb(163, 165, 170)",
       "rgb(98, 100, 116)",
     )
     const iconColor = isActive ? "primary" : colorModeValue
     return (
-      <Box pointerEvents={isComingSoon ? "none" : "unset"}>
-        <NextLink href={sideNavDestinationToHref(destination)}>
+      <Box w="full" pointerEvents={isComingSoon ? "none" : "unset"}>
+        <NextLink
+          href={sideNavDestinationToHref(destination)}
+          onClick={onClose}
+        >
           <Box
+            w="full"
             display="block"
             py={3}
             px={4}
@@ -49,7 +55,7 @@ const SideNavLink: React.FC<SideNavLinkProps> = React.memo(
             }}
             {...rest}
           >
-            <Box display={{ xl: "unset", base: "none" }}>
+            <Box w="full">
               <HStack justifyContent="space-between" alignItems="center">
                 <HStack spacing={4} alignItems="center">
                   <Icon
@@ -73,18 +79,6 @@ const SideNavLink: React.FC<SideNavLinkProps> = React.memo(
                 ) : null}
               </HStack>
             </Box>
-            <Flex
-              w="full"
-              h="full"
-              display={{ xl: "none", base: "flex" }}
-              justifyContent="center"
-            >
-              <Icon
-                as={sideNavDestinationToIcon(destination)}
-                boxSize="22px"
-                color={iconColor}
-              />
-            </Flex>
           </Box>
         </NextLink>
       </Box>

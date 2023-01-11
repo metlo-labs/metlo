@@ -11,6 +11,7 @@ import {
   useColorMode,
   useDisclosure,
   useToast,
+  Text,
 } from "@chakra-ui/react"
 import { ApiKey } from "@common/types"
 import { deleteKey } from "api/keys"
@@ -69,7 +70,11 @@ const ListKeys: React.FC<ListKeysInterface> = ({ keys, setKeys }) => {
       name: "Name",
       sortable: true,
       selector: (row: ApiKey) => row.name,
-      cell: (row: ApiKey) => row.name,
+      cell: (row: ApiKey) => (
+        <Text fontWeight="medium" color="gray.900">
+          {row.name}
+        </Text>
+      ),
       id: "name",
     },
     {
@@ -91,7 +96,11 @@ const ListKeys: React.FC<ListKeysInterface> = ({ keys, setKeys }) => {
       name: "Key Used For",
       sortable: false,
       selector: (row: ApiKey) => row.for,
-      cell: (row: ApiKey) => <Badge fontFamily={"mono"}>{row.for}</Badge>,
+      cell: (row: ApiKey) => (
+        <Badge p={1} fontWeight="medium">
+          {row.for}
+        </Badge>
+      ),
     },
     {
       name: "",
@@ -99,7 +108,9 @@ const ListKeys: React.FC<ListKeysInterface> = ({ keys, setKeys }) => {
       selector: (row: ApiKey) => row.created,
       cell: (row: ApiKey) => (
         <Button
-          colorScheme={"red"}
+          size="xs"
+          variant="deleteSecondary"
+          fontWeight="medium"
           onClick={() => onDeletePress(row.name)}
           disabled={isDeleting.includes(row.name)}
         >
@@ -107,6 +118,7 @@ const ListKeys: React.FC<ListKeysInterface> = ({ keys, setKeys }) => {
         </Button>
       ),
       id: "Delete",
+      right: true,
       grow: 0,
     },
   ]
@@ -118,7 +130,7 @@ const ListKeys: React.FC<ListKeysInterface> = ({ keys, setKeys }) => {
         <DataTable
           columns={columns}
           data={keys.sort((a, b) => a.name.localeCompare(b.name))}
-          customStyles={getCustomStyles(colorMode.colorMode)}
+          customStyles={getCustomStyles(colorMode.colorMode, false, true)}
         />
         <AlertDialog
           isOpen={isOpen}
@@ -140,7 +152,7 @@ const ListKeys: React.FC<ListKeysInterface> = ({ keys, setKeys }) => {
                 Cancel
               </Button>
               <Button
-                colorScheme="red"
+                variant="delete"
                 mr={3}
                 onClick={() => {
                   onDeleteConfirm(deletePromptKeyName)

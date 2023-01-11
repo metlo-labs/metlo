@@ -29,11 +29,18 @@ const HostList: React.FC<HostListProps> = React.memo(
         w="full"
         alignItems="flex-start"
         borderWidth="1px"
-        rounded="md"
+        rounded="xl"
         spacing="0"
         overflow="visible"
       >
-        <Box p="4" borderBottom="1px" borderColor="inherit" w="full">
+        <Box
+          roundedTop="xl"
+          bg="white"
+          p="4"
+          borderBottom="1px"
+          borderColor="inherit"
+          w="full"
+        >
           <HostFilters
             params={params}
             setParams={setParams}

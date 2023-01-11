@@ -1,6 +1,6 @@
 import React from "react"
 import Head from "next/head"
-import { Box, HStack } from "@chakra-ui/react"
+import { Box, HStack, Stack } from "@chakra-ui/react"
 import SideNavBar from "./Sidebar"
 import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
 import { useRouter } from "next/router"
@@ -35,7 +35,7 @@ export const SidebarLayoutShell: React.FC<SidebarLayoutShellProps> = React.memo(
       currentTab = itemToNavLink[firstItem]
     }
     return (
-      <HStack spacing="0" w="100vw">
+      <Stack direction={{ base: "column", md: "row" }} spacing="0">
         {title ? (
           <Head>
             <title>{title}</title>
@@ -45,7 +45,7 @@ export const SidebarLayoutShell: React.FC<SidebarLayoutShellProps> = React.memo(
         <Box h="100vh" flex="1" overflowY="auto">
           {children}
         </Box>
-      </HStack>
+      </Stack>
     )
   },
 )

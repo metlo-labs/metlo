@@ -52,6 +52,92 @@ const theme = extendTheme({
   colors: {
     black: "rgb(17, 19, 23)",
     primary: "rgb(101, 138, 216)",
+    deleteRed: "rgb(201, 61, 68)",
+    metloBlue: "rgb(66, 76, 249)",
+  },
+  components: {
+    Button: {
+      baseStyle: {
+        border: "1px",
+      },
+      variants: {
+        base: {},
+        create: {
+          borderWidth: "0px",
+          bg: "metloBlue",
+          color: "#FFFFFF",
+          _hover: {
+            bg: "#343FD2",
+            color: "#FFFFFF",
+            _disabled: {
+              bg: "metloBlue",
+              color: "#FFFFFF",
+              opacity: 0.5,
+            },
+          },
+          _active: {
+            bg: "metloBlue",
+            color: "#FFFFFF",
+          },
+          _disabled: {
+            bg: "metloBlue",
+            color: "#FFFFFF",
+            opacity: 0.5,
+          },
+        },
+        delete: {
+          borderWidth: "0px",
+          bg: "deleteRed",
+          color: "#FFFFFF",
+          _hover: {
+            bg: "#C40F15",
+            color: "#FFFFFF",
+            _disabled: {
+              bg: "#C93D44",
+              color: "#FFFFFF",
+              opacity: 0.5,
+            },
+          },
+          _active: {
+            bg: "deleteRed",
+            color: "#FFFFFF",
+          },
+          _disabled: {
+            bg: "deleteRed",
+            color: "#FFFFFF",
+            opacity: 0.5,
+          },
+        },
+        createSecondary: {
+          bg: "#FFFFFF",
+          color: "metloBlue",
+          _hover: {
+            bg: "metloBlue",
+            color: "#FFFFFF",
+          },
+          _active: {
+            bg: "metloBlue",
+            color: "#FFFFFF",
+          },
+          _focus: {
+            bg: "metloBlue",
+            color: "#FFFFFF",
+          },
+        },
+        deleteSecondary: {
+          bg: "#FFFFFF",
+          color: "deleteRed",
+          _hover: {
+            bg: "deleteRed",
+            color: "#FFFFFF",
+          },
+          _focus: {
+            bg: "deleteRed",
+            color: "#FFFFFF",
+          },
+        },
+      },
+    },
   },
   fonts,
   breakpoints,

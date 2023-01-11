@@ -34,7 +34,7 @@ const SensitiveDataPage: React.FC<SensitiveDataPageProps> = React.memo(
     return (
       <ContentContainer maxContentW="100rem" px="8" py="8">
         <VStack w="full" alignItems="flex-start">
-          <Heading fontWeight="medium" size="lg" mb="4">
+          <Heading fontWeight="semibold" size="xl" mb="4">
             Sensitive Data
           </Heading>
         </VStack>
@@ -42,11 +42,18 @@ const SensitiveDataPage: React.FC<SensitiveDataPageProps> = React.memo(
           w="full"
           alignItems="flex-start"
           borderWidth="1px"
-          rounded="md"
+          rounded="xl"
           spacing="0"
           overflow="hidden"
         >
-          <Box p="4" borderBottom="1px" borderColor="inherit" w="full">
+          <Box
+            roundedTop="xl"
+            bg="white"
+            p="4"
+            borderBottom="1px"
+            borderColor="inherit"
+            w="full"
+          >
             <SensitiveDataFilters
               hostList={hosts}
               locations={params.locations}

@@ -12,14 +12,14 @@ const Specs = ({ apiSpecs }) => (
   <PageWrapper title="API Specs">
     <ContentContainer>
       <VStack w="full" alignItems="flex-start">
-        <HStack w="full" mb="8">
-          <Heading fontWeight="medium" size="xl">
+        <HStack w="full" mb="4">
+          <Heading fontWeight="semibold" size="xl">
             API Specs
           </Heading>
           <Box alignSelf="end">
             <Tooltip
               bg="orange.300"
-              placement="right"
+              placement="bottom"
               shouldWrapChildren
               label="Any Swagger(OpenAPI V2) specifications will be converted to OpenAPI V3 and stored as such."
             >

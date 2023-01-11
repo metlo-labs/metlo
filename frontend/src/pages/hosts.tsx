@@ -1,7 +1,7 @@
 import { GetServerSideProps } from "next"
 import { useState } from "react"
 import superjson from "superjson"
-import { Box, Badge, Heading, HStack, VStack } from "@chakra-ui/react"
+import { Box, Badge, Heading, HStack, VStack, Stack } from "@chakra-ui/react"
 import { getHostsGraph, getHostsList } from "api/endpoints"
 import { HostGraph, HostResponse } from "@common/types"
 import { GetHostParams } from "@common/api/endpoint"
@@ -76,27 +76,30 @@ const Hosts = ({ initHosts, hostsGraph, initTotalCount }) => {
           spacing="0"
           height={graph ? "full" : undefined}
         >
-          <HStack
+          <Stack
+            direction={{ base: "column", sm: "row" }}
             w="full"
             justifyContent="space-between"
-            alignItems="flex-end"
+            alignItems={{ base: "flex-start", sm: "flex-end" }}
             mb="4"
-            px="8"
-            pt="8"
+            px={{ base: "4", md: "8" }}
+            pt={{ base: "4", md: "8" }}
           >
-            <Heading fontWeight="medium" size="lg">
+            <Heading fontWeight="semibold" size="xl">
               Hosts
             </Heading>
-            <HStack spacing="0">
+            <HStack spacing="0" w={{ base: "full", sm: "unset" }}>
               <Badge
                 as="button"
                 onClick={() => setTab(false)}
                 roundedLeft="md"
-                p="1"
-                borderWidth="2px 1px 2px 2px"
-                colorScheme={graph ? "none" : "gray"}
-                opacity={graph ? 0.5 : 1}
+                py={1}
+                px={6}
+                borderWidth="2px 0px 2px 2px"
+                colorScheme={graph ? "gray" : "white"}
+                opacity={graph ? 0.7 : 1}
                 rounded="none"
+                w="full"
               >
                 List
               </Badge>
@@ -104,22 +107,28 @@ const Hosts = ({ initHosts, hostsGraph, initTotalCount }) => {
                 as="button"
                 onClick={() => setTab(true)}
                 roundedRight="md"
-                p="1"
-                borderWidth="2px 2px 2px 1px"
-                colorScheme={graph ? "gray" : "none"}
-                opacity={graph ? 1 : 0.5}
+                py={1}
+                px={6}
+                borderWidth="2px 2px 2px 0px"
+                colorScheme={graph ? "white" : "gray"}
+                opacity={graph ? 1 : 0.7}
                 rounded="none"
+                w="full"
               >
                 Graph
               </Badge>
             </HStack>
-          </HStack>
+          </Stack>
           {graph ? (
             <Box flex="1" w="full">
               <HostGraphComponent {...parsedHostsGraph} />
             </Box>
           ) : (
-            <Box w="full" px="8" pb="8">
+            <Box
+              w="full"
+              px={{ base: "4", md: "8" }}
+              pb={{ base: "4", md: "8" }}
+            >
               <HostList
                 hosts={hosts}
                 fetching={fetching}

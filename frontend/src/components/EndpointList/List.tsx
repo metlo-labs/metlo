@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React from "react"
 import {
   Badge,
   Box,
@@ -133,48 +133,59 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         selector: (row: ApiEndpoint) => row.riskScore || "",
         cell: (row: ApiEndpoint) => (
           <Badge
-            p="1"
             fontSize="sm"
+            fontWeight="medium"
             colorScheme={RISK_TO_COLOR[row.riskScore]}
             pointerEvents="none"
+            p={1}
           >
             {row.riskScore}
           </Badge>
         ),
         id: "riskScore",
-        minWidth: "75px",
-        grow: 1,
+        grow: 0,
+      },
+      {
+        name: "Method",
+        sortable: false,
+        cell: (row: ApiEndpoint) => (
+          <Text pointerEvents="none" color="gray.900" fontWeight="semibold">
+            {row.method}
+          </Text>
+        ),
+        grow: 0,
+        width: "100px",
       },
       {
         name: "Path",
         sortable: false,
         selector: (row: ApiEndpoint) => row.method + row.path,
         cell: (row: ApiEndpoint) => (
-          <HStack
-            fontSize="sm"
-            spacing="4"
+          <Text
             pointerEvents="none"
-            alignItems="center"
+            fontWeight="medium"
+            fontFamily="mono"
+            color="gray.900"
           >
-            <Text>{row.method}</Text>
-            <Text fontFamily="mono">{row.path}</Text>
-          </HStack>
+            {row.path}
+          </Text>
         ),
         id: "path",
-        grow: 3,
+        grow: 4,
       },
       {
         name: "Sensitive Data Classes",
         sortable: false,
         cell: (row: ApiEndpoint) => {
           return (
-            <Box>
+            <Box pointerEvents="none">
               {row.dataClasses?.map(e => {
                 return (
                   <Tag
-                    p="1"
+                    px={2}
                     m="2px"
                     fontSize="xx-small"
+                    fontWeight="normal"
                     key={e}
                     colorScheme={
                       RISK_TO_COLOR[
@@ -197,6 +208,11 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         name: "Host",
         sortable: false,
         selector: (row: ApiEndpoint) => row.host || "",
+        cell: (row: ApiEndpoint) => (
+          <Text pointerEvents="none" fontWeight="normal">
+            {row.host}
+          </Text>
+        ),
         id: "host",
         grow: 2,
       },
@@ -205,8 +221,20 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         sortable: false,
         selector: (row: ApiEndpoint) =>
           getDateTimeString(row.firstDetected) || "N/A",
+        cell: (row: ApiEndpoint) => (
+          <Tooltip
+            placement="top"
+            label={getDateTimeString(row.firstDetected) || "N/A"}
+            wordBreak="keep-all"
+          >
+            <Text pointerEvents="none" fontWeight="normal">
+              {getDateTimeRelative(row.firstDetected) || "N/A"}
+            </Text>
+          </Tooltip>
+        ),
         id: "firstDetected",
         grow: 1.5,
+        right: true,
       },
       {
         name: "Last Active",
@@ -218,10 +246,13 @@ const List: React.FC<EndpointTablesProps> = React.memo(
             placement="top"
             label={getDateTimeString(row.lastActive) || "N/A"}
           >
-            {getDateTimeRelative(row.lastActive) || "N/A"}
+            <Text pointerEvents="none" fontWeight="normal">
+              {getDateTimeRelative(row.lastActive) || "N/A"}
+            </Text>
           </Tooltip>
         ),
         id: "lastActive",
+        right: true,
         grow: 1.5,
       },
     ]
@@ -244,6 +275,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         progressComponent={
           <TableLoader currentPage={currentPage} totalCount={totalCount} />
         }
+        theme="solarized"
         columns={columns}
         data={endpoints}
         customStyles={getCustomStyles(colorMode.colorMode)}

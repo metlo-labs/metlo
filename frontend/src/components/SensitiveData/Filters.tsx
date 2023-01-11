@@ -22,8 +22,8 @@ const FilterHeader: React.FC<{ title: string }> = React.memo(({ title }) => (
 const SensitiveDataFilters: React.FC<SensitiveDataFilterProps> = React.memo(
   ({ hosts, riskScores, locations, hostList, setParams }) => {
     return (
-      <Stack direction={{ base: "column", lg: "row" }} spacing="4" w="full">
-        <Box w="xs">
+      <Stack direction={{ base: "column", md: "row" }} spacing="4" w="full">
+        <Box w={{ base: "full", md: "xs" }}>
           <FilterHeader title="Host" />
           <Select
             value={
@@ -49,7 +49,7 @@ const SensitiveDataFilters: React.FC<SensitiveDataFilterProps> = React.memo(
             }
           />
         </Box>
-        <Box w="xs">
+        <Box w={{ base: "full", md: "xs" }}>
           <FilterHeader title="Risk Score" />
           <Select
             value={
@@ -75,7 +75,7 @@ const SensitiveDataFilters: React.FC<SensitiveDataFilterProps> = React.memo(
             }
           />
         </Box>
-        <Box w="xs">
+        <Box w={{ base: "full", md: "xs" }}>
           <FilterHeader title="Request Location" />
           <Select
             value={

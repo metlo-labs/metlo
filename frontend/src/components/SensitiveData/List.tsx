@@ -1,7 +1,7 @@
 import React from "react"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/router"
-import { Badge, useColorMode, Wrap, WrapItem } from "@chakra-ui/react"
+import { Badge, Text, useColorMode, Button } from "@chakra-ui/react"
 import EmptyView from "components/utils/EmptyView"
 import { TableColumn } from "react-data-table-component"
 import { RISK_TO_COLOR } from "~/constants"
@@ -24,12 +24,6 @@ const List: React.FC<PIITableProps> = React.memo(({ items, params }) => {
   const router = useRouter()
   const columns: TableColumn<PIIDataClassAggItem>[] = [
     {
-      name: "Data Class",
-      sortable: true,
-      selector: (row: PIIDataClassAggItem) => row.dataClass,
-      id: "dataClass",
-    },
-    {
       name: "Risk Score",
       sortable: true,
       selector: (row: PIIDataClassAggItem) => row.risk,
@@ -37,6 +31,7 @@ const List: React.FC<PIITableProps> = React.memo(({ items, params }) => {
         <Badge
           p="1"
           fontSize="sm"
+          fontWeight="medium"
           colorScheme={RISK_TO_COLOR[row.risk]}
           pointerEvents="none"
         >
@@ -46,47 +41,63 @@ const List: React.FC<PIITableProps> = React.memo(({ items, params }) => {
       id: "risk",
     },
     {
+      name: "Data Class",
+      sortable: true,
+      selector: (row: PIIDataClassAggItem) => row.dataClass,
+      cell: (row: PIIDataClassAggItem) => (
+        <Text fontWeight="medium" color="gray.900">
+          {row.dataClass}
+        </Text>
+      ),
+      id: "dataClass",
+    },
+    {
       name: "Count",
       sortable: true,
       selector: (row: PIIDataClassAggItem) => row.count,
       id: "count",
+      right: true,
     },
     {
       name: "Endpoints",
       sortable: true,
       selector: (row: PIIDataClassAggItem) => row.numEndpoints,
-      cell: (row: PIIDataClassAggItem) => (
-        <Wrap
-          display="flex"
-          alignItems="center"
-          h="full"
-          pr="5"
-          className="my-box"
-          cursor="pointer"
-        >
-          <WrapItem>{row.numEndpoints}</WrapItem>
-          <WrapItem
-            onClick={() =>
-              router.push({
-                pathname: "/endpoints",
-                query: {
-                  dataClasses: row.dataClass,
-                  hosts: params.hosts.join(","),
-                },
-              })
-            }
-          >
-            View All →
-          </WrapItem>
-        </Wrap>
-      ),
+      cell: (row: PIIDataClassAggItem) => <Text>{row.numEndpoints}</Text>,
       id: "numEndpoints",
+      right: true,
     },
     {
       name: "Hosts",
       sortable: true,
       selector: (row: PIIDataClassAggItem) => row.numHosts,
       id: "numHosts",
+      right: true,
+    },
+    {
+      name: "",
+      sortable: false,
+      cell: (row: PIIDataClassAggItem) => (
+        <Button
+          borderWidth={1}
+          size="xs"
+          variant="create"
+          bg="transparent"
+          fontWeight="medium"
+          color="metloBlue"
+          onClick={() =>
+            router.push({
+              pathname: "/endpoints",
+              query: {
+                dataClasses: row.dataClass,
+                hosts: params.hosts.join(","),
+              },
+            })
+          }
+        >
+          View
+        </Button>
+      ),
+      right: true,
     },
   ]
 
