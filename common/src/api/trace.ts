@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-export const GetTracesParams = z.object({
+export const GetTracesParamsSchema = z.object({
   method: z.string().optional(),
   pathRegex: z.string().optional(),
   hostRegex: z.string().optional(),
@@ -11,3 +11,5 @@ export const GetTracesParams = z.object({
     .union([z.number(), z.string().regex(/^\d+$/).transform(Number)])
     .optional(),
 })
+
+export type GetTracesParams = z.infer<typeof GetTracesParamsSchema>
