@@ -1,7 +1,7 @@
 import { Response, Router } from "express"
 import { MetloRequest } from "types"
 
-import { GetTracesParams } from "@common/api/trace"
+import { GetTracesParamsSchema } from "@common/api/trace"
 import ApiResponseHandler from "api-response-handler"
 import { getRepoQB } from "services/database/utils"
 import { ApiTrace } from "models"
@@ -10,7 +10,7 @@ const getTracesHandler = async (
   req: MetloRequest,
   res: Response,
 ): Promise<void> => {
-  const parsedQuery = GetTracesParams.safeParse(req.query)
+  const parsedQuery = GetTracesParamsSchema.safeParse(req.query)
   if (parsedQuery.success == false) {
     return await ApiResponseHandler.zerr(res, parsedQuery.error)
   }
