@@ -44,8 +44,23 @@ export const runTests = async (
       ),
     )
   }
+  // get global env
+  const config = getConfig()
+  let url = urlJoin(config.metloHost, "api/v1/testing/global-env")
+  const { data: globalEnv } = await axios.get<{ name: string; value: any }[]>(
+    url,
+    {
+      headers: { Authorization: config.apiKey },
+    },
+  )
+
   if (paths && paths.length) {
-    await runTestPath(paths, verbose, initEnv)
+    await runTestPath(paths, verbose, {
+      ...initEnv,
+      ...Object.fromEntries(
+        globalEnv.map(env => [`global.${env.name}`, env.value]),
+      ),
+    })
     return
   }
   await runTestsFromEndpointInfo(endpoint, method, host, initEnv, verbose)

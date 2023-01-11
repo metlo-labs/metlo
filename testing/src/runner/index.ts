@@ -1,5 +1,6 @@
 import { TestConfig, TestResult, TestStep } from "../types/test"
 import { runStep } from "./step"
+import * as Handlebars from "handlebars"
 
 export const runTest = async (
   test: TestConfig,
@@ -9,10 +10,11 @@ export const runTest = async (
     cookies: {},
     envVars: env || {},
   }
+
   if (test.env) {
     context.envVars = Object.fromEntries(
       Object.entries(context.envVars).concat(
-        test.env.map(e => [e.name, e.value]),
+        test.env.map(e => [e.name, Handlebars.compile(e.value)(env)]),
       ),
     )
   }

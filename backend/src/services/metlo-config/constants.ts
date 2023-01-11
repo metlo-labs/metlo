@@ -149,6 +149,23 @@ export const METLO_CONFIG_SCHEMA = {
         enum: Object.keys(__DataClass_INTERNAL__),
       },
     },
+    metloTestEnv: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["name", "value"],
+        properties: {
+          name: {
+            type: "string",
+            pattern: String.raw`^[a-zA-Z0-9-_\.]+$`,
+          },
+          value: {
+            type: "string",
+          },
+        },
+        additionalProperties: false,
+      },
+    },
   },
   additionalProperties: false,
   definitions: {
