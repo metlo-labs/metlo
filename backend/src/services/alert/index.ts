@@ -1,3 +1,4 @@
+import mlog from "logger"
 import {
   FindOptionsWhere,
   FindManyOptions,
@@ -525,7 +526,7 @@ export class AlertService {
       }
       return alerts
     } catch (err) {
-      console.error(`Error creating sensitive data alerts: ${err}`)
+      mlog.withErr(err).error("Error creating sensitive data alerts")
       return []
     }
   }
@@ -611,7 +612,7 @@ export class AlertService {
       }
       return alerts
     } catch (err) {
-      console.error(`Error creating spec diff alerts: ${err}`)
+      mlog.withErr(err).error("Error creating spec diff alerts")
       return []
     }
   }
@@ -648,7 +649,7 @@ export class AlertService {
       }
       return alerts
     } catch (err) {
-      console.error(`Error creating spec diff alerts: ${err}`)
+      mlog.withErr(err).error("Error creating spec diff alerts")
       return []
     }
   }
@@ -680,7 +681,7 @@ export class AlertService {
       }
       return alerts
     } catch (err) {
-      console.error(
+      mlog.error(
         `Error creating alert for unauthenticated endpoints returning sensitive data: ${err}`,
       )
       return []

@@ -48,6 +48,7 @@
     "js-yaml-source-map": "^0.2.2",
     "json-source-map": "^0.6.1",
     "lodash": "^4.17.21",
+    "loglevel": "^1.8.1",
     "luxon": "^3.0.3",
     "multer": "^1.4.5-lts.1",
     "node-schedule": "^2.1.0",

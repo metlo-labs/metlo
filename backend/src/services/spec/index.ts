@@ -1,3 +1,4 @@
+import mlog from "logger"
 import { v4 as uuidv4 } from "uuid"
 import { QueryRunner, Raw } from "typeorm"
 import SwaggerParser from "@apidevtools/swagger-parser"
@@ -8,7 +9,7 @@ import AdmZip from "adm-zip"
 import OpenAPIResponseValidator, {
   OpenAPIResponseValidatorValidationError,
 } from "@leoscope/openapi-response-validator"
-import { AlertType, RestMethod, RiskScore, SpecExtension } from "@common/enums"
+import { RestMethod, RiskScore, SpecExtension } from "@common/enums"
 import {
   ApiEndpoint,
   ApiTrace,
@@ -39,9 +40,7 @@ import {
 } from "./utils"
 import { AlertService } from "services/alert"
 import Error404NotFound from "errors/error-404-not-found"
-import { BlockFieldsService } from "services/block-fields"
 import Error500InternalServer from "errors/error-500-internal-server"
-import { RISK_SCORE_ORDER } from "~/constants"
 import {
   insertAggregateHourlyQuery,
   deleteOpenAPISpecDiffAlerts,
@@ -133,7 +132,7 @@ export class SpecService {
       await this.uploadNewSpec(ctx, specObject, fileName, extension, specString)
       await queryRunner.commitTransaction()
     } catch (err) {
-      console.error(`Error updating spec file: ${err}`)
+      mlog.withErr(err).error("Error updating spec file")
       await queryRunner.rollbackTransaction()
       throw err
     } finally {
@@ -185,7 +184,7 @@ export class SpecService {
       }
     } catch (err) {
       if (!existingQueryRunner) {
-        console.error(`Error deleting spec file: ${err}`)
+        mlog.withErr(err).error("Error deleting spec file")
         await queryRunner.rollbackTransaction()
       }
       throw err
@@ -455,7 +454,7 @@ export class SpecService {
       }
     } catch (err) {
       if (!existingQueryRunner) {
-        console.error(`Error updating database for spec upload: ${err}`)
+        mlog.withErr(err).error("Error updating database for spec upload")
         await queryRunner.rollbackTransaction()
       }
       throw new Error500InternalServer(err)
@@ -528,7 +527,7 @@ export class SpecService {
         queryRunner,
       )
     } catch (err) {
-      console.error(`Error finding OpenAPI Spec diff: ${err}`)
+      mlog.withErr(err).error("Error finding OpenAPI Spec diff")
       return []
     }
   }

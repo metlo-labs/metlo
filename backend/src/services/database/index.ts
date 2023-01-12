@@ -1,3 +1,4 @@
+import mlog from "logger"
 import { AppDataSource } from "data-source"
 import { DatabaseModel } from "models"
 import Error500InternalServer from "errors/error-500-internal-server"
@@ -22,7 +23,7 @@ export class DatabaseService {
       res = await queryRunner.query(rawQuery, parameters ?? [])
       await queryRunner.commitTransaction()
     } catch (err) {
-      console.error(`Encountered error while executing raw sql query: ${err}`)
+      mlog.withErr(err).error("Encountered error while executing raw sql query")
       await queryRunner.rollbackTransaction()
       throw new Error500InternalServer(err)
     } finally {
@@ -48,7 +49,7 @@ export class DatabaseService {
       }
       await queryRunner.commitTransaction()
     } catch (err) {
-      console.error(`Encountered error while executing raw sql query: ${err}`)
+      mlog.withErr(err).error("Encountered error while executing raw sql query")
       await queryRunner.rollbackTransaction()
       throw new Error500InternalServer(err)
     } finally {
@@ -71,7 +72,9 @@ export class DatabaseService {
       for (let i = 0; i < saveItems.length; i++) {
         const item = saveItems[i]
         const fn = () =>
-          getEntityManager(ctx, queryRunner).saveList(item, { chunk: chunkBatch })
+          getEntityManager(ctx, queryRunner).saveList(item, {
+            chunk: chunkBatch,
+          })
         if (retry) {
           await retryTypeormTransaction(fn, 5)
         } else {
@@ -90,7 +93,7 @@ export class DatabaseService {
       }
       await queryRunner.commitTransaction()
     } catch (err) {
-      console.error(
+      mlog.error(
         `Encountered error while saving transactions to database: ${err}`,
       )
       await queryRunner.rollbackTransaction()

@@ -1,3 +1,4 @@
+import mlog from "logger"
 import IORedis from "ioredis"
 import { MetloContext } from "types"
 
@@ -43,7 +44,7 @@ export class RedisClient {
     try {
       return await this.getInstance().del(keys)
     } catch (err) {
-      console.error(`Error deleting from redis: ${err}`)
+      mlog.withErr(err).error("Error deleting from redis")
     }
   }
 
@@ -65,7 +66,7 @@ export class RedisClient {
         await this.getInstance().lpush(key, ...data)
       }
     } catch (err) {
-      console.error(`Error pushing value to redis list: ${err}`)
+      mlog.withErr(err).error("Error pushing value to redis list")
     }
   }
 
@@ -95,7 +96,7 @@ export class RedisClient {
         await this.getInstance().sadd(key, ...data)
       }
     } catch (err) {
-      console.error(`Error adding value to redis set: ${err}`)
+      mlog.withErr(err).error("Error adding value to redis set")
     }
   }
 
@@ -129,7 +130,7 @@ export class RedisClient {
     try {
       return await this.getInstance().lrange(key, start, end)
     } catch (err) {
-      console.error(`Error retrieving list value from redis: ${err}`)
+      mlog.withErr(err).error("Error retrieving list value from redis")
       return []
     }
   }

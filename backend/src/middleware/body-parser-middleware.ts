@@ -1,3 +1,4 @@
+import mlog from "logger"
 import { NextFunction, Request, Response } from "express"
 import yaml from "js-yaml"
 import { parse } from "parse-multipart-data"
@@ -44,7 +45,7 @@ const getParsedBodyString = (
         return bodyString
     }
   } catch (err) {
-    console.error(`Encountered error while parsing body string: ${err}`)
+    mlog.withErr(err).error(`Encountered error while parsing body string`)
     return bodyString
   }
 }
