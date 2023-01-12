@@ -121,24 +121,12 @@ const theme = extendTheme({
             bg: "metloBlue",
             color: "#FFFFFF",
           },
-          _active: {
-            bg: "metloBlue",
-            color: "#FFFFFF",
-          },
-          _focus: {
-            bg: "metloBlue",
-            color: "#FFFFFF",
-          },
         },
         deleteSecondary: {
           bg: "#FFFFFF",
           color: "deleteRed",
           border: "1px",
           _hover: {
-            bg: "deleteRed",
-            color: "#FFFFFF",
-          },
-          _focus: {
             bg: "deleteRed",
             color: "#FFFFFF",
           },

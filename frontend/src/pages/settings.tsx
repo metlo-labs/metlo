@@ -165,12 +165,13 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
   const tabStyles: TabProps = {
     _hover: { bg: "#F7FBFF" },
     as: "button",
-    px: 4,
-    py: 6,
+    px: { base: 2, sm: 4 },
+    py: { base: 4, sm: 6 },
     justifyContent: "flex-start",
     alignItems: "flex-start",
     textAlign: "start",
-    w: "full",
+    w: { base: "full", md: "full" },
+    fontSize: { base: "xs", sm: "md" },
     borderBottomWidth: 1,
   }
   const orientation = useBreakpointValue({ base: "horizontal", md: "vertical" })
@@ -227,7 +228,7 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
               <Tab
                 bg={getTab() === 1 ? "#F7FBFF" : "inital"}
                 {...tabStyles}
-                borderRightWidth={{ base: 1, sm: 0 }}
+                borderRightWidth={{ base: 1, md: 0 }}
                 onClick={() => handleTabClick(SettingsTab.CONFIG)}
               >
                 <Stack
