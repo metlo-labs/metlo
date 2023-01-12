@@ -35,14 +35,14 @@ export const SidebarLayoutShell: React.FC<SidebarLayoutShellProps> = React.memo(
       currentTab = itemToNavLink[firstItem]
     }
     return (
-      <Stack direction={{ base: "column", md: "row" }} spacing="0">
+      <Stack h="100vh" direction={{ base: "column", md: "row" }} spacing="0">
         {title ? (
           <Head>
             <title>{title}</title>
           </Head>
         ) : null}
         <SideNavBar currentTab={currentTab} />
-        <Box h="100vh" flex="1" overflowY="auto">
+        <Box h="full" flex="1" overflowY="auto">
           {children}
         </Box>
       </Stack>

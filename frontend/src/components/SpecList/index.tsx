@@ -82,7 +82,7 @@ const APISpecList: React.FC<APISpecListProps> = React.memo(({ apiSpecs }) => {
       w="full"
       alignItems="flex-start"
       borderWidth="1px"
-      rounded="xl"
+      rounded="lg"
       spacing="0"
       overflow="hidden"
     >
@@ -105,7 +105,7 @@ const APISpecList: React.FC<APISpecListProps> = React.memo(({ apiSpecs }) => {
                   inputRef.current = e
                 }}
               />
-              <Button colorScheme="blue" isLoading={fetching}>
+              <Button variant="create" isLoading={fetching}>
                 Upload New Spec
               </Button>
             </InputGroup>

@@ -346,7 +346,7 @@ export const AlertList: React.FC<AlertListProps> = ({
                 placeholder="Search by alert id..."
               />
             </InputGroup>
-            <HStack>
+            <HStack alignSelf={{ base: "flex-end" }}>
               <Button
                 isDisabled={
                   fetching ||
@@ -356,7 +356,6 @@ export const AlertList: React.FC<AlertListProps> = ({
                 }
                 leftIcon={<RiEyeOffFill />}
                 isLoading={updating}
-                border="1px"
                 onClick={() => handleAllActionClick(UpdateAlertType.IGNORE)}
               >
                 Ignore All
@@ -370,7 +369,7 @@ export const AlertList: React.FC<AlertListProps> = ({
                 }
                 leftIcon={<FiCheckCircle />}
                 isLoading={updating}
-                colorScheme="green"
+                variant="create"
                 onClick={() => handleAllActionClick(UpdateAlertType.RESOLVE)}
               >
                 Resolve All
@@ -543,7 +542,7 @@ export const AlertList: React.FC<AlertListProps> = ({
                 </Button>
                 <Button
                   isLoading={updating}
-                  colorScheme="blue"
+                  variant="create"
                   onClick={async () => {
                     await handleAllUpdateAction(allActionState)
                     closeDialog()

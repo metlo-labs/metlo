@@ -18,6 +18,7 @@ export const TagList: React.FC<TagListProps> = React.memo(
         <HStack>
           <Box w="lg">
             <Select
+              className="chakra-react-select"
               value={tags.map(e => ({
                 label: e,
                 value: e,
@@ -34,7 +35,7 @@ export const TagList: React.FC<TagListProps> = React.memo(
             />
           </Box>
           <Button
-            colorScheme="blue"
+            variant="create"
             rounded="sm"
             size="sm"
             onClick={() => setEditing(false)}

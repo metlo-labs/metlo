@@ -48,7 +48,6 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
     return (
       <Stack
         direction={{ base: "column", lg: "row" }}
-        overflowY="auto"
         spacing="0"
         h="full"
       >

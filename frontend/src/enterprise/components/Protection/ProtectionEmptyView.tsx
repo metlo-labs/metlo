@@ -24,11 +24,11 @@ export const ProtectionEmptyView: React.FC<{}> = () => {
         <Heading size="2xl" fontWeight="semibold">
           Protection
         </Heading>
-        <DataHeading fontSize="lg" pb="4">
+        <DataHeading textAlign="center" fontSize="lg" pb="4">
           Protection is a premium feature that requires a license.
         </DataHeading>
         <Button
-          colorScheme="blue"
+          variant="create"
           as="a"
           href="https://www.metlo.com/contact"
           target="_blank"

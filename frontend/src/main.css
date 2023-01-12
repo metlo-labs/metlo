@@ -65,4 +65,10 @@
   background-color: var(--chakra-colors-orange-800);
 }
 
-.monaco-editor-overlaymessage { display: none !important; }
+.monaco-editor-overlaymessage {
+  display: none !important;
+}
+
+.chakra-react-select > div {
+  border-radius: var(--chakra-radii-md);
+}

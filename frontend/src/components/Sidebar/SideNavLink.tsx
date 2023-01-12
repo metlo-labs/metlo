@@ -30,7 +30,7 @@ const SideNavLink: React.FC<SideNavLinkProps> = React.memo(
       "rgb(163, 165, 170)",
       "rgb(98, 100, 116)",
     )
-    const iconColor = isActive ? "primary" : colorModeValue
+    const iconColor = isActive ? "metloBlue" : colorModeValue
     return (
       <Box w="full" pointerEvents={isComingSoon ? "none" : "unset"}>
         <NextLink

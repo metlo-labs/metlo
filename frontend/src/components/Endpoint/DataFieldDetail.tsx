@@ -120,12 +120,12 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
 
     return (
       <Box h="full" overflowY="auto" p="4">
-        <Grid templateColumns="1fr 1fr" gap="4">
+        <Grid templateColumns={{ base: "1fr", sm: "1fr 1fr" }} gap="4">
           <GridItem>
             <VStack alignItems="flex-start">
               <Text fontWeight="semibold">Field</Text>
               {currDataField.dataPath ? (
-                <Code p="1" rounded="md" fontSize="sm">
+                <Code p="1" wordBreak="break-all" rounded="md" fontSize="sm">
                   {currDataField.dataPath}
                 </Code>
               ) : (

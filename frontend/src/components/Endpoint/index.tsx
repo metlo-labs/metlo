@@ -26,6 +26,7 @@ import {
   AlertDialogBody,
   AlertDialogFooter,
   useToast,
+  Stack,
 } from "@chakra-ui/react"
 import { useRouter } from "next/router"
 import { SectionHeader } from "components/utils/Card"
@@ -122,52 +123,79 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
         w="full"
         alignItems="flex-start"
         spacing="0"
-        h="100vh"
-        overflow="hidden"
+        h="full"
+        overflow={{ base: "auto", md: "hidden" }}
       >
         <VStack w="full" alignItems="flex-start" pt="6" px="6">
-          <HStack w="full" justifyContent="space-between">
-            <VStack alignItems="flex-start">
-              <NextLink href="/endpoints">
-                <HStack color={headerColor} spacing="1" cursor="pointer">
-                  <TiFlowSwitch />
-                  <Text fontWeight="semibold">Endpoints</Text>
-                </HStack>
-              </NextLink>
-              <HStack spacing="4" pb="6">
-                <Badge
-                  fontSize="xl"
-                  px="2"
-                  py="1"
-                  colorScheme={METHOD_TO_COLOR[endpoint?.method] || "gray"}
-                >
-                  {endpoint?.method.toUpperCase()}
-                </Badge>
-                <Code fontSize="xl" fontWeight="semibold" p="1">
-                  {endpoint.path}
-                </Code>
-              </HStack>
-            </VStack>
-            <HStack>
+          <NextLink href="/endpoints">
+            <HStack color={headerColor} spacing="1" cursor="pointer">
+              <TiFlowSwitch />
+              <Text fontWeight="semibold">Endpoints</Text>
+            </HStack>
+          </NextLink>
+          <Badge
+            fontSize="sm"
+            px="2"
+            py="1"
+            colorScheme={METHOD_TO_COLOR[endpoint?.method] || "gray"}
+            display={{ base: "flex", xs: "none" }}
+          >
+            {endpoint?.method.toUpperCase()}
+          </Badge>
+          <Stack
+            direction="row"
+            w="full"
+            justifyContent="space-between"
+            pb={{ base: 4, sm: 6 }}
+          >
+            <Stack
+              direction={{ base: "column", xs: "row" }}
+              spacing={{ base: 0, xs: 4 }}
+              alignItems="flex-start"
+            >
+              <Badge
+                fontSize="lg"
+                px="2"
+                py="1"
+                colorScheme={METHOD_TO_COLOR[endpoint?.method] || "gray"}
+                display={{ base: "none", xs: "flex" }}
+              >
+                {endpoint?.method.toUpperCase()}
+              </Badge>
+              <Code
+                wordBreak="break-all"
+                fontSize={{ base: "md", xs: "lg" }}
+                fontWeight="semibold"
+                p="1"
+              >
+                {endpoint.path}
+              </Code>
+            </Stack>
+            <HStack alignSelf="flex-start">
               <EditPath
                 endpointPath={endpoint.path}
                 endpointId={endpoint.uuid}
               />
-              <Button variant="delete" isLoading={deleting} onClick={onOpen}>
+              <Button
+                size={{ base: "sm", sm: "md" }}
+                variant="delete"
+                isLoading={deleting}
+                onClick={onOpen}
+              >
                 Delete
               </Button>
             </HStack>
-          </HStack>
+          </Stack>
         </VStack>
         <Tabs
           w="full"
           display="flex"
           flexDir="column"
           flexGrow="1"
+          overflow={{ base: "initial", md: "hidden" }}
           index={getTab()}
-          overflow="hidden"
         >
-          <TabList>
+          <TabList overflowX="auto" overflowY="hidden">
             <Tab onClick={() => handleTabClick(null)}>
               <SectionHeader text="Overview" sym={BiInfoCircle} />
             </Tab>
@@ -181,8 +209,12 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
               <SectionHeader text="Alerts" sym={FaBell} />
             </Tab>
           </TabList>
-          <TabPanels flexGrow="1" h="full" overflow="hidden">
-            <TabPanel p="0" overflow="auto" h="full">
+          <TabPanels
+            flexGrow="1"
+            h="full"
+            overflow={{ base: "initial", md: "hidden" }}
+          >
+            <TabPanel p="0" overflow={{ base: "initial", md: "auto" }} h="full">
               <EndpointOverview endpoint={endpoint} usage={usage} />
             </TabPanel>
             <TabPanel p="0" h="full">

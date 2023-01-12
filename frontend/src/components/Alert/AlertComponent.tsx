@@ -99,14 +99,13 @@ export const AlertComponent: React.FC<AlertComponentProps> = ({
               leftIcon={
                 alert.status === Status.OPEN ? <RiEyeOffFill /> : <RiEyeFill />
               }
-              border="1px"
             >
               {alert.status === Status.IGNORED ? "Unignore" : "Ignore"}
             </Button>
           )}
           <Button
             leftIcon={<AiOutlineFileSearch size="20px" />}
-            colorScheme="green"
+            variant="create"
             onClick={onOpen}
           >
             View Detail
@@ -165,7 +164,7 @@ export const AlertComponent: React.FC<AlertComponentProps> = ({
                 <Button
                   isLoading={updating}
                   leftIcon={<FiCheckCircle />}
-                  colorScheme="green"
+                  variant="create"
                   onClick={() =>
                     handleUpdateAlert(alert.uuid, {
                       updateType: UpdateAlertType.RESOLVE,

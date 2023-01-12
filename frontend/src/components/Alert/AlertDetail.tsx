@@ -15,6 +15,7 @@ import {
   AccordionIcon,
   AccordionPanel,
   Spinner,
+  Stack,
 } from "@chakra-ui/react"
 import Editor from "@monaco-editor/react"
 import { AlertType, SpecExtension, Status } from "@common/enums"
@@ -95,7 +96,7 @@ const handleOpenApiSpec = (
     </Box>
   )
   rightPanel = (
-    <Box w="55%" h="full">
+    <Box w={{ base: "full", sm: "55%" }} h="full">
       <Box borderWidth={1} h="full">
         {specString ? (
           <Editor
@@ -235,7 +236,7 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
             | MissingHSTSContext
           const trace = context.trace
           setRightPanel(
-            <Box w="55%" h="full">
+            <Box w={{ base: "full", sm: "55%" }} h="full">
               <VStack w="full" h="full" alignItems="flex-start">
                 <Text fontWeight="semibold">Detected Trace</Text>
                 <Box
@@ -264,11 +265,17 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
 
   return (
     <Box w="full" h="full">
-      <HStack alignItems="flex-start" w="full" h="full" spacing="4">
+      <Stack
+        direction={{ base: "column", sm: "row" }}
+        alignItems="flex-start"
+        w="full"
+        h="full"
+        spacing="4"
+      >
         <VStack
-          w={showRightPanel(alert.type) ? "45%" : "full"}
+          w={{ base: "full", sm: showRightPanel(alert.type) ? "45%" : "full" }}
           h="full"
-          overflowY="auto"
+          overflowY={{ base: "unset", sm: "auto" }}
           spacing="4"
           pr="2"
         >
@@ -297,7 +304,7 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
             <GridItem colSpan={2}>
               <VStack alignItems="flex-start">
                 <Text fontWeight="semibold">Endpoint</Text>
-                <HStack>
+                <HStack alignItems="flex-start">
                   <Badge
                     fontSize="sm"
                     px="2"
@@ -308,7 +315,7 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
                   >
                     {alert.apiEndpoint.method.toUpperCase()}
                   </Badge>
-                  <Code p="1" rounded="md" fontSize="sm">
+                  <Code wordBreak="break-all" p="1" rounded="md" fontSize="sm">
                     {alert.apiEndpoint.path}
                   </Code>
                 </HStack>
@@ -345,7 +352,7 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
         </VStack>
         {loadinSpec ? (
           <Box
-            w="55%"
+            w={{ base: "full", sm: "55%" }}
             h="full"
             display="flex"
             alignItems="center"
@@ -356,7 +363,7 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
         ) : (
           rightPanel
         )}
-      </HStack>
+      </Stack>
     </Box>
   )
 }

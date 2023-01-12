@@ -12,9 +12,6 @@ import {
   Textarea,
   Button,
   useToast,
-  ListItem,
-  ListIcon,
-  List,
 } from "@chakra-ui/react"
 import { getDateTimeString, makeToast } from "utils"
 import { METHOD_TO_COLOR } from "~/constants"
@@ -154,7 +151,7 @@ const AlertDetail: React.FC<AlertDetailProps> = React.memo(
             <Button
               alignSelf="end"
               isLoading={resolving}
-              colorScheme="blue"
+              variant="create"
               onClick={handleResolveClick}
             >
               Resolve

@@ -11,7 +11,10 @@ import {
   Text,
   Stack,
   Divider,
+  IconButton,
+  useMediaQuery,
 } from "@chakra-ui/react"
+import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons"
 import { Select } from "chakra-react-select"
 import SplitPane from "react-split-pane"
 import { ImCross } from "icons/im/ImCross"
@@ -217,6 +220,12 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
         dataFields: [],
       },
     ])
+    const [showFilters, setShowFilters] = useState<boolean>(true)
+
+    const [isLargerThanSm] = useMediaQuery("(min-width: 40em)", {
+      ssr: true,
+      fallback: false,
+    })
 
     const selectedRowColor = useColorModeValue(
       "rgb(242, 242, 242)",
@@ -425,95 +434,117 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
           bg="white"
           flex="0 0 auto"
           p={4}
-          direction={{ base: "column", md: "row" }}
+          py={2}
+          minH={8}
+          direction={{ base: "column", sm: "row" }}
         >
-          <Box zIndex="1002" w={{ base: "full", md: "md" }}>
-            <Text fontWeight="semibold" mb="2" fontSize="sm">
-              Status Code
-            </Text>
-            <Select
-              value={
-                filters.statusCodes
-                  ? filters.statusCodes.map(code => ({
-                      label: code,
-                      value: code,
-                    }))
-                  : undefined
-              }
-              isMulti={true}
-              size="sm"
-              options={[...statusCodes].map(code => ({
-                label: code,
-                value: code,
-              }))}
-              placeholder="Filter by Status Code..."
-              instanceId="data-field-status-code"
-              onChange={codes =>
-                setFilters(old => ({
-                  ...old,
-                  statusCodes: codes.map(e => e.label),
-                }))
-              }
+          <HStack alignSelf="flex-end" display={{ base: "flex", sm: "none" }}>
+            <Text>Filters</Text>
+            <IconButton
+              borderWidth="1px"
+              variant="unstyled"
+              size="xs"
+              aria-label="Toggle Filters"
+              onClick={() => setShowFilters(old => !old)}
+              icon={showFilters ? <ChevronDownIcon /> : <ChevronUpIcon />}
             />
-          </Box>
-          <Box zIndex="1001" w={{ base: "full", md: "md" }}>
-            <Text fontWeight="semibold" mb="2" fontSize="sm">
-              Content Type
-            </Text>
-            <Select
-              value={
-                filters.contentTypes
-                  ? filters.contentTypes.map(type => ({
-                      label: type,
-                      value: type,
-                    }))
-                  : undefined
-              }
-              isMulti={true}
-              size="sm"
-              options={[...contentTypes].map(type => ({
-                label: type,
-                value: type,
-              }))}
-              placeholder="Filter by Content Type"
-              instanceId="data-field-content-type"
-              onChange={types =>
-                setFilters(old => ({
-                  ...old,
-                  contentTypes: types.map(e => e.label),
-                }))
-              }
-            />
-          </Box>
-          <Box zIndex="1000" w={{ base: "full", md: "md" }}>
-            <Text fontWeight="semibold" mb="2" fontSize="sm">
-              Sensitive Data Classes
-            </Text>
-            <Select
-              value={
-                filters.sensitiveDataClasses
-                  ? filters.sensitiveDataClasses.map(e => ({
-                      label: e,
-                      value: e,
-                    }))
-                  : undefined
-              }
-              isMulti={true}
-              size="sm"
-              options={[...sensitiveDataClasses].map(e => ({
-                label: e,
-                value: e,
-              }))}
-              placeholder="Filter by Sensitive Data Class"
-              instanceId="data-field-sensitive-data"
-              onChange={data =>
-                setFilters(old => ({
-                  ...old,
-                  sensitiveDataClasses: data.map(e => e.label),
-                }))
-              }
-            />
-          </Box>
+          </HStack>
+          {showFilters || isLargerThanSm ? (
+            <Box mt="0 !important" zIndex="1002" w={{ base: "full", md: "md" }}>
+              <Text fontWeight="semibold" mb="2" fontSize="sm">
+                Status Code
+              </Text>
+              <Select
+                className="chakra-react-select"
+                value={
+                  filters.statusCodes
+                    ? filters.statusCodes.map(code => ({
+                        label: code,
+                        value: code,
+                      }))
+                    : undefined
+                }
+                isMulti={true}
+                size="sm"
+                options={[...statusCodes].map(code => ({
+                  label: code,
+                  value: code,
+                }))}
+                placeholder="Filter by Status Code..."
+                instanceId="data-field-status-code"
+                onChange={codes =>
+                  setFilters(old => ({
+                    ...old,
+                    statusCodes: codes.map(e => e.label),
+                  }))
+                }
+              />
+            </Box>
+          ) : null}
+          {showFilters || isLargerThanSm ? (
+            <Box zIndex="1001" w={{ base: "full", md: "md" }}>
+              <Text fontWeight="semibold" mb="2" fontSize="sm">
+                Content Type
+              </Text>
+              <Select
+                className="chakra-react-select"
+                value={
+                  filters.contentTypes
+                    ? filters.contentTypes.map(type => ({
+                        label: type,
+                        value: type,
+                      }))
+                    : undefined
+                }
+                isMulti={true}
+                size="sm"
+                options={[...contentTypes].map(type => ({
+                  label: type,
+                  value: type,
+                }))}
+                placeholder="Filter by Content Type"
+                instanceId="data-field-content-type"
+                onChange={types =>
+                  setFilters(old => ({
+                    ...old,
+                    contentTypes: types.map(e => e.label),
+                  }))
+                }
+              />
+            </Box>
+          ) : null}
+          {showFilters || isLargerThanSm ? (
+            <Box zIndex="1000" w={{ base: "full", md: "md" }}>
+              <Text fontWeight="semibold" mb="2" fontSize="sm">
+                Sensitive Data Classes
+              </Text>
+              <Select
+                className="chakra-react-select"
+                value={
+                  filters.sensitiveDataClasses
+                    ? filters.sensitiveDataClasses.map(e => ({
+                        label: e,
+                        value: e,
+                      }))
+                    : undefined
+                }
+                isMulti={true}
+                size="sm"
+                options={[...sensitiveDataClasses].map(e => ({
+                  label: e,
+                  value: e,
+                }))}
+                placeholder="Filter by Sensitive Data Class"
+                instanceId="data-field-sensitive-data"
+                onChange={data =>
+                  setFilters(old => ({
+                    ...old,
+                    sensitiveDataClasses: data.map(e => e.label),
+                  }))
+                }
+              />
+            </Box>
+          ) : null}
         </Stack>
         <Divider />
         <Box flex="1 1 auto" overflow="auto" w="full" position="relative">
@@ -529,7 +560,17 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
               {detailPanel}
             </SplitPane>
           ) : (
-            tablePanel
+            <Box
+              display="flex"
+              flex={1}
+              height="100%"
+              position="absolute"
+              outline="none"
+              overflow="hidden"
+              w="full"
+            >
+              {tablePanel}
+            </Box>
           )}
         </Box>
       </Box>

@@ -42,7 +42,7 @@ const SensitiveDataPage: React.FC<SensitiveDataPageProps> = React.memo(
           w="full"
           alignItems="flex-start"
           borderWidth="1px"
-          rounded="xl"
+          rounded="lg"
           spacing="0"
           overflow="hidden"
         >

@@ -4,6 +4,7 @@ import { mode, StyleFunctionProps } from "@chakra-ui/theme-tools"
 const fonts = { mono: `'Menlo', monospace` }
 
 const breakpoints = {
+  xs: "30em",
   sm: "40em",
   md: "52em",
   lg: "64em",
@@ -58,10 +59,14 @@ const theme = extendTheme({
   components: {
     Button: {
       baseStyle: {
-        border: "1px",
+        borderWidth: "1px",
+        borderColor: "gray.300",
       },
       variants: {
         base: {},
+        unstyled: {
+          borderWidth: "0",
+        },
         create: {
           borderWidth: "0px",
           bg: "metloBlue",
@@ -111,15 +116,8 @@ const theme = extendTheme({
         createSecondary: {
           bg: "#FFFFFF",
           color: "metloBlue",
+          border: "1px",
           _hover: {
-            bg: "metloBlue",
-            color: "#FFFFFF",
-          },
-          _active: {
-            bg: "metloBlue",
-            color: "#FFFFFF",
-          },
-          _focus: {
             bg: "metloBlue",
             color: "#FFFFFF",
           },
@@ -127,11 +125,8 @@ const theme = extendTheme({
         deleteSecondary: {
           bg: "#FFFFFF",
           color: "deleteRed",
+          border: "1px",
           _hover: {
-            bg: "deleteRed",
-            color: "#FFFFFF",
-          },
-          _focus: {
             bg: "deleteRed",
             color: "#FFFFFF",
           },
