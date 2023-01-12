@@ -50,6 +50,7 @@ func (m *Metlo) Send(data MetloTrace) {
 	json, err := json.Marshal(data)
 	if err != nil {
 		utils.Log.WithError(err).Debug("Error Building Request.")
+		return
 	}
 	req, err := http.NewRequest("POST", m.metloHost, bytes.NewBuffer(json))
 	if err != nil {
