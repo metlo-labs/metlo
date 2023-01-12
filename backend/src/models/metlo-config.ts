@@ -8,4 +8,13 @@ export class MetloConfig extends MetloBaseEntity {
 
   @Column()
   configString: string
+
+  @Column({ select: false })
+  env: string
+
+  @Column({ select: false })
+  envTag: string
+
+  @Column({ select: false })
+  envIV: string
 }
