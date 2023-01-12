@@ -256,7 +256,7 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
                 <Heading fontWeight="semibold" size="xl">
                   API Keys
                 </Heading>
-                <Button colorScheme="blue" onClick={onOpen}>
+                <Button variant="create" onClick={onOpen}>
                   New
                 </Button>
                 <NewKeys
@@ -276,7 +276,7 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
                 w="full"
                 alignItems="flex-start"
                 borderWidth="1px"
-                rounded="xl"
+                rounded="lg"
                 spacing="0"
                 overflow="hidden"
               >
@@ -310,7 +310,7 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
                   </Text>
                 </VStack>
                 <Button
-                  colorScheme="blue"
+                  variant="create"
                   onClick={() => updateMetloConfigHandler()}
                   isLoading={updatingMetloConfig}
                 >

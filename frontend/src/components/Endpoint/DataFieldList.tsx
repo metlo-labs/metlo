@@ -425,13 +425,14 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
           bg="white"
           flex="0 0 auto"
           p={4}
-          direction={{ base: "column", md: "row" }}
+          direction={{ base: "column", sm: "row" }}
         >
           <Box zIndex="1002" w={{ base: "full", md: "md" }}>
             <Text fontWeight="semibold" mb="2" fontSize="sm">
               Status Code
             </Text>
             <Select
+              className="chakra-react-select"
               value={
                 filters.statusCodes
                   ? filters.statusCodes.map(code => ({
@@ -461,6 +462,7 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
               Content Type
             </Text>
             <Select
+              className="chakra-react-select"
               value={
                 filters.contentTypes
                   ? filters.contentTypes.map(type => ({
@@ -490,6 +492,7 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
               Sensitive Data Classes
             </Text>
             <Select
+              className="chakra-react-select"
               value={
                 filters.sensitiveDataClasses
                   ? filters.sensitiveDataClasses.map(e => ({

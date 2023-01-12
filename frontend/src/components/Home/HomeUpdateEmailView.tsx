@@ -97,10 +97,10 @@ export const HomeUpdateEmailView: React.FC<{}> = () => {
             Metlo.
           </FormHelperText>
         </FormControl>
-        <Button colorScheme="blue" onClick={submit}>
+        <Button variant="create" onClick={submit}>
           Submit
         </Button>
-        <Button variant="link" onClick={skip}>
+        <Button border="0" variant="link" onClick={skip}>
           Skip →
         </Button>
       </VStack>

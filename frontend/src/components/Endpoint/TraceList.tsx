@@ -16,7 +16,6 @@ import { DateTime } from "luxon"
 import DataTable, { TableColumn } from "react-data-table-component"
 import { getCustomStyles, rowStyles } from "components/utils/TableUtils"
 import { ApiTrace } from "@common/types"
-import { METHOD_TO_COLOR } from "~/constants"
 import { statusCodeToColor } from "components/utils/StatusCode"
 import TraceDetail from "./TraceDetail"
 import EmptyView from "components/utils/EmptyView"
@@ -99,26 +98,14 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces, uuid }) => {
       sortable: true,
       selector: (row: ApiTrace) => `${row.method}-${row.path}`,
       cell: (row: ApiTrace) => (
-        <HStack w="full" data-tag="allowRowEvents">
-          <Badge
-            fontSize="sm"
-            px="2"
-            py="1"
-            colorScheme={METHOD_TO_COLOR[row.method] || "gray"}
-            data-tag="allowRowEvents"
-          >
-            {row.method.toUpperCase()}
-          </Badge>
-          <Code
-            p="1"
-            fontSize="sm"
-            pointerEvents="none"
-            whiteSpace="nowrap"
-            data-tag="allowRowEvents"
-          >
-            {row.path}
-          </Code>
-        </HStack>
+        <Code
+          p="1"
+          fontSize="sm"
+          pointerEvents="none"
+          data-tag="allowRowEvents"
+        >
+          {row.path}
+        </Code>
       ),
       grow: 3,
       id: "path",
@@ -135,6 +122,7 @@ const TraceList: React.FC<TraceListProps> = React.memo(({ traces, uuid }) => {
         >{`${row.meta.source}:${row.meta.sourcePort}`}</Text>
       ),
       id: "source",
+      width: "255px",
       hide: 1300,
     },
   ]

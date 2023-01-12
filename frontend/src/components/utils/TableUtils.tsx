@@ -43,7 +43,6 @@ export const getCustomStyles = (
     },
     headRow: {
       style: {
-        background: "rgb(252, 252, 252)",
         fontWeight: "bold",
         fontSize: "var(--chakra-fontSizes-sm)",
         color: "var(--chakra-colors-gray-900)",
@@ -57,8 +56,8 @@ export const getCustomStyles = (
     pagination: {
       style: {
         color: "black",
-        borderBottomLeftRadius: "var(--chakra-radii-xl)",
-        borderBottomRightRadius: "var(--chakra-radii-xl)",
+        borderBottomLeftRadius: "var(--chakra-radii-lg)",
+        borderBottomRightRadius: "var(--chakra-radii-lg)",
       },
       pageButtonsStyle: {
         color: textColor,

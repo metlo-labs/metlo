@@ -111,11 +111,11 @@ const TraceDetail: React.FC<TraceDetailProps> = React.memo(
         p={alertModalView ? "0" : "4"}
         wordBreak={alertModalView ? "break-word" : "initial"}
       >
-        <Grid templateColumns="1fr 1fr" gap="4">
-          <GridItem colSpan={2}>
+        <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap="4">
+          <GridItem colSpan={{ base: "auto", lg: 2 }}>
             <VStack alignItems="flex-start">
               <Text fontWeight="semibold">Endpoint</Text>
-              <HStack>
+              <HStack alignItems="flex-start">
                 <Badge
                   fontSize="sm"
                   px="2"
@@ -134,7 +134,7 @@ const TraceDetail: React.FC<TraceDetailProps> = React.memo(
                 >
                   {trace.method.toUpperCase()}
                 </Badge>
-                <Code p="1" fontSize="sm">
+                <Code wordBreak="break-all" p="1" fontSize="sm">
                   {trace.path}
                 </Code>
               </HStack>

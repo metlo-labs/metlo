@@ -26,6 +26,7 @@ import {
   AlertDialogBody,
   AlertDialogFooter,
   useToast,
+  Stack,
 } from "@chakra-ui/react"
 import { useRouter } from "next/router"
 import { SectionHeader } from "components/utils/Card"
@@ -126,29 +127,37 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
         overflow="hidden"
       >
         <VStack w="full" alignItems="flex-start" pt="6" px="6">
-          <HStack w="full" justifyContent="space-between">
-            <VStack alignItems="flex-start">
-              <NextLink href="/endpoints">
-                <HStack color={headerColor} spacing="1" cursor="pointer">
-                  <TiFlowSwitch />
-                  <Text fontWeight="semibold">Endpoints</Text>
-                </HStack>
-              </NextLink>
-              <HStack spacing="4" pb="6">
-                <Badge
-                  fontSize="xl"
-                  px="2"
-                  py="1"
-                  colorScheme={METHOD_TO_COLOR[endpoint?.method] || "gray"}
-                >
-                  {endpoint?.method.toUpperCase()}
-                </Badge>
-                <Code fontSize="xl" fontWeight="semibold" p="1">
-                  {endpoint.path}
-                </Code>
-              </HStack>
-            </VStack>
-            <HStack>
+          <NextLink href="/endpoints">
+            <HStack color={headerColor} spacing="1" cursor="pointer">
+              <TiFlowSwitch />
+              <Text fontWeight="semibold">Endpoints</Text>
+            </HStack>
+          </NextLink>
+          <Stack
+            direction={{ base: "column", sm: "row" }}
+            w="full"
+            justifyContent="space-between"
+            pb={6}
+          >
+            <HStack spacing="4" alignItems="flex-start">
+              <Badge
+                fontSize={{ base: "md", sm: "lg" }}
+                px="2"
+                py="1"
+                colorScheme={METHOD_TO_COLOR[endpoint?.method] || "gray"}
+              >
+                {endpoint?.method.toUpperCase()}
+              </Badge>
+              <Code
+                wordBreak="break-all"
+                fontSize={{ base: "md", sm: "lg" }}
+                fontWeight="semibold"
+                p="1"
+              >
+                {endpoint.path}
+              </Code>
+            </HStack>
+            <HStack alignSelf={{ base: "flex-end", sm: "flex-start" }}>
               <EditPath
                 endpointPath={endpoint.path}
                 endpointId={endpoint.uuid}
@@ -157,7 +166,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
                 Delete
               </Button>
             </HStack>
-          </HStack>
+          </Stack>
         </VStack>
         <Tabs
           w="full"
@@ -167,7 +176,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
           index={getTab()}
           overflow="hidden"
         >
-          <TabList>
+          <TabList overflowX="auto" overflowY="hidden">
             <Tab onClick={() => handleTabClick(null)}>
               <SectionHeader text="Overview" sym={BiInfoCircle} />
             </Tab>

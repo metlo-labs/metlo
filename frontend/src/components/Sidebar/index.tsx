@@ -18,6 +18,7 @@ import { Logo, SmLogo } from "components/Logo"
 import { SideNavLinkDestination } from "./NavLinkUtils"
 import SideNavLink from "./SideNavLink"
 import { FiMenu } from "icons/fi/FiMenu"
+import Link from "next/link"
 
 interface SideNavBarProps {
   currentTab?: SideNavLinkDestination
@@ -37,14 +38,14 @@ const MobileNav = ({ onOpen, ...rest }) => {
       justifyContent="space-between"
       {...rest}
       w="full"
+      h="74px"
+      minH="74px"
+      maxH="74px"
     >
-      <Logo ml="2" />
-      <IconButton
-        variant="outline"
-        onClick={onOpen}
-        aria-label="open menu"
-        icon={<FiMenu />}
-      />
+      <Link href="/">
+        <Logo ml="2" />
+      </Link>
+      <IconButton onClick={onOpen} aria-label="open menu" icon={<FiMenu />} />
     </HStack>
   )
 }
@@ -67,6 +68,7 @@ const SidebarContent = ({
   return (
     <Flex
       height="full"
+      overflowY="auto"
       width={{ base: "full", md: "64" }}
       direction="column"
       bg="secondaryBG"
@@ -141,7 +143,7 @@ const SideNavBar: React.FC<SideNavBarProps> = React.memo(({ currentTab }) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
 
   return (
-    <Box h={{ base: "unset", md: "100vh" }}>
+    <Box h={{ base: "74px", md: "100vh" }}>
       <SidebarContent
         display={{ base: "none", md: "block" }}
         onClose={() => onClose}

@@ -26,6 +26,7 @@ const SensitiveDataFilters: React.FC<SensitiveDataFilterProps> = React.memo(
         <Box w={{ base: "full", md: "xs" }}>
           <FilterHeader title="Host" />
           <Select
+            className="chakra-react-select"
             value={
               hosts
                 ? hosts.map(host => ({
@@ -52,6 +53,7 @@ const SensitiveDataFilters: React.FC<SensitiveDataFilterProps> = React.memo(
         <Box w={{ base: "full", md: "xs" }}>
           <FilterHeader title="Risk Score" />
           <Select
+            className="chakra-react-select"
             value={
               riskScores
                 ? riskScores.map(riskScore => ({
@@ -78,6 +80,7 @@ const SensitiveDataFilters: React.FC<SensitiveDataFilterProps> = React.memo(
         <Box w={{ base: "full", md: "xs" }}>
           <FilterHeader title="Request Location" />
           <Select
+            className="chakra-react-select"
             value={
               locations
                 ? locations.map(location => ({

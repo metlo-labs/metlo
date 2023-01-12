@@ -72,6 +72,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
           <Box w={{ base: "full", lg: "xs" }} zIndex="1003">
             <FilterHeader title="Host" />
             <Select
+              className="chakra-react-select"
               value={
                 params &&
                 params?.hosts?.map(host => ({ label: host, value: host }))
@@ -95,6 +96,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
           <Box w={{ base: "full", lg: "xs" }} zIndex="1002">
             <FilterHeader title="Risk Score" />
             <Select
+              className="chakra-react-select"
               value={
                 params &&
                 params?.riskScores?.map(risk => ({
@@ -121,6 +123,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
           <Box w={{ base: "full", lg: "xs" }} zIndex="1001">
             <FilterHeader title="Sensitive Data Class" />
             <Select
+              className="chakra-react-select"
               value={
                 params &&
                 params?.dataClasses?.map(dataClass => ({
@@ -147,6 +150,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
           <Box w={{ base: "full", lg: "xs" }} zIndex="1000">
             <FilterHeader title="Authentication" />
             <Select
+              className="chakra-react-select"
               value={{
                 label: getAuthenticationLabel(
                   params.isAuthenticated as AuthenticationFilter,

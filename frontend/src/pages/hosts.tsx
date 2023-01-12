@@ -82,8 +82,8 @@ const Hosts = ({ initHosts, hostsGraph, initTotalCount }) => {
             justifyContent="space-between"
             alignItems={{ base: "flex-start", sm: "flex-end" }}
             mb="4"
-            px={{ base: "4", md: "8" }}
-            pt={{ base: "4", md: "8" }}
+            px={{ base: "0", md: "8" }}
+            pt={{ base: "0", md: "8" }}
           >
             <Heading fontWeight="semibold" size="xl">
               Hosts
@@ -126,8 +126,8 @@ const Hosts = ({ initHosts, hostsGraph, initTotalCount }) => {
           ) : (
             <Box
               w="full"
-              px={{ base: "4", md: "8" }}
-              pb={{ base: "4", md: "8" }}
+              px={{ base: "0", md: "8" }}
+              pb={{ base: "0", md: "8" }}
             >
               <HostList
                 hosts={hosts}

@@ -134,7 +134,7 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
             <HStack>
               <InputGroup onClick={onOpen}>
                 <Button variant="delete" isLoading={deleting}>
-                  Delete Spec
+                  Delete
                 </Button>
               </InputGroup>
               <InputGroup onChange={handleSubmission} onClick={handleClick}>
@@ -146,8 +146,8 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
                     inputRef.current = e
                   }}
                 />
-                <Button colorScheme="blue" isLoading={fetching}>
-                  Update Spec
+                <Button variant="create" isLoading={fetching}>
+                  Update
                 </Button>
               </InputGroup>
             </HStack>

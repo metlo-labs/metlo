@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from "react"
 import { Select } from "chakra-react-select"
 import { DataClass, DataField } from "@common/types"
-import { HStack, Tag, Button, Box, Wrap, WrapItem } from "@chakra-ui/react"
+import {
+  HStack,
+  Tag,
+  Button,
+  Box,
+  Wrap,
+  WrapItem,
+  Stack,
+} from "@chakra-ui/react"
 import { FiPlus } from "icons/fi/FiPlus"
 import { HiPencil } from "icons/hi/HiPencil"
 import { RISK_TO_COLOR } from "~/constants"
@@ -42,9 +50,10 @@ export const DataFieldTagList: React.FC<TagListProps> = React.memo(
 
     if (editing) {
       return (
-        <HStack w="full">
+        <Stack direction={{ base: "column", md: "row" }} w="full">
           <Box w="full">
             <Select
+              className="chakra-react-select"
               value={editedTags.map(e => ({
                 label: e,
                 value: e,
@@ -60,26 +69,28 @@ export const DataFieldTagList: React.FC<TagListProps> = React.memo(
               onChange={e => setEditedTagsWrapper(e.map(t => t.label))}
             />
           </Box>
-          <Button
-            colorScheme="blue"
-            rounded="md"
-            size="sm"
-            onClick={saveTags}
-            isLoading={updating}
-          >
-            Save
-          </Button>
-          <Button
-            rounded="md"
-            size="sm"
-            onClick={() => {
-              setEditing(false)
-              setEditedTags(tags)
-            }}
-          >
-            Cancel
-          </Button>
-        </HStack>
+          <HStack alignSelf="flex-end">
+            <Button
+              variant="create"
+              rounded="md"
+              size="sm"
+              onClick={saveTags}
+              isLoading={updating}
+            >
+              Save
+            </Button>
+            <Button
+              rounded="md"
+              size="sm"
+              onClick={() => {
+                setEditing(false)
+                setEditedTags(tags)
+              }}
+            >
+              Cancel
+            </Button>
+          </HStack>
+        </Stack>
       )
     }
     return (

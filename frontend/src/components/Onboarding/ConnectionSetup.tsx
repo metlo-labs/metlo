@@ -6,6 +6,7 @@ import {
   Code,
   Heading,
   HStack,
+  Stack,
   Text,
   useToast,
   VStack,
@@ -134,7 +135,7 @@ export const ConnectionSetup: React.FC<ConnectionSetupProps> = React.memo(
             onboarding process or generate a new API Key.
           </Text>
         )}
-        <HStack w="full">
+        <Stack direction={{ base: "column", md: "row" }} w="full">
           <Code
             display="flex"
             justifyContent="center"
@@ -144,11 +145,11 @@ export const ConnectionSetup: React.FC<ConnectionSetupProps> = React.memo(
             p="2"
           >
             <HStack w="full" justifyContent="space-between">
-              <Text>{apiKey}</Text>
+              <Text wordBreak="break-all">{apiKey}</Text>
               {createdKey ? (
                 <Button
                   leftIcon={<FaRegCopy />}
-                  colorScheme="blue"
+                  variant="create"
                   onClick={handleCopyButton}
                 >
                   COPY
@@ -159,19 +160,19 @@ export const ConnectionSetup: React.FC<ConnectionSetupProps> = React.memo(
           {createdKey === false ? (
             <Button
               h="55px"
-              colorScheme="blue"
+              variant="create"
               onClick={handleNewApiKeyClick}
               isLoading={creatingKey}
             >
               New API Key
             </Button>
           ) : null}
-        </HStack>
+        </Stack>
         {body}
         <Box pt="40px" alignSelf="flex-end">
           <Button
             onClick={() => router.push({ pathname: "/", query: { step: 3 } })}
-            colorScheme="blue"
+            variant="create"
           >
             Listen for Requests →
           </Button>

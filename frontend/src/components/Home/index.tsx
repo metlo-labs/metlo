@@ -44,7 +44,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ summary }) => {
         <AggPIIChart
           piiDataTypeCount={summary.piiDataTypeCount}
           w={{ base: "full", xl: "50%" }}
-          h="xs"
+          h={{ base: "sm", sm: "xs" }}
         />
       </Stack>
       <TopEndpoints

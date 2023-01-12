@@ -187,7 +187,7 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
             </Heading>
             <Button
               leftIcon={<HiPlus />}
-              colorScheme="blue"
+              variant="create"
               onClick={() => openModal()}
             >
               Add
@@ -320,6 +320,7 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
                     <FormLabel>Hosts</FormLabel>
                     <Box w="60%">
                       <Select
+                        className="chakra-react-select"
                         value={
                           editState
                             ? editState.hosts.map(host => ({
@@ -363,6 +364,7 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
                     <FormLabel>Alert Types</FormLabel>
                     <Box w="60%">
                       <Select
+                        className="chakra-react-select"
                         value={
                           editState
                             ? editState.alertTypes.map(type => ({
@@ -404,7 +406,7 @@ export const Webhook: React.FC<WebhookProps> = React.memo(
                 Cancel
               </Button>
               <Button
-                colorScheme="blue"
+                variant="create"
                 onClick={
                   editState ? updateWebhookHandler : createNewWebhookHandler
                 }

@@ -1,4 +1,4 @@
-import { Box, VStack, Button, HStack } from "@chakra-ui/react"
+import { Box, VStack, Button, HStack, Wrap, WrapItem } from "@chakra-ui/react"
 import { useRouter } from "next/router"
 import { ConnectionType } from "@common/enums"
 import { BiChevronRightCircle } from "icons/bi/BiChevronRightCircle"
@@ -32,35 +32,51 @@ export const HomeOnboardingView: React.FC<{}> = () => {
 
   return (
     <Box minH="100%" display="flex" flexDirection="column" alignItems="center">
-      <VStack w="90%" py="20px">
-        <HStack w="full" spacing="30px">
-          <Button
-            onClick={() => handleStepClick(1)}
-            variant="unstyled"
-            pointerEvents={step === "1" || !step ? "none" : "initial"}
-            color={step === "1" || !step ? "blue" : "initial"}
+      <VStack w={{ base: "full", md: "90%" }} py="20px">
+        <Wrap w="full">
+          <WrapItem
+            w={{ base: "full", sm: "unset" }}
+            pr={{ base: 0, sm: 2, md: 4, lg: 8 }}
           >
-            Get Started
-          </Button>
-          <BiChevronRightCircle />
-          <Button
-            onClick={() => handleStepClick(2)}
-            variant="unstyled"
-            pointerEvents={step === "2" ? "none" : "initial"}
-            color={step === "2" ? "blue" : "initial"}
+            <HStack>
+              <Button
+                onClick={() => handleStepClick(1)}
+                variant="unstyled"
+                pointerEvents={step === "1" || !step ? "none" : "initial"}
+                color={step === "1" || !step ? "metloBlue" : "initial"}
+              >
+                Get Started
+              </Button>
+              <BiChevronRightCircle />
+            </HStack>
+          </WrapItem>
+          <WrapItem
+            w={{ base: "full", sm: "unset" }}
+            pr={{ base: 0, sm: 2, md: 4, lg: 8 }}
           >
-            Set up Connection
-          </Button>
-          <BiChevronRightCircle />
-          <Button
-            onClick={() => handleStepClick(3)}
-            variant="unstyled"
-            pointerEvents={step === "3" ? "none" : "initial"}
-            color={step === "3" ? "blue" : "initial"}
-          >
-            Listen for Requests
-          </Button>
-        </HStack>
+            <HStack>
+              <Button
+                onClick={() => handleStepClick(2)}
+                variant="unstyled"
+                pointerEvents={step === "2" ? "none" : "initial"}
+                color={step === "2" ? "metloBlue" : "initial"}
+              >
+                Set up Connection
+              </Button>
+              <BiChevronRightCircle />
+            </HStack>
+          </WrapItem>
+          <WrapItem w={{ base: "full", sm: "unset" }}>
+            <Button
+              onClick={() => handleStepClick(3)}
+              variant="unstyled"
+              pointerEvents={step === "3" ? "none" : "initial"}
+              color={step === "3" ? "metloBlue" : "initial"}
+            >
+              Listen for Requests
+            </Button>
+          </WrapItem>
+        </Wrap>
         <VStack
           w="full"
           rounded="md"

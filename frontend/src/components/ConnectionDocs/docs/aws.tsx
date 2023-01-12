@@ -9,6 +9,7 @@ import {
   HStack,
   Badge,
   Link,
+  Stack,
 } from "@chakra-ui/react"
 import { ExternalLinkIcon } from "@chakra-ui/icons"
 import { ListNumber } from "components/utils/ListNumber"
@@ -103,7 +104,10 @@ const AWSDocs: React.FC<DocsParams> = React.memo(({ host, apiKey }) => {
                 instances you would like to mirror.
               </Text>
             </ListNumber>
-            <ListNumber num={2} title="Install Metlo's Traffic Mirroring Service">
+            <ListNumber
+              num={2}
+              title="Install Metlo's Traffic Mirroring Service"
+            >
               <Code w="full" p={2}>
                 <SyntaxHighlighter
                   customStyle={{ background: "none", padding: 0 }}
@@ -163,7 +167,7 @@ $ sudo -E ./install.sh`}</SyntaxHighlighter>
                 You can use one of our Cloud Formation stacks to deploy in the
                 region you would like to mirror.
               </Text>
-              <HStack>
+              <Stack direction={{ base: "column", sm: "row" }}>
                 <Select
                   placeholder="Select region"
                   defaultValue={selectedRegion}
@@ -178,7 +182,7 @@ $ sudo -E ./install.sh`}</SyntaxHighlighter>
                 </Select>
                 <Button
                   as="a"
-                  colorScheme="blue"
+                  variant="create"
                   target="_blank"
                   pointerEvents={selectedRegion === "" ? "none" : "initial"}
                   href={getAWSTrafficMirrorLaunchStackURL(
@@ -190,7 +194,7 @@ $ sudo -E ./install.sh`}</SyntaxHighlighter>
                 >
                   Launch Stack
                 </Button>
-              </HStack>
+              </Stack>
             </ListNumber>
             <KeyStep num={2} />
             <ListNumber num={3} title="Install Metlo's CLI Tool">

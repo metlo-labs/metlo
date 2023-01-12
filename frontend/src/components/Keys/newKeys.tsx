@@ -51,7 +51,7 @@ const NewKeys: React.FC<NewKeysInterface> = ({
               Close
             </Button>
             <Button
-              colorScheme="blue"
+              variant="create"
               onClick={() => onCreate(keyName)}
               disabled={isAddingKey}
             >

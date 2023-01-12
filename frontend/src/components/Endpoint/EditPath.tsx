@@ -132,7 +132,7 @@ export const EditPath: React.FC<EditPathProps> = React.memo(
     }
 
     return (
-      <Box>
+      <Box alignSelf="flex-start">
         <Button onClick={openModal}>Edit</Button>
         <Modal size="4xl" isCentered isOpen={isOpen} onClose={closeModal}>
           <ModalOverlay />
@@ -145,7 +145,7 @@ export const EditPath: React.FC<EditPathProps> = React.memo(
                   <HStack w="full" justifyContent="space-between">
                     <Text>New Endpoints</Text>
                     <Button
-                      colorScheme="blue"
+                      variant="create"
                       leftIcon={<HiPlus />}
                       onClick={addPath}
                     >
@@ -234,7 +234,7 @@ export const EditPath: React.FC<EditPathProps> = React.memo(
                 Cancel
               </Button>
               <Button
-                colorScheme="blue"
+                variant="create"
                 isLoading={updating}
                 onClick={updateHandler}
               >

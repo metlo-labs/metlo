@@ -9,6 +9,7 @@ import {
   Code,
   Wrap,
   WrapItem,
+  Stack,
 } from "@chakra-ui/react"
 import { TiFlowSwitch } from "icons/ti/TiFlowSwitch"
 import { useRouter } from "next/router"
@@ -196,15 +197,20 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({ alert }) => {
         w="full"
       >
         <VStack alignItems="flex-start" w="full" h="full">
-          <HStack w="full" justifyContent="space-between">
+          <Stack
+            direction={{ base: "column", sm: "row" }}
+            w="full"
+            justifyContent="space-between"
+          >
             <Text>{alert.description}</Text>
-            <Code p="1" alignSelf="flex-start">
+            <Code p="1" alignSelf={{ base: "flex-end", sm: "flex-start" }}>
               {getDateTimeString(alert.createdAt)}
             </Code>
-          </HStack>
+          </Stack>
           <HStack
             w="full"
             cursor="pointer"
+            alignItems="flex-start"
             onClick={() => router.push(`/endpoint/${alert.apiEndpoint.uuid}`)}
           >
             <TiFlowSwitch fontSize={25} />
@@ -216,7 +222,9 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({ alert }) => {
             >
               {alert.apiEndpoint.method}
             </Badge>
-            <Code p="1">{alert.apiEndpoint.path}</Code>
+            <Code wordBreak="break-all" p="1">
+              {alert.apiEndpoint.path}
+            </Code>
           </HStack>
         </VStack>
       </Box>

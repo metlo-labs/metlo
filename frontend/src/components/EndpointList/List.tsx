@@ -183,6 +183,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
                 return (
                   <Tag
                     px={2}
+                    py={1}
                     m="2px"
                     fontSize="xx-small"
                     fontWeight="normal"

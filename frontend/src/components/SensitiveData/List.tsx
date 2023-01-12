@@ -78,12 +78,9 @@ const List: React.FC<PIITableProps> = React.memo(({ items, params }) => {
       sortable: false,
       cell: (row: PIIDataClassAggItem) => (
         <Button
-          borderWidth={1}
           size="xs"
-          variant="create"
-          bg="transparent"
+          variant="createSecondary"
           fontWeight="medium"
-          color="metloBlue"
           onClick={() =>
             router.push({
               pathname: "/endpoints",
