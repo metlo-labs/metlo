@@ -80,6 +80,7 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
   } = useDisclosure()
   const [isAddingKey, setIsAddingKey] = useState(false)
   const [updatingMetloConfig, setUpdatingMetloConfig] = useState(false)
+  const selectedColor = "rgb(240, 240, 242)"
   const toast = useToast()
   const router = useRouter()
   const { tab } = router.query
@@ -165,7 +166,7 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
   }
 
   const tabStyles: TabProps = {
-    _hover: { bg: "#F7FBFF" },
+    _hover: { bg: selectedColor },
     as: "button",
     px: { base: 2, sm: 4 },
     py: { base: 4, sm: 6 },
@@ -213,7 +214,7 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
             >
               <GridItem h="full">
                 <Tab
-                  bg={getTab() === 0 ? "#F7FBFF" : "inital"}
+                  bg={getTab() === 0 ? selectedColor : "inital"}
                   {...tabStyles}
                   borderRightWidth={{ base: 1, md: 0 }}
                   onClick={() => handleTabClick(null)}
@@ -232,7 +233,7 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
               </GridItem>
               <GridItem h="full">
                 <Tab
-                  bg={getTab() === 1 ? "#F7FBFF" : "inital"}
+                  bg={getTab() === 1 ? selectedColor : "inital"}
                   {...tabStyles}
                   borderRightWidth={{ base: 1, md: 0 }}
                   onClick={() => handleTabClick(SettingsTab.CONFIG)}
@@ -251,7 +252,7 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
               </GridItem>
               <GridItem h="full">
                 <Tab
-                  bg={getTab() === 2 ? "#F7FBFF" : "inital"}
+                  bg={getTab() === 2 ? selectedColor : "inital"}
                   {...tabStyles}
                   borderRightWidth={{ base: 1, md: 0 }}
                   onClick={() => handleTabClick(SettingsTab.INTEGRATIONS)}
