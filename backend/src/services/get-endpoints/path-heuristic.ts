@@ -164,9 +164,9 @@ export const updateEndpointsFromMap = async (
       }
       await queryRunner.commitTransaction()
     } catch (err) {
-      mlog.error(
-        `Encountered error when updating endpoint ${item.endpoint.uuid}: ${err}`,
-      )
+      mlog
+        .withErr(err)
+        .error(`Encountered error when updating endpoint ${item.endpoint.uuid}`)
       if (queryRunner.isTransactionActive) {
         await queryRunner.rollbackTransaction()
       }
