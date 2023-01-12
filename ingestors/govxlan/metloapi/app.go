@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 	"sync"
@@ -50,7 +49,7 @@ func (m *Metlo) Send(data MetloTrace) {
 	}).Trace("Sending Request.")
 	json, err := json.Marshal(data)
 	if err != nil {
-		log.Fatal(err)
+		utils.Log.WithError(err).Debug("Error Building Request.")
 	}
 	req, err := http.NewRequest("POST", m.metloHost, bytes.NewBuffer(json))
 	if err != nil {
