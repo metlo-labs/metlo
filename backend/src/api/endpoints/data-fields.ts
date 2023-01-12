@@ -73,6 +73,7 @@ export const clearAllSensitiveDataHandler = async (
         dataClasses: [],
         falsePositives: [],
         scannerIdentified: [],
+        dataTag: null,
       })
       .execute()
     await getQB(req.ctx, queryRunner)
