@@ -69,7 +69,7 @@ export default class mlog {
 
   static gauge(key: string, value: number, sampleRate?: number) {
     key = `metlo.${key}`
-    mlog.debug(`guage:${key}:${value}`)
+    mlog.debug(`gauge:${key}:${value}`)
   }
 
   trace(...msg: any[]) {
