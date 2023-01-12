@@ -84,7 +84,7 @@ const getQueuedApiTrace = async (): Promise<{
     const traceString = await unsafeRedisClient.lpop(TRACES_QUEUE)
     return JSON.parse(traceString)
   } catch (err) {
-    console.error(`Error getting queued trace: ${err} ${err.stack}`)
+    console.error(`Error getting queued trace: ${err}`)
     return null
   }
 }
