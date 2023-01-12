@@ -81,7 +81,6 @@ const main = async () => {
     app.listen(port, () => {
       mlog.info(`⚡️[server]: Server is running at http://localhost:${port}`)
     })
-    throw Error("asdf")
   } catch (err) {
     mlog.withErr(err).error(`CatchBlockInsideMain`)
   }
