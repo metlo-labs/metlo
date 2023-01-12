@@ -2,6 +2,8 @@ import { useRouter } from "next/router"
 import {
   Box,
   Button,
+  Grid,
+  GridItem,
   Heading,
   HStack,
   Link,
@@ -172,6 +174,7 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
     textAlign: "start",
     w: { base: "full", md: "full" },
     fontSize: { base: "xs", sm: "md" },
+    h: "full",
     borderBottomWidth: 1,
   }
   const orientation = useBreakpointValue({ base: "horizontal", md: "vertical" })
@@ -194,72 +197,79 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
           alignItems="flex-start"
           w="full"
         >
-          <Stack
-            direction={{ base: "column", md: "row" }}
-            spacing="0"
+          <TabList
+            borderInlineStart="0"
             h="full"
-            bg="white"
             w={{ base: "full", md: "200px", lg: "300px" }}
             minW={{ base: "full", md: "200px", lg: "300px" }}
+            alignItems={{ base: "initial", md: "flex-start" }}
             borderRightWidth={{ base: 0, md: 1 }}
           >
-            <TabList
-              borderInlineStart="0"
+            <Grid
+              templateColumns={{ base: "repeat(3, 1fr)", md: "1fr" }}
+              templateRows={{ base: "1fr", md: "repeat(3, 1fr)" }}
+              gap="0"
               w="full"
-              alignItems={{ base: "initial", md: "flex-start" }}
             >
-              <Tab
-                bg={getTab() === 0 ? "#F7FBFF" : "inital"}
-                {...tabStyles}
-                borderRightWidth={{ base: 1, md: 0 }}
-                onClick={() => handleTabClick(null)}
-              >
-                <Stack
-                  w="full"
-                  alignItems="center"
-                  textAlign="center"
-                  direction={{ base: "column", sm: "row" }}
-                  spacing={4}
+              <GridItem h="full">
+                <Tab
+                  bg={getTab() === 0 ? "#F7FBFF" : "inital"}
+                  {...tabStyles}
+                  borderRightWidth={{ base: 1, md: 0 }}
+                  onClick={() => handleTabClick(null)}
                 >
-                  <VscKey size="20px" />
-                  <Text fontWeight="medium">API Keys</Text>
-                </Stack>
-              </Tab>
-              <Tab
-                bg={getTab() === 1 ? "#F7FBFF" : "inital"}
-                {...tabStyles}
-                borderRightWidth={{ base: 1, md: 0 }}
-                onClick={() => handleTabClick(SettingsTab.CONFIG)}
-              >
-                <Stack
-                  w="full"
-                  alignItems="center"
-                  textAlign="center"
-                  direction={{ base: "column", sm: "row" }}
-                  spacing={4}
+                  <Stack
+                    w="full"
+                    alignItems="center"
+                    textAlign="center"
+                    direction={{ base: "column", sm: "row" }}
+                    spacing={4}
+                  >
+                    <VscKey size="20px" />
+                    <Text fontWeight="medium">API Keys</Text>
+                  </Stack>
+                </Tab>
+              </GridItem>
+              <GridItem h="full">
+                <Tab
+                  bg={getTab() === 1 ? "#F7FBFF" : "inital"}
+                  {...tabStyles}
+                  borderRightWidth={{ base: 1, md: 0 }}
+                  onClick={() => handleTabClick(SettingsTab.CONFIG)}
                 >
-                  <GrDocumentConfig size="20px" />
-                  <Text fontWeight="medium">Metlo Config</Text>
-                </Stack>
-              </Tab>
-              <Tab
-                bg={getTab() === 2 ? "#F7FBFF" : "inital"}
-                {...tabStyles}
-                onClick={() => handleTabClick(SettingsTab.INTEGRATIONS)}
-              >
-                <Stack
-                  w="full"
-                  alignItems="center"
-                  textAlign="center"
-                  direction={{ base: "column", sm: "row" }}
-                  spacing={4}
+                  <Stack
+                    w="full"
+                    alignItems="center"
+                    textAlign="center"
+                    direction={{ base: "column", sm: "row" }}
+                    spacing={4}
+                  >
+                    <GrDocumentConfig size="20px" />
+                    <Text fontWeight="medium">Metlo Config</Text>
+                  </Stack>
+                </Tab>
+              </GridItem>
+              <GridItem h="full">
+                <Tab
+                  bg={getTab() === 2 ? "#F7FBFF" : "inital"}
+                  {...tabStyles}
+                  borderRightWidth={{ base: 1, md: 0 }}
+                  onClick={() => handleTabClick(SettingsTab.INTEGRATIONS)}
                 >
-                  <AiOutlineCode size="20px" />
-                  <Text fontWeight="medium">Integrations</Text>
-                </Stack>
-              </Tab>
-            </TabList>
-          </Stack>
+                  <Stack
+                    w="full"
+                    alignItems="center"
+                    textAlign="center"
+                    direction={{ base: "column", sm: "row" }}
+                    spacing={4}
+                  >
+                    <AiOutlineCode size="20px" />
+                    <Text fontWeight="medium">Integrations</Text>
+                  </Stack>
+                </Tab>
+              </GridItem>
+            </Grid>
+          </TabList>
           <TabPanels w="full" overflow="auto" p={6} h="full">
             <TabPanel px="0" w="full" h="full">
               <HStack w="full" justifyContent="space-between" mb={4}>
