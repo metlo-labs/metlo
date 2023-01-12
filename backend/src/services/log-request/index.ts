@@ -21,6 +21,7 @@ export class LogRequestService {
         queueLength = await unsafeRedisClient.llen(TRACES_QUEUE)
       } catch {}
       if (queueLength > 1000) {
+        console.error("Trace queue overloaded")
         return
       }
 
