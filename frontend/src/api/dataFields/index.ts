@@ -26,3 +26,12 @@ export const deleteDataField = async (
   )
   return resp.data
 }
+
+export const clearSensitiveData = async (
+  headers?: AxiosRequestHeaders,
+): Promise<DataField> => {
+  const resp = await axios.post(`${getAPIURL()}/clear-sensitive-data`, {
+    headers,
+  })
+  return resp.data
+}

@@ -59,7 +59,7 @@ export const deleteDataFieldHandler = async (
   }
 }
 
-export const clearAllDataFieldsHandler = async (
+export const clearAllSensitiveDataHandler = async (
   req: MetloRequest,
   res: Response,
 ): Promise<void> => {
@@ -83,10 +83,12 @@ export const clearAllDataFieldsHandler = async (
           AlertType.PII_DATA_DETECTED,
           AlertType.QUERY_SENSITIVE_DATA,
           AlertType.PATH_SENSITIVE_DATA,
+          AlertType.UNAUTHENTICATED_ENDPOINT_SENSITIVE_DATA,
         ],
       })
       .execute()
     await queryRunner.commitTransaction()
+    await ApiResponseHandler.success(res, "OK")
   } catch (err) {
     if (queryRunner.isTransactionActive) {
       await queryRunner.rollbackTransaction()

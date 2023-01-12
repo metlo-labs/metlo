@@ -24,7 +24,6 @@ import KeyAddedModal from "components/Keys/keyAddedPrompt"
 import NewKeys from "components/Keys/newKeys"
 import ListKeys from "components/Keys/list"
 import { PageWrapper } from "components/PageWrapper"
-import { ContentContainer } from "components/utils/ContentContainer"
 import { GetServerSideProps } from "next"
 import { useState } from "react"
 import superjson from "superjson"
@@ -37,6 +36,7 @@ import { SettingsTab } from "enums"
 import { GrDocumentConfig } from "icons/gr/GrDocumentConfig"
 import { AiOutlineCode } from "icons/ai/AiOutlineCode"
 import { VscKey } from "icons/vsc/VscKey"
+import BulkActions from "components/Settings/BulkActions"
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const [apiKeys, webhooks, hosts] = await Promise.all([
@@ -286,52 +286,56 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
               </VStack>
             </TabPanel>
             <TabPanel w="full" px="0" h="full">
-              <HStack
-                w="full"
-                justifyContent="space-between"
-                mb={4}
-                alignItems="start"
-              >
-                <VStack w="full" alignItems="flex-start">
-                  <Heading fontWeight="semibold" size="xl">
-                    Metlo Config
-                  </Heading>
-
-                  <Text>
-                    View our{" "}
-                    <Link
-                      target="_blank"
-                      color="blue"
-                      href="https://docs.metlo.com/docs/metlo-config"
+              <VStack w="full" spacing="8" pb="8">
+                <VStack w="full">
+                  <HStack
+                    w="full"
+                    justifyContent="space-between"
+                    mb={4}
+                    alignItems="start"
+                  >
+                    <VStack w="full" alignItems="flex-start">
+                      <Heading fontWeight="semibold" size="xl">
+                        Metlo Config
+                      </Heading>
+                      <Text>
+                        View our{" "}
+                        <Link
+                          target="_blank"
+                          color="blue"
+                          href="https://docs.metlo.com/docs/metlo-config"
+                        >
+                          docs
+                        </Link>{" "}
+                        on how to set up a metlo config.
+                      </Text>
+                    </VStack>
+                    <Button
+                      colorScheme="blue"
+                      onClick={() => updateMetloConfigHandler()}
+                      isLoading={updatingMetloConfig}
                     >
-                      docs
-                    </Link>{" "}
-                    on how to set up a metlo config.
-                  </Text>
+                      Save
+                    </Button>
+                  </HStack>
+                  <Box rounded="md" h="700px" w="full" borderWidth="1px">
+                    <Editor
+                      width="100%"
+                      defaultLanguage="yaml"
+                      value={configString}
+                      onChange={val => setConfigString(val)}
+                      options={{
+                        minimap: {
+                          enabled: false,
+                        },
+                        automaticLayout: true,
+                        scrollBeyondLastLine: false,
+                      }}
+                    />
+                  </Box>
                 </VStack>
-                <Button
-                  colorScheme="blue"
-                  onClick={() => updateMetloConfigHandler()}
-                  isLoading={updatingMetloConfig}
-                >
-                  Save
-                </Button>
-              </HStack>
-              <Box rounded="md" h="700px" w="full" borderWidth="1px">
-                <Editor
-                  width="100%"
-                  defaultLanguage="yaml"
-                  value={configString}
-                  onChange={val => setConfigString(val)}
-                  options={{
-                    minimap: {
-                      enabled: false,
-                    },
-                    automaticLayout: true,
-                    scrollBeyondLastLine: false,
-                  }}
-                />
-              </Box>
+                <BulkActions />
+              </VStack>
             </TabPanel>
             <TabPanel px="0" w="full" h="full">
               <Heading fontWeight="semibold" size="xl" mb={4}>
