@@ -33,6 +33,9 @@ export const getCustomStyles = (
         minHeight: "64px",
         fontWeight: "var(--chakra-fontWeights-medium)",
         fontSize: "var(--chakra-fontSizes-sm)",
+        "@media (max-width: 40em)": {
+          fontSize: "var(--chakra-fontSizes-xs)"
+        },
         "&:hover": hover
           ? {
               cursor: "pointer",
