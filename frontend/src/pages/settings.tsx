@@ -13,6 +13,7 @@ import {
   TabProps,
   Tabs,
   Text,
+  useBreakpointValue,
   useDisclosure,
   useToast,
   VStack,
@@ -172,46 +173,51 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
     w: "full",
     borderBottomWidth: 1,
   }
+  const orientation = useBreakpointValue({ base: "horizontal", md: "vertical" })
 
   return (
     <PageWrapper title="Settings">
       <Tabs
         variant="unstyled"
-        orientation="vertical"
+        orientation={orientation as "horizontal" | "vertical"}
         index={getTab()}
         w="full"
         h="full"
         alignItems="flex-start"
       >
-        <HStack
+        <Stack
+          direction={{ base: "column", md: "row" }}
           borderTopWidth={{ base: 1, md: 0 }}
           spacing={0}
+          h={{ base: "unset", md: "full" }}
           alignItems="flex-start"
           w="full"
         >
-          <VStack
+          <Stack
+            direction={{ base: "column", md: "row" }}
             spacing="0"
-            h="100vh"
+            h="full"
             bg="white"
-            w={{ base: "150px", lg: "300px" }}
-            minW={{ base: "150px", lg: "300px" }}
-            borderRightWidth={1}
+            w={{ base: "full", md: "200px", lg: "300px" }}
+            minW={{ base: "full", md: "200px", lg: "300px" }}
+            borderRightWidth={{ base: 0, md: 1 }}
           >
-            <Box w="full" p={4} borderBottomWidth={1}>
-              <Heading fontWeight="medium" size="lg">
-                Settings
-              </Heading>
-            </Box>
-            <TabList borderInlineStart="0" w="full" alignItems="flex-start">
+            <TabList
+              borderInlineStart="0"
+              w="full"
+              alignItems={{ base: "initial", md: "flex-start" }}
+            >
               <Tab
                 bg={getTab() === 0 ? "#F7FBFF" : "inital"}
                 {...tabStyles}
+                borderRightWidth={{ base: 1, md: 0 }}
                 onClick={() => handleTabClick(null)}
               >
                 <Stack
                   w="full"
                   alignItems="center"
-                  direction={{ base: "column", lg: "row" }}
+                  textAlign="center"
+                  direction={{ base: "column", sm: "row" }}
                   spacing={4}
                 >
                   <VscKey size="20px" />
@@ -221,12 +227,14 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
               <Tab
                 bg={getTab() === 1 ? "#F7FBFF" : "inital"}
                 {...tabStyles}
+                borderRightWidth={{ base: 1, sm: 0 }}
                 onClick={() => handleTabClick(SettingsTab.CONFIG)}
               >
                 <Stack
                   w="full"
                   alignItems="center"
-                  direction={{ base: "column", lg: "row" }}
+                  textAlign="center"
+                  direction={{ base: "column", sm: "row" }}
                   spacing={4}
                 >
                   <GrDocumentConfig size="20px" />
@@ -241,7 +249,8 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
                 <Stack
                   w="full"
                   alignItems="center"
-                  direction={{ base: "column", lg: "row" }}
+                  textAlign="center"
+                  direction={{ base: "column", sm: "row" }}
                   spacing={4}
                 >
                   <AiOutlineCode size="20px" />
@@ -249,8 +258,8 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
                 </Stack>
               </Tab>
             </TabList>
-          </VStack>
-          <TabPanels w="full" overflow="auto" p={6} h="100vh">
+          </Stack>
+          <TabPanels w="full" overflow="auto" p={6} h="full">
             <TabPanel px="0" w="full" h="full">
               <HStack w="full" justifyContent="space-between" mb={4}>
                 <Heading fontWeight="semibold" size="xl">
@@ -348,7 +357,7 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
               />
             </TabPanel>
           </TabPanels>
-        </HStack>
+        </Stack>
       </Tabs>
     </PageWrapper>
   )
