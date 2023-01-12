@@ -133,7 +133,9 @@ export const EditPath: React.FC<EditPathProps> = React.memo(
 
     return (
       <Box alignSelf="flex-start">
-        <Button onClick={openModal}>Edit</Button>
+        <Button size={{ base: "sm", sm: "md" }} onClick={openModal}>
+          Edit
+        </Button>
         <Modal size="4xl" isCentered isOpen={isOpen} onClose={closeModal}>
           <ModalOverlay />
           <ModalContent>

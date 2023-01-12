@@ -4,6 +4,7 @@ import { mode, StyleFunctionProps } from "@chakra-ui/theme-tools"
 const fonts = { mono: `'Menlo', monospace` }
 
 const breakpoints = {
+  xs: "30em",
   sm: "40em",
   md: "52em",
   lg: "64em",

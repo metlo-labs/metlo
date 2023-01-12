@@ -133,36 +133,55 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
               <Text fontWeight="semibold">Endpoints</Text>
             </HStack>
           </NextLink>
+          <Badge
+            fontSize="sm"
+            px="2"
+            py="1"
+            colorScheme={METHOD_TO_COLOR[endpoint?.method] || "gray"}
+            display={{ base: "flex", xs: "none" }}
+          >
+            {endpoint?.method.toUpperCase()}
+          </Badge>
           <Stack
-            direction={{ base: "column", sm: "row" }}
+            direction="row"
             w="full"
             justifyContent="space-between"
-            pb={6}
+            pb={{ base: 4, sm: 6 }}
           >
-            <HStack spacing="4" alignItems="flex-start">
+            <Stack
+              direction={{ base: "column", xs: "row" }}
+              spacing={{ base: 0, xs: 4 }}
+              alignItems="flex-start"
+            >
               <Badge
-                fontSize={{ base: "md", sm: "lg" }}
+                fontSize="lg"
                 px="2"
                 py="1"
                 colorScheme={METHOD_TO_COLOR[endpoint?.method] || "gray"}
+                display={{ base: "none", xs: "flex" }}
               >
                 {endpoint?.method.toUpperCase()}
               </Badge>
               <Code
                 wordBreak="break-all"
-                fontSize={{ base: "md", sm: "lg" }}
+                fontSize={{ base: "md", xs: "lg" }}
                 fontWeight="semibold"
                 p="1"
               >
                 {endpoint.path}
               </Code>
-            </HStack>
-            <HStack alignSelf={{ base: "flex-end", sm: "flex-start" }}>
+            </Stack>
+            <HStack alignSelf="flex-start">
               <EditPath
                 endpointPath={endpoint.path}
                 endpointId={endpoint.uuid}
               />
-              <Button variant="delete" isLoading={deleting} onClick={onOpen}>
+              <Button
+                size={{ base: "sm", sm: "md" }}
+                variant="delete"
+                isLoading={deleting}
+                onClick={onOpen}
+              >
                 Delete
               </Button>
             </HStack>
