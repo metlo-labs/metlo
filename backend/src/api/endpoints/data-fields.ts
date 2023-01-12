@@ -4,6 +4,11 @@ import { UpdateDataFieldClassesParamsSchema } from "@common/api/endpoint"
 import ApiResponseHandler from "api-response-handler"
 import { GetEndpointsService } from "services/get-endpoints"
 import { MetloRequest } from "types"
+import { AppDataSource } from "data-source"
+import { getQB } from "services/database/utils"
+import { Alert, DataField } from "models"
+import Error500InternalServer from "errors/error-500-internal-server"
+import { AlertType } from "@common/enums"
 
 export const updateDataFieldClasses = async (
   req: MetloRequest,
@@ -51,5 +56,43 @@ export const deleteDataFieldHandler = async (
     await ApiResponseHandler.success(res, removedDataField)
   } catch (err) {
     await ApiResponseHandler.error(res, err)
+  }
+}
+
+export const clearAllDataFieldsHandler = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
+  const queryRunner = AppDataSource.createQueryRunner()
+  await queryRunner.connect()
+  try {
+    await queryRunner.startTransaction()
+    await getQB(req.ctx, queryRunner)
+      .update(DataField)
+      .set({
+        dataClasses: [],
+        falsePositives: [],
+        scannerIdentified: [],
+      })
+      .execute()
+    await getQB(req.ctx, queryRunner)
+      .delete()
+      .from(Alert)
+      .andWhere(`"type" IN(:...alertTypes)`, {
+        alertTypes: [
+          AlertType.PII_DATA_DETECTED,
+          AlertType.QUERY_SENSITIVE_DATA,
+          AlertType.PATH_SENSITIVE_DATA,
+        ],
+      })
+      .execute()
+    await queryRunner.commitTransaction()
+  } catch (err) {
+    if (queryRunner.isTransactionActive) {
+      await queryRunner.rollbackTransaction()
+    }
+    throw new Error500InternalServer(err)
+  } finally {
+    await queryRunner.release()
   }
 }

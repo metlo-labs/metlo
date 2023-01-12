@@ -10,7 +10,11 @@ import {
   updatePaths,
 } from "services/get-endpoints/path-heuristic"
 import { getHostsGraphHandler } from "./graph"
-import { deleteDataFieldHandler, updateDataFieldClasses } from "./data-fields"
+import {
+  clearAllDataFieldsHandler,
+  deleteDataFieldHandler,
+  updateDataFieldClasses,
+} from "./data-fields"
 import {
   deleteHostsHandler,
   getHostsHandler,
@@ -177,6 +181,7 @@ export default function registerEndpointRoutes(router: Router) {
     updateDataFieldClasses,
   )
   router.delete("/api/v1/data-field/:dataFieldId", deleteDataFieldHandler)
+  router.post("/api/v1/clear-data-fields", clearAllDataFieldsHandler)
   // DataClass
   router.get("/api/v1/data-class", getDataClassInfo)
 }
