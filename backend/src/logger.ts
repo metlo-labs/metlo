@@ -57,6 +57,21 @@ export default class mlog {
     logLib.error(formatMsg(msg, "Error", null))
   }
 
+  static time(key: string, value: number, sampleRate?: number) {
+    key = `metlo.${key}`
+    mlog.debug(`timing:${key}:${value}`)
+  }
+
+  static count(key: string, value?: number, sampleRate?: number) {
+    key = `metlo.${key}`
+    mlog.debug(`count:${key}:${value || 1}`)
+  }
+
+  static gauge(key: string, value: number, sampleRate?: number) {
+    key = `metlo.${key}`
+    mlog.debug(`gauge:${key}:${value}`)
+  }
+
   trace(...msg: any[]) {
     logLib.trace(formatMsg(msg, "Trace", this.err))
   }
