@@ -1,3 +1,4 @@
+import mlog from "logger"
 import yargs from "yargs"
 import { randomBytes } from "crypto"
 import { AppDataSource } from "data-source"
@@ -46,7 +47,7 @@ const generateAttacks = async (ctx: MetloContext, numAttacks: number) => {
     }
     await getEntityManager(ctx, queryRunner).insert(Attack, insertAttacks)
   } catch (err) {
-    console.error(`Encountered error while generating sample attacks: ${err}`)
+    mlog.withErr(err).error("Encountered error while generating sample attacks")
   } finally {
     await queryRunner.release()
   }
@@ -56,10 +57,10 @@ const main = async () => {
   const ctx: MetloContext = {}
   const datasource = await AppDataSource.initialize()
   if (!datasource.isInitialized) {
-    console.error("Couldn't initialize datasource...")
+    mlog.error("Couldn't initialize datasource...")
     return
   }
-  console.log("AppDataSource Initialized...")
+  mlog.log("AppDataSource Initialized...")
   const args = yargs.argv
   const numAttacks = args["numAttacks"] ?? 20
   await generateAttacks(ctx, numAttacks)

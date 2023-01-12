@@ -1,7 +1,7 @@
+import mlog from "logger"
 import Queue, { JobId, Queue as QueueInterface } from "bull"
 import kill from "tree-kill"
 import schedule from "node-schedule"
-import { DateTime } from "luxon"
 import { JobName } from "services/jobs/types"
 import { JOB_NAME_MAP } from "services/jobs/constants"
 
@@ -9,11 +9,6 @@ const defaultJobOptions = {
   removeOnFail: true,
   removeOnComplete: true,
 }
-
-const log = (logMessage: string, newLine?: boolean) =>
-  console.log(
-    `${newLine ? "\n" : ""}${DateTime.utc().toString()} ${logMessage}`,
-  )
 
 const killJob = (queue: QueueInterface, jobId: JobId) => {
   return new Promise(async (resolve, reject) => {
@@ -123,7 +118,7 @@ const main = async () => {
       )
     })
   } else {
-    log("Logging Aggregated Stats Disabled...", true)
+    mlog.info("Logging Aggregated Stats Disabled...", true)
   }
 
   schedule.scheduleJob("*/60 * * * *", async () => {
@@ -141,7 +136,7 @@ const main = async () => {
         if (job) {
           const threshold = JOB_NAME_MAP[job.name as JobName].threshold
           if (Date.now() - job?.timestamp > threshold) {
-            log(
+            mlog.error(
               `Job ${job.name} taking too long, exceeded threshold of ${threshold} ms. Killing job with pid ${job.data?.pid}.`,
               true,
             )
@@ -154,7 +149,7 @@ const main = async () => {
 
   process.on("SIGINT", () => {
     schedule.gracefulShutdown().then(async () => {
-      console.log("Stopping all queues and jobs...")
+      mlog.info("Stopping all queues and jobs...")
       for (const queue of queues) {
         const activeJobs = await queue.getActive()
         for (const job of activeJobs) {
@@ -169,7 +164,7 @@ const main = async () => {
 
   process.on("SIGTERM", () => {
     schedule.gracefulShutdown().then(async () => {
-      console.log("Stopping all queues and jobs...")
+      mlog.info("Stopping all queues and jobs...")
       for (const queue of queues) {
         const activeJobs = await queue.getActive()
         for (const job of activeJobs) {

@@ -1,3 +1,4 @@
+import mlog from "logger"
 import { Brackets } from "typeorm"
 import { DataSection, DataType, SpecExtension } from "@common/enums"
 import { ApiEndpoint, OpenApiSpec, DataField } from "models"
@@ -387,7 +388,7 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
       await queryRunner.commitTransaction()
     }
   } catch (err) {
-    console.error(`Encountered error while generating OpenAPI specs: ${err}`)
+    mlog.withErr(err).error("Encountered error while generating OpenAPI specs")
     if (queryRunner.isTransactionActive) {
       await queryRunner.rollbackTransaction()
     }

@@ -1,4 +1,5 @@
-import { Brackets, QueryRunner, Raw } from "typeorm"
+import mlog from "logger"
+import { Brackets, QueryRunner } from "typeorm"
 import { v4 as uuidv4 } from "uuid"
 import { RestMethod, RiskScore } from "@common/enums"
 import { getPathTokens } from "@common/utils"
@@ -10,7 +11,6 @@ import { MetloContext } from "types"
 import { endpointAddNumberParams, getPathRegex, getValidPath } from "utils"
 import Error404NotFound from "errors/error-404-not-found"
 import { GetEndpointsService } from "."
-import Error500InternalServer from "errors/error-500-internal-server"
 
 const TRACE_LIMIT = 10_000
 const THRESHOLD = 0.1
@@ -164,7 +164,7 @@ export const updateEndpointsFromMap = async (
       }
       await queryRunner.commitTransaction()
     } catch (err) {
-      console.error(
+      mlog.error(
         `Encountered error when updating endpoint ${item.endpoint.uuid}: ${err}`,
       )
       if (queryRunner.isTransactionActive) {

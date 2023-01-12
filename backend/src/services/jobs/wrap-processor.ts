@@ -1,9 +1,10 @@
+import mlog from "logger"
 import { Job } from "bull"
 
 export const wrapProcessor = processor => {
   const wrappedProcessor = async (job: Job) => {
     const exitHandler = exitCode => {
-      console.debug(
+      mlog.debug(
         `\nReceived SIGTERM for job id '${job.id}' with exit code '${exitCode}' and PID '${process.pid}'`,
       )
       job.discard()

@@ -1,5 +1,5 @@
+import mlog from "logger"
 import { Job } from "bull"
-import { DateTime } from "luxon"
 import { AppDataSource } from "data-source"
 import checkForUnauthenticatedEndpoints from "./check-unauthenticated-endpoints"
 import clearApiTraces from "./clear-api-traces"
@@ -12,23 +12,18 @@ import { wrapProcessor } from "./wrap-processor"
 import { updateEndpointIps } from "analyze/jobs"
 import { logAggregatedStats } from "services/logging"
 
-const log = (logMessage: string, newLine?: boolean) =>
-  console.log(
-    `${newLine ? "\n" : ""}${DateTime.utc().toString()} ${logMessage}`,
-  )
-
 const processor = async (job: Job, done) => {
   const ctx = {}
   if (!AppDataSource.isInitialized) {
     const datasource = await AppDataSource.initialize()
     if (!datasource.isInitialized) {
-      console.error("Couldn't initialize datasource...")
+      mlog.error("Couldn't initialize datasource...")
       return Promise.resolve()
     }
-    console.log("AppDataSource Initialized...")
+    mlog.log("AppDataSource Initialized...")
   }
 
-  log(JOB_NAME_MAP[job.name].start, true)
+  mlog.info(JOB_NAME_MAP[job.name].start)
   switch (job.name) {
     case JobName.GENERATE_OPENAPI_SPEC:
       await generateOpenApiSpec(ctx)
@@ -54,7 +49,7 @@ const processor = async (job: Job, done) => {
     default:
       break
   }
-  log(JOB_NAME_MAP[job.name].end, true)
+  mlog.info(JOB_NAME_MAP[job.name].end, true)
   return Promise.resolve()
 }
 export default wrapProcessor(processor)

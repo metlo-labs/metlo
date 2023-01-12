@@ -1,3 +1,4 @@
+import mlog from "logger"
 import { QueryFailedError } from "typeorm"
 import { DatabaseError } from "pg-protocol"
 
@@ -25,7 +26,7 @@ export const retryTypeormTransaction = async (
           if (attempt <= maxAttempts) {
             const nextAttempt = attempt + 1
             const delayInMilliseconds = randInt(200, 500)
-            console.error(
+            mlog.error(
               `Retrying after ${delayInMilliseconds} ms due to:`,
               err,
             )

@@ -1,3 +1,4 @@
+import mlog from "logger"
 import yargs from "yargs"
 import { AlertType } from "@common/enums"
 import { ALERT_TYPE_TO_RISK_SCORE } from "@common/maps"
@@ -22,17 +23,17 @@ const generateAlert = async (
     newAlert.context = JSON.parse(context || "{}")
     await DatabaseService.executeTransactions(ctx, [[newAlert]], [], false)
   } catch (err) {
-    console.error(`Error generating new alert from script: ${err}`)
+    mlog.withErr(err).error("Error generating new alert from script")
   }
 }
 
 const main = async () => {
   const datasource = await AppDataSource.initialize()
   if (!datasource.isInitialized) {
-    console.error("Couldn't initialize datasource...")
+    mlog.error("Couldn't initialize datasource...")
     return
   }
-  console.log("AppDataSource Initialized...")
+  mlog.info("AppDataSource Initialized...")
   const args = yargs.argv
   const alertType = args["alertType"]
   const apiEndpointUuid = args["endpointUuid"]

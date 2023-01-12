@@ -1,3 +1,4 @@
+import mlog from "logger"
 import { AppDataSource } from "data-source"
 import { Alert } from "models"
 import { DataSection, DataTag, AlertType, Status } from "@common/enums"
@@ -30,7 +31,7 @@ const checkForUnauthenticatedEndpoints = async (
     )
     await insertValuesBuilder(ctx, queryRunner, Alert, alerts).execute()
   } catch (err) {
-    console.error(
+    mlog.error(
       `Encountered error when checking for unauthenticated endpoints: ${err}`,
     )
   } finally {
