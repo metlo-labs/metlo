@@ -1,3 +1,4 @@
+import mlog from "logger"
 import { v4 as uuidv4 } from "uuid"
 import { AppDataSource } from "data-source"
 import { ApiTrace, ApiEndpoint, DataField, Alert, OpenApiSpec } from "models"
@@ -84,7 +85,7 @@ const getQueuedApiTrace = async (): Promise<{
     const traceString = await unsafeRedisClient.lpop(TRACES_QUEUE)
     return JSON.parse(traceString)
   } catch (err) {
-    console.error(`Error getting queued trace: ${err}`)
+    mlog.withErr(err).error("Error getting queued trace")
     return null
   }
 }
@@ -282,7 +283,7 @@ const generateEndpoint = async (
           await analyze(ctx, trace, existingEndpoint, queryRunner)
         }
       } else {
-        console.error(`Error generating new endpoint: ${err}`)
+        mlog.withErr(err).error("Error generating new endpoint")
       }
     }
   }
@@ -291,11 +292,11 @@ const generateEndpoint = async (
 const analyzeTraces = async (): Promise<void> => {
   const datasource = await AppDataSource.initialize()
   if (!datasource.isInitialized) {
-    console.error("Couldn't initialize datasource...")
+    mlog.error("Couldn't initialize datasource...")
     return
   }
-  console.log("AppDataSource Initialized...")
-  console.log("Running Analyzer...")
+  mlog.info("AppDataSource Initialized...")
+  mlog.info("Running Analyzer...")
   let queryRunner = AppDataSource.createQueryRunner()
   await queryRunner.connect()
   while (true) {
@@ -327,7 +328,7 @@ const analyzeTraces = async (): Promise<void> => {
         await sleep(50)
       }
     } catch (err) {
-      console.error(`Encountered error while analyzing traces: ${err}`)
+      mlog.withErr(err).error("Encountered error while analyzing traces")
       if (queryRunner.isTransactionActive) {
         await queryRunner.rollbackTransaction()
       }

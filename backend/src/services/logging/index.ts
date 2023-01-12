@@ -1,3 +1,4 @@
+import mlog from "logger"
 import axios from "axios"
 import { InstanceSettings } from "models"
 import { getRepository } from "services/database/utils"
@@ -8,7 +9,7 @@ export const logAggregatedStats = async (ctx: MetloContext) => {
   const settingRepository = getRepository(ctx, InstanceSettings)
   const settingsLs = await settingRepository.find()
   if (settingsLs.length == 0) {
-    console.log("No instance settings found...")
+    mlog.log("No instance settings found...")
     return
   }
   const settings = settingsLs[0]

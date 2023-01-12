@@ -1,3 +1,4 @@
+import mlog from "logger"
 import { IsNull, LessThanOrEqual, Raw, FindManyOptions } from "typeorm"
 import { v4 as uuidv4 } from "uuid"
 import { ApiTrace, ApiEndpoint, Alert } from "models"
@@ -194,9 +195,9 @@ const generateEndpointsFromTraces = async (
         tracesFindOptions,
       )
     }
-    console.log("Finished Generating Endpoints.")
+    mlog.info("Finished Generating Endpoints.")
   } catch (err) {
-    console.error(`Encountered error while generating endpoints: ${err}`)
+    mlog.withErr(err).error("Encountered error while generating endpoints")
     await queryRunner.rollbackTransaction()
   } finally {
     await queryRunner?.release()

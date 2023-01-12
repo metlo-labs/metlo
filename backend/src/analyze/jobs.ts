@@ -1,3 +1,4 @@
+import mlog from "logger"
 import { AppDataSource } from "data-source"
 import { ApiEndpoint } from "models"
 import { getQB } from "services/database/utils"
@@ -21,7 +22,7 @@ export const updateEndpointIps = async (ctx: MetloContext) => {
       ...new Set(hostIps.map(e => Object.keys(e.hostIps)).flat()),
     ])
   } catch (err) {
-    console.error(`Encountered error while updating endpoint IPs: ${err}`)
+    mlog.withErr(err).error(`Encountered error while updating endpoint IPs`)
   } finally {
     await queryRunner.release()
   }

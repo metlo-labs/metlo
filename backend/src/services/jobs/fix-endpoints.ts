@@ -1,3 +1,4 @@
+import mlog from "logger"
 import { AppDataSource } from "data-source"
 import { ApiEndpoint, ApiTrace } from "models"
 import { getEntityManager, getQB } from "services/database/utils"
@@ -131,7 +132,7 @@ const fixEndpoints = async (ctx: MetloContext): Promise<void> => {
       }
     }
   } catch (err) {
-    console.error(`Encountered error while fixing endpoints: ${err}`)
+    mlog.withErr(err).error("Encountered error while fixing endpoints")
   } finally {
     await queryRunner.release()
   }

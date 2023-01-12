@@ -1,3 +1,4 @@
+import mlog from "logger"
 import { Meta, QueuedApiTrace, SessionMeta, TraceParams } from "@common/types"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { BlockFieldsService } from "services/block-fields"
@@ -21,7 +22,7 @@ export class LogRequestService {
         queueLength = await unsafeRedisClient.llen(TRACES_QUEUE)
       } catch {}
       if (queueLength > 1000) {
-        console.error("Trace queue overloaded")
+        mlog.debug("Trace queue overloaded")
         return
       }
 
@@ -71,7 +72,7 @@ export class LogRequestService {
       if (err?.code < 500) {
         throw err
       }
-      console.error(`Error in Log Request service: ${err}`)
+      mlog.withErr(err).error("Error in Log Request service")
       throw new Error500InternalServer(err)
     }
   }

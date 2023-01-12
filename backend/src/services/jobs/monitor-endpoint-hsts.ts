@@ -1,3 +1,4 @@
+import mlog from "logger"
 import axios from "axios"
 import { ApiEndpoint, ApiTrace, Alert } from "models"
 import { AlertService } from "services/alert"
@@ -43,7 +44,7 @@ const monitorEndpointForHSTS = async (ctx: MetloContext): Promise<void> => {
             ])
           }
         } catch (err) {
-          console.log(
+          mlog.log(
             `Couldn't perform OPTIONS request for endpoint ${endpoint.host}${endpoint.path}: ${err.message}`,
           )
         }
@@ -52,7 +53,7 @@ const monitorEndpointForHSTS = async (ctx: MetloContext): Promise<void> => {
     let alerts = await AlertService.createMissingHSTSAlert(ctx, alertableData)
     await alertsRepository.save(alerts)
   } catch (err) {
-    console.error(
+    mlog.error(
       `Encountered error while looking for HSTS enabled endpoints : ${err}`,
     )
   }

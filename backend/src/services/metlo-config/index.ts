@@ -1,3 +1,4 @@
+import mlog from "logger"
 import yaml from "js-yaml"
 import Ajv from "ajv"
 import formatsPlugin from "ajv-formats"
@@ -221,7 +222,7 @@ const populateAuthentication = async (
 ) => {
   const key = process.env.ENCRYPTION_KEY
   if (!key) {
-    console.error(`No ENCRYPTION_KEY found. Cannot set authentication config.`)
+    mlog.error(`No ENCRYPTION_KEY found. Cannot set authentication config.`)
     throw new Error500InternalServer(
       "No ENCRYPTION_KEY found. Cannot set authentication config.",
     )

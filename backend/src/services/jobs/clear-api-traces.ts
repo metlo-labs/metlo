@@ -1,3 +1,4 @@
+import mlog from "logger"
 import { DateTime } from "luxon"
 import { ApiTrace } from "models"
 import { AppDataSource } from "data-source"
@@ -35,7 +36,7 @@ const clearApiTraces = async (ctx: MetloContext): Promise<void> => {
       await queryRunner.commitTransaction()
     }
   } catch (err) {
-    console.error(`Encountered error while clearing trace data: ${err}`)
+    mlog.withErr(err).error("Encountered error while clearing trace data")
     await queryRunner.rollbackTransaction()
   } finally {
     await queryRunner?.release()

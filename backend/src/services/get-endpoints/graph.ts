@@ -1,3 +1,4 @@
+import mlog from "logger"
 import { AppDataSource } from "data-source"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { ApiEndpoint } from "models"
@@ -63,7 +64,7 @@ export const getHostGraphInner = async (
       edges,
     }
   } catch (err) {
-    console.error(`Error in Get Endpoints service: ${err}`)
+    mlog.withErr(err).error("Error in Get Endpoints service")
     throw new Error500InternalServer(err)
   } finally {
     await queryRunner.release()

@@ -1,6 +1,7 @@
 import dotenv from "dotenv"
 dotenv.config()
 
+import mlog from "logger"
 import express, { Express, Response } from "express"
 import { InstanceSettings } from "models"
 import { MetloRequest } from "types"
@@ -62,7 +63,7 @@ const initInstanceSettings = async () => {
   const settingRepository = AppDataSource.getRepository(InstanceSettings)
   const numSettings = await settingRepository.count()
   if (numSettings == 0) {
-    console.log("Initializing Instance Settings")
+    mlog.info("Initializing Instance Settings")
     const setting = new InstanceSettings()
     await settingRepository.save(setting)
   }
@@ -71,20 +72,21 @@ const initInstanceSettings = async () => {
 const main = async () => {
   try {
     const datasource = await AppDataSource.initialize()
-    console.log(
+    mlog.info(
       `Is AppDataSource Initialized? ${
         datasource.isInitialized ? "Yes" : "No"
       }`,
     )
     await initInstanceSettings()
     app.listen(port, () => {
-      console.log(`⚡️[server]: Server is running at http://localhost:${port}`)
+      mlog.info(`⚡️[server]: Server is running at http://localhost:${port}`)
     })
+    throw Error("asdf")
   } catch (err) {
-    console.error(`CatchBlockInsideMain: ${err}`)
+    mlog.withErr(err).error(`CatchBlockInsideMain`)
   }
 }
 
 main().catch(err => {
-  console.error(`Error in main try block: ${err}`)
+  mlog.withErr(err).error(`Error in main try block`)
 })

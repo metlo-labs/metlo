@@ -1,3 +1,4 @@
+import mlog from "logger"
 import { QueryRunner } from "typeorm"
 import { AppDataSource } from "data-source"
 import {
@@ -406,7 +407,7 @@ export class GetEndpointsService {
 
       return [endpointResults, countResults?.[0]?.count]
     } catch (err) {
-      console.error(`Error in Get Endpoints service: ${err}`)
+      mlog.withErr(err).error("Error in Get Endpoints service")
       throw new Error500InternalServer(err)
     } finally {
       await queryRunner.release()
@@ -460,7 +461,7 @@ export class GetEndpointsService {
         tests: tests as Array<any>,
       }
     } catch (err) {
-      console.error(`Error in Get Endpoints service: ${err}`)
+      mlog.withErr(err).error("Error in Get Endpoints service")
       throw new Error500InternalServer(err)
     } finally {
       await queryRunner.release()
@@ -478,7 +479,7 @@ export class GetEndpointsService {
         .getRawMany()
       return hosts.map(host => host["host"])
     } catch (err) {
-      console.error(`Error in Get Endpoints service: ${err}`)
+      mlog.withErr(err).error("Error in Get Endpoints service")
       throw new Error500InternalServer(err)
     }
   }
@@ -543,7 +544,7 @@ export class GetEndpointsService {
         .getRawMany()
       return usage as UsageResponse[]
     } catch (err) {
-      console.error(`Error in Get Endpoints service: ${err}`)
+      mlog.withErr(err).error("Error in Get Endpoints service")
       throw new Error500InternalServer(err)
     }
   }

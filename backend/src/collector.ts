@@ -1,12 +1,12 @@
 import dotenv from "dotenv"
 dotenv.config()
 
+import mlog from "logger"
 import express, { Express, Request, Response } from "express"
 import { AppDataSource } from "data-source"
 import { verifyApiKeyMiddleware } from "middleware/verify-api-key-middleware"
 import { bodyParserMiddleware } from "middleware/body-parser-middleware"
 import { MetloRequest } from "types"
-import { getRepoQB } from "services/database/utils"
 import registerLoggingRoutes from "api/collector"
 
 const app: Express = express()
@@ -34,19 +34,19 @@ registerLoggingRoutes(router)
 const main = async () => {
   try {
     const datasource = await AppDataSource.initialize()
-    console.log(
+    mlog.info(
       `Is AppDataSource Initialized? ${
         datasource.isInitialized ? "Yes" : "No"
       }`,
     )
     app.listen(port, () => {
-      console.log(`⚡️[server]: Server is running at http://localhost:${port}`)
+      mlog.info(`⚡️[server]: Server is running at http://localhost:${port}`)
     })
   } catch (err) {
-    console.error(`CatchBlockInsideMain: ${err}`)
+    mlog.withErr(err).error("CatchBlockInsideMain")
   }
 }
 
 main().catch(err => {
-  console.error(`Error in main try block: ${err}`)
+  mlog.withErr(err).error("Error in main try block")
 })
