@@ -31,9 +31,9 @@ const checkForUnauthenticatedEndpoints = async (
     )
     await insertValuesBuilder(ctx, queryRunner, Alert, alerts).execute()
   } catch (err) {
-    mlog.error(
-      `Encountered error when checking for unauthenticated endpoints: ${err}`,
-    )
+    mlog
+      .withErr(err)
+      .error("Encountered error when checking for unauthenticated endpoints")
   } finally {
     await queryRunner.release()
   }
