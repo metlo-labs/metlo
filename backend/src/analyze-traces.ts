@@ -182,7 +182,7 @@ const analyze = async (
     5,
   )
   mlog.time("analyzer.insert_api_trace_query", performance.now() - start4)
-  mlog.debug(`Analyzing Trace - Insert API Trace Query: ${traceUUID}`)
+  mlog.debug(`Analyzing Trace - Inserted API Trace: ${traceUUID}`)
 
   const start5 = performance.now()
   await retryTypeormTransaction(
