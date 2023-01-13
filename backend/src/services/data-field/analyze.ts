@@ -19,17 +19,22 @@ const nonNullDataSections = [
   DataSection.RESPONSE_HEADER,
 ]
 
+const TOTAL_DATA_FIELDS_LIMIT = 200
+
 const getCurrentDataFieldsMap = (
   dataFields: DataField[],
-): Record<string, DataField> => {
-  return dataFields.reduce((obj, item) => {
-    return {
-      ...obj,
-      [`${item.statusCode}_${item.contentType}_${item.dataSection}${
+): [Record<string, DataField>, number] => {
+  let currNumDataFields = 0
+  const res = {}
+  dataFields.forEach(item => {
+    currNumDataFields += 1
+    res[
+      `${item.statusCode}_${item.contentType}_${item.dataSection}${
         item.dataPath ? `.${item.dataPath}` : ""
-      }`]: item,
-    }
-  }, {})
+      }`
+    ] = item
+  })
+  return [res, currNumDataFields]
 }
 
 const getTraceDataFieldMap = async (
@@ -114,6 +119,7 @@ const findDiffDataFields = (
   traceDataFieldMap: Record<string, DataField>,
   hash: string,
   traceTime: Date,
+  currNumDataFields: number,
 ) => {
   const newDataFields: DataField[] = []
   const updatedExistingFields: DataField[] = []
@@ -207,10 +213,12 @@ const findDiffDataFields = (
         }
       }
     } else {
-      traceDataField.traceHash = { [hash]: traceTime.getTime() }
-      traceDataField.createdAt = traceTime
-      traceDataField.updatedAt = traceTime
-      newDataFields.push(traceDataField)
+      if (++currNumDataFields <= TOTAL_DATA_FIELDS_LIMIT) {
+        traceDataField.traceHash = { [hash]: traceTime.getTime() }
+        traceDataField.createdAt = traceTime
+        traceDataField.updatedAt = traceTime
+        newDataFields.push(traceDataField)
+      }
     }
   }
   return { newDataFields, updatedExistingFields }
@@ -228,7 +236,9 @@ export const findDataFieldsToSave = async (
     [DataSection.RESPONSE_HEADER]: new Set<string>([]),
     [DataSection.RESPONSE_BODY]: new Set<string>([]),
   }
-  const currentDataFieldMap = getCurrentDataFieldsMap(apiEndpoint.dataFields)
+  const [currentDataFieldMap, currNumDataFields] = getCurrentDataFieldsMap(
+    apiEndpoint.dataFields,
+  )
   const traceDataFieldMap = await getTraceDataFieldMap(
     ctx,
     apiTrace,
@@ -252,6 +262,7 @@ export const findDataFieldsToSave = async (
     traceDataFieldMap,
     hash,
     apiTrace.createdAt,
+    currNumDataFields,
   )
 
   apiEndpoint.riskScore = getRiskScore(
