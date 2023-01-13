@@ -472,7 +472,10 @@ export class SpecService {
     queryRunner: QueryRunner,
   ): Promise<Alert[]> {
     try {
-      if (!endpoint.openapiSpecName) {
+      if (
+        !endpoint.openapiSpecName ||
+        endpoint.openapiSpecName.endsWith("-generated")
+      ) {
         return []
       }
       const openApiSpec = await getEntityManager(ctx, queryRunner).findOneBy(
