@@ -4,6 +4,7 @@ After=network-online.target
 
 [Service]
 Restart=on-failure
+RestartSec=2
 ExecStart=/usr/local/bin/metlo-pcap
 
 [Install]
