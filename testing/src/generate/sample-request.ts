@@ -41,7 +41,7 @@ export const addAuthToRequest = (
     })
     env.push({
       name: `${pre}BASIC_AUTH_CRED`,
-      value: `'{{global.${pre}BASIC_AUTH_CRED}}'`,
+      value: `{{global.${pre}BASIC_AUTH_CRED}}`,
     })
   } else if (authConfig.authType == AuthType.HEADER) {
     headers = headers.concat({
@@ -50,7 +50,7 @@ export const addAuthToRequest = (
     })
     env.push({
       name: `${pre}CREDENTIALS`,
-      value: `'{{global.${pre}CREDENTIALS}}'`,
+      value: `{{global.${pre}CREDENTIALS}}`,
     })
   } else if (authConfig.authType == AuthType.JWT) {
     headers = headers.concat({
@@ -59,7 +59,7 @@ export const addAuthToRequest = (
     })
     env.push({
       name: `${pre}JWT`,
-      value: `'{{global.${pre}JWT}}'`,
+      value: `{{global.${pre}JWT}}`,
     })
   }
   return {
@@ -283,7 +283,7 @@ export const makeSampleRequestNoAuth = (
   for (const param of params) {
     env.push({
       name: `${prefix}${param[1]}`,
-      value: `'{{global.${prefix}${param[1]}}}'`,
+      value: `{{global.${prefix}${param[1]}}}`,
     })
   }
   const replacedPath = endpoint.path.replace(paramRegex, `{{${prefix}$1}}`)
