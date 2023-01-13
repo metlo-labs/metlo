@@ -1,13 +1,9 @@
 import jsyaml from "js-yaml"
-import { MetloConfig } from "models/metlo-config"
-import { getRepository } from "services/database/utils"
+import { getMetloConfig } from "services/metlo-config"
 import { MetloContext } from "types"
 
 export async function getGlobalEnvService(ctx: MetloContext) {
-  const configRaw = await getRepository(ctx, MetloConfig).findOne({
-    select: { configString: true },
-    where: {},
-  })
+  let configRaw = await getMetloConfig(ctx)
   const config = jsyaml.load(configRaw.configString) as Object
   if ("globalTestEnv" in config) {
     return config.globalTestEnv
