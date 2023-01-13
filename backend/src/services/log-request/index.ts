@@ -66,6 +66,7 @@ export class LogRequestService {
       await BlockFieldsService.redactBlockedFields(ctx, apiTraceObj)
       await AuthenticationConfigService.setSessionMetadata(ctx, apiTraceObj)
 
+      mlog.debug("Pushed trace to redis queue")
       await unsafeRedisClient.rpush(
         TRACES_QUEUE,
         JSON.stringify({
