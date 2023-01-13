@@ -15,7 +15,7 @@ import {
   useToast,
 } from "@chakra-ui/react"
 import { SectionHeader } from "components/utils/Card"
-import { clearSensitiveData } from "api/dataFields"
+import { clearAllDataFields, clearSensitiveData } from "api/dataFields"
 import { makeToast } from "utils"
 import { formatMetloAPIErr, MetloAPIErr } from "api/utils"
 
@@ -23,6 +23,8 @@ const BulkActions: React.FC = React.memo(() => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const toast = useToast()
   const [clearSensitiveDataLoading, setSensitiveDataLoading] = useState(false)
+  const [clearAllDataFieldsLoading, setClearAllDataFieldsLoading] =
+    useState(false)
   const cancelRef = useRef()
 
   const clearSensitiveDataBtn = () => {
@@ -51,6 +53,32 @@ const BulkActions: React.FC = React.memo(() => {
       })
   }
 
+  const clearDataFieldsBtn = () => {
+    setClearAllDataFieldsLoading(true)
+    clearAllDataFields()
+      .then(() => {
+        toast(
+          makeToast({
+            title: "Cleared All Data Fields.",
+            status: "success",
+          }),
+        )
+      })
+      .catch(err => {
+        toast(
+          makeToast({
+            title: "Failed Clearing Data Fields...",
+            status: "error",
+            description: formatMetloAPIErr(err.response.data as MetloAPIErr),
+          }),
+        )
+      })
+      .finally(() => {
+        setClearAllDataFieldsLoading(false)
+        onClose()
+      })
+  }
+
   return (
     <VStack
       bg="white"
@@ -71,6 +99,13 @@ const BulkActions: React.FC = React.memo(() => {
           <HStack pt="1">
             <Button onClick={onOpen} variant="delete">
               Clear All Sensitive Data
+            </Button>
+            <Button
+              isLoading={clearAllDataFieldsLoading}
+              onClick={() => clearDataFieldsBtn()}
+              variant="delete"
+            >
+              Clear All Data Fields
             </Button>
           </HStack>
         </VStack>

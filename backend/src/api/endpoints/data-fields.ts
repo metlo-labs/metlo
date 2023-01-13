@@ -5,7 +5,7 @@ import ApiResponseHandler from "api-response-handler"
 import { GetEndpointsService } from "services/get-endpoints"
 import { MetloRequest } from "types"
 import { AppDataSource } from "data-source"
-import { getQB } from "services/database/utils"
+import { createQB, getQB } from "services/database/utils"
 import { Alert, DataField } from "models"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { AlertType } from "@common/enums"
@@ -54,6 +54,30 @@ export const deleteDataFieldHandler = async (
       )
     }
     await ApiResponseHandler.success(res, removedDataField)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}
+
+export const bulkDeleteDataFieldsHandler = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    await createQB(req.ctx).delete().from(DataField).execute()
+    await createQB(req.ctx)
+      .delete()
+      .from(Alert)
+      .andWhere(`"type" IN(:...alertTypes)`, {
+        alertTypes: [
+          AlertType.PII_DATA_DETECTED,
+          AlertType.QUERY_SENSITIVE_DATA,
+          AlertType.PATH_SENSITIVE_DATA,
+          AlertType.UNAUTHENTICATED_ENDPOINT_SENSITIVE_DATA,
+        ],
+      })
+      .execute()
+    await ApiResponseHandler.success(res, "OK")
   } catch (err) {
     await ApiResponseHandler.error(res, err)
   }

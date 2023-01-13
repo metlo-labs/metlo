@@ -11,6 +11,7 @@ import {
 } from "services/get-endpoints/path-heuristic"
 import { getHostsGraphHandler } from "./graph"
 import {
+  bulkDeleteDataFieldsHandler,
   clearAllSensitiveDataHandler,
   deleteDataFieldHandler,
   updateDataFieldClasses,
@@ -182,6 +183,7 @@ export default function registerEndpointRoutes(router: Router) {
   )
   router.delete("/api/v1/data-field/:dataFieldId", deleteDataFieldHandler)
   router.post("/api/v1/clear-sensitive-data", clearAllSensitiveDataHandler)
+  router.post("/api/v1/clear-all-datafields", bulkDeleteDataFieldsHandler)
   // DataClass
   router.get("/api/v1/data-class", getDataClassInfo)
 }
