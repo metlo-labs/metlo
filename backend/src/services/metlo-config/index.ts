@@ -28,11 +28,26 @@ import {
 } from "services/database/utils"
 import { METLO_CONFIG_SCHEMA } from "./constants"
 import Error422UnprocessableEntity from "errors/error-422-unprocessable-entity"
+import jsyaml from "js-yaml"
+import { decrypt, encrypt, generate_iv } from "utils/encryption"
 
 export const getMetloConfig = async (
   ctx: MetloContext,
 ): Promise<MetloConfigResp> => {
-  return await createQB(ctx).from(MetloConfig, "config").getRawOne()
+  const config = (await createQB(ctx)
+    .from(MetloConfig, "config")
+    .getRawOne()) as MetloConfig
+  if (config && config.env) {
+    const key = Buffer.from(process.env.ENCRYPTION_KEY, "base64")
+    const iv = Buffer.from(config.envIV, "base64")
+    const tag = Buffer.from(config.envTag, "base64")
+    const decryptedEnv = decrypt(config.env, key, iv, tag)
+    config.configString = jsyaml.dump({
+      ...(jsyaml.load(config.configString) as object),
+      globalTestEnv: JSON.parse(decryptedEnv),
+    })
+  }
+  return config
 }
 
 export const validateMetloConfig = (configString: string) => {
@@ -268,6 +283,32 @@ const populateAuthentication = async (
   }
 }
 
+const populateEnvironment = (metloConfig: object) => {
+  const parsedConfigString = metloConfig
+  if ("globalTestEnv" in parsedConfigString) {
+    const key = Buffer.from(process.env.ENCRYPTION_KEY, "base64")
+    const iv = generate_iv()
+    const { encrypted, tag } = encrypt(
+      JSON.stringify(parsedConfigString.globalTestEnv),
+      key,
+      iv,
+    )
+    delete parsedConfigString.globalTestEnv
+    return {
+      configString: jsyaml.dump(parsedConfigString),
+      env: encrypted,
+      envTag: tag.toString("base64"),
+      envIV: iv.toString("base64"),
+    }
+  }
+  return {
+    configString: jsyaml.dump(parsedConfigString),
+    env: "",
+    envTag: "",
+    envIV: "",
+  }
+}
+
 export const populateMetloConfig = async (
   ctx: MetloContext,
   configString: string,
@@ -284,13 +325,28 @@ export const populateMetloConfig = async (
       .from(MetloConfig, "config")
       .getRawOne()
     if (metloConfigEntry) {
+      const {
+        configString: configStringNoEnv,
+        env,
+        envTag,
+        envIV,
+      } = await populateEnvironment(metloConfig)
       await getQB(ctx, queryRunner)
         .update(MetloConfig)
-        .set({ configString })
+        .set({ configString: configStringNoEnv, env, envTag, envIV })
         .execute()
     } else {
       const newConfig = MetloConfig.create()
-      newConfig.configString = configString
+      const {
+        configString: configStringNoEnv,
+        env,
+        envTag,
+        envIV,
+      } = await populateEnvironment(metloConfig)
+      newConfig.configString = configStringNoEnv
+      newConfig.env = env
+      newConfig.envIV = envIV
+      newConfig.envTag = envTag
       await insertValueBuilder(
         ctx,
         queryRunner,

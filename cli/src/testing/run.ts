@@ -44,8 +44,27 @@ export const runTests = async (
       ),
     )
   }
+  // get global env
+  let globalEnv = []
+  try {
+    const config = getConfig()
+    let url = urlJoin(config.metloHost, "api/v1/testing/global-env")
+    const { data } = await axios.get<{ name: string; value: any }[]>(url, {
+      headers: { Authorization: config.apiKey },
+    })
+    globalEnv = data
+  } catch (err) {
+    console.log(chalk.red("Couldn't fetch global test environment from Metlo's backend"))
+    if (verbose) {
+      console.warn(err)
+    }
+  }
+
   if (paths && paths.length) {
-    await runTestPath(paths, verbose, initEnv)
+    await runTestPath(paths, verbose, {
+      ...initEnv,
+      global: Object.fromEntries(globalEnv.map(env => [env.name, env.value])),
+    })
     return
   }
   await runTestsFromEndpointInfo(endpoint, method, host, initEnv, verbose)
@@ -54,7 +73,7 @@ export const runTests = async (
 const runTestPath = async (
   paths: string[],
   verbose: boolean,
-  env: { [key: string]: string },
+  env: { [key: string]: string | Object },
 ) => {
   for (let path of paths) {
     console.log(chalk.gray(`Running test at path "${path}":`))

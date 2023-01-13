@@ -339,7 +339,7 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
                       Save
                     </Button>
                   </HStack>
-                  <Box rounded="md" h="700px" w="full" borderWidth="1px">
+                  <Box rounded="md" h="600px" w="full" borderWidth="1px">
                     <Editor
                       width="100%"
                       defaultLanguage="yaml"
