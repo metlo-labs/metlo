@@ -116,13 +116,17 @@ const analyze = async (
   queryRunner: QueryRunner,
   newEndpoint?: boolean,
 ) => {
+  const traceUUID = uuidv4()
+  mlog.debug(`Analyzing Trace: ${traceUUID}`)
   const prevRiskScore = apiEndpoint.riskScore
   const prevLastActive = apiEndpoint.lastActive
   endpointUpdateDates(trace.createdAt, apiEndpoint)
+  mlog.debug(`Analyzing Trace - Updated Dates: ${traceUUID}`)
 
   const start1 = performance.now()
   const dataFields = await findDataFieldsToSave(ctx, trace, apiEndpoint)
   mlog.time("analyzer.find_data_fields", performance.now() - start1)
+  mlog.debug(`Analyzing Trace - Found Datafields: ${traceUUID}`)
 
   const start2 = performance.now()
   let alerts = await SpecService.findOpenApiSpecDiff(
@@ -132,6 +136,7 @@ const analyze = async (
     queryRunner,
   )
   mlog.time("analyzer.find_openapi_spec_diff", performance.now() - start2)
+  mlog.debug(`Analyzing Trace - Found OpenAPI Spec Diffs: ${traceUUID}`)
 
   const start3 = performance.now()
   const sensitiveDataAlerts = await AlertService.createDataFieldAlerts(
@@ -144,6 +149,7 @@ const analyze = async (
   )
   alerts = alerts?.concat(sensitiveDataAlerts)
   mlog.time("analyzer.create_data_field_alerts", performance.now() - start3)
+  mlog.debug(`Analyzing Trace - Created Data Field Alerts: ${traceUUID}`)
 
   if (newEndpoint) {
     const newEndpointAlert = await AlertService.createAlert(
@@ -176,6 +182,7 @@ const analyze = async (
     5,
   )
   mlog.time("analyzer.insert_api_trace_query", performance.now() - start4)
+  mlog.debug(`Analyzing Trace - Insert API Trace Query: ${traceUUID}`)
 
   const start5 = performance.now()
   await retryTypeormTransaction(
@@ -186,6 +193,7 @@ const analyze = async (
     5,
   )
   mlog.time("analyzer.insert_data_fields_query", performance.now() - start5)
+  mlog.debug(`Analyzing Trace - Inserted Data Fields: ${traceUUID}`)
 
   const start6 = performance.now()
   await retryTypeormTransaction(
@@ -201,6 +209,7 @@ const analyze = async (
     5,
   )
   mlog.time("analyzer.insert_alerts_query", performance.now() - start6)
+  mlog.debug(`Analyzing Trace - Inserted Alerts: ${traceUUID}`)
 
   const start7 = performance.now()
   if (shouldUpdateEndpoint(prevRiskScore, prevLastActive, apiEndpoint)) {
@@ -219,13 +228,16 @@ const analyze = async (
     )
   }
   mlog.time("analyzer.update_api_endpoint_query", performance.now() - start7)
+  mlog.debug(`Analyzing Trace - Updated API Endpoint: ${traceUUID}`)
 
   const start8 = performance.now()
   await updateIPs(ctx, trace, apiEndpoint, queryRunner)
   mlog.time("analyzer.update_ips", performance.now() - start8)
+  mlog.debug(`Analyzing Trace - Updated IPs: ${traceUUID}`)
   await queryRunner.commitTransaction()
 
   await sendWebhookRequests(ctx, alerts, apiEndpoint)
+  mlog.debug(`Analyzing Trace - Sent Webhook Requests: ${traceUUID}`)
 }
 
 const generateEndpoint = async (

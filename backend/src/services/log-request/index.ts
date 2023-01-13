@@ -14,13 +14,17 @@ export class LogRequestService {
     ctx: MetloContext,
     traceParams: TraceParams,
   ): Promise<void> {
+    mlog.debug("Called Log Request Service Func")
     const unsafeRedisClient = RedisClient.getInstance()
     try {
       /** Log Request in ApiTrace table **/
       let queueLength = 0
       try {
         queueLength = await unsafeRedisClient.llen(TRACES_QUEUE)
-      } catch {}
+      } catch (err) {
+        mlog.withErr(err).debug(`Error checking queue length`)
+      }
+      mlog.debug(`Trace queue length ${queueLength}`)
       if (queueLength > 1000) {
         mlog.debug("Trace queue overloaded")
         return
@@ -28,6 +32,7 @@ export class LogRequestService {
 
       const validPath = getValidPath(traceParams?.request?.url?.path)
       if (!validPath.isValid) {
+        mlog.debug(`Invalid Path: ${traceParams?.request?.url?.path}`)
         throw new Error400BadRequest(
           `Invalid path ${traceParams?.request?.url?.path}: ${validPath.errMsg}`,
         )
