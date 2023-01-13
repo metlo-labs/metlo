@@ -203,15 +203,19 @@ const analyze = async (
       ),
     5,
   )
+  mlog.time("analyzer.update_data_fields_query", performance.now() - start6)
+  mlog.debug(`Analyzing Trace - Updated Data Fields: ${traceUUID}`)
+
+  const start7 = performance.now()
   await retryTypeormTransaction(
     () =>
       insertValuesBuilder(ctx, queryRunner, Alert, alerts).orIgnore().execute(),
     5,
   )
-  mlog.time("analyzer.insert_alerts_query", performance.now() - start6)
+  mlog.time("analyzer.insert_alerts_query", performance.now() - start7)
   mlog.debug(`Analyzing Trace - Inserted Alerts: ${traceUUID}`)
 
-  const start7 = performance.now()
+  const start8 = performance.now()
   if (shouldUpdateEndpoint(prevRiskScore, prevLastActive, apiEndpoint)) {
     await retryTypeormTransaction(
       () =>
@@ -227,16 +231,18 @@ const analyze = async (
       5,
     )
   }
-  mlog.time("analyzer.update_api_endpoint_query", performance.now() - start7)
+  mlog.time("analyzer.update_api_endpoint_query", performance.now() - start8)
   mlog.debug(`Analyzing Trace - Updated API Endpoint: ${traceUUID}`)
 
-  const start8 = performance.now()
+  const start9 = performance.now()
   await updateIPs(ctx, trace, apiEndpoint, queryRunner)
-  mlog.time("analyzer.update_ips", performance.now() - start8)
+  mlog.time("analyzer.update_ips", performance.now() - start9)
   mlog.debug(`Analyzing Trace - Updated IPs: ${traceUUID}`)
   await queryRunner.commitTransaction()
 
+  const start10 = performance.now()
   await sendWebhookRequests(ctx, alerts, apiEndpoint)
+  mlog.time("analyzer.sent_webhook_requests", performance.now() - start10)
   mlog.debug(`Analyzing Trace - Sent Webhook Requests: ${traceUUID}`)
 }
 
