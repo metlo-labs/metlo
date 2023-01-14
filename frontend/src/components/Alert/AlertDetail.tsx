@@ -274,7 +274,7 @@ export const AlertDetail: React.FC<AlertDetailProps> = ({
       >
         <VStack
           w={{ base: "full", sm: showRightPanel(alert.type) ? "45%" : "full" }}
-          h="full"
+          h={{ base: "unset", sm: "full" }}
           overflowY={{ base: "unset", sm: "auto" }}
           spacing="4"
           pr="2"
