@@ -39,7 +39,10 @@ export const updateAlert = async (
 ): Promise<Alert> => {
   const resp = await axios.put<Alert>(
     `${getAPIURL()}/alert/${alertId}`,
-    updateAlertParams,
+    {
+      ...updateAlertParams,
+      resolutionMessage: updateAlertParams?.resolutionMessage ?? "",
+    },
     { headers },
   )
   return resp.data

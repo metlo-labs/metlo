@@ -1,16 +1,22 @@
 import mlog from "logger"
 import { Brackets, QueryRunner } from "typeorm"
 import { v4 as uuidv4 } from "uuid"
-import { RestMethod, RiskScore } from "@common/enums"
+import { AlertType, RestMethod, RiskScore } from "@common/enums"
 import { getPathTokens } from "@common/utils"
 import { AppDataSource } from "data-source"
 import Error400BadRequest from "errors/error-400-bad-request"
-import { ApiEndpoint, ApiTrace } from "models"
-import { getEntityManager, getQB, getRepository } from "services/database/utils"
+import { Alert, ApiEndpoint, ApiTrace } from "models"
+import {
+  getEntityManager,
+  getQB,
+  getRepository,
+  insertValueBuilder,
+} from "services/database/utils"
 import { MetloContext } from "types"
 import { endpointAddNumberParams, getPathRegex, getValidPath } from "utils"
 import Error404NotFound from "errors/error-404-not-found"
 import { GetEndpointsService } from "."
+import { createNewEndpointAlert } from "services/alert/new-endpoint"
 
 const TRACE_LIMIT = 10_000
 const THRESHOLD = 0.1
@@ -146,6 +152,7 @@ export const updateEndpointsFromMap = async (
   queryRunner: QueryRunner,
   userSet: boolean,
 ) => {
+  const currTime = new Date()
   for (const item of Object.values(endpointsMap)) {
     try {
       item.endpoint.riskScore = RiskScore.NONE
@@ -154,6 +161,7 @@ export const updateEndpointsFromMap = async (
       }
       await queryRunner.startTransaction()
       await getEntityManager(ctx, queryRunner).save(item.endpoint)
+      const newEndpointAlert = createNewEndpointAlert(item.endpoint, currTime)
       const similarEndpointUuids = Object.values(item.similarEndpoints).map(
         e => e.uuid,
       )
@@ -162,6 +170,12 @@ export const updateEndpointsFromMap = async (
           await GetEndpointsService.deleteEndpoint(ctx, uuid)
         }
       }
+      await insertValueBuilder(
+        ctx,
+        queryRunner,
+        Alert,
+        newEndpointAlert,
+      ).execute()
       await queryRunner.commitTransaction()
     } catch (err) {
       mlog

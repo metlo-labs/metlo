@@ -6,9 +6,9 @@ import {
   updateUnauthenticatedEndpoints,
   getUnauthenticatedEndpointsSensitiveData,
 } from "./queries"
-import { AlertService } from "services/alert"
 import { insertValuesBuilder } from "services/database/utils"
 import { MetloContext } from "types"
+import { createUnauthEndpointSenDataAlerts } from "services/alert/sensitive-data"
 
 const checkForUnauthenticatedEndpoints = async (
   ctx: MetloContext,
@@ -26,9 +26,7 @@ const checkForUnauthenticatedEndpoints = async (
         Status.RESOLVED,
       ],
     )
-    const alerts = await AlertService.createUnauthEndpointSenDataAlerts(
-      endpointsToAlert,
-    )
+    const alerts = await createUnauthEndpointSenDataAlerts(endpointsToAlert)
     await insertValuesBuilder(ctx, queryRunner, Alert, alerts).execute()
   } catch (err) {
     mlog

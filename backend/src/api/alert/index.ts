@@ -1,5 +1,4 @@
 import { Response, Router } from "express"
-import { AlertService } from "services/alert"
 import {
   GetAlertParamsSchema,
   UpdateAlertBatchParamsSchema,
@@ -7,6 +6,7 @@ import {
 } from "@common/api/alert"
 import ApiResponseHandler from "api-response-handler"
 import { MetloRequest } from "types"
+import { getAlerts, updateAlert, updateAlertBatch } from "services/alert"
 
 export const getAlertsHandler = async (
   req: MetloRequest,
@@ -17,7 +17,7 @@ export const getAlertsHandler = async (
     return await ApiResponseHandler.zerr(res, parsedQuery.error)
   }
   try {
-    const alerts = await AlertService.getAlerts(req.ctx, parsedQuery.data)
+    const alerts = await getAlerts(req.ctx, parsedQuery.data)
     await ApiResponseHandler.success(res, alerts)
   } catch (err) {
     await ApiResponseHandler.error(res, err)
@@ -34,11 +34,7 @@ export const updateAlertHandler = async (
     return await ApiResponseHandler.zerr(res, parsedBody.error)
   }
   try {
-    const updatedAlert = await AlertService.updateAlert(
-      req.ctx,
-      alertId,
-      parsedBody.data,
-    )
+    const updatedAlert = await updateAlert(req.ctx, alertId, parsedBody.data)
     await ApiResponseHandler.success(res, updatedAlert)
   } catch (err) {
     await ApiResponseHandler.error(res, err)
@@ -54,7 +50,7 @@ export const updateAlertBatchHandler = async (
     return await ApiResponseHandler.zerr(res, parsedBody.error)
   }
   try {
-    await AlertService.updateAlertBatch(req.ctx, parsedBody.data)
+    await updateAlertBatch(req.ctx, parsedBody.data)
     await ApiResponseHandler.success(res, null)
   } catch (err) {
     await ApiResponseHandler.error(res, err)

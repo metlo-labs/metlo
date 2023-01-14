@@ -38,7 +38,6 @@ import {
   getHostsV3,
   getServersV3,
 } from "./utils"
-import { AlertService } from "services/alert"
 import Error404NotFound from "errors/error-404-not-found"
 import Error500InternalServer from "errors/error-500-internal-server"
 import {
@@ -50,6 +49,7 @@ import {
 import { MetloContext } from "types"
 import { getEntityManager, getQB, getRepository } from "services/database/utils"
 import Error400BadRequest from "errors/error-400-bad-request"
+import { createSpecDiffAlerts } from "services/alert/openapi-spec"
 
 interface EndpointsMap {
   endpoint: ApiEndpoint
@@ -521,7 +521,7 @@ export class SpecService {
       )
 
       const errorItems = { ...respErrorItems }
-      return await AlertService.createSpecDiffAlerts(
+      return await createSpecDiffAlerts(
         ctx,
         errorItems,
         endpoint.uuid,
