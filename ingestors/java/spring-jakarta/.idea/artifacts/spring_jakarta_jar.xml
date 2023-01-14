@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="spring-jakarta:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/spring_jakarta_jar</output-path>
+    <root id="archive" name="spring-jakarta.jar">
+      <element id="module-output" name="spring-jakarta" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/google/code/gson/gson/2.9.0/gson-2.9.0.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
