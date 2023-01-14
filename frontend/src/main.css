@@ -72,11 +72,3 @@
 .chakra-react-select > div {
   border-radius: var(--chakra-radii-md);
 }
-
-.chakra-switch > span[data-checked] {
-  --switch-bg: var(--chakra-colors-metloBlue) !important;
-}
-
-.chakra-tabs__tablist > button[aria-selected="true"] {
-  --tabs-color: var(--chakra-colors-metloBlue);
-}

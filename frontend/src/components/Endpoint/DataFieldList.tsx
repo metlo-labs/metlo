@@ -112,7 +112,6 @@ const columns = (dataClassInfo: DataClass[]): TableColumn<DataField>[] => {
           {row.statusCode && row.statusCode > 0 ? (
             <Badge
               fontSize="sm"
-              fontWeight="medium"
               px="2"
               py="1"
               colorScheme={statusCodeToColor(row.statusCode) || "gray"}
