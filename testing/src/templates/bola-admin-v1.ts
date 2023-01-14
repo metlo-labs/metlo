@@ -3,7 +3,7 @@ import { TestBuilder, TestStepBuilder } from "../generate/builder"
 import { AssertionType } from "../types/enums"
 
 export default {
-  name: "BOLA-ADMIN",
+  name: "BOLA_ADMIN",
   version: 1,
   builder: (endpoint: GenTestEndpoint) => {
     if (!endpoint.authConfig) {
@@ -12,7 +12,7 @@ export default {
 
     return new TestBuilder()
       .setMeta({
-        name: `${endpoint.path} BOLA-Admin`,
+        name: `${endpoint.path} BOLA_ADMIN`,
         severity: "HIGH",
         tags: ["BOLA", "ADMIN"],
       })

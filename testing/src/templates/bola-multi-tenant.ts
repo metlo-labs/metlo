@@ -3,7 +3,7 @@ import { TestBuilder, TestStepBuilder } from "../generate/builder"
 import { AssertionType } from "../types/enums"
 
 export default {
-  name: "BOLA-MULTI-TENANT",
+  name: "BOLA_MULTI_TENANT",
   version: 1,
   builder: (endpoint: GenTestEndpoint) => {
     if (!endpoint.authConfig) {
@@ -12,7 +12,7 @@ export default {
 
     return new TestBuilder()
       .setMeta({
-        name: `${endpoint.path} BOLA-MULTI-TENANT`,
+        name: `${endpoint.path} BOLA_MULTI_TENANT`,
         severity: "HIGH",
         tags: ["BOLA", "MULTI-TENANT"],
       })
