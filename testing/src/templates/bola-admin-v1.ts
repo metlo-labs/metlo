@@ -24,7 +24,7 @@ export default {
       )
       .addTestStep(
         TestStepBuilder.sampleRequestWithoutAuth(endpoint, "ADMIN_USER")
-          .addAuth(endpoint, "NON-ADMIN_USER")
+          .addAuth(endpoint, "NON_ADMIN_USER")
           .assert({
             type: AssertionType.enum.EQ,
             key: "resp.status",
