@@ -19,9 +19,15 @@ import { clearAllDataFields, clearSensitiveData } from "api/dataFields"
 import { makeToast } from "utils"
 import { formatMetloAPIErr, MetloAPIErr } from "api/utils"
 
+enum Action {
+  CLEAR_SENSITIVE_DATA,
+  CLEAR_DATAFIELDS,
+}
+
 const BulkActions: React.FC = React.memo(() => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const toast = useToast()
+  const [action, setAction] = useState<Action>(Action.CLEAR_DATAFIELDS)
   const [clearSensitiveDataLoading, setSensitiveDataLoading] = useState(false)
   const [clearAllDataFieldsLoading, setClearAllDataFieldsLoading] =
     useState(false)
@@ -79,6 +85,38 @@ const BulkActions: React.FC = React.memo(() => {
       })
   }
 
+  const startAction = (e: Action) => {
+    setAction(e)
+    onOpen()
+  }
+
+  const getActionTitle = (e: Action) => {
+    if (e == Action.CLEAR_SENSITIVE_DATA) {
+      return "Clear All Sensitive Data"
+    }
+    if (e == Action.CLEAR_DATAFIELDS) {
+      return "Clear All Data Fields"
+    }
+  }
+
+  const getActionDescription = (e: Action) => {
+    if (e == Action.CLEAR_SENSITIVE_DATA) {
+      return "Are you sure you want to clear all sensitive data? This is not reversible but Metlo will automatically identify any new sensitive data as new traces come in."
+    }
+    if (e == Action.CLEAR_DATAFIELDS) {
+      return "Are you sure you want to clear all data fields? This is not reversible but Metlo will automatically identify any new data fields as new traces come in."
+    }
+  }
+
+  const performAction = (e: Action) => {
+    if (e == Action.CLEAR_SENSITIVE_DATA) {
+      clearSensitiveDataBtn()
+    }
+    if (e == Action.CLEAR_DATAFIELDS) {
+      clearDataFieldsBtn()
+    }
+  }
+
   return (
     <VStack
       bg="white"
@@ -97,15 +135,19 @@ const BulkActions: React.FC = React.memo(() => {
         <VStack w="full" alignItems="flex-start" pt="5">
           <SectionHeader text="Datafields" />
           <HStack pt="1">
-            <Button onClick={onOpen} variant="delete">
-              Clear All Sensitive Data
+            <Button
+              isLoading={clearSensitiveDataLoading}
+              onClick={() => startAction(Action.CLEAR_SENSITIVE_DATA)}
+              variant="delete"
+            >
+              {getActionTitle(Action.CLEAR_SENSITIVE_DATA)}
             </Button>
             <Button
               isLoading={clearAllDataFieldsLoading}
-              onClick={() => clearDataFieldsBtn()}
+              onClick={() => startAction(Action.CLEAR_DATAFIELDS)}
               variant="delete"
             >
-              Clear All Data Fields
+              {getActionTitle(Action.CLEAR_DATAFIELDS)}
             </Button>
           </HStack>
         </VStack>
@@ -118,13 +160,9 @@ const BulkActions: React.FC = React.memo(() => {
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Clear All Sensitive Data
+              {getActionTitle(action)}
             </AlertDialogHeader>
-            <AlertDialogBody>
-              Are you sure you want to clear all sensitive data? This is not
-              reversible but Metlo will automatically identify any new sensitive
-              data as new traces come in.
-            </AlertDialogBody>
+            <AlertDialogBody>{getActionDescription(action)}</AlertDialogBody>
             <AlertDialogFooter>
               <Button ref={cancelRef} onClick={onClose}>
                 Cancel
@@ -132,7 +170,7 @@ const BulkActions: React.FC = React.memo(() => {
               <Button
                 isLoading={clearSensitiveDataLoading}
                 variant="delete"
-                onClick={clearSensitiveDataBtn}
+                onClick={() => performAction(action)}
                 ml={3}
               >
                 Delete
