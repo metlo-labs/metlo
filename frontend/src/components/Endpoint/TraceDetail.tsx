@@ -12,16 +12,19 @@ import {
   useColorMode,
   VStack,
 } from "@chakra-ui/react"
-import { ApiTrace } from "@common/types"
+import { ApiTrace, DataField } from "@common/types"
 import { getDateTimeString } from "utils"
 import { METHOD_TO_COLOR } from "~/constants"
 import { statusCodeToColor } from "components/utils/StatusCode"
-const ReactJson = dynamic(() => import("react-json-view"), { ssr: false })
+const ReactJson = dynamic(() => import("@akshays/react-json-view"), {
+  ssr: false,
+})
 
 interface TraceDetailProps {
   trace: ApiTrace
   alertModalView?: boolean
   attackView?: boolean
+  dataFields?: DataField[]
 }
 
 export const JSONContentViewer = (
@@ -60,6 +63,7 @@ export const JSONContentViewer = (
             borderRadius: "0.375rem",
             backgroundColor: bgColor,
           }}
+          regexToSensitiveData={[[/root\.ccn/, ["Credit Card"]]]}
         />
       </Box>
     )
@@ -72,36 +76,62 @@ export const JSONContentViewer = (
   }
 }
 
-export const TraceView: React.FC<{ trace: ApiTrace; colorMode: ColorMode }> = ({
-  trace,
-  colorMode,
-}) => (
-  <VStack spacing="4" w="full" alignItems="flex-start">
-    <VStack h="full" w="full" alignItems="flex-start">
-      <Text fontWeight="semibold">Request Headers</Text>
-      {JSONContentViewer(JSON.stringify(trace.requestHeaders || []), colorMode)}
+export const TraceView: React.FC<{
+  trace: ApiTrace
+  dataFields?: DataField[]
+  colorMode: ColorMode
+}> = ({ trace, dataFields, colorMode }) => {
+  if (dataFields) {
+    let reqContentType = "*/*"
+    let respContentType = "*/*"
+    trace.requestHeaders.forEach(e => {
+      if (e.name.toLowerCase() == "content-type") {
+        reqContentType = e.value.split(";")[0]
+      }
+    })
+    trace.responseHeaders.forEach(e => {
+      if (e.name.toLowerCase() == "content-type") {
+        respContentType = e.value.split(";")[0]
+      }
+    })
+    const reqBodyDataFields = dataFields.filter(
+      e => e.contentType == reqContentType,
+    )
+    const respBodyDataFields = dataFields.filter(
+      e => e.contentType == respContentType,
+    )
+  }
+  return (
+    <VStack spacing="4" w="full" alignItems="flex-start">
+      <VStack h="full" w="full" alignItems="flex-start">
+        <Text fontWeight="semibold">Request Headers</Text>
+        {JSONContentViewer(
+          JSON.stringify(trace.requestHeaders || []),
+          colorMode,
+        )}
+      </VStack>
+      <VStack h="full" w="full" alignItems="flex-start">
+        <Text fontWeight="semibold">Request Parameters</Text>
+        {JSONContentViewer(JSON.stringify(trace.requestParameters), colorMode)}
+      </VStack>
+      <VStack h="full" w="full" alignItems="flex-start">
+        <Text fontWeight="semibold">Request Body</Text>
+        {JSONContentViewer(trace.requestBody, colorMode)}
+      </VStack>
+      <VStack h="full" w="full" alignItems="flex-start">
+        <Text fontWeight="semibold">Response Headers</Text>
+        {JSONContentViewer(JSON.stringify(trace.responseHeaders), colorMode)}
+      </VStack>
+      <VStack w="full" alignItems="flex-start">
+        <Text fontWeight="semibold">Response Body</Text>
+        {JSONContentViewer(trace.responseBody, colorMode)}
+      </VStack>
     </VStack>
-    <VStack h="full" w="full" alignItems="flex-start">
-      <Text fontWeight="semibold">Request Parameters</Text>
-      {JSONContentViewer(JSON.stringify(trace.requestParameters), colorMode)}
-    </VStack>
-    <VStack h="full" w="full" alignItems="flex-start">
-      <Text fontWeight="semibold">Request Body</Text>
-      {JSONContentViewer(trace.requestBody, colorMode)}
-    </VStack>
-    <VStack h="full" w="full" alignItems="flex-start">
-      <Text fontWeight="semibold">Response Headers</Text>
-      {JSONContentViewer(JSON.stringify(trace.responseHeaders), colorMode)}
-    </VStack>
-    <VStack w="full" alignItems="flex-start">
-      <Text fontWeight="semibold">Response Body</Text>
-      {JSONContentViewer(trace.responseBody, colorMode)}
-    </VStack>
-  </VStack>
-)
+  )
+}
 
 const TraceDetail: React.FC<TraceDetailProps> = React.memo(
-  ({ trace, alertModalView, attackView }) => {
+  ({ trace, alertModalView, attackView, dataFields }) => {
     const colorMode = useColorMode()
     return (
       <Box

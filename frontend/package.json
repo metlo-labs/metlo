@@ -35,7 +35,7 @@
     "react-chartjs-2": "^4.3.1",
     "react-data-table-component": "^7.5.2",
     "react-dom": "^18.2.0",
-    "react-json-view": "^1.21.3",
+    "@akshays/react-json-view": "^1.0.1",
     "react-select": "^5.4.0",
     "react-split-pane": "^0.1.92",
     "react-syntax-highlighter": "^15.5.0",
