@@ -228,7 +228,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
             label={getDateTimeString(row.firstDetected) || "N/A"}
             wordBreak="keep-all"
           >
-            <Text pointerEvents="none" fontWeight="normal">
+            <Text data-tag="allowRowEvents" fontWeight="normal">
               {getDateTimeRelative(row.firstDetected) || "N/A"}
             </Text>
           </Tooltip>
@@ -241,13 +241,13 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         name: "Last Active",
         sortable: false,
         selector: (row: ApiEndpoint) =>
-          getDateTimeRelative(row.lastActive) || "N/A",
+          getDateTimeString(row.lastActive) || "N/A",
         cell: (row: ApiEndpoint) => (
           <Tooltip
             placement="top"
             label={getDateTimeString(row.lastActive) || "N/A"}
           >
-            <Text pointerEvents="none" fontWeight="normal">
+            <Text data-tag="allowRowEvents" fontWeight="normal">
               {getDateTimeRelative(row.lastActive) || "N/A"}
             </Text>
           </Tooltip>

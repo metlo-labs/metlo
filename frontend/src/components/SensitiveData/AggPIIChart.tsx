@@ -69,7 +69,9 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
         h={{ base: "unset", md: "60" }}
       >
         <Stack
-          w={{ base: "full", md: "350px" }}
+          minW={{ base: "full", md: "250px" }}
+          w={{ base: "full", md: "250px" }}
+          maxW={{ base: "full", md: "250px" }}
           direction={{ base: "row", md: "column" }}
           divider={<StackDivider />}
           spacing="0"
@@ -77,10 +79,11 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
         >
           <VStack
             bg="cellBG"
-            py="4"
+            p="4"
             spacing="1"
             h="50%"
             w={{ base: "50%", md: "unset" }}
+            textAlign="center"
             justifyContent="center"
           >
             <Text fontSize="xl" fontWeight="semibold" rounded="md">
@@ -92,10 +95,11 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
           </VStack>
           <VStack
             bg="cellBG"
-            py="4"
+            p="4"
             spacing="1"
             h="50%"
             w={{ base: "50%", md: "unset" }}
+            textAlign="center"
             justifyContent="center"
           >
             <Text fontSize="xl" fontWeight="semibold" rounded="md">
@@ -107,25 +111,29 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
           </VStack>
         </Stack>
         <HStack
-          w="full"
-          spacing="12"
+          w={{ base: "full", md: "calc(100% - 250px)" }}
+          spacing="6"
           flexGrow="1"
           alignItems="center"
-          p="4"
-          h="full"
+          h="60"
+          display={labels.length > 0 ? "flex" : "none"}
         >
-          <Box w={{ base: "full", md: "220px" }}>
+          <Box p="4" w={{ base: "full", sm: "220px" }} h="full">
             <Doughnut options={options} data={chartData} />
           </Box>
-          <VStack
-            display={{ base: "none", md: "inherit" }}
-            flexGrow="1"
-            alignItems="flex-start"
-            spacing="4"
-            h="full"
-            py="8"
+          <Box
+            h="100%"
+            w="full"
+            display={{ base: "none", sm: "grid", md: "none", lg: "grid" }}
+            overflow={{ base: "hidden", sm: "auto" }}
           >
-            <Grid templateColumns="repeat(2, 1fr)" gap="2">
+            <Grid
+              alignSelf="center"
+              w="full"
+              templateColumns="repeat(2, 1fr)"
+              gap="2"
+              p="4"
+            >
               {labels.map((e, i) => (
                 <GridItem key={i}>
                   <HStack alignItems="baseline">
@@ -135,7 +143,7 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
                 </GridItem>
               ))}
             </Grid>
-          </VStack>
+          </Box>
         </HStack>
       </Stack>
     )
