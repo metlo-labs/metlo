@@ -93,8 +93,7 @@ const runTestPath = async (
     const estimate = estimateTest(test, env)
     let res
     if (estimate > UPPER_ESTIMATE_LIMIT) {
-      // @ts-ignore Destructuring is improperly done
-      const { _continue }: object = await prompt([
+      const { _continue }: { _continue: boolean } = await prompt([
         {
           type: "confirm",
           name: "_continue",
