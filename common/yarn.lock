@@ -49,10 +49,10 @@
     "@types/yargs" "^17.0.8"
     chalk "^4.0.0"
 
-"@metlo/testing@^0.2.13":
-  version "0.2.13"
-  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.2.13.tgz#9e67eb3dbe5a1618014ea10f55fc7a932711d329"
-  integrity sha512-5rL1dezZoWhg+Lld4b2jXzXLXxHR1JQmzOwQeGnyp2szAFBiJD7PiQtzaLuIUvHgpyQTKMU8bcocs+OXrMXPfA==
+"@metlo/testing@^0.2.14":
+  version "0.2.14"
+  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.2.14.tgz#bd96560ea30ca5e669560c88ba3d5149ee653831"
+  integrity sha512-GMEWxHD5C027pQs8J9O0n94wO/GXtDwg1RsUfrbCOvISKWbtOS6s4ipbKvngs9bogOySdO0x1ZfJAOFl2I74vA==
   dependencies:
     axios "^1.2.1"
     chalk "^4.1.2"
