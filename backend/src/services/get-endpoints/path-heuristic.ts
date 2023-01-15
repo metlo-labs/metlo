@@ -135,7 +135,13 @@ export const updatePaths = async (
       getPathTokens(endpoint.path).length,
       isJobRunner ?? false,
     )
-    await updateEndpointsFromMap(ctx, endpointsMap, queryRunner, userSet)
+    await updateEndpointsFromMap(
+      ctx,
+      endpointsMap,
+      queryRunner,
+      userSet,
+      isJobRunner ?? false,
+    )
   } catch (err) {
     if (queryRunner.isTransactionActive) {
       await queryRunner.rollbackTransaction()
@@ -151,6 +157,7 @@ export const updateEndpointsFromMap = async (
   endpointsMap: Record<string, EndpointsMap>,
   queryRunner: QueryRunner,
   userSet: boolean,
+  isJobRunner?: boolean,
 ) => {
   const currTime = new Date()
   for (const item of Object.values(endpointsMap)) {
@@ -170,12 +177,14 @@ export const updateEndpointsFromMap = async (
           await GetEndpointsService.deleteEndpoint(ctx, uuid)
         }
       }
-      await insertValueBuilder(
-        ctx,
-        queryRunner,
-        Alert,
-        newEndpointAlert,
-      ).execute()
+      if (isJobRunner) {
+        await insertValueBuilder(
+          ctx,
+          queryRunner,
+          Alert,
+          newEndpointAlert,
+        ).execute()
+      }
       await queryRunner.commitTransaction()
     } catch (err) {
       mlog
