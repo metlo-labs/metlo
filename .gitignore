@@ -28,6 +28,7 @@ ingestors/java/spring-jakarta/.gradle/
 ingestors/java/spring-jakarta/.idea/
 ingestors/java/spring-jakarta/gradle.properties
 ingestors/java/spring-jakarta/target/
+ingestors/java/spring-jakarta/out/
 
 .meta/*
 ingestors/govxlan/govxlan
