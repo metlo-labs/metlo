@@ -1,9 +1,9 @@
 import mlog from "logger"
 import axios from "axios"
 import { ApiEndpoint, ApiTrace, Alert } from "models"
-import { AlertService } from "services/alert"
 import { MetloContext } from "types"
 import { getRepoQB, getRepository } from "services/database/utils"
+import { createMissingHSTSAlert } from "services/alert/hsts"
 
 const monitorEndpointForHSTS = async (ctx: MetloContext): Promise<void> => {
   try {
@@ -50,7 +50,7 @@ const monitorEndpointForHSTS = async (ctx: MetloContext): Promise<void> => {
         }
       }
     }
-    let alerts = await AlertService.createMissingHSTSAlert(ctx, alertableData)
+    let alerts = await createMissingHSTSAlert(ctx, alertableData)
     await alertsRepository.save(alerts)
   } catch (err) {
     mlog.error(
