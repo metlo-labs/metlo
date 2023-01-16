@@ -88,7 +88,7 @@ const SpecList: React.FC<SpecListProps> = React.memo(({ apiSpecs }) => {
           label={getDateTimeString(row.specUpdatedAt ?? row.updatedAt) || "N/A"}
           wordBreak="keep-all"
         >
-          <Text pointerEvents="none" fontWeight="normal">
+          <Text data-tag="allowRowEvents" fontWeight="normal">
             {getDateTimeRelative(row.specUpdatedAt ?? row.updatedAt) || "N/A"}
           </Text>
         </Tooltip>

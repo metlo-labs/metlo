@@ -47,13 +47,18 @@ const TableLoader: React.FC<TableLoaderProps> = ({
     {
       name: "Host",
       id: "host",
-      grow: 2,
+      grow: 7,
     },
     {
       name: "Endpoints",
       id: "endpoints",
-      grow: 1,
+      grow: 4,
     },
+    {
+      name: "",
+      id: "cta",
+      right: true,
+    }
   ].map(e => ({
     ...e,
     sortable: false,
@@ -143,6 +148,7 @@ const List: React.FC<HostTableProps> = React.memo(
             View
           </Button>
         ),
+        id: "cta",
         right: true,
       },
     ]

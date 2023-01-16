@@ -71,6 +71,7 @@ const TraceList: React.FC<TraceListProps> = React.memo(
         cell: (row: ApiTrace) => (
           <Badge
             fontSize="sm"
+            fontWeight="medium"
             px="2"
             py="1"
             colorScheme={statusCodeToColor(row.responseStatus) || "gray"}
