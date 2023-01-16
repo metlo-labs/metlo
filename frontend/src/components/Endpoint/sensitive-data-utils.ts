@@ -135,6 +135,7 @@ export const populateSensitiveData = (
   dataFields: DataField[],
 ) => {
   const sensitiveDataMap = {
+    [DataSection.REQUEST_PATH]: [],
     [DataSection.REQUEST_QUERY]: [],
     [DataSection.REQUEST_HEADER]: [],
     [DataSection.REQUEST_BODY]: [],
@@ -143,6 +144,7 @@ export const populateSensitiveData = (
   }
   const numSensitiveData: NumSensitiveData[] = []
   const numSensitiveDataMap = {
+    [DataSection.REQUEST_PATH]: new Map<string, number>(),
     [DataSection.REQUEST_QUERY]: new Map<string, number>(),
     [DataSection.REQUEST_HEADER]: new Map<string, number>(),
     [DataSection.REQUEST_BODY]: new Map<string, number>(),
