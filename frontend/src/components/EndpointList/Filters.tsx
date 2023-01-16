@@ -249,7 +249,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
             }}
             zIndex="1005"
           >
-            <GridItem>
+            <GridItem colSpan={2}>
               <Box zIndex="1001">
                 <FilterHeader title="Sensitive Data Class" />
                 <Select
