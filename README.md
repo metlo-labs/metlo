@@ -55,7 +55,7 @@ If you want to deploy our Open Source product we have instructions for [AWS](htt
 You can also join our [Discord community](https://discord.gg/4xhumff9BX) if you need help or just want to chat!
 
 ## Features
-![walkthrough](https://storage.googleapis.com/metlo-security-public-images/walkthrough.gif)
+![walkthrough](https://metlo-api-security-public.s3.us-west-2.amazonaws.com/walkthrough.gif)
 
 * **Endpoint Discovery** - Metlo scans network traffic and creates an inventory of every single endpoint in your API.
 * **Sensitive Data Scannning** - Each endpoint is scanned for PII data and given a risk score.
