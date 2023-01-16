@@ -76,13 +76,13 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
           templateColumns={{
             base: "1fr",
             sm: "repeat(2, 1fr)",
-            md: "repeat(3, 1fr)",
+            lg: "repeat(3, 1fr)",
             xl: "repeat(4, 1fr)",
             "2xl": "repeat(5, 1fr)",
           }}
           zIndex="overlay"
         >
-          <GridItem>
+          <GridItem colSpan={{ base: 1, sm: 2, xl: 1 }}>
             <Box zIndex="1004">
               <FilterHeader title="Host" />
               <Select
