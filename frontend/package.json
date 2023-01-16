@@ -8,6 +8,7 @@
     "format": "prettier --write './src/**/*.{ts,tsx}'"
   },
   "dependencies": {
+    "@akshays/react-json-view": "^1.0.1",
     "@atlaskit/pagination": "^14.1.10",
     "@chakra-ui/icons": "^2.0.6",
     "@chakra-ui/react": "^2.2.1",
@@ -35,7 +36,6 @@
     "react-chartjs-2": "^4.3.1",
     "react-data-table-component": "^7.5.2",
     "react-dom": "^18.2.0",
-    "react-json-view": "^1.21.3",
     "react-select": "^5.4.0",
     "react-split-pane": "^0.1.92",
     "react-syntax-highlighter": "^15.5.0",
@@ -43,6 +43,7 @@
     "styled-components": "^5.3.5",
     "superjson": "^1.9.1",
     "uuid": "^8.3.2",
+    "whatwg-mimetype": "^3.0.0",
     "yaml": "^2.1.1"
   },
   "devDependencies": {
