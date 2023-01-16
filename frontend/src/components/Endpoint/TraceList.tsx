@@ -22,7 +22,7 @@ import EmptyView from "components/utils/EmptyView"
 
 interface TraceListProps {
   traces: ApiTrace[]
-  dataFields: DataField[]
+  dataFields?: DataField[]
   uuid?: string
 }
 
