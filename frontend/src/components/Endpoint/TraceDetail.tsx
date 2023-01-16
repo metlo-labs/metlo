@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useMemo } from "react"
 import dynamic from "next/dynamic"
 import {
   Badge,
@@ -157,14 +157,24 @@ const getNumSensitiveData = (
   }
 }
 
-const populateSensitiveData = (
-  trace: ApiTrace,
-  dataFields: DataField[],
-  sensitiveDataMap: SensitiveDataMap,
-  numSensitiveData: NumSensitiveData[],
-  numSensitiveDataMap: NumSensitiveDataMap,
-) => {
+const populateSensitiveData = (trace: ApiTrace, dataFields: DataField[]) => {
+  const sensitiveDataMap = {
+    [DataSection.REQUEST_QUERY]: [],
+    [DataSection.REQUEST_HEADER]: [],
+    [DataSection.REQUEST_BODY]: [],
+    [DataSection.RESPONSE_HEADER]: [],
+    [DataSection.RESPONSE_BODY]: [],
+  }
+  const numSensitiveData: NumSensitiveData[] = []
+  const numSensitiveDataMap = {
+    [DataSection.REQUEST_QUERY]: new Map<string, number>(),
+    [DataSection.REQUEST_HEADER]: new Map<string, number>(),
+    [DataSection.REQUEST_BODY]: new Map<string, number>(),
+    [DataSection.RESPONSE_HEADER]: new Map<string, number>(),
+    [DataSection.RESPONSE_BODY]: new Map<string, number>(),
+  }
   const { reqContentType, respContentType } = getContentTypes(trace)
+  console.log(" in here")
   for (const dataField of dataFields) {
     const isRespBody = dataField.dataSection === DataSection.RESPONSE_BODY
     const isRespHeader = dataField.dataSection === DataSection.RESPONSE_HEADER
@@ -230,6 +240,7 @@ const populateSensitiveData = (
     }
   }
   getNumSensitiveData(numSensitiveData, numSensitiveDataMap)
+  return { sensitiveDataMap, numSensitiveDataMap }
 }
 
 export const JSONContentViewer = (
@@ -296,39 +307,33 @@ export const TraceView: React.FC<{
   dataFields?: DataField[]
   colorMode: ColorMode
 }> = ({ trace, dataFields, colorMode }) => {
-  const sensitiveDataMap = {
-    [DataSection.REQUEST_QUERY]: [],
-    [DataSection.REQUEST_HEADER]: [],
-    [DataSection.REQUEST_BODY]: [],
-    [DataSection.RESPONSE_HEADER]: [],
-    [DataSection.RESPONSE_BODY]: [],
-  }
-  const numSensitiveData: {
-    pathTokens: string[]
-    arrayFields: Record<string, number>
-    dataSection: DataSection
-    index: number | null
-  }[] = []
-  const numSensitiveDataMap = {
-    [DataSection.REQUEST_QUERY]: new Map<string, number>(),
-    [DataSection.REQUEST_HEADER]: new Map<string, number>(),
-    [DataSection.REQUEST_BODY]: new Map<string, number>(),
-    [DataSection.RESPONSE_HEADER]: new Map<string, number>(),
-    [DataSection.RESPONSE_BODY]: new Map<string, number>(),
-  }
-  if (dataFields) {
-    populateSensitiveData(
-      trace,
-      dataFields,
-      sensitiveDataMap,
-      numSensitiveData,
-      numSensitiveDataMap,
-    )
-  }
+  const { sensitiveDataMap, numSensitiveDataMap } = useMemo(
+    () => populateSensitiveData(trace, dataFields),
+    [trace.uuid],
+  )
+  const root = "^root$"
+  const reqHeaderTotalSenData =
+    numSensitiveDataMap[DataSection.REQUEST_HEADER].get(root)
+  const reqQueryTotalSenData =
+    numSensitiveDataMap[DataSection.REQUEST_QUERY].get(root)
+  const reqBodyTotalSenData =
+    numSensitiveDataMap[DataSection.REQUEST_BODY].get(root)
+  const resHeaderTotalSenData =
+    numSensitiveDataMap[DataSection.RESPONSE_HEADER].get(root)
+  const resBodyTotalSenData =
+    numSensitiveDataMap[DataSection.RESPONSE_BODY].get(root)
   return (
     <VStack spacing="4" w="full" alignItems="flex-start">
       <VStack h="full" w="full" alignItems="flex-start">
-        <Text fontWeight="semibold">Request Headers</Text>
+        <HStack>
+          <Text fontWeight="semibold">Request Headers </Text>
+          {reqHeaderTotalSenData && (
+            <Text color="red.500">
+              ({reqHeaderTotalSenData} PII Field
+              {reqHeaderTotalSenData > 1 ? "s" : ""})
+            </Text>
+          )}
+        </HStack>
         {JSONContentViewer(
           JSON.stringify(trace.requestHeaders || []),
           colorMode,
@@ -338,7 +343,15 @@ export const TraceView: React.FC<{
         )}
       </VStack>
       <VStack h="full" w="full" alignItems="flex-start">
-        <Text fontWeight="semibold">Request Parameters</Text>
+        <HStack>
+          <Text fontWeight="semibold">Request Parameters </Text>
+          {reqQueryTotalSenData && (
+            <Text color="red.500">
+              ({reqQueryTotalSenData} PII Field
+              {reqQueryTotalSenData > 1 ? "s" : ""})
+            </Text>
+          )}
+        </HStack>
         {JSONContentViewer(
           JSON.stringify(trace.requestParameters),
           colorMode,
@@ -348,7 +361,15 @@ export const TraceView: React.FC<{
         )}
       </VStack>
       <VStack h="full" w="full" alignItems="flex-start">
-        <Text fontWeight="semibold">Request Body</Text>
+        <HStack>
+          <Text fontWeight="semibold">Request Body </Text>
+          {reqBodyTotalSenData && (
+            <Text color="red.500">
+              ({reqBodyTotalSenData} PII Field
+              {reqBodyTotalSenData > 1 ? "s" : ""})
+            </Text>
+          )}
+        </HStack>
         {JSONContentViewer(
           trace.requestBody,
           colorMode,
@@ -358,7 +379,15 @@ export const TraceView: React.FC<{
         )}
       </VStack>
       <VStack h="full" w="full" alignItems="flex-start">
-        <Text fontWeight="semibold">Response Headers</Text>
+        <HStack>
+          <Text fontWeight="semibold">Response Headers </Text>
+          {resHeaderTotalSenData && (
+            <Text color="red.500">
+              ({resHeaderTotalSenData} PII Field
+              {resHeaderTotalSenData > 1 ? "s" : ""})
+            </Text>
+          )}
+        </HStack>
         {JSONContentViewer(
           JSON.stringify(trace.responseHeaders),
           colorMode,
@@ -368,7 +397,15 @@ export const TraceView: React.FC<{
         )}
       </VStack>
       <VStack w="full" alignItems="flex-start">
-        <Text fontWeight="semibold">Response Body</Text>
+        <HStack>
+          <Text fontWeight="semibold">Response Body </Text>
+          {resBodyTotalSenData && (
+            <Text color="red.500">
+              ({resBodyTotalSenData} PII Field
+              {resBodyTotalSenData > 1 ? "s" : ""})
+            </Text>
+          )}
+        </HStack>
         {JSONContentViewer(
           trace.responseBody,
           colorMode,
