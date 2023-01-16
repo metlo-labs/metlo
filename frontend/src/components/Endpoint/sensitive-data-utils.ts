@@ -130,7 +130,10 @@ const getNumSensitiveData = (
   }
 }
 
-export const populateSensitiveData = (trace: ApiTrace, dataFields: DataField[]) => {
+export const populateSensitiveData = (
+  trace: ApiTrace,
+  dataFields: DataField[],
+) => {
   const sensitiveDataMap = {
     [DataSection.REQUEST_QUERY]: [],
     [DataSection.REQUEST_HEADER]: [],
@@ -145,6 +148,10 @@ export const populateSensitiveData = (trace: ApiTrace, dataFields: DataField[]) 
     [DataSection.REQUEST_BODY]: new Map<string, number>(),
     [DataSection.RESPONSE_HEADER]: new Map<string, number>(),
     [DataSection.RESPONSE_BODY]: new Map<string, number>(),
+  }
+
+  if (!dataFields) {
+    return { sensitiveDataMap, numSensitiveDataMap }
   }
 
   const { reqContentType, respContentType } = getContentTypes(trace)
