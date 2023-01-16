@@ -227,14 +227,14 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
             variant="link"
             onClick={() => setShowAdvanced(e => !e)}
           >
-            {showAdvanced ? "+" : "-"} More Filters
+            {!showAdvanced ? "+" : "-"} More Filters
             {numExtraFiltersSpecified > 0
               ? ` (${numExtraFiltersSpecified})`
               : ""}
           </Button>
         </HStack>
         <Collapse
-          in={!showAdvanced}
+          in={showAdvanced}
           style={{ width: "100%", overflow: "visible" }}
         >
           <Grid
