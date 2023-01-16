@@ -374,6 +374,10 @@ export class GetEndpointsService {
         whereFilter.push(`data_field."dataClasses" && $${argNumber++}`)
         parameters.push(getEndpointParams.dataClasses)
       }
+      if (getEndpointParams?.methods) {
+        whereFilter.push(`endpoint."method" = ANY($${argNumber++})`)
+        parameters.push(getEndpointParams.methods)
+      }
       if (getEndpointParams?.searchQuery) {
         whereFilter.push(`endpoint.path ILIKE $${argNumber++}`)
         parameters.push(`%${getEndpointParams.searchQuery}%`)
