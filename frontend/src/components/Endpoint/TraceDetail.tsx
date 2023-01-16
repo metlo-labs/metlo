@@ -173,8 +173,8 @@ const populateSensitiveData = (trace: ApiTrace, dataFields: DataField[]) => {
     [DataSection.RESPONSE_HEADER]: new Map<string, number>(),
     [DataSection.RESPONSE_BODY]: new Map<string, number>(),
   }
+
   const { reqContentType, respContentType } = getContentTypes(trace)
-  console.log(" in here")
   for (const dataField of dataFields) {
     const isRespBody = dataField.dataSection === DataSection.RESPONSE_BODY
     const isRespHeader = dataField.dataSection === DataSection.RESPONSE_HEADER
