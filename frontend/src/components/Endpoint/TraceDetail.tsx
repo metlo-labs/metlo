@@ -95,7 +95,7 @@ export const TraceView: React.FC<{
 }> = ({ trace, dataFields, colorMode }) => {
   const { sensitiveDataMap, numSensitiveDataMap } = useMemo(
     () => populateSensitiveData(trace, dataFields),
-    [trace.uuid],
+    [trace, dataFields],
   )
   const root = "^root$"
   const reqHeaderTotalSenData =
