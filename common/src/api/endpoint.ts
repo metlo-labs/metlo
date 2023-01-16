@@ -1,10 +1,11 @@
 import { z } from "zod"
 
-import { DataSection, RiskScore } from "../enums"
+import { DataSection, RestMethod, RiskScore } from "../enums"
 
 export const GetEndpointParamsSchema = z.object({
   hosts: z.string().array().optional(),
   riskScores: z.nativeEnum(RiskScore).array().optional(),
+  methods: z.nativeEnum(RestMethod).array().optional(),
   dataClasses: z.string().array().optional(),
   searchQuery: z.string().optional(),
   isAuthenticated: z.string().optional(),

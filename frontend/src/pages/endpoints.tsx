@@ -5,7 +5,7 @@ import { useState } from "react"
 import { GetServerSideProps } from "next"
 import { ApiEndpoint, DataClass } from "@common/types"
 import { GetEndpointParams } from "@common/api/endpoint"
-import { RiskScore } from "@common/enums"
+import { RestMethod, RiskScore } from "@common/enums"
 import EndpointList from "components/EndpointList"
 import { PageWrapper } from "components/PageWrapper"
 import { ContentContainer } from "components/utils/ContentContainer"
@@ -44,6 +44,7 @@ const Endpoints: React.FC<EndpointsProps> = ({
         ...newParams,
         riskScores: newParams.riskScores?.join(",") ?? "",
         hosts: newParams.hosts?.join(",") ?? "",
+        methods: newParams.methods?.join(",") ?? "",
         dataClasses: newParams.dataClasses?.join(",") ?? "",
       },
     })
@@ -80,6 +81,10 @@ export const getServerSideProps: GetServerSideProps = async context => {
       .filter(e => Object.values(RiskScore).includes(e as RiskScore))
       .map(e => e as RiskScore),
     hosts: ((context.query.hosts as string) || null)?.split(",") ?? [],
+    methods: ((context.query.methods as string) || "")
+      .split(",")
+      .filter(e => Object.values(RestMethod).includes(e as RestMethod))
+      .map(e => e as RestMethod),
     dataClasses: ((context.query.dataClasses as string) || "")
       .split(",")
       .filter(e => dataClasses.find(({ className }) => className == e)),
