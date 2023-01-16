@@ -34,13 +34,15 @@ import { Alert, ApiEndpointDetailed, DataClass, Usage } from "@common/types"
 import { GetAlertParams } from "@common/api/alert"
 import { METHOD_TO_COLOR } from "~/constants"
 import { EndpointTab } from "enums"
-import DataFieldList from "./DataFieldList"
-import TraceList from "./TraceList"
-import { AlertTab } from "./AlertTab"
-import EndpointOverview from "./Overview"
 import { deleteEndpoint } from "api/endpoints"
 import { makeToast } from "utils"
 import { EditPath } from "./EditPath"
+import dynamic from "next/dynamic"
+
+const TraceList = dynamic(() => import("./TraceList"))
+const DataFieldList = dynamic(() => import("./DataFieldList"))
+const EndpointOverview = dynamic(() => import("./Overview"))
+const AlertTab = dynamic(() => import("./AlertTab"))
 
 interface EndpointPageProps {
   endpoint: ApiEndpointDetailed
@@ -215,30 +217,38 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
             overflow={{ base: "initial", md: "hidden" }}
           >
             <TabPanel p="0" overflow={{ base: "initial", md: "auto" }} h="full">
-              <EndpointOverview endpoint={endpoint} usage={usage} />
+              {getTab() === 0 && (
+                <EndpointOverview endpoint={endpoint} usage={usage} />
+              )}
             </TabPanel>
             <TabPanel p="0" h="full">
-              <DataFieldList
-                dataFields={endpoint.dataFields}
-                uuid={uuid as string}
-                dataClasses={dataClasses}
-              />
+              {getTab() === 1 && (
+                <DataFieldList
+                  dataFields={endpoint.dataFields}
+                  uuid={uuid as string}
+                  dataClasses={dataClasses}
+                />
+              )}
             </TabPanel>
             <TabPanel p="0" h="full">
-              <TraceList
-                traces={endpoint.traces}
-                uuid={uuid as string}
-                dataFields={endpoint.dataFields}
-              />
+              {getTab() === 2 && (
+                <TraceList
+                  traces={endpoint.traces}
+                  uuid={uuid as string}
+                  dataFields={endpoint.dataFields}
+                />
+              )}
             </TabPanel>
             <TabPanel p="0" h="full">
-              <AlertTab
-                initAlerts={alerts}
-                initAlertParams={initAlertParams}
-                initTotalCount={totalAlertsCount}
-                providedSpecString={endpoint.openapiSpec?.spec}
-                providedSpecExtension={endpoint.openapiSpec?.extension}
-              />
+              {getTab() === 3 && (
+                <AlertTab
+                  initAlerts={alerts}
+                  initAlertParams={initAlertParams}
+                  initTotalCount={totalAlertsCount}
+                  providedSpecString={endpoint.openapiSpec?.spec}
+                  providedSpecExtension={endpoint.openapiSpec?.extension}
+                />
+              )}
             </TabPanel>
           </TabPanels>
         </Tabs>

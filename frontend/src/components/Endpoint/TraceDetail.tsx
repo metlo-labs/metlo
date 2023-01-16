@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import React, { useEffect, useState } from "react"
 import dynamic from "next/dynamic"
 import {
   Badge,
@@ -17,7 +17,11 @@ import { getDateTimeString } from "utils"
 import { METHOD_TO_COLOR } from "~/constants"
 import { statusCodeToColor } from "components/utils/StatusCode"
 import { DataSection } from "@common/enums"
-import { populateSensitiveData } from "./sensitive-data-utils"
+import {
+  populateSensitiveData,
+  NumSensitiveDataMap,
+  SensitiveDataMap,
+} from "./sensitive-data-utils"
 const ReactJson = dynamic(() => import("@akshays/react-json-view"), {
   ssr: false,
 })
@@ -93,21 +97,30 @@ export const TraceView: React.FC<{
   dataFields?: DataField[]
   colorMode: ColorMode
 }> = ({ trace, dataFields, colorMode }) => {
-  const { sensitiveDataMap, numSensitiveDataMap } = useMemo(
-    () => populateSensitiveData(trace, dataFields),
-    [trace, dataFields],
-  )
+  const [sensitiveDataMap, setSensitiveDataMap] = useState<SensitiveDataMap>({})
+  const [numSensitiveDataMap, setNumSensitiveDataMap] =
+    useState<NumSensitiveDataMap>({})
+
+  useEffect(() => {
+    const calc = async () => {
+      const res = await populateSensitiveData(trace, dataFields)
+      setSensitiveDataMap(res.sensitiveDataMap)
+      setNumSensitiveDataMap(res.numSensitiveDataMap)
+    }
+    calc()
+  }, [trace, dataFields])
+
   const root = "^root$"
   const reqHeaderTotalSenData =
-    numSensitiveDataMap[DataSection.REQUEST_HEADER].get(root)
+    numSensitiveDataMap[DataSection.REQUEST_HEADER]?.get(root)
   const reqQueryTotalSenData =
-    numSensitiveDataMap[DataSection.REQUEST_QUERY].get(root)
+    numSensitiveDataMap[DataSection.REQUEST_QUERY]?.get(root)
   const reqBodyTotalSenData =
-    numSensitiveDataMap[DataSection.REQUEST_BODY].get(root)
+    numSensitiveDataMap[DataSection.REQUEST_BODY]?.get(root)
   const resHeaderTotalSenData =
-    numSensitiveDataMap[DataSection.RESPONSE_HEADER].get(root)
+    numSensitiveDataMap[DataSection.RESPONSE_HEADER]?.get(root)
   const resBodyTotalSenData =
-    numSensitiveDataMap[DataSection.RESPONSE_BODY].get(root)
+    numSensitiveDataMap[DataSection.RESPONSE_BODY]?.get(root)
   return (
     <VStack spacing="4" w="full" alignItems="flex-start">
       <VStack h="full" w="full" alignItems="flex-start">

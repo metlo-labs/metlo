@@ -32,6 +32,7 @@ const EndpointUsageChart: React.FC<EndpointUsageChartProps> = React.memo(
   ({ usage }) => {
     const [isLargerThan440] = useMediaQuery("(min-width: 440px)")
     let options = {
+      animation: 0,
       responsive: true,
       interaction: {
         mode: "nearest",

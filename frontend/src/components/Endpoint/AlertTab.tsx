@@ -18,7 +18,7 @@ interface AlertTabProps {
   providedSpecExtension: SpecExtension
 }
 
-export const AlertTab: React.FC<AlertTabProps> = ({
+const AlertTab: React.FC<AlertTabProps> = ({
   initAlertParams,
   initAlerts,
   initTotalCount,
@@ -135,3 +135,5 @@ export const AlertTab: React.FC<AlertTabProps> = ({
     </Box>
   )
 }
+
+export default AlertTab

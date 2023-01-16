@@ -20,6 +20,26 @@ const getMimeType = (contentType: string) => {
   }
 }
 
+const concatString = (
+  currString: string,
+  token: string,
+  isRegexString: boolean,
+) => {
+  if (isRegexString) {
+    if (currString.endsWith(String.raw`\.`) || !currString) {
+      return String.raw`${currString}${token}`
+    } else {
+      return String.raw`${currString}\.${token}`
+    }
+  } else {
+    if (currString.endsWith(".") || !currString) {
+      return String.raw`${currString}${token}`
+    } else {
+      return String.raw`${currString}.${token}`
+    }
+  }
+}
+
 const getSensitiveDataRegex = (
   pathTokens: string[],
   arrayFields: Record<string, number>,
@@ -28,36 +48,40 @@ const getSensitiveDataRegex = (
 ) => {
   let replacedString = ""
   let fullString = providedPrefix ?? ""
-  if (
-    providedPrefix &&
-    pathTokens.length === 0 &&
-    Object.keys(arrayFields).length > 0
-  ) {
-    pathTokens = [""]
+
+  if (arrayFields[fullString]) {
+    if (providedPrefix) {
+      replacedString += String.raw`\.`
+    }
+    const depth = arrayFields[fullString]
+    for (let i = 0; i < depth; i++) {
+      replacedString += "[0-9]+"
+      if (i !== depth - 1 || pathTokens?.[0]) {
+        replacedString += String.raw`\.`
+      }
+    }
   }
+
+  if (pathTokens[0] === "") {
+    return replacedString
+  }
+
   for (let j = 0; j < pathTokens.length; j++) {
     const token = pathTokens[j]
-    fullString += token
-    let arrayString = ""
+    if (!token) {
+      continue
+    }
+
+    if (providedPrefix && j === 0 && !replacedString) {
+      replacedString = concatString(replacedString, String.raw`\.`, true)
+    }
+    fullString = concatString(fullString, token, false)
+    replacedString = concatString(replacedString, token, true)
     if (!skipArray && arrayFields[fullString]) {
       const depth = arrayFields[fullString]
       for (let i = 0; i < depth; i++) {
-        arrayString += "[0-9]+"
-        if (i !== depth - 1) {
-          arrayString += String.raw`\.`
-        }
+        replacedString = concatString(replacedString, String.raw`[0-9]+`, true)
       }
-    }
-    if (!arrayString && providedPrefix && j == 0) {
-      replacedString += String.raw`\.`
-    }
-    replacedString += String.raw`${token}`
-    if (arrayString) {
-      replacedString += String.raw`\.${arrayString}`
-    }
-    if (j !== pathTokens.length - 1) {
-      fullString += "."
-      replacedString += String.raw`\.`
     }
   }
   return replacedString
@@ -130,7 +154,7 @@ const getNumSensitiveData = (
   }
 }
 
-export const populateSensitiveData = (
+export const populateSensitiveData = async (
   trace: ApiTrace,
   dataFields: DataField[],
 ) => {
@@ -188,7 +212,7 @@ export const populateSensitiveData = (
             break
           }
         }
-        if (index) {
+        if (index !== null) {
           pathTokens = pathTokens.slice(1, pathTokens.length)
           const tmpSenDataPrefix = String.raw`${index}\.value`
           const tmpRegex = getSensitiveDataRegex(
@@ -209,6 +233,7 @@ export const populateSensitiveData = (
         regex = getSensitiveDataRegex(pathTokens, dataField.arrayFields)
       }
       const regexString = new RegExp(String.raw`${prefix}${regex}$`).source
+
       sensitiveDataMap[dataField.dataSection].push([
         regexString,
         dataField.dataClasses,
@@ -222,5 +247,5 @@ export const populateSensitiveData = (
     }
   }
   getNumSensitiveData(numSensitiveData, numSensitiveDataMap)
-  return { sensitiveDataMap, numSensitiveDataMap }
+  return Promise.resolve({ sensitiveDataMap, numSensitiveDataMap })
 }

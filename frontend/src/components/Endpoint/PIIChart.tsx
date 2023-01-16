@@ -69,6 +69,7 @@ const EndpointPIIChart: React.FC<EndpointPIIChartProps> = React.memo(
       ],
     }
     const options = {
+      animation: 0,
       responsive: true,
       elements: {
         center: {
