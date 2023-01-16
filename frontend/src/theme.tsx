@@ -58,13 +58,19 @@ const theme = extendTheme({
   },
   components: {
     Button: {
+      baseStyle: {
+        borderWidth: "1px",
+        borderColor: "gray.300",
+      },
       variants: {
         base: {},
         unstyled: {
           borderWidth: "0",
         },
+        link: {
+          borderWidth: "0",
+        },
         create: {
-          borderColor: "gray.300",
           borderWidth: "0px",
           bg: "metloBlue",
           color: "#FFFFFF",
@@ -88,7 +94,6 @@ const theme = extendTheme({
           },
         },
         delete: {
-          borderColor: "gray.300",
           borderWidth: "0px",
           bg: "deleteRed",
           color: "#FFFFFF",
@@ -112,8 +117,6 @@ const theme = extendTheme({
           },
         },
         createSecondary: {
-          borderWidth: "1px",
-          borderColor: "gray.300",
           bg: "#FFFFFF",
           color: "metloBlue",
           border: "1px",
@@ -123,8 +126,6 @@ const theme = extendTheme({
           },
         },
         deleteSecondary: {
-          borderWidth: "1px",
-          borderColor: "gray.300",
           bg: "#FFFFFF",
           color: "deleteRed",
           border: "1px",
