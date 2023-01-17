@@ -230,7 +230,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
             color="metloBlue"
             variant="link"
             onClick={() => setShowAdvanced(e => !e)}
-            alignSelf={{ base: "flex-start", sm: "initial" }}
+            alignSelf={{ base: "flex-end", sm: "initial" }}
           >
             {!showAdvanced ? "+" : "-"} More Filters
             {numExtraFiltersSpecified > 0
