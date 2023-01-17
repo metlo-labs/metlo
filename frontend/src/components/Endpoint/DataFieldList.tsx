@@ -434,18 +434,16 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
 
     return (
       <Box display="flex" flexDir="column" h="100%">
-        <VStack bg="white" p={4} py={2} minH={8} w="full" zIndex="overlay">
-          <HStack alignSelf="flex-end" display={{ base: "flex", sm: "none" }}>
-            <Text>Filters</Text>
-            <IconButton
-              borderWidth="1px"
-              variant="unstyled"
-              size="xs"
-              aria-label="Toggle Filters"
-              onClick={() => setShowFilters(old => !old)}
-              icon={showFilters ? <ChevronDownIcon /> : <ChevronUpIcon />}
-            />
-          </HStack>
+        <VStack p={4} py={2} minH={8} w="full" zIndex="overlay">
+          <Button
+            color="metloBlue"
+            variant="link"
+            onClick={() => setShowFilters(e => !e)}
+            alignSelf="flex-end"
+            display={{ base: "flex", sm: "none" }}
+          >
+            {!showFilters ? "+" : "-"} Filters
+          </Button>
           <Collapse
             in={showFilters || isLargerThanSm}
             style={{ width: "100%", overflow: "visible" }}
@@ -453,7 +451,12 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
             <Grid
               gap={{ base: "2", lg: "4" }}
               w="full"
-              templateColumns={{ base: "1fr", sm: "repeat(3, 1fr)" }}
+              templateColumns={{
+                base: "1fr",
+                sm: "repeat(2, 1fr)",
+                lg: "repeat(3, 1fr)",
+                "2xl": "repeat(4, 1fr)",
+              }}
             >
               <GridItem>
                 <Box mt="0 !important" zIndex="1002">
@@ -519,7 +522,7 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
                   />
                 </Box>
               </GridItem>
-              <GridItem>
+              <GridItem colSpan={{ base: 1, sm: 2, lg: 1 }}>
                 <Box zIndex="1000">
                   <Text fontWeight="semibold" mb="2" fontSize="sm">
                     Sensitive Data Classes
