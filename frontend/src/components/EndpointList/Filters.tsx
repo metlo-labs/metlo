@@ -8,9 +8,9 @@ import {
   InputLeftElement,
   Grid,
   GridItem,
-  HStack,
   Button,
   Collapse,
+  Stack,
 } from "@chakra-ui/react"
 import { Select } from "chakra-react-select"
 import { BsSearch } from "icons/bs/BsSearch"
@@ -90,7 +90,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
           }}
           zIndex="overlay"
         >
-          <GridItem>
+          <GridItem colSpan={{ base: 1, sm: 2, lg: 1 }}>
             <Box zIndex="1003">
               <FilterHeader title="Method" />
               <Select
@@ -119,7 +119,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
               />
             </Box>
           </GridItem>
-          <GridItem colSpan={2}>
+          <GridItem colSpan={{ base: 1, sm: 2 }}>
             <Box zIndex="1004">
               <FilterHeader title="Host" />
               <Select
@@ -205,8 +205,12 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
             </Box>
           </GridItem>
         </Grid>
-        <HStack justifyContent="space-between" w="full">
-          <InputGroup>
+        <Stack
+          direction={{ base: "column", sm: "row" }}
+          justifyContent="space-between"
+          w="full"
+        >
+          <InputGroup w="full">
             <InputLeftElement pointerEvents="none">
               <BsSearch />
             </InputLeftElement>
@@ -217,7 +221,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
                 debounceSearch(e.target.value)
                 setTmpQuery(e.target.value)
               }}
-              w="sm"
+              w={{ base: "full", sm: "sm" }}
               type="text"
               placeholder="Search for endpoint..."
             />
@@ -226,13 +230,14 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
             color="metloBlue"
             variant="link"
             onClick={() => setShowAdvanced(e => !e)}
+            alignSelf={{ base: "flex-end", sm: "initial" }}
           >
             {!showAdvanced ? "+" : "-"} More Filters
             {numExtraFiltersSpecified > 0
               ? ` (${numExtraFiltersSpecified})`
               : ""}
           </Button>
-        </HStack>
+        </Stack>
         <Collapse
           in={showAdvanced}
           style={{ width: "100%", overflow: "visible" }}

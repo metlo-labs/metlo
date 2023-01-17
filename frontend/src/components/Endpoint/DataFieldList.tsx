@@ -9,10 +9,13 @@ import {
   Heading,
   Button,
   Text,
-  Stack,
   Divider,
   IconButton,
   useMediaQuery,
+  Collapse,
+  Grid,
+  GridItem,
+  VStack,
 } from "@chakra-ui/react"
 import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons"
 import { Select } from "chakra-react-select"
@@ -431,122 +434,129 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
 
     return (
       <Box display="flex" flexDir="column" h="100%">
-        <Stack
-          bg="white"
-          flex="0 0 auto"
-          p={4}
-          py={2}
-          minH={8}
-          direction={{ base: "column", sm: "row" }}
-        >
-          <HStack alignSelf="flex-end" display={{ base: "flex", sm: "none" }}>
-            <Text>Filters</Text>
-            <IconButton
-              borderWidth="1px"
-              variant="unstyled"
-              size="xs"
-              aria-label="Toggle Filters"
-              onClick={() => setShowFilters(old => !old)}
-              icon={showFilters ? <ChevronDownIcon /> : <ChevronUpIcon />}
-            />
-          </HStack>
-          {showFilters || isLargerThanSm ? (
-            <Box mt="0 !important" zIndex="1002" w={{ base: "full", md: "md" }}>
-              <Text fontWeight="semibold" mb="2" fontSize="sm">
-                Status Code
-              </Text>
-              <Select
-                className="chakra-react-select"
-                value={
-                  filters.statusCodes
-                    ? filters.statusCodes.map(code => ({
-                        label: code,
-                        value: code,
+        <VStack p={4} py={2} minH={8} w="full" zIndex="overlay">
+          <Button
+            color="metloBlue"
+            variant="link"
+            onClick={() => setShowFilters(e => !e)}
+            alignSelf="flex-end"
+            display={{ base: "flex", sm: "none" }}
+          >
+            {!showFilters ? "+" : "-"} Filters
+          </Button>
+          <Collapse
+            in={showFilters || isLargerThanSm}
+            style={{ width: "100%", overflow: "visible" }}
+          >
+            <Grid
+              gap={{ base: "2", lg: "4" }}
+              w="full"
+              templateColumns={{
+                base: "1fr",
+                sm: "repeat(2, 1fr)",
+                lg: "repeat(3, 1fr)",
+                "2xl": "repeat(4, 1fr)",
+              }}
+            >
+              <GridItem>
+                <Box mt="0 !important" zIndex="1002">
+                  <Text fontWeight="semibold" mb="2" fontSize="sm">
+                    Status Code
+                  </Text>
+                  <Select
+                    className="chakra-react-select"
+                    value={
+                      filters.statusCodes
+                        ? filters.statusCodes.map(code => ({
+                            label: code,
+                            value: code,
+                          }))
+                        : undefined
+                    }
+                    isMulti={true}
+                    size="sm"
+                    options={[...statusCodes].map(code => ({
+                      label: code,
+                      value: code,
+                    }))}
+                    placeholder="Filter by Status Code..."
+                    instanceId="data-field-status-code"
+                    onChange={codes =>
+                      setFilters(old => ({
+                        ...old,
+                        statusCodes: codes.map(e => e.label),
                       }))
-                    : undefined
-                }
-                isMulti={true}
-                size="sm"
-                options={[...statusCodes].map(code => ({
-                  label: code,
-                  value: code,
-                }))}
-                placeholder="Filter by Status Code..."
-                instanceId="data-field-status-code"
-                onChange={codes =>
-                  setFilters(old => ({
-                    ...old,
-                    statusCodes: codes.map(e => e.label),
-                  }))
-                }
-              />
-            </Box>
-          ) : null}
-          {showFilters || isLargerThanSm ? (
-            <Box zIndex="1001" w={{ base: "full", md: "md" }}>
-              <Text fontWeight="semibold" mb="2" fontSize="sm">
-                Content Type
-              </Text>
-              <Select
-                className="chakra-react-select"
-                value={
-                  filters.contentTypes
-                    ? filters.contentTypes.map(type => ({
-                        label: type,
-                        value: type,
+                    }
+                  />
+                </Box>
+              </GridItem>
+              <GridItem>
+                <Box zIndex="1001">
+                  <Text fontWeight="semibold" mb="2" fontSize="sm">
+                    Content Type
+                  </Text>
+                  <Select
+                    className="chakra-react-select"
+                    value={
+                      filters.contentTypes
+                        ? filters.contentTypes.map(type => ({
+                            label: type,
+                            value: type,
+                          }))
+                        : undefined
+                    }
+                    isMulti={true}
+                    size="sm"
+                    options={[...contentTypes].map(type => ({
+                      label: type,
+                      value: type,
+                    }))}
+                    placeholder="Filter by Content Type"
+                    instanceId="data-field-content-type"
+                    onChange={types =>
+                      setFilters(old => ({
+                        ...old,
+                        contentTypes: types.map(e => e.label),
                       }))
-                    : undefined
-                }
-                isMulti={true}
-                size="sm"
-                options={[...contentTypes].map(type => ({
-                  label: type,
-                  value: type,
-                }))}
-                placeholder="Filter by Content Type"
-                instanceId="data-field-content-type"
-                onChange={types =>
-                  setFilters(old => ({
-                    ...old,
-                    contentTypes: types.map(e => e.label),
-                  }))
-                }
-              />
-            </Box>
-          ) : null}
-          {showFilters || isLargerThanSm ? (
-            <Box zIndex="1000" w={{ base: "full", md: "md" }}>
-              <Text fontWeight="semibold" mb="2" fontSize="sm">
-                Sensitive Data Classes
-              </Text>
-              <Select
-                className="chakra-react-select"
-                value={
-                  filters.sensitiveDataClasses
-                    ? filters.sensitiveDataClasses.map(e => ({
-                        label: e,
-                        value: e,
+                    }
+                  />
+                </Box>
+              </GridItem>
+              <GridItem colSpan={{ base: 1, sm: 2, lg: 1 }}>
+                <Box zIndex="1000">
+                  <Text fontWeight="semibold" mb="2" fontSize="sm">
+                    Sensitive Data Classes
+                  </Text>
+                  <Select
+                    className="chakra-react-select"
+                    value={
+                      filters.sensitiveDataClasses
+                        ? filters.sensitiveDataClasses.map(e => ({
+                            label: e,
+                            value: e,
+                          }))
+                        : undefined
+                    }
+                    isMulti={true}
+                    size="sm"
+                    options={[...sensitiveDataClasses].map(e => ({
+                      label: e,
+                      value: e,
+                    }))}
+                    placeholder="Filter by Sensitive Data Class"
+                    instanceId="data-field-sensitive-data"
+                    onChange={data =>
+                      setFilters(old => ({
+                        ...old,
+                        sensitiveDataClasses: data.map(e => e.label),
                       }))
-                    : undefined
-                }
-                isMulti={true}
-                size="sm"
-                options={[...sensitiveDataClasses].map(e => ({
-                  label: e,
-                  value: e,
-                }))}
-                placeholder="Filter by Sensitive Data Class"
-                instanceId="data-field-sensitive-data"
-                onChange={data =>
-                  setFilters(old => ({
-                    ...old,
-                    sensitiveDataClasses: data.map(e => e.label),
-                  }))
-                }
-              />
-            </Box>
-          ) : null}
-        </Stack>
+                    }
+                  />
+                </Box>
+              </GridItem>
+            </Grid>
+          </Collapse>
+        </VStack>
         <Divider />
         <Box flex="1 1 auto" overflow="auto" w="full" position="relative">
           {dataField ? (
