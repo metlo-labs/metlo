@@ -58,17 +58,14 @@ export default class mlog {
   }
 
   static time(key: string, value: number, sampleRate?: number) {
-    key = `metlo.${key}`
     mlog.debug(`timing:${key}:${value}`)
   }
 
   static count(key: string, value?: number, sampleRate?: number) {
-    key = `metlo.${key}`
     mlog.debug(`count:${key}:${value || 1}`)
   }
 
   static gauge(key: string, value: number, sampleRate?: number) {
-    key = `metlo.${key}`
     mlog.debug(`gauge:${key}:${value}`)
   }
 
