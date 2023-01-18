@@ -10,17 +10,16 @@ interface HostListProps {
   fetching: boolean
   hosts: HostResponse[]
   totalCount: number
-  setParams: (t: (e: GetHostParams) => GetHostParams) => void
+  setParams: (newParams: GetHostParams) => void
   params: GetHostParams
 }
 
 const HostList: React.FC<HostListProps> = React.memo(
   ({ hosts, fetching, totalCount, params, setParams }) => {
     const setCurrentPage = (page: number) => {
-      setParams(oldParams => ({
-        ...oldParams,
+      setParams({
         offset: (page - 1) * HOST_PAGE_LIMIT,
-      }))
+      })
     }
     const [selectedHosts, setSelectedHosts] = useState<string[]>([])
 
