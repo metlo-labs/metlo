@@ -21,3 +21,8 @@ export enum SettingsTab {
   CONFIG = "config",
   INTEGRATIONS = "integrations",
 }
+
+export enum HostsTab {
+  LIST = "list",
+  GRAPH = "graph",
+}

@@ -58,7 +58,7 @@ const TableLoader: React.FC<TableLoaderProps> = ({
       name: "",
       id: "cta",
       right: true,
-    }
+    },
   ].map(e => ({
     ...e,
     sortable: false,
@@ -167,6 +167,7 @@ const List: React.FC<HostTableProps> = React.memo(
         columns={columns}
         data={hosts}
         customStyles={getCustomStyles(colorMode.colorMode, false, true)}
+        noDataComponent={<EmptyView text="No hosts found." />}
         pagination
         paginationDefaultPage={currentPage}
         selectableRows

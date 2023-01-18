@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import {
   InputGroup,
   InputLeftElement,
@@ -23,7 +23,7 @@ import { formatMetloAPIErr, MetloAPIErr } from "api/utils"
 
 interface HostFilterProps {
   params: GetHostParams
-  setParams: (t: (e: GetHostParams) => GetHostParams) => void
+  setParams: (newParams: GetHostParams, replace?: boolean) => void
   selectedHosts: string[]
   setSelectedHosts: React.Dispatch<React.SetStateAction<string[]>>
 }
@@ -31,17 +31,28 @@ interface HostFilterProps {
 const HostFilters: React.FC<HostFilterProps> = React.memo(
   ({ params, setParams, selectedHosts, setSelectedHosts }) => {
     const setSearchQuery = (val: string) => {
-      setParams(oldParams => ({
-        ...oldParams,
+      setParams({
         searchQuery: val,
         offset: 0,
-      }))
+      })
     }
-    const debounceSearch = debounce(setSearchQuery, 500)
+    const [tmpQuery, setTmpQuery] = useState<string>(params.searchQuery)
+    const debounceSearch = useMemo(
+      () => debounce(setSearchQuery, 500),
+      [params],
+    )
     const [deleting, setDeleting] = useState<boolean>(false)
     const toast = useToast()
     const { isOpen, onOpen, onClose } = useDisclosure()
     const cancelRef = React.useRef()
+
+    useEffect(() => {
+      setTmpQuery(params.searchQuery)
+
+      return () => {
+        debounceSearch.cancel()
+      }
+    }, [params.searchQuery])
 
     const handleDeleteHostsClick = async () => {
       try {
@@ -55,10 +66,12 @@ const HostFilters: React.FC<HostFilterProps> = React.memo(
           }),
         )
         setSelectedHosts([])
-        setParams(oldParams => ({
-          ...oldParams,
-          offset: 0,
-        }))
+        setParams(
+          {
+            offset: 0,
+          },
+          true,
+        )
       } catch (err) {
         toast(
           makeToast({
@@ -84,7 +97,11 @@ const HostFilters: React.FC<HostFilterProps> = React.memo(
           </InputLeftElement>
           <Input
             spellCheck={false}
-            onChange={e => debounceSearch(e.target.value)}
+            value={tmpQuery}
+            onChange={e => {
+              debounceSearch(e.target.value)
+              setTmpQuery(e.target.value)
+            }}
             w={{ base: "full", lg: "xs" }}
             type="text"
             placeholder="Search for host..."

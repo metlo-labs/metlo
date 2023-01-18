@@ -11,55 +11,53 @@ import { ContentContainer } from "components/utils/ContentContainer"
 import HostList from "components/HostList"
 import HostGraphComponent from "components/HostsGraph"
 import { useRouter } from "next/router"
+import { HostsTab } from "enums"
 
-const Hosts = ({ initHosts, hostsGraph, initTotalCount }) => {
+const Hosts = ({ hosts, hostsGraph, totalCount, params }) => {
   const router = useRouter()
   const { tab } = router.query
-  const getDefaultTab = () => {
+
+  const getTab = () => {
     switch (tab) {
-      case "list":
-        return false
-      case "graph":
-        return true
+      case HostsTab.LIST:
+        return 0
+      case HostsTab.GRAPH:
+        return 1
       default:
-        return false
+        return 0
     }
   }
 
-  const parsedInitHosts = superjson.parse<HostResponse[]>(initHosts)
+  const isGraph = getTab() === 1
+  const parsedHosts = superjson.parse<HostResponse[]>(hosts)
   const parsedHostsGraph = superjson.parse<HostGraph>(hostsGraph)
+  const parsedParams = superjson.parse<GetHostParams>(params)
 
-  const [graph, setGraph] = useState<boolean>(getDefaultTab())
   const [fetching, setFetching] = useState<boolean>(false)
-  const [hosts, setHosts] = useState<HostResponse[]>(parsedInitHosts)
-  const [totalCount, setTotalCount] = useState<number>(initTotalCount)
-  const [params, setParamsInner] = useState<GetHostParams>({
-    offset: 0,
-    limit: HOST_PAGE_LIMIT,
-  })
 
-  const fetchHosts = (fetchParams: GetHostParams) => {
+  const setParams = (newParams: GetHostParams, replace?: boolean) => {
     setFetching(true)
-    const fetch = async () => {
-      const res = await getHostsList(fetchParams)
-      setHosts(res[0])
-      setTotalCount(res[1])
-      setFetching(false)
+    newParams = { ...parsedParams, ...newParams }
+    if (replace) {
+      router.replace({
+        query: {
+          ...newParams,
+        },
+      })
+    } else {
+      router.push({
+        query: {
+          ...newParams,
+        },
+      })
     }
-    fetch()
+    setFetching(false)
   }
 
-  const setParams = (t: (e: GetHostParams) => GetHostParams) => {
-    let newParams = t(params)
-    setParamsInner(newParams)
-    fetchHosts(newParams)
-  }
-
-  const setTab = (graph: boolean) => {
-    router.replace({
-      query: { ...router.query, tab: graph ? "graph" : "list" },
+  const setTab = (newTab: HostsTab) => {
+    router.push(newTab ? { query: { tab: newTab } } : {}, undefined, {
+      shallow: true,
     })
-    setGraph(graph)
   }
 
   return (
@@ -68,13 +66,13 @@ const Hosts = ({ initHosts, hostsGraph, initTotalCount }) => {
         maxContentW="100rem"
         px="0"
         py="0"
-        height={graph ? "100vh" : undefined}
+        height={isGraph ? "100vh" : undefined}
       >
         <VStack
           w="full"
           alignItems="flex-start"
           spacing="0"
-          height={graph ? "full" : undefined}
+          height={isGraph ? "full" : undefined}
         >
           <Stack
             direction={{ base: "column", sm: "row" }}
@@ -91,13 +89,13 @@ const Hosts = ({ initHosts, hostsGraph, initTotalCount }) => {
             <HStack spacing="0" w={{ base: "full", sm: "unset" }}>
               <Badge
                 as="button"
-                onClick={() => setTab(false)}
+                onClick={() => setTab(undefined)}
                 roundedLeft="md"
                 py={1}
                 px={6}
                 borderWidth="2px 0px 2px 2px"
-                colorScheme={graph ? "gray" : "white"}
-                opacity={graph ? 0.7 : 1}
+                colorScheme={isGraph ? "gray" : "white"}
+                opacity={isGraph ? 0.7 : 1}
                 rounded="none"
                 w="full"
               >
@@ -105,13 +103,13 @@ const Hosts = ({ initHosts, hostsGraph, initTotalCount }) => {
               </Badge>
               <Badge
                 as="button"
-                onClick={() => setTab(true)}
+                onClick={() => setTab(HostsTab.GRAPH)}
                 roundedRight="md"
                 py={1}
                 px={6}
                 borderWidth="2px 2px 2px 0px"
-                colorScheme={graph ? "white" : "gray"}
-                opacity={graph ? 1 : 0.7}
+                colorScheme={isGraph ? "white" : "gray"}
+                opacity={isGraph ? 1 : 0.7}
                 rounded="none"
                 w="full"
               >
@@ -119,7 +117,7 @@ const Hosts = ({ initHosts, hostsGraph, initTotalCount }) => {
               </Badge>
             </HStack>
           </Stack>
-          {graph ? (
+          {isGraph ? (
             <Box flex="1" w="full">
               <HostGraphComponent {...parsedHostsGraph} />
             </Box>
@@ -130,10 +128,10 @@ const Hosts = ({ initHosts, hostsGraph, initTotalCount }) => {
               pb={{ base: "0", md: "8" }}
             >
               <HostList
-                hosts={hosts}
+                hosts={parsedHosts}
                 fetching={fetching}
                 totalCount={totalCount}
-                params={params}
+                params={parsedParams}
                 setParams={setParams}
               />
             </Box>
@@ -145,15 +143,21 @@ const Hosts = ({ initHosts, hostsGraph, initTotalCount }) => {
 }
 
 export const getServerSideProps: GetServerSideProps = async context => {
-  const hostsResp = await getHostsList({})
+  const params: GetHostParams = {
+    searchQuery: (context.query.searchQuery as string) ?? "",
+    offset: parseInt((context.query.offset as string) ?? "0"),
+    limit: HOST_PAGE_LIMIT,
+  }
+  const hostsResp = await getHostsList(params)
   const hostsGraph = await getHostsGraph({})
-  const initHosts = hostsResp[0]
+  const hosts = hostsResp[0]
   const totalCount = hostsResp[1]
   return {
     props: {
-      initHosts: superjson.stringify(initHosts),
+      hosts: superjson.stringify(hosts),
       hostsGraph: superjson.stringify(hostsGraph),
-      initTotalCount: totalCount,
+      totalCount: totalCount,
+      params: superjson.stringify(params),
     },
   }
 }
