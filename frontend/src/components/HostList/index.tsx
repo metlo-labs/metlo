@@ -10,7 +10,7 @@ interface HostListProps {
   fetching: boolean
   hosts: HostResponse[]
   totalCount: number
-  setParams: (newParams: GetHostParams) => void
+  setParams: (newParams: GetHostParams, replace?: boolean) => void
   params: GetHostParams
 }
 

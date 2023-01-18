@@ -23,7 +23,7 @@ import { formatMetloAPIErr, MetloAPIErr } from "api/utils"
 
 interface HostFilterProps {
   params: GetHostParams
-  setParams: (newParams: GetHostParams) => void
+  setParams: (newParams: GetHostParams, replace?: boolean) => void
   selectedHosts: string[]
   setSelectedHosts: React.Dispatch<React.SetStateAction<string[]>>
 }
@@ -66,9 +66,12 @@ const HostFilters: React.FC<HostFilterProps> = React.memo(
           }),
         )
         setSelectedHosts([])
-        setParams({
-          offset: 0,
-        })
+        setParams(
+          {
+            offset: 0,
+          },
+          true,
+        )
       } catch (err) {
         toast(
           makeToast({

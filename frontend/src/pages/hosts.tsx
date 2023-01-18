@@ -35,14 +35,22 @@ const Hosts = ({ hosts, hostsGraph, totalCount, params }) => {
 
   const [fetching, setFetching] = useState<boolean>(false)
 
-  const setParams = (newParams: GetHostParams) => {
+  const setParams = (newParams: GetHostParams, replace?: boolean) => {
     setFetching(true)
-    router.push({
-      query: {
-        ...parsedParams,
-        ...newParams,
-      },
-    })
+    newParams = { ...parsedParams, ...newParams }
+    if (replace) {
+      router.replace({
+        query: {
+          ...newParams,
+        },
+      })
+    } else {
+      router.push({
+        query: {
+          ...newParams,
+        },
+      })
+    }
     setFetching(false)
   }
 
