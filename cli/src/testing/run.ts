@@ -26,23 +26,30 @@ export const runTests = async (
     method,
     host,
     verbose,
+    envfile,
     env,
   }: {
     endpoint: string
     method: string
     host: string
     verbose: boolean
-    env: string
+    envfile: string
+    env: Record<string, string>
   },
 ) => {
   let initEnv: { [key: string]: string } = {}
-  if (env) {
-    initEnv = dotenv.parse(fs.readFileSync(env, "utf8"))
+  if (envfile) {
+    initEnv = dotenv.parse(fs.readFileSync(envfile, "utf8"))
     console.log(
       chalk.gray(
-        `Loaded ${Object.keys(initEnv).length} env vars at path ${env}`,
+        `Loaded ${Object.keys(initEnv).length} env vars at path ${envfile}`,
       ),
     )
+  }
+  if (env) {
+    for (const pair in env) {
+      initEnv[pair] = env[pair]
+    }
   }
   // get global env
   let globalEnv = []
@@ -54,7 +61,9 @@ export const runTests = async (
     })
     globalEnv = data
   } catch (err) {
-    console.log(chalk.red("Couldn't fetch global test environment from Metlo's backend"))
+    console.log(
+      chalk.red("Couldn't fetch global test environment from Metlo's backend"),
+    )
     if (verbose) {
       console.warn(err)
     }

@@ -11,7 +11,7 @@ export const makeRequest = (
   ctx: Context,
 ): AxiosRequestConfig<any> => {
   const currentUrl = stringReplacement(req.url, ctx.envVars)
-  const urlObj = new URL(req.url)
+  const urlObj = new URL(currentUrl)
 
   if (BLOCKED_HOSTS.has(urlObj.host)) {
     throw new Error(`Host ${urlObj.host} is not allowed...`)

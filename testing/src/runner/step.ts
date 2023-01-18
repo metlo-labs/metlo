@@ -1,5 +1,11 @@
 import axios from "axios"
-import { TestStep, TestResult, StepResult, StepResponse, StepRequest } from "../types/test"
+import {
+  TestStep,
+  TestResult,
+  StepResult,
+  StepResponse,
+  StepRequest,
+} from "../types/test"
 import { Context } from "../types/context"
 import { makeRequest } from "./request"
 import { runAssertion } from "./assertions"
@@ -49,7 +55,7 @@ export const runStep = async (
     errStack = e.stack
   }
 
-  const host = new URL(step.request.url).host
+  const host = new URL(stepRequest.url).host
   const currUrlCookies = ctx.cookies[host] || {}
 
   let stepResult: StepResult | null = null
