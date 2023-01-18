@@ -47,9 +47,7 @@ export const runTests = async (
     )
   }
   if (env) {
-    for (const pair in env) {
-      initEnv[pair] = env[pair]
-    }
+    initEnv = { ...initEnv, ...env }
   }
   // get global env
   let globalEnv = []
