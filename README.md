@@ -60,7 +60,7 @@ You can also join our [Discord community](https://discord.gg/4xhumff9BX) if you 
 * **Endpoint Discovery** - Metlo scans network traffic and creates an inventory of every single endpoint in your API.
 * **Sensitive Data Scannning** - Each endpoint is scanned for PII data and given a risk score.
 * **Vulnerability Discovery** - Get Alerts for issues like unauthenticated endpoints returning sensitive data, No HSTS headers, PII data in URL params, Open API Spec Diffs and more
-* **API Security Testing** - Build security tests directly in Metlo with a simple HTTP Request editor and javascript assertions.
+* **API Security Testing** - Build security tests directly in Metlo. Autogenerate tests for OWASP Top 10 vulns like BOLA, Broken Authentication, SQL Injection and more.
 * **CI/CD Integration** - Integrate with your CI/CD to find issues in development and staging.
 * **Attack Detection** - Our ML Algorithms build a model for baseline API behavior. Any deviation from this baseline is surfaced to your security team as soon as possible.
 * **Attack Context** - Metlo’s UI gives you full context around any attack to help quickly fix the vulnerability.
