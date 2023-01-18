@@ -61,7 +61,10 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
     }
     const [showAdvanced, setShowAdvanced] = useState(false)
     const [tmpQuery, setTmpQuery] = useState<string>(params.searchQuery)
-    const debounceSearch = useMemo(() => debounce(setSearchQuery, 500), [])
+    const debounceSearch = useMemo(
+      () => debounce(setSearchQuery, 500),
+      [params],
+    )
 
     let numExtraFiltersSpecified = 0
     if (params.dataClasses?.length > 0) {
