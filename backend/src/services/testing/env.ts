@@ -4,9 +4,11 @@ import { MetloContext } from "types"
 
 export async function getGlobalEnvService(ctx: MetloContext) {
   let configRaw = await getMetloConfig(ctx)
-  const config = jsyaml.load(configRaw.configString) as Object
-  if ("globalTestEnv" in config) {
-    return config.globalTestEnv
+  if (configRaw?.configString) {
+    const config = jsyaml.load(configRaw.configString) as Object
+    if ("globalTestEnv" in config) {
+      return config.globalTestEnv
+    }
   }
   return []
 }

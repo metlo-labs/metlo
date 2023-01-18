@@ -115,7 +115,7 @@ const getContentTypes = (trace: ApiTrace) => {
     if (e.name.toLowerCase() == "content-type") {
       const mimeType = getMimeType(e.value)
       if (mimeType.essence) {
-        respContentType = mimeType
+        respContentType = mimeType.essence
       }
     }
   })
@@ -185,7 +185,7 @@ export const populateSensitiveData = async (
     const isRespBody = dataField.dataSection === DataSection.RESPONSE_BODY
     const isRespHeader = dataField.dataSection === DataSection.RESPONSE_HEADER
     const isReqBody = dataField.dataSection === DataSection.REQUEST_BODY
-    const nonFilterSection = !isReqBody && !isRespHeader && !isRespHeader
+    const nonFilterSection = !isReqBody && !isRespHeader && !isRespBody
     const isPairObjectSection =
       dataField.dataSection === DataSection.REQUEST_QUERY ||
       dataField.dataSection === DataSection.REQUEST_HEADER ||
