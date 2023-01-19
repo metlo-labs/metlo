@@ -1,4 +1,4 @@
-import { AttackType, AttackTypeArray } from "../types/enums"
+import { PredefinedPayloadType } from "../types/enums"
 import { SQLI } from "./sqli"
 import { XSS } from "./xss"
 function getRandomFromArray(size: number = 250, dataArray: string[]) {
@@ -18,14 +18,14 @@ function getRandomFromArray(size: number = 250, dataArray: string[]) {
 }
 
 export function getValues(payloadType: string) {
-  if (payloadType == AttackType.Enum.XSS) {
+  if (payloadType == PredefinedPayloadType.Enum.XSS) {
     return getRandomFromArray(250, XSS)
   } else if (
-    payloadType == AttackType.Enum.SQLI ||
-    payloadType == AttackType.Enum.SQLI_AUTH_BYPASS
+    payloadType == PredefinedPayloadType.Enum.SQLI ||
+    payloadType == PredefinedPayloadType.Enum.SQLI_AUTH_BYPASS
   ) {
     return getRandomFromArray(250, SQLI)
-  } else if (payloadType == AttackType.Enum.SQLI_TIME) {
+  } else if (payloadType == PredefinedPayloadType.Enum.SQLI_TIME) {
     return getRandomFromArray(250, SQLI_TIME)
   } else {
     return []

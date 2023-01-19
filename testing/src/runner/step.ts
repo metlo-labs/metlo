@@ -13,7 +13,7 @@ import { makeRequest } from "./request"
 import { runAssertion } from "./assertions"
 import { runExtractor } from "./extractors"
 import { AxiosResponse } from "axios"
-import { AttackTypeArray } from "../types/enums"
+import { PredefinedPayloadTypeArray } from "../types/enums"
 import { getValues } from "../data"
 import { cartesian } from "./utils"
 
@@ -46,7 +46,7 @@ const runStepPayloads = async (
   step.payload = step.payload as PayloadType
   step.payload.forEach(payloadEntry => {
     payloadEntry.values.forEach(payload => {
-      if (AttackTypeArray.includes(payload)) {
+      if (PredefinedPayloadTypeArray.includes(payload)) {
         if (payloadEntry.key in payloadValues) {
           payloadValues[payloadEntry.key].push(...getValues(payload))
         } else {
@@ -217,7 +217,7 @@ export function runStepComplexity(
     const payloadValues: { [key: string]: string[] } = {}
     step.payload.forEach(payloadEntry => {
       payloadEntry.values.forEach(payload => {
-        if (AttackTypeArray.includes(payload)) {
+        if (PredefinedPayloadTypeArray.includes(payload)) {
           if (payloadEntry.key in payloadValues) {
             payloadValues[payloadEntry.key].push(...getValues(payload))
           } else {

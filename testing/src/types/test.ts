@@ -5,7 +5,7 @@ import {
   ExtractorType,
   Severity,
   Method,
-  AttackType,
+  PredefinedPayloadType,
 } from "./enums"
 import { IDRegex } from "./constants"
 import { Context } from "./context"
@@ -59,7 +59,7 @@ export const AssertionSchema = z.union([
 export const PayloadSchema = z
   .object({
     key: z.string(),
-    values: z.union([AttackType, z.string()]).array(),
+    values: z.union([PredefinedPayloadType, z.string()]).array(),
   })
   .array()
 
