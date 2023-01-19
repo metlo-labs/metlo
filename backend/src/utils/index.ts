@@ -28,7 +28,7 @@ export const isSuspectedParamater = (value: string): boolean => {
   }
   const splitParam = value.split(/[-_]/)
   for (const token of splitParam) {
-    if (!wordJson[token]) {
+    if (!wordJson[token.toLowerCase()]) {
       return true
     }
   }
