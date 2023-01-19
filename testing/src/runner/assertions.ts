@@ -10,7 +10,6 @@ export const runAssertion = (
   response: AxiosResponse,
   ctx: Context,
 ): boolean => {
-  let assertionTruth = false
   if (typeof assertion == "string") {
     assertion = {
       type: AssertionType.enum.JS,
@@ -49,13 +48,13 @@ export const runAssertion = (
   const currentValue = getKeyValue(assertionKey, response, ctx)
   if (assertion.type == AssertionType.enum.EQ) {
     if (assertionValue instanceof Array) {
-      assertionTruth = assertionValue.some(e => e == currentValue)
+      return assertionValue.some(e => e == currentValue)
     } else {
-      assertionTruth = assertionValue === currentValue
+      return assertionValue === currentValue
     }
   } else if (assertion.type == AssertionType.enum.REGEXP) {
     const regex = new RegExp(assertionValue as string)
-    assertionTruth = regex.test(currentValue)
+    return regex.test(currentValue)
   }
-  return assertionTruth
+  return false
 }
