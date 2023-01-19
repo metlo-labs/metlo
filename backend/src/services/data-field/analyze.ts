@@ -1,25 +1,17 @@
 import crypto from "crypto"
 import { QueuedApiTrace } from "@common/types"
-import { DataSection, DataTag, DataType } from "@common/enums"
+import { DataSection } from "@common/enums"
 import { ApiEndpoint, DataField } from "models"
 import { MetloContext } from "types"
 import { getRiskScore } from "utils"
 import {
-  getUniqueDataClasses,
-  isArrayFieldsDiff,
   getContentTypes,
   findPathDataFields,
   findPairObjectDataFields,
   findBodyDataFields,
+  DataFieldLength,
+  UpdatedDataField,
 } from "./utils"
-
-const nonNullDataSections = [
-  DataSection.REQUEST_BODY,
-  DataSection.RESPONSE_BODY,
-  DataSection.RESPONSE_HEADER,
-]
-
-const TOTAL_DATA_FIELDS_LIMIT = 200
 
 const getCurrentDataFieldsMap = (
   dataFields: DataField[],
@@ -37,12 +29,16 @@ const getCurrentDataFieldsMap = (
   return [res, currNumDataFields]
 }
 
-const getTraceDataFieldMap = async (
+const findAllDataFields = async (
   ctx: MetloContext,
   apiTrace: QueuedApiTrace,
   apiEndpointPath: string,
   apiEndpointUuid: string,
   traceHashObj: Record<string, Set<string>>,
+  dataFieldLength: DataFieldLength,
+  dataFieldMap: Record<string, DataField>,
+  newDataFieldMap: Record<string, DataField>,
+  updatedDataFieldMap: Record<string, UpdatedDataField>,
 ) => {
   const statusCode = apiTrace.responseStatus
   const { reqContentType, resContentType } = getContentTypes(
@@ -50,7 +46,6 @@ const getTraceDataFieldMap = async (
     apiTrace.responseHeaders,
   )
 
-  const dataFieldMap: Record<string, DataField> = {}
   await findPathDataFields(
     ctx,
     apiTrace.path,
@@ -58,6 +53,10 @@ const getTraceDataFieldMap = async (
     apiEndpointUuid,
     dataFieldMap,
     traceHashObj,
+    dataFieldLength,
+    newDataFieldMap,
+    updatedDataFieldMap,
+    apiTrace.createdAt,
   )
   if (statusCode < 400) {
     await findPairObjectDataFields(
@@ -69,6 +68,10 @@ const getTraceDataFieldMap = async (
       -1,
       dataFieldMap,
       traceHashObj,
+      dataFieldLength,
+      newDataFieldMap,
+      updatedDataFieldMap,
+      apiTrace.createdAt,
     )
     await findPairObjectDataFields(
       ctx,
@@ -79,6 +82,10 @@ const getTraceDataFieldMap = async (
       -1,
       dataFieldMap,
       traceHashObj,
+      dataFieldLength,
+      newDataFieldMap,
+      updatedDataFieldMap,
+      apiTrace.createdAt,
     )
     await findBodyDataFields(
       ctx,
@@ -89,6 +96,10 @@ const getTraceDataFieldMap = async (
       -1,
       dataFieldMap,
       traceHashObj,
+      dataFieldLength,
+      newDataFieldMap,
+      updatedDataFieldMap,
+      apiTrace.createdAt,
     )
   }
   await findPairObjectDataFields(
@@ -100,6 +111,10 @@ const getTraceDataFieldMap = async (
     statusCode,
     dataFieldMap,
     traceHashObj,
+    dataFieldLength,
+    newDataFieldMap,
+    updatedDataFieldMap,
+    apiTrace.createdAt,
   )
   await findBodyDataFields(
     ctx,
@@ -110,118 +125,11 @@ const getTraceDataFieldMap = async (
     statusCode,
     dataFieldMap,
     traceHashObj,
+    dataFieldLength,
+    newDataFieldMap,
+    updatedDataFieldMap,
+    apiTrace.createdAt,
   )
-  return dataFieldMap
-}
-
-const findDiffDataFields = (
-  currentDataFieldMap: Record<string, DataField>,
-  traceDataFieldMap: Record<string, DataField>,
-  hash: string,
-  traceTime: Date,
-  currNumDataFields: number,
-) => {
-  const newDataFields: DataField[] = []
-  const updatedExistingFields: DataField[] = []
-  for (const key in traceDataFieldMap) {
-    const traceDataField = traceDataFieldMap[key]
-    const existingNullKey = `-1__${traceDataField.dataSection}${
-      traceDataField.dataPath ? `.${traceDataField.dataPath}` : ""
-    }`
-    let existingDataField: DataField = null
-    let isNullKey = null
-    if (currentDataFieldMap[key]) {
-      existingDataField = currentDataFieldMap[key]
-      isNullKey = false
-    } else if (currentDataFieldMap[existingNullKey]) {
-      existingDataField = currentDataFieldMap[existingNullKey]
-      isNullKey = true
-    }
-    if (existingDataField) {
-      let updated = false
-      if (
-        isNullKey &&
-        nonNullDataSections.includes(traceDataField.dataSection)
-      ) {
-        updated = true
-        if (traceDataField.dataSection === DataSection.REQUEST_BODY) {
-          existingDataField.contentType = traceDataField.contentType
-        } else if (traceDataField.dataSection === DataSection.RESPONSE_HEADER) {
-          existingDataField.statusCode = traceDataField.statusCode
-        } else if (traceDataField.dataSection === DataSection.RESPONSE_BODY) {
-          existingDataField.contentType = traceDataField.contentType
-          existingDataField.statusCode = traceDataField.statusCode
-        }
-      }
-
-      const classes = getUniqueDataClasses(existingDataField, traceDataField)
-      if (classes.updated) {
-        updated = true
-        existingDataField.dataClasses = [...classes.dataClasses]
-        existingDataField.scannerIdentified = [...classes.scannerIdentified]
-        if (
-          existingDataField.dataClasses.length > 0 &&
-          existingDataField.dataTag !== DataTag.PII
-        ) {
-          existingDataField.dataTag = DataTag.PII
-        } else if (
-          existingDataField.dataClasses.length === 0 &&
-          existingDataField.dataTag !== null
-        ) {
-          existingDataField.dataTag = null
-        }
-      }
-
-      if (
-        traceTime > existingDataField.updatedAt &&
-        isArrayFieldsDiff(
-          existingDataField.arrayFields,
-          traceDataField.arrayFields,
-        )
-      ) {
-        existingDataField.arrayFields = { ...traceDataField.arrayFields }
-        updated = true
-      }
-
-      if (!existingDataField.isNullable && traceDataField.isNullable) {
-        existingDataField.isNullable = true
-        updated = true
-      }
-
-      if (
-        existingDataField.dataType !== traceDataField.dataType &&
-        traceTime > existingDataField.updatedAt &&
-        traceDataField.dataType !== DataType.UNKNOWN
-      ) {
-        existingDataField.dataType = traceDataField.dataType
-        updated = true
-      }
-
-      if (
-        updated ||
-        !existingDataField.traceHash[hash] ||
-        traceTime.getTime() - existingDataField.traceHash[hash] > 60_000
-      ) {
-        existingDataField.updatedAt = traceTime
-        existingDataField.traceHash[hash] = traceTime.getTime()
-
-        updatedExistingFields.push(existingDataField)
-        if (isNullKey) {
-          currentDataFieldMap[existingNullKey] = existingDataField
-        } else if (isNullKey === false) {
-          currentDataFieldMap[key] = existingDataField
-        }
-      }
-    } else {
-      if (++currNumDataFields <= TOTAL_DATA_FIELDS_LIMIT) {
-        traceDataField.traceHash = { [hash]: traceTime.getTime() }
-        traceDataField.createdAt = traceTime
-        traceDataField.updatedAt = traceTime
-        newDataFields.push(traceDataField)
-      }
-    }
-  }
-  return { newDataFields, updatedExistingFields }
 }
 
 export const findDataFieldsToSave = async (
@@ -239,12 +147,19 @@ export const findDataFieldsToSave = async (
   const [currentDataFieldMap, currNumDataFields] = getCurrentDataFieldsMap(
     apiEndpoint.dataFields,
   )
-  const traceDataFieldMap = await getTraceDataFieldMap(
+  const newDataFieldMap: Record<string, DataField> = {}
+  const updatedDataFieldMap: Record<string, UpdatedDataField> = {}
+  const dataFieldLength: DataFieldLength = { numDataFields: currNumDataFields }
+  await findAllDataFields(
     ctx,
     apiTrace,
     apiEndpoint?.path,
     apiEndpoint?.uuid,
     traceHashObj,
+    dataFieldLength,
+    currentDataFieldMap,
+    newDataFieldMap,
+    updatedDataFieldMap,
   )
 
   let traceHashArray = []
@@ -256,17 +171,28 @@ export const findDataFieldsToSave = async (
     .createHash("sha256")
     .update(traceHashArray.join())
     .digest("base64")
+  const currentTimestamp = apiTrace.createdAt.getTime()
+  const newDataFields: DataField[] = []
+  const updatedDataFields: DataField[] = []
 
-  const { newDataFields, updatedExistingFields } = findDiffDataFields(
-    currentDataFieldMap,
-    traceDataFieldMap,
-    hash,
-    apiTrace.createdAt,
-    currNumDataFields,
-  )
+  for (const key in newDataFieldMap) {
+    newDataFieldMap[key].traceHash = { [hash]: currentTimestamp }
+    newDataFields.push(newDataFieldMap[key])
+  }
 
-  apiEndpoint.riskScore = getRiskScore(
-    newDataFields.concat(Object.values(currentDataFieldMap) ?? []),
-  )
-  return { newFields: newDataFields, updatedFields: updatedExistingFields }
+  for (const key in updatedDataFieldMap) {
+    const currDataField = updatedDataFieldMap[key].dataField
+    if (
+      updatedDataFieldMap[key].updated ||
+      !currDataField.traceHash?.[hash] ||
+      currentTimestamp - currDataField.traceHash?.[hash] > 60_000
+    ) {
+      currDataField.traceHash[hash] = currentTimestamp
+      updatedDataFields.push(currDataField)
+    }
+  }
+
+  apiEndpoint.riskScore = getRiskScore(Object.values(currentDataFieldMap) ?? [])
+
+  return { newFields: newDataFields, updatedFields: updatedDataFields }
 }

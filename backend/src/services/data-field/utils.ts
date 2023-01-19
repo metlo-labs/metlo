@@ -12,6 +12,23 @@ interface ContentTypeResp {
   resContentType: string
 }
 
+export interface DataFieldLength {
+  numDataFields: number
+}
+
+export interface UpdatedDataField {
+  dataField: DataField
+  updated: boolean
+}
+
+const TOTAL_DATA_FIELDS_LIMIT = 200
+
+const nonNullDataSections = [
+  DataSection.REQUEST_BODY,
+  DataSection.RESPONSE_BODY,
+  DataSection.RESPONSE_HEADER,
+]
+
 export const isArrayFieldsDiff = (
   oldFields: Record<string, number>,
   newFields: Record<string, number>,
@@ -29,15 +46,14 @@ export const isArrayFieldsDiff = (
 
 export const getUniqueDataClasses = (
   existingDataField: DataField,
-  newDataField: DataField,
+  dataClasses: string[],
 ) => {
   const classes: Record<"dataClasses" | "scannerIdentified", string[]> = {
     dataClasses: [...existingDataField.dataClasses],
     scannerIdentified: [...existingDataField.scannerIdentified],
   }
   let updated = false
-  const newDataClasses = newDataField.dataClasses
-  for (const dataClass of newDataClasses) {
+  for (const dataClass of dataClasses) {
     if (
       !classes.dataClasses.includes(dataClass) &&
       !existingDataField.falsePositives.includes(dataClass)
@@ -56,22 +72,26 @@ export const getContentTypes = (
 ): ContentTypeResp => {
   let reqContentType = "*/*"
   let resContentType = "*/*"
-  for (const requestHeader of requestHeaders) {
-    const lower = requestHeader.name.toLowerCase()
-    if (lower === "content-type") {
-      try {
-        reqContentType = new MIMEType(requestHeader.value)?.essence
-        break
-      } catch {}
+  if (requestHeaders?.length > 0) {
+    for (const requestHeader of requestHeaders) {
+      const lower = requestHeader.name.toLowerCase()
+      if (lower === "content-type") {
+        try {
+          reqContentType = new MIMEType(requestHeader.value)?.essence
+          break
+        } catch {}
+      }
     }
   }
-  for (const responseHeader of responseHeaders) {
-    const lower = responseHeader.name.toLowerCase()
-    if (lower === "content-type") {
-      try {
-        resContentType = new MIMEType(responseHeader.value)?.essence
-        break
-      } catch {}
+  if (responseHeaders?.length > 0) {
+    for (const responseHeader of responseHeaders) {
+      const lower = responseHeader.name.toLowerCase()
+      if (lower === "content-type") {
+        try {
+          resContentType = new MIMEType(responseHeader.value)?.essence
+          break
+        } catch {}
+      }
     }
   }
   return {
@@ -102,7 +122,7 @@ const updateTraceHashObj = (
   traceHashObj[dataSection].add(key)
 }
 
-const createDataField = (
+const handleDataField = (
   dataClasses: string[],
   dataPath: string,
   dataSection: DataSection,
@@ -112,26 +132,127 @@ const createDataField = (
   statusCode: number,
   arrayFields: Record<string, number>,
   traceHashObj: Record<string, Set<string>>,
+  dataFieldLength: DataFieldLength,
+  dataFieldMap: Record<string, DataField>,
+  newDataFieldMap: Record<string, DataField>,
+  updatedDataFieldMap: Record<string, UpdatedDataField>,
+  traceTime: Date,
 ) => {
   updateTraceHashObj(dataSection, dataPath, arrayFields, traceHashObj)
-  const dataType = getDataType(dataValue)
-  const dataField = DataField.create()
-  dataField.dataPath = dataPath ?? ""
-  dataField.dataType = dataType
-  dataField.dataSection = dataSection
-  dataField.apiEndpointUuid = apiEndpointUuid
-  dataField.traceHash = {}
-  dataField.contentType = contentType ?? ""
-  dataField.statusCode = statusCode ?? -1
-  dataField.isNullable = dataType === DataType.UNKNOWN
-  dataField.arrayFields = { ...arrayFields }
-  dataField.dataClasses = dataClasses
-  dataField.scannerIdentified = dataClasses
-  dataField.falsePositives = []
-  if (dataField.dataClasses.length > 0) {
-    dataField.dataTag = DataTag.PII
+  let existingDataField: DataField = null
+  let isNullKey = null
+  const key = `${statusCode}_${contentType}_${dataSection}${
+    dataPath ? `.${dataPath}` : ""
+  }`
+  const existingNullKey = `-1__${dataSection}${dataPath ? `.${dataPath}` : ""}`
+  if (dataFieldMap[key]) {
+    existingDataField = dataFieldMap[key]
+    isNullKey = false
+  } else if (dataFieldMap[existingNullKey]) {
+    existingDataField = dataFieldMap[existingNullKey]
+    isNullKey = true
   }
-  return dataField
+  const dataType = getDataType(dataValue)
+
+  if (!existingDataField) {
+    if (dataFieldLength.numDataFields >= TOTAL_DATA_FIELDS_LIMIT) {
+      return
+    }
+    const dataField = DataField.create()
+    dataField.dataPath = dataPath ?? ""
+    dataField.dataType = dataType
+    dataField.dataSection = dataSection
+    dataField.apiEndpointUuid = apiEndpointUuid
+    dataField.traceHash = {}
+    dataField.contentType = contentType ?? ""
+    dataField.statusCode = statusCode ?? -1
+    dataField.isNullable = dataType === DataType.UNKNOWN
+    dataField.arrayFields = { ...arrayFields }
+    dataField.dataClasses = dataClasses
+    dataField.scannerIdentified = dataClasses
+    dataField.falsePositives = []
+    dataField.createdAt = traceTime
+    dataField.updatedAt = traceTime
+    if (dataField.dataClasses.length > 0) {
+      dataField.dataTag = DataTag.PII
+    }
+    dataFieldLength.numDataFields += 1
+    dataFieldMap[key] = dataField
+    newDataFieldMap[key] = dataField
+  } else {
+    let updated = false
+    if (
+      isNullKey &&
+      nonNullDataSections.includes(existingDataField.dataSection)
+    ) {
+      updated = true
+      if (existingDataField.dataSection === DataSection.REQUEST_BODY) {
+        existingDataField.contentType = contentType ?? ""
+      } else if (
+        existingDataField.dataSection === DataSection.RESPONSE_HEADER
+      ) {
+        existingDataField.statusCode = statusCode ?? -1
+      } else if (existingDataField.dataSection === DataSection.RESPONSE_BODY) {
+        existingDataField.contentType = contentType ?? ""
+        existingDataField.statusCode = statusCode ?? -1
+      }
+    }
+
+    const classes = getUniqueDataClasses(existingDataField, dataClasses)
+    if (classes.updated) {
+      updated = true
+      existingDataField.dataClasses = [...classes.dataClasses]
+      existingDataField.scannerIdentified = [...classes.scannerIdentified]
+      if (
+        existingDataField.dataClasses.length > 0 &&
+        existingDataField.dataTag !== DataTag.PII
+      ) {
+        existingDataField.dataTag = DataTag.PII
+      } else if (
+        existingDataField.dataClasses.length === 0 &&
+        existingDataField.dataTag !== null
+      ) {
+        existingDataField.dataTag = null
+      }
+    }
+
+    if (
+      traceTime > existingDataField.updatedAt &&
+      isArrayFieldsDiff(existingDataField.arrayFields, arrayFields)
+    ) {
+      existingDataField.arrayFields = { ...arrayFields }
+      updated = true
+    }
+
+    if (!existingDataField.isNullable && dataType === DataType.UNKNOWN) {
+      existingDataField.isNullable = true
+      updated = true
+    }
+
+    if (
+      existingDataField.dataType !== dataType &&
+      traceTime > existingDataField.updatedAt &&
+      dataType !== DataType.UNKNOWN
+    ) {
+      existingDataField.dataType = dataType
+      updated = true
+    }
+
+    existingDataField.updatedAt = traceTime
+    if (isNullKey) {
+      dataFieldMap[existingNullKey] = existingDataField
+      updatedDataFieldMap[existingNullKey] = {
+        dataField: existingDataField,
+        updated,
+      }
+    } else if (isNullKey === false) {
+      dataFieldMap[key] = existingDataField
+      updatedDataFieldMap[key] = {
+        dataField: existingDataField,
+        updated,
+      }
+    }
+  }
 }
 
 const recursiveParseJson = async (
@@ -145,10 +266,14 @@ const recursiveParseJson = async (
   arrayFields: Record<string, number>,
   dataFieldMap: Record<string, DataField>,
   traceHashObj: Record<string, Set<string>>,
+  dataFieldLength: DataFieldLength,
+  newDataFieldMap: Record<string, DataField>,
+  updatedDataFieldMap: Record<string, UpdatedDataField>,
+  traceTime: Date,
 ) => {
   if (Object(jsonBody) !== jsonBody) {
     const dataClasses = await scan(ctx, jsonBody)
-    const dataField = createDataField(
+    handleDataField(
       dataClasses,
       dataPathPrefix,
       dataSection,
@@ -158,11 +283,12 @@ const recursiveParseJson = async (
       statusCode,
       arrayFields,
       traceHashObj,
+      dataFieldLength,
+      dataFieldMap,
+      newDataFieldMap,
+      updatedDataFieldMap,
+      traceTime,
     )
-    const key = `${dataField.statusCode}_${
-      dataField.contentType
-    }_${dataSection}${dataPathPrefix ? `.${dataPathPrefix}` : ""}`
-    dataFieldMap[key] = dataField
   } else if (jsonBody && Array.isArray(jsonBody)) {
     let l = jsonBody.length
     const arrayFieldKey = dataPathPrefix ?? ""
@@ -180,9 +306,13 @@ const recursiveParseJson = async (
         apiEndpointUuid,
         contentType,
         statusCode,
-        arrayFields,
+        { ...arrayFields },
         dataFieldMap,
         traceHashObj,
+        dataFieldLength,
+        newDataFieldMap,
+        updatedDataFieldMap,
+        traceTime,
       )
     }
   } else if (typeof jsonBody === DataType.OBJECT) {
@@ -195,9 +325,13 @@ const recursiveParseJson = async (
         apiEndpointUuid,
         contentType,
         statusCode,
-        arrayFields,
+        { ...arrayFields },
         dataFieldMap,
         traceHashObj,
+        dataFieldLength,
+        newDataFieldMap,
+        updatedDataFieldMap,
+        traceTime,
       )
     }
   }
@@ -212,6 +346,10 @@ export const findBodyDataFields = async (
   statusCode: number,
   dataFieldMap: Record<string, DataField>,
   traceHashObj: Record<string, Set<string>>,
+  dataFieldLength: DataFieldLength,
+  newDataFieldMap: Record<string, DataField>,
+  updatedDataFieldMap: Record<string, UpdatedDataField>,
+  traceTime: Date,
 ) => {
   if (!body && dataSection === DataSection.RESPONSE_BODY) {
     body = ""
@@ -232,9 +370,13 @@ export const findBodyDataFields = async (
           apiEndpointUuid,
           contentType,
           statusCode,
-          arrayFields,
+          { ...arrayFields },
           dataFieldMap,
           traceHashObj,
+          dataFieldLength,
+          newDataFieldMap,
+          updatedDataFieldMap,
+          traceTime,
         )
       }
     } else if (typeof jsonBody === DataType.OBJECT) {
@@ -250,6 +392,10 @@ export const findBodyDataFields = async (
           {},
           dataFieldMap,
           traceHashObj,
+          dataFieldLength,
+          newDataFieldMap,
+          updatedDataFieldMap,
+          traceTime,
         )
       }
     } else {
@@ -264,6 +410,10 @@ export const findBodyDataFields = async (
         {},
         dataFieldMap,
         traceHashObj,
+        dataFieldLength,
+        newDataFieldMap,
+        updatedDataFieldMap,
+        traceTime,
       )
     }
   }
@@ -278,6 +428,10 @@ export const findPairObjectDataFields = async (
   statusCode: number,
   dataFieldMap: Record<string, DataField>,
   traceHashObj: Record<string, Set<string>>,
+  dataFieldLength: DataFieldLength,
+  newDataFieldMap: Record<string, DataField>,
+  updatedDataFieldMap: Record<string, UpdatedDataField>,
+  traceTime: Date,
 ) => {
   if (data) {
     for (const item of data) {
@@ -294,6 +448,10 @@ export const findPairObjectDataFields = async (
         {},
         dataFieldMap,
         traceHashObj,
+        dataFieldLength,
+        newDataFieldMap,
+        updatedDataFieldMap,
+        traceTime,
       )
     }
   }
@@ -306,6 +464,10 @@ export const findPathDataFields = async (
   apiEndpointUuid: string,
   dataFieldMap: Record<string, DataField>,
   traceHashObj: Record<string, Set<string>>,
+  dataFieldLength: DataFieldLength,
+  newDataFieldMap: Record<string, DataField>,
+  updatedDataFieldMap: Record<string, UpdatedDataField>,
+  traceTime: Date,
 ) => {
   if (!path || !endpointPath) {
     return
@@ -329,6 +491,10 @@ export const findPathDataFields = async (
         {},
         dataFieldMap,
         traceHashObj,
+        dataFieldLength,
+        newDataFieldMap,
+        updatedDataFieldMap,
+        traceTime,
       )
     }
   }
