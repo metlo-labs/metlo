@@ -179,6 +179,7 @@ const generateSchemas = (dataFields: DataField[]) => {
         schema: {
           type: dataField.dataType,
         },
+        required: true,
       })
     } else if (dataField.dataSection === DataSection.REQUEST_HEADER) {
       if (mapTokens[0]?.length > 0) {
