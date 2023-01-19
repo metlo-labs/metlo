@@ -151,6 +151,9 @@ const handleDataField = (
   const dataType = getDataType(dataValue)
 
   if (!existingDataField) {
+    if (dataFieldLength.numDataFields >= TOTAL_DATA_FIELDS_LIMIT) {
+      return
+    }
     const dataField = DataField.create()
     dataField.dataPath = dataPath ?? ""
     dataField.dataType = dataType
@@ -265,9 +268,6 @@ const recursiveParseJson = async (
   traceTime: Date,
 ) => {
   if (Object(jsonBody) !== jsonBody) {
-    if (dataFieldLength.numDataFields >= TOTAL_DATA_FIELDS_LIMIT) {
-      return
-    }
     const dataClasses = await scan(ctx, jsonBody)
     handleDataField(
       dataClasses,
@@ -295,7 +295,7 @@ const recursiveParseJson = async (
     }
     for (
       let i = 0;
-      i < l && dataFieldLength.numDataFields < TOTAL_DATA_FIELDS_LIMIT;
+      i < l;
       i++
     ) {
       await recursiveParseJson(
@@ -306,7 +306,7 @@ const recursiveParseJson = async (
         apiEndpointUuid,
         contentType,
         statusCode,
-        arrayFields,
+        { ...arrayFields },
         dataFieldMap,
         traceHashObj,
         dataFieldLength,
@@ -317,9 +317,6 @@ const recursiveParseJson = async (
     }
   } else if (typeof jsonBody === DataType.OBJECT) {
     for (const key in jsonBody) {
-      if (dataFieldLength.numDataFields >= TOTAL_DATA_FIELDS_LIMIT) {
-        break
-      }
       await recursiveParseJson(
         ctx,
         dataPathPrefix ? dataPathPrefix + "." + key : key,
@@ -328,7 +325,7 @@ const recursiveParseJson = async (
         apiEndpointUuid,
         contentType,
         statusCode,
-        arrayFields,
+        { ...arrayFields },
         dataFieldMap,
         traceHashObj,
         dataFieldLength,
@@ -373,7 +370,7 @@ export const findBodyDataFields = async (
           apiEndpointUuid,
           contentType,
           statusCode,
-          arrayFields,
+          { ...arrayFields },
           dataFieldMap,
           traceHashObj,
           dataFieldLength,
