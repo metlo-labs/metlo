@@ -96,6 +96,7 @@ export const runStep = async (
     let res: AxiosResponse | null = null
     let err: string | undefined = undefined
     let errStack: string | undefined = undefined
+    let abortedAt: number | undefined = undefined
 
     const reqConfig = makeRequest(step.request, ctx)
     const stepRequest = {
@@ -124,14 +125,26 @@ export const runStep = async (
         }
       })
       ctx.cookies[host] = currUrlCookies
-
+      let assertions: boolean[] = Array((step.assert || []).length).fill(false)
       for (const e of step.extract || []) {
         ctx = runExtractor(e, res, ctx)
       }
-      let assertions: boolean[] = (step.assert || []).map(e =>
-        runAssertion(e, res as AxiosResponse, ctx, config),
-      )
-
+      {
+        let i = 0
+        for (const _step of step.assert || []) {
+          const asserted = runAssertion(_step, res as AxiosResponse, ctx)
+          assertions[i] = asserted
+          i++
+          if (
+            config &&
+            config.stopOnFailedAssertion === true &&
+            asserted === false
+          ) {
+            abortedAt = i
+            break
+          }
+        }
+      }
       stepResult = {
         idx,
         ctx,
@@ -153,10 +166,11 @@ export const runStep = async (
     }
 
     const nextStep = nextSteps.shift()
-    if (!nextStep) {
+    if (!nextStep || abortedAt) {
       return {
-        success: stepResult.success,
+        success: abortedAt ? "aborted" : stepResult.success,
         results: [[stepResult]],
+        abortedAt,
       }
     }
 
@@ -175,8 +189,12 @@ export const runStep = async (
       config,
     )
     return {
-      success: stepResult.success && nextRes.success,
+      success:
+        nextRes.success === "aborted"
+          ? "aborted"
+          : stepResult.success && nextRes.success,
       results: [[stepResult]].concat(nextRes.results),
+      abortedAt: nextRes.abortedAt,
     }
   }
 }

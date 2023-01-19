@@ -135,7 +135,8 @@ export interface FailedRequest {
 }
 
 export interface TestResult {
-  success: boolean
+  success: boolean | "aborted"
   test?: TestConfig
   results: StepResult[][]
+  abortedAt?: number
 }

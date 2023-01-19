@@ -9,7 +9,7 @@ Handlebars.registerHelper("default", (value, defaultValue) => {
 
 export const estimateTest = (
   test: TestConfig,
-  env?: Record<string, string>,
+  env?: Record<string, string | object>,
 ): number => {
   const context = {
     cookies: {},
@@ -57,6 +57,7 @@ export const runTest = async (
       test,
       success: resp.success,
       results: resp.results,
+      abortedAt: resp.abortedAt,
     }
   } else {
     throw new Error("No item to test in stack")

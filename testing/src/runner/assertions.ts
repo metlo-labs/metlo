@@ -2,15 +2,13 @@ import { AxiosResponse } from "axios"
 import { executeScript, stringReplacement } from "../utils"
 import { Context } from "../types/context"
 import { AssertionType } from "../types/enums"
-import { Assertion, Config } from "../types/test"
+import { Assertion } from "../types/test"
 import { getKeyValue } from "./utils"
-import chalk from "chalk"
 
 export const runAssertion = (
   assertion: Assertion,
   response: AxiosResponse,
   ctx: Context,
-  config: Config,
 ): boolean => {
   let assertionTruth = false
   if (typeof assertion == "string") {
@@ -62,10 +60,6 @@ export const runAssertion = (
       const regex = new RegExp(assertionValue as string)
       assertionTruth = regex.test(currentValue)
     }
-  }
-  if (config && config.stopOnFailedAssertion) {
-    console.log(chalk.redBright.bold(`Failed assertion: ${assertion.value}`))
-    process.exit()
   }
   return assertionTruth
 }

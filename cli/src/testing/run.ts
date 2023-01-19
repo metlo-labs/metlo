@@ -91,7 +91,7 @@ const runTestPath = async (
     const test = loadTestConfig(path)
 
     const estimate = estimateTest(test, env)
-    let res
+    let res: TestResult
     if (estimate > UPPER_ESTIMATE_LIMIT) {
       const { _continue }: { _continue: boolean } = await prompt([
         {
@@ -114,8 +114,23 @@ const runTestPath = async (
     spinner.succeed(chalk.green("Done running test..."))
     spinner.stop()
 
-    if (res.success) {
+    if (res.success === true) {
       console.log(chalk.bold.green("All Tests Succeeded!"))
+    } else if (res.success === "aborted") {
+      console.log(
+        chalk.bold.redBright(`Tests aborted due to assertion failure`),
+      )
+      const failedAssertions = getFailedAssertions(res)
+      for (const failure of failedAssertions) {
+        console.log(
+          chalk.bold.red(
+            `Request ${failure.stepIdx + 1} Assertion ${
+              failure.assertionIdx + 1
+            } Failed:`,
+          ),
+        )
+        console.log(chalk.red(JSON.stringify(failure.assertion, null, 4)))
+      }
     } else {
       console.log(chalk.bold.red("Some Tests Failed."))
       const failedAssertions = getFailedAssertions(res)
