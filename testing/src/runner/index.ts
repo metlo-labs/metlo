@@ -2,6 +2,11 @@ import { TestConfig, TestResult, TestStep } from "../types/test"
 import { runStep } from "./step"
 import * as Handlebars from "handlebars"
 
+Handlebars.registerHelper("default", (value, defaultValue) => {
+  let out = value || defaultValue
+  return new Handlebars.SafeString(out)
+})
+
 export const runTest = async (
   test: TestConfig,
   env?: Record<string, string | object>,

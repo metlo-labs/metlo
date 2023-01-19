@@ -34,3 +34,22 @@ export const getConfig = (): MetloConfig => {
   }
   return res as MetloConfig
 }
+
+export const mapOptionParser = (
+  value: string,
+  previous: Record<string, string>,
+) => {
+  if (value.length < 2 || value?.indexOf("=") === -1) {
+    console.log(
+      chalk.red.bold(
+        `Invalid value for env argument: ${value}. Must be in format:`,
+      ),
+    )
+    console.log(chalk.gray("--env ENV_VAR=value --env ENV_VAR_2=value2"))
+    process.exit(1)
+  }
+  const idx = value.indexOf("=")
+  const key = value.slice(0, idx)
+  const val = value.slice(idx + 1, value.length)
+  return { ...previous, [key]: val }
+}

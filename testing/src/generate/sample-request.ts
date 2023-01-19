@@ -286,11 +286,15 @@ export const makeSampleRequestNoAuth = (
       value: `<<${prefix}${param[1]}>>`,
     })
   }
+  env.push({
+    name: "BASE_URL",
+    value: `{{default BASE_URL "https://${endpoint.host}"}}`,
+  })
   const replacedPath = endpoint.path.replace(paramRegex, `{{${prefix}$1}}`)
   let gen: GeneratedTestRequest = {
     req: {
       method: endpoint.method,
-      url: `https://${endpoint.host}${replacedPath}`,
+      url: `{{BASE_URL}}${replacedPath}`,
     },
     env,
   }

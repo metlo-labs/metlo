@@ -12,6 +12,7 @@ import { gcpTrafficMirrorCleanUp } from "./gcp/cleanup"
 import { generateTest } from "./testing/generate"
 import { runTests } from "./testing/run"
 import { pushTemplates } from "./testing/push-template"
+import { mapOptionParser } from "./utils"
 
 program.name("metlo").description("Metlo's command line tool.").version("0.2.2")
 
@@ -42,7 +43,8 @@ test
   .option("-x,--method <string>", "The method of the endpoint")
   .option("-n,--host <string>", "hostname for which tests are to be")
   .option("-v,--verbose", "print detailed test errors")
-  .option("--env <string>", "path for your env file")
+  .option("--envfile <string>", "path for your env file")
+  .option("--env <key>=<value>", "environment variables", mapOptionParser)
   .action(runTests)
 
 const template = program.command("template")
