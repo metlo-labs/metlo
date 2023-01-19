@@ -56,17 +56,18 @@ export const AssertionSchema = z.union([
   z.string(),
 ])
 
+export const PayloadSchema = z
+  .object({
+    key: z.string(),
+    values: z.union([AttackType, z.string()]).array(),
+  })
+  .array()
+
 export const TestStepSchema = z.object({
   request: RequestSchema,
   extract: ExtractorSchema.array().optional(),
   assert: AssertionSchema.array().optional(),
-  payload: z
-    .object({
-      key: z.string(),
-      values: z.union([AttackType, z.string()]).array(),
-    })
-    .array()
-    .optional(),
+  payload: PayloadSchema.optional(),
 })
 
 export const ConfigSchema = z.object({
@@ -84,6 +85,7 @@ export const TestConfigSchema = z.object({
 export type TestMeta = z.infer<typeof MetaSchema>
 export type Extractor = z.infer<typeof ExtractorSchema>
 export type Assertion = z.infer<typeof AssertionSchema>
+export type PayloadType = z.infer<typeof PayloadSchema>
 export type KeyValType = z.infer<typeof KeyValSchema>
 export type TestRequest = z.infer<typeof RequestSchema>
 export type TestStep = z.infer<typeof TestStepSchema>
@@ -135,7 +137,7 @@ export interface FailedRequest {
 }
 
 export interface TestResult {
-  success: boolean | "aborted"
+  success: boolean
   test?: TestConfig
   results: StepResult[][]
   abortedAt?: number
