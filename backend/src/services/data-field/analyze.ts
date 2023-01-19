@@ -184,8 +184,8 @@ export const findDataFieldsToSave = async (
     const currDataField = updatedDataFieldMap[key].dataField
     if (
       updatedDataFieldMap[key].updated ||
-      !currDataField.traceHash[hash] ||
-      currentTimestamp - currDataField.traceHash[hash] > 60_000
+      !currDataField.traceHash?.[hash] ||
+      currentTimestamp - currDataField.traceHash?.[hash] > 60_000
     ) {
       currDataField.traceHash[hash] = currentTimestamp
       updatedDataFields.push(currDataField)

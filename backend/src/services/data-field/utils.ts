@@ -72,22 +72,26 @@ export const getContentTypes = (
 ): ContentTypeResp => {
   let reqContentType = "*/*"
   let resContentType = "*/*"
-  for (const requestHeader of requestHeaders) {
-    const lower = requestHeader.name.toLowerCase()
-    if (lower === "content-type") {
-      try {
-        reqContentType = new MIMEType(requestHeader.value)?.essence
-        break
-      } catch {}
+  if (requestHeaders?.length > 0) {
+    for (const requestHeader of requestHeaders) {
+      const lower = requestHeader.name.toLowerCase()
+      if (lower === "content-type") {
+        try {
+          reqContentType = new MIMEType(requestHeader.value)?.essence
+          break
+        } catch {}
+      }
     }
   }
-  for (const responseHeader of responseHeaders) {
-    const lower = responseHeader.name.toLowerCase()
-    if (lower === "content-type") {
-      try {
-        resContentType = new MIMEType(responseHeader.value)?.essence
-        break
-      } catch {}
+  if (responseHeaders?.length > 0) {
+    for (const responseHeader of responseHeaders) {
+      const lower = responseHeader.name.toLowerCase()
+      if (lower === "content-type") {
+        try {
+          resContentType = new MIMEType(responseHeader.value)?.essence
+          break
+        } catch {}
+      }
     }
   }
   return {
@@ -293,11 +297,7 @@ const recursiveParseJson = async (
     } else {
       arrayFields[arrayFieldKey] = 1
     }
-    for (
-      let i = 0;
-      i < l;
-      i++
-    ) {
+    for (let i = 0; i < l; i++) {
       await recursiveParseJson(
         ctx,
         dataPathPrefix,
