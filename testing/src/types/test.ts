@@ -71,7 +71,7 @@ export const TestStepSchema = z.object({
 })
 
 export const ConfigSchema = z.object({
-  stopOnFailedAssertion: z.boolean(),
+  stopOnFailedAssertion: z.boolean().optional(),
 })
 
 export const TestConfigSchema = z.object({

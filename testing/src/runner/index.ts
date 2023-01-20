@@ -51,7 +51,7 @@ export const runTest = async (
   const testStack = [...test.test]
   if (testStack.length > 0) {
     const firstStep = testStack.shift() as TestStep
-    const config = test.config as Config
+    const config = test.config || {}
     const resp = await runStep(0, firstStep, testStack, context, config)
     return {
       test,
