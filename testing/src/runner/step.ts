@@ -45,13 +45,12 @@ const runStepPayloads = async (
   const payloadValues: { [key: string]: string[] } = {}
   step.payload = step.payload as PayloadType
   step.payload.forEach(payloadEntry => {
-    payloadEntry.values.forEach(payload => {
-      if (payloadEntry.key in payloadValues) {
-        payloadValues[payloadEntry.key].push(...getValues(payload))
-      } else {
-        payloadValues[payloadEntry.key] = [...getValues(payload)]
-      }
-    })
+    const payload = payloadEntry.value
+    if (payloadEntry.key in payloadValues) {
+      payloadValues[payloadEntry.key].push(...getValues(payload))
+    } else {
+      payloadValues[payloadEntry.key] = [...getValues(payload)]
+    }
   })
 
   const results = await Promise.all(
@@ -208,17 +207,12 @@ export function runStepComplexity(
   if (step.payload) {
     const payloadValues: { [key: string]: string[] } = {}
     step.payload.forEach(payloadEntry => {
-      payloadEntry.values.forEach(payload => {
-        if (PredefinedPayloadTypeArray.includes(payload)) {
-          if (payloadEntry.key in payloadValues) {
-            payloadValues[payloadEntry.key].push(...getValues(payload))
-          } else {
-            payloadValues[payloadEntry.key] = [...getValues(payload)]
-          }
-        } else {
-          throw new Error("Invalid property for payload type")
-        }
-      })
+      const payload = payloadEntry.value
+      if (payloadEntry.key in payloadValues) {
+        payloadValues[payloadEntry.key].push(...getValues(payload))
+      } else {
+        payloadValues[payloadEntry.key] = [...getValues(payload)]
+      }
     })
     const results = cartesian(payloadValues).map(data => {
       const newCtx = {

@@ -59,7 +59,7 @@ export const AssertionSchema = z.union([
 export const PayloadSchema = z
   .object({
     key: z.string(),
-    values: z.union([PredefinedPayloadType, z.string()]).array(),
+    value: z.union([PredefinedPayloadType, z.string()]),
   })
   .array()
 

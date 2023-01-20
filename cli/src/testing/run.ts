@@ -79,7 +79,7 @@ export const runTests = async (
   await runTestsFromEndpointInfo(endpoint, method, host, initEnv, verbose)
 }
 
-const UPPER_ESTIMATE_LIMIT = 250
+const UPPER_ESTIMATE_LIMIT = 300
 
 const runTestPath = async (
   paths: string[],
