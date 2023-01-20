@@ -10,12 +10,14 @@ import {
   getFailedRequests,
   loadTestConfig,
   runTest,
+  estimateTest,
   TestConfig,
   TestConfigSchema,
   TestResult,
 } from "@metlo/testing"
 import { getConfig } from "../utils"
 import { urlJoin } from "./utils"
+import { prompt } from "enquirer"
 
 const spinner = ora()
 
@@ -77,6 +79,8 @@ export const runTests = async (
   await runTestsFromEndpointInfo(endpoint, method, host, initEnv, verbose)
 }
 
+const UPPER_ESTIMATE_LIMIT = 300
+
 const runTestPath = async (
   paths: string[],
   verbose: boolean,
@@ -86,6 +90,21 @@ const runTestPath = async (
     console.log(chalk.gray(`Running test at path "${path}":`))
     const test = loadTestConfig(path)
 
+    const estimate = estimateTest(test, env)
+    if (estimate > UPPER_ESTIMATE_LIMIT) {
+      const { _continue }: { _continue: boolean } = await prompt([
+        {
+          type: "confirm",
+          name: "_continue",
+          message: `Estimated request count is high (${estimate}). Would you like to continue?`,
+        },
+      ])
+      if (!_continue) {
+        console.log(chalk.redBright("Exiting ..."))
+        return
+      }
+    }
+
     spinner.start(chalk.dim("Running test..."))
     const res = await runTest(test, env)
     spinner.succeed(chalk.green("Done running test..."))
@@ -94,6 +113,11 @@ const runTestPath = async (
     if (res.success) {
       console.log(chalk.bold.green("All Tests Succeeded!"))
     } else {
+      if (res.abortedAt) {
+        console.log(
+          chalk.bold.redBright("Tests aborted due to assertion failure"),
+        )
+      }
       console.log(chalk.bold.red("Some Tests Failed."))
       const failedAssertions = getFailedAssertions(res)
       const failedRequests = getFailedRequests(res)

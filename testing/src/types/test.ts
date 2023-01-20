@@ -1,6 +1,12 @@
 import { z } from "zod"
 
-import { AssertionType, ExtractorType, Severity, Method } from "./enums"
+import {
+  AssertionType,
+  ExtractorType,
+  Severity,
+  Method,
+  PredefinedPayloadType,
+} from "./enums"
 import { IDRegex } from "./constants"
 import { Context } from "./context"
 
@@ -50,10 +56,22 @@ export const AssertionSchema = z.union([
   z.string(),
 ])
 
+export const PayloadSchema = z
+  .object({
+    key: z.string(),
+    value: z.union([PredefinedPayloadType, z.string()]),
+  })
+  .array()
+
 export const TestStepSchema = z.object({
   request: RequestSchema,
   extract: ExtractorSchema.array().optional(),
   assert: AssertionSchema.array().optional(),
+  payload: PayloadSchema.optional(),
+})
+
+export const ConfigSchema = z.object({
+  stopOnFailedAssertion: z.boolean().optional(),
 })
 
 export const TestConfigSchema = z.object({
@@ -61,15 +79,18 @@ export const TestConfigSchema = z.object({
   meta: MetaSchema.optional(),
   env: KeyValSchema.array().optional(),
   test: TestStepSchema.array(),
+  config: ConfigSchema.optional(),
 })
 
 export type TestMeta = z.infer<typeof MetaSchema>
 export type Extractor = z.infer<typeof ExtractorSchema>
 export type Assertion = z.infer<typeof AssertionSchema>
+export type PayloadType = z.infer<typeof PayloadSchema>
 export type KeyValType = z.infer<typeof KeyValSchema>
 export type TestRequest = z.infer<typeof RequestSchema>
 export type TestStep = z.infer<typeof TestStepSchema>
 export type TestConfig = z.infer<typeof TestConfigSchema>
+export type Config = z.infer<typeof ConfigSchema>
 
 export interface StepRequest {
   url: string
@@ -119,4 +140,5 @@ export interface TestResult {
   success: boolean
   test?: TestConfig
   results: StepResult[][]
+  abortedAt?: number
 }
