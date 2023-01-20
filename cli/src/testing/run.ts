@@ -97,26 +97,23 @@ const runTestPath = async (
         {
           type: "confirm",
           name: "_continue",
-          message: `Estimated request count is high (${estimate}). Would you like to continue ?`,
+          message: `Estimated request count is high (${estimate}). Would you like to continue?`,
         },
       ])
-      if (_continue) {
-        spinner.start(chalk.dim("Running test..."))
-        res = await runTest(test, env)
-      } else {
+      if (!_continue) {
         console.log(chalk.redBright("Exiting ..."))
         return
       }
-    } else {
-      spinner.start(chalk.dim("Running test..."))
-      res = await runTest(test, env)
     }
+
+    spinner.start(chalk.dim("Running test..."))
+    res = await runTest(test, env)
     spinner.succeed(chalk.green("Done running test..."))
     spinner.stop()
 
-    if (res.success === true) {
+    if (res.success) {
       console.log(chalk.bold.green("All Tests Succeeded!"))
-    } else if (res.success === "aborted") {
+    } else if (res.abortedAt) {
       console.log(
         chalk.bold.redBright(`Tests aborted due to assertion failure`),
       )
