@@ -46,14 +46,10 @@ const runStepPayloads = async (
   step.payload = step.payload as PayloadType
   step.payload.forEach(payloadEntry => {
     payloadEntry.values.forEach(payload => {
-      if (PredefinedPayloadTypeArray.includes(payload)) {
-        if (payloadEntry.key in payloadValues) {
-          payloadValues[payloadEntry.key].push(...getValues(payload))
-        } else {
-          payloadValues[payloadEntry.key] = [...getValues(payload)]
-        }
+      if (payloadEntry.key in payloadValues) {
+        payloadValues[payloadEntry.key].push(...getValues(payload))
       } else {
-        throw new Error("Invalid property for payload type")
+        payloadValues[payloadEntry.key] = [...getValues(payload)]
       }
     })
   })

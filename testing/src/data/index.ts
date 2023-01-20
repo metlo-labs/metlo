@@ -1,32 +1,19 @@
 import { PredefinedPayloadType } from "../types/enums"
 import { SQLI } from "./sqli"
 import { XSS } from "./xss"
-function getRandomFromArray(size: number = 250, dataArray: string[]) {
-  const rnds = []
-  if (size >= dataArray.length) {
-    return dataArray
-  }
-  for (let i = 0; i < size; i++) {
-    let rnd = Math.floor(Math.random() * dataArray.length)
-    if (rnd == dataArray.length) {
-      // Fit into array by taking last element
-      rnd = dataArray.length - 1
-    }
-    rnds.push(dataArray[rnd])
-  }
-  return rnds
-}
 
-export function getValues(payloadType: string) {
+const MAX_PAYLOAD_VALUES = 300
+
+export const getValues = (payloadType: string) => {
   if (payloadType == PredefinedPayloadType.Enum.XSS) {
-    return getRandomFromArray(250, XSS)
+    return XSS.slice(0, MAX_PAYLOAD_VALUES)
   } else if (
     payloadType == PredefinedPayloadType.Enum.SQLI ||
     payloadType == PredefinedPayloadType.Enum.SQLI_AUTH_BYPASS
   ) {
-    return getRandomFromArray(250, SQLI)
+    return SQLI.slice(0, MAX_PAYLOAD_VALUES)
   } else if (payloadType == PredefinedPayloadType.Enum.SQLI_TIME) {
-    return getRandomFromArray(250, SQLI_TIME)
+    return SQLI_TIME.slice(0, MAX_PAYLOAD_VALUES)
   } else {
     return []
   }
