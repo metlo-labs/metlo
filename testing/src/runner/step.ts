@@ -147,11 +147,7 @@ export const runStep = async (
       const asserted = runAssertion(_step, res as AxiosResponse, ctx)
       assertions[i] = asserted
       i++
-      if (
-        config &&
-        config.stopOnFailedAssertion === true &&
-        asserted === false
-      ) {
+      if (config.stopOnFailedAssertion && !asserted) {
         abortedAt = i
         break
       }
