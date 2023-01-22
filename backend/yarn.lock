@@ -146,14 +146,15 @@
     ajv "^8.4.0"
     openapi-types "^12.0.2"
 
-"@metlo/testing@^0.2.15":
-  version "0.2.15"
-  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.2.15.tgz#d196c1d1188f61590ed65cea814d34f8a1654b78"
-  integrity sha512-wmBe1BjGxyGcg18EfHxNRPd/0S+FKLjLOu4TrErpN9WJlLG9HgTxYBzv8uvzWQmPjNnqQFWb7HRxpT7m4RUhpQ==
+"@metlo/testing@^0.2.17":
+  version "0.2.17"
+  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.2.17.tgz#70f6b2d085528a89988cca344995bb1a89ee87b5"
+  integrity sha512-df+y4BOdM4tHRXDfEmJLT7C0i4MEtXN3BTggp60mVkSVuaz6ZCNRw2NuxBIYHosMFp/VY6tRBLlp69XjYUg4YA==
   dependencies:
     axios "^1.2.1"
     chalk "^4.1.2"
     expect "^29.0.2"
+    form-data "^4.0.0"
     handlebars "^4.7.7"
     js-yaml "^4.1.0"
     jsdom "^20.0.3"
