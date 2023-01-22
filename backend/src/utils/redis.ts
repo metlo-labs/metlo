@@ -32,6 +32,27 @@ export class RedisClient {
     } catch {}
   }
 
+  public static async expire(ctx: MetloContext, key: string, expireIn: number) {
+    try {
+      this.getInstance().expire(key, expireIn)
+    } catch (err) {
+      mlog.withErr(err).error("Error expiring redis list")
+    }
+  }
+
+  public static async ltrim(
+    ctx: MetloContext,
+    key: string,
+    start: number,
+    stop: number,
+  ) {
+    try {
+      this.getInstance().ltrim(key, start, stop)
+    } catch (err) {
+      mlog.withErr(err).error("Error trimming redis list")
+    }
+  }
+
   public static async getFromRedis(ctx: MetloContext, key: string) {
     try {
       return JSON.parse(await this.getInstance().get(key))
