@@ -36,7 +36,7 @@ export class RedisClient {
     try {
       this.getInstance().expire(key, expireIn)
     } catch (err) {
-      mlog.withErr(err).error("Error expiring redis list")
+      mlog.withErr(err).error("Error expiring redis item")
     }
   }
 

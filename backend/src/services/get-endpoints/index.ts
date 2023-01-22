@@ -446,7 +446,8 @@ export class GetEndpointsService {
         .from(OpenApiSpec, "spec")
         .andWhere("name = :name", { name: endpoint.openapiSpecName })
         .getRawOne()
-      const traceCache = (await RedisClient.lrange(ctx, `endpointTraces:e#${endpoint.uuid}`, 0, 99)) || []
+      const traceKey = `endpointTraces:e#${endpoint.uuid}`
+      const traceCache = (await RedisClient.lrange(ctx, traceKey, 0, 99)) || []
       const traces = traceCache.map(e => JSON.parse(e) as ApiTrace)
       const tests = await getEntityManager(ctx, queryRunner).find(
         ApiEndpointTest,
