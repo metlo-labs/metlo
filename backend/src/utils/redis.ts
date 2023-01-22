@@ -53,6 +53,20 @@ export class RedisClient {
     }
   }
 
+  public static async lrange(
+    ctx: MetloContext,
+    key: string,
+    start: number,
+    end: number,
+  ) {
+    try {
+      return await this.getInstance().lrange(key, start, end)
+    } catch (err) {
+      mlog.withErr(err).error("Error getting redis list")
+      return null
+    }
+  }
+
   public static async getFromRedis(ctx: MetloContext, key: string) {
     try {
       return JSON.parse(await this.getInstance().get(key))

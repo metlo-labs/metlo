@@ -171,25 +171,9 @@ const analyze = async (
     trace.responseBody = JSON.stringify(trace.responseBody)
   }
 
-  const startTraceRedis = performance.now()
-  const endpointTraceKey = `endpointTraces:e#${apiEndpoint.uuid}`
-  RedisClient.pushValueToRedisList(ctx, endpointTraceKey, [
-    JSON.stringify({
-      ...trace,
-      apiEndpointUuid: apiEndpoint.uuid,
-    }),
-  ])
-  RedisClient.ltrim(ctx, endpointTraceKey, 0, TRACE_IN_MEM_RETENTION_COUNT - 1)
-  RedisClient.expire(ctx, endpointTraceKey, TRACE_IN_MEM_EXPIRE_SEC)
-  mlog.time(
-    "analyzer.insert_api_trace_redis",
-    performance.now() - startTraceRedis,
-  )
-  mlog.debug(`Analyzing Trace - Inserted API Trace to Redis: ${traceUUID}`)
-
   const start4 = performance.now()
   await queryRunner.startTransaction()
-  await retryTypeormTransaction(
+  const traceRes = await retryTypeormTransaction(
     () =>
       getEntityManager(ctx, queryRunner).insert(ApiTrace, [
         {
@@ -201,6 +185,23 @@ const analyze = async (
   )
   mlog.time("analyzer.insert_api_trace_query", performance.now() - start4)
   mlog.debug(`Analyzing Trace - Inserted API Trace: ${traceUUID}`)
+
+  const startTraceRedis = performance.now()
+  const endpointTraceKey = `endpointTraces:e#${apiEndpoint.uuid}`
+  RedisClient.pushValueToRedisList(ctx, endpointTraceKey, [
+    JSON.stringify({
+      ...trace,
+      uuid: traceRes.identifiers[0].uuid,
+      apiEndpointUuid: apiEndpoint.uuid,
+    }),
+  ])
+  RedisClient.ltrim(ctx, endpointTraceKey, 0, TRACE_IN_MEM_RETENTION_COUNT - 1)
+  RedisClient.expire(ctx, endpointTraceKey, TRACE_IN_MEM_EXPIRE_SEC)
+  mlog.time(
+    "analyzer.insert_api_trace_redis",
+    performance.now() - startTraceRedis,
+  )
+  mlog.debug(`Analyzing Trace - Inserted API Trace to Redis: ${traceUUID}`)
 
   const start5 = performance.now()
   await retryTypeormTransaction(
