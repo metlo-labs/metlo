@@ -1,4 +1,5 @@
 import axios, { AxiosRequestConfig } from "axios"
+import FormData from "form-data"
 
 import { TestRequest } from "../types/test"
 import { Context } from "../types/context"
@@ -102,7 +103,7 @@ export const makeRequest = (
     url,
     method: req.method,
     headers: headers,
-    data: req.data,
+    data,
     timeout: 10000,
     validateStatus: () => true,
   }
