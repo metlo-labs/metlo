@@ -1,10 +1,11 @@
 import argparse
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urljoin
 import time
-from urllib.request import HTTPBasicAuthHandler
 
 import requests
+from yaspin import yaspin
 
 from producers import PRODUCER_CLS_MAP
 
@@ -19,30 +20,41 @@ PRODUCERS = PRODUCER_MAP.values()
 
 
 def run(backend, api_key, speed_multiple):
-    while True:
-        print("Tick")
+    sent_req_map = defaultdict(int)
+    with yaspin(text="Sending Test Data", color="cyan") as sp:
+        while True:
+            current_time = datetime.now(timezone.utc)
+            curr_time_key = current_time.isoformat()[:16]
+            for k, producer in PRODUCER_MAP.items():
+                if not producer.should_emit(current_time):
+                    continue
+                data_points = producer.get_data_points(current_time)
+                sent_req_map[curr_time_key] += len(data_points)
+                if not data_points:
+                    continue
+                path = (
+                    "/api/v1/log-request/single"
+                    if len(data_points) == 1
+                    else "/api/v1/log-request/batch"
+                )
+                body = data_points[0] if len(data_points) == 1 else data_points
+                try:
+                    requests.post(
+                        urljoin(backend, path), json=body, headers={"authorization": api_key}
+                    )
+                except Exception as e:
+                    sp.write(f"Error: {e}... Sleeping for 5 seconds")
+                    time.sleep(5)
+            keep_keys = set(sorted(sent_req_map.keys())[-60:])
+            sent_req_map = defaultdict(int, { k: v for k, v in sent_req_map.items() if k in keep_keys})
 
-        current_time = datetime.now(timezone.utc)
+            if len(sent_req_map) > 0:
+                rpm = sum(sent_req_map.values()) / len(sent_req_map)
+            else:
+                rpm = 0
 
-        for k, producer in PRODUCER_MAP.items():
-            if not producer.should_emit(current_time):
-                continue
-            data_points = producer.get_data_points(current_time)
-            if data_points:
-                print(f"Producer {k} emitted {len(data_points)} data points.")
-            if not data_points:
-                continue
-            path = (
-                "/api/v1/log-request/single"
-                if len(data_points) == 1
-                else "/api/v1/log-request/batch"
-            )
-            body = data_points[0] if len(data_points) == 1 else data_points
-            requests.post(
-                urljoin(backend, path), json=body, headers={"authorization": api_key}
-            )
-
-        time.sleep(tick_length.total_seconds() / speed_multiple)
+            sp.text = f"Sending Test Data: {rpm:.2f} rpm"
+            time.sleep(tick_length.total_seconds() / speed_multiple)
 
 
 if __name__ == "__main__":

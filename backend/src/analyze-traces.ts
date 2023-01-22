@@ -4,7 +4,11 @@ import { AppDataSource } from "data-source"
 import { ApiTrace, ApiEndpoint, DataField, Alert, OpenApiSpec } from "models"
 import { SpecService } from "services/spec"
 import { RedisClient } from "utils/redis"
-import { TRACES_QUEUE } from "~/constants"
+import {
+  TRACES_QUEUE,
+  TRACE_IN_MEM_EXPIRE_SEC,
+  TRACE_IN_MEM_RETENTION_COUNT,
+} from "~/constants"
 import { QueryRunner } from "typeorm"
 import { QueuedApiTrace } from "@common/types"
 import {
@@ -169,7 +173,7 @@ const analyze = async (
 
   const start4 = performance.now()
   await queryRunner.startTransaction()
-  await retryTypeormTransaction(
+  const traceRes = await retryTypeormTransaction(
     () =>
       getEntityManager(ctx, queryRunner).insert(ApiTrace, [
         {
@@ -181,6 +185,23 @@ const analyze = async (
   )
   mlog.time("analyzer.insert_api_trace_query", performance.now() - start4)
   mlog.debug(`Analyzing Trace - Inserted API Trace: ${traceUUID}`)
+
+  const startTraceRedis = performance.now()
+  const endpointTraceKey = `endpointTraces:e#${apiEndpoint.uuid}`
+  RedisClient.pushValueToRedisList(ctx, endpointTraceKey, [
+    JSON.stringify({
+      ...trace,
+      uuid: traceRes.identifiers[0].uuid,
+      apiEndpointUuid: apiEndpoint.uuid,
+    }),
+  ])
+  RedisClient.ltrim(ctx, endpointTraceKey, 0, TRACE_IN_MEM_RETENTION_COUNT - 1)
+  RedisClient.expire(ctx, endpointTraceKey, TRACE_IN_MEM_EXPIRE_SEC)
+  mlog.time(
+    "analyzer.insert_api_trace_redis",
+    performance.now() - startTraceRedis,
+  )
+  mlog.debug(`Analyzing Trace - Inserted API Trace to Redis: ${traceUUID}`)
 
   const start5 = performance.now()
   await retryTypeormTransaction(

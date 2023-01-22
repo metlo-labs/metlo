@@ -32,6 +32,7 @@ import {
 } from "services/database/utils"
 import { MetloContext } from "types"
 import { retryTypeormTransaction } from "utils/db"
+import { RedisClient } from "utils/redis"
 
 const getDataFieldsQuery = (ctx: MetloContext) => `
 SELECT
@@ -445,11 +446,9 @@ export class GetEndpointsService {
         .from(OpenApiSpec, "spec")
         .andWhere("name = :name", { name: endpoint.openapiSpecName })
         .getRawOne()
-      const traces = await getEntityManager(ctx, queryRunner).find(ApiTrace, {
-        where: { apiEndpointUuid: endpoint.uuid },
-        order: { createdAt: "DESC" },
-        take: 100,
-      })
+      const traceKey = `endpointTraces:e#${endpoint.uuid}`
+      const traceCache = (await RedisClient.lrange(ctx, traceKey, 0, 99)) || []
+      const traces = traceCache.map(e => JSON.parse(e) as ApiTrace)
       const tests = await getEntityManager(ctx, queryRunner).find(
         ApiEndpointTest,
         {
