@@ -1,8 +1,8 @@
 import mlog from "logger"
-import { ApiEndpoint, ApiTrace, DataField } from "models"
+import { Alert, ApiEndpoint, ApiTrace, DataField } from "models"
 import { AppDataSource } from "data-source"
 import { MetloContext } from "types"
-import { getEntityManager, getQB } from "services/database/utils"
+import { getEntityManager, insertValuesBuilder } from "services/database/utils"
 import { RedisClient } from "utils/redis"
 import { getCombinedDataClasses } from "services/data-classes"
 import { getSensitiveDataMap } from "services/scanner/analyze-trace"
@@ -10,6 +10,7 @@ import { QueryRunner } from "typeorm"
 import { DataClass } from "@common/types"
 import { DataTag } from "@common/enums"
 import { getRiskScore } from "utils"
+import { createSensitiveDataAlerts } from "services/alert/sensitive-data"
 
 const MIN_ANALYZE_TRACES = 50
 const MIN_DETECT_THRESH = 0.5
@@ -54,30 +55,45 @@ const detectSensitiveDataEndpoint = async (
   )
   let detectedDataClasses: Record<
     string,
-    { totalCount: number; dataClasses: Record<string, number> }
+    {
+      totalCount: number
+      dataClassCounts: Record<string, number>
+      dataClassToTrace: Record<string, ApiTrace>
+    }
   > = {}
-  sensitiveDataMaps.forEach(dataMap => {
+  sensitiveDataMaps.forEach((dataMap, idx) => {
+    const trace = traces[idx]
     Object.entries(dataMap).map(([key, detectedData]) => {
       if (!detectedDataClasses[key]) {
-        detectedDataClasses[key] = { totalCount: 0, dataClasses: {} }
+        detectedDataClasses[key] = {
+          totalCount: 0,
+          dataClassCounts: {},
+          dataClassToTrace: {},
+        }
       }
       detectedDataClasses[key].totalCount += 1
       detectedData.forEach(e => {
-        if (!detectedDataClasses[key].dataClasses[e]) {
-          detectedDataClasses[key].dataClasses[e] = 0
+        if (!detectedDataClasses[key].dataClassCounts[e]) {
+          detectedDataClasses[key].dataClassCounts[e] = 0
         }
-        detectedDataClasses[key].dataClasses[e] += 1
+        detectedDataClasses[key].dataClassCounts[e] += 1
+        detectedDataClasses[key].dataClassToTrace[e] = trace
       })
     })
   })
 
-  const dataFields = await getEntityManager(ctx, queryRunner).find(DataField, {
-    where: {
-      apiEndpointUuid: endpoint.uuid,
+  const currentDataFields = await getEntityManager(ctx, queryRunner).find(
+    DataField,
+    {
+      where: {
+        apiEndpointUuid: endpoint.uuid,
+      },
     },
-  })
+  )
+
   let newDataFields: DataField[] = []
-  for (const e of dataFields) {
+  let alerts: Alert[] = []
+  for (const e of currentDataFields) {
     const key = `${e.statusCode}_${e.contentType}_${e.dataSection}${
       e.dataPath ? "." : ""
     }${e.dataPath}`
@@ -87,7 +103,7 @@ const detectSensitiveDataEndpoint = async (
       continue
     }
     const totalCount = detectedData.totalCount
-    const detectedFields = Object.entries(detectedData.dataClasses)
+    const detectedFields = Object.entries(detectedData.dataClassCounts)
       .filter(([e, num]) => num / totalCount > MIN_DETECT_THRESH)
       .map(([e, num]) => e)
     const classes = getUniqueDataClasses(e, detectedFields)
@@ -101,8 +117,22 @@ const detectSensitiveDataEndpoint = async (
       }
       await getEntityManager(ctx, queryRunner).save(e)
     }
+    for (const dataClass of detectedFields) {
+      const newAlerts = await createSensitiveDataAlerts(
+        ctx,
+        e,
+        endpoint.uuid,
+        endpoint.path,
+        detectedData.dataClassToTrace[dataClass],
+        queryRunner,
+      )
+      alerts = alerts.concat(newAlerts)
+    }
     newDataFields.push(e)
   }
+  await insertValuesBuilder(ctx, queryRunner, Alert, alerts)
+    .orIgnore()
+    .execute()
   const newRiskScore = getRiskScore(newDataFields)
   if (newRiskScore != endpoint.riskScore) {
     endpoint.riskScore = newRiskScore

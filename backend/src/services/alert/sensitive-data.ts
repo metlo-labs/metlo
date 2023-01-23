@@ -4,8 +4,12 @@ import { Alert, DataField } from "models"
 import { MetloContext } from "types"
 import { AlertType, DataSection, RestMethod } from "@common/enums"
 import { existingUnresolvedAlert } from "./utils"
-import { ALERT_TYPE_TO_RISK_SCORE } from "@common/maps"
+import {
+  ALERT_TYPE_TO_RISK_SCORE,
+  DATA_SECTION_TO_LABEL_MAP,
+} from "@common/maps"
 import mlog from "logger"
+import { getPathTokens } from "@common/utils"
 
 const existingDataFieldAlert = (
   dataFieldAlerts: Alert[],
@@ -123,6 +127,86 @@ export const createUnauthEndpointSenDataAlerts = async (
     mlog.error(
       `Error creating alert for unauthenticated endpoints returning sensitive data: ${err}`,
     )
+    return []
+  }
+}
+
+export const createSensitiveDataAlerts = async (
+  ctx: MetloContext,
+  dataField: DataField,
+  apiEndpointUuid: string,
+  apiEndpointPath: string,
+  apiTrace: QueuedApiTrace,
+  queryRunner: QueryRunner,
+): Promise<Alert[]> => {
+  try {
+    let alerts: Alert[] = []
+    for (const dataClass of dataField.dataClasses) {
+      let alertsToAdd: {
+        description: string
+        type: AlertType
+        context: object
+      }[] = []
+      const description = `Sensitive data of type ${dataClass} has been detected in field '${
+        dataField.dataPath
+      }' of ${DATA_SECTION_TO_LABEL_MAP[dataField.dataSection]}.`
+      alertsToAdd.push({
+        description,
+        type: AlertType.PII_DATA_DETECTED,
+        context: { trace: apiTrace },
+      })
+      if (dataField.dataSection === DataSection.REQUEST_QUERY) {
+        const sensitiveQueryDescription = `Query Parameter '${dataField.dataPath}' contains sensitive data of type ${dataClass}.`
+        alertsToAdd.push({
+          description: sensitiveQueryDescription,
+          type: AlertType.QUERY_SENSITIVE_DATA,
+          context: { trace: apiTrace },
+        })
+      }
+      if (dataField.dataSection === DataSection.REQUEST_PATH) {
+        let pathTokenIdx = null
+        let sensitivePathDescription = `Path Parameters contain sensitive data of type ${dataClass}.`
+        const endpointPathTokens = getPathTokens(apiEndpointPath)
+        for (let i = 0; i < endpointPathTokens.length; i++) {
+          if (endpointPathTokens[i] === `{${dataField.dataPath}}`) {
+            pathTokenIdx = i
+            sensitivePathDescription = `Path Parameter at position ${
+              i + 1
+            } contains sensitive data of type ${dataClass}.`
+          }
+        }
+        alertsToAdd.push({
+          description: sensitivePathDescription,
+          type: AlertType.PATH_SENSITIVE_DATA,
+          context: { trace: apiTrace, pathTokenIdx },
+        })
+      }
+      for (const alert of alertsToAdd) {
+        const existing =
+          existingDataFieldAlert(alerts, apiEndpointUuid, alert.description) ||
+          (await existingUnresolvedAlert(
+            ctx,
+            apiEndpointUuid,
+            alert.type,
+            alert.description,
+            queryRunner,
+          ))
+        if (!existing) {
+          const newAlert = new Alert()
+          newAlert.type = alert.type
+          newAlert.riskScore = ALERT_TYPE_TO_RISK_SCORE[alert.type]
+          newAlert.apiEndpointUuid = apiEndpointUuid
+          newAlert.context = alert.context
+          newAlert.description = alert.description
+          newAlert.createdAt = apiTrace.createdAt
+          newAlert.updatedAt = apiTrace.createdAt
+          alerts.push(newAlert)
+        }
+      }
+    }
+    return alerts
+  } catch (err) {
+    mlog.withErr(err).error("Error creating sensitive data alerts")
     return []
   }
 }
