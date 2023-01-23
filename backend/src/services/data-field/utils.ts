@@ -3,7 +3,6 @@ import { PairObject } from "@common/types"
 import { DataSection, DataTag, DataType } from "@common/enums"
 import { DataField } from "models"
 import { MetloContext } from "types"
-import { scan } from "services/scanner/scan"
 import { getDataType, isParameter, parsedJson, parsedJsonNonNull } from "utils"
 import { getPathTokens } from "@common/utils"
 
@@ -42,28 +41,6 @@ export const isArrayFieldsDiff = (
     return true
   }
   return newFieldKeys.some(e => !oldFields[e] || oldFields[e] !== newFields[e])
-}
-
-export const getUniqueDataClasses = (
-  existingDataField: DataField,
-  dataClasses: string[],
-) => {
-  const classes: Record<"dataClasses" | "scannerIdentified", string[]> = {
-    dataClasses: [...existingDataField.dataClasses],
-    scannerIdentified: [...existingDataField.scannerIdentified],
-  }
-  let updated = false
-  for (const dataClass of dataClasses) {
-    if (
-      !classes.dataClasses.includes(dataClass) &&
-      !existingDataField.falsePositives.includes(dataClass)
-    ) {
-      classes.dataClasses.push(dataClass)
-      classes.scannerIdentified.push(dataClass)
-      updated = true
-    }
-  }
-  return { ...classes, updated }
 }
 
 export const getContentTypes = (
@@ -123,7 +100,6 @@ const updateTraceHashObj = (
 }
 
 const handleDataField = (
-  dataClasses: string[],
   dataPath: string,
   dataSection: DataSection,
   apiEndpointUuid: string,
@@ -168,8 +144,8 @@ const handleDataField = (
     dataField.statusCode = statusCode ?? -1
     dataField.isNullable = dataType === DataType.UNKNOWN
     dataField.arrayFields = { ...arrayFields }
-    dataField.dataClasses = dataClasses
-    dataField.scannerIdentified = dataClasses
+    dataField.dataClasses = []
+    dataField.scannerIdentified = []
     dataField.falsePositives = []
     dataField.createdAt = traceTime
     dataField.updatedAt = traceTime
@@ -195,24 +171,6 @@ const handleDataField = (
       } else if (existingDataField.dataSection === DataSection.RESPONSE_BODY) {
         existingDataField.contentType = contentType ?? ""
         existingDataField.statusCode = statusCode ?? -1
-      }
-    }
-
-    const classes = getUniqueDataClasses(existingDataField, dataClasses)
-    if (classes.updated) {
-      updated = true
-      existingDataField.dataClasses = [...classes.dataClasses]
-      existingDataField.scannerIdentified = [...classes.scannerIdentified]
-      if (
-        existingDataField.dataClasses.length > 0 &&
-        existingDataField.dataTag !== DataTag.PII
-      ) {
-        existingDataField.dataTag = DataTag.PII
-      } else if (
-        existingDataField.dataClasses.length === 0 &&
-        existingDataField.dataTag !== null
-      ) {
-        existingDataField.dataTag = null
       }
     }
 
@@ -272,9 +230,7 @@ const recursiveParseJson = async (
   traceTime: Date,
 ) => {
   if (Object(jsonBody) !== jsonBody) {
-    const dataClasses = await scan(ctx, jsonBody)
     handleDataField(
-      dataClasses,
       dataPathPrefix,
       dataSection,
       apiEndpointUuid,
