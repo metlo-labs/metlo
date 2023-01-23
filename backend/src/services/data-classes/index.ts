@@ -12,8 +12,7 @@ import { getEntityManager } from "services/database/utils"
 import { ArrayOverlap } from "typeorm"
 import { AppDataSource } from "data-source"
 
-const DATA_CLASS_KEY = `METLO_DATA_CLASS`
-
+const DATA_CLASS_KEY = "CACHED_DATA_CLASSES"
 const DEFAULT_CLASSES = Object.values(__DataClass_INTERNAL__)
 
 async function getOrSet(
@@ -28,7 +27,7 @@ async function getOrSet(
     return fetchValue
   } else {
     const fnValue = await fn()
-    await RedisClient.addToRedis(ctx, key, fnValue)
+    await RedisClient.addToRedis(ctx, key, fnValue, 30)
     return fnValue
   }
 }
@@ -49,58 +48,58 @@ function getValidMetloDataClasses(ctx: MetloContext, jsConfig: object) {
   }
 }
 
-export async function getCombinedDataClasses(ctx: MetloContext) {
-  const innerFunction = async () => {
-    let metloConfig = await getMetloConfig(ctx)
-    if (!metloConfig) {
-      metloConfig = {
-        uuid: "",
-        configString: "",
-      }
+export const getCombinedDataClasses = async (ctx: MetloContext) => {
+  let metloConfig = await getMetloConfig(ctx)
+  if (!metloConfig) {
+    metloConfig = {
+      uuid: "",
+      configString: "",
     }
-    const jsConfig = (jsyaml.load(metloConfig.configString) as object) || {}
-    let metloDefinedClassMap = [] as rawDataClass[]
-    let userDefinedClassMap = [] as rawDataClass[]
-    if ("sensitiveData" in jsConfig) {
-      const roughMap = Object.entries(jsConfig["sensitiveData"])
-        .map(([configName, config]) => {
-          const parsedData = customDataClass.safeParse(config)
-          if (parsedData.success) {
-            return { [`${configName}`]: parsedData.data }
-          } else {
-            // TODO ?
-            return undefined
-          }
-        })
-        .filter(v => v !== undefined)
-      roughMap.forEach(v => {
-        const [key, { severity, patterns: regexList, ...rest1 }, ...rest] =
-          Object.entries(v)[0]
-        userDefinedClassMap.push({
-          className: key,
-          severity: RiskScore[severity] as RiskScore,
-          regex: new RegExp(regexList.map(regex => `(${regex})`).join("|")),
-        })
+  }
+  const jsConfig = (jsyaml.load(metloConfig.configString) as object) || {}
+  let metloDefinedClassMap = [] as rawDataClass[]
+  let userDefinedClassMap = [] as rawDataClass[]
+  if ("sensitiveData" in jsConfig) {
+    const roughMap = Object.entries(jsConfig["sensitiveData"])
+      .map(([configName, config]) => {
+        const parsedData = customDataClass.safeParse(config)
+        if (parsedData.success) {
+          return { [`${configName}`]: parsedData.data }
+        } else {
+          // TODO ?
+          return undefined
+        }
       })
-    }
-
-    getValidMetloDataClasses(ctx, jsConfig).forEach(enumKey => {
-      const reg = __DATA_CLASS_REGEX_MAP_INTERNAL__[enumKey]
-      metloDefinedClassMap.push({
-        className: enumKey,
-        severity: __DATA_CLASS_TO_RISK_SCORE_INTERNAL__[enumKey],
-        regex: reg,
+      .filter(v => v !== undefined)
+    roughMap.forEach(v => {
+      const [key, { severity, patterns: regexList, ...rest1 }, ...rest] =
+        Object.entries(v)[0]
+      userDefinedClassMap.push({
+        className: key,
+        severity: RiskScore[severity] as RiskScore,
+        regex: new RegExp(regexList.map(regex => `(${regex})`).join("|")),
       })
     })
-    return [...metloDefinedClassMap, ...userDefinedClassMap].map(cls => {
-      if (cls.regex) {
-        return { ...cls, regex: cls.regex.source }
-      } else {
-        return { className: cls.className, severity: cls.severity }
-      }
-    }) as DataClass[]
   }
-  return getOrSet(ctx, DATA_CLASS_KEY, () => innerFunction())
+  getValidMetloDataClasses(ctx, jsConfig).forEach(enumKey => {
+    const reg = __DATA_CLASS_REGEX_MAP_INTERNAL__[enumKey]
+    metloDefinedClassMap.push({
+      className: enumKey,
+      severity: __DATA_CLASS_TO_RISK_SCORE_INTERNAL__[enumKey],
+      regex: reg,
+    })
+  })
+  return [...metloDefinedClassMap, ...userDefinedClassMap].map(cls => {
+    if (cls.regex) {
+      return { ...cls, regex: cls.regex.source }
+    } else {
+      return { className: cls.className, severity: cls.severity }
+    }
+  }) as DataClass[]
+}
+
+export async function getCombinedDataClassesCached(ctx: MetloContext) {
+  return getOrSet(ctx, DATA_CLASS_KEY, () => getCombinedDataClasses(ctx))
 }
 
 export async function clearDataClassCache(ctx: MetloContext) {
