@@ -213,7 +213,7 @@ const handleDataField = (
   }
 }
 
-const recursiveParseJson = async (
+const recursiveParseJson = (
   ctx: MetloContext,
   dataPathPrefix: string,
   dataSection: DataSection,
@@ -254,7 +254,7 @@ const recursiveParseJson = async (
       arrayFields[arrayFieldKey] = 1
     }
     for (let i = 0; i < l; i++) {
-      await recursiveParseJson(
+      recursiveParseJson(
         ctx,
         dataPathPrefix,
         dataSection,
@@ -273,7 +273,7 @@ const recursiveParseJson = async (
     }
   } else if (typeof jsonBody === DataType.OBJECT) {
     for (const key in jsonBody) {
-      await recursiveParseJson(
+      recursiveParseJson(
         ctx,
         dataPathPrefix ? dataPathPrefix + "." + key : key,
         dataSection,
@@ -293,7 +293,7 @@ const recursiveParseJson = async (
   }
 }
 
-export const findBodyDataFields = async (
+export const findBodyDataFields = (
   ctx: MetloContext,
   dataSection: DataSection,
   body: string,
@@ -318,7 +318,7 @@ export const findBodyDataFields = async (
         "": 1,
       }
       for (let i = 0; i < l; i++) {
-        await recursiveParseJson(
+        recursiveParseJson(
           ctx,
           null,
           dataSection,
@@ -337,7 +337,7 @@ export const findBodyDataFields = async (
       }
     } else if (typeof jsonBody === DataType.OBJECT) {
       for (let key in jsonBody) {
-        await recursiveParseJson(
+        recursiveParseJson(
           ctx,
           key,
           dataSection,
@@ -355,7 +355,7 @@ export const findBodyDataFields = async (
         )
       }
     } else {
-      await recursiveParseJson(
+      recursiveParseJson(
         ctx,
         null,
         dataSection,
@@ -375,7 +375,7 @@ export const findBodyDataFields = async (
   }
 }
 
-export const findPairObjectDataFields = async (
+export const findPairObjectDataFields = (
   ctx: MetloContext,
   dataSection: DataSection,
   data: PairObject[],
@@ -393,7 +393,7 @@ export const findPairObjectDataFields = async (
     for (const item of data) {
       const field = item.name
       const jsonBody = parsedJson(item.value)
-      await recursiveParseJson(
+      recursiveParseJson(
         ctx,
         field,
         dataSection,
@@ -413,7 +413,7 @@ export const findPairObjectDataFields = async (
   }
 }
 
-export const findPathDataFields = async (
+export const findPathDataFields = (
   ctx: MetloContext,
   path: string,
   endpointPath: string,
@@ -436,7 +436,7 @@ export const findPathDataFields = async (
   for (let i = 0; i < endpointPathTokens.length; i++) {
     const currToken = endpointPathTokens[i]
     if (isParameter(currToken)) {
-      await recursiveParseJson(
+      recursiveParseJson(
         ctx,
         currToken.slice(1, -1),
         DataSection.REQUEST_PATH,
