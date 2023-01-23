@@ -9,6 +9,7 @@ import { getSensitiveDataMap } from "services/scanner/analyze-trace"
 import { QueryRunner } from "typeorm"
 import { DataClass } from "@common/types"
 import { DataTag } from "@common/enums"
+import { getRiskScore } from "utils"
 
 const MIN_ANALYZE_TRACES = 50
 const MIN_DETECT_THRESH = 0.5
@@ -37,12 +38,11 @@ export const getUniqueDataClasses = (
 
 const detectSensitiveDataEndpoint = async (
   ctx: MetloContext,
-  uuid: string,
-  path: string,
+  endpoint: ApiEndpoint,
   dataClasses: DataClass[],
   queryRunner: QueryRunner,
 ): Promise<void> => {
-  const endpointTraceKey = `endpointTraces:e#${uuid}`
+  const endpointTraceKey = `endpointTraces:e#${endpoint.uuid}`
   const traceCache =
     (await RedisClient.lrange(ctx, endpointTraceKey, 0, -1)) || []
   if (traceCache.length < MIN_ANALYZE_TRACES) {
@@ -50,7 +50,7 @@ const detectSensitiveDataEndpoint = async (
   }
   const traces = traceCache.map(e => JSON.parse(e) as ApiTrace)
   const sensitiveDataMaps = traces.map(e =>
-    getSensitiveDataMap(dataClasses, e, path),
+    getSensitiveDataMap(dataClasses, e, endpoint.path),
   )
   let detectedDataClasses: Record<
     string,
@@ -73,15 +73,17 @@ const detectSensitiveDataEndpoint = async (
 
   const dataFields = await getEntityManager(ctx, queryRunner).find(DataField, {
     where: {
-      apiEndpointUuid: uuid,
+      apiEndpointUuid: endpoint.uuid,
     },
   })
+  let newDataFields: DataField[] = []
   for (const e of dataFields) {
     const key = `${e.statusCode}_${e.contentType}_${e.dataSection}${
       e.dataPath ? "." : ""
     }${e.dataPath}`
     const detectedData = detectedDataClasses[key]
     if (!(detectedData && detectedData.totalCount > MIN_ANALYZE_TRACES)) {
+      newDataFields.push(e)
       continue
     }
     const totalCount = detectedData.totalCount
@@ -99,6 +101,12 @@ const detectSensitiveDataEndpoint = async (
       }
       await getEntityManager(ctx, queryRunner).save(e)
     }
+    newDataFields.push(e)
+  }
+  const newRiskScore = getRiskScore(newDataFields)
+  if (newRiskScore != endpoint.riskScore) {
+    endpoint.riskScore = newRiskScore
+    await getEntityManager(ctx, queryRunner).save(endpoint)
   }
 }
 
@@ -106,28 +114,16 @@ const detectSensitiveData = async (ctx: MetloContext): Promise<void> => {
   const queryRunner = AppDataSource.createQueryRunner()
   await queryRunner.connect()
   try {
-    const endpoints: { uuid: string; path: string }[] = await getQB(
-      ctx,
-      queryRunner,
-    )
-      .select(["uuid", "path"])
-      .from(ApiEndpoint, "endpoint")
-      .execute()
+    const endpoints = await getEntityManager(ctx, queryRunner).find(ApiEndpoint)
     const dataClasses = await getCombinedDataClasses(ctx)
-    for (const { uuid, path } of endpoints) {
+    for (const e of endpoints) {
       try {
-        await detectSensitiveDataEndpoint(
-          ctx,
-          uuid,
-          path,
-          dataClasses,
-          queryRunner,
-        )
+        await detectSensitiveDataEndpoint(ctx, e, dataClasses, queryRunner)
       } catch (err) {
         mlog
           .withErr(err)
           .error(
-            `Encountered error while detecting sensitive data for endpoint ${uuid}`,
+            `Encountered error while detecting sensitive data for endpoint ${e.uuid}`,
           )
       }
     }
