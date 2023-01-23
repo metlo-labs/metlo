@@ -21,7 +21,7 @@ class PaymentProcessorUserProducer(BaseProducer):
             "name": self.fake.first_name(),
             "email": self.fake.free_email(),
             "address": self.fake.address(),
-            "phoneNumber": self.fake.phone_number(),
+            "phoneNumber": self.get_fake_phonenum(),
         }
         return {
             "request": {
