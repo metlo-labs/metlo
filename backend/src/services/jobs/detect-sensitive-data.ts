@@ -106,7 +106,6 @@ const detectSensitiveData = async (ctx: MetloContext): Promise<void> => {
   const queryRunner = AppDataSource.createQueryRunner()
   await queryRunner.connect()
   try {
-    await queryRunner.startTransaction()
     const endpoints: { uuid: string; path: string }[] = await getQB(
       ctx,
       queryRunner,
@@ -116,12 +115,24 @@ const detectSensitiveData = async (ctx: MetloContext): Promise<void> => {
       .execute()
     const dataClasses = await getCombinedDataClasses(ctx)
     for (const { uuid, path } of endpoints) {
-      await detectSensitiveDataEndpoint(ctx, uuid, path, dataClasses, queryRunner)
+      try {
+        await detectSensitiveDataEndpoint(
+          ctx,
+          uuid,
+          path,
+          dataClasses,
+          queryRunner,
+        )
+      } catch (err) {
+        mlog
+          .withErr(err)
+          .error(
+            `Encountered error while detecting sensitive data for endpoint ${uuid}`,
+          )
+      }
     }
-    await queryRunner.commitTransaction()
   } catch (err) {
     mlog.withErr(err).error("Encountered error while detecting sensitive data")
-    await queryRunner.rollbackTransaction()
   } finally {
     await queryRunner?.release()
   }
