@@ -120,7 +120,7 @@ const detectSensitiveData = async (ctx: MetloContext): Promise<void> => {
     }
     await queryRunner.commitTransaction()
   } catch (err) {
-    mlog.withErr(err).error("Encountered error while clearing trace data")
+    mlog.withErr(err).error("Encountered error while detecting sensitive data")
     await queryRunner.rollbackTransaction()
   } finally {
     await queryRunner?.release()
