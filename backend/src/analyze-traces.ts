@@ -144,15 +144,14 @@ const analyze = async (
   mlog.debug(`Analyzing Trace - Found OpenAPI Spec Diffs: ${traceUUID}`)
 
   const start3 = performance.now()
-  const sensitiveDataAlerts = await createDataFieldAlerts(
+  const dataFieldAlerts = await createDataFieldAlerts(
     ctx,
     dataFields.newFields.concat(dataFields.updatedFields),
     apiEndpoint.uuid,
-    apiEndpoint.path,
     trace,
     queryRunner,
   )
-  alerts = alerts?.concat(sensitiveDataAlerts)
+  alerts = alerts.concat(dataFieldAlerts)
   mlog.time("analyzer.create_data_field_alerts", performance.now() - start3)
   mlog.debug(`Analyzing Trace - Created Data Field Alerts: ${traceUUID}`)
 
@@ -161,7 +160,7 @@ const analyze = async (
       apiEndpoint,
       trace.createdAt,
     )
-    alerts = alerts?.concat(newEndpointAlert)
+    alerts = alerts.concat(newEndpointAlert)
   }
 
   if (Array.isArray(trace.requestBody)) {

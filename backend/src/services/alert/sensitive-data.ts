@@ -4,11 +4,7 @@ import { Alert, DataField } from "models"
 import { MetloContext } from "types"
 import { AlertType, DataSection, RestMethod } from "@common/enums"
 import { existingUnresolvedAlert } from "./utils"
-import {
-  ALERT_TYPE_TO_RISK_SCORE,
-  DATA_SECTION_TO_LABEL_MAP,
-} from "@common/maps"
-import { getPathTokens } from "@common/utils"
+import { ALERT_TYPE_TO_RISK_SCORE } from "@common/maps"
 import mlog from "logger"
 
 const existingDataFieldAlert = (
@@ -34,129 +30,54 @@ export const createDataFieldAlerts = async (
   ctx: MetloContext,
   dataFields: DataField[],
   apiEndpointUuid: string,
-  apiEndpointPath: string,
   apiTrace: QueuedApiTrace,
   queryRunner: QueryRunner,
-  sensitiveDataAlerts?: Alert[],
 ): Promise<Alert[]> => {
   try {
     if (!dataFields) {
       return []
     }
-
-    let alerts: Alert[] = sensitiveDataAlerts ?? []
+    let alerts: Alert[] = []
     for (const dataField of dataFields) {
       if (dataField.dataSection === DataSection.REQUEST_HEADER) {
         const requestHeaders = apiTrace?.requestHeaders
         const basicAuthDescription = `Basic Authentication detected in Authorization header.`
-        if (requestHeaders) {
-          let found = false
-          for (let i = 0; i < requestHeaders.length && !found; i++) {
-            const header = requestHeaders[i]
-            if (
-              header.name.toLowerCase() === "authorization" &&
-              header.value.toLowerCase().includes("basic ")
-            ) {
-              found = true
-              const existing =
-                existingDataFieldAlert(
-                  alerts,
-                  apiEndpointUuid,
-                  basicAuthDescription,
-                ) ||
-                (await existingUnresolvedAlert(
-                  ctx,
-                  apiEndpointUuid,
-                  AlertType.BASIC_AUTHENTICATION_DETECTED,
-                  basicAuthDescription,
-                  queryRunner,
-                ))
-              if (!existing) {
-                const newAlert = new Alert()
-                newAlert.type = AlertType.BASIC_AUTHENTICATION_DETECTED
-                newAlert.riskScore =
-                  ALERT_TYPE_TO_RISK_SCORE[
-                    AlertType.BASIC_AUTHENTICATION_DETECTED
-                  ]
-                newAlert.apiEndpointUuid = apiEndpointUuid
-                newAlert.context = {
-                  trace: apiTrace,
-                }
-                newAlert.description = basicAuthDescription
-                newAlert.createdAt = apiTrace.createdAt
-                newAlert.updatedAt = apiTrace.createdAt
-                alerts.push(newAlert)
-              }
-            }
-          }
+        if (!requestHeaders) {
+          continue
         }
-      }
-
-      if (dataField.dataClasses) {
-        for (const dataClass of dataField.dataClasses) {
-          let alertsToAdd: {
-            description: string
-            type: AlertType
-            context: object
-          }[] = []
-
-          const description = `Sensitive data of type ${dataClass} has been detected in field '${
-            dataField.dataPath
-          }' of ${DATA_SECTION_TO_LABEL_MAP[dataField.dataSection]}.`
-          alertsToAdd.push({
-            description,
-            type: AlertType.PII_DATA_DETECTED,
-            context: { trace: apiTrace },
-          })
-
-          if (dataField.dataSection === DataSection.REQUEST_QUERY) {
-            const sensitiveQueryDescription = `Query Parameter '${dataField.dataPath}' contains sensitive data of type ${dataClass}.`
-            alertsToAdd.push({
-              description: sensitiveQueryDescription,
-              type: AlertType.QUERY_SENSITIVE_DATA,
-              context: { trace: apiTrace },
-            })
-          }
-          if (dataField.dataSection === DataSection.REQUEST_PATH) {
-            let pathTokenIdx = null
-            let sensitivePathDescription = `Path Parameters contain sensitive data of type ${dataClass}.`
-            const endpointPathTokens = getPathTokens(apiEndpointPath)
-            for (let i = 0; i < endpointPathTokens.length; i++) {
-              if (endpointPathTokens[i] === `{${dataField.dataPath}}`) {
-                pathTokenIdx = i
-                sensitivePathDescription = `Path Parameter at position ${
-                  i + 1
-                } contains sensitive data of type ${dataClass}.`
-              }
-            }
-            alertsToAdd.push({
-              description: sensitivePathDescription,
-              type: AlertType.PATH_SENSITIVE_DATA,
-              context: { trace: apiTrace, pathTokenIdx },
-            })
-          }
-
-          for (const alert of alertsToAdd) {
+        let found = false
+        for (let i = 0; i < requestHeaders.length && !found; i++) {
+          const header = requestHeaders[i]
+          if (
+            header.name.toLowerCase() === "authorization" &&
+            header.value.toLowerCase().includes("basic ")
+          ) {
+            found = true
             const existing =
               existingDataFieldAlert(
                 alerts,
                 apiEndpointUuid,
-                alert.description,
+                basicAuthDescription,
               ) ||
               (await existingUnresolvedAlert(
                 ctx,
                 apiEndpointUuid,
-                alert.type,
-                alert.description,
+                AlertType.BASIC_AUTHENTICATION_DETECTED,
+                basicAuthDescription,
                 queryRunner,
               ))
             if (!existing) {
               const newAlert = new Alert()
-              newAlert.type = alert.type
-              newAlert.riskScore = ALERT_TYPE_TO_RISK_SCORE[alert.type]
+              newAlert.type = AlertType.BASIC_AUTHENTICATION_DETECTED
+              newAlert.riskScore =
+                ALERT_TYPE_TO_RISK_SCORE[
+                  AlertType.BASIC_AUTHENTICATION_DETECTED
+                ]
               newAlert.apiEndpointUuid = apiEndpointUuid
-              newAlert.context = alert.context
-              newAlert.description = alert.description
+              newAlert.context = {
+                trace: apiTrace,
+              }
+              newAlert.description = basicAuthDescription
               newAlert.createdAt = apiTrace.createdAt
               newAlert.updatedAt = apiTrace.createdAt
               alerts.push(newAlert)
@@ -167,7 +88,7 @@ export const createDataFieldAlerts = async (
     }
     return alerts
   } catch (err) {
-    mlog.withErr(err).error("Error creating sensitive data alerts")
+    mlog.withErr(err).error("Error creating data field alerts")
     return []
   }
 }
