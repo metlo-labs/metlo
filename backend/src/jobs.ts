@@ -130,7 +130,7 @@ const main = async () => {
     )
   })
 
-  schedule.scheduleJob("*/1 * * * *", async () => {
+  schedule.scheduleJob("*/15 * * * *", async () => {
     await detectSensitiveDataQueue.add(
       `${JobName.DETECT_SENSITIVE_DATA}`,
       {},
