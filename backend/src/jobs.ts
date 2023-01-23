@@ -58,6 +58,7 @@ const main = async () => {
   const updateEndpointIpsQueue = createQueue(JobName.UPDATE_ENDPOINT_IPS)
   const logAggregatedStatsQueue = createQueue(JobName.LOG_AGGREGATED_STATS)
   const fixEndpointsQueue = createQueue(JobName.FIX_ENDPOINTS)
+  const detectSensitiveDataQueue = createQueue(JobName.DETECT_SENSITIVE_DATA)
 
   const queues: QueueInterface[] = [
     specQueue,
@@ -126,6 +127,14 @@ const main = async () => {
       `${JobName.FIX_ENDPOINTS}`,
       {},
       { ...defaultJobOptions, jobId: JobName.FIX_ENDPOINTS },
+    )
+  })
+
+  schedule.scheduleJob("*/1 * * * *", async () => {
+    await detectSensitiveDataQueue.add(
+      `${JobName.DETECT_SENSITIVE_DATA}`,
+      {},
+      { ...defaultJobOptions, jobId: JobName.DETECT_SENSITIVE_DATA },
     )
   })
 

@@ -41,5 +41,10 @@ export const JOB_NAME_MAP: Record<JobName, JobMap> = {
     start: "Fixing endpoints...",
     end: "Finished Fixing endpoints",
     threshold: 1000 * 60 * 55,
-  }
+  },
+  [JobName.DETECT_SENSITIVE_DATA]: {
+    start: "Detecting Sensitive Data...",
+    end: "Finished Detecting Sensitive Data",
+    threshold: 1000 * 60 * 55,
+  },
 }
