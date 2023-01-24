@@ -105,18 +105,22 @@ const getContentTypes = (trace: ApiTrace) => {
   let respContentType = "*/*"
   trace.requestHeaders.forEach(e => {
     if (e.name.toLowerCase() == "content-type") {
-      const mimeType = getMimeType(e.value)
-      if (mimeType.essence) {
-        reqContentType = mimeType.essence
-      }
+      try {
+        const mimeType = getMimeType(e.value)
+        if (mimeType?.essence) {
+          reqContentType = mimeType.essence
+        }
+      } catch {}
     }
   })
   trace.responseHeaders.forEach(e => {
     if (e.name.toLowerCase() == "content-type") {
-      const mimeType = getMimeType(e.value)
-      if (mimeType.essence) {
-        respContentType = mimeType.essence
-      }
+      try {
+        const mimeType = getMimeType(e.value)
+        if (mimeType?.essence) {
+          respContentType = mimeType.essence
+        }
+      } catch {}
     }
   })
   return { reqContentType, respContentType }

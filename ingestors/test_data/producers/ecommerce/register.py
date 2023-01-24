@@ -22,7 +22,7 @@ class EcommerceRegisterProducer(BaseProducer):
             "name": self.fake.first_name(),
             "email": self.fake.free_email(),
             "address": self.fake.address(),
-            "phoneNumber": self.fake.phone_number(),
+            "phoneNumber": self.get_fake_phonenum(),
             "dob": self.fake.date_of_birth().isoformat(),
             "password": self.fake.sentence(nb_words=5),
         }

@@ -4,7 +4,7 @@ import { DatabaseService } from "services/database"
 import { ApiEndpoint, DataField } from "models"
 import { MetloContext } from "types"
 import { RedisClient } from "utils/redis"
-import { getCombinedDataClasses } from "services/data-classes"
+import { getCombinedDataClassesCached } from "services/data-classes"
 
 export const getPIIDataTypeCount = async (ctx: MetloContext) => {
   const piiDataTypeCountRes: { type: string; cnt: number }[] =
@@ -52,7 +52,7 @@ export const getPIIDataTypeAgg = async (
     queryParams.push(params.riskScores)
   }
 
-  const DataClassInfo = await getCombinedDataClasses(ctx)
+  const DataClassInfo = await getCombinedDataClassesCached(ctx)
   const riskMap = DataClassInfo.map(
     ({ className, severity }) =>
       `WHEN unnest_fields.data_class = '${className}' THEN '${severity}'`,

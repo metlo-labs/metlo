@@ -6,9 +6,9 @@ import { GetEndpointsService } from "services/get-endpoints"
 import { MetloRequest } from "types"
 import { AppDataSource } from "data-source"
 import { createQB, getQB } from "services/database/utils"
-import { Alert, DataField } from "models"
+import { Alert, ApiEndpoint, DataField } from "models"
 import Error500InternalServer from "errors/error-500-internal-server"
-import { AlertType } from "@common/enums"
+import { AlertType, RiskScore } from "@common/enums"
 
 export const updateDataFieldClasses = async (
   req: MetloRequest,
@@ -66,6 +66,12 @@ export const bulkDeleteDataFieldsHandler = async (
   try {
     await createQB(req.ctx).delete().from(DataField).execute()
     await createQB(req.ctx)
+      .update(ApiEndpoint)
+      .set({
+        riskScore: RiskScore.NONE,
+      })
+      .execute()
+    await createQB(req.ctx)
       .delete()
       .from(Alert)
       .andWhere(`"type" IN(:...alertTypes)`, {
@@ -98,6 +104,12 @@ export const clearAllSensitiveDataHandler = async (
         falsePositives: [],
         scannerIdentified: [],
         dataTag: null,
+      })
+      .execute()
+    await getQB(req.ctx, queryRunner)
+      .update(ApiEndpoint)
+      .set({
+        riskScore: RiskScore.NONE,
       })
       .execute()
     await getQB(req.ctx, queryRunner)

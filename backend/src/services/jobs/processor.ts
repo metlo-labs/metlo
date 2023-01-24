@@ -7,6 +7,7 @@ import { JOB_NAME_MAP } from "./constants"
 import generateOpenApiSpec from "./generate-openapi-spec"
 import monitorEndpointForHSTS from "./monitor-endpoint-hsts"
 import fixEndpoints from "./fix-endpoints"
+import detectSensitiveData from "./detect-sensitive-data"
 import { JobName } from "./types"
 import { wrapProcessor } from "./wrap-processor"
 import { updateEndpointIps } from "analyze/jobs"
@@ -45,6 +46,9 @@ const processor = async (job: Job, done) => {
       break
     case JobName.FIX_ENDPOINTS:
       await fixEndpoints(ctx)
+      break
+    case JobName.DETECT_SENSITIVE_DATA:
+      await detectSensitiveData(ctx)
       break
     default:
       break

@@ -29,7 +29,7 @@ const getCurrentDataFieldsMap = (
   return [res, currNumDataFields]
 }
 
-const findAllDataFields = async (
+const findAllDataFields = (
   ctx: MetloContext,
   apiTrace: QueuedApiTrace,
   apiEndpointPath: string,
@@ -46,7 +46,7 @@ const findAllDataFields = async (
     apiTrace.responseHeaders,
   )
 
-  await findPathDataFields(
+  findPathDataFields(
     ctx,
     apiTrace.path,
     apiEndpointPath,
@@ -59,7 +59,7 @@ const findAllDataFields = async (
     apiTrace.createdAt,
   )
   if (statusCode < 400) {
-    await findPairObjectDataFields(
+    findPairObjectDataFields(
       ctx,
       DataSection.REQUEST_QUERY,
       apiTrace.requestParameters,
@@ -73,7 +73,7 @@ const findAllDataFields = async (
       updatedDataFieldMap,
       apiTrace.createdAt,
     )
-    await findPairObjectDataFields(
+    findPairObjectDataFields(
       ctx,
       DataSection.REQUEST_HEADER,
       apiTrace.requestHeaders,
@@ -87,7 +87,7 @@ const findAllDataFields = async (
       updatedDataFieldMap,
       apiTrace.createdAt,
     )
-    await findBodyDataFields(
+    findBodyDataFields(
       ctx,
       DataSection.REQUEST_BODY,
       apiTrace.requestBody,
@@ -102,7 +102,7 @@ const findAllDataFields = async (
       apiTrace.createdAt,
     )
   }
-  await findPairObjectDataFields(
+  findPairObjectDataFields(
     ctx,
     DataSection.RESPONSE_HEADER,
     apiTrace.responseHeaders,
@@ -116,7 +116,7 @@ const findAllDataFields = async (
     updatedDataFieldMap,
     apiTrace.createdAt,
   )
-  await findBodyDataFields(
+  findBodyDataFields(
     ctx,
     DataSection.RESPONSE_BODY,
     apiTrace.responseBody,
@@ -150,7 +150,7 @@ export const findDataFieldsToSave = async (
   const newDataFieldMap: Record<string, DataField> = {}
   const updatedDataFieldMap: Record<string, UpdatedDataField> = {}
   const dataFieldLength: DataFieldLength = { numDataFields: currNumDataFields }
-  await findAllDataFields(
+  findAllDataFields(
     ctx,
     apiTrace,
     apiEndpoint?.path,

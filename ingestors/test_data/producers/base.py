@@ -14,6 +14,12 @@ class BaseProducer:
         self.fake = Faker()
         self.fake.add_provider(internet)
 
+    def get_fake_phonenum(self):
+        out = self.fake.phone_number()
+        if 'x' in out:
+            return out.split('x')[0]
+        return out
+
     def should_emit(self, time: datetime) -> bool:
         emit_probability = self.tick_length / self.avg_emit_delta
         return random() < emit_probability
