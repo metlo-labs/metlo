@@ -26,6 +26,7 @@ export const __DATA_CLASS_TO_RISK_SCORE_INTERNAL__: Record<__DataClass_INTERNAL_
   [__DataClass_INTERNAL__.VIN]: RiskScore.LOW,
   [__DataClass_INTERNAL__.COORDINATE]: RiskScore.MEDIUM,
   [__DataClass_INTERNAL__.DL_NUMBER]: RiskScore.MEDIUM,
+  [__DataClass_INTERNAL__.AADHAR_NUMBER]: RiskScore.HIGH,
   "": RiskScore.NONE,
 }
 

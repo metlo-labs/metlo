@@ -119,6 +119,9 @@ const phoneNumberPattern = String.raw`${boundaryPrefix}(?:(?:(?<![\d-])(?:\+?\d{
 // Vehicle identification patterns
 const vinPattern = String.raw`${boundaryPrefix}[A-HJ-NPR-Z0-9]{17}${boundarySuffix}`
 
+// Aadhar number pattern
+const aadharPatern = String.raw`${boundaryPrefix}([0-9]{12})|([0-9]{4} [0-9]{4} [0-9]{4})${boundarySuffix}`
+
 /*** Compiled Regexp ***/
 export const ADDRESS_REGEXP = new RegExp(addressPattern)
 export const DRIVER_LICENSE_REGEXP = new RegExp(driverLicensePattern)
@@ -130,3 +133,4 @@ export const EMAIL_REGEXP = new RegExp(emailPattern)
 export const SSN_REGEXP = new RegExp(ssnPattern)
 export const PHONE_NUMBER_REGEXP = new RegExp(phoneNumberPattern)
 export const VIN_REGEXP = new RegExp(vinPattern)
+export const AADHAR_REGEXP = new RegExp(aadharPatern)

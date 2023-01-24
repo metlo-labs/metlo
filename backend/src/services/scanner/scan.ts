@@ -1,5 +1,6 @@
 import { __DataClass_INTERNAL__ } from "@common/enums"
 import {
+  AADHAR_REGEXP,
   ADDRESS_REGEXP,
   COORDINATE_REGEXP,
   CREDIT_CARD_REGEXP,
@@ -9,6 +10,7 @@ import {
   SSN_REGEXP,
 } from "services/scanner/regexp"
 import { DataClass } from "@common/types"
+import { validateAadhar } from "./validate"
 
 export const __DATA_CLASS_REGEX_MAP_INTERNAL__ = {
   [__DataClass_INTERNAL__.ADDRESS]: ADDRESS_REGEXP,
@@ -18,6 +20,7 @@ export const __DATA_CLASS_REGEX_MAP_INTERNAL__ = {
   [__DataClass_INTERNAL__.IP_ADDRESS]: IP_ADDRESS_REGEXP,
   [__DataClass_INTERNAL__.PHONE_NUMBER]: PHONE_NUMBER_REGEXP,
   [__DataClass_INTERNAL__.SSN]: SSN_REGEXP,
+  [__DataClass_INTERNAL__.AADHAR_NUMBER]: AADHAR_REGEXP,
 }
 
 const STRING_ONLY_DATA_CLASSES: Set<string> = new Set([
@@ -26,7 +29,12 @@ const STRING_ONLY_DATA_CLASSES: Set<string> = new Set([
   __DataClass_INTERNAL__.COORDINATE,
   __DataClass_INTERNAL__.IP_ADDRESS,
   __DataClass_INTERNAL__.EMAIL,
+  __DataClass_INTERNAL__.AADHAR_NUMBER,
 ])
+
+export const VALIDATION_FUNC_MAP: Record<any, (e: string) => boolean> = {
+  [__DataClass_INTERNAL__.AADHAR_NUMBER]: validateAadhar,
+}
 
 export const scan = (text: any, dataClasses: DataClass[]): string[] => {
   const res: string[] = []
@@ -41,9 +49,18 @@ export const scan = (text: any, dataClasses: DataClass[]): string[] => {
       if (STRING_ONLY_DATA_CLASSES.has(className) && typeof text !== "string") {
         return
       }
-      const match = new RegExp(exp).test(convertedText)
+      const r = new RegExp(exp)
+      const match = r.test(convertedText)
       if (match) {
-        res.push(className)
+        const validationFunc = VALIDATION_FUNC_MAP[className]
+        if (validationFunc) {
+          const matchArr = convertedText.match(r)
+          if (matchArr && validationFunc(matchArr[0])) {
+            res.push(className)
+          }
+        } else {
+          res.push(className)
+        }
       }
     }
   })
