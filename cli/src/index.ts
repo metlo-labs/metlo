@@ -15,7 +15,7 @@ import { pushTemplates } from "./testing/push-template"
 import { initCustomTemplates } from "./testing/init-custom-templates"
 import { mapOptionParser } from "./utils"
 
-program.name("metlo").description("Metlo's command line tool.").version("0.2.2")
+program.name("metlo").description("Metlo's command line tool.").version("0.2.9")
 
 program
   .command("init")

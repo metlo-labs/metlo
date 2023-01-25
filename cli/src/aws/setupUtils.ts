@@ -1,8 +1,8 @@
+import chalk from "chalk"
 import {
   CreateTrafficMirrorFilterCommandOutput,
   DescribeInstancesCommandInput,
   DescribeInstancesCommand,
-  EC2Client,
 } from "@aws-sdk/client-ec2"
 import { STSClient } from "@aws-sdk/client-sts"
 import {
@@ -17,10 +17,29 @@ import { EC2_CONN, getEC2Client } from "./ec2Utils"
 
 import { AWS_SOURCE_TYPE, TrafficFilterRuleSpecs } from "./types"
 
+export const getSTSClient = (region?: string) => {
+  if (
+    process.env.METLO_AWS_ACCESS_KEY_ID &&
+    process.env.METLO_AWS_SECRET_ACCESS_KEY
+  ) {
+    console.log(
+      chalk.bold.dim(
+        `Using credentials in "METLO_AWS_ACCESS_KEY_ID" and "METLO_AWS_SECRET_ACCESS_KEY" for STS Client.`,
+      ),
+    )
+    return new STSClient({
+      region,
+      credentials: {
+        accessKeyId: process.env.METLO_AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.METLO_AWS_SECRET_ACCESS_KEY,
+      },
+    })
+  }
+  return new STSClient({ region })
+}
+
 export const awsKeySetup = async (region: string) => {
-  let client = new STSClient({
-    region,
-  })
+  const client = getSTSClient(region)
   await verifyIdentity(client)
   client.destroy()
 }
