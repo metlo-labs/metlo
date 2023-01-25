@@ -56,22 +56,20 @@ export const AssertionSchema = z.union([
   z.string(),
 ])
 
-export const PayloadSchema = z
-  .object({
-    key: z.string(),
-    value: z.union([PredefinedPayloadType, z.string()]),
-  })
-  .array()
+export const PayloadSchema = z.object({
+  key: z.string(),
+  value: z.union([PredefinedPayloadType, z.string()]),
+})
 
 export const TestStepSchema = z.object({
   request: RequestSchema,
   extract: ExtractorSchema.array().optional(),
   assert: AssertionSchema.array().optional(),
-  payload: PayloadSchema.optional(),
+  payload: PayloadSchema.array().optional(),
 })
 
-export const ConfigSchema = z.object({
-  stopOnFailedAssertion: z.boolean().optional(),
+export const TestOptionsSchema = z.object({
+  stopOnFailure: z.boolean().optional(),
 })
 
 export const TestConfigSchema = z.object({
@@ -79,7 +77,7 @@ export const TestConfigSchema = z.object({
   meta: MetaSchema.optional(),
   env: KeyValSchema.array().optional(),
   test: TestStepSchema.array(),
-  config: ConfigSchema.optional(),
+  options: TestOptionsSchema.optional(),
 })
 
 export type TestMeta = z.infer<typeof MetaSchema>
@@ -90,7 +88,7 @@ export type KeyValType = z.infer<typeof KeyValSchema>
 export type TestRequest = z.infer<typeof RequestSchema>
 export type TestStep = z.infer<typeof TestStepSchema>
 export type TestConfig = z.infer<typeof TestConfigSchema>
-export type Config = z.infer<typeof ConfigSchema>
+export type TestOptions = z.infer<typeof TestOptionsSchema>
 
 export interface StepRequest {
   url: string

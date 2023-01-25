@@ -1,5 +1,5 @@
 // Taken from https://raw.githubusercontent.com/payloadbox/sql-injection-payload-list/master/Intruder/detect/Generic_TimeBased.txt
-const SQLI_TIME = [
+export const SQLI_TIME = [
   String.raw`sleep(5)#`,
   String.raw`1 or sleep(5)#`,
   String.raw`" or sleep(5)#`,

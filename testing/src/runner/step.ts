@@ -5,7 +5,7 @@ import {
   StepResult,
   StepResponse,
   StepRequest,
-  Config,
+  TestOptions,
   PayloadType,
 } from "../types/test"
 import { Context } from "../types/context"
@@ -13,7 +13,6 @@ import { makeRequest } from "./request"
 import { runAssertion } from "./assertions"
 import { runExtractor } from "./extractors"
 import { AxiosResponse } from "axios"
-import { PredefinedPayloadTypeArray } from "../types/enums"
 import { getValues } from "../data"
 import { cartesian } from "./utils"
 
@@ -21,6 +20,8 @@ const axiosRespToStepResponse = (res: AxiosResponse): StepResponse => ({
   data: res.data,
   status: res.status,
   statusText: res.statusText,
+  // @ts-ignore
+  duration: res.duration,
   headers: Object.entries(res.headers).map(([key, val]) => {
     let strVal: string = ""
     if (Array.isArray(val)) {
@@ -40,10 +41,10 @@ const runStepPayloads = async (
   step: TestStep,
   nextSteps: TestStep[],
   ctx: Context,
-  config: Config,
+  config: TestOptions,
 ): Promise<TestResult> => {
   const payloadValues: { [key: string]: string[] } = {}
-  step.payload = step.payload as PayloadType
+  step.payload = step.payload as PayloadType[]
   step.payload.forEach(payloadEntry => {
     const payload = payloadEntry.value
     if (payloadEntry.key in payloadValues) {
@@ -53,25 +54,29 @@ const runStepPayloads = async (
     }
   })
 
-  const results = await Promise.all(
-    cartesian(payloadValues).map(data => {
-      const newCtx = {
-        ...ctx,
-        envVars: { ...ctx.envVars, ...data },
-      }
-      return runStep(
-        idx,
-        {
-          extract: step.extract,
-          assert: step.assert,
-          request: step.request,
-        },
-        nextSteps,
-        newCtx,
-        config,
-      )
-    }),
-  )
+  let results: TestResult[] = []
+  for (const data of cartesian(payloadValues)) {
+    const newCtx = {
+      ...ctx,
+      envVars: { ...ctx.envVars, ...data },
+    }
+    const currRes = await runStep(
+      idx,
+      {
+        extract: step.extract,
+        assert: step.assert,
+        request: step.request,
+      },
+      nextSteps,
+      newCtx,
+      config,
+    )
+    results.push(currRes)
+    if (!currRes.success && config.stopOnFailure) {
+      break
+    }
+  }
+
   const flatResults = results.map(e => e.results.flat()).flat()
   const groupedResults = {} as Record<number, StepResult[]>
   flatResults.forEach(res => {
@@ -85,7 +90,7 @@ const runStepPayloads = async (
     .sort(([key1, res1], [key2, res2]) => (key1 < key2 ? 1 : -1))
     .map(([key, res]) => res)
   return {
-    success: results.every(e => e),
+    success: results.every(e => e.success),
     results: combinedResults,
   }
 }
@@ -95,10 +100,10 @@ export const runStep = async (
   step: TestStep,
   nextSteps: TestStep[],
   ctx: Context,
-  config: Config,
+  config: TestOptions,
 ): Promise<TestResult> => {
   if (step.payload) {
-    return runStepPayloads(idx, step, nextSteps, ctx, config)
+    return await runStepPayloads(idx, step, nextSteps, ctx, config)
   }
 
   let res: AxiosResponse | null = null
@@ -142,7 +147,7 @@ export const runStep = async (
       const asserted = runAssertion(_step, res as AxiosResponse, ctx)
       assertions[i] = asserted
       i++
-      if (config.stopOnFailedAssertion && !asserted) {
+      if (config.stopOnFailure && !asserted) {
         abortedAt = i
         break
       }
@@ -202,7 +207,7 @@ export function runStepComplexity(
   step: TestStep,
   nextSteps: TestStep[],
   ctx: Context,
-  config: Config,
+  config: TestOptions,
 ): number {
   if (step.payload) {
     const payloadValues: { [key: string]: string[] } = {}

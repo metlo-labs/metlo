@@ -14,7 +14,7 @@ import {
   TestResult,
 } from "./types/test"
 
-const STEP_KEYS = ["request", "extract", "assert"]
+const STEP_KEYS = ["request", "payload", "extract", "assert"]
 const REQUEST_KEYS = ["method", "url", "query", "headers", "form", "data"]
 
 export const dumpTestConfig = (config: TestConfig): string => {
@@ -25,6 +25,9 @@ export const dumpTestConfig = (config: TestConfig): string => {
   ]
   if (config.meta) {
     parts.push({ meta: config.meta })
+  }
+  if (config.options) {
+    parts.push({ options: config.options })
   }
   if (config.env) {
     parts.push({ env: config.env })
