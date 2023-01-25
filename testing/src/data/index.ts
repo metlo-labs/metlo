@@ -1,5 +1,6 @@
 import { PredefinedPayloadType } from "../types/enums"
 import { SQLI } from "./sqli"
+import { SQLI_TIME } from "./sqli_time"
 import { XSS } from "./xss"
 
 const MAX_PAYLOAD_VALUES = 300

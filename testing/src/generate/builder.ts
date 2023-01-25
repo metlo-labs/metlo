@@ -3,11 +3,13 @@ import { v4 as uuidv4 } from "uuid"
 import {
   Assertion,
   Extractor,
+  PayloadType,
   KeyValType,
   TestConfig,
   TestMeta,
   TestRequest,
   TestStep,
+  TestOptions,
 } from "../types/test"
 import {
   addAuthToRequest,
@@ -20,12 +22,14 @@ export class TestStepBuilder {
   request: TestRequest
   extractors: Extractor[]
   assertions: Assertion[]
+  payloads: PayloadType[]
   env: KeyValType[]
 
   constructor(request: TestRequest) {
     this.request = request
     this.extractors = []
     this.assertions = []
+    this.payloads = []
     this.env = []
   }
 
@@ -57,8 +61,18 @@ export class TestStepBuilder {
     return this
   }
 
+  modifyRequest(f: (old: TestRequest) => TestRequest): TestStepBuilder {
+    this.request = f(this.request)
+    return this
+  }
+
   assert(assertion: Assertion): TestStepBuilder {
     this.assertions.push(assertion)
+    return this
+  }
+
+  addPayloads(payload: PayloadType): TestStepBuilder {
+    this.payloads.push(payload)
     return this
   }
 
@@ -82,12 +96,16 @@ export class TestStepBuilder {
     if (this.assertions.length > 0) {
       out.assert = this.assertions
     }
+    if (this.payloads.length > 0) {
+      out.payload = this.payloads
+    }
     return out
   }
 }
 
 export class TestBuilder {
   id: string
+  opts: TestOptions
   meta: TestMeta
   currentEnvKeys: Set<string>
   env: KeyValType[]
@@ -95,6 +113,7 @@ export class TestBuilder {
 
   constructor() {
     this.meta = {}
+    this.opts = {}
     this.id = uuidv4()
     this.currentEnvKeys = new Set()
     this.env = []
@@ -102,7 +121,12 @@ export class TestBuilder {
   }
 
   setMeta(meta: TestMeta): TestBuilder {
-    this.meta = meta
+    this.meta = { ...this.meta, ...meta }
+    return this
+  }
+
+  setOptions(opts: TestOptions): TestBuilder {
+    this.opts = { ...this.opts, ...opts }
     return this
   }
 
@@ -131,6 +155,7 @@ export class TestBuilder {
   getTest(): TestConfig {
     return {
       id: this.id,
+      options: this.opts,
       meta: this.meta,
       env: this.env,
       test: this.test,

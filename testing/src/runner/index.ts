@@ -1,4 +1,4 @@
-import { Config, TestConfig, TestResult, TestStep } from "../types/test"
+import { TestOptions, TestConfig, TestResult, TestStep } from "../types/test"
 import { runStep, runStepComplexity } from "./step"
 import * as Handlebars from "handlebars"
 
@@ -25,7 +25,7 @@ export const estimateTest = (
   const testStack = [...test.test]
   if (testStack.length > 0) {
     const firstStep = testStack.shift() as TestStep
-    const config = test.config as Config
+    const config = test.options as TestOptions
     return runStepComplexity(0, firstStep, testStack, context, config)
   } else {
     throw new Error("No item to test in stack")
@@ -51,7 +51,7 @@ export const runTest = async (
   const testStack = [...test.test]
   if (testStack.length > 0) {
     const firstStep = testStack.shift() as TestStep
-    const config = test.config || {}
+    const config = test.options || {}
     const resp = await runStep(0, firstStep, testStack, context, config)
     return {
       test,
