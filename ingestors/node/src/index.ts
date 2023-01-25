@@ -20,6 +20,17 @@ const init = (key: string, host: string, opts?: ConfigOptions) => {
     console.error(err)
     throw new Error(`Couldn't load metlo. Host is not a proper url : ${host}`)
   }
+  if (opts?.apiHost) {
+    try {
+      const apiHost = new URL(opts.apiHost)
+      opts = { ...opts, apiHost: apiHost.host }
+    } catch (err) {
+      console.error(err)
+      throw new Error(
+        `Couldn't load metlo. API Host provided in opts is not a proper url: ${opts.apiHost}`,
+      )
+    }
+  }
   let metlo_host = host
   if (metlo_host[metlo_host.length - 1] != "/") {
     metlo_host += "/"
