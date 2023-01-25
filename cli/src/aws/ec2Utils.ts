@@ -9,10 +9,28 @@ import {
   GetInstanceTypesFromInstanceRequirementsCommand,
   GetInstanceTypesFromInstanceRequirementsCommandInput,
 } from "@aws-sdk/client-ec2"
+import chalk from "chalk"
 import { SUPPORTED_AWS_INSTANCES } from "./constants"
 import { MachineSpecifications } from "./types"
 
 export const getEC2Client = (region?: string) => {
+  if (
+    process.env.METLO_AWS_ACCESS_KEY_ID &&
+    process.env.METLO_AWS_SECRET_ACCESS_KEY
+  ) {
+    console.log(
+      chalk.bold.dim(
+        `Using credentials in "METLO_AWS_ACCESS_KEY_ID" and "METLO_AWS_SECRET_ACCESS_KEY" for EC2 Client.`,
+      ),
+    )
+    return new EC2Client({
+      region,
+      credentials: {
+        accessKeyId: process.env.METLO_AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.METLO_AWS_SECRET_ACCESS_KEY,
+      },
+    })
+  }
   return new EC2Client({ region })
 }
 
