@@ -16,7 +16,7 @@ function initialize() {
     const data = JSON.stringify({
       request: {
         url: {
-          host: ctx.response.socket.remoteAddress,
+          host: METLO_POOL.opts?.apiHost || ctx.response.socket.remoteAddress,
           path: ctx.path,
           parameters: Object.entries(ctx.query).map(([k, v]) => ({
             name: k,

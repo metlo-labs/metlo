@@ -1,5 +1,5 @@
 import WorkerPool from "../pool"
-import { MetloConfig } from "../types"
+import { MetloConfig, MetloOptions } from "../types"
 
 export interface InitMiddlewareParams extends MetloConfig {
   pool: WorkerPool
@@ -9,6 +9,7 @@ export let METLO_POOL: InitMiddlewareParams = {
   key: "",
   host: "",
   pool: null,
+  opts: {}
 }
 
 import ExpressModule from "./express"
@@ -26,6 +27,7 @@ const InitMiddleware = (params: InitMiddlewareParams) => {
   METLO_POOL.key = params.key
   METLO_POOL.host = params.host
   METLO_POOL.pool = params.pool
+  METLO_POOL.opts = params.opts
   let dependencies = getDependencies()
   Object.entries(nameToModule).forEach(([name, module]) => {
     try {

@@ -1,4 +1,5 @@
 import os from "node:os"
+import { MetloOptions } from "types"
 import SetupMiddleware from "./middleware"
 import WorkerPool from "./pool"
 
@@ -12,7 +13,7 @@ function exit() {
 process.on("exit", exit)
 process.on("SIGTERM", exit)
 
-const init = (key: string, host: string) => {
+const init = (key: string, host: string, opts?: MetloOptions) => {
   try {
     new URL(host)
   } catch (err) {
@@ -24,7 +25,7 @@ const init = (key: string, host: string) => {
     metlo_host += "/"
   }
   metlo_host += endpoint
-  SetupMiddleware({ host: metlo_host, key, pool })
+  SetupMiddleware({ host: metlo_host, key, pool, opts })
 }
 
 export default init
