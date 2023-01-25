@@ -11,14 +11,14 @@ import { urlJoin } from "./utils"
 
 const spinner = ora()
 
-interface PushTemplateResp {
+export interface PushTemplateResp {
   name: string
   version: number
   success: boolean
   exists: boolean
 }
 
-interface PushTemplateReq {
+export interface PushTemplateReq {
   template: string
   type: string
 }
