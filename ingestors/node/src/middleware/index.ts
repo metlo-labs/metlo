@@ -1,5 +1,5 @@
 import WorkerPool from "../pool"
-import { MetloConfig, MetloOptions } from "../types"
+import { MetloConfig } from "../types"
 
 export interface InitMiddlewareParams extends MetloConfig {
   pool: WorkerPool

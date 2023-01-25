@@ -1,11 +1,11 @@
-export interface MetloOptions {
+export interface ConfigOptions {
   apiHost?: string
 }
 
 export interface MetloConfig {
   host: string
   key: string
-  opts?: MetloOptions
+  opts?: ConfigOptions
 }
 
 export interface PostTraceTask {

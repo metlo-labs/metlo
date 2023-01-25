@@ -1,5 +1,5 @@
 import os from "node:os"
-import { MetloOptions } from "types"
+import { ConfigOptions } from "types"
 import SetupMiddleware from "./middleware"
 import WorkerPool from "./pool"
 
@@ -13,7 +13,7 @@ function exit() {
 process.on("exit", exit)
 process.on("SIGTERM", exit)
 
-const init = (key: string, host: string, opts?: MetloOptions) => {
+const init = (key: string, host: string, opts?: ConfigOptions) => {
   try {
     new URL(host)
   } catch (err) {
