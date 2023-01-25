@@ -61,6 +61,11 @@ export class TestStepBuilder {
     return this
   }
 
+  modifyRequest(f: (old: TestRequest) => TestRequest): TestStepBuilder {
+    this.request = f(this.request)
+    return this
+  }
+
   assert(assertion: Assertion): TestStepBuilder {
     this.assertions.push(assertion)
     return this
