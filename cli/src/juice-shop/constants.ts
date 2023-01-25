@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 export const JUICE_SHOP_BOLA = `
 import {
   AssertionType,
