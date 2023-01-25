@@ -49,14 +49,15 @@
     "@types/yargs" "^17.0.8"
     chalk "^4.0.0"
 
-"@metlo/testing@^0.2.15":
-  version "0.2.15"
-  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.2.15.tgz#d196c1d1188f61590ed65cea814d34f8a1654b78"
-  integrity sha512-wmBe1BjGxyGcg18EfHxNRPd/0S+FKLjLOu4TrErpN9WJlLG9HgTxYBzv8uvzWQmPjNnqQFWb7HRxpT7m4RUhpQ==
+"@metlo/testing@^0.2.18":
+  version "0.2.18"
+  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.2.18.tgz#3b6dc620f0dcff1d8d4ee71d52a2b87df5f17200"
+  integrity sha512-t67ZWEzCFRhsBNmN5swifi/FWCpQAwIWrg0rLBb487DK1y5IabPJz13jxw/N1Eq3Ow67vlSPq8HJPpFpEjf+iQ==
   dependencies:
     axios "^1.2.1"
     chalk "^4.1.2"
     expect "^29.0.2"
+    form-data "^4.0.0"
     handlebars "^4.7.7"
     js-yaml "^4.1.0"
     jsdom "^20.0.3"
