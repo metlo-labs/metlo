@@ -42,10 +42,7 @@ export default {
       .addTestStep(USER_LOGIN_STEP("USER_1"))
       .addTestStep(USER_LOGIN_STEP("USER_2"))
       .addTestStep(
-        TestStepBuilder.sampleRequest(endpoint, "USER_1").assert({
-          type: AssertionType.JS,
-          value: "resp.status < 400",
-        })
+        TestStepBuilder.sampleRequest(endpoint, "USER_1").assert("resp.status < 400")
       )
       .addTestStep(
         TestStepBuilder.sampleRequestWithoutAuth(endpoint, "USER_1")
@@ -115,10 +112,7 @@ export default {
       .addTestStep(
         TestStepBuilder.sampleRequestWithoutAuth(endpoint)
           .addAuth(endpoint, "USER_1")
-          .assert({
-            type: "JS",
-            value: "resp.status <= 400",
-          })
+          .assert("resp.status <= 400")
       )
       .addTestStep(
         TestStepBuilder.sampleRequestWithoutAuth(endpoint).assert({
