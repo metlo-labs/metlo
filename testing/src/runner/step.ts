@@ -1,4 +1,5 @@
 import axios from "axios"
+import clonedeep from "lodash.clonedeep"
 import {
   TestStep,
   TestResult,
@@ -62,12 +63,12 @@ const runStepPayloads = async (
     }
     const currRes = await runStep(
       idx,
-      {
+      clonedeep({
         extract: step.extract,
         assert: step.assert,
         request: step.request,
-      },
-      nextSteps,
+      }),
+      clonedeep(nextSteps),
       newCtx,
       config,
     )

@@ -65,7 +65,7 @@ const genTestFromFile = (
     return [null, err]
   }
   const res = vm.run(
-    `${contents}\nmodule.exports = exports.default.builder(endpoint);`,
+    `${contents}\nmodule.exports = exports.default.builder(endpoint).getTest();`,
   )
   return [res, ""]
 }
