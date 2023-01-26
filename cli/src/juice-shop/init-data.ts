@@ -106,7 +106,7 @@ export const initUsers = async (url: string) => {
   await createUser(url, -1, "user2@juice.shop")
 }
 
-export const initJuiceShop = async ({ host }) => {
+export const initJuiceShopData = async ({ host }) => {
   if (!host) {
     console.log(
       chalk.bold.red("Please provide host url for juice shop server."),
