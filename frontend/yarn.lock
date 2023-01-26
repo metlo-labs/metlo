@@ -1259,10 +1259,10 @@
     "@jridgewell/resolve-uri" "3.1.0"
     "@jridgewell/sourcemap-codec" "1.4.14"
 
-"@metlo/testing@^0.2.18":
-  version "0.2.18"
-  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.2.18.tgz#3b6dc620f0dcff1d8d4ee71d52a2b87df5f17200"
-  integrity sha512-t67ZWEzCFRhsBNmN5swifi/FWCpQAwIWrg0rLBb487DK1y5IabPJz13jxw/N1Eq3Ow67vlSPq8HJPpFpEjf+iQ==
+"@metlo/testing@^0.2.20":
+  version "0.2.20"
+  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.2.20.tgz#b5bc19683c24443690596962e2c25b1c935da5f5"
+  integrity sha512-krlQM2z2LZjViI68kmISFq6wqgll4zWsU4fRNFzFAwkS0u2Opc9HLv5tuR+BEueK9iThQBVUxRUyhPP3vziJ/g==
   dependencies:
     axios "^1.2.1"
     chalk "^4.1.2"
@@ -1271,6 +1271,7 @@
     handlebars "^4.7.7"
     js-yaml "^4.1.0"
     jsdom "^20.0.3"
+    lodash.clonedeep "^4.5.0"
     lodash.get "^4.4.2"
     uuid "^9.0.0"
     vm2 "^3.9.13"
@@ -3715,6 +3716,11 @@ locate-path@^6.0.0:
   integrity sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw==
   dependencies:
     p-locate "^5.0.0"
+
+lodash.clonedeep@^4.5.0:
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/lodash.clonedeep/-/lodash.clonedeep-4.5.0.tgz#e23f3f9c4f8fbdde872529c1071857a086e5ccef"
+  integrity sha512-H5ZhCF25riFd9uB5UCkVKo61m3S/xZk1x4wA6yp/L3RFP6Z/eHH1ymQcGLo7J3GMPfm0V/7m1tryHuGVxpqEBQ==
 
 lodash.curry@^4.0.1:
   version "4.1.1"
