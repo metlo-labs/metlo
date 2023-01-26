@@ -1,4 +1,5 @@
 import os from "node:os"
+import { ConfigOptions } from "types"
 import SetupMiddleware from "./middleware"
 import WorkerPool from "./pool"
 
@@ -12,19 +13,30 @@ function exit() {
 process.on("exit", exit)
 process.on("SIGTERM", exit)
 
-const init = (key: string, host: string) => {
+const init = (key: string, host: string, opts?: ConfigOptions) => {
   try {
     new URL(host)
   } catch (err) {
     console.error(err)
     throw new Error(`Couldn't load metlo. Host is not a proper url : ${host}`)
   }
+  if (opts?.apiHost) {
+    try {
+      const apiHost = new URL(opts.apiHost)
+      opts = { ...opts, apiHost: apiHost.host }
+    } catch (err) {
+      console.error(err)
+      throw new Error(
+        `Couldn't load metlo. API Host provided in opts is not a proper url: ${opts.apiHost}`,
+      )
+    }
+  }
   let metlo_host = host
   if (metlo_host[metlo_host.length - 1] != "/") {
     metlo_host += "/"
   }
   metlo_host += endpoint
-  SetupMiddleware({ host: metlo_host, key, pool })
+  SetupMiddleware({ host: metlo_host, key, pool, opts })
 }
 
 export default init
