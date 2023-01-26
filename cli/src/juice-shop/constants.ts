@@ -9,7 +9,7 @@ import {
 const USER_LOGIN_STEP = (user: string) =>
   new TestStepBuilder({
     method: "POST",
-    url: \`{{BASE_URL}}/rest/user/login\`,
+    url: "{{BASE_URL}}/rest/user/login",
     headers: [
       {
         name: "Content-Type",
@@ -31,7 +31,7 @@ const USER_LOGIN_STEP = (user: string) =>
 
 export default {
   name: "JUICE_SHOP_BOLA",
-  version: 5,
+  version: 1,
   builder: (endpoint: GenTestEndpoint) => {
     return new TestBuilder()
       .setMeta({
@@ -78,7 +78,7 @@ import {
 const USER_LOGIN_STEP = (user: string) =>
   new TestStepBuilder({
     method: "POST",
-    url: \`{{BASE_URL}}/rest/user/login\`,
+    url: "{{BASE_URL}}/rest/user/login",
     headers: [
       {
         name: "Content-Type",
@@ -100,7 +100,7 @@ const USER_LOGIN_STEP = (user: string) =>
 
 export default {
   name: "JUICE_SHOP_BROKEN_AUTHENTICATION",
-  version: 7,
+  version: 1,
   builder: (endpoint: GenTestEndpoint) => {
     return new TestBuilder()
       .setMeta({
