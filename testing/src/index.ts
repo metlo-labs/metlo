@@ -23,13 +23,13 @@ export const dumpTestConfig = (config: TestConfig): string => {
       id: config.id,
     },
   ]
-  if (config.meta) {
+  if (config.meta && Object.keys(config.meta).length > 0) {
     parts.push({ meta: config.meta })
   }
-  if (config.options) {
+  if (config.options && Object.keys(config.options).length > 0) {
     parts.push({ options: config.options })
   }
-  if (config.env) {
+  if (config.env && Object.keys(config.env).length > 0) {
     parts.push({ env: config.env })
   }
   if (config.test) {
