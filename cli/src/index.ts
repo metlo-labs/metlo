@@ -15,7 +15,6 @@ import { pushTemplates } from "./testing/push-template"
 import { initCustomTemplates } from "./testing/init-custom-templates"
 import { mapOptionParser } from "./utils"
 import { initJuiceShop } from "./juice-shop/init"
-import { initJuiceShopUsers } from "./juice-shop/init-users"
 import { initJuiceShopTemplates } from "./juice-shop/init-templates"
 
 program.name("metlo").description("Metlo's command line tool.").version("0.2.9")
@@ -88,10 +87,6 @@ juiceShop
   .command("init")
   .requiredOption("-h,--host <string>", "Juice Shop server host")
   .action(initJuiceShop)
-juiceShop
-  .command("init-users")
-  .requiredOption("-h,--host <string>", "Juice Shop server host")
-  .action(initJuiceShopUsers)
 juiceShop.command("init-templates").action(initJuiceShopTemplates)
 
 program.parseAsync()
