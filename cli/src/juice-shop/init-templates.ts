@@ -4,7 +4,12 @@ import axios from "axios"
 import { urlJoin } from "../testing/utils"
 import { getConfig } from "../utils"
 import { PushTemplateReq, PushTemplateResp } from "../testing/push-template"
-import { JUICE_SHOP_BOLA, JUICE_SHOP_BROKEN_AUTHENTICATION } from "./constants"
+import {
+  JUICE_SHOP_BOLA,
+  JUICE_SHOP_BROKEN_AUTHENTICATION,
+  JUICE_SHOP_SQL_INJECTION,
+  JUICE_SHOP_SQL_INJECTION_TIME_BASED,
+} from "./constants"
 
 const spinner = ora()
 
@@ -16,6 +21,14 @@ export const initJuiceShopTemplates = async () => {
     },
     {
       template: JUICE_SHOP_BROKEN_AUTHENTICATION,
+      type: "TS",
+    },
+    {
+      template: JUICE_SHOP_SQL_INJECTION,
+      type: "TS",
+    },
+    {
+      template: JUICE_SHOP_SQL_INJECTION_TIME_BASED,
       type: "TS",
     },
   ]
