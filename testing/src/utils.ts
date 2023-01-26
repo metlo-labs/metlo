@@ -95,7 +95,7 @@ export const stringReplacement = (
   string: string,
   envVars: Context["envVars"],
 ) => {
-  const template = Handlebars.compile(string)
+  const template = Handlebars.compile(string, { noEscape: true })
   const templated = template(envVars)
   return templated
 }
