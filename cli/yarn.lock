@@ -854,10 +854,10 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@metlo/testing@^0.2.18":
-  version "0.2.18"
-  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.2.18.tgz#3b6dc620f0dcff1d8d4ee71d52a2b87df5f17200"
-  integrity sha512-t67ZWEzCFRhsBNmN5swifi/FWCpQAwIWrg0rLBb487DK1y5IabPJz13jxw/N1Eq3Ow67vlSPq8HJPpFpEjf+iQ==
+"@metlo/testing@^0.2.19":
+  version "0.2.19"
+  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.2.19.tgz#e6d48a45f13a1d4f032331be03e3229d8d03d48e"
+  integrity sha512-ox/pO77++K4pFGMCIZF2ecBVtDZmJUVh+nYEySz6TmAh7p5WDXPlnlZBX0IOdxbdV5immaX6zvgm1zr5dFBHnQ==
   dependencies:
     axios "^1.2.1"
     chalk "^4.1.2"

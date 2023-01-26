@@ -14,6 +14,8 @@ import { runTests } from "./testing/run"
 import { pushTemplates } from "./testing/push-template"
 import { initCustomTemplates } from "./testing/init-custom-templates"
 import { mapOptionParser } from "./utils"
+import { initJuiceShopData } from "./juice-shop/init-data"
+import { initJuiceShopTemplates } from "./juice-shop/init-templates"
 
 program.name("metlo").description("Metlo's command line tool.").version("0.2.9")
 
@@ -79,5 +81,12 @@ trafficMirrorGcp
 trafficMirrorGcp.command("list").action(gcpTrafficMirrorList)
 trafficMirrorGcp.command("remove").action(gcpTrafficMirrorDelete)
 trafficMirrorGcp.command("cleanup").action(gcpTrafficMirrorCleanUp)
+
+const juiceShop = program.command("juice-shop")
+juiceShop
+  .command("init-data")
+  .requiredOption("-h,--host <string>", "Juice Shop server host")
+  .action(initJuiceShopData)
+juiceShop.command("init-templates").action(initJuiceShopTemplates)
 
 program.parseAsync()
