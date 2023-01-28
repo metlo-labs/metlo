@@ -1,3 +1,4 @@
+import { JSONSchemaFaker } from "json-schema-faker"
 import { DataType } from "./enums"
 import { KeyValType } from "../types/test"
 import { AuthType, DataSection } from "./enums"
@@ -7,6 +8,53 @@ import {
   GenTestEndpoint,
   GenTestEndpointDataField,
 } from "./types"
+
+const getSampleSchemaData = (schema: any) => {
+  if (!schema) {
+    return null
+  }
+  try {
+    JSONSchemaFaker.option({ alwaysFakeOptionals: true })
+    return JSONSchemaFaker.generate(schema)
+  } catch {
+    return null
+  }
+}
+
+const generateRequestBodyFromSpec = (operationObject: any) => {
+  const requestBody = operationObject?.requestBody
+  const requestContentTypes = requestBody?.content
+  let sample = null
+  let contentType = null
+  if (requestContentTypes) {
+    contentType = Object.keys(requestContentTypes)[0]
+    if (contentType && requestContentTypes[contentType]?.schema) {
+      sample = getSampleSchemaData(requestContentTypes[contentType].schema)
+    }
+  }
+  return { sample, contentType }
+}
+
+const getSpecOperationObject = (endpoint: GenTestEndpoint) => {
+  const parsedSpec = endpoint.spec
+  const pathString = parsedSpec?.["paths"]?.[endpoint.path]
+    ? endpoint.path
+    : endpoint.path + "/"
+  const operationObject =
+    parsedSpec?.["paths"]?.[pathString]?.[endpoint.method?.toLowerCase()]
+  return operationObject
+}
+
+const getSpecParameters = (endpoint: GenTestEndpoint) => {
+  const parsedSpec = endpoint.spec
+  const pathString = parsedSpec?.["paths"]?.[endpoint.path]
+    ? endpoint.path
+    : endpoint.path + "/"
+  let parameters =
+    parsedSpec?.["paths"]?.[pathString]?.[endpoint.method?.toLowerCase()]
+      ?.parameters ?? parsedSpec?.["paths"]?.[pathString]?.parameters
+  return parameters ?? []
+}
 
 const getSampleValue = (dataType: DataType) => {
   switch (dataType) {
@@ -161,36 +209,48 @@ const getDataFieldInfo = (dataFields: GenTestEndpointDataField[]) => {
 
 const addBodyToRequest = (
   gen: GeneratedTestRequest,
-  ctx: GenTestContext,
+  dataFields: GenTestEndpointDataField[],
+  specOperationObject?: any,
 ): GeneratedTestRequest => {
-  const endpoint = ctx.endpoint
-  const dataFields = endpoint.dataFields.filter(
-    e => e.dataSection == DataSection.REQUEST_BODY && e.contentType,
-  )
-  if (dataFields.length == 0) {
-    return gen
-  }
-  const { contentType, traceHash } = getDataFieldInfo(dataFields)
-  const filteredDataFields = dataFields.filter(
-    e =>
-      e.contentType == contentType &&
-      traceHash.hash &&
-      e.traceHash[traceHash.hash],
-  )
-  if (filteredDataFields.length === 0) {
-    return gen
-  }
   let body: any = undefined
-  for (const dataField of filteredDataFields) {
-    const mapTokens = dataField.dataPath?.split(".")
-    const rootArrayDepth = dataField.arrayFields?.[""]
-    if (rootArrayDepth > 0) {
-      body = recurseCreateBody(body, rootArrayDepth, mapTokens, 0, dataField)
-    } else {
-      body = recurseCreateBody(body, 0, mapTokens, 0, dataField)
+  let contentType: string | null = null
+  if (specOperationObject) {
+    const specData = generateRequestBodyFromSpec(specOperationObject)
+    body = specData?.sample
+    contentType = specData?.contentType
+  } else {
+    const bodyDataFields = dataFields.filter(
+      e => e.dataSection == DataSection.REQUEST_BODY && e.contentType,
+    )
+    if (bodyDataFields.length == 0) {
+      return gen
+    }
+    const dataFieldInfo = getDataFieldInfo(bodyDataFields)
+    contentType = dataFieldInfo?.contentType
+    const traceHash = dataFieldInfo?.traceHash
+    const filteredDataFields = bodyDataFields.filter(
+      e =>
+        e.contentType == contentType &&
+        traceHash.hash &&
+        e.traceHash[traceHash.hash],
+    )
+    if (filteredDataFields.length === 0) {
+      return gen
+    }
+    for (const dataField of filteredDataFields) {
+      const mapTokens = dataField.dataPath?.split(".")
+      const rootArrayDepth = dataField.arrayFields?.[""]
+      if (rootArrayDepth > 0) {
+        body = recurseCreateBody(body, rootArrayDepth, mapTokens, 0, dataField)
+      } else {
+        body = recurseCreateBody(body, 0, mapTokens, 0, dataField)
+      }
     }
   }
-  if (contentType.includes("form")) {
+  if (contentType === null && body === null) {
+    return gen
+  }
+  if (contentType?.includes("form")) {
     return {
       ...gen,
       req: {
@@ -206,7 +266,7 @@ const addBodyToRequest = (
       },
     }
   } else if (
-    contentType.includes("json") ||
+    contentType?.includes("json") ||
     contentType == "*/*" ||
     typeof body == "object"
   ) {
@@ -221,7 +281,7 @@ const addBodyToRequest = (
         data: JSON.stringify(body, null, 4),
       },
     }
-  } else if (typeof body == "string") {
+  } else if (contentType && typeof body == "string") {
     return {
       ...gen,
       req: {
@@ -240,28 +300,50 @@ const addBodyToRequest = (
 const addQueryParamsToRequest = (
   gen: GeneratedTestRequest,
   ctx: GenTestContext,
+  specParameters?: any,
 ): GeneratedTestRequest => {
-  const endpoint = ctx.endpoint
-  const dataFields = endpoint.dataFields.filter(
-    e => e.dataSection == DataSection.REQUEST_QUERY,
-  )
-  if (dataFields.length == 0) {
-    return gen
-  }
   const pre = ctx.prefix
   let queryParams: KeyValType[] = []
   let env: KeyValType[] = []
-  dataFields.forEach(e => {
-    const name = e.dataPath
-    env.push({
-      name: `${pre}${name}`,
-      value: `<<${pre}${name}>>`,
+  if (specParameters) {
+    let added = false
+    for (const parameter of specParameters) {
+      if (parameter?.in === "query") {
+        added = true
+        const name = parameter.name
+        env.push({
+          name: `${pre}${name}`,
+          value: `<<${pre}${name}>>`,
+        })
+        queryParams.push({
+          name: name,
+          value: `{{${pre}${name}}}`,
+        })
+      }
+    }
+    if (!added) {
+      return gen
+    }
+  } else {
+    const endpoint = ctx.endpoint
+    const dataFields = endpoint.dataFields.filter(
+      e => e.dataSection == DataSection.REQUEST_QUERY,
+    )
+    if (dataFields.length == 0) {
+      return gen
+    }
+    dataFields.forEach(e => {
+      const name = e.dataPath
+      env.push({
+        name: `${pre}${name}`,
+        value: `<<${pre}${name}>>`,
+      })
+      queryParams.push({
+        name: e.dataPath,
+        value: `{{${pre}${name}}}`,
+      })
     })
-    queryParams.push({
-      name: e.dataPath,
-      value: `{{${pre}${name}}}`,
-    })
-  })
+  }
   return {
     ...gen,
     env: gen.env.concat(env),
@@ -299,8 +381,14 @@ export const makeSampleRequestNoAuth = (
     env,
   }
   const ctx: GenTestContext = { endpoint, prefix }
-  gen = addQueryParamsToRequest(gen, ctx)
-  gen = addBodyToRequest(gen, ctx)
+  let specOperationObject = null
+  let specParameters = null
+  if (endpoint.spec) {
+    specOperationObject = getSpecOperationObject(endpoint)
+    specParameters = getSpecParameters(endpoint)
+  }
+  gen = addQueryParamsToRequest(gen, ctx, specParameters)
+  gen = addBodyToRequest(gen, endpoint.dataFields, specOperationObject)
   return gen
 }
 

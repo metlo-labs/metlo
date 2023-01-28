@@ -26,6 +26,7 @@ export interface GenTestEndpoint {
   method: z.infer<typeof Method>
   dataFields: GenTestEndpointDataField[]
   authConfig?: GenTestEndpointAuthConfig
+  spec?: any
 }
 
 export interface GenTestContext {
