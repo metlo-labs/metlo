@@ -68,6 +68,7 @@ const main = async () => {
     updateEndpointIpsQueue,
     logAggregatedStatsQueue,
     fixEndpointsQueue,
+    detectSensitiveDataQueue,
   ]
 
   schedule.scheduleJob("*/60 * * * *", async () => {
