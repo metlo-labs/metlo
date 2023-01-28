@@ -16,7 +16,7 @@ class MetloDjango(object):
         try:
             urlopen(url=self.saved_request, data=json.dumps(data).encode("utf-8"))
         except Exception as e:
-            logger.warn(e)
+            logger.warning(e)
 
     def __init__(self, get_response):
         """
@@ -68,9 +68,11 @@ class MetloDjango(object):
                     if "1.0.0.127.in-addr.arpa" not in request.META.get("REMOTE_ADDR")
                     else "localhost"
                 )
-                source_port = request.environ[
-                    "wsgi.input"
-                ].stream.raw._sock.getpeername()[1]
+                source_port = None
+                try:
+                    source_port = request.environ["wsgi.input"].stream.raw._sock.getpeername()[1]
+                except:
+                    source_port = request.META.get("REMOTE_PORT")
                 res_body = response.content.decode("utf-8")
                 data = {
                     "request": {
