@@ -147,6 +147,7 @@ const detectSensitiveData = async (ctx: MetloContext): Promise<void> => {
     const endpoints = await getEntityManager(ctx, queryRunner).find(ApiEndpoint)
     const dataClasses = await getCombinedDataClasses(ctx)
     for (const e of endpoints) {
+      mlog.debug(`Detecting sensitive data for endpoint: ${e.uuid}`)
       try {
         await detectSensitiveDataEndpoint(ctx, e, dataClasses, queryRunner)
       } catch (err) {
