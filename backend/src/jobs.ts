@@ -22,8 +22,13 @@ const logQueueData = async (queue: QueueInterface) => {
   for (const job of jobs) {
     const logPrefix = `Queue ${queue.name}-${job.name}-${job.id}`
     const jobState = await job.getState()
-    mlog.debug(`${logPrefix} is ${jobState}.`)
+    mlog.debug(`${logPrefix} is ${jobState}:${job.failedReason ?? ""}.`)
   }
+}
+
+const clearFinishedJobs = async (queue: QueueInterface) => {
+  await queue.clean(0, "completed")
+  await queue.clean(0, "failed")
 }
 
 const killJob = (queue: QueueInterface, jobId: JobId) => {
@@ -136,7 +141,7 @@ const main = async () => {
       )
     })
   } else {
-    mlog.info("Logging Aggregated Stats Disabled...", true)
+    mlog.info("Logging Aggregated Stats Disabled...")
   }
 
   schedule.scheduleJob("*/60 * * * *", async () => {
@@ -158,6 +163,7 @@ const main = async () => {
   schedule.scheduleJob("* * * * *", async () => {
     for (const queue of queues) {
       await logQueueData(queue)
+      await clearFinishedJobs(queue)
       const activeJobs = await queue.getActive()
       for (const job of activeJobs) {
         if (job) {
