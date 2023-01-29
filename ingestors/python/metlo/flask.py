@@ -9,15 +9,12 @@ from flask import request
 endpoint = "api/v1/log-request/single"
 
 
-logger = logging.getLogger("metlo")
-
-
 class MetloFlask:
     def perform_request(self, data):
         try:
             urlopen(url=self.saved_request, data=json.dumps(data).encode("utf-8"))
         except Exception as e:
-            logger.warn(e)
+            self.logger.warning(e)
 
     def __init__(self, app, metlo_host: str, metlo_api_key: str, **kwargs):
         """
@@ -29,6 +26,15 @@ class MetloFlask:
         self.app = app
         self.pool = ThreadPoolExecutor(max_workers=kwargs.get("workers", 4))
         self.disabled = kwargs.get("disabled", False)
+        self.logger = logging.getLogger("metlo")
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter(
+            "[%(asctime)s] [%(process)d] [%(levelname)s] [%(name)s]  %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S %z",
+        )
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
 
         assert (
             metlo_host is not None
@@ -108,5 +114,5 @@ class MetloFlask:
                     }
                     self.pool.submit(self.perform_request, data=data)
                 except Exception as e:
-                    logger.debug(e)
+                    self.logger.debug(e)
                 return response

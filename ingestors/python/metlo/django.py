@@ -3,12 +3,12 @@ from concurrent.futures import ThreadPoolExecutor
 from urllib.request import Request, urlopen
 from urllib.parse import urlparse
 import logging
+import time
+import datetime
 
 from django.conf import settings
 
 endpoint = "api/v1/log-request/single"
-
-logger = logging.getLogger("metlo")
 
 
 class MetloDjango(object):
@@ -16,7 +16,7 @@ class MetloDjango(object):
         try:
             urlopen(url=self.saved_request, data=json.dumps(data).encode("utf-8"))
         except Exception as e:
-            logger.warning(e)
+            self.logger.warning(e)
 
     def __init__(self, get_response):
         """
@@ -24,6 +24,15 @@ class MetloDjango(object):
         :param get_response: Automatically populated by django
         """
         self.get_response = get_response
+        self.logger = logging.getLogger("metlo")
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter(
+            "[%(asctime)s] [%(process)d] [%(levelname)s] [%(name)s]  %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S %z",
+        )
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
         self.pool = ThreadPoolExecutor(
             max_workers=settings.METLO_CONFIG.get("workers", 4)
         )
@@ -70,7 +79,9 @@ class MetloDjango(object):
                 )
                 source_port = None
                 try:
-                    source_port = request.environ["wsgi.input"].stream.raw._sock.getpeername()[1]
+                    source_port = request.environ[
+                        "wsgi.input"
+                    ].stream.raw._sock.getpeername()[1]
                 except:
                     source_port = request.META.get("REMOTE_PORT")
                 res_body = response.content.decode("utf-8")
@@ -120,7 +131,7 @@ class MetloDjango(object):
                 }
                 self.pool.submit(self.perform_request, data=data)
             except Exception as e:
-                logger.debug(e)
+                self.logger.debug(e)
         return response
 
     def process_exception(self, request, exception):
