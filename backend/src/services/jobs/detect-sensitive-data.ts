@@ -143,9 +143,9 @@ const detectSensitiveDataEndpoint = async (
 const detectSensitiveData = async (ctx: MetloContext): Promise<void> => {
   mlog.debug("In detect sensitive data job.")
   const queryRunner = AppDataSource.createQueryRunner()
-  await queryRunner.connect()
-  mlog.debug("Connected sensitive data queryrunner.")
   try {
+    await queryRunner.connect()
+    mlog.debug("Connected sensitive data queryrunner.")
     const endpoints = await getEntityManager(ctx, queryRunner).find(ApiEndpoint)
     mlog.debug(`Detecting sensitive data for ${endpoints.length} endpoints.`)
     const dataClasses = await getCombinedDataClasses(ctx)
@@ -164,7 +164,7 @@ const detectSensitiveData = async (ctx: MetloContext): Promise<void> => {
   } catch (err) {
     mlog.withErr(err).error("Encountered error while detecting sensitive data")
   } finally {
-    await queryRunner?.release()
+    await queryRunner.release()
   }
 }
 
