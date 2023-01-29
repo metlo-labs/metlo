@@ -167,7 +167,7 @@ export default {
       })
       .addTestStep(USER_LOGIN_STEP("USER_1"))
       .addTestStep(
-        TestStepBuilder.sampleRequest(endpoint)
+        TestStepBuilder.sampleRequest(endpoint, "USER_1")
           .addPayloads({
             key: "SQLI_PAYLOAD",
             value: "SQLI",
@@ -243,7 +243,7 @@ export default {
       })
       .addTestStep(USER_LOGIN_STEP("USER_1"))
       .addTestStep(
-        TestStepBuilder.sampleRequest(endpoint)
+        TestStepBuilder.sampleRequest(endpoint, "USER_1")
           .addPayloads({
             key: "SQLI_PAYLOAD",
             value: "SQLI_TIME",
