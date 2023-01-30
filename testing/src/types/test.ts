@@ -139,4 +139,5 @@ export interface TestResult {
   test?: TestConfig
   results: StepResult[][]
   abortedAt?: number
+  timedOutIn?: number
 }
