@@ -2,9 +2,10 @@ import { ErrorObject } from "ajv/dist/2019"
 import { OpenAPI } from "openapi-types"
 import OpenAPISchemaValidator from "openapi-schema-validator"
 import { ApiEndpoint } from "models"
-import { getDataType } from "utils"
+import { getDataType, getValidPath } from "utils"
 import { DataType } from "@common/enums"
 import Error422UnprocessableEntity from "errors/error-422-unprocessable-entity"
+import { getPathTokens } from "@common/utils"
 
 export interface VariableObject {
   enum?: string[]
@@ -412,7 +413,29 @@ export const getSpecRequestBody = (
   return { path: pathToRequestBody ?? [], value: requestBody ?? {} }
 }
 
-export const getHostFromServer = (server: ServerObject): Set<string> => {
+export const getSpecPathString = (specObject: any, endpointPath: string) => {
+  const pathTokens = getPathTokens(endpointPath)
+  const len = pathTokens.length
+  for (let i = 0; i < len; i++) {
+    let currPath = pathTokens.slice(i, len).join("/")
+    if (currPath !== "/") {
+      currPath = "/" + currPath
+    }
+    const pathString = specObject?.["paths"]?.[currPath]
+      ? currPath
+      : specObject?.["paths"]?.[currPath + "/"]
+      ? currPath + "/"
+      : null
+    if (pathString) {
+      return pathString
+    }
+  }
+  return null
+}
+
+export const getHostFromServer = (
+  server: ServerObject,
+): Record<string, Set<string>> => {
   let hosts: Set<string> = new Set()
   const url = server.url
   if (url) {
@@ -447,7 +470,32 @@ export const getHostFromServer = (server: ServerObject): Set<string> => {
       hosts = new Set([url])
     }
   }
-  return hosts
+  const parsedHosts: Record<string, Set<string>> = {}
+  for (const host of hosts) {
+    try {
+      const urlObj = new URL(host)
+      const urlHost = urlObj.host
+      const urlPath = urlObj.pathname
+      const validUrlPath = getValidPath(urlPath)
+      if (!validUrlPath.isValid) {
+        throw new Error(
+          `Provided server url in OpenAPI Spec has invalid path: ${host}`,
+        )
+      }
+      if (!parsedHosts[urlHost]) {
+        parsedHosts[urlHost] = new Set(
+          validUrlPath.path.length > 1 ? [urlPath] : [],
+        )
+      } else if (validUrlPath.path.length > 1) {
+        parsedHosts[urlHost].add(validUrlPath.path)
+      }
+    } catch (err) {
+      throw new Error(
+        `Provided server url in OpenAPI Spec is not a valid url: ${host}`,
+      )
+    }
+  }
+  return parsedHosts
 }
 
 export const getServersV3 = (
@@ -463,11 +511,13 @@ export const getServersV3 = (
   )
 }
 
-export const getHostsV3 = (servers: ServerObject[]): Set<string> => {
-  let hosts: Set<string> = new Set()
+export const getHostsV3 = (
+  servers: ServerObject[],
+): Record<string, Set<string>> => {
+  let hosts: Record<string, Set<string>> = {}
   for (const server of servers) {
     const currServerHosts = getHostFromServer(server)
-    hosts = new Set([...hosts, ...currServerHosts])
+    hosts = { ...hosts, ...currServerHosts }
   }
   return hosts
 }
