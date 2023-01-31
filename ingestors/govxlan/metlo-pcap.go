@@ -211,12 +211,16 @@ func runLive(metloAPI *metloapi.Metlo, captureInterface []string) error {
 		cap := pcap.New(_interface)
 		proc, err := pcap.NewPacketProcessor(metloAPI, _interface)
 		if err != nil {
+			fmt.Println(err)
+			fmt.Errorf("Metlo live capture encountered an error")
 			return err
 		}
 		wg.Add(1)
 		go (func(proc *pcap.PacketProcessor) {
 			defer wg.Done()
 			if err := cap.Start(proc); err != nil {
+				fmt.Println(err)
+				fmt.Errorf("Metlo live capture encountered an error")
 				return
 			}
 		})(proc)
@@ -229,10 +233,14 @@ func runVXLAN(metloAPI *metloapi.Metlo) error {
 	cap := vxcap.New()
 	proc, err := vxcap.NewPacketProcessor(metloAPI)
 	if err != nil {
+		fmt.Println(err)
+		fmt.Errorf("Metlo VXLAN capture encountered an error")
 		return err
 	}
 
 	if err := cap.Start(proc); err != nil {
+		fmt.Println(err)
+		fmt.Errorf("Metlo VXLAN capture encountered an error")
 		return err
 	}
 	return nil
