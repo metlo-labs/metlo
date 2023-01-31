@@ -65,14 +65,9 @@ public class Metlo extends OncePerRequestFilter {
 
         if (enabledTemp) {
             try {
-                enabledTemp = new PingHome(METLO_PING_HOME, api_key, LOGGER).ping();
-                if (!enabledTemp) {
-                    LOGGER.warning("Due to previous error, Metlo has been disabled");
-                }
+                new PingHome(METLO_PING_HOME, api_key, LOGGER).ping();
             } catch (IOException e) {
                 LOGGER.warning("Could not connect to Metlo. Encountered error: " + e.getMessage());
-                LOGGER.warning("Due to previous error, Metlo has been disabled");
-                enabledTemp = false;
             }
         }
         this.enabled = enabledTemp;
