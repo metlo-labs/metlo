@@ -299,7 +299,7 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
         ...specIntro,
         servers: [
           {
-            url: host,
+            url: `https://${host}`,
           },
         ],
         paths: {},
