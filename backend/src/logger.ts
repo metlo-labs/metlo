@@ -11,7 +11,14 @@ logLib.methodFactory = function (methodName, logLevel, loggerName) {
 
 logLib.setLevel((process.env.LOG_LEVEL as logLib.LogLevelDesc) || "INFO")
 
-const formatMsg = (msg: any[], level: string, err: any) => {
+interface LogType {
+  msg: any[]
+  key: string
+  level: string
+  err: any
+}
+
+const formatMsg = ({ msg, level, err }: LogType) => {
   let out = msg.map(e => `${level}: ${e}`)
   if (err) {
     out = out.map(e => `${e} - ${err}`)
@@ -23,38 +30,58 @@ const formatMsg = (msg: any[], level: string, err: any) => {
 }
 
 export default class mlog {
-  err: any
+  err?: any
+  key?: string
 
-  constructor(err: any) {
+  constructor(key?: string, err?: any) {
+    this.key = key
     this.err = err
   }
 
   static withErr(err: any) {
-    return new mlog(err)
+    return new mlog(undefined, err)
+  }
+
+  static withKey(key: string) {
+    return new mlog(key, undefined)
+  }
+
+  withKey(key: string) {
+    if (this.key) {
+      this.key = `${this.key}.${key}`
+    } else {
+      this.key = key
+    }
+    return this
+  }
+
+  withErr(err: any) {
+    this.err = err
+    return this
   }
 
   static trace(...msg: any[]) {
-    logLib.trace(formatMsg(msg, "Trace", null))
+    logLib.trace(formatMsg({ msg, key: "default", level: "Trace", err: null }))
   }
 
   static debug(...msg: any[]) {
-    logLib.debug(formatMsg(msg, "Debug", null))
+    logLib.debug(formatMsg({ msg, key: "default", level: "Debug", err: null }))
   }
 
   static log(...msg: any[]) {
-    logLib.log(formatMsg(msg, "Log", null))
+    logLib.log(formatMsg({ msg, key: "default", level: "Log", err: null }))
   }
 
   static info(...msg: any[]) {
-    logLib.info(formatMsg(msg, "Info", null))
+    logLib.info(formatMsg({ msg, key: "default", level: "Info", err: null }))
   }
 
   static warn(...msg: any[]) {
-    logLib.warn(formatMsg(msg, "Warn", null))
+    logLib.warn(formatMsg({ msg, key: "default", level: "Warn", err: null }))
   }
 
   static error(...msg: any[]) {
-    logLib.error(formatMsg(msg, "Error", null))
+    logLib.error(formatMsg({ msg, key: "default", level: "Error", err: null }))
   }
 
   static time(key: string, value: number, sampleRate?: number) {
@@ -70,26 +97,68 @@ export default class mlog {
   }
 
   trace(...msg: any[]) {
-    logLib.trace(formatMsg(msg, "Trace", this.err))
+    logLib.trace(
+      formatMsg({
+        msg,
+        key: this.key || "default",
+        level: "Trace",
+        err: this.err,
+      }),
+    )
   }
 
   debug(...msg: any[]) {
-    logLib.debug(formatMsg(msg, "Debug", this.err))
+    logLib.debug(
+      formatMsg({
+        msg,
+        key: this.key || "default",
+        level: "Debug",
+        err: this.err,
+      }),
+    )
   }
 
   log(...msg: any[]) {
-    logLib.log(formatMsg(msg, "Log", this.err))
+    logLib.log(
+      formatMsg({
+        msg,
+        key: this.key || "default",
+        level: "Log",
+        err: this.err,
+      }),
+    )
   }
 
   info(...msg: any[]) {
-    logLib.info(formatMsg(msg, "Info", this.err))
+    logLib.info(
+      formatMsg({
+        msg,
+        key: this.key || "default",
+        level: "Info",
+        err: this.err,
+      }),
+    )
   }
 
   warn(...msg: any[]) {
-    logLib.warn(formatMsg(msg, "Warn", this.err))
+    logLib.warn(
+      formatMsg({
+        msg,
+        key: this.key || "default",
+        level: "Warn",
+        err: this.err,
+      }),
+    )
   }
 
   error(...msg: any[]) {
-    logLib.error(formatMsg(msg, "Error", this.err))
+    logLib.error(
+      formatMsg({
+        msg,
+        key: this.key || "default",
+        level: "Error",
+        err: this.err,
+      }),
+    )
   }
 }
