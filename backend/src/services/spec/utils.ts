@@ -215,6 +215,7 @@ export const generateAlertMessageFromReqErrors = (
 export const generateAlertMessageFromRespErrors = (
   errors: AjvError[],
   pathToResponseBody: string[],
+  disabledPaths: string[],
 ): Record<string, string[]> => {
   const res = {}
   if (!errors) {
@@ -231,7 +232,7 @@ export const generateAlertMessageFromRespErrors = (
       )
     let errorMessage = `${defaultErrorMessage} in response body.`
     let path = pathArray?.length > 0 ? pathArray.join(".") : ""
-    let ignoreError = false
+    let typeError = false
     switch (error.keyword) {
       case "required":
         if (error.params?.missingProperty) {
@@ -242,7 +243,7 @@ export const generateAlertMessageFromRespErrors = (
         errorMessage = `Required property '${path}' is missing from response body.`
         break
       case "type":
-        ignoreError = true
+        typeError = true
         errorMessage = `Property '${path}' ${error.message} in response body.`
         break
       case "additionalProperties":
@@ -266,7 +267,7 @@ export const generateAlertMessageFromRespErrors = (
           `Property '${path}' is present in response body without matching any schemas/definitions in the OpenAPI Spec.`
         break
       case "format":
-        ignoreError = true
+        typeError = true
         errorMessage = `Property '${path}' ${error.message} in response body.`
         break
       default:
@@ -277,7 +278,26 @@ export const generateAlertMessageFromRespErrors = (
       errorMessage = `${defaultErrorMessage} in response body.`
     }
 
-    if (!ignoreError) {
+    let pathIncludesToken = true
+    if (typeError && disabledPaths.length > 0) {
+      for (const disabledPath of disabledPaths) {
+        const splitPath = disabledPath.split(".")
+        const nonSectionSplitPath = splitPath.slice(2, splitPath.length)
+        for (const token of nonSectionSplitPath) {
+          if (!path.includes(token)) {
+            pathIncludesToken = false
+            break
+          }
+        }
+        if (!pathIncludesToken) {
+          break
+        }
+      }
+    } else if (typeError) {
+      pathIncludesToken = false
+    }
+
+    if (!typeError || (typeError && !pathIncludesToken)) {
       res[errorMessage] = pathToResponseBody
     }
   })

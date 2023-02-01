@@ -51,6 +51,7 @@ import { MetloContext } from "types"
 import { getEntityManager, getQB, getRepository } from "services/database/utils"
 import Error400BadRequest from "errors/error-400-bad-request"
 import { createSpecDiffAlerts } from "services/alert/openapi-spec"
+import { BlockFieldsService } from "services/block-fields"
 
 interface EndpointsMap {
   endpoint: ApiEndpoint
@@ -519,6 +520,10 @@ export class SpecService {
       // Validate response info
       let respErrorItems = {}
       if (pathString) {
+        const blockField = await BlockFieldsService.getBlockFieldsEntry(
+          ctx,
+          trace,
+        )
         const responses = getSpecResponses(parsedSpec, endpoint, pathString)
         const responseValidator = new OpenAPIResponseValidator({
           components: specObject["components"],
@@ -543,6 +548,7 @@ export class SpecService {
         respErrorItems = generateAlertMessageFromRespErrors(
           responseErrors as AjvError[],
           responses?.path,
+          blockField?.disabledPaths?.resBody ?? [],
         )
       }
 
