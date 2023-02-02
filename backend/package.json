@@ -47,6 +47,7 @@
     "js-yaml": "^4.1.0",
     "js-yaml-source-map": "^0.2.2",
     "json-source-map": "^0.6.1",
+    "limiter": "^2.1.0",
     "lodash": "^4.17.21",
     "loglevel": "^1.8.1",
     "luxon": "^3.0.3",

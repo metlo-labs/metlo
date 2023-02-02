@@ -1,5 +1,6 @@
 import logLib from "loglevel"
 import { DateTime } from "luxon"
+import { RateLimiter } from "limiter"
 import axios from "axios"
 import { myMetloBackendUrl } from "./constants"
 
@@ -10,6 +11,8 @@ logLib.methodFactory = function (methodName, logLevel, loggerName) {
     rawMethod(`${DateTime.utc().toString()} ${message}`)
   }
 }
+
+const limiter = new RateLimiter({ tokensPerInterval: 50, interval: "minute" })
 
 logLib.setLevel((process.env.LOG_LEVEL as logLib.LogLevelDesc) || "INFO")
 
@@ -26,6 +29,7 @@ const postLog = async ({ msg, level, key, err }: LogType) => {
     return
   }
   try {
+    const remaining = await limiter.removeTokens(1)
     await axios.post(
       `${myMetloBackendUrl}/log`,
       {
