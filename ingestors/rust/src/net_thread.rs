@@ -1,4 +1,7 @@
-use crate::trace::ApiTrace;
+use crate::{
+    process,
+    trace::{ApiTrace, ProcessTraceRes},
+};
 use lazy_static::lazy_static;
 use std::{
     panic::{catch_unwind, AssertUnwindSafe},
@@ -12,7 +15,7 @@ use tokio::{
 lazy_static! {
 
 /// The channel that traces get sent to.
-pub static ref SEND_CHANNEL: Sender<ApiTrace> = {
+pub static ref SEND_CHANNEL: Sender<(ApiTrace, Option<ProcessTraceRes>)> = {
     // TODO: The size should probably be configurable, whether by the user or not.
     let (send, recv) = channel(100);
     thread::spawn(|| main(recv));
@@ -22,7 +25,7 @@ pub static ref SEND_CHANNEL: Sender<ApiTrace> = {
 }
 
 /// The main function for the network thread.
-fn main(mut recv: Receiver<ApiTrace>) -> ! {
+fn main(mut recv: Receiver<(ApiTrace, Option<ProcessTraceRes>)>) -> ! {
     // The async runtime.
     let runtime = runtime::Builder::new_current_thread()
         .enable_all()
@@ -46,11 +49,13 @@ fn main(mut recv: Receiver<ApiTrace>) -> ! {
 }
 
 /// The inner loop of the network thread.
-async fn main_loop(recv: &mut Receiver<ApiTrace>) {
-    let trace = recv
+async fn main_loop(recv: &mut Receiver<(ApiTrace, Option<ProcessTraceRes>)>) {
+    let (trace, process_results) = recv
         .recv()
         .await
         .expect("Somehow the SEND_CHANNEL got dropped?");
+
+    let process_results = process_results.unwrap_or_else(|| process(&trace));
 
     // TODO
 }

@@ -2,7 +2,7 @@ use crate::{metlo_config::*, sensitive_data::*, trace::*};
 use antidote::Mutex;
 use lazy_static::lazy_static;
 use std::time::SystemTime;
-use tokio::sync::mpsc::error::TrySendError;
+use tokio::sync::mpsc::error::{SendError, TrySendError};
 
 mod metlo_config;
 mod net_thread;
@@ -19,12 +19,21 @@ lazy_static! {
 
 fn initialize(metlo_host: String, api_key: String) {}
 
-fn process_trace_blocking(trace: ApiTrace) -> ProcessTraceRes {
+fn process(trace: &ApiTrace) -> ProcessTraceRes {
     todo!()
 }
 
+fn process_trace_blocking(trace: ApiTrace) -> ProcessTraceRes {
+    let process_results = process(&trace);
+    match net_thread::SEND_CHANNEL.blocking_send((trace, Some(process_results))) {
+        Ok(()) => {}
+        Err(SendError(_)) => panic!("The networking thread crashed, despite its panic handler"),
+    }
+    process_results
+}
+
 fn process_trace(trace: ApiTrace) {
-    match net_thread::SEND_CHANNEL.try_send(trace) {
+    match net_thread::SEND_CHANNEL.try_send((trace, None)) {
         Ok(()) => {}
         Err(TrySendError::Full(_trace)) => {
             // TODO: Do we wanna log this? Maybe try to estimate what proportion of traces we're
