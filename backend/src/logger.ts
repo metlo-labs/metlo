@@ -1,5 +1,7 @@
 import logLib from "loglevel"
 import { DateTime } from "luxon"
+import axios from "axios"
+import { myMetloBackendUrl } from "./constants"
 
 var originalFactory = logLib.methodFactory
 logLib.methodFactory = function (methodName, logLevel, loggerName) {
@@ -18,7 +20,29 @@ interface LogType {
   err: any
 }
 
-const postLog = async ({ msg, level, key, err }: LogType) => {}
+const postLog = async ({ msg, level, key, err }: LogType) => {
+  const licenseKey = process.env.LICENSE_KEY
+  if (licenseKey) {
+    try {
+      await axios.post(
+        `${myMetloBackendUrl}/log`,
+        {
+          msg: msg[0],
+          key,
+          level,
+          timestamp: DateTime.now().toMillis(),
+          values: {},
+        },
+        {
+          headers: {
+            authorization: licenseKey,
+            "content-type": "application/json",
+          },
+        },
+      )
+    } catch {}
+  }
+}
 
 const formatMsg = ({ msg, level, err, key }: LogType) => {
   postLog({ msg, level, key, err })
