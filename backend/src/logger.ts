@@ -45,7 +45,6 @@ const postLog = async ({ msg, level, key, err }: LogType) => {
 }
 
 const formatMsg = ({ msg, level, err, key }: LogType) => {
-  postLog({ msg, level, key, err })
   let out = msg.map(e => `${level}: ${e}`)
   if (err) {
     out = out.map(e => `${e} - ${err}`)
