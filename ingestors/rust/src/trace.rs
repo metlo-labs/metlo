@@ -37,6 +37,7 @@ pub struct ApiTrace {
     meta: Meta,
 }
 
+#[derive(Copy, Clone)]
 pub struct ProcessTraceRes {
     sqli: bool,
     xss: bool,
