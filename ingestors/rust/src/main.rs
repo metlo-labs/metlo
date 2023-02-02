@@ -1,11 +1,11 @@
-use crate::metlo_config::*;
-use crate::sensitive_data::*;
-use crate::trace::*;
+use crate::{metlo_config::*, sensitive_data::*, trace::*};
 use antidote::Mutex;
 use lazy_static::lazy_static;
 use std::time::SystemTime;
+use tokio::sync::mpsc::error::TrySendError;
 
 mod metlo_config;
+mod net_thread;
 mod sensitive_data;
 mod trace;
 
@@ -23,7 +23,18 @@ fn process_trace_blocking(trace: ApiTrace) -> ProcessTraceRes {
     todo!()
 }
 
-fn process_trace(trace: ApiTrace) {}
+fn process_trace(trace: ApiTrace) {
+    match net_thread::SEND_CHANNEL.try_send(trace) {
+        Ok(()) => {}
+        Err(TrySendError::Full(_trace)) => {
+            // TODO: Do we wanna log this? Maybe try to estimate what proportion of traces we're
+            // dropping and start shouting once it gets high enough?
+        }
+        Err(TrySendError::Closed(_trace)) => {
+            panic!("The networking thread crashed, despite its panic handler");
+        }
+    }
+}
 
 fn main() {
     initialize("http://localhost:8000".to_string(), "".to_string());
