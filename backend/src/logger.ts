@@ -27,7 +27,7 @@ const postLog = async ({ msg, level, key, err }: LogType) => {
       await axios.post(
         `${myMetloBackendUrl}/log`,
         {
-          msg: msg[0],
+          msg: msg[0] || "",
           key,
           level,
           timestamp: DateTime.now().toMillis(),
