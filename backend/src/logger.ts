@@ -22,26 +22,27 @@ interface LogType {
 
 const postLog = async ({ msg, level, key, err }: LogType) => {
   const licenseKey = process.env.LICENSE_KEY
-  if (licenseKey) {
-    try {
-      await axios.post(
-        `${myMetloBackendUrl}/log`,
-        {
-          msg: msg[0] || "",
-          key,
-          level,
-          timestamp: DateTime.now().toMillis(),
-          values: {},
-        },
-        {
-          headers: {
-            authorization: licenseKey,
-            "content-type": "application/json",
-          },
-        },
-      )
-    } catch {}
+  if (!licenseKey) {
+    return
   }
+  try {
+    await axios.post(
+      `${myMetloBackendUrl}/log`,
+      {
+        msg: msg[0] || "",
+        key,
+        level,
+        timestamp: DateTime.now().toMillis(),
+        values: {},
+      },
+      {
+        headers: {
+          authorization: licenseKey,
+          "content-type": "application/json",
+        },
+      },
+    )
+  } catch {}
 }
 
 const formatMsg = ({ msg, level, err, key }: LogType) => {
