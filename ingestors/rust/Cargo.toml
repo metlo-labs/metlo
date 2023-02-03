@@ -7,7 +7,12 @@ edition = "2021"
 
 [dependencies]
 antidote = "1.0.0"
+clap = { version = "4.1.4", features = ["derive"] }
 lazy_static = "1.4.0"
+libinjection = "0.3.2"
+mime = "0.3.16"
 regex = "1.7.1"
 reqwest = "0.11.14"
+serde = { version = "1.0.152", features = ["derive"] }
+serde_json = "1.0.91"
 tokio = { version = "1.25.0", features = ["net", "rt", "sync"] }
