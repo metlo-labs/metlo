@@ -23,7 +23,6 @@ lazy_static! {
 async fn main_loop(recv: &mut Receiver<(ApiTrace, Option<ProcessTraceRes>)>) {
     let (trace, process_results) = recv.recv().await.expect("Send Channel is Closed...");
     let process_results = process_results.unwrap_or_else(|| process_trace(&trace));
-    println!("{:?}", process_results)
 }
 
 fn main(mut recv: Receiver<(ApiTrace, Option<ProcessTraceRes>)>) -> ! {

@@ -107,9 +107,7 @@ fn process_json(prefix: String, body: &str) -> Option<ProcessTraceRes> {
         processTraceRes.sqli_detected = Some(sqli_detected);
     }
 
-    println!("{:?}", processTraceRes);
-
-    return None;
+    Some(processTraceRes)
 }
 
 fn process_body(prefix: String, body: &str, m: mime::Mime) -> Option<ProcessTraceRes> {

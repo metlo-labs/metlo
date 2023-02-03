@@ -1,3 +1,5 @@
+use std::time::SystemTime;
+
 use crate::{metlo_config::*, process_trace::*, trace::*};
 use antidote::RwLock;
 use lazy_static::lazy_static;
@@ -49,25 +51,31 @@ pub fn process_trace_async(trace: ApiTrace) {
 
 pub fn start(metlo_host: String, api_key: String) {
     initialize_metlo(metlo_host, api_key);
-    let result = process_trace_blocking(ApiTrace {
-        request: ApiRequest {
-            method: "POST".to_string(),
-            body: Some(
-                "{\"somekey\": [\"foo\", \"bar\", \"akshay@metlo.com\", \"asdf\", \"<script></script>\"], \"foo\": {\"bar\": \"-1' and 1=1 union/* foo */select load_file('/etc/passwd')--\"}}"
-                    .to_string(),
-            ),
-            url: ApiUrl {
-                host: "http://asdf.com".to_string(),
-                path: "/asdfawef/foo/bar".to_string(),
-                parameters: vec![],
+    let start = SystemTime::now();
+    for _ in 1..100000 {
+        let _ = process_trace_blocking(ApiTrace {
+            request: ApiRequest {
+                method: "POST".to_string(),
+                body: Some("{
+                    \"somekey\": [\"foo\", \"bar\", \"akshay@metlo.com\", \"asdf\", \"<script></script>\"],
+                    \"foo\": {\"bar\": \"-1' and 1=1 union/* foo */select load_file('/etc/passwd')--\"},
+                    \"baz\": {\"bar\": \"-1' and 1=1 union/* foo */select load_file('/etc/passwd')--\"},
+                    \"blam\": {\"bar\": \"-1' and 1=1 union/* foo */select load_file('/etc/passwd')--\"},
+                    \"asdfasdf\": {\"bar\": \"-1' and 1=1 union/* foo */select load_file('/etc/passwd')--\"}
+                }".to_string()),
+                url: ApiUrl {
+                    host: "http://asdf.com".to_string(),
+                    path: "/asdfawef/foo/bar".to_string(),
+                    parameters: vec![],
+                },
+                headers: vec![KeyVal {
+                    name: "content-type".to_string(),
+                    value: "application/json; charset=utf-8".to_string(),
+                }],
             },
-            headers: vec![KeyVal {
-                name: "content-type".to_string(),
-                value: "application/json; charset=utf-8".to_string(),
-            }],
-        },
-        response: None,
-        meta: None,
-    });
-    println!("{:?}", result);
+            response: None,
+            meta: None,
+        });
+    }
+    println!("{:?}", SystemTime::now().duration_since(start))
 }
