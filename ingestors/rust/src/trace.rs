@@ -1,45 +1,57 @@
-struct KeyVal {
-    name: String,
-    value: String,
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+
+#[derive(Deserialize, Serialize)]
+pub struct KeyVal {
+    pub name: String,
+    pub value: String,
 }
 
-struct Url {
-    host: String,
-    path: String,
-    parameters: Vec<KeyVal>,
+#[derive(Deserialize, Serialize)]
+pub struct ApiUrl {
+    pub host: String,
+    pub path: String,
+    pub parameters: Vec<KeyVal>,
 }
 
-struct Request {
-    method: String,
-    url: Url,
-    headers: Vec<KeyVal>,
-    body: String,
+#[derive(Deserialize, Serialize)]
+pub struct ApiRequest {
+    pub method: String,
+    pub url: ApiUrl,
+    pub headers: Vec<KeyVal>,
+    pub body: Option<String>,
 }
 
-struct Response {
-    status: u16,
-    headers: Vec<KeyVal>,
-    body: String,
+#[derive(Deserialize, Serialize)]
+pub struct ApiResponse {
+    pub status: u16,
+    pub headers: Vec<KeyVal>,
+    pub body: Option<String>,
 }
 
-struct Meta {
-    environment: String,
-    incoming: bool,
-    source: String,
-    sourcePort: u16,
-    destination: String,
-    destinationPort: u16,
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Meta {
+    pub environment: String,
+    pub incoming: bool,
+    pub source: String,
+    pub source_port: u16,
+    pub destination: String,
+    pub destination_port: u16,
 }
 
+#[derive(Deserialize, Serialize)]
 pub struct ApiTrace {
-    request: Request,
-    response: Response,
-    meta: Meta,
+    pub request: ApiRequest,
+    pub response: Option<ApiResponse>,
+    pub meta: Option<Meta>,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ProcessTraceRes {
-    sqli: bool,
-    xss: bool,
-    block: bool,
+    pub block: bool,
+    pub xss_detected: Option<HashMap<String, String>>,
+    pub sqli_detected: Option<HashMap<String, (String, String)>>,
+    pub sensitive_data_detected: Option<HashMap<String, Vec<String>>>,
 }
