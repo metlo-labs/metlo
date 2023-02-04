@@ -149,27 +149,7 @@ func main() {
 
 		envInterface := os.Getenv("INTERFACE")
 		if !args.runAsVxlan {
-			if args.captureInterfaceRaw == "" {
-				if envInterface != "" {
-					captureInterfaces = strings.Split(envInterface, ",")
-				} else {
-					ifaces, err := net.Interfaces()
-					if err != nil {
-						log.Println(err)
-					}
-					for _, i := range ifaces {
-						if strings.HasPrefix(i.Name, "eth") || strings.HasPrefix(i.Name, "ens") {
-							log.Printf("Found match on interface %s which matches expected pattern. Binding to it", i.Name)
-							captureInterfaces = append(captureInterfaces, i.Name)
-						}
-					}
-				}
-			} else {
-				captureInterfaces = strings.Split(args.captureInterfaceRaw, ",")
-			}
-			if captureInterfaces != nil && len(captureInterfaces) == 0 {
-				log.Fatalln("Packet capture in live mode must provide an interface(s)")
-			}
+			captureInterfaces = utils.GetInterfaces(args.captureInterfaceRaw, envInterface)
 		}
 
 		truncatedAPIKey := ""
