@@ -89,6 +89,7 @@ const UsageChart: React.FC<UsageChartProps> = React.memo(
         {
           data: values,
           backgroundColor: "rgba(255, 99, 132, 0.5)",
+          borderRadius: 4,
         },
       ],
     }

@@ -1,6 +1,7 @@
 package com.metlo.spring;
 
 import com.metlo.spring.utils.ContentCachingResponseWrapperWithHeaderNames;
+import com.metlo.spring.utils.PingHome;
 import com.metlo.spring.utils.RateLimitingRequests;
 
 // Should be supported in every version 2003+
@@ -17,13 +18,18 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.function.Function;
+import java.util.logging.Logger;
 
 
 public class Metlo extends OncePerRequestFilter {
     private static final int DEFAULT_THREAD_POOL_SIZE = 2;
 
     private static final int DEFAULT_RPS = 10;
-    private final static String endpoint = "api/v1/log-request/single";
+    private final static String endpoint_log_single = "api/v1/log-request/single";
+    private final static String endpoint_ping = "api/v1/verify";
+
+    private final static Logger LOGGER =
+            Logger.getLogger("com.metlo.spring");
 
     private final Boolean enabled;
 
@@ -38,21 +44,33 @@ public class Metlo extends OncePerRequestFilter {
     }
 
     public Metlo(int pool_size, String host, String api_key, Integer rps) {
-
+        Boolean enabledTemp;
         String METLO_ADDR = host;
+        String METLO_PING_HOME = host;
         if (host.charAt(host.length() - 1) == '/') {
-            METLO_ADDR += endpoint;
+            METLO_ADDR += endpoint_log_single;
+            METLO_PING_HOME += endpoint_ping;
         } else {
-            METLO_ADDR += "/" + endpoint;
+            METLO_ADDR += "/" + endpoint_log_single;
+            METLO_PING_HOME += "/" + endpoint_ping;
         }
         this.req = new RateLimitingRequests(rps, pool_size, METLO_ADDR, api_key);
 
         String enabled = System.getenv("METLO_ENABLED");
         if (enabled != null) {
-            this.enabled = Boolean.parseBoolean(enabled);
+            enabledTemp = Boolean.parseBoolean(enabled);
         } else {
-            this.enabled = true;
+            enabledTemp = true;
         }
+
+        if (enabledTemp) {
+            try {
+                new PingHome(METLO_PING_HOME, api_key, LOGGER).ping();
+            } catch (IOException e) {
+                LOGGER.warning("Could not connect to Metlo. Encountered error: " + e.getMessage());
+            }
+        }
+        this.enabled = enabledTemp;
     }
 
 

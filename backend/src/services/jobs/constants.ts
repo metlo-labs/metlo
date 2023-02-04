@@ -10,7 +10,7 @@ export const JOB_NAME_MAP: Record<JobName, JobMap> = {
   [JobName.GENERATE_OPENAPI_SPEC]: {
     start: "Generating OpenAPI Spec Files...",
     end: "Finished generating OpenAPI Spec Files",
-    threshold: 300_000,
+    threshold: 1000 * 60 * 55,
   },
   [JobName.CHECK_UNAUTH_ENDPOINTS]: {
     start: "Checking for Unauthenticated Endpoint...",

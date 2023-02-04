@@ -5,10 +5,12 @@ import {
   FindOneOptions,
   FindOptionsWhere,
   InsertResult,
+  ObjectID,
   QueryRunner,
   RemoveOptions,
   Repository,
   SaveOptions,
+  UpdateResult,
 } from "typeorm"
 import { ObjectLiteral } from "typeorm/common/ObjectLiteral"
 import { EntityTarget } from "typeorm/common/EntityTarget"
@@ -160,6 +162,25 @@ export class WrappedEntityManager {
     entity: QueryDeepPartialEntity<Entity>[],
   ): Promise<InsertResult> {
     return this.manager.insert(target, entity)
+  }
+
+  update<Entity>(
+    target: EntityTarget<Entity>,
+    criteria:
+      | string
+      | string[]
+      | number
+      | number[]
+      | Date
+      | Date[]
+      | ObjectID
+      | ObjectID[]
+      | any,
+    entity: QueryDeepPartialEntity<
+      ObjectLiteral extends Entity ? unknown : Entity
+    >,
+  ): Promise<UpdateResult> {
+    return this.manager.update(target, criteria, entity)
   }
 }
 

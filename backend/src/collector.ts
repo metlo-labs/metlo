@@ -7,7 +7,9 @@ import { AppDataSource } from "data-source"
 import { verifyApiKeyMiddleware } from "middleware/verify-api-key-middleware"
 import { bodyParserMiddleware } from "middleware/body-parser-middleware"
 import { MetloRequest } from "types"
-import registerLoggingRoutes from "api/collector"
+import registerLoggingRoutes, {
+  registerVerificationRoutes,
+} from "api/collector"
 
 const app: Express = express()
 const port = process.env.PORT || 8081
@@ -26,8 +28,9 @@ app.get("/api/v1", (req: Request, res: Response) => {
 app.use(express.json({ limit: "2mb" }))
 app.use(express.urlencoded({ limit: "2mb", extended: true }))
 app.use(verifyApiKeyMiddleware)
-app.use(bodyParserMiddleware)
 app.use("/api/v1", router)
+registerVerificationRoutes(router)
+app.use(bodyParserMiddleware)
 
 registerLoggingRoutes(router)
 

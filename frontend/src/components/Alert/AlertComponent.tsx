@@ -55,22 +55,22 @@ export const AlertComponent: React.FC<AlertComponentProps> = ({
   }
 
   return (
-    <Box w="full" id={`alert-${alert.uuid}`}>
+    <Box w="full" id={`alert-${alert.uuid}`} rounded="md">
       <Box
-        borderTopRadius={2}
+        roundedTop="md"
         w="full"
-        h={1.5}
+        h="5px"
         bg={RISK_TO_COLOR[alert.riskScore]}
       />
       <VStack
-        rounded="sm"
         borderTopRadius={0}
-        borderWidth={2}
+        borderWidth={1}
         borderTopWidth={0}
         py="4"
         spacing="4"
         w="full"
-      >
+        roundedBottom="md"
+        >
         <HStack px="4" w="full" justifyContent="space-between">
           <HStack>
             <Heading fontSize="lg">{alert.type}</Heading>

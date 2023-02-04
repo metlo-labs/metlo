@@ -189,7 +189,7 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({ alert }) => {
       {panel}
       <Box
         borderWidth={1}
-        rounded="sm"
+        rounded="md"
         bg="var(--chakra-colors-chakra-body-bg)"
         borderLeftWidth={5}
         borderLeftColor={RISK_TO_COLOR[alert.riskScore]}

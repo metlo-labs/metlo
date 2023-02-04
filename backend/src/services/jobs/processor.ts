@@ -53,7 +53,7 @@ const processor = async (job: Job, done) => {
     default:
       break
   }
-  mlog.info(JOB_NAME_MAP[job.name].end, true)
+  mlog.info(JOB_NAME_MAP[job.name].end)
   return Promise.resolve()
 }
 export default wrapProcessor(processor)

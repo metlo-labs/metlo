@@ -120,7 +120,7 @@ const phoneNumberPattern = String.raw`${boundaryPrefix}(?:(?:(?<![\d-])(?:\+?\d{
 const vinPattern = String.raw`${boundaryPrefix}[A-HJ-NPR-Z0-9]{17}${boundarySuffix}`
 
 // Aadhar number pattern
-const aadharPatern = String.raw`${boundaryPrefix}([0-9]{12})|([0-9]{4} [0-9]{4} [0-9]{4})${boundarySuffix}`
+const aadharPatern = String.raw`${boundaryPrefix}(([0-9]{12})|([0-9]{4} [0-9]{4} [0-9]{4}))${boundarySuffix}`
 
 /*** Compiled Regexp ***/
 export const ADDRESS_REGEXP = new RegExp(addressPattern)
