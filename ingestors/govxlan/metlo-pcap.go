@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"strconv"
@@ -101,7 +100,7 @@ func main() {
 			if key != "" {
 				args.apiKey = key
 			} else {
-				return fmt.Errorf("No value passed for METLO_KEY. Set it via -k param or METLO_KEY in the environment")
+				utils.Log.Fatal("No value passed for METLO_KEY. Set it via -k param or METLO_KEY in the environment")
 			}
 		}
 
@@ -110,14 +109,14 @@ func main() {
 			if host != "" {
 				args.metloHost = host
 			} else {
-				return fmt.Errorf("No value passed for METL_HOST. Set it via -u param or METLO_HOST in the environment")
+				utils.Log.Fatal("No value passed for METL_HOST. Set it via -u param or METLO_HOST in the environment")
 			}
 		}
 		envRps := os.Getenv("MAX_RPS")
 		if args.maxRps == 0 && envRps != "" {
 			intEnvRps, err := strconv.Atoi(envRps)
 			if err != nil {
-				return fmt.Errorf("INVALID MAX RPS: %s", &envRps)
+				utils.Log.Fatal("INVALID MAX RPS: %s", &envRps)
 			}
 			args.maxRps = intEnvRps
 		}
@@ -139,7 +138,7 @@ func main() {
 
 		ifaces, err := net.Interfaces()
 		if err != nil {
-			log.Println(err)
+			utils.Log.Info(err)
 		}
 		var interfacesFound []string
 		for _, i := range ifaces {
@@ -147,9 +146,8 @@ func main() {
 		}
 		utils.Log.Infof("Found interfaces: %s", strings.Join(interfacesFound, ","))
 
-		envInterface := os.Getenv("INTERFACE")
 		if !args.runAsVxlan {
-			captureInterfaces = utils.GetInterfaces(args.captureInterfaceRaw, envInterface)
+			captureInterfaces = utils.GetInterfaces(args.captureInterfaceRaw, os.Getenv("INTERFACE"))
 		}
 
 		truncatedAPIKey := ""
