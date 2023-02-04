@@ -5,6 +5,7 @@ import init from "./init"
 import { awsTrafficMirrorSetup } from "./aws/setup"
 import { awsTrafficMirrorList } from "./aws/list"
 import { awsTrafficMirrorRemove } from "./aws/remove"
+import { awsCheckMirroringSessionExistsJob } from "./aws/cron"
 import { gcpTrafficMirrorSetup } from "./gcp/setup"
 import { gcpTrafficMirrorList } from "./gcp/list"
 import { gcpTrafficMirrorDelete } from "./gcp/remove"
@@ -67,7 +68,20 @@ const trafficMirror = program
 const trafficMirrorAws = trafficMirror
   .command("aws")
   .description("Set up traffic mirroring for AWS")
-trafficMirrorAws.command("new").action(awsTrafficMirrorSetup)
+trafficMirrorAws
+  .command("new")
+  .option("-i,--id", "UUID for the identifier")
+  .option(
+    "-r,--region <string>",
+    "AWS Region where source and target are located",
+  )
+  .option("-t,--target-eni-id <string>", "Target ENI ID")
+  .option("-s,--source-eni-id <string>", "Source ENI ID")
+  .action(awsTrafficMirrorSetup)
+trafficMirrorAws
+  .command("from-file")
+  .argument("path", "Path to config file")
+  .action(awsCheckMirroringSessionExistsJob)
 trafficMirrorAws.command("list").action(awsTrafficMirrorList)
 trafficMirrorAws.command("remove").action(awsTrafficMirrorRemove)
 

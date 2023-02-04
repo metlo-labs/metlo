@@ -8,13 +8,14 @@
     "metlo": "./dist/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc",    
     "watch": "tsc -w",
     "dev": "nodemon -r tsconfig-paths/register src/index.ts",
     "cli-gcp": "nodemon -r tsconfig-paths/register src/index.ts traffic-mirror gcp",
     "cli-aws": "nodemon -r tsconfig-paths/register src/index.ts traffic-mirror aws",
     "cli-gcp-prod": "node dist/index.js traffic-mirror gcp",
-    "format": "prettier --write './src/**/*.{ts,tsx}'"
+    "format": "prettier --write './src/**/*.{ts,tsx}'",
+    "test": "ts-node src/aws/cron/configureCron.ts"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
@@ -39,6 +40,7 @@
     "command-exists": "^1.2.9",
     "commander": "^9.4.0",
     "console-table-printer": "^2.11.1",
+    "dayjs": "^1.11.7",
     "dotenv": "^16.0.2",
     "enquirer": "^2.3.6",
     "glob": "^8.0.3",
