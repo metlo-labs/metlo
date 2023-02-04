@@ -6,11 +6,11 @@ import {
   writeFileSync,
   mkdirSync,
 } from "node:fs"
-import { stringToCSV } from "./utils"
+import { getBaseLocation, stringToCSV } from "./utils"
 
-const cron_script_path = `${process.cwd()}/meta/cron_script.sh`
-const data_file_path = `${process.cwd()}/meta/mirrors.csv`
-const CRON_DEFINITION = `*/5 * * * * ${cron_script_path}`
+const cron_script_path = `${getBaseLocation()}/cron_script.sh`
+const data_file_path = `${getBaseLocation()}/mirrors.csv`
+const CRON_DEFINITION = `*/5 * * * * ${cron_script_path.replace(/ /g, "\\ ")}`
 
 function checkIfCRONconfigured() {
   const res = execSync("crontab -l")
@@ -30,7 +30,7 @@ function checkIfCRONconfigured() {
   return script_paths.includes(cron_script_path)
 }
 
-export function updateRegisteredTargets(id, target, source, region) {
+export function addRegisteredTargets(id, target, source, region) {
   if (existsSync(data_file_path)) {
     const mirrors = stringToCSV(readFileSync(data_file_path).toString())
     if (!mirrors.find(mirror => mirror.uuid === id)) {
@@ -41,23 +41,47 @@ export function updateRegisteredTargets(id, target, source, region) {
     writeFileSync(
       data_file_path,
       `id,target,source,region\n${id},${target},${source},${region}`,
+      { flag: "wx" },
+    )
+  }
+}
+
+export function removeRegisteredTargets(id) {
+  if (existsSync(data_file_path)) {
+    const lines = stringToCSV(readFileSync(data_file_path).toString())
+      .filter(mirror => mirror.uuid !== id)
+      .map(
+        ({ uuid, target, source, region }) =>
+          `${uuid},${target},${source},${region}`,
+      )
+    writeFileSync(
+      data_file_path,
+      `id,target,source,region\n` + lines.join("\n"),
+      { flag: "wx" },
     )
   }
 }
 
 export function registerCRON() {
-  if (!existsSync(`${process.cwd()}/meta`)) {
-    mkdirSync(`${process.cwd()}/meta`)
+  if (!existsSync(`${getBaseLocation()}`)) {
+    mkdirSync(`${getBaseLocation()}`, { mode: 0o755 })
   }
   if (!checkIfCRONconfigured()) {
-    writeFileSync(`${process.cwd()}/meta/metlo-cron.txt`, CRON_DEFINITION)
-    execSync(`crontab ${process.cwd()}/meta/metlo-cron.txt`)
+    const location = String.raw`${getBaseLocation()}/metlo-cron.txt`
+    writeFileSync(location, CRON_DEFINITION, { mode: 0o755, flag: "wx" })
+    execSync(`crontab ${location.replace(/ /g, "\\ ")}`)
   }
   if (!existsSync(cron_script_path)) {
-    const metlo_location = execSync("command -v metlo").toString()
+    // TODO: Confirm if metlo replacement based on NODE_ENV works
+    const metlo_location =
+      process.env.NODE_ENV === "development"
+        ? execSync("command -v node").toString().trim() +
+          ` ${process.cwd()}/dist/index.js`
+        : execSync("command -v metlo").toString().trim()
     writeFileSync(
-      `${process.cwd()}/meta/cron_script.sh`,
-      `${metlo_location} traffic-mirror aws from-file ${process.cwd()}/meta/mirrors.csv`,
+      `${getBaseLocation()}/cron_script.sh`,
+      `${metlo_location} traffic-mirror aws from-file ${getBaseLocation()}/mirrors.csv`,
+      { mode: 0o755, flag: "wx" },
     )
   }
 }

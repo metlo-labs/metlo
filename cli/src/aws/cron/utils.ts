@@ -1,6 +1,7 @@
 import dayjs from "dayjs"
 import { execSync } from "node:child_process"
-import { appendFileSync, writeFileSync } from "node:fs"
+import { appendFileSync, existsSync, mkdirSync } from "node:fs"
+import path from "node:path"
 
 let journalExists
 
@@ -33,12 +34,28 @@ export function logger(text: string) {
     })
   } else {
     appendFileSync(
-      "/Users/ninadsinha/Desktop/metlo_v2/cli/meta/out.txt",
-      `${process.cwd()}/meta/log.txt`,
-    )
-    appendFileSync(
-      `${process.cwd()}/meta/log.txt`,
+      `${getBaseLocation()}/log.txt`,
       `[${dayjs().format("YYYY-MM-DD HH:mm:ss ZZ")}] : ${text}\n`,
     )
+  }
+}
+
+export function getBaseLocation() {
+  if (process.platform === "darwin") {
+    const base = path.resolve(
+      String.raw`${process.env.HOME}/Library/Application Support`,
+    )
+    if (!existsSync(`${base}/metlo`)) {
+      mkdirSync(`${base}/metlo`, { mode: 0o755 })
+    }
+    return `${base}/metlo`
+  } else if (process.platform === "linux") {
+    const base = path.resolve(String.raw`${process.env.HOME}`)
+    if (!existsSync(`${base}/.metlo`)) {
+      mkdirSync(`${base}/.metlo`, { mode: 0o755 })
+    }
+    return `${base}/.metlo`
+  } else {
+    throw new Error(`Unsupported platform ${process.platform} for CRON setup`)
   }
 }

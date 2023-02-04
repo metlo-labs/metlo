@@ -12,7 +12,7 @@ import { AWS_SOURCE_TYPE, Protocols } from "./types"
 import { getRegion } from "./cliUtils"
 import { getMetloMirrorTargets } from "./sessionUtils"
 import { validate } from "uuid"
-import { registerCRON, updateRegisteredTargets } from "./cron/configureCron"
+import { registerCRON, addRegisteredTargets } from "./cron/configureCron"
 
 export const _awsTrafficMirrorSetup = async ({
   id: passedID,
@@ -95,7 +95,6 @@ export const _awsTrafficMirrorSetup = async ({
       e => e.NetworkInterfaceId == _DestinationNetworkEniId,
     )?.TrafficMirrorTargetId
     if (!mirror_target_id) {
-      // TODO Update if target doesn't exist in data
       const targetCreateResp = await awsMirrorTargetCreation(
         _region,
         _DestinationNetworkEniId,
@@ -136,7 +135,7 @@ export const _awsTrafficMirrorSetup = async ({
   }
 
   registerCRON()
-  updateRegisteredTargets(
+  addRegisteredTargets(
     _id,
     _DestinationNetworkEniId,
     _SourceNetworkEniId,
@@ -156,9 +155,7 @@ export const awsTrafficMirrorSetup = async ({
   region,
   targetEniId: target,
   sourceEniId: source,
-  ...rest
 }) => {
-  console.log(rest)
   try {
     await _awsTrafficMirrorSetup({ id, region, target, source })
   } catch (err) {
