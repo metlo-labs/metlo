@@ -18,6 +18,7 @@ type Processor interface {
 }
 
 type PacketProcessor struct {
+	iFace         string
 	metloAPI      *metloapi.Metlo
 	httpAssembler *assemblers.HttpAssembler
 	reqAssembler  *assemblers.Assembler
@@ -25,8 +26,9 @@ type PacketProcessor struct {
 	ready         bool
 }
 
-func NewPacketProcessor(metloAPI *metloapi.Metlo) (*PacketProcessor, error) {
+func NewPacketProcessor(metloAPI *metloapi.Metlo, interfaceName string) (*PacketProcessor, error) {
 	proc := PacketProcessor{
+		iFace:    interfaceName,
 		metloAPI: metloAPI,
 	}
 	return &proc, nil
@@ -69,7 +71,7 @@ func (x *PacketProcessor) Put(pkt *packetData) error {
 func (x *PacketProcessor) Tick(now time.Time) error {
 	x.reqAssembler.FlushOlderThan(now.Add(time.Minute * -2))
 	x.respAssembler.FlushOlderThan(now.Add(time.Minute * -2))
-	x.httpAssembler.Tick(now)
+	x.httpAssembler.Tick(now, x.iFace)
 	return nil
 }
 

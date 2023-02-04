@@ -125,7 +125,7 @@ func (h *HttpAssembler) AddRequest(req *http.Request, vid uint32, netFlow gopack
 	}
 }
 
-func (h *HttpAssembler) Tick(now time.Time) {
+func (h *HttpAssembler) Tick(now time.Time, captureInterface string) {
 	// Cleanup old unmatched requests
 	numCleaned := 0
 	h.mu.Lock()
@@ -151,5 +151,5 @@ func (h *HttpAssembler) Tick(now time.Time) {
 		"totalRequestCount":     h.totalRequestCount,
 		"totalResponseCount":    h.totalResponseCount,
 		"totalMatchedResponses": h.totalMatchedResponses,
-	}).Debug("Http Assembler Stats")
+	}).Debugf("Http Assembler Stats %s", captureInterface)
 }
