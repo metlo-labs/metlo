@@ -136,6 +136,17 @@ func main() {
 				args.runAsVxlan = false
 			}
 		}
+
+		ifaces, err := net.Interfaces()
+		if err != nil {
+			log.Println(err)
+		}
+		var interfacesFound []string
+		for _, i := range ifaces {
+			interfacesFound = append(interfacesFound, i.Name)
+		}
+		utils.Log.Infof("Found interfaces: %s", strings.Join(interfacesFound, ","))
+
 		envInterface := os.Getenv("INTERFACE")
 		if !args.runAsVxlan {
 			if args.captureInterfaceRaw == "" {
