@@ -10,6 +10,7 @@ func TestInit(host string, apiKey string) {
 	req, err := http.NewRequest("GET", host+"/api/v1/verify", nil)
 	if err != nil {
 		Log.Error("Could not perform validation request to metlo host")
+		return
 	}
 	req.Header.Set("Authorization", apiKey)
 	res, err := client.Do(req)
