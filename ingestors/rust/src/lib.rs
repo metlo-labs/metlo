@@ -1,17 +1,29 @@
-use std::time::SystemTime;
-
-use crate::{metlo_config::*, process_trace::*, trace::*};
+use crate::metlo_config::*;
 use antidote::RwLock;
 use lazy_static::lazy_static;
-use tokio::sync::mpsc::error::{SendError, TrySendError};
 
+use crate::metloingest::metlo_ingest_server::{MetloIngest, MetloIngestServer};
+use mappers::{map_ingest_api_trace, map_process_trace_res};
+use process_trace::process_api_trace;
+use std::path::Path;
+use std::sync::Arc;
+use tokio::net::UnixListener;
+use tokio::sync::{Semaphore, TryAcquireError};
+use tokio_stream::wrappers::UnixListenerStream;
+use tonic::{transport::Server, Code, Request, Response, Status};
+use trace::ProcessTraceRes;
+
+mod mappers;
 mod metlo_config;
-mod process_thread;
 mod process_trace;
 mod sensitive_data;
 mod trace;
+pub mod metloingest {
+    tonic::include_proto!("metloingest");
+}
 
 lazy_static! {
+    pub static ref TASK_RUN_SEMAPHORE: std::sync::Arc<Semaphore> = Arc::new(Semaphore::new(100));
     pub static ref METLO_CONFIG: RwLock<MetloConfig> = RwLock::new(MetloConfig {
         api_key: None,
         metlo_host: None,
@@ -25,57 +37,53 @@ pub fn initialize_metlo(metlo_host: String, api_key: String) {
     METLO_CONFIG.write().initialized = true;
 }
 
-pub fn process_trace_blocking(trace: ApiTrace) -> Result<ProcessTraceRes, String> {
-    if !METLO_CONFIG.read().initialized {
-        return Err("Metlo not initialized".to_string());
+#[derive(Default)]
+pub struct MIngestServer {}
+
+#[tonic::async_trait]
+impl MetloIngest for MIngestServer {
+    async fn process_trace(
+        &self,
+        request: Request<metloingest::ApiTrace>,
+    ) -> Result<Response<metloingest::ProcessTraceRes>, Status> {
+        let map_res = map_ingest_api_trace(request.into_inner());
+        if let Some(mapped_api_trace) = map_res {
+            match TASK_RUN_SEMAPHORE.try_acquire() {
+                Ok(permit) => {
+                    tokio::spawn(async move {
+                        process_api_trace(&mapped_api_trace);
+                        drop(permit);
+                    });
+                }
+                Err(TryAcquireError::NoPermits) => {
+                    println!("no permits avaiable")
+                }
+                Err(TryAcquireError::Closed) => {
+                    println!("semaphore closed")
+                }
+            }
+            return Ok(Response::new(map_process_trace_res(ProcessTraceRes {
+                block: false,
+                xss_detected: None,
+                sqli_detected: None,
+                sensitive_data_detected: None,
+                data_types: None,
+            })));
+        } else {
+            return Err(Status::new(Code::InvalidArgument, "Invalid API Trace"));
+        };
     }
-    let process_res = process_api_trace(&trace);
-    match process_thread::SEND_CHANNEL.blocking_send((trace, Some(process_res.clone()))) {
-        Ok(()) => {}
-        Err(SendError(_)) => panic!("The networking thread crashed, despite its panic handler"),
-    }
-    Ok(process_res)
 }
 
-pub fn process_trace_async(trace: ApiTrace) {
-    match process_thread::SEND_CHANNEL.try_send((trace, None)) {
-        Ok(()) => {}
-        Err(TrySendError::Full(_trace)) => {
-            println!("Channel Full")
-        }
-        Err(TrySendError::Closed(_trace)) => {
-            panic!("The processing thread crashed, despite its panic handler");
-        }
-    }
-}
-
-pub fn start(metlo_host: String, api_key: String) {
-    initialize_metlo(metlo_host, api_key);
-    let start = SystemTime::now();
-    for _ in 1..1_000 {
-        let _ = process_trace_blocking(ApiTrace {
-            request: ApiRequest {
-                method: "POST".to_string(),
-                body: Some("{
-                    \"somekey\": [\"foo\", \"bar\", \"akshay@metlo.com\", \"asdf\", \"<script></script>\"],
-                    \"foo\": {\"bar\": \"-1' and 1=1 union/* foo */select load_file('/etc/passwd')--\"},
-                    \"baz\": {\"bar\": \"-1' and 1=1 union/* foo */select load_file('/etc/passwd')--\"},
-                    \"blam\": {\"bar\": \"-1' and 1=1 union/* foo */select load_file('/etc/passwd')--\"},
-                    \"asdfasdf\": {\"bar\": \"-1' and 1=1 union/* foo */select load_file('/etc/passwd')--\"}
-                }".to_string()),
-                url: ApiUrl {
-                    host: "http://asdf.com".to_string(),
-                    path: "/asdfawef/foo/bar".to_string(),
-                    parameters: vec![],
-                },
-                headers: vec![KeyVal {
-                    name: "content-type".to_string(),
-                    value: "application/json; charset=utf-8".to_string(),
-                }],
-            },
-            response: None,
-            meta: None,
-        });
-    }
-    println!("{:?}", SystemTime::now().duration_since(start))
+pub async fn server(listen_socket: &str) -> Result<(), Box<dyn std::error::Error>> {
+    std::fs::create_dir_all(Path::new(listen_socket).parent().unwrap())
+        .expect("Failed to create socket directory.");
+    let s = MIngestServer::default();
+    let uds = UnixListener::bind(listen_socket).expect("Failed to bind to unix socket.");
+    let uds_stream = UnixListenerStream::new(uds);
+    Server::builder()
+        .add_service(MetloIngestServer::new(s))
+        .serve_with_incoming(uds_stream)
+        .await?;
+    Ok(())
 }

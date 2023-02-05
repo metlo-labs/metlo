@@ -154,7 +154,7 @@ func main() {
 
 	start := time.Now()
 	num_err := 0
-	for i := 1; i < 100000; i++ {
+	for i := 1; i < 1000; i++ {
 		_, err := c.ProcessTrace(ctx, e)
 		if err != nil {
 			num_err++
