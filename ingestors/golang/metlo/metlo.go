@@ -3,7 +3,6 @@ package metlo
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -38,13 +37,16 @@ func InitMetloCustom(metloHost string, metloKey string, rps int, disable bool) *
 func (m *metlo) Send(data any) {
 	json, err := json.Marshal(data)
 	if err != nil {
-		log.Fatal(err)
+		Log.Error(err)
 	}
 	req, err := http.NewRequest("POST", m.metloHost, bytes.NewBuffer(json))
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", m.metloKey)
 	client := http.DefaultClient
-	client.Do(req)
+	_, err = client.Do(req)
+	if err != nil {
+		Log.Error(err)
+	}
 }
 
 func (m *metlo) Allow() bool {
@@ -53,9 +55,7 @@ func (m *metlo) Allow() bool {
 		tmp_ts := make([]int64, 0, 10)
 		now := time.Now()
 		curr := now.UTC().UnixMilli()
-		if len(m.ts) == 0 {
-
-		} else {
+		if len(m.ts) != 0 {
 			for x := 0; x < len(m.ts); x++ {
 				if (curr - m.ts[x]) <= 1000 {
 					tmp_ts = append(tmp_ts, m.ts[x])
