@@ -39,7 +39,6 @@
     "command-exists": "^1.2.9",
     "commander": "^9.4.0",
     "console-table-printer": "^2.11.1",
-    "dayjs": "^1.11.7",
     "dotenv": "^16.0.2",
     "enquirer": "^2.3.6",
     "glob": "^8.0.3",
