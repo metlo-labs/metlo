@@ -31,6 +31,7 @@ func InitMetloCustom(metloHost string, metloKey string, rps int, disable bool) *
 		metloKey:  metloKey,
 		disable:   disable,
 	}
+	TestInit(inst.metloHost, inst.metloKey)
 	return inst
 }
 
