@@ -21,118 +21,118 @@ export const _awsTrafficMirrorSetup = async ({
   source: passedSource,
 }) => {
   let _id, _region, _SourceNetworkEniId, _DestinationNetworkEniId
-  // {
-  //   if (passedID) {
-  //     if (validate(passedID)) {
-  //       _id = passedID
-  //     } else {
-  //       _id = uuidv4()
-  //     }
-  //   } else {
-  //     _id = uuidv4()
-  //   }
-  //   if (!passedRegion) {
-  //     _region = await getRegion()
-  //   } else {
-  //     _region = passedRegion
-  //   }
-  //   if (!passedSource) {
-  //     const mirrorSourceResp = await prompt([
-  //       {
-  //         type: "select",
-  //         name: "sourceType",
-  //         message: "What type of source do you want to mirror?",
-  //         initial: 1,
-  //         choices: [
-  //           { name: AWS_SOURCE_TYPE.INSTANCE },
-  //           { name: AWS_SOURCE_TYPE.NETWORK_INTERFACE },
-  //         ],
-  //       },
-  //       {
-  //         type: "input",
-  //         name: "mirrorSourceId",
-  //         message: "Enter the id of your source",
-  //       },
-  //     ])
-  //     const sourceType = mirrorSourceResp["sourceType"] as AWS_SOURCE_TYPE
-  //     const mirrorSourceId = (
-  //       mirrorSourceResp["mirrorSourceId"] as string
-  //     ).trim()
+  {
+    if (passedID) {
+      if (validate(passedID)) {
+        _id = passedID
+      } else {
+        _id = uuidv4()
+      }
+    } else {
+      _id = uuidv4()
+    }
+    if (!passedRegion) {
+      _region = await getRegion()
+    } else {
+      _region = passedRegion
+    }
+    if (!passedSource) {
+      const mirrorSourceResp = await prompt([
+        {
+          type: "select",
+          name: "sourceType",
+          message: "What type of source do you want to mirror?",
+          initial: 1,
+          choices: [
+            { name: AWS_SOURCE_TYPE.INSTANCE },
+            { name: AWS_SOURCE_TYPE.NETWORK_INTERFACE },
+          ],
+        },
+        {
+          type: "input",
+          name: "mirrorSourceId",
+          message: "Enter the id of your source",
+        },
+      ])
+      const sourceType = mirrorSourceResp["sourceType"] as AWS_SOURCE_TYPE
+      const mirrorSourceId = (
+        mirrorSourceResp["mirrorSourceId"] as string
+      ).trim()
 
-  //     console.log("Finding Source...")
-  //     const { source_eni_id } = await awsSourceIdentification(
-  //       sourceType,
-  //       mirrorSourceId,
-  //       _region,
-  //     )
-  //     _SourceNetworkEniId = source_eni_id
-  //     console.log("Success!")
-  //   } else {
-  //     _SourceNetworkEniId = passedSource
-  //   }
+      console.log("Finding Source...")
+      const { source_eni_id } = await awsSourceIdentification(
+        sourceType,
+        mirrorSourceId,
+        _region,
+      )
+      _SourceNetworkEniId = source_eni_id
+      console.log("Success!")
+    } else {
+      _SourceNetworkEniId = passedSource
+    }
 
-  //   if (!passedTarget) {
-  //     const mirrorDestinationResp = await prompt([
-  //       {
-  //         type: "input",
-  //         name: "destinationEniId",
-  //         message: "Enter the id of your Metlo Mirroring Instance",
-  //       },
-  //     ])
-  //     const destinationEniId = (
-  //       mirrorDestinationResp["destinationEniId"] as string
-  //     ).trim()
-  //     _DestinationNetworkEniId = await getNetworkIdForInstance(
-  //       _region,
-  //       destinationEniId,
-  //     )
-  //   } else {
-  //     _DestinationNetworkEniId = passedTarget
-  //   }
-  //   console.log("Creating Mirror Session...")
-  //   const targets = await getMetloMirrorTargets(_region)
-  //   let mirror_target_id = targets.find(
-  //     e => e.NetworkInterfaceId == _DestinationNetworkEniId,
-  //   )?.TrafficMirrorTargetId
-  //   if (!mirror_target_id) {
-  //     const targetCreateResp = await awsMirrorTargetCreation(
-  //       _region,
-  //       _DestinationNetworkEniId,
-  //       _id,
-  //     )
-  //     mirror_target_id = targetCreateResp.mirror_target_id
-  //   }
-  //   const { mirror_filter_id } = await awsMirrorFilterCreation(
-  //     _region,
-  //     [
-  //       {
-  //         destination_CIDR: "0.0.0.0/0",
-  //         source_CIDR: "0.0.0.0/0",
-  //         destination_port: "",
-  //         source_port: "",
-  //         direction: "in",
-  //         protocol: Protocols.TCP,
-  //       },
-  //       {
-  //         destination_CIDR: "0.0.0.0/0",
-  //         source_CIDR: "0.0.0.0/0",
-  //         destination_port: "",
-  //         source_port: "",
-  //         direction: "out",
-  //         protocol: Protocols.TCP,
-  //       },
-  //     ],
-  //     _id,
-  //   )
-  //   await awsMirrorSessionCreation(
-  //     _region,
-  //     _SourceNetworkEniId,
-  //     mirror_filter_id,
-  //     mirror_target_id,
-  //     _id,
-  //   )
-  //   console.log(chalk.green.bold(`\nSuccess!`))
-  // }
+    if (!passedTarget) {
+      const mirrorDestinationResp = await prompt([
+        {
+          type: "input",
+          name: "destinationEniId",
+          message: "Enter the id of your Metlo Mirroring Instance",
+        },
+      ])
+      const destinationEniId = (
+        mirrorDestinationResp["destinationEniId"] as string
+      ).trim()
+      _DestinationNetworkEniId = await getNetworkIdForInstance(
+        _region,
+        destinationEniId,
+      )
+    } else {
+      _DestinationNetworkEniId = passedTarget
+    }
+    console.log("Creating Mirror Session...")
+    const targets = await getMetloMirrorTargets(_region)
+    let mirror_target_id = targets.find(
+      e => e.NetworkInterfaceId == _DestinationNetworkEniId,
+    )?.TrafficMirrorTargetId
+    if (!mirror_target_id) {
+      const targetCreateResp = await awsMirrorTargetCreation(
+        _region,
+        _DestinationNetworkEniId,
+        _id,
+      )
+      mirror_target_id = targetCreateResp.mirror_target_id
+    }
+    const { mirror_filter_id } = await awsMirrorFilterCreation(
+      _region,
+      [
+        {
+          destination_CIDR: "0.0.0.0/0",
+          source_CIDR: "0.0.0.0/0",
+          destination_port: "",
+          source_port: "",
+          direction: "in",
+          protocol: Protocols.TCP,
+        },
+        {
+          destination_CIDR: "0.0.0.0/0",
+          source_CIDR: "0.0.0.0/0",
+          destination_port: "",
+          source_port: "",
+          direction: "out",
+          protocol: Protocols.TCP,
+        },
+      ],
+      _id,
+    )
+    await awsMirrorSessionCreation(
+      _region,
+      _SourceNetworkEniId,
+      mirror_filter_id,
+      mirror_target_id,
+      _id,
+    )
+    console.log(chalk.green.bold(`\nSuccess!`))
+  }
 
   const enableCronString =
     `You can enable cron jobs by running the following command:\n` +
