@@ -1,5 +1,5 @@
 use crate::{
-    process_trace::process_trace,
+    process_trace::process_api_trace,
     trace::{ApiTrace, ProcessTraceRes},
 };
 use lazy_static::lazy_static;
@@ -15,6 +15,7 @@ use tokio::{
 lazy_static! {
     pub static ref SEND_CHANNEL: Sender<(ApiTrace, Option<ProcessTraceRes>)> = {
         let (send, recv) = channel(100);
+        println!("created send channel");
         thread::spawn(|| main(recv));
         send
     };
@@ -22,7 +23,7 @@ lazy_static! {
 
 async fn main_loop(recv: &mut Receiver<(ApiTrace, Option<ProcessTraceRes>)>) {
     let (trace, process_results) = recv.recv().await.expect("Send Channel is Closed...");
-    let process_results = process_results.unwrap_or_else(|| process_trace(&trace));
+    let process_results = process_results.unwrap_or_else(|| process_api_trace(&trace));
 }
 
 fn main(mut recv: Receiver<(ApiTrace, Option<ProcessTraceRes>)>) -> ! {
@@ -30,7 +31,6 @@ fn main(mut recv: Receiver<(ApiTrace, Option<ProcessTraceRes>)>) -> ! {
         .enable_all()
         .build()
         .expect("Failed to create tokio runtime");
-
     loop {
         let result = catch_unwind(AssertUnwindSafe(|| -> ! {
             runtime.block_on(async {
