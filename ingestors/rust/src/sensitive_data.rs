@@ -1,5 +1,6 @@
 use lazy_static::lazy_static;
 use regex::Regex;
+use std::collections::HashSet;
 
 pub struct SensitiveData {
     pub sensitive_data_type: String,
@@ -23,7 +24,7 @@ pub static ref SENSITIVE_DATA_LS: [SensitiveData; 3] = [
 ];
 }
 
-pub fn detect_sensitive_data(txt: &str) -> Vec<String> {
+pub fn detect_sensitive_data(txt: &str) -> HashSet<String> {
     SENSITIVE_DATA_LS
         .iter()
         .filter(|e| e.regex.is_match(txt))

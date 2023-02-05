@@ -29,7 +29,7 @@ pub fn process_trace_blocking(trace: ApiTrace) -> Result<ProcessTraceRes, String
     if !METLO_CONFIG.read().initialized {
         return Err("Metlo not initialized".to_string());
     }
-    let process_res = process_trace(&trace);
+    let process_res = process_api_trace(&trace);
     match process_thread::SEND_CHANNEL.blocking_send((trace, Some(process_res.clone()))) {
         Ok(()) => {}
         Err(SendError(_)) => panic!("The networking thread crashed, despite its panic handler"),
@@ -44,7 +44,7 @@ pub fn process_trace_async(trace: ApiTrace) {
             println!("Channel Full")
         }
         Err(TrySendError::Closed(_trace)) => {
-            panic!("The networking thread crashed, despite its panic handler");
+            panic!("The processing thread crashed, despite its panic handler");
         }
     }
 }
@@ -52,7 +52,7 @@ pub fn process_trace_async(trace: ApiTrace) {
 pub fn start(metlo_host: String, api_key: String) {
     initialize_metlo(metlo_host, api_key);
     let start = SystemTime::now();
-    for _ in 1..100000 {
+    for _ in 1..1_000 {
         let _ = process_trace_blocking(ApiTrace {
             request: ApiRequest {
                 method: "POST".to_string(),

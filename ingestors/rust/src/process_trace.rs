@@ -5,45 +5,79 @@ use crate::{
 use libinjection::{sqli, xss};
 use mime;
 use serde_json::Value;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+
+fn insert_data_type(
+    data_types: &mut HashMap<String, HashSet<String>>,
+    path: String,
+    d_type: String,
+) {
+    let old_data_types = data_types.get_mut(&path);
+    match old_data_types {
+        None => {
+            data_types.insert(path, HashSet::from([d_type]));
+        }
+        Some(old) => {
+            old.insert(d_type);
+        }
+    }
+}
 
 fn process_json_val(
     path: String,
+    data_types: &mut HashMap<String, HashSet<String>>,
     xss_detected: &mut HashMap<String, String>,
     sqli_detected: &mut HashMap<String, (String, String)>,
-    sensitive_data_detected: &mut HashMap<String, Vec<String>>,
+    sensitive_data_detected: &mut HashMap<String, HashSet<String>>,
     total_runs: &mut i32,
     v: &Value,
 ) {
     *total_runs += 1;
-    if *total_runs > 200 {
+    if *total_runs > 500 {
         return;
     }
     match v {
+        serde_json::Value::Null => {
+            insert_data_type(data_types, path, "null".to_string());
+        }
+        serde_json::Value::Bool(_) => {
+            insert_data_type(data_types, path, "bool".to_string());
+        }
+        serde_json::Value::Number(_) => {
+            insert_data_type(data_types, path, "number".to_string());
+        }
         serde_json::Value::String(e) => {
-            let mut sensitive_data = detect_sensitive_data(e.as_str());
-            let is_xss = xss(e).unwrap_or(false);
-            let is_sqli = sqli(e).unwrap_or((false, "".to_string()));
+            insert_data_type(data_types, path.clone(), "string".to_string());
 
-            if is_xss {
+            if xss(e).unwrap_or(false) {
                 xss_detected.insert(path.clone(), e.to_string());
             }
+
+            let is_sqli = sqli(e).unwrap_or((false, "".to_string()));
             if is_sqli.0 {
                 sqli_detected.insert(path.clone(), (e.to_string(), is_sqli.1));
             }
 
-            let old_sensitive_data = sensitive_data_detected.get_mut(&path);
-            match old_sensitive_data {
-                None => {
-                    sensitive_data_detected.insert(path, sensitive_data);
+            let sensitive_data = detect_sensitive_data(e.as_str());
+            if !sensitive_data.is_empty() {
+                let old_sensitive_data = sensitive_data_detected.get_mut(&path);
+                match old_sensitive_data {
+                    None => {
+                        sensitive_data_detected.insert(path, sensitive_data);
+                    }
+                    Some(old) => {
+                        for e in sensitive_data {
+                            old.insert(e);
+                        }
+                    }
                 }
-                Some(old) => old.append(&mut sensitive_data),
             }
         }
         serde_json::Value::Array(ls) => {
             for e in ls {
                 process_json_val(
                     path.clone() + ".[]",
+                    data_types,
                     xss_detected,
                     sqli_detected,
                     sensitive_data_detected,
@@ -56,6 +90,7 @@ fn process_json_val(
             for (k, nested_val) in m.iter() {
                 process_json_val(
                     path.clone() + "." + k,
+                    data_types,
                     xss_detected,
                     sqli_detected,
                     sensitive_data_detected,
@@ -64,16 +99,16 @@ fn process_json_val(
                 )
             }
         }
-        _ => {}
     }
 }
 
 fn process_json(prefix: String, body: &str) -> Option<ProcessTraceRes> {
     let v: serde_json::Result<Value> = serde_json::from_str(body);
 
+    let mut data_types: HashMap<String, HashSet<String>> = HashMap::new();
     let mut xss_detected: HashMap<String, String> = HashMap::new();
     let mut sqli_detected: HashMap<String, (String, String)> = HashMap::new();
-    let mut sensitive_data_detected: HashMap<String, Vec<String>> = HashMap::new();
+    let mut sensitive_data_detected: HashMap<String, HashSet<String>> = HashMap::new();
     let mut total_runs = 0;
 
     if v.is_err() {
@@ -82,6 +117,7 @@ fn process_json(prefix: String, body: &str) -> Option<ProcessTraceRes> {
     } else if v.is_ok() {
         process_json_val(
             prefix,
+            &mut data_types,
             &mut xss_detected,
             &mut sqli_detected,
             &mut sensitive_data_detected,
@@ -90,31 +126,104 @@ fn process_json(prefix: String, body: &str) -> Option<ProcessTraceRes> {
         );
     }
 
-    let mut processTraceRes = ProcessTraceRes {
+    Some(ProcessTraceRes {
+        block: !(xss_detected.is_empty() && sqli_detected.is_empty()),
+        xss_detected: (!xss_detected.is_empty()).then_some(xss_detected),
+        sqli_detected: (!sqli_detected.is_empty()).then_some(sqli_detected),
+        sensitive_data_detected: (!sensitive_data_detected.is_empty())
+            .then_some(sensitive_data_detected),
+        data_types: (!data_types.is_empty()).then_some(data_types),
+    })
+}
+
+fn process_text_plain(prefix: String, body: &str) -> Option<ProcessTraceRes> {
+    let is_xss = xss(body).unwrap_or(false);
+    let is_sqli = sqli(body).unwrap_or((false, "".to_string()));
+    let sensitive_data = detect_sensitive_data(body);
+
+    let mut process_trace_res = ProcessTraceRes {
         block: false,
         xss_detected: None,
         sqli_detected: None,
         sensitive_data_detected: None,
+        data_types: Some(HashMap::from([(
+            prefix.clone(),
+            HashSet::from(["string".to_string()]),
+        )])),
     };
 
-    if !sensitive_data_detected.is_empty() {
-        processTraceRes.sensitive_data_detected = Some(sensitive_data_detected);
+    if is_xss {
+        process_trace_res.block = true;
+        process_trace_res.xss_detected = Some(HashMap::from([(prefix.clone(), body.to_string())]))
     }
-    if !xss_detected.is_empty() {
-        processTraceRes.xss_detected = Some(xss_detected);
+    if is_sqli.0 {
+        process_trace_res.block = true;
+        process_trace_res.sqli_detected = Some(HashMap::from([(
+            prefix.clone(),
+            (body.to_string(), is_sqli.1),
+        )]))
     }
-    if !sqli_detected.is_empty() {
-        processTraceRes.sqli_detected = Some(sqli_detected);
+    if !sensitive_data.is_empty() {
+        process_trace_res.block = true;
+        process_trace_res.sensitive_data_detected =
+            Some(HashMap::from([(prefix.clone(), sensitive_data)]))
     }
 
-    Some(processTraceRes)
+    Some(process_trace_res)
 }
 
 fn process_body(prefix: String, body: &str, m: mime::Mime) -> Option<ProcessTraceRes> {
     if m == mime::APPLICATION_JSON {
         return process_json(prefix, body);
     }
+    if m == mime::TEXT_PLAIN {
+        return process_text_plain(prefix, body);
+    }
     None
+}
+
+fn process_key_val(prefix: String, vals: &Vec<KeyVal>) -> Option<ProcessTraceRes> {
+    let mut data_types: HashMap<String, HashSet<String>> = HashMap::new();
+    let mut xss_detected: HashMap<String, String> = HashMap::new();
+    let mut sqli_detected: HashMap<String, (String, String)> = HashMap::new();
+    let mut sensitive_data_detected: HashMap<String, HashSet<String>> = HashMap::new();
+
+    for e in vals {
+        let is_xss = xss(&e.value).unwrap_or(false);
+        let is_sqli = sqli(&e.value).unwrap_or((false, "".to_string()));
+        let sensitive_data = detect_sensitive_data(&e.value);
+
+        let path = prefix.clone() + "." + &e.name;
+        insert_data_type(&mut data_types, path.clone(), "string".to_string());
+        if is_xss {
+            xss_detected.insert(path.clone(), e.value.clone());
+        }
+        if is_sqli.0 {
+            sqli_detected.insert(path.clone(), (e.value.clone(), is_sqli.1));
+        }
+        if !sensitive_data.is_empty() {
+            let old_sensitive_data = sensitive_data_detected.get_mut(&path);
+            match old_sensitive_data {
+                None => {
+                    sensitive_data_detected.insert(path, sensitive_data);
+                }
+                Some(old) => {
+                    for e in sensitive_data {
+                        old.insert(e);
+                    }
+                }
+            }
+        }
+    }
+
+    Some(ProcessTraceRes {
+        block: !(xss_detected.is_empty() && sqli_detected.is_empty()),
+        xss_detected: (!xss_detected.is_empty()).then_some(xss_detected),
+        sqli_detected: (!sqli_detected.is_empty()).then_some(sqli_detected),
+        sensitive_data_detected: (!sensitive_data_detected.is_empty())
+            .then_some(sensitive_data_detected),
+        data_types: (!data_types.is_empty()).then_some(data_types),
+    })
 }
 
 fn get_mime_type(headers: &Vec<KeyVal>) -> mime::Mime {
@@ -132,28 +241,69 @@ fn get_mime_type(headers: &Vec<KeyVal>) -> mime::Mime {
 }
 
 fn combine_process_trace_res(results: Vec<&Option<ProcessTraceRes>>) -> ProcessTraceRes {
-    return ProcessTraceRes {
-        block: false,
-        xss_detected: None,
-        sqli_detected: None,
-        sensitive_data_detected: None,
-    };
+    let mut block = false;
+    let mut xss_detected: HashMap<String, String> = HashMap::new();
+    let mut sqli_detected: HashMap<String, (String, String)> = HashMap::new();
+    let mut sensitive_data_detected: HashMap<String, HashSet<String>> = HashMap::new();
+    let mut data_types: HashMap<String, HashSet<String>> = HashMap::new();
+
+    for e in results {
+        if let Some(res) = e {
+            block = block | res.block;
+            if let Some(e_xss) = &res.xss_detected {
+                xss_detected.extend(e_xss.clone());
+            }
+            if let Some(e_sqli) = &res.sqli_detected {
+                sqli_detected.extend(e_sqli.clone());
+            }
+            if let Some(e_sensitive_data) = &res.sensitive_data_detected {
+                sensitive_data_detected.extend(e_sensitive_data.clone());
+            }
+            if let Some(e_data_types) = &res.data_types {
+                data_types.extend(e_data_types.clone());
+            }
+        }
+    }
+
+    ProcessTraceRes {
+        block,
+        xss_detected: (!xss_detected.is_empty()).then_some(xss_detected),
+        sqli_detected: (!sqli_detected.is_empty()).then_some(sqli_detected),
+        sensitive_data_detected: (!sensitive_data_detected.is_empty())
+            .then_some(sensitive_data_detected),
+        data_types: (!data_types.is_empty()).then_some(data_types),
+    }
 }
 
-pub fn process_trace(trace: &ApiTrace) -> ProcessTraceRes {
+pub fn process_api_trace(trace: &ApiTrace) -> ProcessTraceRes {
     let req_mime_type = get_mime_type(&trace.request.headers);
-    let proc_req_body = &trace
+    let proc_req_body = trace
         .request
         .body
         .as_ref()
-        .map(|e| process_body("req.body".to_string(), e, req_mime_type.clone()))
+        .map(|e| process_body("reqBody".to_string(), e, req_mime_type.clone()))
         .flatten();
-    let proc_resp_body = &trace
-        .response
-        .as_ref()
-        .map(|e| e.body.as_ref())
-        .flatten()
-        .map(|e| process_body("resp.body".to_string(), e, req_mime_type.clone()))
-        .flatten();
-    combine_process_trace_res([proc_req_body, proc_resp_body].to_vec())
+    let proc_req_params = process_key_val("reqQuery".to_string(), &trace.request.url.parameters);
+    let proc_req_headers = process_key_val("reqHeaders".to_string(), &trace.request.headers);
+
+    let mut proc_resp_body: Option<ProcessTraceRes> = None;
+    let mut proc_resp_headers: Option<ProcessTraceRes> = None;
+    if let Some(resp) = &trace.response {
+        proc_resp_headers = process_key_val("resHeaders".to_string(), &resp.headers);
+        let resp_mime_type = get_mime_type(&resp.headers);
+        if let Some(resp_body) = &resp.body {
+            proc_resp_body = process_body("resBody".to_string(), resp_body, resp_mime_type.clone());
+        }
+    }
+
+    combine_process_trace_res(
+        [
+            &proc_req_body,
+            &proc_req_params,
+            &proc_req_headers,
+            &proc_resp_body,
+            &proc_resp_headers,
+        ]
+        .to_vec(),
+    )
 }
