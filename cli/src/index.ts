@@ -69,7 +69,7 @@ const trafficMirrorAws = trafficMirror
   .description("Set up traffic mirroring for AWS")
 trafficMirrorAws
   .command("new")
-  .option("-i,--id", "UUID for the identifier")
+  .option("-i,--id <string>", "UUID for the identifier")
   .option(
     "-r,--region <string>",
     "AWS Region where source and target are located",
