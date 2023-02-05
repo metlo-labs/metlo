@@ -12,7 +12,7 @@ import { AWS_SOURCE_TYPE, Protocols } from "./types"
 import { getRegion } from "./cliUtils"
 import { getMetloMirrorTargets } from "./sessionUtils"
 import { validate } from "uuid"
-import { registerCRON, addRegisteredTargets } from "./cron/configureCron"
+import { execSync } from "node:child_process"
 
 export const _awsTrafficMirrorSetup = async ({
   id: passedID,
@@ -134,20 +134,15 @@ export const _awsTrafficMirrorSetup = async ({
     console.log(chalk.green.bold(`\nSuccess!`))
   }
 
-  registerCRON()
-  addRegisteredTargets(
-    _id,
-    _DestinationNetworkEniId,
-    _SourceNetworkEniId,
-    _region,
-  )
+  const enableCronString =
+    `You can enable cron jobs by running the following command:\n` +
+    chalk.bgGray.white`
+    $ crontab -e
+    $ */5 * * * * ${execSync(
+      "command -v metlo",
+    )} traffic-mirror aws new -t ${_DestinationNetworkEniId} -s ${_SourceNetworkEniId} -r ${_region} -i ${_id}`
 
-  console.log(
-    chalk.greenBright
-      .bold(`We have created a cron job to ensure that mirroring sessions are always online.\n
-If you want to remove the cron job, you can do so by using the command`) +
-      chalk.cyanBright.bold(` crontab -e`),
-  )
+  console.log(enableCronString)
 }
 
 export const awsTrafficMirrorSetup = async ({
