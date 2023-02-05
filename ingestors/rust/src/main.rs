@@ -3,7 +3,6 @@ use clap::Parser;
 use mappers::{map_ingest_api_trace, map_process_trace_res};
 use process_trace::process_api_trace;
 use std::path::Path;
-use tokio;
 use tokio::net::UnixListener;
 use tokio_stream::wrappers::UnixListenerStream;
 use tonic::{transport::Server, Code, Request, Response, Status};

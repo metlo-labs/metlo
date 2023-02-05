@@ -20,10 +20,10 @@ fn map_ingest_url(u: metloingest::ApiUrl) -> ApiUrl {
         path: u.path,
         parameters: u
             .parameters
-            .iter()
+            .into_iter()
             .map(|e| KeyVal {
-                name: e.name.clone(),
-                value: e.value.clone(),
+                name: e.name,
+                value: e.value,
             })
             .collect(),
     }
@@ -35,10 +35,10 @@ fn map_ingest_api_request(r: metloingest::ApiRequest) -> Option<ApiRequest> {
         url: map_ingest_url(r.url?),
         headers: r
             .headers
-            .iter()
+            .into_iter()
             .map(|e| KeyVal {
-                name: e.name.clone(),
-                value: e.value.clone(),
+                name: e.name,
+                value: e.value,
             })
             .collect(),
         body: r.body,
@@ -50,10 +50,10 @@ fn map_ingest_api_response(r: metloingest::ApiResponse) -> Option<ApiResponse> {
         status: r.status as u16,
         headers: r
             .headers
-            .iter()
+            .into_iter()
             .map(|e| KeyVal {
-                name: e.name.clone(),
-                value: e.value.clone(),
+                name: e.name,
+                value: e.value,
             })
             .collect(),
         body: r.body,
@@ -72,12 +72,12 @@ pub fn map_process_trace_res(r: ProcessTraceRes) -> metloingest::ProcessTraceRes
     let mapped_sensitive_data: HashMap<String, metloingest::RepeatedString> = r
         .sensitive_data_detected
         .unwrap_or_default()
-        .iter()
+        .into_iter()
         .map(|(k, v)| {
             (
-                k.clone(),
+                k,
                 metloingest::RepeatedString {
-                    rep_string: v.into_iter().map(|e| e.clone()).collect(),
+                    rep_string: v.into_iter().collect(),
                 },
             )
         })
@@ -86,27 +86,19 @@ pub fn map_process_trace_res(r: ProcessTraceRes) -> metloingest::ProcessTraceRes
     let mapped_sqli_detected: HashMap<String, metloingest::SqliRes> = r
         .sqli_detected
         .unwrap_or_default()
-        .iter()
-        .map(|(k, v)| {
-            (
-                k.clone(),
-                metloingest::SqliRes {
-                    data: v.0.clone(),
-                    fingerprint: v.1.clone(),
-                },
-            )
-        })
+        .into_iter()
+        .map(|(k, (data, fingerprint))| (k, metloingest::SqliRes { data, fingerprint }))
         .collect();
 
     let mapped_data_types: HashMap<String, metloingest::RepeatedString> = r
         .data_types
         .unwrap_or_default()
-        .iter()
+        .into_iter()
         .map(|(k, v)| {
             (
-                k.clone(),
+                k,
                 metloingest::RepeatedString {
-                    rep_string: v.into_iter().map(|e| e.clone()).collect(),
+                    rep_string: v.into_iter().collect(),
                 },
             )
         })
