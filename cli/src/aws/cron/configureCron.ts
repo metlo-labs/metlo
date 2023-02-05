@@ -73,11 +73,7 @@ export function registerCRON() {
   }
   if (!existsSync(cron_script_path)) {
     // TODO: Confirm if metlo replacement based on NODE_ENV works
-    const metlo_location =
-      process.env.NODE_ENV === "development"
-        ? execSync("command -v node").toString().trim() +
-          ` ${process.cwd()}/dist/index.js`
-        : execSync("command -v metlo").toString().trim()
+    const metlo_location = execSync("command -v metlo").toString().trim()
     writeFileSync(
       `${getBaseLocation()}/cron_script.sh`,
       `${metlo_location} traffic-mirror aws from-file ${getBaseLocation()}/mirrors.csv`,
@@ -85,6 +81,3 @@ export function registerCRON() {
     )
   }
 }
-
-// checkIfCRONconfigured()
-// updateRegisteredTargets()
