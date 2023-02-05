@@ -16,7 +16,6 @@ import {
   DeleteTrafficMirrorSessionCommandInput,
   DescribeTrafficMirrorFiltersCommand,
   DescribeTrafficMirrorFiltersCommandInput,
-  DescribeTrafficMirrorFiltersCommandOutput,
 } from "@aws-sdk/client-ec2"
 import { randomUUID } from "crypto"
 import { TrafficFilterRuleSpecs } from "./types"
@@ -33,7 +32,7 @@ export async function create_mirror_target(
       {
         ResourceType: "traffic-mirror-target",
         Tags: [
-          { Key: "name", Value: `METLO-TRAFFIC-TARGET-${unique_id}` },
+          { Key: "Name", Value: `METLO-TRAFFIC-TARGET-${unique_id}` },
           { Key: "metlo-mirror-uuid", Value: unique_id },
           { Key: "service-name", Value: "metlo" },
         ],
@@ -76,7 +75,9 @@ export async function create_mirror_filter(
 }
 
 export async function get_mirror_filters(client: EC2Client, unique_id: string) {
-  let command = new DescribeTrafficMirrorFiltersCommand({})
+  let command = new DescribeTrafficMirrorFiltersCommand(
+    {} as DescribeTrafficMirrorFiltersCommandInput,
+  )
   return await client.send(command)
 }
 
