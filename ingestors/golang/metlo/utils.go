@@ -2,10 +2,11 @@ package metlo
 
 import (
 	"net/http"
+	"time"
 )
 
 func TestInit(host string, apiKey string) {
-	client := http.Client{}
+	client := http.Client{Timeout: 4 * time.Second}
 	req, err := http.NewRequest("GET", host+"/api/v1/verify", nil)
 	if err != nil {
 		Log.Error("Could not perform validation request to metlo host")
