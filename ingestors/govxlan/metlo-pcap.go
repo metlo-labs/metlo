@@ -176,6 +176,8 @@ func main() {
 			return fmt.Errorf("INVALID MAX RPS: %d. MUST BE BETWEEN 0 AND 300", args.maxRps)
 		}
 
+		utils.TestInit(args.metloHost, args.apiKey)
+
 		metloAPI := metloapi.InitMetlo(args.metloHost, args.apiKey, args.maxRps)
 
 		if !args.runAsVxlan {
