@@ -3,8 +3,12 @@ use crate::{
     trace::{ApiTrace, KeyVal, ProcessTraceRes},
 };
 use libinjection::{sqli, xss};
-use serde_json::Value;
-use std::collections::{HashMap, HashSet};
+use multipart::server::Multipart;
+use serde_json::{json, Value};
+use std::{
+    collections::{HashMap, HashSet},
+    io::BufRead,
+};
 
 fn insert_data_type(data_types: &mut HashMap<String, HashSet<String>>, path: &str, d_type: String) {
     let old_data_types = data_types.get_mut(path);
@@ -144,6 +148,47 @@ fn process_json(prefix: String, body: &str) -> Option<ProcessTraceRes> {
     })
 }
 
+fn process_form_data(
+    prefix: String,
+    body: &str,
+    mut mime_params: mime::Params,
+) -> Option<ProcessTraceRes> {
+    let mut data_types: HashMap<String, HashSet<String>> = HashMap::new();
+    let mut xss_detected: HashMap<String, String> = HashMap::new();
+    let mut sqli_detected: HashMap<String, (String, String)> = HashMap::new();
+    let mut sensitive_data_detected: HashMap<String, HashSet<String>> = HashMap::new();
+    let mut total_runs = 0;
+
+    let boundary = mime_params.find(|e| e.0 == "boundary");
+    if boundary.is_some() {
+        let mut mp = Multipart::with_body(body.as_bytes(), boundary.unwrap().1.as_str());
+        let mut form_json = json!({});
+        while let Some(mut field) = mp.read_entry().unwrap() {
+            let data = field.data.fill_buf().unwrap_or(b"");
+            let s = String::from_utf8_lossy(data);
+            form_json[field.headers.name.to_string()] = serde_json::Value::String(s.to_string());
+        }
+        let mut path = prefix;
+        process_json_val(
+            &mut path,
+            &mut data_types,
+            &mut xss_detected,
+            &mut sqli_detected,
+            &mut sensitive_data_detected,
+            &mut total_runs,
+            &form_json,
+        );
+    }
+    Some(ProcessTraceRes {
+        block: !(xss_detected.is_empty() && sqli_detected.is_empty()),
+        xss_detected: (!xss_detected.is_empty()).then_some(xss_detected),
+        sqli_detected: (!sqli_detected.is_empty()).then_some(sqli_detected),
+        sensitive_data_detected: (!sensitive_data_detected.is_empty())
+            .then_some(sensitive_data_detected),
+        data_types: (!data_types.is_empty()).then_some(data_types),
+    })
+}
+
 fn process_text_plain(prefix: String, body: &str) -> Option<ProcessTraceRes> {
     let is_xss = xss(body).unwrap_or(false);
     let is_sqli = sqli(body).unwrap_or((false, "".to_string()));
@@ -180,10 +225,13 @@ fn process_text_plain(prefix: String, body: &str) -> Option<ProcessTraceRes> {
 }
 
 fn process_body(prefix: String, body: &str, m: mime::Mime) -> Option<ProcessTraceRes> {
-    if m == mime::APPLICATION_JSON {
+    let essence = m.essence_str();
+    if essence == mime::APPLICATION_JSON {
         process_json(prefix, body)
-    } else if m == mime::TEXT_PLAIN {
+    } else if essence == mime::TEXT_PLAIN {
         process_text_plain(prefix, body)
+    } else if essence == mime::MULTIPART_FORM_DATA {
+        process_form_data(prefix, body, m.params())
     } else {
         None
     }
@@ -238,13 +286,7 @@ fn get_mime_type(headers: &[KeyVal]) -> mime::Mime {
         .iter()
         .find(|e| e.name.to_lowercase() == "content-type")
         .map(|e| &e.value);
-    req_content_type_header.map_or(mime::TEXT_PLAIN, |e| {
-        e.split(';')
-            .next()
-            .unwrap_or("text/plain")
-            .parse()
-            .unwrap_or(mime::TEXT_PLAIN)
-    })
+    req_content_type_header.map_or(mime::TEXT_PLAIN, |e| e.parse().unwrap_or(mime::TEXT_PLAIN))
 }
 
 fn combine_process_trace_res(results: &[Option<ProcessTraceRes>]) -> ProcessTraceRes {
@@ -299,6 +341,7 @@ pub fn process_api_trace(trace: &ApiTrace) -> ProcessTraceRes {
             proc_resp_body = process_body("resBody".to_string(), resp_body, resp_mime_type);
         }
     }
+    println!("{:?}", proc_resp_body);
 
     combine_process_trace_res(&[
         proc_req_body,
