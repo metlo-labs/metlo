@@ -67,7 +67,16 @@ const trafficMirror = program
 const trafficMirrorAws = trafficMirror
   .command("aws")
   .description("Set up traffic mirroring for AWS")
-trafficMirrorAws.command("new").action(awsTrafficMirrorSetup)
+trafficMirrorAws
+  .command("new")
+  .option("-i,--id <string>", "UUID for the identifier")
+  .option(
+    "-r,--region <string>",
+    "AWS Region where source and target are located",
+  )
+  .option("-t,--target-eni-id <string>", "Target ENI ID")
+  .option("-s,--source-eni-id <string>", "Source ENI ID")
+  .action(awsTrafficMirrorSetup)
 trafficMirrorAws.command("list").action(awsTrafficMirrorList)
 trafficMirrorAws.command("remove").action(awsTrafficMirrorRemove)
 

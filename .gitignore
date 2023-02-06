@@ -27,3 +27,5 @@ ingestors/java/spring/target/
 .meta/*
 ingestors/govxlan/govxlan
 testing/tmp_tests
+
+cli/meta

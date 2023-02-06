@@ -11,6 +11,7 @@ import {
   create_mirror_session,
   create_mirror_target,
   delete_mirror_filter,
+  get_mirror_filters,
 } from "./mirroring"
 import { match_av_to_region, verifyIdentity } from "./utils"
 import { EC2_CONN, getEC2Client } from "./ec2Utils"
@@ -148,6 +149,16 @@ export const awsMirrorFilterCreation = async (
   id: string,
 ) => {
   const client = getEC2Client(region)
+  let existingFilter = (
+    await get_mirror_filters(client, id)
+  ).TrafficMirrorFilters.find(filter =>
+    filter.Tags.find(
+      tag => tag.Key === "Name" && tag.Value === `METLO-MIRROR-FILTER-${id}`,
+    ),
+  )
+  if (existingFilter) {
+    return { mirror_filter_id: existingFilter.TrafficMirrorFilterId }
+  }
   let filter: CreateTrafficMirrorFilterCommandOutput
   filter = await create_mirror_filter(client, id)
   try {
