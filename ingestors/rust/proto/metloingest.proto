@@ -4,6 +4,7 @@ package metloingest;
 
 service MetloIngest {
     rpc ProcessTrace (ApiTrace) returns (ProcessTraceRes);
+    rpc ProcessTraceAsync (ApiTrace) returns (ProcessTraceAsyncRes);
 }
 
 message KeyVal {
@@ -60,4 +61,8 @@ message ProcessTraceRes {
     map<string, SqliRes> sqli_detected = 3;
     map<string, RepeatedString> sensitive_data_detected = 4;
     map<string, RepeatedString> data_types = 5;
+}
+
+message ProcessTraceAsyncRes {
+    bool ok = 1;
 }
