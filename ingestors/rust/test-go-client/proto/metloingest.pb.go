@@ -603,6 +603,53 @@ func (x *ProcessTraceRes) GetDataTypes() map[string]*RepeatedString {
 	return nil
 }
 
+type ProcessTraceAsyncRes struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Ok bool `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+}
+
+func (x *ProcessTraceAsyncRes) Reset() {
+	*x = ProcessTraceAsyncRes{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_metloingest_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ProcessTraceAsyncRes) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProcessTraceAsyncRes) ProtoMessage() {}
+
+func (x *ProcessTraceAsyncRes) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_metloingest_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProcessTraceAsyncRes.ProtoReflect.Descriptor instead.
+func (*ProcessTraceAsyncRes) Descriptor() ([]byte, []int) {
+	return file_proto_metloingest_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ProcessTraceAsyncRes) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
 var File_proto_metloingest_proto protoreflect.FileDescriptor
 
 var file_proto_metloingest_proto_rawDesc = []byte{
@@ -712,15 +759,23 @@ var file_proto_metloingest_proto_rawDesc = []byte{
 	0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1b, 0x2e, 0x6d, 0x65, 0x74, 0x6c,
 	0x6f, 0x69, 0x6e, 0x67, 0x65, 0x73, 0x74, 0x2e, 0x52, 0x65, 0x70, 0x65, 0x61, 0x74, 0x65, 0x64,
 	0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38,
-	0x01, 0x32, 0x52, 0x0a, 0x0b, 0x4d, 0x65, 0x74, 0x6c, 0x6f, 0x49, 0x6e, 0x67, 0x65, 0x73, 0x74,
-	0x12, 0x43, 0x0a, 0x0c, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x54, 0x72, 0x61, 0x63, 0x65,
-	0x12, 0x15, 0x2e, 0x6d, 0x65, 0x74, 0x6c, 0x6f, 0x69, 0x6e, 0x67, 0x65, 0x73, 0x74, 0x2e, 0x41,
-	0x70, 0x69, 0x54, 0x72, 0x61, 0x63, 0x65, 0x1a, 0x1c, 0x2e, 0x6d, 0x65, 0x74, 0x6c, 0x6f, 0x69,
-	0x6e, 0x67, 0x65, 0x73, 0x74, 0x2e, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x54, 0x72, 0x61,
-	0x63, 0x65, 0x52, 0x65, 0x73, 0x42, 0x2d, 0x5a, 0x2b, 0x74, 0x65, 0x73, 0x74, 0x2d, 0x72, 0x75,
-	0x73, 0x74, 0x2e, 0x6d, 0x65, 0x74, 0x6c, 0x6f, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6d, 0x65, 0x74,
-	0x6c, 0x6f, 0x69, 0x6e, 0x67, 0x65, 0x73, 0x74, 0x2f, 0x6d, 0x65, 0x74, 0x6c, 0x6f, 0x69, 0x6e,
-	0x67, 0x65, 0x73, 0x74, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x01, 0x22, 0x26, 0x0a, 0x14, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x54, 0x72, 0x61, 0x63,
+	0x65, 0x41, 0x73, 0x79, 0x6e, 0x63, 0x52, 0x65, 0x73, 0x12, 0x0e, 0x0a, 0x02, 0x6f, 0x6b, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x02, 0x6f, 0x6b, 0x32, 0xa1, 0x01, 0x0a, 0x0b, 0x4d, 0x65,
+	0x74, 0x6c, 0x6f, 0x49, 0x6e, 0x67, 0x65, 0x73, 0x74, 0x12, 0x43, 0x0a, 0x0c, 0x50, 0x72, 0x6f,
+	0x63, 0x65, 0x73, 0x73, 0x54, 0x72, 0x61, 0x63, 0x65, 0x12, 0x15, 0x2e, 0x6d, 0x65, 0x74, 0x6c,
+	0x6f, 0x69, 0x6e, 0x67, 0x65, 0x73, 0x74, 0x2e, 0x41, 0x70, 0x69, 0x54, 0x72, 0x61, 0x63, 0x65,
+	0x1a, 0x1c, 0x2e, 0x6d, 0x65, 0x74, 0x6c, 0x6f, 0x69, 0x6e, 0x67, 0x65, 0x73, 0x74, 0x2e, 0x50,
+	0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x54, 0x72, 0x61, 0x63, 0x65, 0x52, 0x65, 0x73, 0x12, 0x4d,
+	0x0a, 0x11, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x54, 0x72, 0x61, 0x63, 0x65, 0x41, 0x73,
+	0x79, 0x6e, 0x63, 0x12, 0x15, 0x2e, 0x6d, 0x65, 0x74, 0x6c, 0x6f, 0x69, 0x6e, 0x67, 0x65, 0x73,
+	0x74, 0x2e, 0x41, 0x70, 0x69, 0x54, 0x72, 0x61, 0x63, 0x65, 0x1a, 0x21, 0x2e, 0x6d, 0x65, 0x74,
+	0x6c, 0x6f, 0x69, 0x6e, 0x67, 0x65, 0x73, 0x74, 0x2e, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73,
+	0x54, 0x72, 0x61, 0x63, 0x65, 0x41, 0x73, 0x79, 0x6e, 0x63, 0x52, 0x65, 0x73, 0x42, 0x2d, 0x5a,
+	0x2b, 0x74, 0x65, 0x73, 0x74, 0x2d, 0x72, 0x75, 0x73, 0x74, 0x2e, 0x6d, 0x65, 0x74, 0x6c, 0x6f,
+	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6d, 0x65, 0x74, 0x6c, 0x6f, 0x69, 0x6e, 0x67, 0x65, 0x73, 0x74,
+	0x2f, 0x6d, 0x65, 0x74, 0x6c, 0x6f, 0x69, 0x6e, 0x67, 0x65, 0x73, 0x74, 0x62, 0x06, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -735,21 +790,22 @@ func file_proto_metloingest_proto_rawDescGZIP() []byte {
 	return file_proto_metloingest_proto_rawDescData
 }
 
-var file_proto_metloingest_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_proto_metloingest_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_proto_metloingest_proto_goTypes = []interface{}{
-	(*KeyVal)(nil),          // 0: metloingest.KeyVal
-	(*ApiUrl)(nil),          // 1: metloingest.ApiUrl
-	(*ApiRequest)(nil),      // 2: metloingest.ApiRequest
-	(*ApiResponse)(nil),     // 3: metloingest.ApiResponse
-	(*ApiMeta)(nil),         // 4: metloingest.ApiMeta
-	(*ApiTrace)(nil),        // 5: metloingest.ApiTrace
-	(*RepeatedString)(nil),  // 6: metloingest.RepeatedString
-	(*SqliRes)(nil),         // 7: metloingest.SqliRes
-	(*ProcessTraceRes)(nil), // 8: metloingest.ProcessTraceRes
-	nil,                     // 9: metloingest.ProcessTraceRes.XssDetectedEntry
-	nil,                     // 10: metloingest.ProcessTraceRes.SqliDetectedEntry
-	nil,                     // 11: metloingest.ProcessTraceRes.SensitiveDataDetectedEntry
-	nil,                     // 12: metloingest.ProcessTraceRes.DataTypesEntry
+	(*KeyVal)(nil),               // 0: metloingest.KeyVal
+	(*ApiUrl)(nil),               // 1: metloingest.ApiUrl
+	(*ApiRequest)(nil),           // 2: metloingest.ApiRequest
+	(*ApiResponse)(nil),          // 3: metloingest.ApiResponse
+	(*ApiMeta)(nil),              // 4: metloingest.ApiMeta
+	(*ApiTrace)(nil),             // 5: metloingest.ApiTrace
+	(*RepeatedString)(nil),       // 6: metloingest.RepeatedString
+	(*SqliRes)(nil),              // 7: metloingest.SqliRes
+	(*ProcessTraceRes)(nil),      // 8: metloingest.ProcessTraceRes
+	(*ProcessTraceAsyncRes)(nil), // 9: metloingest.ProcessTraceAsyncRes
+	nil,                          // 10: metloingest.ProcessTraceRes.XssDetectedEntry
+	nil,                          // 11: metloingest.ProcessTraceRes.SqliDetectedEntry
+	nil,                          // 12: metloingest.ProcessTraceRes.SensitiveDataDetectedEntry
+	nil,                          // 13: metloingest.ProcessTraceRes.DataTypesEntry
 }
 var file_proto_metloingest_proto_depIdxs = []int32{
 	0,  // 0: metloingest.ApiUrl.parameters:type_name -> metloingest.KeyVal
@@ -759,17 +815,19 @@ var file_proto_metloingest_proto_depIdxs = []int32{
 	2,  // 4: metloingest.ApiTrace.request:type_name -> metloingest.ApiRequest
 	3,  // 5: metloingest.ApiTrace.response:type_name -> metloingest.ApiResponse
 	4,  // 6: metloingest.ApiTrace.meta:type_name -> metloingest.ApiMeta
-	9,  // 7: metloingest.ProcessTraceRes.xss_detected:type_name -> metloingest.ProcessTraceRes.XssDetectedEntry
-	10, // 8: metloingest.ProcessTraceRes.sqli_detected:type_name -> metloingest.ProcessTraceRes.SqliDetectedEntry
-	11, // 9: metloingest.ProcessTraceRes.sensitive_data_detected:type_name -> metloingest.ProcessTraceRes.SensitiveDataDetectedEntry
-	12, // 10: metloingest.ProcessTraceRes.data_types:type_name -> metloingest.ProcessTraceRes.DataTypesEntry
+	10, // 7: metloingest.ProcessTraceRes.xss_detected:type_name -> metloingest.ProcessTraceRes.XssDetectedEntry
+	11, // 8: metloingest.ProcessTraceRes.sqli_detected:type_name -> metloingest.ProcessTraceRes.SqliDetectedEntry
+	12, // 9: metloingest.ProcessTraceRes.sensitive_data_detected:type_name -> metloingest.ProcessTraceRes.SensitiveDataDetectedEntry
+	13, // 10: metloingest.ProcessTraceRes.data_types:type_name -> metloingest.ProcessTraceRes.DataTypesEntry
 	7,  // 11: metloingest.ProcessTraceRes.SqliDetectedEntry.value:type_name -> metloingest.SqliRes
 	6,  // 12: metloingest.ProcessTraceRes.SensitiveDataDetectedEntry.value:type_name -> metloingest.RepeatedString
 	6,  // 13: metloingest.ProcessTraceRes.DataTypesEntry.value:type_name -> metloingest.RepeatedString
 	5,  // 14: metloingest.MetloIngest.ProcessTrace:input_type -> metloingest.ApiTrace
-	8,  // 15: metloingest.MetloIngest.ProcessTrace:output_type -> metloingest.ProcessTraceRes
-	15, // [15:16] is the sub-list for method output_type
-	14, // [14:15] is the sub-list for method input_type
+	5,  // 15: metloingest.MetloIngest.ProcessTraceAsync:input_type -> metloingest.ApiTrace
+	8,  // 16: metloingest.MetloIngest.ProcessTrace:output_type -> metloingest.ProcessTraceRes
+	9,  // 17: metloingest.MetloIngest.ProcessTraceAsync:output_type -> metloingest.ProcessTraceAsyncRes
+	16, // [16:18] is the sub-list for method output_type
+	14, // [14:16] is the sub-list for method input_type
 	14, // [14:14] is the sub-list for extension type_name
 	14, // [14:14] is the sub-list for extension extendee
 	0,  // [0:14] is the sub-list for field type_name
@@ -889,6 +947,18 @@ func file_proto_metloingest_proto_init() {
 				return nil
 			}
 		}
+		file_proto_metloingest_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ProcessTraceAsyncRes); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	file_proto_metloingest_proto_msgTypes[2].OneofWrappers = []interface{}{}
 	file_proto_metloingest_proto_msgTypes[3].OneofWrappers = []interface{}{}
@@ -898,7 +968,7 @@ func file_proto_metloingest_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_proto_metloingest_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
