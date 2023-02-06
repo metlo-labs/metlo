@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 import logging
 
 from flask import request
+from metlo.utils.ping_home import ping_home
 
 endpoint = "api/v1/log-request/single"
 
@@ -47,8 +48,9 @@ class MetloFlask:
             "https",
         ], f"Metlo for FLASK has invalid host scheme. Host must be in format http[s]://example.com"
 
-        self.host = metlo_host
-        self.host += endpoint if self.host[-1] == "/" else f"/{endpoint}"
+        _host = metlo_host
+        base_host = _host + ("/" if _host[-1] != "/" else "")
+        self.host = base_host + endpoint
         self.key = metlo_api_key
         self.saved_request = Request(
             url=self.host,
@@ -60,6 +62,7 @@ class MetloFlask:
         )
 
         if not self.disabled:
+            ping_home(base_host, metlo_api_key, self.logger)
 
             @app.after_request
             def function(response, *args, **kwargs):

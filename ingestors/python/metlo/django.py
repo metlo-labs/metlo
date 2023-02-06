@@ -6,6 +6,8 @@ import logging
 
 from django.conf import settings
 
+from metlo.utils.ping_home import ping_home
+
 endpoint = "api/v1/log-request/single"
 
 
@@ -47,9 +49,9 @@ class MetloDjango(object):
             "http",
             "https",
         ], f"Metlo for Django has invalid host scheme. Host must be in format http[s]://example.com"
-
-        self.host = settings.METLO_CONFIG["METLO_HOST"]
-        self.host += endpoint if self.host[-1] == "/" else f"/{endpoint}"
+        _host = settings.METLO_CONFIG["METLO_HOST"]
+        base_host = _host + ("/" if _host[-1] != "/" else "")
+        self.host = base_host + endpoint
         self.key = settings.METLO_CONFIG["API_KEY"]
         self.saved_request = Request(
             url=self.host,
@@ -59,6 +61,7 @@ class MetloDjango(object):
             },
             method="POST",
         )
+        ping_home(base_host, self.key, self.logger)
 
     def __call__(self, request):
         response = self.get_response(request)
