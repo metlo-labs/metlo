@@ -135,7 +135,7 @@ export const _awsTrafficMirrorSetup = async ({
   }
 
   const enableCronString =
-    `You can enable cron jobs by running the following command:\n` +
+    `If you want metlo to periodically refresh the mirroring sessions, add this to your crontab on a cloud instance:\n` +
     chalk.bgGray.white(
       `
     $ crontab -e
