@@ -1,5 +1,7 @@
+import { LogLevelNames } from "loglevel"
 export interface ConfigOptions {
   apiHost?: string
+  logLevel?: LogLevelNames
 }
 
 export interface MetloConfig {
