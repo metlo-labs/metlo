@@ -112,31 +112,23 @@ fn process_json_val(
     }
 }
 
-fn process_json(prefix: String, body: &str) -> Option<ProcessTraceRes> {
+fn process_json(prefix: String, value: Value) -> Option<ProcessTraceRes> {
     let mut data_types: HashMap<String, HashSet<String>> = HashMap::new();
     let mut xss_detected: HashMap<String, String> = HashMap::new();
     let mut sqli_detected: HashMap<String, (String, String)> = HashMap::new();
     let mut sensitive_data_detected: HashMap<String, HashSet<String>> = HashMap::new();
     let mut total_runs = 0;
 
-    match serde_json::from_str(body) {
-        Ok(value) => {
-            let mut path = prefix;
-            process_json_val(
-                &mut path,
-                &mut data_types,
-                &mut xss_detected,
-                &mut sqli_detected,
-                &mut sensitive_data_detected,
-                &mut total_runs,
-                &value,
-            );
-        }
-        Err(_) => {
-            println!("Invalid JSON");
-            return None;
-        }
-    }
+    let mut path = prefix;
+    process_json_val(
+        &mut path,
+        &mut data_types,
+        &mut xss_detected,
+        &mut sqli_detected,
+        &mut sensitive_data_detected,
+        &mut total_runs,
+        &value,
+    );
 
     Some(ProcessTraceRes {
         block: !(xss_detected.is_empty() && sqli_detected.is_empty()),
@@ -148,17 +140,21 @@ fn process_json(prefix: String, body: &str) -> Option<ProcessTraceRes> {
     })
 }
 
+fn process_json_string(prefix: String, body: &str) -> Option<ProcessTraceRes> {
+    match serde_json::from_str(body) {
+        Ok(value) => process_json(prefix, value),
+        Err(_) => {
+            println!("Invalid JSON");
+            None
+        }
+    }
+}
+
 fn process_form_data(
     prefix: String,
     body: &str,
     mut mime_params: mime::Params,
 ) -> Option<ProcessTraceRes> {
-    let mut data_types: HashMap<String, HashSet<String>> = HashMap::new();
-    let mut xss_detected: HashMap<String, String> = HashMap::new();
-    let mut sqli_detected: HashMap<String, (String, String)> = HashMap::new();
-    let mut sensitive_data_detected: HashMap<String, HashSet<String>> = HashMap::new();
-    let mut total_runs = 0;
-
     let boundary = mime_params.find(|e| e.0 == "boundary");
     if boundary.is_some() {
         let mut mp = Multipart::with_body(body.as_bytes(), boundary.unwrap().1.as_str());
@@ -168,25 +164,20 @@ fn process_form_data(
             let s = String::from_utf8_lossy(data);
             form_json[field.headers.name.to_string()] = serde_json::Value::String(s.to_string());
         }
-        let mut path = prefix;
-        process_json_val(
-            &mut path,
-            &mut data_types,
-            &mut xss_detected,
-            &mut sqli_detected,
-            &mut sensitive_data_detected,
-            &mut total_runs,
-            &form_json,
-        );
+        process_json(prefix, form_json)
+    } else {
+        None
     }
-    Some(ProcessTraceRes {
-        block: !(xss_detected.is_empty() && sqli_detected.is_empty()),
-        xss_detected: (!xss_detected.is_empty()).then_some(xss_detected),
-        sqli_detected: (!sqli_detected.is_empty()).then_some(sqli_detected),
-        sensitive_data_detected: (!sensitive_data_detected.is_empty())
-            .then_some(sensitive_data_detected),
-        data_types: (!data_types.is_empty()).then_some(data_types),
-    })
+}
+
+fn process_url_encoded(prefix: String, body: &str) -> Option<ProcessTraceRes> {
+    match serde_urlencoded::from_str::<Value>(body) {
+        Ok(value) => process_json(prefix, value),
+        Err(_) => {
+            println!("Invalid URL Encoded string");
+            None
+        }
+    }
 }
 
 fn process_text_plain(prefix: String, body: &str) -> Option<ProcessTraceRes> {
@@ -227,11 +218,13 @@ fn process_text_plain(prefix: String, body: &str) -> Option<ProcessTraceRes> {
 fn process_body(prefix: String, body: &str, m: mime::Mime) -> Option<ProcessTraceRes> {
     let essence = m.essence_str();
     if essence == mime::APPLICATION_JSON {
-        process_json(prefix, body)
+        process_json_string(prefix, body)
     } else if essence == mime::TEXT_PLAIN {
         process_text_plain(prefix, body)
     } else if essence == mime::MULTIPART_FORM_DATA {
         process_form_data(prefix, body, m.params())
+    } else if essence == mime::APPLICATION_WWW_FORM_URLENCODED {
+        process_url_encoded(prefix, body)
     } else {
         None
     }
@@ -341,7 +334,6 @@ pub fn process_api_trace(trace: &ApiTrace) -> ProcessTraceRes {
             proc_resp_body = process_body("resBody".to_string(), resp_body, resp_mime_type);
         }
     }
-    println!("{:?}", proc_resp_body);
 
     combine_process_trace_res(&[
         proc_req_body,
