@@ -19,6 +19,8 @@ export const AWS_REGIONS = [
 ]
 
 export const SUPPORTED_AWS_INSTANCES = [
+  "c4",
+  "m4",
   "a1",
   "c5",
   "c5a",
