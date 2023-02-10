@@ -87,5 +87,5 @@ export const AppDataSource: DataSource = new DataSource({
     addHostAndMethodIndex1676006521189,
   ],
   migrationsRun: runMigration,
-  logging: true,
+  logging: false,
 })
