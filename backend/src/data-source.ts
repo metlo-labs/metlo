@@ -39,6 +39,7 @@ import { addTracehashColumnToDataField1672962660470 } from "migrations/167296266
 import { userSetEndpointColumn1673073826153 } from "migrations/1673073826153-user-set-endpoint-column"
 import { removeHostPrimaryKeyAuthenticationconfig1673465613593 } from "migrations/1673465613593-remove-host-primary-key-authenticationconfig"
 import { metloConfigEnv1673503553138 } from "migrations/1673503553138-metloConfigEnv"
+import { addHostAndMethodIndex1676006521189 } from "migrations/1676006521189-add-host-and-method-index"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -83,6 +84,7 @@ export const AppDataSource: DataSource = new DataSource({
     userSetEndpointColumn1673073826153,
     removeHostPrimaryKeyAuthenticationconfig1673465613593,
     metloConfigEnv1673503553138,
+    addHostAndMethodIndex1676006521189,
   ],
   migrationsRun: runMigration,
   logging: false,
