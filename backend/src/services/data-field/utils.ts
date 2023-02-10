@@ -29,7 +29,7 @@ const nonNullDataSections = [
 ]
 
 export const UPDATE_DATA_FIELD_TIME_THRESHOLD =
-  parseInt(process.env.UPDATE_DATA_FIELD_TIME_THRESHOLD || "60") * 1000
+  (parseInt(process.env.UPDATE_DATA_FIELD_TIME_THRESHOLD) || 60) * 1000
 
 export const isArrayFieldsDiff = (
   oldFields: Record<string, number>,
