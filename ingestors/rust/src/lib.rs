@@ -13,6 +13,7 @@ use tonic::{transport::Server, Code, Request, Response, Status};
 
 mod mappers;
 mod metlo_config;
+mod open_api;
 mod process_trace;
 mod sensitive_data;
 mod trace;
@@ -28,6 +29,8 @@ lazy_static! {
         backend_url: None,
         metlo_config: None,
         sensitive_data: None,
+        endpoints: None,
+        specs: None,
     });
 }
 
@@ -54,7 +57,9 @@ pub async fn initialize_metlo(
             None => metlo_host.clone(),
         }
     };
-    let backend_valid = validate_connection(backend_url.as_str(), api_key.as_str()).await;
+    let backend_validation_endpoint = format!("{}/api/v1", backend_url);
+    let backend_valid =
+        validate_connection(backend_validation_endpoint.as_str(), api_key.as_str()).await;
     if !backend_valid.ok {
         return Ok(InitializeMetloResp {
             ok: false,

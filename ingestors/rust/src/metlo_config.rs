@@ -2,7 +2,11 @@ use regex::Regex;
 use reqwest::Url;
 use serde::{Deserialize, Serialize};
 
-use crate::{sensitive_data::SensitiveData, METLO_CONFIG};
+use crate::{
+    open_api::{compile_specs, CompiledSpecs},
+    sensitive_data::SensitiveData,
+    METLO_CONFIG,
+};
 
 #[derive(Debug, Default, Clone)]
 pub struct MetloCreds {
@@ -22,17 +26,37 @@ pub struct MetloSensitiveData {
 
 #[derive(Debug, Default, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct MetloConfig {
-    pub sensitive_data_list: Vec<MetloSensitiveData>,
+pub struct MetloEndpoint {
+    pub path: String,
+    pub openapi_spec_name: Option<String>,
+    pub host: String,
+    pub method: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MetloSpec {
+    pub name: String,
+    pub spec: String,
+}
+
+#[derive(Debug, Default, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MetloConfig {
+    pub sensitive_data_list: Vec<MetloSensitiveData>,
+    pub endpoints: Vec<MetloEndpoint>,
+    pub specs: Vec<MetloSpec>,
+}
+
+#[derive(Debug)]
 pub struct GlobalConfig {
     pub creds: Option<MetloCreds>,
     pub collector_url: Option<String>,
     pub backend_url: Option<String>,
     pub metlo_config: Option<MetloConfig>,
     pub sensitive_data: Option<Vec<SensitiveData>>,
+    pub endpoints: Option<Vec<MetloEndpoint>>,
+    pub specs: Option<CompiledSpecs>,
 }
 
 pub struct ValidateRequestConnResp {
@@ -134,10 +158,13 @@ pub async fn pull_metlo_config() -> Result<(), Box<dyn std::error::Error>> {
         })
         .flatten()
         .collect();
+    let compiled_specs = compile_specs(resp.specs);
 
     let mut conf_write = METLO_CONFIG.write().await;
-    conf_write.metlo_config = Some(resp);
+    //conf_write.metlo_config = Some(resp);
     conf_write.sensitive_data = Some(new_sensitive_data);
+    conf_write.endpoints = Some(resp.endpoints);
+    conf_write.specs = Some(compiled_specs);
 
     Ok(())
 }

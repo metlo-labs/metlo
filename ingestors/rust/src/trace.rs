@@ -55,4 +55,5 @@ pub struct ProcessTraceRes {
     pub sqli_detected: Option<HashMap<String, (String, String)>>,
     pub sensitive_data_detected: Option<HashMap<String, HashSet<String>>>,
     pub data_types: Option<HashMap<String, HashSet<String>>>,
+    pub validation_errors: Vec<String>,
 }

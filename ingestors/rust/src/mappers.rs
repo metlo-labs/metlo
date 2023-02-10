@@ -110,5 +110,6 @@ pub fn map_process_trace_res(r: ProcessTraceRes) -> metloingest::ProcessTraceRes
         sensitive_data_detected: mapped_sensitive_data,
         sqli_detected: mapped_sqli_detected,
         data_types: mapped_data_types,
+        validation_errors: r.validation_errors,
     }
 }
