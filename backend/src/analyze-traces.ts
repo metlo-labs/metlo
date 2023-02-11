@@ -92,6 +92,73 @@ const shouldUpdateEndpoint = (
   )
 }
 
+const tryUpdateDataFields = async (
+  ctx: MetloContext,
+  dataFields: DataField[],
+  queryRunner: QueryRunner,
+) => {
+  if (dataFields.length === 0) {
+    return
+  }
+  try {
+    await retryTypeormTransaction(
+      () =>
+        insertValuesBuilder(ctx, queryRunner, DataField, dataFields)
+          .orUpdate(
+            [
+              "dataClasses",
+              "scannerIdentified",
+              "falsePositives",
+              "dataType",
+              "dataTag",
+              "updatedAt",
+              "arrayFields",
+              "isNullable",
+              "traceHash",
+              "matches",
+            ],
+            [
+              "dataSection",
+              "dataPath",
+              "apiEndpointUuid",
+              "statusCode",
+              "contentType",
+            ],
+          )
+          .execute(),
+      5,
+    )
+  } catch (err) {
+    if (isQueryFailedError(err) && err.code === "23505") {
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction()
+      }
+      await queryRunner.startTransaction()
+      await insertValuesBuilder(ctx, queryRunner, DataField, dataFields)
+        .orUpdate(
+          [
+            "dataClasses",
+            "scannerIdentified",
+            "falsePositives",
+            "dataType",
+            "dataTag",
+            "updatedAt",
+            "arrayFields",
+            "isNullable",
+            "traceHash",
+            "matches",
+            "statusCode",
+            "contentType",
+          ],
+          ["uuid"],
+        )
+        .execute()
+    } else {
+      throw err
+    }
+  }
+}
+
 const analyze = async (
   ctx: MetloContext,
   trace: QueuedApiTrace,
@@ -124,7 +191,7 @@ const analyze = async (
   const start3 = performance.now()
   const dataFieldAlerts = await createDataFieldAlerts(
     ctx,
-    dataFields.newFields.concat(dataFields.updatedFields),
+    dataFields,
     apiEndpoint.uuid,
     trace,
     queryRunner,
@@ -148,8 +215,16 @@ const analyze = async (
     trace.responseBody = JSON.stringify(trace.responseBody)
   }
 
-  const start4 = performance.now()
   await queryRunner.startTransaction()
+  const startUpdateDataFields = performance.now()
+  await tryUpdateDataFields(ctx, dataFields, queryRunner)
+  mlog.time(
+    "analyzer.update_data_fields_query",
+    performance.now() - startUpdateDataFields,
+  )
+  mlog.debug(`Analyzing Trace - Updated Data Fields: ${traceUUID}`)
+
+  const start4 = performance.now()
   const traceRes = await retryTypeormTransaction(
     () =>
       getEntityManager(ctx, queryRunner).insert(ApiTrace, [
@@ -179,28 +254,6 @@ const analyze = async (
     performance.now() - startTraceRedis,
   )
   mlog.debug(`Analyzing Trace - Inserted API Trace to Redis: ${traceUUID}`)
-
-  const start5 = performance.now()
-  await retryTypeormTransaction(
-    () =>
-      insertValuesBuilder(ctx, queryRunner, DataField, dataFields.newFields)
-        .orIgnore()
-        .execute(),
-    5,
-  )
-  mlog.time("analyzer.insert_data_fields_query", performance.now() - start5)
-  mlog.debug(`Analyzing Trace - Inserted Data Fields: ${traceUUID}`)
-
-  const start6 = performance.now()
-  await retryTypeormTransaction(
-    () =>
-      getEntityManager(ctx, queryRunner).saveList<DataField>(
-        dataFields.updatedFields,
-      ),
-    5,
-  )
-  mlog.time("analyzer.update_data_fields_query", performance.now() - start6)
-  mlog.debug(`Analyzing Trace - Updated Data Fields: ${traceUUID}`)
 
   const start7 = performance.now()
   await retryTypeormTransaction(

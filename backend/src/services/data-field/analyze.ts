@@ -172,12 +172,11 @@ export const findDataFieldsToSave = async (
     .update(traceHashArray.join())
     .digest("base64")
   const currentTimestamp = apiTrace.createdAt.getTime()
-  const newDataFields: DataField[] = []
-  const updatedDataFields: DataField[] = []
+  const resDataFields: DataField[] = []
 
   for (const key in newDataFieldMap) {
     newDataFieldMap[key].traceHash = { [hash]: currentTimestamp }
-    newDataFields.push(newDataFieldMap[key])
+    resDataFields.push(newDataFieldMap[key])
   }
 
   for (const key in updatedDataFieldMap) {
@@ -188,11 +187,11 @@ export const findDataFieldsToSave = async (
       currentTimestamp - currDataField.traceHash?.[hash] > 60_000
     ) {
       currDataField.traceHash[hash] = currentTimestamp
-      updatedDataFields.push(currDataField)
+      resDataFields.push(currDataField)
     }
   }
 
   apiEndpoint.riskScore = getRiskScore(Object.values(currentDataFieldMap) ?? [])
 
-  return { newFields: newDataFields, updatedFields: updatedDataFields }
+  return resDataFields
 }
