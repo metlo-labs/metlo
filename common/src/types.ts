@@ -104,6 +104,7 @@ export interface QueuedApiTrace {
 }
 
 export interface ApiTrace extends QueuedApiTrace {
+  redacted: boolean
   uuid: string
   apiEndpointUuid: string
 }
@@ -166,6 +167,7 @@ export interface ApiEndpoint {
   openapiSpecName: string
   isAuthenticatedDetected: boolean
   isAuthenticatedUserSet: boolean
+  fullTraceCaptureEnabled: boolean
   isGraphQl: boolean
 }
 

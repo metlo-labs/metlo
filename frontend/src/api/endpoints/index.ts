@@ -6,7 +6,11 @@ import {
   HostGraph,
   Usage,
 } from "@common/types"
-import { GetEndpointParams, GetHostParams } from "@common/api/endpoint"
+import {
+  GetEndpointParams,
+  GetHostParams,
+  UpdateFullTraceCaptureEnabledParams,
+} from "@common/api/endpoint"
 import { getAPIURL } from "~/constants"
 
 export const getEndpoints = async (
@@ -163,4 +167,16 @@ export const updatePaths = async (
     { paths, headers },
   )
   return resp.data
+}
+
+export const updateFullTraceCaptureEnabled = async (
+  endpointId: string,
+  params: UpdateFullTraceCaptureEnabledParams,
+  headers?: AxiosRequestHeaders,
+): Promise<void> => {
+  await axios.put(
+    `${getAPIURL()}/endpoint/${endpointId}/enable-full-trace-capture`,
+    params,
+    { headers },
+  )
 }

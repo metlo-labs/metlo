@@ -9,6 +9,9 @@ import {
   Button,
   Heading,
   useColorModeValue,
+  VStack,
+  StackDivider,
+  useToast,
 } from "@chakra-ui/react"
 import SplitPane from "react-split-pane"
 import { ImCross } from "icons/im/ImCross"
@@ -19,20 +22,28 @@ import { ApiTrace, DataField } from "@common/types"
 import { statusCodeToColor } from "components/utils/StatusCode"
 import TraceDetail from "./TraceDetail"
 import EmptyView from "components/utils/EmptyView"
+import { updateFullTraceCaptureEnabled } from "api/endpoints"
+import { makeToast } from "utils"
 
 interface TraceListProps {
   traces: ApiTrace[]
   dataFields?: DataField[]
   uuid?: string
+  endpointUuid?: string
+  fullTraceCaptureEnabled?: boolean
 }
 
 const getDateTimeString = (date: Date) =>
   DateTime.fromISO(date.toString()).toLocaleString(DateTime.DATETIME_SHORT)
 
 const TraceList: React.FC<TraceListProps> = React.memo(
-  ({ traces, dataFields, uuid }) => {
+  ({ traces, dataFields, uuid, endpointUuid, fullTraceCaptureEnabled }) => {
     const [trace, setTrace] = useState<ApiTrace | undefined>()
+    const [fullTraceCaptureEnabledState, setFullTraceCaptureEnabled] =
+      useState<boolean>(fullTraceCaptureEnabled)
+    const [updatingFullTrace, setUpdatingFullTrace] = useState<boolean>(false)
     const colorMode = useColorMode()
+    const toast = useToast()
     const headerBg = useColorModeValue("rgb(252, 252, 252)", "rgb(17, 19, 23)")
     const divColor = useColorModeValue("rgb(216, 216, 216)", "black")
     const headerTextColor = useColorModeValue("gray.700", "gray.200")
@@ -62,6 +73,38 @@ const TraceList: React.FC<TraceListProps> = React.memo(
         },
       },
     ]
+
+    const handleEnableFullTraceCapture = async (enabled: boolean) => {
+      setUpdatingFullTrace(true)
+      try {
+        await updateFullTraceCaptureEnabled(endpointUuid, { enabled })
+        setFullTraceCaptureEnabled(enabled)
+        const title = enabled
+          ? "Success! New traces will store the whole request and response..."
+          : "New traces will have the request and response redacted..."
+        toast(
+          makeToast({
+            title,
+            status: "success",
+            duration: 3000,
+          }),
+        )
+      } catch (err) {
+        toast(
+          makeToast(
+            {
+              title: "Updating Full Trace Capture failed",
+              status: "error",
+              description: err.response?.data,
+              duration: 3000,
+            },
+            err.response?.status,
+          ),
+        )
+      } finally {
+        setUpdatingFullTrace(false)
+      }
+    }
 
     const columns: TableColumn<ApiTrace>[] = [
       {
@@ -116,14 +159,11 @@ const TraceList: React.FC<TraceListProps> = React.memo(
       {
         name: "Source",
         sortable: false,
-        selector: (row: ApiTrace) =>
-          `${row.meta.source}:${row.meta.sourcePort}`,
+        selector: (row: ApiTrace) => row.meta.source,
         cell: (row: ApiTrace) => (
-          <Text
-            fontFamily="mono"
-            fontSize="sm"
-            data-tag="allowRowEvents"
-          >{`${row.meta.source}:${row.meta.sourcePort}`}</Text>
+          <Text fontFamily="mono" fontSize="sm" data-tag="allowRowEvents">
+            {row.meta.source}
+          </Text>
         ),
         id: "source",
         width: "255px",
@@ -160,17 +200,50 @@ const TraceList: React.FC<TraceListProps> = React.memo(
     ) : null
 
     const tablePanel = (
-      <DataTable
-        fixedHeader={true}
-        fixedHeaderScrollHeight="100%"
-        style={rowStyles}
-        conditionalRowStyles={conditionalStyles}
-        columns={columns}
-        data={traces}
-        customStyles={getCustomStyles(colorMode.colorMode)}
-        onRowClicked={setTrace}
-        noDataComponent={<EmptyView notRounded text="No Traces!" />}
-      />
+      <VStack w="full" h="full" divider={<StackDivider />} spacing="0">
+        {endpointUuid ? (
+          <HStack
+            px="4"
+            py="2"
+            w="full"
+            justifyContent="flex-end"
+            backgroundColor={headerBg}
+          >
+            {fullTraceCaptureEnabledState ? (
+              <Button
+                isLoading={updatingFullTrace}
+                onClick={() => handleEnableFullTraceCapture(false)}
+                size="md"
+                variant="delete"
+              >
+                Disable Full Trace Capture
+              </Button>
+            ) : (
+              <Button
+                isLoading={updatingFullTrace}
+                onClick={() => handleEnableFullTraceCapture(true)}
+                size="md"
+                variant="create"
+              >
+                Enable Full Trace Capture
+              </Button>
+            )}
+          </HStack>
+        ) : null}
+        <Box w="full" flex="1" overflow="hidden">
+          <DataTable
+            fixedHeader={true}
+            fixedHeaderScrollHeight="100%"
+            style={rowStyles}
+            conditionalRowStyles={conditionalStyles}
+            columns={columns}
+            data={traces}
+            customStyles={getCustomStyles(colorMode.colorMode)}
+            onRowClicked={setTrace}
+            noDataComponent={<EmptyView notRounded text="No Traces!" />}
+          />
+        </Box>
+      </VStack>
     )
 
     return (

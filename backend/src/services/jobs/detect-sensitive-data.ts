@@ -49,9 +49,15 @@ const detectSensitiveDataEndpoint = async (
   if (traceCache.length < MIN_ANALYZE_TRACES) {
     return
   }
-  const traces = traceCache.map(e => JSON.parse(e) as ApiTrace)
-  const sensitiveDataMaps = traces.map(e =>
-    getSensitiveDataMap(dataClasses, e, endpoint.path),
+  const traces = traceCache.map(
+    e =>
+      JSON.parse(e) as ApiTrace & {
+        sensitiveDataMap?: Record<string, string[]>
+      },
+  )
+  const sensitiveDataMaps = traces.map(
+    e =>
+      e.sensitiveDataMap || getSensitiveDataMap(dataClasses, e, endpoint.path),
   )
   let detectedDataClasses: Record<
     string,

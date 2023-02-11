@@ -95,6 +95,9 @@ export class ApiEndpoint extends MetloBaseEntity {
   @JoinColumn()
   openapiSpec: OpenApiSpec
 
+  @Column({ type: "bool", nullable: false, default: false })
+  fullTraceCaptureEnabled: boolean
+
   addNumberParams() {
     if (this.path) {
       const pathTokens = getPathTokens(this.path)

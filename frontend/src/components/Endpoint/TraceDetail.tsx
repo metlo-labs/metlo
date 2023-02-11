@@ -7,6 +7,7 @@ import {
   ColorMode,
   Grid,
   GridItem,
+  Heading,
   HStack,
   Text,
   useColorMode,
@@ -22,6 +23,7 @@ import {
   NumSensitiveDataMap,
   SensitiveDataMap,
 } from "./sensitive-data-utils"
+import EmptyView from "components/utils/EmptyView"
 const ReactJson = dynamic(() => import("@akshays/react-json-view"), {
   ssr: false,
 })
@@ -125,24 +127,6 @@ export const TraceView: React.FC<{
     <VStack spacing="4" w="full" alignItems="flex-start">
       <VStack h="full" w="full" alignItems="flex-start">
         <HStack>
-          <Text fontWeight="semibold">Request Headers </Text>
-          {reqHeaderTotalSenData && (
-            <Text color="red.500">
-              ({reqHeaderTotalSenData} PII Field
-              {reqHeaderTotalSenData > 1 ? "s" : ""})
-            </Text>
-          )}
-        </HStack>
-        {JSONContentViewer(
-          JSON.stringify(trace.requestHeaders || []),
-          colorMode,
-          undefined,
-          sensitiveDataMap[DataSection.REQUEST_HEADER],
-          numSensitiveDataMap[DataSection.REQUEST_HEADER],
-        )}
-      </VStack>
-      <VStack h="full" w="full" alignItems="flex-start">
-        <HStack>
           <Text fontWeight="semibold">Request Parameters </Text>
           {reqQueryTotalSenData && (
             <Text color="red.500">
@@ -159,60 +143,94 @@ export const TraceView: React.FC<{
           numSensitiveDataMap[DataSection.REQUEST_QUERY],
         )}
       </VStack>
-      <VStack h="full" w="full" alignItems="flex-start">
-        <HStack>
-          <Text fontWeight="semibold">Request Body </Text>
-          {reqBodyTotalSenData && (
-            <Text color="red.500">
-              ({reqBodyTotalSenData} PII Field
-              {reqBodyTotalSenData > 1 ? "s" : ""})
-            </Text>
-          )}
-        </HStack>
-        {JSONContentViewer(
-          trace.requestBody,
-          colorMode,
-          undefined,
-          sensitiveDataMap[DataSection.REQUEST_BODY],
-          numSensitiveDataMap[DataSection.REQUEST_BODY],
-        )}
-      </VStack>
-      <VStack h="full" w="full" alignItems="flex-start">
-        <HStack>
-          <Text fontWeight="semibold">Response Headers </Text>
-          {resHeaderTotalSenData && (
-            <Text color="red.500">
-              ({resHeaderTotalSenData} PII Field
-              {resHeaderTotalSenData > 1 ? "s" : ""})
-            </Text>
-          )}
-        </HStack>
-        {JSONContentViewer(
-          JSON.stringify(trace.responseHeaders),
-          colorMode,
-          undefined,
-          sensitiveDataMap[DataSection.RESPONSE_HEADER],
-          numSensitiveDataMap[DataSection.RESPONSE_HEADER],
-        )}
-      </VStack>
-      <VStack w="full" alignItems="flex-start">
-        <HStack>
-          <Text fontWeight="semibold">Response Body </Text>
-          {resBodyTotalSenData && (
-            <Text color="red.500">
-              ({resBodyTotalSenData} PII Field
-              {resBodyTotalSenData > 1 ? "s" : ""})
-            </Text>
-          )}
-        </HStack>
-        {JSONContentViewer(
-          trace.responseBody,
-          colorMode,
-          undefined,
-          sensitiveDataMap[DataSection.RESPONSE_BODY],
-          numSensitiveDataMap[DataSection.RESPONSE_BODY],
-        )}
-      </VStack>
+      {trace.redacted ?? false ? (
+        <EmptyView>
+          <Heading
+            size="md"
+            fontWeight="semibold"
+            textAlign="center"
+            color="gray.400"
+          >
+            Enable Full Trace Capture for this Endpoint to see Request/Response
+            Headers and Bodies
+          </Heading>
+        </EmptyView>
+      ) : (
+        <>
+          <VStack h="full" w="full" alignItems="flex-start">
+            <HStack>
+              <Text fontWeight="semibold">Request Headers </Text>
+              {reqHeaderTotalSenData && (
+                <Text color="red.500">
+                  ({reqHeaderTotalSenData} PII Field
+                  {reqHeaderTotalSenData > 1 ? "s" : ""})
+                </Text>
+              )}
+            </HStack>
+            {JSONContentViewer(
+              JSON.stringify(trace.requestHeaders || []),
+              colorMode,
+              undefined,
+              sensitiveDataMap[DataSection.REQUEST_HEADER],
+              numSensitiveDataMap[DataSection.REQUEST_HEADER],
+            )}
+          </VStack>
+          <VStack h="full" w="full" alignItems="flex-start">
+            <HStack>
+              <Text fontWeight="semibold">Request Body </Text>
+              {reqBodyTotalSenData && (
+                <Text color="red.500">
+                  ({reqBodyTotalSenData} PII Field
+                  {reqBodyTotalSenData > 1 ? "s" : ""})
+                </Text>
+              )}
+            </HStack>
+            {JSONContentViewer(
+              trace.requestBody,
+              colorMode,
+              undefined,
+              sensitiveDataMap[DataSection.REQUEST_BODY],
+              numSensitiveDataMap[DataSection.REQUEST_BODY],
+            )}
+          </VStack>
+          <VStack h="full" w="full" alignItems="flex-start">
+            <HStack>
+              <Text fontWeight="semibold">Response Headers </Text>
+              {resHeaderTotalSenData && (
+                <Text color="red.500">
+                  ({resHeaderTotalSenData} PII Field
+                  {resHeaderTotalSenData > 1 ? "s" : ""})
+                </Text>
+              )}
+            </HStack>
+            {JSONContentViewer(
+              JSON.stringify(trace.responseHeaders),
+              colorMode,
+              undefined,
+              sensitiveDataMap[DataSection.RESPONSE_HEADER],
+              numSensitiveDataMap[DataSection.RESPONSE_HEADER],
+            )}
+          </VStack>
+          <VStack w="full" alignItems="flex-start">
+            <HStack>
+              <Text fontWeight="semibold">Response Body </Text>
+              {resBodyTotalSenData && (
+                <Text color="red.500">
+                  ({resBodyTotalSenData} PII Field
+                  {resBodyTotalSenData > 1 ? "s" : ""})
+                </Text>
+              )}
+            </HStack>
+            {JSONContentViewer(
+              trace.responseBody,
+              colorMode,
+              undefined,
+              sensitiveDataMap[DataSection.RESPONSE_BODY],
+              numSensitiveDataMap[DataSection.RESPONSE_BODY],
+            )}
+          </VStack>
+        </>
+      )}
     </VStack>
   )
 }
