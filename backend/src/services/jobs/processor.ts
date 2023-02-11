@@ -56,7 +56,7 @@ const processor = async (job: Job, done) => {
       break
   }
   mlog.time(`jobrunner.${job.name}`, performance.now() - jobStartTime)
-  mlog.gaugeDelta(`jobrunner.${job.name}.total_runs`, 1)
+  mlog.count(`jobrunner.${job.name}.run_count`)
   if (!success) {
     mlog.count(`jobrunner.${job.name}.error_count`)
   }
