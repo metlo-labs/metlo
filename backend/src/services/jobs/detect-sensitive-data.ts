@@ -146,7 +146,7 @@ const detectSensitiveDataEndpoint = async (
   }
 }
 
-const detectSensitiveData = async (ctx: MetloContext): Promise<void> => {
+const detectSensitiveData = async (ctx: MetloContext): Promise<boolean> => {
   mlog.debug("In detect sensitive data job.")
   const queryRunner = AppDataSource.createQueryRunner()
   try {
@@ -167,8 +167,10 @@ const detectSensitiveData = async (ctx: MetloContext): Promise<void> => {
           )
       }
     }
+    return true
   } catch (err) {
     mlog.withErr(err).error("Encountered error while detecting sensitive data")
+    return false
   } finally {
     await queryRunner.release()
   }

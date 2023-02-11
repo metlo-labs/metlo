@@ -6,7 +6,7 @@ import { MetloContext } from "types"
 import { RedisClient } from "utils/redis"
 import { INTERNAL_IP_SET_KEY } from "./constants"
 
-export const updateEndpointIps = async (ctx: MetloContext) => {
+export const updateEndpointIps = async (ctx: MetloContext): Promise<boolean> => {
   const queryRunner = AppDataSource.createQueryRunner()
   try {
     await queryRunner.connect()
@@ -21,8 +21,10 @@ export const updateEndpointIps = async (ctx: MetloContext) => {
     await RedisClient.addValueToSet(ctx, INTERNAL_IP_SET_KEY, [
       ...new Set(hostIps.map(e => Object.keys(e.hostIps)).flat()),
     ])
+    return true
   } catch (err) {
     mlog.withErr(err).error(`Encountered error while updating endpoint IPs`)
+    return false
   } finally {
     await queryRunner.release()
   }

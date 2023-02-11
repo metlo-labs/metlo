@@ -118,7 +118,7 @@ const fixEndpoint = async (
   }
 }
 
-const fixEndpoints = async (ctx: MetloContext): Promise<void> => {
+const fixEndpoints = async (ctx: MetloContext): Promise<boolean> => {
   const queryRunner = AppDataSource.createQueryRunner()
   try {
     await queryRunner.connect()
@@ -131,8 +131,10 @@ const fixEndpoints = async (ctx: MetloContext): Promise<void> => {
         await fixEndpoint(ctx, endpoint, queryRunner)
       }
     }
+    return true
   } catch (err) {
     mlog.withErr(err).error("Encountered error while fixing endpoints")
+    return false
   } finally {
     await queryRunner.release()
   }
