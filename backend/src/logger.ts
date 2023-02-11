@@ -141,6 +141,10 @@ export default class mlog {
     mlog.debug(`gauge:${key}:${value}`)
   }
 
+  static gaugeDelta(key: string, value: number, sampleRate?: number) {
+    mlog.debug(`gauge_delta:${key}:${value}`)
+  }
+
   trace(...msg: any[]) {
     const logData = {
       msg,
