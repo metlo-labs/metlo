@@ -5,7 +5,9 @@ import { getRepository } from "services/database/utils"
 import { getCounts } from "services/summary/usageStats"
 import { MetloContext } from "types"
 
-export const logAggregatedStats = async (ctx: MetloContext) => {
+export const logAggregatedStats = async (
+  ctx: MetloContext,
+): Promise<boolean> => {
   const settingRepository = getRepository(ctx, InstanceSettings)
   const settingsLs = await settingRepository.find()
   if (settingsLs.length == 0) {
@@ -14,22 +16,28 @@ export const logAggregatedStats = async (ctx: MetloContext) => {
   }
   const settings = settingsLs[0]
   const counts = await getCounts(ctx)
-  await axios({
-    url: "https://logger.metlo.com/log",
-    method: "POST",
-    data: {
-      instanceUUID: settings.uuid,
-      eventName: "instanceAggregatedStats",
+  try {
+    await axios({
+      url: "https://logger.metlo.com/log",
+      method: "POST",
       data: {
-        numEndpoints: counts.endpointsTracked,
-        numHosts: counts.hostCount,
-        openAlerts: counts.newAlerts,
-        openHighRiskAlerts: counts.highRiskAlerts,
-        piiDataFields: counts.piiDataFields,
-        email: settings.updateEmail,
-        skippedEmail: settings.skippedUpdateEmail,
-        licenseKey: process.env.LICENSE_KEY,
+        instanceUUID: settings.uuid,
+        eventName: "instanceAggregatedStats",
+        data: {
+          numEndpoints: counts.endpointsTracked,
+          numHosts: counts.hostCount,
+          openAlerts: counts.newAlerts,
+          openHighRiskAlerts: counts.highRiskAlerts,
+          piiDataFields: counts.piiDataFields,
+          email: settings.updateEmail,
+          skippedEmail: settings.skippedUpdateEmail,
+          licenseKey: process.env.LICENSE_KEY,
+        },
       },
-    },
-  })
+    })
+    return true
+  } catch (err) {
+    mlog.withErr(err).error("Encountered error while logging aggregated stats")
+    return false
+  }
 }

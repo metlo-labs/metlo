@@ -244,7 +244,7 @@ const generateSchemas = (dataFields: DataField[]) => {
   }
 }
 
-const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
+const generateOpenApiSpec = async (ctx: MetloContext): Promise<boolean> => {
   const queryRunner = AppDataSource.createQueryRunner()
   try {
     await queryRunner.connect()
@@ -388,11 +388,13 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<void> => {
       }
       await queryRunner.commitTransaction()
     }
+    return true
   } catch (err) {
     mlog.withErr(err).error("Encountered error while generating OpenAPI specs")
     if (queryRunner.isTransactionActive) {
       await queryRunner.rollbackTransaction()
     }
+    return false
   } finally {
     await queryRunner.release()
   }
