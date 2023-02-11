@@ -238,6 +238,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
                   dataFields={endpoint.dataFields}
                   endpointUuid={endpoint.uuid}
                   fullTraceCaptureEnabled={endpoint.fullTraceCaptureEnabled}
+                  globalFullTraceCapture={endpoint.globalFullTraceCapture}
                 />
               )}
             </TabPanel>

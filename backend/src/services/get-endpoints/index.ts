@@ -33,6 +33,7 @@ import {
 import { MetloContext } from "types"
 import { retryTypeormTransaction } from "utils/db"
 import { RedisClient } from "utils/redis"
+import { getGlobalFullTraceCaptureCached } from "services/metlo-config"
 
 const getDataFieldsQuery = (ctx: MetloContext) => `
 SELECT
@@ -473,6 +474,7 @@ export class GetEndpointsService {
           where: { apiEndpoint: { uuid: endpointId } },
         },
       )
+      const globalFullTraceCapture = await getGlobalFullTraceCaptureCached(ctx)
       return {
         ...endpoint,
         alerts,
@@ -480,6 +482,7 @@ export class GetEndpointsService {
         openapiSpec,
         traces: [...traces],
         tests: tests as Array<any>,
+        globalFullTraceCapture,
       }
     } catch (err) {
       mlog.withErr(err).error("Error in Get Endpoints service")

@@ -177,6 +177,7 @@ export interface ApiEndpointDetailed extends ApiEndpoint {
   traces: ApiTrace[]
   tests: any[]
   dataFields: DataField[]
+  globalFullTraceCapture?: boolean
 }
 
 export interface HostResponse {

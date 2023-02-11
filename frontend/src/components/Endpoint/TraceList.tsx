@@ -12,6 +12,7 @@ import {
   VStack,
   StackDivider,
   useToast,
+  Tooltip,
 } from "@chakra-ui/react"
 import SplitPane from "react-split-pane"
 import { ImCross } from "icons/im/ImCross"
@@ -31,13 +32,21 @@ interface TraceListProps {
   uuid?: string
   endpointUuid?: string
   fullTraceCaptureEnabled?: boolean
+  globalFullTraceCapture?: boolean
 }
 
 const getDateTimeString = (date: Date) =>
   DateTime.fromISO(date.toString()).toLocaleString(DateTime.DATETIME_SHORT)
 
 const TraceList: React.FC<TraceListProps> = React.memo(
-  ({ traces, dataFields, uuid, endpointUuid, fullTraceCaptureEnabled }) => {
+  ({
+    traces,
+    dataFields,
+    uuid,
+    endpointUuid,
+    fullTraceCaptureEnabled,
+    globalFullTraceCapture,
+  }) => {
     const [trace, setTrace] = useState<ApiTrace | undefined>()
     const [fullTraceCaptureEnabledState, setFullTraceCaptureEnabled] =
       useState<boolean>(fullTraceCaptureEnabled)
@@ -209,25 +218,32 @@ const TraceList: React.FC<TraceListProps> = React.memo(
             justifyContent="flex-end"
             backgroundColor={headerBg}
           >
-            {fullTraceCaptureEnabledState ? (
-              <Button
-                isLoading={updatingFullTrace}
-                onClick={() => handleEnableFullTraceCapture(false)}
-                size="md"
-                variant="delete"
-              >
-                Disable Full Trace Capture
-              </Button>
-            ) : (
-              <Button
-                isLoading={updatingFullTrace}
-                onClick={() => handleEnableFullTraceCapture(true)}
-                size="md"
-                variant="create"
-              >
-                Enable Full Trace Capture
-              </Button>
-            )}
+            <Tooltip
+              isDisabled={!globalFullTraceCapture}
+              label="Full Trace Capture Enabled Globally"
+            >
+              {fullTraceCaptureEnabledState ? (
+                <Button
+                  isLoading={updatingFullTrace}
+                  onClick={() => handleEnableFullTraceCapture(false)}
+                  disabled={globalFullTraceCapture}
+                  size="md"
+                  variant="delete"
+                >
+                  Disable Full Trace Capture
+                </Button>
+              ) : (
+                <Button
+                  isLoading={updatingFullTrace}
+                  onClick={() => handleEnableFullTraceCapture(true)}
+                  disabled={globalFullTraceCapture}
+                  size="md"
+                  variant="create"
+                >
+                  Enable Full Trace Capture
+                </Button>
+              )}
+            </Tooltip>
           </HStack>
         ) : null}
         <Box w="full" flex="1" overflow="hidden">
