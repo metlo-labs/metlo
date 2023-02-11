@@ -11,6 +11,7 @@ import {
   findBodyDataFields,
   DataFieldLength,
   UpdatedDataField,
+  UPDATE_DATA_FIELD_TIME_THRESHOLD,
 } from "./utils"
 
 const getCurrentDataFieldsMap = (
@@ -185,7 +186,8 @@ export const findDataFieldsToSave = async (
     if (
       updatedDataFieldMap[key].updated ||
       !currDataField.traceHash?.[hash] ||
-      currentTimestamp - currDataField.traceHash?.[hash] > 60_000
+      currentTimestamp - currDataField.traceHash?.[hash] >
+        UPDATE_DATA_FIELD_TIME_THRESHOLD
     ) {
       currDataField.traceHash[hash] = currentTimestamp
       updatedDataFields.push(currDataField)

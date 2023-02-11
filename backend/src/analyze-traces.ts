@@ -218,13 +218,15 @@ const analyze = async (
   mlog.debug(`Analyzing Trace - Inserted Data Fields: ${traceUUID}`)
 
   const start6 = performance.now()
-  await retryTypeormTransaction(
-    () =>
-      getEntityManager(ctx, queryRunner).saveList<DataField>(
-        dataFields.updatedFields,
-      ),
-    5,
-  )
+  if (dataFields.updatedFields.length > 0) {
+    await retryTypeormTransaction(
+      () =>
+        getEntityManager(ctx, queryRunner).saveList<DataField>(
+          dataFields.updatedFields,
+        ),
+      5,
+    )
+  }
   mlog.time("analyzer.update_data_fields_query", performance.now() - start6)
   mlog.debug(`Analyzing Trace - Updated Data Fields: ${traceUUID}`)
 
