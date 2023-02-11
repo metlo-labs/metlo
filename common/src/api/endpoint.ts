@@ -44,3 +44,10 @@ export const DeleteHostsParamsSchema = z.object({
   hosts: z.string().array(),
 })
 export type DeleteHostBatchParams = z.infer<typeof DeleteHostsParamsSchema>
+
+export const UpdateFullTraceCaptureEnabledSchema = z.object({
+  enabled: z.boolean(),
+})
+export type UpdateFullTraceCaptureEnabledParams = z.infer<
+  typeof UpdateFullTraceCaptureEnabledSchema
+>

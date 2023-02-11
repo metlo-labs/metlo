@@ -50,6 +50,30 @@ export const getMetloConfig = async (
   return config
 }
 
+export const getGlobalFullTraceCapture = async (
+  ctx: MetloContext,
+): Promise<boolean> => {
+  const config = (await createQB(ctx)
+    .from(MetloConfig, "config")
+    .getRawOne()) as MetloConfig
+  const configObject = jsyaml.load(config.configString) as any
+  const globalFullTraceCapture = configObject.globalFullTraceCapture as boolean
+  return globalFullTraceCapture ?? false
+}
+
+export const getGlobalFullTraceCaptureCached = async (ctx: MetloContext) => {
+  const cacheRes: boolean | null = await RedisClient.getFromRedis(
+    ctx,
+    "globalFullTraceCaptureCached",
+  )
+  if (cacheRes !== null) {
+    return cacheRes
+  }
+  const realRes = await getGlobalFullTraceCapture(ctx)
+  await RedisClient.addToRedis(ctx, "globalFullTraceCaptureCached", realRes, 60)
+  return realRes
+}
+
 export const validateMetloConfig = (configString: string) => {
   configString = configString.trim()
   let metloConfig: object = null

@@ -149,6 +149,9 @@ export const METLO_CONFIG_SCHEMA = {
         enum: Object.keys(__DataClass_INTERNAL__),
       },
     },
+    globalFullTraceCapture: {
+      type: "boolean",
+    },
     globalTestEnv: {
       type: "array",
       items: {

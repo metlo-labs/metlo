@@ -33,6 +33,9 @@ import { updateIPs } from "analyze/update-ips"
 import { findDataFieldsToSave } from "services/data-field/analyze"
 import { createDataFieldAlerts } from "services/alert/sensitive-data"
 import { createNewEndpointAlert } from "services/alert/new-endpoint"
+import { getSensitiveDataMap } from "services/scanner/analyze-trace"
+import { getCombinedDataClassesCached } from "services/data-classes"
+import { getGlobalFullTraceCaptureCached } from "services/metlo-config"
 
 export const getDataFieldsQuery = (ctx: MetloContext) => `
 SELECT
@@ -215,6 +218,35 @@ const analyze = async (
     trace.responseBody = JSON.stringify(trace.responseBody)
   }
 
+  const startSensitiveDataPopulate = performance.now()
+  const dataClasses = await getCombinedDataClassesCached(ctx)
+  let filteredApiTrace = {
+    ...trace,
+    redacted: false,
+    apiEndpointUuid: apiEndpoint.uuid,
+  } as ApiTrace
+  const sensitiveDataMap = getSensitiveDataMap(
+    dataClasses,
+    filteredApiTrace,
+    apiEndpoint.path,
+  )
+  const globalFullTraceCapture = await getGlobalFullTraceCaptureCached(ctx)
+  const redact = !(
+    globalFullTraceCapture || apiEndpoint.fullTraceCaptureEnabled
+  )
+  if (redact) {
+    filteredApiTrace.redacted = true
+    filteredApiTrace.requestHeaders = []
+    filteredApiTrace.responseHeaders = []
+    filteredApiTrace.requestBody = ""
+    filteredApiTrace.responseBody = ""
+  }
+  mlog.time(
+    "analyzer.sensitive_data_populate",
+    performance.now() - startSensitiveDataPopulate,
+  )
+  mlog.debug(`Analyzing Trace - Populated Sensitive Data: ${traceUUID}`)
+
   await queryRunner.startTransaction()
   const startUpdateDataFields = performance.now()
   await tryUpdateDataFields(ctx, dataFields, queryRunner)
@@ -226,15 +258,10 @@ const analyze = async (
 
   const start4 = performance.now()
   const traceRes = await retryTypeormTransaction(
-    () =>
-      getEntityManager(ctx, queryRunner).insert(ApiTrace, [
-        {
-          ...trace,
-          apiEndpointUuid: apiEndpoint.uuid,
-        },
-      ]),
+    () => getEntityManager(ctx, queryRunner).insert(ApiTrace, [filteredApiTrace]),
     5,
   )
+  filteredApiTrace.uuid = traceRes.identifiers[0].uuid
   mlog.time("analyzer.insert_api_trace_query", performance.now() - start4)
   mlog.debug(`Analyzing Trace - Inserted API Trace: ${traceUUID}`)
 
@@ -242,9 +269,8 @@ const analyze = async (
   const endpointTraceKey = `endpointTraces:e#${apiEndpoint.uuid}`
   RedisClient.pushValueToRedisList(ctx, endpointTraceKey, [
     JSON.stringify({
-      ...trace,
-      uuid: traceRes.identifiers[0].uuid,
-      apiEndpointUuid: apiEndpoint.uuid,
+      ...filteredApiTrace,
+      sensitiveDataMap,
     }),
   ])
   RedisClient.ltrim(ctx, endpointTraceKey, 0, TRACE_IN_MEM_RETENTION_COUNT - 1)
