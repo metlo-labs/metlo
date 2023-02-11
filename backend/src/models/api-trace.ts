@@ -53,6 +53,9 @@ export class ApiTrace extends MetloBaseEntity {
   @Column({ type: "jsonb", default: {} })
   sessionMeta: SessionMeta
 
+  @Column({ nullable: false, default: true })
+  redacted: boolean
+
   @Column({ nullable: true })
   apiEndpointUuid: string
 

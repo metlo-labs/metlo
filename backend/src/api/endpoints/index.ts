@@ -1,7 +1,10 @@
 import { Response, Router } from "express"
 import validator from "validator"
 import { GetEndpointsService } from "services/get-endpoints"
-import { GetEndpointParamsSchema } from "@common/api/endpoint"
+import {
+  GetEndpointParamsSchema,
+  UpdateFullTraceCaptureEnabledSchema,
+} from "@common/api/endpoint"
 import ApiResponseHandler from "api-response-handler"
 import Error404NotFound from "errors/error-404-not-found"
 import { MetloRequest } from "types"
@@ -104,6 +107,33 @@ export const updateEndpointIsAuthenticated = async (
   }
 }
 
+export const updateEndpointFullTraceCaptureEnabled = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
+  const { endpointId } = req.params
+  if (!validator.isUUID(endpointId)) {
+    return await ApiResponseHandler.error(
+      res,
+      new Error404NotFound("Endpoint does not exist."),
+    )
+  }
+  const parsedBody = UpdateFullTraceCaptureEnabledSchema.safeParse(req.body)
+  if (parsedBody.success == false) {
+    return await ApiResponseHandler.zerr(res, parsedBody.error)
+  }
+  try {
+    await GetEndpointsService.updateFullTraceCaptureEnabled(
+      req.ctx,
+      endpointId,
+      parsedBody.data.enabled,
+    )
+    await ApiResponseHandler.success(res, "Success")
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}
+
 export const deleteEndpointHandler = async (
   req: MetloRequest,
   res: Response,
@@ -175,6 +205,10 @@ export default function registerEndpointRoutes(router: Router) {
   router.put(
     "/api/v1/endpoint/:endpointId/authenticated",
     updateEndpointIsAuthenticated,
+  )
+  router.put(
+    "/api/v1/endpoint/:endpointId/enable-full-trace-capture",
+    updateEndpointFullTraceCaptureEnabled,
   )
   router.post("/api/v1/endpoint/:endpointId/update-paths", updatePathsHandler)
   router.post(

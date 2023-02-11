@@ -33,6 +33,7 @@ import {
 import { MetloContext } from "types"
 import { retryTypeormTransaction } from "utils/db"
 import { RedisClient } from "utils/redis"
+import { getGlobalFullTraceCaptureCached } from "services/metlo-config"
 
 const getDataFieldsQuery = (ctx: MetloContext) => `
 SELECT
@@ -329,6 +330,24 @@ export class GetEndpointsService {
       .execute()
   }
 
+  static async updateFullTraceCaptureEnabled(
+    ctx: MetloContext,
+    apiEndpointUuid: string,
+    enabled: boolean,
+  ): Promise<void> {
+    const endpoint = await getRepoQB(ctx, ApiEndpoint)
+      .andWhere("uuid = :id", { id: apiEndpointUuid })
+      .getRawOne()
+    if (!endpoint) {
+      throw new Error404NotFound("Endpoint does not exist.")
+    }
+    await createQB(ctx)
+      .update(ApiEndpoint)
+      .set({ fullTraceCaptureEnabled: enabled })
+      .andWhere("uuid = :id", { id: apiEndpointUuid })
+      .execute()
+  }
+
   static async updateEndpointRiskScore(
     ctx: MetloContext,
     apiEndpointUuid: string,
@@ -455,6 +474,7 @@ export class GetEndpointsService {
           where: { apiEndpoint: { uuid: endpointId } },
         },
       )
+      const globalFullTraceCapture = await getGlobalFullTraceCaptureCached(ctx)
       return {
         ...endpoint,
         alerts,
@@ -462,6 +482,7 @@ export class GetEndpointsService {
         openapiSpec,
         traces: [...traces],
         tests: tests as Array<any>,
+        globalFullTraceCapture,
       }
     } catch (err) {
       mlog.withErr(err).error("Error in Get Endpoints service")
