@@ -2,6 +2,7 @@ package burp.metlo;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -22,14 +23,16 @@ public class RateLimitedRequests {
     private final String host;
     private final String key;
     private final ThreadPoolExecutor pool;
-    private final burp.api.montoya.logging.Logging logger;
+    private final PrintWriter out;
+    private final PrintWriter err;
     private List<Long> ts;
 
-    public RateLimitedRequests(Integer rps, Integer pool_size, String host, String api_key, burp.api.montoya.logging.Logging logger) {
+    public RateLimitedRequests(Integer rps, Integer pool_size, String host, String api_key, PrintWriter out, PrintWriter err) {
         this.rps = rps;
         this.host = host;
         this.key = api_key;
-        this.logger = logger;
+        this.out = out;
+        this.err = err;
         this.ts = Collections.synchronizedList(new ArrayList<Long>());
         this.pool = new ThreadPoolExecutor(0, pool_size,
                 60L, TimeUnit.SECONDS,
@@ -45,9 +48,6 @@ public class RateLimitedRequests {
         http.setDoOutput(true);
         Gson gson = new Gson();
         String json = gson.toJson(data);
-        this.logger.logToOutput(json);
-
-        String fkJSON = "{\"request\":{\"url\":{\"host\":\"test-ecommerce.metlo.com\",\"path\":\"/testing/alert/another/injection\",\"parameters\":[]},\"headers\":[{\"name\":\"X-API-KEY\",\"value\":\"e31f84ba-d92a-419b-b7ba-ef5e9df982f1\"}],\"method\":\"POST\",\"body\":\"{\\\"username\\\":\\\"admin\\\",\\\"inj\\\":\\\"-1' and 1=1 union/* foo */select load_file('/etc/passwd')--\\\"}\"},\"response\":{\"status\":200,\"headers\":[{\"name\":\"content-type\",\"value\":\"application/json; charset=utf-8\"}],\"body\":\"{\\\"username\\\":\\\"admin\\\",\\\"user\\\":\\\"admin@test.com\\\"}\"},\"meta\":{\"environment\":\"production\",\"incoming\":true,\"source\":\"17.99.145.104\",\"sourcePort\":17319,\"destination\":\"76.47.25.189\",\"destinationPort\":443}}";
 
         byte[] out = json.getBytes(StandardCharsets.UTF_8);
         int length = out.length;
@@ -60,7 +60,6 @@ public class RateLimitedRequests {
             os.write(out);
         }
         int code = http.getResponseCode();
-        this.logger.logToOutput("Code: " + code);
     }
 
 
@@ -91,7 +90,7 @@ public class RateLimitedRequests {
                 try {
                     pushRequest(data);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    e.printStackTrace(this.err);
                 }
             });
         }
