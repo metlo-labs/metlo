@@ -5,7 +5,7 @@ import { MetloContext } from "types"
 import { getRepoQB, getRepository } from "services/database/utils"
 import { createMissingHSTSAlert } from "services/alert/hsts"
 
-const monitorEndpointForHSTS = async (ctx: MetloContext): Promise<void> => {
+const monitorEndpointForHSTS = async (ctx: MetloContext): Promise<boolean> => {
   try {
     const apiTraceRepository = getRepository(ctx, ApiTrace)
     const alertsRepository = getRepository(ctx, Alert)
@@ -52,10 +52,12 @@ const monitorEndpointForHSTS = async (ctx: MetloContext): Promise<void> => {
     }
     let alerts = await createMissingHSTSAlert(ctx, alertableData)
     await alertsRepository.save(alerts)
+    return true
   } catch (err) {
     mlog.error(
       `Encountered error while looking for HSTS enabled endpoints : ${err}`,
     )
+    return false
   }
 }
 

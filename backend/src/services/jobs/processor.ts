@@ -25,33 +25,40 @@ const processor = async (job: Job, done) => {
   }
 
   mlog.info(JOB_NAME_MAP[job.name].start)
+  let success = true
+  const jobStartTime = performance.now()
   switch (job.name) {
     case JobName.GENERATE_OPENAPI_SPEC:
-      await generateOpenApiSpec(ctx)
+      success = await generateOpenApiSpec(ctx)
       break
     case JobName.CHECK_UNAUTH_ENDPOINTS:
-      await checkForUnauthenticatedEndpoints(ctx)
+      success = await checkForUnauthenticatedEndpoints(ctx)
       break
     case JobName.MONITOR_ENDPOINT_HSTS:
-      await monitorEndpointForHSTS(ctx)
+      success = await monitorEndpointForHSTS(ctx)
       break
     case JobName.CLEAR_API_TRACES:
-      await clearApiTraces(ctx)
+      success = await clearApiTraces(ctx)
       break
     case JobName.UPDATE_ENDPOINT_IPS:
-      await updateEndpointIps(ctx)
+      success = await updateEndpointIps(ctx)
       break
     case JobName.LOG_AGGREGATED_STATS:
-      await logAggregatedStats(ctx)
+      success = await logAggregatedStats(ctx)
       break
     case JobName.FIX_ENDPOINTS:
-      await fixEndpoints(ctx)
+      success = await fixEndpoints(ctx)
       break
     case JobName.DETECT_SENSITIVE_DATA:
-      await detectSensitiveData(ctx)
+      success = await detectSensitiveData(ctx)
       break
     default:
       break
+  }
+  mlog.time(`jobrunner.${job.name}`, performance.now() - jobStartTime)
+  mlog.count(`jobrunner.${job.name}.run_count`)
+  if (!success) {
+    mlog.count(`jobrunner.${job.name}.error_count`)
   }
   mlog.info(JOB_NAME_MAP[job.name].end)
   return Promise.resolve()

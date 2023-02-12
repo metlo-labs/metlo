@@ -6,7 +6,7 @@ import { aggregateTracesDataHourlyQuery } from "./queries"
 import { MetloContext } from "types"
 import { getQB } from "services/database/utils"
 
-const clearApiTraces = async (ctx: MetloContext): Promise<void> => {
+const clearApiTraces = async (ctx: MetloContext): Promise<boolean> => {
   const queryRunner = AppDataSource.createQueryRunner()
   await queryRunner.connect()
   try {
@@ -35,9 +35,11 @@ const clearApiTraces = async (ctx: MetloContext): Promise<void> => {
         .execute()
       await queryRunner.commitTransaction()
     }
+    return true
   } catch (err) {
     mlog.withErr(err).error("Encountered error while clearing trace data")
     await queryRunner.rollbackTransaction()
+    return false
   } finally {
     await queryRunner?.release()
   }

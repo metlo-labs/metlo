@@ -56,6 +56,9 @@ export const getGlobalFullTraceCapture = async (
   const config = (await createQB(ctx)
     .from(MetloConfig, "config")
     .getRawOne()) as MetloConfig
+  if (!config) {
+    return false
+  }
   const configObject = jsyaml.load(config.configString) as any
   const globalFullTraceCapture = configObject.globalFullTraceCapture as boolean
   return globalFullTraceCapture ?? false
