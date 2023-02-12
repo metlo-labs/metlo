@@ -15,7 +15,7 @@ RUN yarn
 RUN yarn build
 
 WORKDIR /usr/src/app/frontend
-RUN echo 'BACKEND_URL=http://backend:8080' >> .env
+RUN echo 'BACKEND_URL=http://localhost:8080' >> .env
 RUN echo 'NODE_ENV=production' >> .env
 RUN yarn install --frozen-lockfile
 RUN yarn build
@@ -29,7 +29,8 @@ RUN chown -R postgres:postgres /var/run/postgresql
 ENV PGDATA=/var/lib/postgresql/data
 RUN mkdir -p "$PGDATA"
 RUN mkdir /docker-entrypoint-initdb.d
-VOLUME [/var/lib/postgresql/data]
+VOLUME /var/lib/postgresql/data
+VOLUME /redis-data
 
 WORKDIR /usr/src/app/common
 COPY --from=builder /usr/src/app/common/package.json ./package.json
