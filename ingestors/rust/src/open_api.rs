@@ -1,6 +1,6 @@
 use jsonschema::ValidationError;
 use jsonschema::{Draft, JSONSchema};
-use serde_json::Value;
+use serde_json::{json, Value};
 use std::collections::HashMap;
 
 use crate::metlo_config::{MetloEndpoint, MetloSpec};
@@ -21,71 +21,59 @@ fn get_validation_error_msg(error: ValidationError) -> String {
 pub fn compile_specs(specs: Vec<MetloSpec>) -> CompiledSpecs {
     let mut compiled_specs: CompiledSpecs = HashMap::new();
     for e in specs.iter() {
-        match serde_json::from_str::<Value>(&e.spec) {
-            Ok(v) => {
-                if v.is_object() {
-                    let components = v
-                        .get("components")
-                        .unwrap_or(&serde_json::Value::default())
-                        .to_owned();
-                    let paths = v
-                        .get("paths")
-                        .unwrap_or(&serde_json::Value::default())
+        if let Ok(Value::Object(v)) = serde_json::from_str::<Value>(&e.spec) {
+            if let Some(Value::Object(paths)) = v.get("paths") {
+                let default = json!({});
+                let components = match v.get("components") {
+                    Some(c) => c,
+                    None => &default,
+                };
+                let mut path_specs = HashMap::new();
+                for (path, nested_value) in paths.iter() {
+                    let mut method_specs = HashMap::new();
+                    for (method, method_value) in nested_value
                         .as_object()
                         .unwrap_or(&serde_json::Map::default())
-                        .to_owned();
-                    let mut path_specs = HashMap::new();
-                    for (path, nested_value) in paths.iter() {
-                        let mut method_specs = HashMap::new();
-                        for (method, method_value) in nested_value
+                        .iter()
+                    {
+                        let mut status_code_specs = HashMap::new();
+                        for (status_code, status_code_value) in method_value
+                            .get("responses")
+                            .unwrap_or(&serde_json::Value::default())
                             .as_object()
                             .unwrap_or(&serde_json::Map::default())
                             .iter()
                         {
-                            let mut status_code_specs = HashMap::new();
-                            for (status_code, status_code_value) in method_value
-                                .get("responses")
+                            let mut content_type_specs = HashMap::new();
+                            for (content_type, content_type_value) in status_code_value
+                                .get("content")
                                 .unwrap_or(&serde_json::Value::default())
                                 .as_object()
                                 .unwrap_or(&serde_json::Map::default())
                                 .iter()
                             {
-                                let mut content_type_specs = HashMap::new();
-                                for (content_type, content_type_value) in status_code_value
-                                    .get("content")
-                                    .unwrap_or(&serde_json::Value::default())
-                                    .as_object()
-                                    .unwrap_or(&serde_json::Map::default())
-                                    .iter()
-                                {
-                                    let content_type_tmp = match content_type.parse::<mime::Mime>()
-                                    {
-                                        Ok(m) => m.essence_str().to_owned(),
-                                        Err(_) => continue,
-                                    };
-                                    let schema = content_type_value.get("schema");
-                                    if schema.is_some() {
-                                        let mut unwrapped_schema = schema.unwrap().clone();
-                                        unwrapped_schema["components"] = components.clone();
-                                        let compiled_schema = JSONSchema::options()
-                                            .with_draft(Draft::Draft7)
-                                            .compile(&unwrapped_schema)
-                                            .expect("A valid schema");
-                                        content_type_specs
-                                            .insert(content_type_tmp, compiled_schema);
-                                    }
+                                let content_type_tmp = match content_type.parse::<mime::Mime>() {
+                                    Ok(m) => m.essence_str().to_owned(),
+                                    Err(_) => continue,
+                                };
+                                if let Some(s) = content_type_value.get("schema") {
+                                    let mut schema = s.clone();
+                                    schema["components"] = components.clone();
+                                    let compiled_schema = JSONSchema::options()
+                                        .with_draft(Draft::Draft7)
+                                        .compile(&schema)
+                                        .expect("A valid schema");
+                                    content_type_specs.insert(content_type_tmp, compiled_schema);
                                 }
-                                status_code_specs
-                                    .insert(status_code.to_owned(), content_type_specs);
                             }
-                            method_specs.insert(method.to_owned(), status_code_specs);
+                            status_code_specs.insert(status_code.to_owned(), content_type_specs);
                         }
-                        path_specs.insert(path.to_owned(), method_specs);
+                        method_specs.insert(method.to_owned(), status_code_specs);
                     }
-                    compiled_specs.insert(e.name.to_owned(), path_specs);
+                    path_specs.insert(path.to_owned(), method_specs);
                 }
+                compiled_specs.insert(e.name.to_owned(), path_specs);
             }
-            Err(_) => (),
         }
     }
     return compiled_specs;
