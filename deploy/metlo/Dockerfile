@@ -24,13 +24,14 @@ FROM node:alpine
 
 RUN apk update && apk add supervisor redis postgresql postgresql-contrib bash su-exec
 
+VOLUME /var/lib/metlo
+
 RUN mkdir -p /var/run/postgresql
 RUN chown -R postgres:postgres /var/run/postgresql
-ENV PGDATA=/var/lib/postgresql/data
+ENV PGDATA=/var/lib/metlo/postgresql/data
 RUN mkdir -p "$PGDATA"
+RUN mkdir -p /var/lib/metlo/redis-data
 RUN mkdir /docker-entrypoint-initdb.d
-VOLUME /var/lib/postgresql/data
-VOLUME /redis-data
 
 WORKDIR /usr/src/app/common
 COPY --from=builder /usr/src/app/common/package.json ./package.json
@@ -61,10 +62,12 @@ RUN echo 'CREATE DATABASE metlo_api_security; CREATE EXTENSION IF NOT EXISTS "uu
 
 COPY ../../../deploy/metlo/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ../../../deploy/metlo/postgres-entrypoint.sh /usr/local/bin/postgres-entrypoint
+COPY ../../../deploy/metlo/validate-env.py /usr/local/bin/validate-env
+COPY ../../../deploy/metlo/entrypoint.sh /usr/local/bin/entrypoint
 
 EXPOSE 8081
 EXPOSE 3000
 
 WORKDIR /usr/src/app
 
-CMD ["/usr/bin/supervisord" , "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+CMD ["/usr/local/bin/entrypoint"]
