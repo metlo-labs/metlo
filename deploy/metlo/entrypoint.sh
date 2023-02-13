@@ -2,4 +2,4 @@
 set -Eeo pipefail
 
 validate-env
-/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
