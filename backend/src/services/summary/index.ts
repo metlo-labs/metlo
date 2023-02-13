@@ -1,5 +1,4 @@
 import { Summary as SummaryResponse } from "@common/types"
-import mlog from "logger"
 import { ApiEndpoint } from "models"
 import { createQB } from "services/database/utils"
 import { MetloContext } from "types"
