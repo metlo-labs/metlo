@@ -23,6 +23,7 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
     private Integer rps;
     private String metloApiKey = null;
     private String metloUrl = null;
+    private String metloUrlWithEndpoint = null;
     private RateLimitedRequests requests;
     private IBurpExtenderCallbacks callbacks;
     private IExtensionHelpers helpers;
@@ -161,11 +162,18 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
         }
 
         metloUrl = callbacks.loadExtensionSetting(METLO_URL_KEY);
+        metloUrlWithEndpoint = metloUrl;
+        if (metloUrl != null) {
+            if (!metloUrl.endsWith("/")) {
+                metloUrlWithEndpoint += "/";
+            }
+            metloUrlWithEndpoint += "api/v1/log-request/single";
+        }
         metloApiKey = callbacks.loadExtensionSetting(METLO_APIKEY_KEY);
 
         this.requests = new RateLimitedRequests(this.rps,
                 this.threads,
-                metloUrl,
+                metloUrlWithEndpoint,
                 metloApiKey,
                 this.out,
                 this.err
@@ -226,11 +234,18 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
                 saveBtn.setText("Save Config");
                 saveBtn.addActionListener((e) -> {
                     metloUrl = urlTextField.getText();
+                    metloUrlWithEndpoint = metloUrl;
+                    if (metloUrl != null) {
+                        if (!metloUrl.endsWith("/")) {
+                            metloUrlWithEndpoint += "/";
+                        }
+                        metloUrlWithEndpoint += "api/v1/log-request/single";
+                    }
                     metloApiKey = apiKeyPasswordField.getText();
                     Extension.this.callbacks.saveExtensionSetting(METLO_URL_KEY, metloUrl);
                     Extension.this.callbacks.saveExtensionSetting(METLO_APIKEY_KEY, metloApiKey);
                     out.println("Updated config for Metlo");
-                    requests = new RateLimitedRequests(10, 10, metloUrl, metloApiKey, out, err);
+                    requests = new RateLimitedRequests(10, 10, metloUrlWithEndpoint, metloApiKey, out, err);
                 });
 
                 saveBtn.setBackground(new Color(2384017)); // Corresponds to rgb 66, 76, 249
