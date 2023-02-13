@@ -6,6 +6,7 @@ import { DatabaseService } from "services/database"
 import { MetloContext } from "types"
 import { RedisClient } from "utils/redis"
 import { getRepository } from "services/database/utils"
+import mlog from "logger"
 
 export const getTopEndpoints = async (ctx: MetloContext) => {
   const apiTraceRepository = getRepository(ctx, ApiTrace)
@@ -77,7 +78,9 @@ export const getTopEndpointsCached = async (ctx: MetloContext) => {
   if (cacheRes) {
     return cacheRes
   }
+  const start = performance.now()
   const realRes = await getTopEndpoints(ctx)
+  mlog.time("backend.get_top_endpoints", performance.now() - start)
   await RedisClient.addToRedis(ctx, "endpointUsageStats", realRes, 15)
   return realRes
 }

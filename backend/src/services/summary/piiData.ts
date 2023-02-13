@@ -5,6 +5,7 @@ import { ApiEndpoint, DataField } from "models"
 import { MetloContext } from "types"
 import { RedisClient } from "utils/redis"
 import { getCombinedDataClassesCached } from "services/data-classes"
+import mlog from "logger"
 
 export const getPIIDataTypeCount = async (ctx: MetloContext) => {
   const piiDataTypeCountRes: { type: string; cnt: number }[] =
@@ -24,7 +25,9 @@ export const getPIIDataTypeCountCached = async (ctx: MetloContext) => {
   if (cacheRes) {
     return cacheRes
   }
+  const start = performance.now()
   const realRes = await getPIIDataTypeCount(ctx)
+  mlog.time("backend.get_pii_data_type_count", performance.now() - start)
   await RedisClient.addToRedis(ctx, "PIIDataTypeCount", realRes, 5)
   return realRes
 }

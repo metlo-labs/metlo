@@ -1,4 +1,5 @@
 import { UsageStats } from "@common/types"
+import mlog from "logger"
 import {
   AggregateTraceDataHourly,
   Alert,
@@ -54,7 +55,9 @@ export const getUsageStatsCached = async (ctx: MetloContext) => {
   if (cacheRes) {
     return cacheRes
   }
+  const start = performance.now()
   const realRes = await getUsageStats(ctx)
+  mlog.time("backend.get_usage_stats", performance.now() - start)
   await RedisClient.addToRedis(ctx, "usageStats", realRes, 60)
   return realRes
 }
@@ -112,7 +115,9 @@ export const getCountsCached = async (ctx: MetloContext) => {
   if (cacheRes) {
     return cacheRes
   }
+  const start = performance.now()
   const realRes = await getCounts(ctx)
+  mlog.time("backend.get_counts", performance.now() - start)
   if (realRes.hostCount > 0) {
     await RedisClient.addToRedis(ctx, "usageCounts", realRes, 60)
   }
