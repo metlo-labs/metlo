@@ -24,6 +24,12 @@ ingestors/java/spring/.idea/
 ingestors/java/spring/gradle.properties
 ingestors/java/spring/target/
 
+ingestors/burp suite/.gradle/
+ingestors/burp suite/.idea/
+ingestors/burp suite/gradle.properties
+ingestors/burp suite/target/
+ingestors/burp suite/build/
+
 .meta/*
 ingestors/govxlan/govxlan
 testing/tmp_tests
