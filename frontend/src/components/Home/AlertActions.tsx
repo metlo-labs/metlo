@@ -55,7 +55,7 @@ const ActionItem: React.FC<ActionItemProps> = React.memo(
             <HStack w="full" justifyContent="space-between">
               <HStack>
                 <Text
-                  w="50px"
+                  w="70px"
                   color={color}
                   as="span"
                   fontSize="xl"
