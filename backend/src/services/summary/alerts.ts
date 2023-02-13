@@ -1,4 +1,5 @@
 import { Status, AlertType } from "@common/enums"
+import mlog from "logger"
 import { Alert } from "models"
 import { DatabaseService } from "services/database"
 import { getRepository } from "services/database/utils"
@@ -21,7 +22,9 @@ export const getAlertTypeAggCached = async (ctx: MetloContext) => {
   if (cacheRes) {
     return cacheRes
   }
+  const start = performance.now()
   const realRes = await getAlertTypeAgg(ctx)
+  mlog.time("backend.get_alert_type_count", performance.now() - start)
   await RedisClient.addToRedis(ctx, "alertTypeAgg", realRes, 5)
   return realRes
 }
@@ -63,7 +66,9 @@ export const getTopAlertsCached = async (ctx: MetloContext) => {
   if (cacheRes) {
     return cacheRes
   }
+  const start = performance.now()
   const realRes = await getTopAlerts(ctx)
+  mlog.time("backend.get_top_alerts", performance.now() - start)
   await RedisClient.addToRedis(ctx, "topAlertsCached", realRes, 5)
   return realRes
 }
