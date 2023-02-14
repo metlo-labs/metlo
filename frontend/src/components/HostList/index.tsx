@@ -55,6 +55,7 @@ const HostList: React.FC<HostListProps> = React.memo(
             setCurrentPage={setCurrentPage}
             fetching={fetching}
             setSelectedHosts={setSelectedHosts}
+            setParams={setParams}
           />
         </Box>
       </VStack>

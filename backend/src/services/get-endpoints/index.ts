@@ -521,7 +521,7 @@ export class GetEndpointsService {
         .from(ApiEndpoint, "endpoint")
         .distinct(true)
         .groupBy("host")
-      let totalHostsQb = await getQB(ctx, queryRunner)
+      let totalHostsQb = getQB(ctx, queryRunner)
         .select([`COUNT(DISTINCT(host))::int as "numHosts"`])
         .from(ApiEndpoint, "endpoint")
 
@@ -537,6 +537,7 @@ export class GetEndpointsService {
       qb = qb
         .limit(getHostsParams?.limit ?? 10)
         .offset(getHostsParams?.offset ?? 0)
+        .orderBy(`"${getHostsParams.sortBy}"`, getHostsParams.sortOrder)
 
       const hostsResp = await qb.getRawMany()
       const totalHosts = await totalHostsQb.getRawOne()
