@@ -283,6 +283,16 @@ const TraceDetail: React.FC<TraceDetailProps> = React.memo(
               </Code>
             </VStack>
           </GridItem>
+          {trace.originalHost ? (
+            <GridItem>
+              <VStack alignItems="flex-start">
+                <Text fontWeight="semibold">Original Host</Text>
+                <Code p="1" fontSize="sm">
+                  {trace.originalHost}
+                </Code>
+              </VStack>
+            </GridItem>
+          ) : null}
           <GridItem>
             <VStack alignItems="flex-start">
               <Text fontWeight="semibold">Host</Text>

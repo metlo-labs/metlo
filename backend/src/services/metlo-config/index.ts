@@ -64,6 +64,27 @@ export const getGlobalFullTraceCapture = async (
   return globalFullTraceCapture ?? false
 }
 
+interface HostMapping {
+  host: string
+  pattern: string
+}
+
+interface HostMappingCompiled {
+  host: string
+  pattern: RegExp
+}
+
+export const getHostMap = async (ctx: MetloContext) => {
+  const config = (await createQB(ctx)
+    .from(MetloConfig, "config")
+    .getRawOne()) as MetloConfig
+  if (!config) {
+    return []
+  }
+  const configObject = jsyaml.load(config.configString) as any
+  return (configObject.hostMap || []) as HostMapping[]
+}
+
 export const getGlobalFullTraceCaptureCached = async (ctx: MetloContext) => {
   const cacheRes: boolean | null = await RedisClient.getFromRedis(
     ctx,
@@ -75,6 +96,21 @@ export const getGlobalFullTraceCaptureCached = async (ctx: MetloContext) => {
   const realRes = await getGlobalFullTraceCapture(ctx)
   await RedisClient.addToRedis(ctx, "globalFullTraceCaptureCached", realRes, 60)
   return realRes
+}
+
+export const getHostMapCached = async (
+  ctx: MetloContext,
+): Promise<HostMappingCompiled[]> => {
+  const cacheRes: HostMapping[] | null = await RedisClient.getFromRedis(
+    ctx,
+    "hostMapCached",
+  )
+  if (cacheRes !== null) {
+    return cacheRes.map(e => ({ host: e.host, pattern: new RegExp(e.pattern) }))
+  }
+  const realRes = await getHostMap(ctx)
+  await RedisClient.addToRedis(ctx, "hostMapCached", realRes, 60)
+  return realRes.map(e => ({ host: e.host, pattern: new RegExp(e.pattern) }))
 }
 
 export const validateMetloConfig = (configString: string) => {
