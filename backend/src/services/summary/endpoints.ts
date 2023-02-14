@@ -12,6 +12,7 @@ export const getTopEndpoints = async (ctx: MetloContext) => {
   const apiTraceRepository = getRepository(ctx, ApiTrace)
   const apiEndpointRepository = getRepository(ctx, ApiEndpoint)
 
+  const startEndpointStats = performance.now()
   const endpointStats: {
     endpoint: string
     last1MinCnt: number
@@ -32,20 +33,21 @@ export const getTopEndpoints = async (ctx: MetloContext) => {
     ORDER BY 4 DESC
     LIMIT 10
   `)
+  mlog.time(
+    "backend.get_top_endpoints.endpoint_stats",
+    performance.now() - startEndpointStats,
+  )
 
+  const endpointsStart = performance.now()
   const endpoints = await apiEndpointRepository.find({
     where: { uuid: In(endpointStats.map(e => e.endpoint)) },
-    relations: {
-      dataFields: true,
-    },
-    order: {
-      dataFields: {
-        dataTag: "ASC",
-        dataPath: "ASC",
-      },
-    },
   })
+  mlog.time(
+    "backend.get_top_endpoints.endpoints",
+    performance.now() - endpointsStart,
+  )
 
+  const tracesStart = performance.now()
   const traces = await Promise.all(
     endpointStats.map(e =>
       apiTraceRepository.find({
@@ -55,6 +57,7 @@ export const getTopEndpoints = async (ctx: MetloContext) => {
       }),
     ),
   )
+  mlog.time("backend.get_top_endpoints.traces", performance.now() - tracesStart)
   const traceMap = groupBy(traces.flat(), e => e.apiEndpointUuid)
 
   return endpointStats.map(
