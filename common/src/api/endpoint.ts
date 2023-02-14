@@ -1,6 +1,12 @@
 import { z } from "zod"
 
-import { DataSection, RestMethod, RiskScore } from "../enums"
+import {
+  DataSection,
+  HostSortOptions,
+  RestMethod,
+  RiskScore,
+  SortOrder,
+} from "../enums"
 
 export const GetEndpointParamsSchema = z.object({
   hosts: z.string().array().optional(),
@@ -37,6 +43,8 @@ export const GetHostParamsSchema = z.object({
   limit: z
     .union([z.number(), z.string().regex(/^\d+$/).transform(Number)])
     .optional(),
+  sortBy: z.nativeEnum(HostSortOptions).default(HostSortOptions.NUM_ENDPOINTS),
+  sortOrder: z.nativeEnum(SortOrder).default(SortOrder.DESC),
 })
 export type GetHostParams = z.infer<typeof GetHostParamsSchema>
 

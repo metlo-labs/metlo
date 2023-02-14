@@ -17,6 +17,8 @@ import {
   SkeletonCell,
 } from "components/utils/TableUtils"
 import { HostResponse } from "@common/types"
+import { GetHostParams } from "@common/api/endpoint"
+import { HostSortOptions, SortOrder } from "@common/enums"
 
 const DataTable = dynamic(() => import("react-data-table-component"), {
   ssr: false,
@@ -31,6 +33,7 @@ interface HostTableProps {
   setCurrentPage: (e: number) => void
   fetching: boolean
   setSelectedHosts: React.Dispatch<React.SetStateAction<string[]>>
+  setParams: (newParams: GetHostParams, replace?: boolean) => void
 }
 
 interface TableLoaderProps {
@@ -92,6 +95,7 @@ const List: React.FC<HostTableProps> = React.memo(
     fetching,
     setCurrentPage,
     setSelectedHosts,
+    setParams,
   }) => {
     const router = useRouter()
     const colorMode = useColorMode()
@@ -104,10 +108,29 @@ const List: React.FC<HostTableProps> = React.memo(
       }
     }
 
+    const handleSort = (column, sortDirection: string) => {
+      switch (column.id) {
+        case "host":
+          setParams({
+            sortOrder: sortDirection.toUpperCase() as SortOrder,
+            sortBy: HostSortOptions.HOST,
+            offset: 0,
+          })
+          break
+        case "endpoints":
+          setParams({
+            sortOrder: sortDirection.toUpperCase() as SortOrder,
+            sortBy: HostSortOptions.NUM_ENDPOINTS,
+            offset: 0,
+          })
+        default:
+      }
+    }
+
     const columns: TableColumn<HostResponse>[] = [
       {
         name: "Host",
-        sortable: false,
+        sortable: true,
         selector: (row: HostResponse) => row.host || "",
         cell: (row: HostResponse) => (
           <Text color="gray.900" fontWeight="medium">
@@ -119,7 +142,7 @@ const List: React.FC<HostTableProps> = React.memo(
       },
       {
         name: "Endpoints",
-        sortable: false,
+        sortable: true,
         selector: (row: HostResponse) => row.numEndpoints,
         cell: (row: HostResponse) => (
           <Text color="gray.900">{row.numEndpoints}</Text>
@@ -169,10 +192,12 @@ const List: React.FC<HostTableProps> = React.memo(
         customStyles={getCustomStyles(colorMode.colorMode, false, true)}
         noDataComponent={<EmptyView text="No hosts found." />}
         pagination
+        onSort={handleSort}
         paginationDefaultPage={currentPage}
         selectableRows
         onSelectedRowsChange={handleRowSelect}
         selectableRowsHighlight
+        sortServer
       />
     )
 
