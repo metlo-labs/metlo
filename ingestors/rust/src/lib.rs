@@ -1,5 +1,6 @@
 use crate::metlo_config::*;
 use lazy_static::lazy_static;
+use send_trace::send_api_trace;
 
 use crate::metloingest::metlo_ingest_server::{MetloIngest, MetloIngestServer};
 use mappers::{map_ingest_api_trace, map_process_trace_res};
@@ -15,6 +16,7 @@ mod mappers;
 mod metlo_config;
 mod open_api;
 mod process_trace;
+mod send_trace;
 mod sensitive_data;
 mod trace;
 pub mod metloingest {
@@ -31,6 +33,7 @@ lazy_static! {
         sensitive_data: None,
         endpoints: None,
         specs: None,
+        global_full_trace_capture: false,
     });
 }
 
@@ -115,7 +118,8 @@ impl MetloIngest for MIngestServer {
             match TASK_RUN_SEMAPHORE.try_acquire() {
                 Ok(permit) => {
                     tokio::spawn(async move {
-                        process_api_trace(&mapped_api_trace);
+                        let res = process_api_trace(&mapped_api_trace);
+                        send_api_trace(mapped_api_trace, res).await;
                         drop(permit);
                     });
                 }
@@ -145,7 +149,7 @@ impl MetloIngest for MIngestServer {
                 Ok(permit) => {
                     let res = process_api_trace(&mapped_api_trace);
                     drop(permit);
-                    return Ok(Response::new(map_process_trace_res(res)));
+                    return Ok(Response::new(map_process_trace_res(res.0)));
                 }
                 Err(TryAcquireError::NoPermits) => {
                     println!("no permits avaiable");

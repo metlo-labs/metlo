@@ -31,6 +31,7 @@ pub struct MetloEndpoint {
     pub openapi_spec_name: Option<String>,
     pub host: String,
     pub method: String,
+    pub full_trace_capture_enabled: bool,
 }
 
 #[derive(Debug, Default, Clone, Deserialize, Serialize)]
@@ -46,6 +47,7 @@ pub struct MetloConfig {
     pub sensitive_data_list: Vec<MetloSensitiveData>,
     pub endpoints: Vec<MetloEndpoint>,
     pub specs: Vec<MetloSpec>,
+    pub global_full_trace_capture: bool,
 }
 
 #[derive(Debug)]
@@ -57,6 +59,7 @@ pub struct GlobalConfig {
     pub sensitive_data: Option<Vec<SensitiveData>>,
     pub endpoints: Option<Vec<MetloEndpoint>>,
     pub specs: Option<CompiledSpecs>,
+    pub global_full_trace_capture: bool,
 }
 
 pub struct ValidateRequestConnResp {
@@ -165,6 +168,7 @@ pub async fn pull_metlo_config() -> Result<(), Box<dyn std::error::Error>> {
     conf_write.sensitive_data = Some(new_sensitive_data);
     conf_write.endpoints = Some(resp.endpoints);
     conf_write.specs = Some(compiled_specs);
+    conf_write.global_full_trace_capture = resp.global_full_trace_capture;
 
     Ok(())
 }

@@ -104,12 +104,21 @@ pub fn map_process_trace_res(r: ProcessTraceRes) -> metloingest::ProcessTraceRes
         })
         .collect();
 
+    let mapped_validation_errors: HashMap<String, metloingest::RepeatedString> = r
+        .validation_errors
+        .unwrap_or_default()
+        .into_iter()
+        .map(|(k, v)| (k, metloingest::RepeatedString { rep_string: v }))
+        .collect();
+
     metloingest::ProcessTraceRes {
         block: r.block,
         xss_detected: r.xss_detected.unwrap_or_default(),
         sensitive_data_detected: mapped_sensitive_data,
         sqli_detected: mapped_sqli_detected,
         data_types: mapped_data_types,
-        validation_errors: r.validation_errors,
+        validation_errors: mapped_validation_errors,
+        request_content_type: r.request_content_type,
+        response_content_type: r.response_content_type,
     }
 }

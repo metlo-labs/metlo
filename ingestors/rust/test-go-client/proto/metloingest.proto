@@ -62,7 +62,9 @@ message ProcessTraceRes {
     map<string, SqliRes> sqli_detected = 3;
     map<string, RepeatedString> sensitive_data_detected = 4;
     map<string, RepeatedString> data_types = 5;
-    repeated string validation_errors = 6;
+    map<string, RepeatedString> validation_errors = 6;
+    string request_content_type = 7;
+    string response_content_type = 8;
 }
 
 message ProcessTraceAsyncRes {

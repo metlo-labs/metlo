@@ -55,5 +55,17 @@ pub struct ProcessTraceRes {
     pub sqli_detected: Option<HashMap<String, (String, String)>>,
     pub sensitive_data_detected: Option<HashMap<String, HashSet<String>>>,
     pub data_types: Option<HashMap<String, HashSet<String>>>,
-    pub validation_errors: Vec<String>,
+    pub validation_errors: Option<HashMap<String, Vec<String>>>,
+    pub request_content_type: String,
+    pub response_content_type: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProcessedApiTrace {
+    pub request: ApiRequest,
+    pub response: Option<ApiResponse>,
+    pub meta: Option<ApiMeta>,
+    pub processed_trace_data: ProcessTraceRes,
+    pub redacted: bool,
 }

@@ -1,7 +1,8 @@
 use crate::{
-    open_api::find_open_api_diff,
+    open_api::{find_open_api_diff, get_split_path},
     sensitive_data::detect_sensitive_data,
-    trace::{ApiTrace, KeyVal, ProcessTraceRes},
+    trace::{ApiResponse, ApiTrace, KeyVal, ProcessTraceRes},
+    METLO_CONFIG,
 };
 use libinjection::{sqli, xss};
 use multipart::server::Multipart;
@@ -10,6 +11,25 @@ use std::{
     collections::{HashMap, HashSet},
     io::BufRead,
 };
+
+fn is_endpoint_match(trace_tokens: &Vec<&str>, endpoint_path: String) -> bool {
+    let endpoint_tokens = get_split_path(&endpoint_path);
+    if trace_tokens.len() != endpoint_tokens.len() {
+        return false;
+    }
+    let mut i = 0;
+
+    for endpoint_token in endpoint_tokens {
+        let trace_token = trace_tokens[i];
+        if endpoint_token != trace_token
+            && (!endpoint_token.starts_with('{') && !endpoint_token.ends_with('}'))
+        {
+            return false;
+        }
+        i += 1;
+    }
+    true
+}
 
 fn insert_data_type(data_types: &mut HashMap<String, HashSet<String>>, path: &str, d_type: String) {
     let old_data_types = data_types.get_mut(path);
@@ -113,7 +133,12 @@ fn process_json_val(
     }
 }
 
-fn process_json(prefix: String, value: Value, trace: &ApiTrace) -> Option<ProcessTraceRes> {
+fn process_json(
+    prefix: String,
+    value: Value,
+    trace: &ApiTrace,
+    openapi_spec_name: Option<String>,
+) -> Option<ProcessTraceRes> {
     let mut data_types: HashMap<String, HashSet<String>> = HashMap::new();
     let mut xss_detected: HashMap<String, String> = HashMap::new();
     let mut sqli_detected: HashMap<String, (String, String)> = HashMap::new();
@@ -139,16 +164,23 @@ fn process_json(prefix: String, value: Value, trace: &ApiTrace) -> Option<Proces
             .then_some(sensitive_data_detected),
         data_types: (!data_types.is_empty()).then_some(data_types),
         validation_errors: if prefix.clone().starts_with("resBody") {
-            find_open_api_diff(trace, &value)
+            find_open_api_diff(trace, &value, openapi_spec_name)
         } else {
-            vec![]
+            None
         },
+        request_content_type: "".to_owned(),
+        response_content_type: "".to_owned(),
     })
 }
 
-fn process_json_string(prefix: String, body: &str, trace: &ApiTrace) -> Option<ProcessTraceRes> {
+fn process_json_string(
+    prefix: String,
+    body: &str,
+    trace: &ApiTrace,
+    openapi_spec_name: Option<String>,
+) -> Option<ProcessTraceRes> {
     match serde_json::from_str(body) {
-        Ok(value) => process_json(prefix, value, trace),
+        Ok(value) => process_json(prefix, value, trace, openapi_spec_name),
         Err(_) => {
             println!("Invalid JSON");
             None
@@ -161,6 +193,7 @@ fn process_form_data(
     body: &str,
     mut mime_params: mime::Params,
     trace: &ApiTrace,
+    openapi_spec_name: Option<String>,
 ) -> Option<ProcessTraceRes> {
     let boundary = mime_params.find(|e| e.0 == "boundary");
     if boundary.is_some() {
@@ -171,15 +204,20 @@ fn process_form_data(
             let s = String::from_utf8_lossy(data);
             form_json[field.headers.name.to_string()] = serde_json::Value::String(s.to_string());
         }
-        process_json(prefix, form_json, trace)
+        process_json(prefix, form_json, trace, openapi_spec_name)
     } else {
         None
     }
 }
 
-fn process_url_encoded(prefix: String, body: &str, trace: &ApiTrace) -> Option<ProcessTraceRes> {
+fn process_url_encoded(
+    prefix: String,
+    body: &str,
+    trace: &ApiTrace,
+    openapi_spec_name: Option<String>,
+) -> Option<ProcessTraceRes> {
     match serde_urlencoded::from_str::<Value>(body) {
-        Ok(value) => process_json(prefix, value, trace),
+        Ok(value) => process_json(prefix, value, trace, openapi_spec_name),
         Err(_) => {
             println!("Invalid URL Encoded string");
             None
@@ -187,7 +225,12 @@ fn process_url_encoded(prefix: String, body: &str, trace: &ApiTrace) -> Option<P
     }
 }
 
-fn process_text_plain(prefix: String, body: &str, trace: &ApiTrace) -> Option<ProcessTraceRes> {
+fn process_text_plain(
+    prefix: String,
+    body: &str,
+    trace: &ApiTrace,
+    openapi_spec_name: Option<String>,
+) -> Option<ProcessTraceRes> {
     let is_xss = xss(body).unwrap_or(false);
     let is_sqli = sqli(body).unwrap_or((false, "".to_string()));
     let sensitive_data = detect_sensitive_data(body);
@@ -202,10 +245,12 @@ fn process_text_plain(prefix: String, body: &str, trace: &ApiTrace) -> Option<Pr
             HashSet::from(["string".to_string()]),
         )])),
         validation_errors: if prefix.starts_with("resBody") {
-            find_open_api_diff(trace, &Value::String(body.to_owned()))
+            find_open_api_diff(trace, &Value::String(body.to_owned()), openapi_spec_name)
         } else {
-            vec![]
+            None
         },
+        request_content_type: "".to_owned(),
+        response_content_type: "".to_owned(),
     };
 
     if is_xss {
@@ -232,16 +277,17 @@ fn process_body(
     body: &str,
     m: mime::Mime,
     trace: &ApiTrace,
+    openapi_spec_name: Option<String>,
 ) -> Option<ProcessTraceRes> {
     let essence = m.essence_str();
     if essence == mime::APPLICATION_JSON {
-        process_json_string(prefix, body, trace)
+        process_json_string(prefix, body, trace, openapi_spec_name)
     } else if essence == mime::TEXT_PLAIN {
-        process_text_plain(prefix, body, trace)
+        process_text_plain(prefix, body, trace, openapi_spec_name)
     } else if essence == mime::MULTIPART_FORM_DATA {
-        process_form_data(prefix, body, m.params(), trace)
+        process_form_data(prefix, body, m.params(), trace, openapi_spec_name)
     } else if essence == mime::APPLICATION_WWW_FORM_URLENCODED {
-        process_url_encoded(prefix, body, trace)
+        process_url_encoded(prefix, body, trace, openapi_spec_name)
     } else {
         None
     }
@@ -288,25 +334,34 @@ fn process_key_val(prefix: String, vals: &Vec<KeyVal>) -> Option<ProcessTraceRes
         sensitive_data_detected: (!sensitive_data_detected.is_empty())
             .then_some(sensitive_data_detected),
         data_types: (!data_types.is_empty()).then_some(data_types),
-        validation_errors: vec![],
+        validation_errors: None,
+        request_content_type: "".to_owned(),
+        response_content_type: "".to_owned(),
     })
 }
 
-fn get_mime_type(headers: &[KeyVal]) -> mime::Mime {
-    let req_content_type_header = headers
+fn get_content_type(headers: &[KeyVal]) -> Option<&String> {
+    headers
         .iter()
         .find(|e| e.name.to_lowercase() == "content-type")
-        .map(|e| &e.value);
-    req_content_type_header.map_or(mime::TEXT_PLAIN, |e| e.parse().unwrap_or(mime::TEXT_PLAIN))
+        .map(|e| &e.value)
 }
 
-fn combine_process_trace_res(results: &[Option<ProcessTraceRes>]) -> ProcessTraceRes {
+fn get_mime_type(content_type_header: Option<&String>) -> mime::Mime {
+    content_type_header.map_or(mime::TEXT_PLAIN, |e| e.parse().unwrap_or(mime::TEXT_PLAIN))
+}
+
+fn combine_process_trace_res(
+    results: &[Option<ProcessTraceRes>],
+    request_content_type: Option<&String>,
+    response_content_type: Option<&String>,
+) -> ProcessTraceRes {
     let mut block = false;
     let mut xss_detected: HashMap<String, String> = HashMap::new();
     let mut sqli_detected: HashMap<String, (String, String)> = HashMap::new();
     let mut sensitive_data_detected: HashMap<String, HashSet<String>> = HashMap::new();
     let mut data_types: HashMap<String, HashSet<String>> = HashMap::new();
-    let mut validation_errors: Vec<String> = vec![];
+    let mut validation_errors: HashMap<String, Vec<String>> = HashMap::new();
 
     for res in results.iter().flatten() {
         block |= res.block;
@@ -322,8 +377,8 @@ fn combine_process_trace_res(results: &[Option<ProcessTraceRes>]) -> ProcessTrac
         if let Some(e_data_types) = &res.data_types {
             data_types.extend(e_data_types.clone());
         }
-        if res.validation_errors.len() > 0 {
-            validation_errors.append(&mut res.validation_errors.clone());
+        if let Some(e_validation_errors) = &res.validation_errors {
+            validation_errors.extend(e_validation_errors.clone())
         }
     }
 
@@ -334,35 +389,103 @@ fn combine_process_trace_res(results: &[Option<ProcessTraceRes>]) -> ProcessTrac
         sensitive_data_detected: (!sensitive_data_detected.is_empty())
             .then_some(sensitive_data_detected),
         data_types: (!data_types.is_empty()).then_some(data_types),
-        validation_errors,
+        validation_errors: (!validation_errors.is_empty()).then_some(validation_errors),
+        request_content_type: request_content_type.unwrap_or(&"*/*".to_owned()).to_owned(),
+        response_content_type: response_content_type
+            .unwrap_or(&"*/*".to_owned())
+            .to_owned(),
     }
 }
 
-pub fn process_api_trace(trace: &ApiTrace) -> ProcessTraceRes {
-    let req_mime_type = get_mime_type(&trace.request.headers);
-    let proc_req_body = trace
-        .request
-        .body
-        .as_ref()
-        .and_then(|e| process_body("reqBody".to_string(), e, req_mime_type.clone(), trace));
-    let proc_req_params = process_key_val("reqQuery".to_string(), &trace.request.url.parameters);
-    let proc_req_headers = process_key_val("reqHeaders".to_string(), &trace.request.headers);
+pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
+    let req_content_type = get_content_type(&trace.request.headers);
+    let req_mime_type = get_mime_type(req_content_type);
+    let non_error_status_code = match &trace.response {
+        Some(ApiResponse {
+            status,
+            headers: _,
+            body: _,
+        }) => status.to_owned() < 400,
+        _ => false,
+    };
+    let proc_req_body = match non_error_status_code {
+        true => trace.request.body.as_ref().and_then(|e| {
+            process_body("reqBody".to_string(), e, req_mime_type.clone(), trace, None)
+        }),
+        false => None,
+    };
+    let proc_req_params = match non_error_status_code {
+        true => process_key_val("reqQuery".to_string(), &trace.request.url.parameters),
+        false => None,
+    };
+    let proc_req_headers = match non_error_status_code {
+        true => process_key_val("reqHeaders".to_string(), &trace.request.headers),
+        false => None,
+    };
+    let mut openapi_spec_name: Option<String> = None;
+    let mut full_trace_capture_enabled: bool = false;
+    let split_path: Vec<&str> = get_split_path(&trace.request.url.path);
+
+    let conf_read = METLO_CONFIG.try_read();
+    match conf_read {
+        Ok(ref conf) => match &conf.endpoints {
+            Some(endpoints) => {
+                for endpoint in endpoints.iter() {
+                    if endpoint.host != trace.request.url.host
+                        || endpoint.method != trace.request.method
+                    {
+                        continue;
+                    }
+                    if is_endpoint_match(&split_path, endpoint.path.clone()) {
+                        openapi_spec_name = endpoint.openapi_spec_name.to_owned();
+                        full_trace_capture_enabled = endpoint.full_trace_capture_enabled;
+                    }
+                }
+            }
+            None => (),
+        },
+        Err(_) => (),
+    }
+    drop(conf_read);
 
     let mut proc_resp_body: Option<ProcessTraceRes> = None;
     let mut proc_resp_headers: Option<ProcessTraceRes> = None;
+    let mut resp_content_type: Option<&String> = None;
     if let Some(resp) = &trace.response {
         proc_resp_headers = process_key_val("resHeaders".to_string(), &resp.headers);
-        let resp_mime_type = get_mime_type(&resp.headers);
+        resp_content_type = get_content_type(&resp.headers);
+        let resp_mime_type = get_mime_type(resp_content_type);
         if let Some(resp_body) = &resp.body {
-            proc_resp_body = process_body("resBody".to_string(), resp_body, resp_mime_type, trace);
+            proc_resp_body = process_body(
+                "resBody".to_string(),
+                resp_body,
+                resp_mime_type,
+                trace,
+                openapi_spec_name,
+            );
         }
+    } else {
+        proc_resp_body = process_body(
+            "resBody".to_string(),
+            "",
+            mime::TEXT_PLAIN,
+            trace,
+            openapi_spec_name,
+        )
     }
 
-    combine_process_trace_res(&[
-        proc_req_body,
-        proc_req_params,
-        proc_req_headers,
-        proc_resp_body,
-        proc_resp_headers,
-    ])
+    (
+        combine_process_trace_res(
+            &[
+                proc_req_body,
+                proc_req_params,
+                proc_req_headers,
+                proc_resp_body,
+                proc_resp_headers,
+            ],
+            req_content_type,
+            resp_content_type,
+        ),
+        full_trace_capture_enabled,
+    )
 }

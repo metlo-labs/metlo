@@ -3,14 +3,22 @@ use jsonschema::{Draft, JSONSchema};
 use serde_json::{json, Value};
 use std::collections::HashMap;
 
-use crate::metlo_config::{MetloEndpoint, MetloSpec};
+use crate::metlo_config::MetloSpec;
 use crate::trace::ApiTrace;
 use crate::METLO_CONFIG;
 
-pub type CompiledSpecs =
-    HashMap<String, HashMap<String, HashMap<String, HashMap<String, HashMap<String, JSONSchema>>>>>;
+#[derive(Debug)]
+pub struct CompiledSchema {
+    path_pointer: Vec<String>,
+    schema: JSONSchema,
+}
+
+pub type CompiledSpecs = HashMap<
+    String,
+    HashMap<String, HashMap<String, HashMap<String, HashMap<String, CompiledSchema>>>>,
+>;
 pub type CompiledSpecsSingle =
-    HashMap<String, HashMap<String, HashMap<String, HashMap<String, JSONSchema>>>>;
+    HashMap<String, HashMap<String, HashMap<String, HashMap<String, CompiledSchema>>>>;
 
 fn get_validation_error_msg(error: ValidationError) -> String {
     match error.kind {
@@ -63,7 +71,21 @@ pub fn compile_specs(specs: Vec<MetloSpec>) -> CompiledSpecs {
                                         .with_draft(Draft::Draft7)
                                         .compile(&schema)
                                         .expect("A valid schema");
-                                    content_type_specs.insert(content_type_tmp, compiled_schema);
+                                    content_type_specs.insert(
+                                        content_type_tmp,
+                                        CompiledSchema {
+                                            path_pointer: vec![
+                                                "paths".to_owned(),
+                                                path.to_owned(),
+                                                method.to_owned(),
+                                                "responses".to_owned(),
+                                                status_code.to_owned(),
+                                                "content".to_owned(),
+                                                content_type.to_owned(),
+                                            ],
+                                            schema: compiled_schema,
+                                        },
+                                    );
                                 }
                             }
                             status_code_specs.insert(status_code.to_owned(), content_type_specs);
@@ -79,26 +101,7 @@ pub fn compile_specs(specs: Vec<MetloSpec>) -> CompiledSpecs {
     return compiled_specs;
 }
 
-fn is_endpoint_match(trace_tokens: &Vec<&str>, endpoint_path: String) -> bool {
-    let endpoint_tokens = get_split_path(&endpoint_path);
-    if trace_tokens.len() != endpoint_tokens.len() {
-        return false;
-    }
-    let mut i = 0;
-
-    for endpoint_token in endpoint_tokens {
-        let trace_token = trace_tokens[i];
-        if endpoint_token != trace_token
-            && (!endpoint_token.starts_with('{') && !endpoint_token.ends_with('}'))
-        {
-            return false;
-        }
-        i += 1;
-    }
-    true
-}
-
-fn get_split_path(path: &String) -> Vec<&str> {
+pub fn get_split_path(path: &String) -> Vec<&str> {
     path.split('/')
         .filter(|token| token.len() > 0)
         .collect::<Vec<&str>>()
@@ -107,7 +110,7 @@ fn get_split_path(path: &String) -> Vec<&str> {
 fn get_spec_path_map<'a>(
     trace_tokens: Vec<&'a str>,
     compiled_specs: Option<&'a CompiledSpecsSingle>,
-) -> Option<&'a HashMap<String, HashMap<String, HashMap<String, JSONSchema>>>> {
+) -> Option<&'a HashMap<String, HashMap<String, HashMap<String, CompiledSchema>>>> {
     match compiled_specs {
         Some(s) => {
             let len = trace_tokens.len();
@@ -132,8 +135,8 @@ fn get_spec_path_map<'a>(
 
 fn get_spec_content_type_schema<'a>(
     trace_content_type: &String,
-    spec_status_code_map: &'a HashMap<String, JSONSchema>,
-) -> Result<Option<&'a JSONSchema>, String> {
+    spec_status_code_map: &'a HashMap<String, CompiledSchema>,
+) -> Result<Option<&'a CompiledSchema>, String> {
     let content_type = match trace_content_type.parse::<mime::Mime>() {
         Ok(m) => m.essence_str().to_owned(),
         Err(_) => {
@@ -146,7 +149,7 @@ fn get_spec_content_type_schema<'a>(
     let sub_type_wildcard_points: u8 = 2;
     let wildcard_match_points: u8 = 1;
     let mut match_points = 0;
-    let mut matched_schema: Option<&JSONSchema> = None;
+    let mut matched_schema: Option<&CompiledSchema> = None;
     for (media_type_key, value) in spec_status_code_map.iter() {
         if media_type_key.to_owned() == content_type {
             return Ok(Some(value));
@@ -181,7 +184,7 @@ fn get_compiled_schema<'a>(
     trace_status_code: &String,
     trace_content_type: &String,
     compiled_specs: Option<&'a CompiledSpecsSingle>,
-) -> Result<Option<&'a JSONSchema>, String> {
+) -> Result<Option<&'a CompiledSchema>, String> {
     let spec_path_map = get_spec_path_map(trace_tokens, compiled_specs);
     let spec_method_map = match spec_path_map {
         Some(method_map) => method_map.get(&trace_method.to_lowercase()),
@@ -208,10 +211,14 @@ fn get_compiled_schema<'a>(
     }
 }
 
-pub fn find_open_api_diff(trace: &ApiTrace, response_body: &Value) -> Vec<String> {
-    if let Some(resp) = &trace.response {
+pub fn find_open_api_diff(
+    trace: &ApiTrace,
+    response_body: &Value,
+    openapi_spec_name: Option<String>,
+) -> Option<HashMap<String, Vec<String>>> {
+    let mut validation_errors: HashMap<String, Vec<String>> = HashMap::new();
+    if let (Some(resp), Some(s)) = (&trace.response, openapi_spec_name) {
         let trace_path = &trace.request.url.path;
-        let trace_host = &trace.request.url.host;
         let trace_method = &trace.request.method;
         let trace_status_code = &resp.status.to_string();
         let trace_content_type = &resp
@@ -221,39 +228,14 @@ pub fn find_open_api_diff(trace: &ApiTrace, response_body: &Value) -> Vec<String
             .map(|e| e.value.to_owned())
             .unwrap_or_default();
         let split_path: Vec<&str> = get_split_path(trace_path);
-        let mut endpoint_match: Option<&MetloEndpoint> = None;
 
         let conf_read = METLO_CONFIG.try_read();
-        match conf_read {
-            Ok(ref conf) => match &conf.endpoints {
-                Some(endpoints) => {
-                    for endpoint in endpoints.iter() {
-                        if endpoint.host != trace_host.to_string()
-                            || endpoint.method != trace_method.to_string()
-                        {
-                            continue;
-                        }
-                        if is_endpoint_match(&split_path, endpoint.path.clone()) {
-                            endpoint_match = Some(endpoint);
-                        }
-                    }
-                }
-                None => (),
-            },
-            Err(_) => (),
-        };
-        let compiled_specs = match endpoint_match {
-            Some(e) => match &e.openapi_spec_name {
-                Some(s) => match conf_read {
-                    Ok(ref conf) => match &conf.specs {
-                        Some(specs) => specs.get(s),
-                        None => None,
-                    },
-                    Err(_) => None,
-                },
+        let compiled_specs = match conf_read {
+            Ok(ref conf) => match &conf.specs {
+                Some(specs) => specs.get(&s),
                 None => None,
             },
-            None => None,
+            Err(_) => None,
         };
         let compiled_schema = get_compiled_schema(
             split_path,
@@ -264,24 +246,27 @@ pub fn find_open_api_diff(trace: &ApiTrace, response_body: &Value) -> Vec<String
         );
         match compiled_schema {
             Ok(r) => {
-                let mut validation_errors: Vec<String> = vec![];
                 if let Some(schema) = r {
-                    let result = schema.validate(&response_body);
+                    let result = schema.schema.validate(&response_body);
                     if let Err(errors) = result {
                         for error in errors {
-                            validation_errors.push(get_validation_error_msg(error))
+                            validation_errors.insert(
+                                get_validation_error_msg(error),
+                                schema.path_pointer.clone(),
+                            );
                         }
                     }
                 }
                 drop(conf_read);
-                return validation_errors;
+                return Some(validation_errors);
             }
             Err(e) => {
                 drop(conf_read);
-                return vec![e];
+                validation_errors.insert(e, vec![]);
+                return Some(validation_errors);
             }
         }
     } else {
-        vec![]
+        None
     }
 }
