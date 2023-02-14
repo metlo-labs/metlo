@@ -107,17 +107,6 @@ const analyze = async (
 ) => {
   const traceUUID = uuidv4()
   mlog.debug(`Analyzing Trace: ${traceUUID}`)
-
-  const hostMap = await getHostMapCached(ctx)
-  for (const e of hostMap) {
-    const match = trace.host.match(e.pattern)
-    if (match && match[0].length == trace.host.length) {
-      trace.originalHost = trace.host
-      trace.host = e.host
-      break
-    }
-  }
-
   const prevRiskScore = apiEndpoint.riskScore
   const prevLastActive = apiEndpoint.lastActive
   endpointUpdateDates(trace.createdAt, apiEndpoint)
@@ -386,6 +375,15 @@ const analyzeTraces = async (): Promise<void> => {
       if (queued) {
         const { trace, ctx } = queued
         trace.createdAt = new Date(trace.createdAt)
+        const hostMap = await getHostMapCached(ctx)
+        for (const e of hostMap) {
+          const match = trace.host.match(e.pattern)
+          if (match && match[0].length == trace.host.length) {
+            trace.originalHost = trace.host
+            trace.host = e.host
+            break
+          }
+        }
 
         const start = performance.now()
         const apiEndpoint: ApiEndpoint = await getEntityManager(
