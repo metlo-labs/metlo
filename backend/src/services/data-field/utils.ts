@@ -20,9 +20,9 @@ export interface UpdatedDataField {
   updated: boolean
 }
 
-export const TOTAL_DATA_FIELDS_LIMIT = 200
+const TOTAL_DATA_FIELDS_LIMIT = 200
 
-export const nonNullDataSections = [
+const nonNullDataSections = [
   DataSection.REQUEST_BODY,
   DataSection.RESPONSE_BODY,
   DataSection.RESPONSE_HEADER,
@@ -80,7 +80,7 @@ export const getContentTypes = (
   }
 }
 
-export const updateTraceHashObj = (
+const updateTraceHashObj = (
   dataSection: DataSection,
   dataPath: string,
   arrayFields: Record<string, number>,
