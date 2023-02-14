@@ -4,14 +4,13 @@ import { DataSection } from "@common/enums"
 import { ApiEndpoint, DataField } from "models"
 import { MetloContext } from "types"
 import { getRiskScore } from "utils"
+import { findPathDataFields } from "services/data-field/utils"
 import {
-  getContentTypes,
-  findPathDataFields,
-  findPairObjectDataFields,
-  findBodyDataFields,
   DataFieldLength,
   UpdatedDataField,
   UPDATE_DATA_FIELD_TIME_THRESHOLD,
+  getDataFieldDataFromProcessedData,
+  handleDataField,
 } from "./utils"
 
 const getCurrentDataFieldsMap = (
@@ -42,10 +41,9 @@ const findAllDataFields = (
   updatedDataFieldMap: Record<string, UpdatedDataField>,
 ) => {
   const statusCode = apiTrace.responseStatus
-  const { reqContentType, resContentType } = getContentTypes(
-    apiTrace.requestHeaders,
-    apiTrace.responseHeaders,
-  )
+  const reqContentType = apiTrace?.processedTraceData?.requestContentType ?? ""
+  const resContentType = apiTrace?.processedTraceData?.responseContentType ?? ""
+  const processedDataFields = apiTrace?.processedTraceData?.dataTypes ?? []
 
   findPathDataFields(
     ctx,
@@ -59,81 +57,34 @@ const findAllDataFields = (
     updatedDataFieldMap,
     apiTrace.createdAt,
   )
-  if (statusCode < 400) {
-    findPairObjectDataFields(
-      ctx,
-      DataSection.REQUEST_QUERY,
-      apiTrace.requestParameters,
-      apiEndpointUuid,
-      "",
-      -1,
-      dataFieldMap,
-      traceHashObj,
-      dataFieldLength,
-      newDataFieldMap,
-      updatedDataFieldMap,
-      apiTrace.createdAt,
-    )
-    findPairObjectDataFields(
-      ctx,
-      DataSection.REQUEST_HEADER,
-      apiTrace.requestHeaders,
-      apiEndpointUuid,
-      "",
-      -1,
-      dataFieldMap,
-      traceHashObj,
-      dataFieldLength,
-      newDataFieldMap,
-      updatedDataFieldMap,
-      apiTrace.createdAt,
-    )
-    findBodyDataFields(
-      ctx,
-      DataSection.REQUEST_BODY,
-      apiTrace.requestBody,
+  for (const dataField in processedDataFields) {
+    const info = getDataFieldDataFromProcessedData(
+      dataField,
+      processedDataFields[dataField],
       apiEndpointUuid,
       reqContentType,
-      -1,
-      dataFieldMap,
+      resContentType,
+      statusCode ?? -1,
+    )
+    handleDataField(
+      info.dataPath,
+      info.dataSection,
+      info.apiEndpointUuid,
+      info.dataType,
+      info.contentType,
+      info.statusCode,
+      info.arrayFields,
       traceHashObj,
       dataFieldLength,
+      dataFieldMap,
       newDataFieldMap,
       updatedDataFieldMap,
       apiTrace.createdAt,
     )
   }
-  findPairObjectDataFields(
-    ctx,
-    DataSection.RESPONSE_HEADER,
-    apiTrace.responseHeaders,
-    apiEndpointUuid,
-    "",
-    statusCode,
-    dataFieldMap,
-    traceHashObj,
-    dataFieldLength,
-    newDataFieldMap,
-    updatedDataFieldMap,
-    apiTrace.createdAt,
-  )
-  findBodyDataFields(
-    ctx,
-    DataSection.RESPONSE_BODY,
-    apiTrace.responseBody,
-    apiEndpointUuid,
-    resContentType,
-    statusCode,
-    dataFieldMap,
-    traceHashObj,
-    dataFieldLength,
-    newDataFieldMap,
-    updatedDataFieldMap,
-    apiTrace.createdAt,
-  )
 }
 
-export const findDataFieldsToSave = async (
+export const findDataFieldsToSave = (
   ctx: MetloContext,
   apiTrace: QueuedApiTrace,
   apiEndpoint: ApiEndpoint,
