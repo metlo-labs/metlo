@@ -152,6 +152,24 @@ export const METLO_CONFIG_SCHEMA = {
     globalFullTraceCapture: {
       type: "boolean",
     },
+    hostMap: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["host", "pattern"],
+        properties: {
+          pattern: {
+            type: "string",
+            format: "regex",
+          },
+          host: {
+            type: "string",
+            pattern: String.raw`^[a-zA-Z0-9-_\.]+$`,
+          },
+        },
+        additionalProperties: false,
+      },
+    },
     globalTestEnv: {
       type: "array",
       items: {

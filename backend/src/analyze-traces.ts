@@ -35,7 +35,10 @@ import { createDataFieldAlerts } from "services/alert/sensitive-data"
 import { createNewEndpointAlert } from "services/alert/new-endpoint"
 import { getSensitiveDataMap } from "services/scanner/analyze-trace"
 import { getCombinedDataClassesCached } from "services/data-classes"
-import { getGlobalFullTraceCaptureCached } from "services/metlo-config"
+import {
+  getGlobalFullTraceCaptureCached,
+  getHostMapCached,
+} from "services/metlo-config"
 
 export const getDataFieldsQuery = (ctx: MetloContext) => `
 SELECT
@@ -104,6 +107,17 @@ const analyze = async (
 ) => {
   const traceUUID = uuidv4()
   mlog.debug(`Analyzing Trace: ${traceUUID}`)
+
+  const hostMap = await getHostMapCached(ctx)
+  for (const e of hostMap) {
+    const match = trace.host.match(e.pattern)
+    if (match && match[0].length == trace.host.length) {
+      trace.originalHost = trace.host
+      trace.host = e.host
+      break
+    }
+  }
+
   const prevRiskScore = apiEndpoint.riskScore
   const prevLastActive = apiEndpoint.lastActive
   endpointUpdateDates(trace.createdAt, apiEndpoint)
@@ -183,7 +197,8 @@ const analyze = async (
   const start4 = performance.now()
   await queryRunner.startTransaction()
   const traceRes = await retryTypeormTransaction(
-    () => getEntityManager(ctx, queryRunner).insert(ApiTrace, [filteredApiTrace]),
+    () =>
+      getEntityManager(ctx, queryRunner).insert(ApiTrace, [filteredApiTrace]),
     5,
   )
   filteredApiTrace.uuid = traceRes.identifiers[0].uuid

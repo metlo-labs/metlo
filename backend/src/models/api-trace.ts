@@ -57,6 +57,9 @@ export class ApiTrace extends MetloBaseEntity {
   redacted: boolean
 
   @Column({ nullable: true })
+  originalHost: string
+
+  @Column({ nullable: true })
   apiEndpointUuid: string
 
   @ManyToOne(() => ApiEndpoint)

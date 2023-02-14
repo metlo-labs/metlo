@@ -101,6 +101,7 @@ export interface QueuedApiTrace {
   responseBody: string
   meta: Meta
   sessionMeta: SessionMeta
+  originalHost?: string
 }
 
 export interface ApiTrace extends QueuedApiTrace {
