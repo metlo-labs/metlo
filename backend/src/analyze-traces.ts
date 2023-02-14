@@ -10,7 +10,7 @@ import {
   TRACE_IN_MEM_RETENTION_COUNT,
 } from "~/constants"
 import { QueryRunner, Raw } from "typeorm"
-import { QueuedApiTrace } from "@common/types"
+import { ProcessedTraceData, QueuedApiTrace } from "@common/types"
 import {
   endpointAddNumberParams,
   endpointUpdateDates,
@@ -30,10 +30,16 @@ import {
 } from "services/database/utils"
 import { sendWebhookRequests } from "services/webhook"
 import { updateIPs } from "analyze/update-ips"
-import { findDataFieldsToSave } from "services/data-field/analyze"
+import {
+  findDataFieldsToSave,
+  findDataFieldsToSaveV2,
+} from "services/data-field/analyze"
 import { createDataFieldAlerts } from "services/alert/sensitive-data"
 import { createNewEndpointAlert } from "services/alert/new-endpoint"
-import { getSensitiveDataMap } from "services/scanner/analyze-trace"
+import {
+  getSensitiveDataMap,
+  getSensitiveDataMapV2,
+} from "services/scanner/analyze-trace"
 import { getCombinedDataClassesCached } from "services/data-classes"
 import { getGlobalFullTraceCaptureCached } from "services/metlo-config"
 
@@ -65,6 +71,7 @@ const sleep = (ms: number) => new Promise(res => setTimeout(res, ms))
 const getQueuedApiTrace = async (): Promise<{
   trace: QueuedApiTrace
   ctx: MetloContext
+  version: number
 }> => {
   try {
     const unsafeRedisClient = RedisClient.getInstance()
@@ -183,7 +190,177 @@ const analyze = async (
   const start4 = performance.now()
   await queryRunner.startTransaction()
   const traceRes = await retryTypeormTransaction(
-    () => getEntityManager(ctx, queryRunner).insert(ApiTrace, [filteredApiTrace]),
+    () =>
+      getEntityManager(ctx, queryRunner).insert(ApiTrace, [filteredApiTrace]),
+    5,
+  )
+  filteredApiTrace.uuid = traceRes.identifiers[0].uuid
+  mlog.time("analyzer.insert_api_trace_query", performance.now() - start4)
+  mlog.debug(`Analyzing Trace - Inserted API Trace: ${traceUUID}`)
+
+  const startTraceRedis = performance.now()
+  const endpointTraceKey = `endpointTraces:e#${apiEndpoint.uuid}`
+  RedisClient.pushValueToRedisList(ctx, endpointTraceKey, [
+    JSON.stringify({
+      ...filteredApiTrace,
+      sensitiveDataMap,
+    }),
+  ])
+  RedisClient.ltrim(ctx, endpointTraceKey, 0, TRACE_IN_MEM_RETENTION_COUNT - 1)
+  RedisClient.expire(ctx, endpointTraceKey, TRACE_IN_MEM_EXPIRE_SEC)
+  mlog.time(
+    "analyzer.insert_api_trace_redis",
+    performance.now() - startTraceRedis,
+  )
+  mlog.debug(`Analyzing Trace - Inserted API Trace to Redis: ${traceUUID}`)
+
+  const start5 = performance.now()
+  await retryTypeormTransaction(
+    () =>
+      insertValuesBuilder(ctx, queryRunner, DataField, dataFields.newFields)
+        .orIgnore()
+        .execute(),
+    5,
+  )
+  mlog.time("analyzer.insert_data_fields_query", performance.now() - start5)
+  mlog.debug(`Analyzing Trace - Inserted Data Fields: ${traceUUID}`)
+
+  const start6 = performance.now()
+  if (dataFields.updatedFields.length > 0) {
+    await retryTypeormTransaction(
+      () =>
+        getEntityManager(ctx, queryRunner).saveList<DataField>(
+          dataFields.updatedFields,
+        ),
+      5,
+    )
+  }
+  mlog.time("analyzer.update_data_fields_query", performance.now() - start6)
+  mlog.debug(`Analyzing Trace - Updated Data Fields: ${traceUUID}`)
+
+  const start7 = performance.now()
+  await retryTypeormTransaction(
+    () =>
+      insertValuesBuilder(ctx, queryRunner, Alert, alerts).orIgnore().execute(),
+    5,
+  )
+  mlog.time("analyzer.insert_alerts_query", performance.now() - start7)
+  mlog.debug(`Analyzing Trace - Inserted Alerts: ${traceUUID}`)
+
+  const start8 = performance.now()
+  if (shouldUpdateEndpoint(prevRiskScore, prevLastActive, apiEndpoint)) {
+    await retryTypeormTransaction(
+      () =>
+        getQB(ctx, queryRunner)
+          .update(ApiEndpoint)
+          .set({
+            firstDetected: apiEndpoint.firstDetected,
+            lastActive: apiEndpoint.lastActive,
+            riskScore: apiEndpoint.riskScore,
+          })
+          .andWhere("uuid = :id", { id: apiEndpoint.uuid })
+          .execute(),
+      5,
+    )
+  }
+  mlog.time("analyzer.update_api_endpoint_query", performance.now() - start8)
+  mlog.debug(`Analyzing Trace - Updated API Endpoint: ${traceUUID}`)
+
+  const start9 = performance.now()
+  await updateIPs(ctx, trace, apiEndpoint, queryRunner)
+  mlog.time("analyzer.update_ips", performance.now() - start9)
+  mlog.debug(`Analyzing Trace - Updated IPs: ${traceUUID}`)
+  await queryRunner.commitTransaction()
+
+  const start10 = performance.now()
+  await sendWebhookRequests(ctx, alerts, apiEndpoint)
+  mlog.time("analyzer.sent_webhook_requests", performance.now() - start10)
+  mlog.debug(`Analyzing Trace - Sent Webhook Requests: ${traceUUID}`)
+}
+
+const analyzeV2 = async (
+  ctx: MetloContext,
+  trace: QueuedApiTrace,
+  apiEndpoint: ApiEndpoint,
+  queryRunner: QueryRunner,
+  newEndpoint?: boolean,
+) => {
+  const traceUUID = uuidv4()
+  mlog.debug(`Analyzing Trace: ${traceUUID}`)
+  const prevRiskScore = apiEndpoint.riskScore
+  const prevLastActive = apiEndpoint.lastActive
+  endpointUpdateDates(trace.createdAt, apiEndpoint)
+  mlog.debug(`Analyzing Trace - Updated Dates: ${traceUUID}`)
+
+  const start1 = performance.now()
+  const dataFields = findDataFieldsToSaveV2(ctx, trace, apiEndpoint)
+  mlog.time("analyzer.find_data_fields", performance.now() - start1)
+  mlog.debug(`Analyzing Trace - Found Datafields: ${traceUUID}`)
+
+  const { processedTraceData, ...apiTrace } = trace
+
+  const start2 = performance.now()
+  let alerts = await SpecService.findOpenApiSpecDiffV2(
+    ctx,
+    apiTrace,
+    apiEndpoint,
+    queryRunner,
+    processedTraceData.validationErrors ?? {},
+  )
+  mlog.time("analyzer.find_openapi_spec_diff", performance.now() - start2)
+  mlog.debug(`Analyzing Trace - Found OpenAPI Spec Diffs: ${traceUUID}`)
+
+  const start3 = performance.now()
+  const dataFieldAlerts = await createDataFieldAlerts(
+    ctx,
+    dataFields.newFields.concat(dataFields.updatedFields),
+    apiEndpoint.uuid,
+    apiTrace,
+    queryRunner,
+  )
+  alerts = alerts.concat(dataFieldAlerts)
+  mlog.time("analyzer.create_data_field_alerts", performance.now() - start3)
+  mlog.debug(`Analyzing Trace - Created Data Field Alerts: ${traceUUID}`)
+
+  if (newEndpoint) {
+    const newEndpointAlert = createNewEndpointAlert(
+      apiEndpoint,
+      apiTrace.createdAt,
+    )
+    alerts = alerts.concat(newEndpointAlert)
+  }
+
+  if (Array.isArray(apiTrace.requestBody)) {
+    apiTrace.requestBody = JSON.stringify(apiTrace.requestBody)
+  }
+  if (Array.isArray(apiTrace.responseBody)) {
+    apiTrace.responseBody = JSON.stringify(apiTrace.responseBody)
+  }
+
+  const startSensitiveDataPopulate = performance.now()
+  const dataClasses = await getCombinedDataClassesCached(ctx)
+  const sensitiveDataMap = getSensitiveDataMapV2(
+    dataClasses,
+    apiTrace,
+    apiEndpoint.path,
+    processedTraceData,
+  )
+  let filteredApiTrace = {
+    ...apiTrace,
+    apiEndpointUuid: apiEndpoint.uuid,
+  } as ApiTrace
+
+  mlog.time(
+    "analyzer.sensitive_data_populate",
+    performance.now() - startSensitiveDataPopulate,
+  )
+  mlog.debug(`Analyzing Trace - Populated Sensitive Data: ${traceUUID}`)
+
+  const start4 = performance.now()
+  await queryRunner.startTransaction()
+  const traceRes = await retryTypeormTransaction(
+    () =>
+      getEntityManager(ctx, queryRunner).insert(ApiTrace, [filteredApiTrace]),
     5,
   )
   filteredApiTrace.uuid = traceRes.identifiers[0].uuid
@@ -274,6 +451,7 @@ const generateEndpoint = async (
   ctx: MetloContext,
   trace: QueuedApiTrace,
   queryRunner: QueryRunner,
+  version: number,
 ): Promise<void> => {
   const isGraphQl = isGraphQlEndpoint(trace.path)
   let paramNum = 1
@@ -328,7 +506,11 @@ const generateEndpoint = async (
         5,
       )
       await queryRunner.commitTransaction()
-      await analyze(ctx, trace, apiEndpoint, queryRunner, true)
+      if (version === 2) {
+        await analyzeV2(ctx, trace, apiEndpoint, queryRunner, true)
+      } else {
+        await analyze(ctx, trace, apiEndpoint, queryRunner, true)
+      }
     } catch (err) {
       if (queryRunner.isTransactionActive) {
         await queryRunner.rollbackTransaction()
@@ -346,7 +528,11 @@ const generateEndpoint = async (
           relations: { dataFields: true },
         })
         if (existingEndpoint) {
-          await analyze(ctx, trace, existingEndpoint, queryRunner)
+          if (version === 2) {
+            await analyzeV2(ctx, trace, existingEndpoint, queryRunner)
+          } else {
+            await analyze(ctx, trace, existingEndpoint, queryRunner)
+          }
         }
       } else {
         mlog.withErr(err).error("Error generating new endpoint")
@@ -369,7 +555,7 @@ const analyzeTraces = async (): Promise<void> => {
     try {
       const queued = await getQueuedApiTrace()
       if (queued) {
-        const { trace, ctx } = queued
+        const { trace, ctx, version } = queued
         trace.createdAt = new Date(trace.createdAt)
 
         const start = performance.now()
@@ -396,10 +582,14 @@ const analyzeTraces = async (): Promise<void> => {
           )
           apiEndpoint.dataFields = dataFields
           mlog.time("analyzer.query_data_fields", performance.now() - start2)
-          await analyze(ctx, trace, apiEndpoint, queryRunner)
+          if (version === 2) {
+            await analyzeV2(ctx, trace, apiEndpoint, queryRunner)
+          } else {
+            await analyze(ctx, trace, apiEndpoint, queryRunner)
+          }
         } else {
           if (trace.responseStatus !== 404 && trace.responseStatus !== 405) {
-            await generateEndpoint(ctx, trace, queryRunner)
+            await generateEndpoint(ctx, trace, queryRunner, version)
           }
         }
 

@@ -68,10 +68,28 @@ export interface Response {
   body: string
 }
 
+export interface SqliRes {
+  data: string
+  fingerprint: string
+}
+
+export interface ProcessedTraceData {
+  block: boolean
+  xssDetected: Record<string, string>
+  sqliDetected: Record<string, SqliRes>
+  sensitiveDataDetected: Record<string, string[]>
+  dataTypes: Record<string, string[]>
+  requestContentType: string
+  responseContentType: string
+  validationErrors: Record<string, string[]>
+}
+
 export interface TraceParams {
   request: Request
   response: Response
   meta: Meta
+  processedTraceData?: ProcessedTraceData
+  redacted?: boolean
 }
 
 export interface GetAttackParams {
@@ -101,6 +119,8 @@ export interface QueuedApiTrace {
   responseBody: string
   meta: Meta
   sessionMeta: SessionMeta
+  processedTraceData?: ProcessedTraceData
+  redacted?: boolean
 }
 
 export interface ApiTrace extends QueuedApiTrace {

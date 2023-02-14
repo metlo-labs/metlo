@@ -32,3 +32,17 @@ export const logRequestBatchHandler = async (
     await ApiResponseHandler.error(res, err)
   }
 }
+
+export const logRequestSingleHandlerV2 = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
+  mlog.debug("Called Log Request Single Handler V2")
+  const traceParams: TraceParams = req.body
+  try {
+    await LogRequestService.logRequest(req.ctx, traceParams, true)
+    await ApiResponseHandler.success(res, null)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}

@@ -13,6 +13,7 @@ export class LogRequestService {
   static async logRequest(
     ctx: MetloContext,
     traceParams: TraceParams,
+    v2?: boolean,
   ): Promise<void> {
     mlog.debug("Called Log Request Service Func")
     const unsafeRedisClient = RedisClient.getInstance()
@@ -62,6 +63,10 @@ export class LogRequestService {
         createdAt: new Date(),
         sessionMeta: {} as SessionMeta,
       }
+      if (v2) {
+        apiTraceObj.processedTraceData = traceParams?.processedTraceData
+        apiTraceObj.redacted = traceParams?.redacted
+      }
 
       await BlockFieldsService.redactBlockedFields(ctx, apiTraceObj)
       await AuthenticationConfigService.setSessionMetadata(ctx, apiTraceObj)
@@ -71,6 +76,7 @@ export class LogRequestService {
         TRACES_QUEUE,
         JSON.stringify({
           ctx,
+          version: v2 ? 2 : 1,
           trace: apiTraceObj,
         }),
       )
