@@ -37,28 +37,8 @@ const Hosts = ({ hosts, hostsGraph, totalCount, params }) => {
   const [fetching, setFetching] = useState<boolean>(false)
   const [paramsState, setParamsState] = useState<GetHostParams>(parsedParams)
 
-  // const setParams = (newParams: GetHostParams, replace?: boolean) => {
-  //   setFetching(true)
-  //   newParams = { ...parsedParams, ...newParams }
-  //   console.log(newParams)
-  //   if (replace) {
-  //     await router.replace({
-  //       query: {
-  //         ...newParams,
-  //       },
-  //     })
-  //   } else {
-  //     await router.push({
-  //       query: {
-  //         ...newParams,
-  //       },
-  //     })
-  //   }
-  //   setFetching(false)
-  // }
-
   useEffect(() => {
-    router.push({
+    router.replace({
       query: {
         ...paramsState,
       },
@@ -158,10 +138,9 @@ export const getServerSideProps: GetServerSideProps = async context => {
     searchQuery: (context.query.searchQuery as string) ?? "",
     offset: parseInt((context.query.offset as string) ?? "0"),
     limit: HOST_PAGE_LIMIT,
-    sortBy:
-      (context.query.sortBy as HostSortOptions) ??
-      HostSortOptions.NUM_ENDPOINTS,
-    sortOrder: (context.query.sortOrder as SortOrder) ?? SortOrder.DESC,
+    sortBy: ((context.query.sortBy as string) ||
+      "numEndpoints") as HostSortOptions,
+    sortOrder: ((context.query.sortOrder as string) || "DESC") as SortOrder,
   }
   const hostsResp = await getHostsList(params)
   const hostsGraph = await getHostsGraph({})

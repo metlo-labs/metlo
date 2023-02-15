@@ -10,7 +10,7 @@ interface HostListProps {
   fetching: boolean
   hosts: HostResponse[]
   totalCount: number
-  setParams: any
+  setParams: (t: (e: GetHostParams) => GetHostParams) => void
   params: GetHostParams
 }
 
@@ -57,6 +57,7 @@ const HostList: React.FC<HostListProps> = React.memo(
             fetching={fetching}
             setSelectedHosts={setSelectedHosts}
             setParams={setParams}
+            params={params}
           />
         </Box>
       </VStack>
