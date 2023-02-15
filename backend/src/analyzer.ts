@@ -7,7 +7,7 @@ const main = async () => {
     filename: path.resolve(__dirname, "analyze-traces.js"),
   }
   const analyzers = Array.from({
-    length: parseInt(process.env.NUM_WORKERS || "1"),
+    length: parseInt(process.env.NUM_WORKERS || "7"),
   }).map(() => pool.run({}, options))
   await Promise.all(analyzers)
 }

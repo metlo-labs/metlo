@@ -152,3 +152,13 @@ export enum OperationType {
   QUERY = "query",
   MUTATION = "mutation",
 }
+
+export enum HostSortOptions {
+  HOST = "host",
+  NUM_ENDPOINTS = "numEndpoints",
+}
+
+export enum SortOrder {
+  ASC = "ASC",
+  DESC = "DESC",
+}

@@ -121,6 +121,7 @@ export interface QueuedApiTrace {
   sessionMeta: SessionMeta
   processedTraceData?: ProcessedTraceData
   redacted?: boolean
+  originalHost?: string
 }
 
 export interface ApiTrace extends QueuedApiTrace {

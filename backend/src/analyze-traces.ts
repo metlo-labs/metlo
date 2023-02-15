@@ -19,6 +19,7 @@ import { MetloContext } from "types"
 import { getEntityManager, insertValueBuilder } from "services/database/utils"
 import { analyze as analyzeV2 } from "services/analyze/v2"
 import { analyze } from "services/analyze/v1"
+import { getHostMapCached } from "services/metlo-config"
 
 export const getDataFieldsQuery = (ctx: MetloContext) => `
 SELECT
@@ -188,6 +189,15 @@ const analyzeTraces = async (): Promise<void> => {
         const { trace, ctx, version } = queued
         trace.createdAt = new Date(trace.createdAt)
         const analyzeFunc = version === 2 ? analyzeV2 : analyze
+        const hostMap = await getHostMapCached(ctx)
+        for (const e of hostMap) {
+          const match = trace.host.match(e.pattern)
+          if (match && match[0].length == trace.host.length) {
+            trace.originalHost = trace.host
+            trace.host = e.host
+            break
+          }
+        }
 
         const start = performance.now()
         const apiEndpoint: ApiEndpoint = await getEntityManager(
