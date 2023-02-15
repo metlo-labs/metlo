@@ -1,5 +1,5 @@
 import { GetServerSideProps } from "next"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import superjson from "superjson"
 import { Box, Badge, Heading, HStack, VStack, Stack } from "@chakra-ui/react"
 import { getHostsGraph, getHostsList } from "api/endpoints"
@@ -35,25 +35,15 @@ const Hosts = ({ hosts, hostsGraph, totalCount, params }) => {
   const parsedParams = superjson.parse<GetHostParams>(params)
 
   const [fetching, setFetching] = useState<boolean>(false)
+  const [paramsState, setParamsState] = useState<GetHostParams>(parsedParams)
 
-  const setParams = (newParams: GetHostParams, replace?: boolean) => {
-    setFetching(true)
-    newParams = { ...parsedParams, ...newParams }
-    if (replace) {
-      router.replace({
-        query: {
-          ...newParams,
-        },
-      })
-    } else {
-      router.push({
-        query: {
-          ...newParams,
-        },
-      })
-    }
-    setFetching(false)
-  }
+  useEffect(() => {
+    router.replace({
+      query: {
+        ...paramsState,
+      },
+    })
+  }, [paramsState])
 
   const setTab = (newTab: HostsTab) => {
     router.push(newTab ? { query: { tab: newTab } } : {}, undefined, {
@@ -133,7 +123,7 @@ const Hosts = ({ hosts, hostsGraph, totalCount, params }) => {
                 fetching={fetching}
                 totalCount={totalCount}
                 params={parsedParams}
-                setParams={setParams}
+                setParams={setParamsState}
               />
             </Box>
           )}
@@ -148,10 +138,9 @@ export const getServerSideProps: GetServerSideProps = async context => {
     searchQuery: (context.query.searchQuery as string) ?? "",
     offset: parseInt((context.query.offset as string) ?? "0"),
     limit: HOST_PAGE_LIMIT,
-    sortBy:
-      (context.query.sortBy as HostSortOptions) ??
-      HostSortOptions.NUM_ENDPOINTS,
-    sortOrder: (context.query.sortOrder as SortOrder) ?? SortOrder.DESC,
+    sortBy: ((context.query.sortBy as string) ||
+      "numEndpoints") as HostSortOptions,
+    sortOrder: ((context.query.sortOrder as string) || "DESC") as SortOrder,
   }
   const hostsResp = await getHostsList(params)
   const hostsGraph = await getHostsGraph({})
