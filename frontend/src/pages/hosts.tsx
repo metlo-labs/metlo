@@ -1,5 +1,5 @@
 import { GetServerSideProps } from "next"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import superjson from "superjson"
 import { Box, Badge, Heading, HStack, VStack, Stack } from "@chakra-ui/react"
 import { getHostsGraph, getHostsList } from "api/endpoints"
@@ -35,25 +35,35 @@ const Hosts = ({ hosts, hostsGraph, totalCount, params }) => {
   const parsedParams = superjson.parse<GetHostParams>(params)
 
   const [fetching, setFetching] = useState<boolean>(false)
+  const [paramsState, setParamsState] = useState<GetHostParams>(parsedParams)
 
-  const setParams = (newParams: GetHostParams, replace?: boolean) => {
-    setFetching(true)
-    newParams = { ...parsedParams, ...newParams }
-    if (replace) {
-      router.replace({
-        query: {
-          ...newParams,
-        },
-      })
-    } else {
-      router.push({
-        query: {
-          ...newParams,
-        },
-      })
-    }
-    setFetching(false)
-  }
+  // const setParams = (newParams: GetHostParams, replace?: boolean) => {
+  //   setFetching(true)
+  //   newParams = { ...parsedParams, ...newParams }
+  //   console.log(newParams)
+  //   if (replace) {
+  //     await router.replace({
+  //       query: {
+  //         ...newParams,
+  //       },
+  //     })
+  //   } else {
+  //     await router.push({
+  //       query: {
+  //         ...newParams,
+  //       },
+  //     })
+  //   }
+  //   setFetching(false)
+  // }
+
+  useEffect(() => {
+    router.push({
+      query: {
+        ...paramsState,
+      },
+    })
+  }, [paramsState])
 
   const setTab = (newTab: HostsTab) => {
     router.push(newTab ? { query: { tab: newTab } } : {}, undefined, {
@@ -133,7 +143,7 @@ const Hosts = ({ hosts, hostsGraph, totalCount, params }) => {
                 fetching={fetching}
                 totalCount={totalCount}
                 params={parsedParams}
-                setParams={setParams}
+                setParams={setParamsState}
               />
             </Box>
           )}

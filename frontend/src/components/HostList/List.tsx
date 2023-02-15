@@ -33,7 +33,7 @@ interface HostTableProps {
   setCurrentPage: (e: number) => void
   fetching: boolean
   setSelectedHosts: React.Dispatch<React.SetStateAction<string[]>>
-  setParams: (newParams: GetHostParams, replace?: boolean) => void
+  setParams: any
 }
 
 interface TableLoaderProps {
@@ -111,18 +111,20 @@ const List: React.FC<HostTableProps> = React.memo(
     const handleSort = (column, sortDirection: string) => {
       switch (column.id) {
         case "host":
-          setParams({
+          setParams(old => ({
+            ...old,
             sortOrder: sortDirection.toUpperCase() as SortOrder,
             sortBy: HostSortOptions.HOST,
             offset: 0,
-          })
+          }))
           break
         case "endpoints":
-          setParams({
+          setParams(old => ({
+            ...old,
             sortOrder: sortDirection.toUpperCase() as SortOrder,
             sortBy: HostSortOptions.NUM_ENDPOINTS,
             offset: 0,
-          })
+          }))
         default:
       }
     }
