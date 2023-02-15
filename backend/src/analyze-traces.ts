@@ -83,7 +83,13 @@ const generateEndpoint = async (
   ctx: MetloContext,
   trace: QueuedApiTrace,
   queryRunner: QueryRunner,
-  version: number,
+  analyzeFunc: (
+    ctx: MetloContext,
+    trace: QueuedApiTrace,
+    apiEndpoint: ApiEndpoint,
+    queryRunner: QueryRunner,
+    newEndpoint?: boolean,
+  ) => Promise<void>,
 ): Promise<void> => {
   const isGraphQl = isGraphQlEndpoint(trace.path)
   let paramNum = 1
@@ -138,11 +144,7 @@ const generateEndpoint = async (
         5,
       )
       await queryRunner.commitTransaction()
-      if (version === 2) {
-        await analyzeV2(ctx, trace, apiEndpoint, queryRunner, true)
-      } else {
-        await analyze(ctx, trace, apiEndpoint, queryRunner, true)
-      }
+      await analyzeFunc(ctx, trace, apiEndpoint, queryRunner, true)
     } catch (err) {
       if (queryRunner.isTransactionActive) {
         await queryRunner.rollbackTransaction()
@@ -160,11 +162,7 @@ const generateEndpoint = async (
           relations: { dataFields: true },
         })
         if (existingEndpoint) {
-          if (version === 2) {
-            await analyzeV2(ctx, trace, existingEndpoint, queryRunner)
-          } else {
-            await analyze(ctx, trace, existingEndpoint, queryRunner)
-          }
+          await analyzeFunc(ctx, trace, existingEndpoint, queryRunner)
         }
       } else {
         mlog.withErr(err).error("Error generating new endpoint")
@@ -189,6 +187,7 @@ const analyzeTraces = async (): Promise<void> => {
       if (queued) {
         const { trace, ctx, version } = queued
         trace.createdAt = new Date(trace.createdAt)
+        const analyzeFunc = version === 2 ? analyzeV2 : analyze
 
         const start = performance.now()
         const apiEndpoint: ApiEndpoint = await getEntityManager(
@@ -214,14 +213,10 @@ const analyzeTraces = async (): Promise<void> => {
           )
           apiEndpoint.dataFields = dataFields
           mlog.time("analyzer.query_data_fields", performance.now() - start2)
-          if (version === 2) {
-            await analyzeV2(ctx, trace, apiEndpoint, queryRunner)
-          } else {
-            await analyze(ctx, trace, apiEndpoint, queryRunner)
-          }
+          await analyzeFunc(ctx, trace, apiEndpoint, queryRunner)
         } else {
           if (trace.responseStatus !== 404 && trace.responseStatus !== 405) {
-            await generateEndpoint(ctx, trace, queryRunner, version)
+            await generateEndpoint(ctx, trace, queryRunner, analyzeFunc)
           }
         }
 

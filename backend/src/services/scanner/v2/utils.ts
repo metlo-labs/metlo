@@ -13,7 +13,7 @@ export const getSensitiveDataFieldDataFromProcessedData = (
   let updated = false
   for (let i = 1; i < splitPath.length; i++) {
     const token = splitPath[i]
-    if (token.length > 1 && token[0] === "[" && token[1] === "]") {
+    if (token === "[]") {
       continue
     }
     if (updated) {

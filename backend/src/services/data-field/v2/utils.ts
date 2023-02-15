@@ -112,12 +112,14 @@ export const getDataFieldDataFromProcessedData = (
   res.dataSection = splitPath[0] as DataSection
   let currDataPath = ""
   let updated = false
+  let arrayDepth = 0
   for (let i = 1; i < splitPath.length; i++) {
     const token = splitPath[i]
-    if (token.length > 1 && token[0] === "[" && token[1] === "]") {
-      const arrayDepth = token.split("[").length - 1
+    if (token === "[]") {
+      arrayDepth += 1
       res.arrayFields[currDataPath] = arrayDepth
     } else {
+      arrayDepth = 0
       if (updated) {
         currDataPath += `.${token}`
       } else {
