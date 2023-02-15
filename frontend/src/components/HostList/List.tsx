@@ -33,7 +33,8 @@ interface HostTableProps {
   setCurrentPage: (e: number) => void
   fetching: boolean
   setSelectedHosts: React.Dispatch<React.SetStateAction<string[]>>
-  setParams: (newParams: GetHostParams, replace?: boolean) => void
+  setParams: (t: (e: GetHostParams) => GetHostParams) => void
+  params: GetHostParams
 }
 
 interface TableLoaderProps {
@@ -56,6 +57,7 @@ const TableLoader: React.FC<TableLoaderProps> = ({
       name: "Endpoints",
       id: "endpoints",
       grow: 4,
+      right: true,
     },
     {
       name: "",
@@ -96,6 +98,7 @@ const List: React.FC<HostTableProps> = React.memo(
     setCurrentPage,
     setSelectedHosts,
     setParams,
+    params,
   }) => {
     const router = useRouter()
     const colorMode = useColorMode()
@@ -108,21 +111,22 @@ const List: React.FC<HostTableProps> = React.memo(
       }
     }
 
-    const handleSort = (column, sortDirection: string) => {
+    const handleSort = async (column, sortDirection: string) => {
       switch (column.id) {
         case "host":
-          setParams({
+          setParams(old => ({
+            ...old,
             sortOrder: sortDirection.toUpperCase() as SortOrder,
             sortBy: HostSortOptions.HOST,
-            offset: 0,
-          })
+          }))
           break
-        case "endpoints":
-          setParams({
+        case "numEndpoints":
+          setParams(old => ({
+            ...old,
             sortOrder: sortDirection.toUpperCase() as SortOrder,
             sortBy: HostSortOptions.NUM_ENDPOINTS,
-            offset: 0,
-          })
+          }))
+          break
         default:
       }
     }
@@ -147,7 +151,7 @@ const List: React.FC<HostTableProps> = React.memo(
         cell: (row: HostResponse) => (
           <Text color="gray.900">{row.numEndpoints}</Text>
         ),
-        id: "endpoints",
+        id: "numEndpoints",
         right: true,
         grow: 4,
       },
@@ -183,10 +187,6 @@ const List: React.FC<HostTableProps> = React.memo(
         paginationTotalRows={totalCount}
         paginationServer
         onChangePage={setCurrentPage}
-        progressPending={fetching}
-        progressComponent={
-          <TableLoader currentPage={currentPage} totalCount={totalCount} />
-        }
         columns={columns}
         data={hosts}
         customStyles={getCustomStyles(colorMode.colorMode, false, true)}
@@ -198,6 +198,8 @@ const List: React.FC<HostTableProps> = React.memo(
         onSelectedRowsChange={handleRowSelect}
         selectableRowsHighlight
         sortServer
+        defaultSortFieldId={params.sortBy}
+        defaultSortAsc={params.sortOrder === SortOrder.ASC}
       />
     )
 
