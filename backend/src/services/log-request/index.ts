@@ -71,6 +71,7 @@ export class LogRequestService {
         TRACES_QUEUE,
         JSON.stringify({
           ctx,
+          version: 1,
           trace: apiTraceObj,
         }),
       )

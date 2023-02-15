@@ -7,13 +7,16 @@ import { AppDataSource } from "data-source"
 import { verifyApiKeyMiddleware } from "middleware/verify-api-key-middleware"
 import { bodyParserMiddleware } from "middleware/body-parser-middleware"
 import { MetloRequest } from "types"
-import registerLoggingRoutes, {
+import {
+  registerLoggingRoutes,
+  registerLoggingRoutesV2,
   registerVerificationRoutes,
 } from "api/collector"
 
 const app: Express = express()
 const port = process.env.PORT || 8081
 const router = express.Router()
+const routerV2 = express.Router()
 
 app.disable("x-powered-by")
 app.use(async (req: MetloRequest, res, next) => {
@@ -29,10 +32,12 @@ app.use(express.json({ limit: "2mb" }))
 app.use(express.urlencoded({ limit: "2mb", extended: true }))
 app.use(verifyApiKeyMiddleware)
 app.use("/api/v1", router)
+app.use("/api/v2", routerV2)
 registerVerificationRoutes(router)
 app.use(bodyParserMiddleware)
 
 registerLoggingRoutes(router)
+registerLoggingRoutesV2(routerV2)
 
 const main = async () => {
   try {
