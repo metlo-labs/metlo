@@ -1,7 +1,15 @@
 import { GetServerSideProps } from "next"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import superjson from "superjson"
-import { Box, Badge, Heading, HStack, VStack, Stack } from "@chakra-ui/react"
+import {
+  Box,
+  Badge,
+  Heading,
+  HStack,
+  VStack,
+  Stack,
+  useToast,
+} from "@chakra-ui/react"
 import { getHostsGraph, getHostsList } from "api/endpoints"
 import { HostGraph, HostResponse } from "@common/types"
 import { GetHostParams } from "@common/api/endpoint"
@@ -13,9 +21,12 @@ import HostGraphComponent from "components/HostsGraph"
 import { useRouter } from "next/router"
 import { HostsTab } from "enums"
 import { HostSortOptions, SortOrder } from "@common/enums"
+import { makeToast } from "utils"
+import { formatMetloAPIErr, MetloAPIErr } from "api/utils"
 
-const Hosts = ({ hosts, hostsGraph, totalCount, params }) => {
+const Hosts = ({ initHosts, initHostsGraph, initTotalCount, initParams }) => {
   const router = useRouter()
+  const toast = useToast()
   const { tab } = router.query
 
   const getTab = () => {
@@ -30,30 +41,55 @@ const Hosts = ({ hosts, hostsGraph, totalCount, params }) => {
   }
 
   const isGraph = getTab() === 1
-  const parsedHosts = superjson.parse<HostResponse[]>(hosts)
-  const parsedHostsGraph = superjson.parse<HostGraph>(hostsGraph)
-  const parsedParams = superjson.parse<GetHostParams>(params)
+  const parsedInitHosts = superjson.parse<HostResponse[]>(initHosts)
+  const parsedInitHostsGraph = superjson.parse<HostGraph>(initHostsGraph)
+  const parsedInitParams = superjson.parse<GetHostParams>(initParams)
+
+  const [hosts, setHosts] = useState<HostResponse[]>(parsedInitHosts)
+  const [hostsGraph, setHostsGraph] = useState<HostGraph>(parsedInitHostsGraph)
+  const [params, setParamsInner] = useState<GetHostParams>(parsedInitParams)
+  const [totalCount, setTotalCount] = useState<number>(initTotalCount)
 
   const [fetching, setFetching] = useState<boolean>(false)
 
-  const setParams = (newParams: GetHostParams, replace?: boolean) => {
+  const fetchHostsResp = async (fetchParams: GetHostParams) => {
     setFetching(true)
-    newParams = { ...parsedParams, ...newParams }
-    if (replace) {
-      router.replace({
-        query: {
-          ...newParams,
-        },
-      })
-    } else {
-      router.push({
-        query: {
-          ...newParams,
-        },
-      })
+    try {
+      const resp = await getHostsList(fetchParams)
+      setHosts(resp[0])
+      setTotalCount(resp[1])
+    } catch (err) {
+      toast(
+        makeToast({
+          title: "Fetching hosts failed...",
+          status: "error",
+          description: formatMetloAPIErr(err.response.data as MetloAPIErr),
+        }),
+      )
+    } finally {
+      setFetching(false)
     }
-    setFetching(false)
   }
+
+  const setParams = (t: (e: GetHostParams) => GetHostParams) => {
+    setParamsInner(t)
+  }
+
+  useEffect(() => {
+    fetchHostsResp(params)
+    router.push(
+      {
+        query: {
+          ...params,
+        },
+      },
+      undefined,
+      { shallow: true },
+    )
+    window.onpopstate = () => {
+      router.reload()
+    }
+  }, [params])
 
   const setTab = (newTab: HostsTab) => {
     router.push(newTab ? { query: { tab: newTab } } : {}, undefined, {
@@ -120,7 +156,7 @@ const Hosts = ({ hosts, hostsGraph, totalCount, params }) => {
           </Stack>
           {isGraph ? (
             <Box flex="1" w="full">
-              <HostGraphComponent {...parsedHostsGraph} />
+              <HostGraphComponent {...hostsGraph} />
             </Box>
           ) : (
             <Box
@@ -129,10 +165,10 @@ const Hosts = ({ hosts, hostsGraph, totalCount, params }) => {
               pb={{ base: "0", md: "8" }}
             >
               <HostList
-                hosts={parsedHosts}
+                hosts={hosts}
                 fetching={fetching}
                 totalCount={totalCount}
-                params={parsedParams}
+                params={params}
                 setParams={setParams}
               />
             </Box>
@@ -159,10 +195,10 @@ export const getServerSideProps: GetServerSideProps = async context => {
   const totalCount = hostsResp[1]
   return {
     props: {
-      hosts: superjson.stringify(hosts),
-      hostsGraph: superjson.stringify(hostsGraph),
-      totalCount: totalCount,
-      params: superjson.stringify(params),
+      initHosts: superjson.stringify(hosts),
+      initHostsGraph: superjson.stringify(hostsGraph),
+      initTotalCount: totalCount,
+      initParams: superjson.stringify(params),
     },
   }
 }

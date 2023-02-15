@@ -23,7 +23,7 @@ import { formatMetloAPIErr, MetloAPIErr } from "api/utils"
 
 interface HostFilterProps {
   params: GetHostParams
-  setParams: (newParams: GetHostParams, replace?: boolean) => void
+  setParams: (t: (e: GetHostParams) => GetHostParams) => void
   selectedHosts: string[]
   setSelectedHosts: React.Dispatch<React.SetStateAction<string[]>>
 }
@@ -31,10 +31,11 @@ interface HostFilterProps {
 const HostFilters: React.FC<HostFilterProps> = React.memo(
   ({ params, setParams, selectedHosts, setSelectedHosts }) => {
     const setSearchQuery = (val: string) => {
-      setParams({
+      setParams(old => ({
+        ...old,
         searchQuery: val,
         offset: 0,
-      })
+      }))
     }
     const [tmpQuery, setTmpQuery] = useState<string>(params.searchQuery)
     const debounceSearch = useMemo(
@@ -66,12 +67,10 @@ const HostFilters: React.FC<HostFilterProps> = React.memo(
           }),
         )
         setSelectedHosts([])
-        setParams(
-          {
-            offset: 0,
-          },
-          true,
-        )
+        setParams(old => ({
+          ...old,
+          offset: 0,
+        }))
       } catch (err) {
         toast(
           makeToast({
