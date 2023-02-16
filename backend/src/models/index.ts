@@ -13,6 +13,7 @@ import { AuthenticationConfig } from "./authentication-config"
 import { AggregateTraceDataHourly } from "./aggregate-trace-data-hourly"
 import { Attack } from "./attack"
 import { Webhook } from "./webhook"
+import { TestingConfig } from "./testing-config"
 
 export type DatabaseModel =
   | ApiEndpoint
@@ -30,6 +31,7 @@ export type DatabaseModel =
   | AggregateTraceDataHourly
   | Attack
   | Webhook
+  | TestingConfig
 
 export {
   ApiEndpoint,
@@ -47,4 +49,5 @@ export {
   AggregateTraceDataHourly,
   Attack,
   Webhook,
+  TestingConfig,
 }

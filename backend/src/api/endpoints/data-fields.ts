@@ -1,14 +1,19 @@
 import { Response } from "express"
 import { updateDataClasses, deleteDataField } from "services/data-field"
-import { UpdateDataFieldClassesParamsSchema } from "@common/api/endpoint"
+import {
+  UpdateDataFieldClassesParamsSchema,
+  UpdateDataFieldEntitySchema,
+} from "@common/api/endpoint"
 import ApiResponseHandler from "api-response-handler"
 import { GetEndpointsService } from "services/get-endpoints"
 import { MetloRequest } from "types"
 import { AppDataSource } from "data-source"
-import { createQB, getQB } from "services/database/utils"
+import { createQB, getEntityManager, getQB } from "services/database/utils"
 import { Alert, ApiEndpoint, DataField } from "models"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { AlertType, RiskScore } from "@common/enums"
+import { getEntityTagsCached } from "services/testing-config"
+import Error400BadRequest from "errors/error-400-bad-request"
 
 export const updateDataFieldClasses = async (
   req: MetloRequest,
@@ -133,5 +138,37 @@ export const clearAllSensitiveDataHandler = async (
     throw new Error500InternalServer(err)
   } finally {
     await queryRunner.release()
+  }
+}
+
+export const updateDataFieldEntityHandler = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
+  const { dataFieldId } = req.params
+  const parsedBody = UpdateDataFieldEntitySchema.safeParse(req.body)
+  if (parsedBody.success === false) {
+    return await ApiResponseHandler.zerr(res, parsedBody.error)
+  }
+  try {
+    const { entity } = parsedBody.data
+    const entityTags = await getEntityTagsCached(req.ctx)
+    if (entity && !entityTags.includes(entity)) {
+      throw new Error400BadRequest(`${entity} is not a valid entity.`)
+    }
+    const queryRunner = AppDataSource.createQueryRunner()
+    await queryRunner.connect()
+    await getQB(req.ctx, queryRunner)
+      .update(DataField)
+      .set({ entity: entity })
+      .andWhere("uuid = :id", { id: dataFieldId })
+      .execute()
+    const updatedDataField = await getEntityManager(
+      req.ctx,
+      queryRunner,
+    ).findOneBy(DataField, { uuid: dataFieldId })
+    await ApiResponseHandler.success(res, updatedDataField)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
   }
 }

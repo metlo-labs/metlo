@@ -10,6 +10,7 @@ import {
   useToast,
   Button,
 } from "@chakra-ui/react"
+import { Select } from "chakra-react-select"
 import { DataClass, DataField } from "@common/types"
 import { RISK_TO_COLOR, TAG_TO_COLOR } from "~/constants"
 import {
@@ -18,10 +19,15 @@ import {
   getRiskScores,
   makeToast,
 } from "utils"
-import { deleteDataField, updateDataFieldClasses } from "api/dataFields"
+import {
+  deleteDataField,
+  updateDataFieldClasses,
+  updateDataFieldEntity,
+} from "api/dataFields"
 import { RiskScore } from "@common/enums"
 import { DataFieldTagList } from "./DataFieldTags"
 import { statusCodeToColor } from "components/utils/StatusCode"
+import { formatMetloAPIErr, MetloAPIErr } from "api/utils"
 
 interface DataFieldDetailProps {
   dataField: DataField
@@ -29,6 +35,7 @@ interface DataFieldDetailProps {
   dataClasses: DataClass[]
   setdataFieldList: React.Dispatch<React.SetStateAction<DataField[]>>
   setDataField: (value: React.SetStateAction<DataField>) => void
+  entityTags: string[]
 }
 
 const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
@@ -38,6 +45,7 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
     dataClasses,
     setdataFieldList,
     setDataField,
+    entityTags,
   }) => {
     const toast = useToast()
     const [currDataField, setCurrDataField] = useState<DataField>(dataField)
@@ -48,6 +56,7 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
       setCurrDataField(dataField)
     }, [dataField])
 
+    console.log(currDataField)
     useEffect(
       (...rest) => {
         setRiskScore(
@@ -116,6 +125,24 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
           )
         })
         .finally(() => setUpdating(false))
+    }
+
+    const handleUpdateEntity = async (entity: string) => {
+      try {
+        const resp = await updateDataFieldEntity(currDataField.uuid, entity)
+        setCurrDataField(resp)
+        setdataFieldList(
+          dataFieldList.map(e => (e.uuid === resp.uuid ? resp : e)),
+        )
+      } catch (err) {
+        toast(
+          makeToast({
+            title: "Entity Update failed",
+            status: "error",
+            description: formatMetloAPIErr(err.response.data as MetloAPIErr),
+          }),
+        )
+      }
     }
 
     return (
@@ -216,16 +243,48 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
             </GridItem>
           )}
         </Grid>
-        <VStack w="full" pt="4" spacing="4" alignItems="flex-start">
-          <Text w="full" fontWeight="semibold">
-            Sensitive Data Classes
-          </Text>
-          <DataFieldTagList
-            tags={currDataField.dataClasses}
-            updateTags={handleUpdateTags}
-            updating={updating}
-            dataClasses={dataClasses}
-          />
+        <VStack w="full" pt="8" spacing="8" alignItems="flex-start">
+          <VStack w="full" spacing="4" alignItems="flex-start">
+            <Text w="full" fontWeight="semibold">
+              Sensitive Data Classes
+            </Text>
+            <DataFieldTagList
+              tags={currDataField.dataClasses}
+              updateTags={handleUpdateTags}
+              updating={updating}
+              dataClasses={dataClasses}
+            />
+          </VStack>
+          <VStack w="full" spacing="4" alignItems="flex-start">
+            <Text w="full" fontWeight="semibold">
+              Entity
+            </Text>
+            <Box w="full">
+              <Select
+                value={
+                  currDataField.entity
+                    ? {
+                        label: currDataField.entity,
+                        value: currDataField.entity,
+                      }
+                    : { label: "-- Select an Entity --", value: null }
+                }
+                className="chakra-react-select"
+                size="sm"
+                options={[
+                  { label: "-- Select an Entity --", value: null },
+                ].concat(
+                  entityTags.map(e => ({
+                    label: e,
+                    value: e,
+                  })),
+                )}
+                onChange={e => handleUpdateEntity(e.value)}
+                placeholder=""
+                instanceId="entity-tags-select"
+              />
+            </Box>
+          </VStack>
         </VStack>
         <Box mt="10" pt="4" borderTopWidth={1} w="full" textAlign="end">
           <Button

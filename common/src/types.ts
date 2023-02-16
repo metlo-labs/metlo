@@ -171,6 +171,7 @@ export interface DataField {
   contentType: string
   isNullable: boolean
   arrayFields: Record<string, number>
+  entity: string
 }
 
 export interface ApiEndpoint {
@@ -199,6 +200,7 @@ export interface ApiEndpointDetailed extends ApiEndpoint {
   tests: any[]
   dataFields: DataField[]
   globalFullTraceCapture?: boolean
+  resourcePermissions: string[]
 }
 
 export interface HostResponse {
@@ -413,4 +415,9 @@ export interface DataClass {
   className: string
   severity: RiskScore
   regex?: string
+}
+
+export interface TestingConfigResp {
+  uuid: string
+  configString: string
 }

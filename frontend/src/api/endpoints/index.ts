@@ -180,3 +180,15 @@ export const updateFullTraceCaptureEnabled = async (
     { headers },
   )
 }
+
+export const updateResourcePermissions = async (
+  endpointId: string,
+  resourcePermissions: string[],
+  headers?: AxiosRequestHeaders,
+): Promise<void> => {
+  await axios.put(
+    `${getAPIURL()}/endpoint/${endpointId}/resource-permissions`,
+    { resourcePermissions },
+    { headers },
+  )
+}

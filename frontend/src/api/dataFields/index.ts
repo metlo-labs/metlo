@@ -44,3 +44,16 @@ export const clearAllDataFields = async (
   })
   return resp.data
 }
+
+export const updateDataFieldEntity = async (
+  dataFieldId: string,
+  entity: string,
+  headers?: AxiosRequestHeaders,
+): Promise<DataField> => {
+  const resp = await axios.put<DataField>(
+    `${getAPIURL()}/data-field/${dataFieldId}/update-entity`,
+    { entity },
+    { headers },
+  )
+  return resp.data
+}

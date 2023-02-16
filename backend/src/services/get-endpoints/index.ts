@@ -1,5 +1,5 @@
 import mlog from "logger"
-import { QueryRunner } from "typeorm"
+import { QueryRunner, UpdateResult } from "typeorm"
 import { AppDataSource } from "data-source"
 import {
   ApiEndpoint,
@@ -34,33 +34,8 @@ import { MetloContext } from "types"
 import { retryTypeormTransaction } from "utils/db"
 import { RedisClient } from "utils/redis"
 import { getGlobalFullTraceCaptureCached } from "services/metlo-config"
-
-const getDataFieldsQuery = (ctx: MetloContext) => `
-SELECT
-  uuid,
-  "dataClasses"::text[],
-  "falsePositives"::text[],
-  "scannerIdentified"::text[],
-  "dataType",
-  "dataTag",
-  "dataSection",
-  "createdAt",
-  "updatedAt",
-  "dataPath",
-  "apiEndpointUuid",
-  "statusCode",
-  "contentType",
-  "arrayFields",
-  "isNullable"
-FROM ${DataField.getTableName(ctx)} data_field 
-WHERE
-  "apiEndpointUuid" = $1
-ORDER BY
-  "dataTag" ASC,
-  "statusCode" ASC,
-  "contentType" ASC,
-  "dataPath" ASC
-`
+import { getResourcePermissionsCached } from "services/testing-config"
+import Error400BadRequest from "errors/error-400-bad-request"
 
 export class GetEndpointsService {
   static async deleteEndpoint(
@@ -348,6 +323,40 @@ export class GetEndpointsService {
       .execute()
   }
 
+  static async updateResourcePermissions(
+    ctx: MetloContext,
+    apiEndpointUuid: string,
+    resourcePermissions: string[],
+  ): Promise<void> {
+    const validResourcePermissions = await getResourcePermissionsCached(ctx)
+    for (const resourcePermission of resourcePermissions) {
+      if (!validResourcePermissions.includes(resourcePermission)) {
+        throw new Error400BadRequest(
+          `${resourcePermission} is not a valid resource permission.`,
+        )
+      }
+    }
+    const queryRunner = AppDataSource.createQueryRunner()
+    try {
+      await queryRunner.connect()
+      const endpoint = await getRepoQB(ctx, ApiEndpoint)
+        .andWhere("uuid = :id", { id: apiEndpointUuid })
+        .getRawOne()
+      if (!endpoint) {
+        throw new Error404NotFound("Endpoint does not exist.")
+      }
+      await getQB(ctx, queryRunner)
+        .update(ApiEndpoint)
+        .set({ resourcePermissions })
+        .andWhere("uuid = :id", { id: apiEndpointUuid })
+        .execute()
+    } catch (err) {
+      throw err
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
   static async updateEndpointRiskScore(
     ctx: MetloContext,
     apiEndpointUuid: string,
@@ -457,10 +466,14 @@ export class GetEndpointsService {
         .from(Alert, "alert")
         .andWhere(`"apiEndpointUuid" = :id`, { id: endpointId })
         .getRawMany()
-      const dataFields: DataField[] = await queryRunner.query(
-        getDataFieldsQuery(ctx),
-        [endpointId],
-      )
+      const dataFields: DataField[] = await getQB(ctx, queryRunner)
+        .from(DataField, "data_field")
+        .andWhere(`"apiEndpointUuid" = :id`, { id: endpointId })
+        .orderBy(`"dataTag"`, "ASC")
+        .addOrderBy(`"statusCode"`, "ASC")
+        .addOrderBy(`"contentType"`, "ASC")
+        .addOrderBy(`"dataPath"`, "ASC")
+        .getRawMany()
       const openapiSpec = await getQB(ctx, queryRunner)
         .from(OpenApiSpec, "spec")
         .andWhere("name = :name", { name: endpoint.openapiSpecName })

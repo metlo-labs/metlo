@@ -98,6 +98,9 @@ export class ApiEndpoint extends MetloBaseEntity {
   @Column({ type: "bool", nullable: false, default: false })
   fullTraceCaptureEnabled: boolean
 
+  @Column({ type: "varchar", array: true, default: [] })
+  resourcePermissions: string[]
+
   addNumberParams() {
     if (this.path) {
       const pathTokens = getPathTokens(this.path)

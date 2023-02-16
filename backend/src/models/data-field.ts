@@ -99,6 +99,9 @@ export class DataField extends MetloBaseEntity {
   @Column({ type: "jsonb", nullable: false, default: {} })
   matches: Record<string, string[]>
 
+  @Column({ nullable: true })
+  entity: string
+
   @Column({ nullable: false })
   @Index("apiEndpointUuid_data_field")
   apiEndpointUuid: string
