@@ -2,6 +2,7 @@ import { __DataClass_INTERNAL__ } from "@common/enums"
 import {
   AADHAR_REGEXP,
   ADDRESS_REGEXP,
+  BRAZIL_CPF_REGEXP,
   COORDINATE_REGEXP,
   CREDIT_CARD_REGEXP,
   EMAIL_REGEXP,
@@ -10,7 +11,7 @@ import {
   SSN_REGEXP,
 } from "services/scanner/regexp"
 import { DataClass } from "@common/types"
-import { validateAadhar } from "./validate"
+import { validateAadhar, validateBrazilCPF } from "./validate"
 
 export const __DATA_CLASS_REGEX_MAP_INTERNAL__ = {
   [__DataClass_INTERNAL__.ADDRESS]: ADDRESS_REGEXP,
@@ -21,6 +22,7 @@ export const __DATA_CLASS_REGEX_MAP_INTERNAL__ = {
   [__DataClass_INTERNAL__.PHONE_NUMBER]: PHONE_NUMBER_REGEXP,
   [__DataClass_INTERNAL__.SSN]: SSN_REGEXP,
   [__DataClass_INTERNAL__.AADHAR_NUMBER]: AADHAR_REGEXP,
+  [__DataClass_INTERNAL__.BRAZIL_CPF]: BRAZIL_CPF_REGEXP,
 }
 
 const STRING_ONLY_DATA_CLASSES: Set<string> = new Set([
@@ -34,6 +36,7 @@ const STRING_ONLY_DATA_CLASSES: Set<string> = new Set([
 
 export const VALIDATION_FUNC_MAP: Record<any, (e: string) => boolean> = {
   [__DataClass_INTERNAL__.AADHAR_NUMBER]: validateAadhar,
+  [__DataClass_INTERNAL__.BRAZIL_CPF]: validateBrazilCPF,
 }
 
 export const scan = (text: any, dataClasses: DataClass[]): string[] => {

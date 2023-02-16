@@ -39,3 +39,29 @@ export const validateAadhar = (e: string): boolean => {
   }
   return AADHAR_INV[c] == checksum
 }
+
+export const cpfVerifierDigit = (ls: number[]): number => {
+  const modulus = ls.length + 1
+  const multiplied = ls.map((number, index) => number * (modulus - index))
+  const mod = multiplied.reduce((buffer, number) => buffer + number) % 11
+  return mod < 2 ? 0 : 11 - mod
+}
+
+export const validateBrazilCPF = (e: string): boolean => {
+  const sanitizedText = e.replace(/[^0-9]/g, "")
+  if (sanitizedText.length != 11) {
+    return false
+  }
+
+  const ls = sanitizedText.split("").map(e => parseInt(e))
+  const checksumDigit2 = ls.pop()
+  const checksumDigit1 = ls.pop()
+
+  const realChecksumDigit1 = cpfVerifierDigit(ls)
+  ls.push(realChecksumDigit1)
+  const realChecksumDigit2 = cpfVerifierDigit(ls)
+
+  return (
+    realChecksumDigit1 == checksumDigit1 && realChecksumDigit2 == checksumDigit2
+  )
+}

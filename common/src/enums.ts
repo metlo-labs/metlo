@@ -35,6 +35,7 @@ export enum __DataClass_INTERNAL__ {
   DOB = "Date of Birth",
   DL_NUMBER = "Driver License Number",
   AADHAR_NUMBER = "Aadhar Number",
+  BRAZIL_CPF = "Brazil CPF",
 }
 
 export enum DataTag {
