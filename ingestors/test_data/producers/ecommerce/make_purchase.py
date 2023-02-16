@@ -38,7 +38,7 @@ class EcommerceMakePurchaseProducer(BaseProducer):
         req_body = {
             "cart_uuid": cart_uuid,
             "name": self.fake.name(),
-            "ccn": "648.064.371-23",
+            "ccn": ccn,
             "cc_exp": self.fake.credit_card_expire(),
             "cc_code": self.fake.credit_card_security_code(),
             "address": self.fake.address(),
