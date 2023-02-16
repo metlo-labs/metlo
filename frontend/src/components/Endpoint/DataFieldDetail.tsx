@@ -56,7 +56,6 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
       setCurrDataField(dataField)
     }, [dataField])
 
-    console.log(currDataField)
     useEffect(
       (...rest) => {
         setRiskScore(
