@@ -24,7 +24,7 @@ import { createNewEndpointAlert } from "services/alert/new-endpoint"
 import { getSensitiveDataMap } from "services/scanner/v2/analyze-trace"
 import { getCombinedDataClassesCached } from "services/data-classes"
 import { findOpenApiSpecDiff } from "services/spec/v2"
-import { shouldUpdateEndpoint } from "analyze-traces"
+import { shouldUpdateEndpoint, updateDataFields } from "analyze-traces"
 
 export const analyze = async (
   ctx: MetloContext,
@@ -61,7 +61,7 @@ export const analyze = async (
   const start3 = performance.now()
   const dataFieldAlerts = await createDataFieldAlerts(
     ctx,
-    dataFields.newFields.concat(dataFields.updatedFields),
+    dataFields,
     apiEndpoint.uuid,
     apiTrace,
     queryRunner,
@@ -104,8 +104,16 @@ export const analyze = async (
   )
   mlog.debug(`Analyzing Trace - Populated Sensitive Data: ${traceUUID}`)
 
-  const start4 = performance.now()
   await queryRunner.startTransaction()
+  const startUpdateDataFields = performance.now()
+  await updateDataFields(ctx, dataFields, queryRunner)
+  mlog.time(
+    "analyzer.update_data_fields_query",
+    performance.now() - startUpdateDataFields,
+  )
+  mlog.debug(`Analyzing Trace - Updated Data Fields: ${traceUUID}`)
+
+  const start4 = performance.now()
   const traceRes = await retryTypeormTransaction(
     () =>
       getEntityManager(ctx, queryRunner).insert(ApiTrace, [filteredApiTrace]),
@@ -130,30 +138,6 @@ export const analyze = async (
     performance.now() - startTraceRedis,
   )
   mlog.debug(`Analyzing Trace - Inserted API Trace to Redis: ${traceUUID}`)
-
-  const start5 = performance.now()
-  await retryTypeormTransaction(
-    () =>
-      insertValuesBuilder(ctx, queryRunner, DataField, dataFields.newFields)
-        .orIgnore()
-        .execute(),
-    5,
-  )
-  mlog.time("analyzer.insert_data_fields_query", performance.now() - start5)
-  mlog.debug(`Analyzing Trace - Inserted Data Fields: ${traceUUID}`)
-
-  const start6 = performance.now()
-  if (dataFields.updatedFields.length > 0) {
-    await retryTypeormTransaction(
-      () =>
-        getEntityManager(ctx, queryRunner).saveList<DataField>(
-          dataFields.updatedFields,
-        ),
-      5,
-    )
-  }
-  mlog.time("analyzer.update_data_fields_query", performance.now() - start6)
-  mlog.debug(`Analyzing Trace - Updated Data Fields: ${traceUUID}`)
 
   const start7 = performance.now()
   await retryTypeormTransaction(
