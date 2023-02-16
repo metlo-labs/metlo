@@ -133,11 +133,11 @@ const findAllDataFields = (
   )
 }
 
-export const findDataFieldsToSave = async (
+export const findDataFieldsToSave = (
   ctx: MetloContext,
   apiTrace: QueuedApiTrace,
   apiEndpoint: ApiEndpoint,
-) => {
+): DataField[] => {
   const traceHashObj: Record<string, Set<string>> = {
     [DataSection.REQUEST_HEADER]: new Set<string>([]),
     [DataSection.REQUEST_QUERY]: new Set<string>([]),
@@ -173,12 +173,11 @@ export const findDataFieldsToSave = async (
     .update(traceHashArray.join())
     .digest("base64")
   const currentTimestamp = apiTrace.createdAt.getTime()
-  const newDataFields: DataField[] = []
-  const updatedDataFields: DataField[] = []
+  const resDataFields: DataField[] = []
 
   for (const key in newDataFieldMap) {
     newDataFieldMap[key].traceHash = { [hash]: currentTimestamp }
-    newDataFields.push(newDataFieldMap[key])
+    resDataFields.push(newDataFieldMap[key])
   }
 
   for (const key in updatedDataFieldMap) {
@@ -190,11 +189,11 @@ export const findDataFieldsToSave = async (
         UPDATE_DATA_FIELD_TIME_THRESHOLD
     ) {
       currDataField.traceHash[hash] = currentTimestamp
-      updatedDataFields.push(currDataField)
+      resDataFields.push(currDataField)
     }
   }
 
   apiEndpoint.riskScore = getRiskScore(Object.values(currentDataFieldMap) ?? [])
 
-  return { newFields: newDataFields, updatedFields: updatedDataFields }
+  return resDataFields
 }
