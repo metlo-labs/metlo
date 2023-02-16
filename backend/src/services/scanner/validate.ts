@@ -23,11 +23,8 @@ const AADHAR_PERM = [
 const AADHAR_INV = [0, 4, 3, 2, 1, 5, 6, 7, 8, 9]
 
 export const validateAadhar = (e: string): boolean => {
-  const sanitizedText = e.replace(/ /g, "")
+  const sanitizedText = e.replace(/[^0-9]/g, "")
   if (sanitizedText.length != 12) {
-    return false
-  }
-  if (!sanitizedText.match(/^[\d]{12}$/)) {
     return false
   }
   const arr = sanitizedText.split("").map(e => parseInt(e))
