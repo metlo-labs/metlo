@@ -122,6 +122,9 @@ const vinPattern = String.raw`${boundaryPrefix}[A-HJ-NPR-Z0-9]{17}${boundarySuff
 // Aadhar number pattern
 const aadharPatern = String.raw`${boundaryPrefix}(([0-9]{12})|([0-9]{4} [0-9]{4} [0-9]{4}))${boundarySuffix}`
 
+// Brazil CPF Pattern
+const brazilCPFPattern = String.raw`${boundaryPrefix}([-\.\s]?(\d{3})){3}[-\.\s]?(\d{2})${boundarySuffix}`
+
 /*** Compiled Regexp ***/
 export const ADDRESS_REGEXP = new RegExp(addressPattern)
 export const DRIVER_LICENSE_REGEXP = new RegExp(driverLicensePattern)
@@ -134,3 +137,4 @@ export const SSN_REGEXP = new RegExp(ssnPattern)
 export const PHONE_NUMBER_REGEXP = new RegExp(phoneNumberPattern)
 export const VIN_REGEXP = new RegExp(vinPattern)
 export const AADHAR_REGEXP = new RegExp(aadharPatern)
+export const BRAZIL_CPF_REGEXP = new RegExp(brazilCPFPattern)
