@@ -123,10 +123,11 @@ const detectSensitiveDataEndpoint = async (
       }
       await getEntityManager(ctx, queryRunner).save(e)
     }
-    for (const dataClass of detectedFields) {
+    for (const dataClass of e.dataClasses) {
       const newAlerts = await createSensitiveDataAlerts(
         ctx,
         e,
+        dataClass,
         endpoint.uuid,
         endpoint.path,
         detectedData.dataClassToTrace[dataClass],
