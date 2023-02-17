@@ -33,6 +33,7 @@ type MetloArgs struct {
 	maxRps              int
 	runAsVxlan          bool
 	captureInterfaceRaw string
+	localProcess        *bool
 }
 
 var captureInterfaces []string
@@ -75,6 +76,11 @@ func main() {
 			Name:        "interface, i",
 			Usage:       "Comma separated list of interface(s) for Metlo to listen on",
 			Destination: &args.captureInterfaceRaw,
+		}, cli.BoolFlag{
+			Name:        "local-process, p",
+			Usage:       "Process trace data locally. Default true",
+			Required:    false,
+			Destination: args.localProcess,
 		},
 	}
 
@@ -135,6 +141,19 @@ func main() {
 				args.runAsVxlan = false
 			}
 		}
+		envLocalProcess := os.Getenv("METLO_LOCAL_PROCESS")
+		if args.localProcess == nil {
+			if envLocalProcess != "" {
+				local_process_enabled, err := strconv.ParseBool(envLocalProcess)
+				if err != nil {
+					local_process_enabled = true
+				}
+				args.localProcess = &local_process_enabled
+			} else {
+				local_process_enabled := true
+				args.localProcess = &local_process_enabled
+			}
+		}
 
 		ifaces, err := net.Interfaces()
 		if err != nil {
@@ -158,12 +177,13 @@ func main() {
 		}
 
 		utils.Log.WithFields(logrus.Fields{
-			"logLevel":  logLevel,
-			"apiKey":    truncatedAPIKey,
-			"metloHost": args.metloHost,
-			"maxRps":    args.maxRps,
-			"vxlan":     args.runAsVxlan,
-			"interface": captureInterfaces,
+			"logLevel":     logLevel,
+			"apiKey":       truncatedAPIKey,
+			"metloHost":    args.metloHost,
+			"maxRps":       args.maxRps,
+			"vxlan":        args.runAsVxlan,
+			"localProcess": *args.localProcess,
+			"interface":    captureInterfaces,
 		}).Info("Configuration")
 
 		if args.metloHost == "" {
@@ -176,7 +196,7 @@ func main() {
 			return fmt.Errorf("INVALID MAX RPS: %d. MUST BE BETWEEN 0 AND 300", args.maxRps)
 		}
 
-		metloAPI := metloapi.InitMetlo(args.metloHost, args.apiKey, args.maxRps)
+		metloAPI := metloapi.InitMetlo(args.metloHost, args.apiKey, args.maxRps, *args.localProcess)
 
 		if !args.runAsVxlan {
 			runLive(metloAPI, captureInterfaces)

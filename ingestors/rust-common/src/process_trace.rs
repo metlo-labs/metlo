@@ -61,7 +61,7 @@ fn process_json_val(
             insert_data_type(data_types, path, "null".to_string());
         }
         serde_json::Value::Bool(_) => {
-            insert_data_type(data_types, path, "bool".to_string());
+            insert_data_type(data_types, path, "boolean".to_string());
         }
         serde_json::Value::Number(_) => {
             insert_data_type(data_types, path, "number".to_string());
@@ -409,9 +409,13 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
         _ => false,
     };
     let proc_req_body = match non_error_status_code {
-        true => trace.request.body.as_ref().and_then(|e| {
-            process_body("reqBody".to_string(), e, req_mime_type.clone(), trace, None)
-        }),
+        true => process_body(
+            "reqBody".to_string(),
+            trace.request.body.as_str(),
+            req_mime_type.clone(),
+            trace,
+            None,
+        ),
         false => None,
     };
     let proc_req_params = match non_error_status_code {
@@ -439,6 +443,7 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
                     if is_endpoint_match(&split_path, endpoint.path.clone()) {
                         openapi_spec_name = endpoint.openapi_spec_name.to_owned();
                         full_trace_capture_enabled = endpoint.full_trace_capture_enabled;
+                        break;
                     }
                 }
             }
@@ -448,31 +453,30 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
     }
     drop(conf_read);
 
-    let mut proc_resp_body: Option<ProcessTraceRes> = None;
     let mut proc_resp_headers: Option<ProcessTraceRes> = None;
     let mut resp_content_type: Option<&String> = None;
-    if let Some(resp) = &trace.response {
-        proc_resp_headers = process_key_val("resHeaders".to_string(), &resp.headers);
-        resp_content_type = get_content_type(&resp.headers);
-        let resp_mime_type = get_mime_type(resp_content_type);
-        if let Some(resp_body) = &resp.body {
-            proc_resp_body = process_body(
+    let proc_resp_body: Option<ProcessTraceRes> = {
+        if let Some(resp) = &trace.response {
+            proc_resp_headers = process_key_val("resHeaders".to_string(), &resp.headers);
+            resp_content_type = get_content_type(&resp.headers);
+            let resp_mime_type = get_mime_type(resp_content_type);
+            process_body(
                 "resBody".to_string(),
-                resp_body,
+                &resp.body,
                 resp_mime_type,
                 trace,
                 openapi_spec_name,
-            );
+            )
+        } else {
+            process_body(
+                "resBody".to_string(),
+                "",
+                mime::TEXT_PLAIN,
+                trace,
+                openapi_spec_name,
+            )
         }
-    } else {
-        proc_resp_body = process_body(
-            "resBody".to_string(),
-            "",
-            mime::TEXT_PLAIN,
-            trace,
-            openapi_spec_name,
-        )
-    }
+    };
 
     (
         combine_process_trace_res(

@@ -19,14 +19,14 @@ pub struct ApiRequest {
     pub method: String,
     pub url: ApiUrl,
     pub headers: Vec<KeyVal>,
-    pub body: Option<String>,
+    pub body: String,
 }
 
 #[derive(Deserialize, Debug, Serialize)]
 pub struct ApiResponse {
     pub status: u16,
     pub headers: Vec<KeyVal>,
-    pub body: Option<String>,
+    pub body: String,
 }
 
 #[derive(Deserialize, Debug, Serialize)]

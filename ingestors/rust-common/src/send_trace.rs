@@ -28,7 +28,7 @@ async fn send_trace_inner(
                         method: trace.request.method,
                         url: trace.request.url,
                         headers: vec![],
-                        body: Some("".to_owned()),
+                        body: "".to_string(),
                     }
                 },
                 response: match trace.response {
@@ -39,7 +39,7 @@ async fn send_trace_inner(
                             Some(ApiResponse {
                                 status: r.status,
                                 headers: vec![],
-                                body: Some("".to_owned()),
+                                body: "".to_string(),
                             })
                         }
                     }

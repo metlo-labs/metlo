@@ -1,5 +1,5 @@
 use clap::Parser;
-use metlo_common_ingestor::{initialize_metlo, refresh_config, server};
+use metlo_agent::{initialize_metlo, refresh_config, server};
 use std::time::Duration;
 use tokio::time;
 

@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package metloingest;
+option go_package = "github.com/metlo-labs/metlo/ingestors/govxlan/metloingest";
 
 service MetloIngest {
     rpc ProcessTrace (ApiTrace) returns (ProcessTraceRes);
@@ -22,13 +23,13 @@ message ApiRequest {
     string method = 1;
     ApiUrl url = 2;
     repeated KeyVal headers = 3;
-    optional string body = 4;
+    string body = 4;
 }
 
 message ApiResponse {
     int32 status = 1;
     repeated KeyVal headers = 2;
-    optional string body = 3;
+    string body = 3;
 }
 
 message ApiMeta {

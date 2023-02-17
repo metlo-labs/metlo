@@ -164,7 +164,6 @@ pub async fn pull_metlo_config() -> Result<(), Box<dyn std::error::Error>> {
     let compiled_specs = compile_specs(resp.specs);
 
     let mut conf_write = METLO_CONFIG.write().await;
-    //conf_write.metlo_config = Some(resp);
     conf_write.sensitive_data = Some(new_sensitive_data);
     conf_write.endpoints = Some(resp.endpoints);
     conf_write.specs = Some(compiled_specs);
