@@ -68,8 +68,9 @@ export const getAgentConfigHandler = async (
   req: MetloRequest,
   res: Response,
 ): Promise<void> => {
+  const queryRunner = AppDataSource.createQueryRunner()
   try {
-    const queryRunner = AppDataSource.createQueryRunner()
+    await queryRunner.connect()
     const dataClassInfo = await getCombinedDataClassesCached(req.ctx)
     const endpointInfo = await getEntityManager(req.ctx, queryRunner).find(
       ApiEndpoint,
@@ -107,6 +108,8 @@ export const getAgentConfigHandler = async (
     })
   } catch (err) {
     await ApiResponseHandler.error(res, err)
+  } finally {
+    await queryRunner.release()
   }
 }
 
