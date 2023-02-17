@@ -23,10 +23,11 @@ RUN mv govxlan/metlo-pcap metlo-pcap
 FROM --platform=linux/amd64 alpine:3.17.0
 
 RUN apk update
-RUN apk add libpcap-dev libpcap
+RUN apk add bash libpcap-dev libpcap
 
 WORKDIR /app
+COPY ../../../deploy/metlo-daemon-agent/entrypoint.sh ./entrypoint.sh
 COPY --from=go-builder /app/metlo-pcap ./metlo-pcap
 COPY --from=rust-builder /app/metlo-agent ./metlo-agent
 
-ENTRYPOINT ["/app/metlo-pcap"]
+CMD ["/app/entrypoint.sh"]
