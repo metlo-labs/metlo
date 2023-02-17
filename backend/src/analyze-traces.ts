@@ -16,7 +16,11 @@ import { RiskScore } from "@common/enums"
 import { isGraphQlEndpoint } from "services/graphql"
 import { isQueryFailedError, retryTypeormTransaction } from "utils/db"
 import { MetloContext } from "types"
-import { getEntityManager, insertValueBuilder } from "services/database/utils"
+import {
+  getEntityManager,
+  insertValueBuilder,
+  insertValuesBuilder,
+} from "services/database/utils"
 import { analyze as analyzeV2 } from "services/analyze/v2"
 import { analyze } from "services/analyze/v1"
 import { getHostMapCached } from "services/metlo-config"
@@ -78,6 +82,73 @@ export const shouldUpdateEndpoint = (
     prevRiskScore !== apiEndpoint.riskScore ||
     apiEndpoint.lastActive.getTime() - prevLastActive.getTime() > 30_000
   )
+}
+
+export const updateDataFields = async (
+  ctx: MetloContext,
+  dataFields: DataField[],
+  queryRunner: QueryRunner,
+) => {
+  if (dataFields.length === 0) {
+    return
+  }
+  try {
+    await retryTypeormTransaction(
+      () =>
+        insertValuesBuilder(ctx, queryRunner, DataField, dataFields)
+          .orUpdate(
+            [
+              "dataClasses",
+              "scannerIdentified",
+              "falsePositives",
+              "dataType",
+              "dataTag",
+              "updatedAt",
+              "arrayFields",
+              "isNullable",
+              "traceHash",
+              "matches",
+            ],
+            [
+              "dataSection",
+              "dataPath",
+              "apiEndpointUuid",
+              "statusCode",
+              "contentType",
+            ],
+          )
+          .execute(),
+      5,
+    )
+  } catch (err) {
+    if (isQueryFailedError(err) && err.code === "23505") {
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction()
+      }
+      await queryRunner.startTransaction()
+      await insertValuesBuilder(ctx, queryRunner, DataField, dataFields)
+        .orUpdate(
+          [
+            "dataClasses",
+            "scannerIdentified",
+            "falsePositives",
+            "dataType",
+            "dataTag",
+            "updatedAt",
+            "arrayFields",
+            "isNullable",
+            "traceHash",
+            "matches",
+            "statusCode",
+            "contentType",
+          ],
+          ["uuid"],
+        )
+        .execute()
+    } else {
+      throw err
+    }
+  }
 }
 
 const generateEndpoint = async (
