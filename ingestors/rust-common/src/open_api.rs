@@ -13,6 +13,11 @@ pub struct CompiledSchema {
     schema: JSONSchema,
 }
 
+pub struct EndpointInfo {
+    pub openapi_spec_name: Option<String>,
+    pub endpoint_path: String,
+}
+
 pub type CompiledSpecs = HashMap<
     String,
     HashMap<String, HashMap<String, HashMap<String, HashMap<String, CompiledSchema>>>>,
@@ -214,11 +219,10 @@ fn get_compiled_schema<'a>(
 pub fn find_open_api_diff(
     trace: &ApiTrace,
     response_body: &Value,
-    openapi_spec_name: Option<String>,
+    endpoint_info: EndpointInfo,
 ) -> Option<HashMap<String, Vec<String>>> {
     let mut validation_errors: HashMap<String, Vec<String>> = HashMap::new();
-    if let (Some(resp), Some(s)) = (&trace.response, openapi_spec_name) {
-        let trace_path = &trace.request.url.path;
+    if let (Some(resp), Some(s)) = (&trace.response, endpoint_info.openapi_spec_name) {
         let trace_method = &trace.request.method;
         let trace_status_code = &resp.status.to_string();
         let trace_content_type = &resp
@@ -227,7 +231,7 @@ pub fn find_open_api_diff(
             .find(|e| e.name.to_lowercase() == "content-type")
             .map(|e| e.value.to_owned())
             .unwrap_or_default();
-        let split_path: Vec<&str> = get_split_path(trace_path);
+        let split_path: Vec<&str> = get_split_path(&endpoint_info.endpoint_path);
 
         let conf_read = METLO_CONFIG.try_read();
         let compiled_specs = match conf_read {
