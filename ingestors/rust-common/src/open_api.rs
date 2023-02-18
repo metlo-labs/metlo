@@ -57,9 +57,19 @@ pub fn compile_specs(specs: Vec<MetloSpec>) -> CompiledSpecs {
                             .unwrap_or(&serde_json::Map::default())
                             .iter()
                         {
+                            let (status_code_val, in_responses_schema) =
+                                match status_code_value.get("$ref") {
+                                    Some(Value::String(ref_string)) => (
+                                        components.pointer(&format!(
+                                            "/responses/{}/content",
+                                            ref_string.rsplit_once('/').unwrap().1
+                                        )),
+                                        true,
+                                    ),
+                                    _ => (status_code_value.get("content"), false),
+                                };
                             let mut content_type_specs = HashMap::new();
-                            for (content_type, content_type_value) in status_code_value
-                                .get("content")
+                            for (content_type, content_type_value) in status_code_val
                                 .unwrap_or(&serde_json::Value::default())
                                 .as_object()
                                 .unwrap_or(&serde_json::Map::default())
@@ -76,18 +86,25 @@ pub fn compile_specs(specs: Vec<MetloSpec>) -> CompiledSpecs {
                                         .with_draft(Draft::Draft7)
                                         .compile(&schema)
                                         .expect("A valid schema");
+                                    let mut path_pointer = vec![
+                                        "paths".to_owned(),
+                                        path.to_owned(),
+                                        method.to_owned(),
+                                        "responses".to_owned(),
+                                        status_code.to_owned(),
+                                    ];
                                     content_type_specs.insert(
                                         content_type_tmp,
                                         CompiledSchema {
-                                            path_pointer: vec![
-                                                "paths".to_owned(),
-                                                path.to_owned(),
-                                                method.to_owned(),
-                                                "responses".to_owned(),
-                                                status_code.to_owned(),
-                                                "content".to_owned(),
-                                                content_type.to_owned(),
-                                            ],
+                                            path_pointer: if in_responses_schema {
+                                                path_pointer
+                                            } else {
+                                                path_pointer.append(&mut vec![
+                                                    "content".to_owned(),
+                                                    content_type.to_owned(),
+                                                ]);
+                                                path_pointer
+                                            },
                                             schema: compiled_schema,
                                         },
                                     );
