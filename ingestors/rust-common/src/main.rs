@@ -94,16 +94,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let listen_socket = match args.listen_socket {
-        Some(socket) => Some(socket),
+        Some(socket) => socket,
         None => match env::var("LISTEN_SOCKET") {
-            Ok(s) => Some(s),
-            Err(_) => None,
+            Ok(s) => s,
+            Err(_) => "/tmp/metlo.sock".to_owned(),
         },
     };
-    if listen_socket.is_none() {
-        log::error!("No value passed for LISTEN_SOCKET. Set it via -s param or LISTEN_SOCKET in the environment");
-        return Ok(());
-    }
 
     let collector_port = match args.collector_port {
         Some(port) => Some(port),
@@ -146,7 +142,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             log::info!("Done Pulling Metlo Config");
         }
     });
-    server(&listen_socket.unwrap()).await?;
+    server(&listen_socket).await?;
 
     Ok(())
 }
