@@ -85,6 +85,9 @@ pub async fn send_api_trace(trace: ApiTrace, processed_trace: (ProcessTraceRes, 
                 "{}/api/v2/log-request/single",
                 conf.collector_url.clone().unwrap_or_default()
             );
+            let path = trace.request.url.path.clone();
+            let host = trace.request.url.host.clone();
+            let method = trace.request.method.clone();
             let global_full_trace_capture = conf.global_full_trace_capture || processed_trace.1;
             let resp = send_trace_inner(
                 &collector_log_endpoint.as_str(),
@@ -97,12 +100,17 @@ pub async fn send_api_trace(trace: ApiTrace, processed_trace: (ProcessTraceRes, 
             match resp {
                 Ok(LogTraceResp { ok, msg }) => {
                     if ok {
-                        println!("Successfully sent trace!")
+                        log::trace!(
+                            "Successfully sent trace: \nMethod{}\nHost{}\nPath{}",
+                            method,
+                            host,
+                            path,
+                        )
                     } else {
-                        println!("Failed to send trace: {}", msg.unwrap_or_default())
+                        log::debug!("Failed to send trace: {}", msg.unwrap_or_default())
                     }
                 }
-                Err(err) => println!("{}", err.to_string()),
+                Err(err) => log::debug!("{}", err.to_string()),
             }
         }
         _ => (),

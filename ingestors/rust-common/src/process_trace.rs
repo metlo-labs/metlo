@@ -182,7 +182,7 @@ fn process_json_string(
     match serde_json::from_str(body) {
         Ok(value) => process_json(prefix, value, trace, openapi_spec_name),
         Err(_) => {
-            println!("Invalid JSON");
+            log::trace!("Invalid JSON");
             None
         }
     }
@@ -219,7 +219,7 @@ fn process_url_encoded(
     match serde_urlencoded::from_str::<Value>(body) {
         Ok(value) => process_json(prefix, value, trace, openapi_spec_name),
         Err(_) => {
-            println!("Invalid URL Encoded string");
+            log::trace!("Invalid URL Encoded string");
             None
         }
     }

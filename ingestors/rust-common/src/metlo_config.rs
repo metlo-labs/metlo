@@ -119,7 +119,7 @@ pub async fn pull_metlo_config() -> Result<(), Box<dyn std::error::Error>> {
     drop(conf_read); // Drop read lock so we can get write lock later
 
     if backend_url.is_empty() || api_key.is_empty() {
-        println!("Metlo Not Initialized");
+        log::info!("Metlo Not Initialized");
         return Ok(());
     }
 
@@ -148,7 +148,7 @@ pub async fn pull_metlo_config() -> Result<(), Box<dyn std::error::Error>> {
                         })
                     }
                     Err(err) => {
-                        print!(
+                        log::debug!(
                             "Failed to Compile Regex \"{}\" - {}\n",
                             e.class_name,
                             err.to_string()

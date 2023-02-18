@@ -73,7 +73,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
     };
     if metlo_host.is_none() {
-        println!(
+        log::error!(
             "No value passed for METLO_HOST, Set it via -m param or METLO_HOST in the environment"
         );
         return Ok(());
@@ -87,7 +87,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
     };
     if api_key.is_none() {
-        println!(
+        log::error!(
             "No value passed for METLO_API_KEY. Set it via -a param or METLO_API_KEY in the environment"
         );
         return Ok(());
@@ -101,7 +101,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
     };
     if listen_socket.is_none() {
-        println!("No value passed for LISTEN_SOCKET. Set it via -s param or LISTEN_SOCKET in the environment");
+        log::error!("No value passed for LISTEN_SOCKET. Set it via -s param or LISTEN_SOCKET in the environment");
         return Ok(());
     }
 
@@ -129,21 +129,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .await?;
     if !init_res.ok {
         let msg = init_res.msg.unwrap_or_default();
-        println!("Failed to initialize Metlo:\n{}", msg);
+        log::error!("Failed to initialize Metlo:\n{}", msg);
         return Ok(());
     }
-    println!("Initialized Metlo");
+    log::info!("Initialized Metlo");
 
     tokio::task::spawn(async {
         let mut interval = time::interval(Duration::from_secs(60));
         loop {
             interval.tick().await;
-            println!("Pulling Metlo Config");
+            log::debug!("Pulling Metlo Config");
             let res = refresh_config().await;
             if let Err(e) = res {
-                println!("Error pulling metlo config: \n{}", e.to_string());
+                log::info!("Error pulling metlo config: \n{}", e.to_string());
             }
-            println!("Done Pulling Metlo Config");
+            log::debug!("Done Pulling Metlo Config");
         }
     });
     server(&listen_socket.unwrap()).await?;
