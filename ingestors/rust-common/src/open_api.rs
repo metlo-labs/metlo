@@ -197,8 +197,12 @@ fn get_compiled_schema<'a>(
     };
     let spec_status_code_map = match spec_method_map {
         Some(status_code_map) => {
+            let first_char = trace_status_code.chars().next().unwrap_or_default();
+            let status_code_range = format!("{}XX", first_char);
             if status_code_map.contains_key(trace_status_code) {
                 status_code_map.get(trace_status_code)
+            } else if status_code_map.contains_key(&status_code_range) {
+                status_code_map.get(&status_code_range)
             } else if status_code_map.contains_key("default") {
                 status_code_map.get("default")
             } else {
