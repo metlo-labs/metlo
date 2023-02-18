@@ -182,7 +182,7 @@ fn process_json_string(
     match serde_json::from_str(body) {
         Ok(value) => process_json(prefix, value, trace, openapi_spec_name),
         Err(_) => {
-            log::trace!("Invalid JSON");
+            log::debug!("Invalid JSON");
             None
         }
     }
@@ -219,7 +219,7 @@ fn process_url_encoded(
     match serde_urlencoded::from_str::<Value>(body) {
         Ok(value) => process_json(prefix, value, trace, openapi_spec_name),
         Err(_) => {
-            log::trace!("Invalid URL Encoded string");
+            log::debug!("Invalid URL Encoded string");
             None
         }
     }
@@ -434,16 +434,18 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
     match conf_read {
         Ok(ref conf) => match &conf.endpoints {
             Some(endpoints) => {
-                for endpoint in endpoints.iter() {
-                    if endpoint.host != trace.request.url.host
-                        || endpoint.method != trace.request.method
-                    {
-                        continue;
-                    }
-                    if is_endpoint_match(&split_path, endpoint.path.clone()) {
-                        openapi_spec_name = endpoint.openapi_spec_name.to_owned();
-                        full_trace_capture_enabled = endpoint.full_trace_capture_enabled;
-                        break;
+                let key = format!(
+                    "{}-{}",
+                    trace.request.url.host,
+                    trace.request.method.to_lowercase()
+                );
+                if let Some(matched_endpoints) = endpoints.get(&key) {
+                    for endpoint in matched_endpoints.iter() {
+                        if is_endpoint_match(&split_path, endpoint.path.clone()) {
+                            openapi_spec_name = endpoint.openapi_spec_name.to_owned();
+                            full_trace_capture_enabled = endpoint.full_trace_capture_enabled;
+                            break;
+                        }
                     }
                 }
             }
