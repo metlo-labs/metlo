@@ -81,14 +81,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let api_key = match args.api_key {
         Some(key) => Some(key),
-        None => match env::var("METLO_API_KEY") {
+        None => match env::var("METLO_KEY") {
             Ok(s) => Some(s),
             Err(_) => None,
         },
     };
     if api_key.is_none() {
         log::error!(
-            "No value passed for METLO_API_KEY. Set it via -a param or METLO_API_KEY in the environment"
+            "No value passed for METLO_KEY. Set it via -a param or METLO_KEY in the environment"
         );
         return Ok(());
     }
