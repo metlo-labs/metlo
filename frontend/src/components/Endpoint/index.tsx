@@ -52,7 +52,6 @@ interface EndpointPageProps {
   totalAlertsCount: number
   initAlertParams: GetAlertParams
   entityTags: string[]
-  resourcePermissions: string[]
 }
 
 const EndpointPage: React.FC<EndpointPageProps> = React.memo(
@@ -64,7 +63,6 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
     totalAlertsCount,
     initAlertParams,
     entityTags,
-    resourcePermissions,
   }) => {
     const router = useRouter()
     const headerColor = useColorModeValue(
@@ -222,11 +220,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
           >
             <TabPanel p="0" overflow={{ base: "initial", md: "auto" }} h="full">
               {getTab() === 0 && (
-                <EndpointOverview
-                  endpoint={endpoint}
-                  usage={usage}
-                  resourcePermissions={resourcePermissions}
-                />
+                <EndpointOverview endpoint={endpoint} usage={usage} />
               )}
             </TabPanel>
             <TabPanel p="0" h="full">

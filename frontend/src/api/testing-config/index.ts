@@ -35,13 +35,3 @@ export const getEntityTags = async (
   )
   return resp.data
 }
-
-export const getResourcePermissions = async (
-  headers?: AxiosRequestHeaders,
-): Promise<string[]> => {
-  const resp = await axios.get<string[]>(
-    `${getAPIURL()}/testing-config/resource-permissions`,
-    { headers },
-  )
-  return resp.data
-}

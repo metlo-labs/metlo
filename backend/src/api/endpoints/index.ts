@@ -4,7 +4,6 @@ import { GetEndpointsService } from "services/get-endpoints"
 import {
   GetEndpointParamsSchema,
   UpdateFullTraceCaptureEnabledSchema,
-  UpdateResourcePermissionsSchema,
 } from "@common/api/endpoint"
 import ApiResponseHandler from "api-response-handler"
 import Error404NotFound from "errors/error-404-not-found"
@@ -191,31 +190,6 @@ export const updatePathsHandler = async (
   }
 }
 
-const updateResourcePermissionsHandler = async (
-  req: MetloRequest,
-  res: Response,
-): Promise<void> => {
-  const { endpointId } = req.params
-  const parsedBody = UpdateResourcePermissionsSchema.safeParse(req.body)
-  if (parsedBody.success === false) {
-    return await ApiResponseHandler.zerr(res, parsedBody.error)
-  }
-  try {
-    if (!validator.isUUID(endpointId)) {
-      throw new Error404NotFound("Endpoint does not exist.")
-    }
-    const { resourcePermissions } = parsedBody.data
-    await GetEndpointsService.updateResourcePermissions(
-      req.ctx,
-      endpointId,
-      resourcePermissions,
-    )
-    await ApiResponseHandler.success(res)
-  } catch (err) {
-    await ApiResponseHandler.error(res, err)
-  }
-}
-
 export default function registerEndpointRoutes(router: Router) {
   router.get("/api/v1/endpoints/hosts", getHostsHandler)
   router.get("/api/v1/endpoints", getEndpointsHandler)
@@ -236,10 +210,6 @@ export default function registerEndpointRoutes(router: Router) {
   router.put(
     "/api/v1/endpoint/:endpointId/enable-full-trace-capture",
     updateEndpointFullTraceCaptureEnabled,
-  )
-  router.put(
-    "/api/v1/endpoint/:endpointId/resource-permissions",
-    updateResourcePermissionsHandler,
   )
   router.post("/api/v1/endpoint/:endpointId/update-paths", updatePathsHandler)
   router.post(

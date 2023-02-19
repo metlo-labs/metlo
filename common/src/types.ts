@@ -200,7 +200,6 @@ export interface ApiEndpointDetailed extends ApiEndpoint {
   tests: any[]
   dataFields: DataField[]
   globalFullTraceCapture?: boolean
-  resourcePermissions: string[]
 }
 
 export interface HostResponse {

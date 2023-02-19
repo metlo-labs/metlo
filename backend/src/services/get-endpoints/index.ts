@@ -34,7 +34,6 @@ import { MetloContext } from "types"
 import { retryTypeormTransaction } from "utils/db"
 import { RedisClient } from "utils/redis"
 import { getGlobalFullTraceCaptureCached } from "services/metlo-config"
-import { getResourcePermissionsCached } from "services/testing-config"
 import Error400BadRequest from "errors/error-400-bad-request"
 
 export class GetEndpointsService {
@@ -321,40 +320,6 @@ export class GetEndpointsService {
       .set({ fullTraceCaptureEnabled: enabled })
       .andWhere("uuid = :id", { id: apiEndpointUuid })
       .execute()
-  }
-
-  static async updateResourcePermissions(
-    ctx: MetloContext,
-    apiEndpointUuid: string,
-    resourcePermissions: string[],
-  ): Promise<void> {
-    const validResourcePermissions = await getResourcePermissionsCached(ctx)
-    for (const resourcePermission of resourcePermissions) {
-      if (!validResourcePermissions.includes(resourcePermission)) {
-        throw new Error400BadRequest(
-          `${resourcePermission} is not a valid resource permission.`,
-        )
-      }
-    }
-    const queryRunner = AppDataSource.createQueryRunner()
-    try {
-      await queryRunner.connect()
-      const endpoint = await getRepoQB(ctx, ApiEndpoint)
-        .andWhere("uuid = :id", { id: apiEndpointUuid })
-        .getRawOne()
-      if (!endpoint) {
-        throw new Error404NotFound("Endpoint does not exist.")
-      }
-      await getQB(ctx, queryRunner)
-        .update(ApiEndpoint)
-        .set({ resourcePermissions })
-        .andWhere("uuid = :id", { id: apiEndpointUuid })
-        .execute()
-    } catch (err) {
-      throw err
-    } finally {
-      await queryRunner.release()
-    }
   }
 
   static async updateEndpointRiskScore(

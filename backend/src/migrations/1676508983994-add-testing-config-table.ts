@@ -8,18 +8,12 @@ export class addTestingConfigTable1676508983994 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "data_field" ADD COLUMN IF NOT EXISTS "entity" varchar`,
     )
-    await queryRunner.query(
-      `ALTER TABLE "api_endpoint" ADD COLUMN IF NOT EXISTS "resourcePermissions" varchar array NOT NULL DEFAULT '{}'`,
-    )
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP TABLE IF EXISTS "testing_config"`)
     await queryRunner.query(
       `ALTER TABLE "data_field" DROP COLUMN IF EXISTS "entity"`,
-    )
-    await queryRunner.query(
-      `ALTER TABLE "api_endpoint" DROP COLUMN IF EXISTS "resourcePermissions"`,
     )
   }
 }

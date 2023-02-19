@@ -66,10 +66,3 @@ export const UpdateDataFieldEntitySchema = z.object({
 export type UpdateDataFieldEntityParams = z.infer<
   typeof UpdateDataFieldEntitySchema
 >
-
-export const UpdateResourcePermissionsSchema = z.object({
-  resourcePermissions: z.string().array(),
-})
-export type UpdateResourcePermissionsParams = z.infer<
-  typeof UpdateResourcePermissionsSchema
->

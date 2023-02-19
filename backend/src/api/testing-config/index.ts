@@ -3,7 +3,6 @@ import { MetloRequest } from "types"
 import ApiResponseHandler from "api-response-handler"
 import {
   getEntityTagsCached,
-  getResourcePermissionsCached,
   getTestingConfig,
   updateTestingConfig,
 } from "services/testing-config"
@@ -56,24 +55,8 @@ const getEntityTagsHandler = async (
   }
 }
 
-const getResourcePermissionsHandler = async (
-  req: MetloRequest,
-  res: Response,
-): Promise<void> => {
-  try {
-    const resourcePermissions = await getResourcePermissionsCached(req.ctx)
-    await ApiResponseHandler.success(res, resourcePermissions)
-  } catch (err) {
-    await ApiResponseHandler.error(res, err)
-  }
-}
-
 export default function registerTestingConfigRoutes(router: Router) {
   router.get("/api/v1/testing-config", getTestingConfigHandler)
   router.put("/api/v1/testing-config", updateTestingConfigHandler)
   router.get("/api/v1/testing-config/entity-tags", getEntityTagsHandler)
-  router.get(
-    "/api/v1/testing-config/resource-permissions",
-    getResourcePermissionsHandler,
-  )
 }

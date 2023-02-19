@@ -130,37 +130,3 @@ export const getEntityTagsCached = async (
   await RedisClient.addToRedis(ctx, "entityTagsCached", realRes, 60)
   return realRes
 }
-
-const getResourcePermissions = async (ctx: MetloContext): Promise<string[]> => {
-  const config = (await createQB(ctx)
-    .from(TestingConfig, "config")
-    .getRawOne()) as TestingConfig
-  if (!config) {
-    return []
-  }
-  const configObject = JSON.parse(config.configString)
-  const resources = configObject.resources as Record<string, any>
-  const resourcePermissions = new Set<string>()
-  for (const resourceName in resources) {
-    const permissions = resources[resourceName]?.permissions ?? []
-    for (const permission of permissions) {
-      resourcePermissions.add(`${resourceName}.${permission}`)
-    }
-  }
-  return [...resourcePermissions]
-}
-
-export const getResourcePermissionsCached = async (
-  ctx: MetloContext,
-): Promise<string[]> => {
-  const cacheRes: string[] | null = await RedisClient.getFromRedis(
-    ctx,
-    "resourcePermissionsCached",
-  )
-  if (cacheRes !== null) {
-    return cacheRes
-  }
-  const realRes = await getResourcePermissions(ctx)
-  await RedisClient.addToRedis(ctx, "resourcePermissionsCached", realRes, 60)
-  return realRes
-}
