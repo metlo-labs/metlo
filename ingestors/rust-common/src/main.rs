@@ -105,14 +105,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some(port) => Some(port),
         None => match env::var("COLLECTOR_PORT") {
             Ok(s) => Some(s.parse().unwrap()),
-            Err(_) => None,
+            Err(_) => Some(8081),
         },
     };
     let backend_port = match args.backend_port {
         Some(port) => Some(port),
         None => match env::var("BACKEND_PORT") {
             Ok(s) => Some(s.parse().unwrap()),
-            Err(_) => None,
+            Err(_) => Some(8080),
         },
     };
 
