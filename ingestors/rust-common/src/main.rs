@@ -1,6 +1,7 @@
 use clap::Parser;
 use lazy_static::lazy_static;
 use metlo_agent::{initialize_metlo, refresh_config, server};
+use reqwest::Url;
 use std::{collections::HashSet, env, time::Duration};
 use tokio::time;
 
@@ -66,18 +67,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
 
     let metlo_host = match args.metlo_host {
-        Some(host) => Some(host),
+        Some(host) => host,
         None => match env::var("METLO_HOST") {
-            Ok(s) => Some(s),
-            Err(_) => None,
+            Ok(s) => s,
+            Err(_) => {
+                log::error!(
+                    "No value passed for METLO_HOST, Set it via -m param or METLO_HOST in the environment"
+                );
+                return Ok(());
+            }
         },
     };
-    if metlo_host.is_none() {
-        log::error!(
-            "No value passed for METLO_HOST, Set it via -m param or METLO_HOST in the environment"
-        );
-        return Ok(());
-    }
+
+    let valid_host = match Url::parse(&metlo_host) {
+        Ok(url) => format!("{}://{}", url.scheme(), url.host_str().unwrap_or_default()),
+        Err(_) => {
+            log::error!("{} is not a valid host", metlo_host);
+            return Ok(());
+        }
+    };
 
     let api_key = match args.api_key {
         Some(key) => Some(key),
@@ -116,13 +124,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
     };
 
-    let init_res = initialize_metlo(
-        metlo_host.unwrap(),
-        api_key.unwrap(),
-        collector_port,
-        backend_port,
-    )
-    .await?;
+    let init_res =
+        initialize_metlo(valid_host, api_key.unwrap(), collector_port, backend_port).await?;
     if !init_res.ok {
         let msg = init_res.msg.unwrap_or_default();
         log::error!("Failed to initialize Metlo:\n{}", msg);
