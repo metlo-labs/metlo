@@ -30,6 +30,12 @@ ingestors/burp suite/gradle.properties
 ingestors/burp suite/target/
 ingestors/burp suite/build/
 
+ingestors/java/binary-govxlan/target/
+ingestors/java/binary-govxlan/src/main/resources/binaries/
+ingestors/java/binary-govxlan/src/main/resources/shared_objects/
+ingestors/java/binary-govxlan/src/test/
+ingestors/java/binary-govxlan/.idea/
+
 .meta/*
 ingestors/govxlan/govxlan
 testing/tmp_tests
