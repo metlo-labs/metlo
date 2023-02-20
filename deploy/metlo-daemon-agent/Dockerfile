@@ -1,7 +1,8 @@
-FROM --platform=linux/amd64 rust:buster AS rust-builder
+FROM --platform=linux/amd64 rust:alpine3.17 AS rust-builder
+ENV RUSTFLAGS="-C target-feature=-crt-static"
 
-RUN apt update
-RUN apt install -y protobuf-compiler libprotobuf-dev libclang-dev clang
+RUN apk update
+RUN apk add protoc musl-dev pkgconfig openssl-dev g++ bash autoconf automake libtool g++ make python3 clang-dev
 
 WORKDIR /app
 COPY ../../ingestors/rust-common/ rust-common
@@ -23,7 +24,7 @@ RUN mv govxlan/metlo-pcap metlo-pcap
 FROM --platform=linux/amd64 alpine:3.17.0
 
 RUN apk update
-RUN apk add bash libpcap-dev libpcap
+RUN apk add bash libpcap-dev libpcap openssl-dev libc6-compat libgcc
 
 WORKDIR /app
 COPY ../../../deploy/metlo-daemon-agent/entrypoint.sh ./entrypoint.sh
