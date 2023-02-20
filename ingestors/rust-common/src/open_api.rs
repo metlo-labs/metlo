@@ -1,5 +1,7 @@
 use jsonschema::ValidationError;
 use jsonschema::{Draft, JSONSchema};
+use lazy_static::lazy_static;
+use regex::Regex;
 use serde_json::{json, Value};
 use std::collections::HashMap;
 
@@ -25,6 +27,10 @@ pub type CompiledSpecs = HashMap<
 pub type CompiledSpecsSingle =
     HashMap<String, HashMap<String, HashMap<String, HashMap<String, CompiledSchema>>>>;
 
+lazy_static! {
+    pub static ref INVALID_REF_REGEX: Regex = Regex::new(r#""\$ref":\s*(""|"/?\#"|"/+")"#).unwrap();
+}
+
 fn get_validation_error_msg(error: ValidationError) -> String {
     match error.kind {
         _ => error.to_string(),
@@ -34,6 +40,10 @@ fn get_validation_error_msg(error: ValidationError) -> String {
 pub fn compile_specs(specs: Vec<MetloSpec>) -> CompiledSpecs {
     let mut compiled_specs: CompiledSpecs = HashMap::new();
     for e in specs.iter() {
+        if INVALID_REF_REGEX.is_match(&e.spec) {
+            log::debug!("{} has invalid $ref value", &e.name);
+            continue;
+        }
         if let Ok(Value::Object(v)) = serde_json::from_str::<Value>(&e.spec) {
             if let Some(Value::Object(paths)) = v.get("paths") {
                 let default = json!({});
@@ -62,7 +72,7 @@ pub fn compile_specs(specs: Vec<MetloSpec>) -> CompiledSpecs {
                                     Some(Value::String(ref_string)) => (
                                         components.pointer(&format!(
                                             "/responses/{}/content",
-                                            ref_string.rsplit_once('/').unwrap().1
+                                            ref_string.rsplit_once('/').unwrap_or_default().1
                                         )),
                                         true,
                                     ),
@@ -82,10 +92,16 @@ pub fn compile_specs(specs: Vec<MetloSpec>) -> CompiledSpecs {
                                 if let Some(s) = content_type_value.get("schema") {
                                     let mut schema = s.clone();
                                     schema["components"] = components.clone();
-                                    let compiled_schema = JSONSchema::options()
+                                    let compiled_schema = match JSONSchema::options()
                                         .with_draft(Draft::Draft7)
                                         .compile(&schema)
-                                        .expect("A valid schema");
+                                    {
+                                        Ok(s) => s,
+                                        Err(err) => {
+                                            log::debug!("Failed to compile {}: {}", e.name, err);
+                                            continue;
+                                        }
+                                    };
                                     let mut path_pointer = vec![
                                         "paths".to_owned(),
                                         path.to_owned(),
