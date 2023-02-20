@@ -98,7 +98,11 @@ pub fn compile_specs(specs: Vec<MetloSpec>) -> CompiledSpecs {
                                     {
                                         Ok(s) => s,
                                         Err(err) => {
-                                            log::debug!("Failed to compile {}: {}", e.name, err);
+                                            log::debug!(
+                                                "Failed to compile spec {}: {}",
+                                                e.name,
+                                                err
+                                            );
                                             continue;
                                         }
                                     };
