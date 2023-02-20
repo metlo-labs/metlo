@@ -1,17 +1,26 @@
 import { z } from "zod"
 
+export enum AuthType {
+  BASIC = "basic",
+  HEADER = "header",
+  JWT = "jwt",
+  SESSION_COOKIE = "session_cookie",
+}
+
+export enum Method {
+  GET = "GET",
+  HEAD = "HEAD",
+  POST = "POST",
+  PUT = "PUT",
+  DELETE = "DELETE",
+  CONNECT = "CONNECT",
+  OPTIONS = "OPTIONS",
+  TRACE = "TRACE",
+  PATCH = "PATCH",
+}
+
 export const Severity = z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"])
-export const Method = z.enum([
-  "GET",
-  "HEAD",
-  "POST",
-  "PUT",
-  "DELETE",
-  "CONNECT",
-  "OPTIONS",
-  "TRACE",
-  "PATCH",
-])
+export const MethodSchema = z.nativeEnum(Method)
 
 export const AssertionType = z.enum(["EQ", "REGEXP", "JS"])
 export const ExtractorType = z.enum(["VALUE", "JS", "REGEXP", "HTML"])

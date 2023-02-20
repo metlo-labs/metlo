@@ -1,8 +1,6 @@
-import { z } from "zod"
-
 import { KeyValType, TestRequest } from "../types/test"
-import { Method } from "../types/enums"
-import { AuthType, DataSection, DataType } from "./enums"
+import { AuthType, Method } from "../types/enums"
+import { DataSection, DataType } from "./enums"
 
 export interface GenTestEndpointDataField {
   dataSection: DataSection
@@ -23,7 +21,7 @@ export interface GenTestEndpointAuthConfig {
 export interface GenTestEndpoint {
   host: string
   path: string
-  method: z.infer<typeof Method>
+  method: Method
   dataFields: GenTestEndpointDataField[]
   authConfig?: GenTestEndpointAuthConfig
 }

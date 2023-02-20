@@ -1,12 +1,13 @@
 import { DataType } from "./enums"
 import { KeyValType } from "../types/test"
-import { AuthType, DataSection } from "./enums"
+import { DataSection } from "./enums"
 import {
   GeneratedTestRequest,
   GenTestContext,
   GenTestEndpoint,
   GenTestEndpointDataField,
 } from "./types"
+import { AuthType } from "../types/enums"
 
 const getSampleValue = (dataType: DataType) => {
   switch (dataType) {

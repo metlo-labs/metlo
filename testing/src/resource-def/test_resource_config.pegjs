@@ -19,7 +19,7 @@ perm
   	return {
       type: "permission_def",
       actor: actor,
-      perms: perms,
+      permissions: perms,
       resource: resource,
     }
   }
@@ -35,7 +35,7 @@ rec_selector_filter
       head:filter_member
       tail:(value_separator m:filter_member { return m; })*
       {
-        var result = {};
+        var result: Record<string, any> = {};
         [head].concat(tail).forEach(function(element) {
           result[element.name] = element.value;
         });
@@ -45,8 +45,8 @@ rec_selector_filter
     end_paren
     {
     	return {
-            name: name,
-			members: members !== null ? members: {}
+        name: name,
+        filters: members !== null ? members: {}
      	}
 	}
 
@@ -61,7 +61,7 @@ decl
       head:decl_member
       tail:(value_separator m:decl_member { return m; })*
       {
-        var result = {};
+        var result: Record<string, any> = {};
         [head].concat(tail).forEach(function(element) {
           result[element.name] = element.value;
         });
@@ -96,7 +96,7 @@ perms_ls "permissions list"
     { return values !== null ? values : []; }
 
 eq_sep = ws "=" ws
-comment = [ ]* "#" val:([^\n\r]*) {
+comment = ws "#" val:([^\n\r]*) {
   return {
   	type: "comment",
     val: val.join("")
@@ -142,7 +142,7 @@ object
       head:member
       tail:(value_separator m:member { return m; })*
       {
-        var result = {};
+        var result: Record<string, any> = {};
         [head].concat(tail).forEach(function(element) {
           result[element.name] = element.value;
         });

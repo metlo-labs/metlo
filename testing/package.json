@@ -1,6 +1,6 @@
 {
   "name": "@metlo/testing",
-  "version": "0.2.22",
+  "version": "0.3.0",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,7 +8,8 @@
     "build": "tsc",
     "watch": "tsc -w",
     "format": "prettier --write './src/**/*.{ts,tsx}'",
-    "test": "ts-node src/index.ts"
+    "test": "ts-node src/index.ts",
+    "genpeg": "peggy --plugin ./node_modules/ts-pegjs/src/tspegjs src/resource-def/test_resource_config.pegjs -o src/resource-def/test_resource_config.ts"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
@@ -33,6 +34,8 @@
     "jsdom": "^20.0.3",
     "lodash.clonedeep": "^4.5.0",
     "lodash.get": "^4.4.2",
+    "peggy": "^2.0.1",
+    "ts-pegjs": "^3.0.0",
     "uuid": "^9.0.0",
     "vm2": "^3.9.13",
     "zod": "^3.20.2"

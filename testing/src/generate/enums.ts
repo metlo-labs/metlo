@@ -16,10 +16,3 @@ export enum DataSection {
   RESPONSE_HEADER = "resHeaders",
   RESPONSE_BODY = "resBody",
 }
-
-export enum AuthType {
-  BASIC = "basic",
-  HEADER = "header",
-  JWT = "jwt",
-  SESSION_COOKIE = "session_cookie",
-}
