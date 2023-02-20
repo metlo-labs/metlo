@@ -50,7 +50,7 @@ export const TestingConfig: React.FC<TestingConfigProps> = React.memo(
     }
 
     return (
-      <VStack w="full">
+      <VStack w="full" h="full">
         <HStack
           w="full"
           justifyContent="space-between"
@@ -68,16 +68,13 @@ export const TestingConfig: React.FC<TestingConfigProps> = React.memo(
             Save
           </Button>
         </HStack>
-        <Box rounded="md" h="600px" w="full" borderWidth="1px">
+        <Box rounded="md" h="full" w="full" borderWidth="1px">
           <Editor
             width="100%"
-            defaultLanguage="json"
+            defaultLanguage="hcl"
             value={configStringVal}
             onChange={val => setConfigString(val)}
             options={{
-              minimap: {
-                enabled: false,
-              },
               automaticLayout: true,
               scrollBeyondLastLine: false,
             }}

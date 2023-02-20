@@ -140,5 +140,6 @@ export {
   GenTestEndpointDataField,
 } from "./generate/types"
 export { TestBuilder, TestStepBuilder } from "./generate/builder"
+export { parseResourceConfig } from "./resource-def"
 export { TestTemplate } from "./templates/types"
 export { runTest, estimateTest } from "./runner"

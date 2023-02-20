@@ -22,7 +22,7 @@ export const ActorDef = z.object({
   name: z.string(),
   members: z
     .object({
-      items: z.array(z.object({})).optional(),
+      items: z.array(z.object({}).passthrough()).optional(),
     })
     .strict(),
 })
@@ -48,7 +48,7 @@ export const ResourceDef = z.object({
   members: z
     .object({
       permissions: z.array(z.string()).optional(),
-      items: z.array(z.object({})).optional(),
+      items: z.array(z.object({}).passthrough()).optional(),
       endpoints: z.array(EndpointPermFilter).optional(),
     })
     .strict(),

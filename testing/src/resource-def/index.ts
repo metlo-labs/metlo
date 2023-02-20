@@ -2,7 +2,7 @@ import { parse, PeggySyntaxError } from "../resource-def/test_resource_config"
 import {
   ResourceConfigParseRes,
   TestResourceConfigSchema,
-} from "types/resource_config"
+} from "../types/resource_config"
 
 export const parseResourceConfig = (input: string): ResourceConfigParseRes => {
   try {

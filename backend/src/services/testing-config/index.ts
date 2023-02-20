@@ -1,51 +1,11 @@
-import jsonMap from "json-source-map"
 import { MetloContext } from "types"
 import { UpdateTestingConfigParams } from "@common/api/testing-config"
-import Error400BadRequest from "errors/error-400-bad-request"
-import { validateSchema } from "./constants"
 import { AppDataSource } from "data-source"
 import { createQB, getQB, insertValueBuilder } from "services/database/utils"
 import { TestingConfig } from "models"
 import { TestingConfigResp } from "@common/types"
+import { parseResourceConfig } from "@metlo/testing"
 import { RedisClient } from "utils/redis"
-
-const isValidTestingConfig = (configString: string) => {
-  configString = configString.trim()
-  let testingConfig = null
-  try {
-    testingConfig = jsonMap.parse(configString) ?? {}
-  } catch (err) {
-    throw new Error400BadRequest("Config is not a valid json file")
-  }
-
-  const valid = validateSchema(testingConfig.data)
-  if (!valid) {
-    const errors = validateSchema.errors
-    if (errors) {
-      const error = errors[0]
-      let instancePath = error.instancePath
-      let errorMessage = `${error.instancePath} ${error.message}`
-      switch (error.keyword) {
-        case "additionalProperties":
-          const additionalProperty = error.params.additionalProperty
-          instancePath += `/${additionalProperty}`
-          errorMessage = `property '${additionalProperty}' is not expected to be here`
-          break
-        case "enum":
-          errorMessage = `must be equal to one of the allowed values: ${error.params.allowedValues?.join(
-            ", ",
-          )}`
-          break
-      }
-      const lineNumber =
-        testingConfig.pointers?.[instancePath]?.key?.line ?? null
-      throw new Error400BadRequest(
-        `${errorMessage}${lineNumber ? ` on line ${lineNumber + 1}` : ""}`,
-      )
-    }
-  }
-  return true
-}
 
 export const getTestingConfig = async (
   ctx: MetloContext,
@@ -59,7 +19,11 @@ export const updateTestingConfig = async (
   ctx: MetloContext,
   params: UpdateTestingConfigParams,
 ) => {
-  isValidTestingConfig(params.configString)
+  const confString = params.configString
+  const parseRes = parseResourceConfig(confString)
+  if (!parseRes.res) {
+    return parseRes
+  }
   const queryRunner = AppDataSource.createQueryRunner()
   try {
     await queryRunner.connect()
@@ -90,6 +54,7 @@ export const updateTestingConfig = async (
   } finally {
     await queryRunner.release()
   }
+  return parseRes
 }
 
 const getEntityTags = async (ctx: MetloContext): Promise<string[]> => {
@@ -99,17 +64,19 @@ const getEntityTags = async (ctx: MetloContext): Promise<string[]> => {
   if (!config) {
     return []
   }
-  const configObject = JSON.parse(config.configString)
-  const entities = configObject.entities as Record<
-    string,
-    Record<string, string>[]
-  >
-  const entityTags = new Set<string>()
-  for (const entityName in entities) {
-    const entity = entities[entityName]
-    for (const example of entity) {
-      for (const field in example) {
-        entityTags.add(`${entityName}.${field}`)
+  const parseRes = parseResourceConfig(config.configString)
+  if (!parseRes.res) {
+    throw new Error("Bad Testing Config")
+  }
+  const configObject = parseRes.res
+  let entityTags = new Set<string>()
+  for (const e of configObject) {
+    if (e.type == "actor" || e.type == "resource") {
+      if (e.members.items && e.members.items.length > 0) {
+        const actorEnts = Object.keys(e.members.items[0]).map(
+          k => `${e.name}.${k}`,
+        )
+        entityTags = new Set<string>([...entityTags, ...actorEnts])
       }
     }
   }

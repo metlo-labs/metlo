@@ -30,6 +30,7 @@ export const getGenTestEndpoint = async (
   let genTestEndpoint: GenTestEndpoint = {
     host: endpointObj.host,
     path: endpointObj.path,
+    // @ts-ignore
     method: endpointObj.method,
     dataFields: endpointObj.dataFields.map(e => ({
       dataSection: e.dataSection,

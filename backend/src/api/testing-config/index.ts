@@ -7,6 +7,8 @@ import {
   updateTestingConfig,
 } from "services/testing-config"
 import { UpdateTestingConfigParamsSchema } from "@common/api/testing-config"
+import Error400BadRequest from "errors/error-400-bad-request"
+import { RedisClient } from "utils/redis"
 
 const updateTestingConfigHandler = async (
   req: MetloRequest,
@@ -17,8 +19,19 @@ const updateTestingConfigHandler = async (
     if (parsedBody.success === false) {
       return await ApiResponseHandler.zerr(res, parsedBody.error)
     }
-    await updateTestingConfig(req.ctx, parsedBody.data)
-    // Clear cached testing config
+    const data = await updateTestingConfig(req.ctx, parsedBody.data)
+    if (!data.res) {
+      if (data.zerr) {
+        return await ApiResponseHandler.zerr(res, data.zerr)
+      }
+      if (data.parseError) {
+        return await ApiResponseHandler.error(
+          res,
+          new Error400BadRequest(data.parseError.message),
+        )
+      }
+    }
+    await RedisClient.deleteFromRedis(req.ctx, ["entityTagsCached"])
     await ApiResponseHandler.success(res, null)
   } catch (err) {
     await ApiResponseHandler.error(res, err)
