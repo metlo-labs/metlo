@@ -71,9 +71,9 @@ decl
     end_object
     {
     	return {
-        	type:type,
-            name: name,
-			members: members !== null ? members: {}
+        type:type,
+        name: name,
+        members: members !== null ? members: {}
      	}
 	}
 
@@ -98,7 +98,7 @@ perms_ls "permissions list"
 eq_sep = ws "=" ws
 comment = ws "#" val:([^\n\r]*) {
   return {
-  	type: "comment",
+    type: "comment",
     val: val.join("")
   }
 }
