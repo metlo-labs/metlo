@@ -29,6 +29,7 @@ export interface GenTestEndpoint {
 
 export interface GenTestContext {
   endpoint: GenTestEndpoint
+  entityMap: Record<string, any>
   prefix?: string
 }
 
