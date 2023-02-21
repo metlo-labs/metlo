@@ -4,6 +4,7 @@ import { getRepository } from "services/database/utils"
 import { ApiEndpoint, AuthenticationConfig } from "models"
 import { GenTestEndpoint } from "@metlo/testing"
 import { RestMethod } from "@common/enums"
+import { Method } from "@metlo/testing/dist/types/enums"
 
 export const getGenTestEndpoint = async (
   ctx: MetloContext,
@@ -30,8 +31,7 @@ export const getGenTestEndpoint = async (
   let genTestEndpoint: GenTestEndpoint = {
     host: endpointObj.host,
     path: endpointObj.path,
-    // @ts-ignore
-    method: endpointObj.method,
+    method: endpointObj.method as any,
     dataFields: endpointObj.dataFields.map(e => ({
       dataSection: e.dataSection,
       arrayFields: e.arrayFields,
