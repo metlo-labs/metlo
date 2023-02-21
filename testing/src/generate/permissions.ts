@@ -133,6 +133,7 @@ export const getEndpointPermissions = (
 
 export interface AuthActor {
   name: string
+  idx: number
   auth: string
   item: any
 }
@@ -140,7 +141,9 @@ export interface AuthActor {
 export const getAllAuthActors = (config: TemplateConfig): AuthActor[] => {
   return Object.entries(config.actors)
     .filter(([k, v]) => v.items.length > 0 && v.items[0].auth)
-    .map(([k, v]) => v.items.map(e => ({ name: k, auth: e.auth, item: e })))
+    .map(([k, v]) =>
+      v.items.map((e, i) => ({ name: k, auth: e.auth, item: e, idx: i })),
+    )
     .flat()
 }
 

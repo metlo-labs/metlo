@@ -11,7 +11,6 @@ export default {
   version: 1,
   builder: (endpoint: GenTestEndpoint, config: TemplateConfig) => {
     const testStepPayloads = getAuthTestPayloads(endpoint, config)
-    console.log(JSON.stringify(testStepPayloads, null, 4))
     let builder = new TestBuilder().setMeta({
       name: `${endpoint.path} VALIDATE_AUTH_RULES`,
       severity: "HIGH",

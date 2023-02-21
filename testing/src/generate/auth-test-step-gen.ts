@@ -1,4 +1,4 @@
-import { AuthType } from "../types/enums"
+import { AssertionType, AuthType } from "../types/enums"
 import { TemplateConfig } from "../types/resource_config"
 import { KeyValType } from "../types/test"
 import { TestStepBuilder } from "./builder"
@@ -120,7 +120,8 @@ export const addAuthToRequest = (
   }
   let env: KeyValType[] = []
   let headers: KeyValType[] = []
-  const pre = ctx.prefix ? ctx.prefix + "_" : ""
+  const pre = `${authActor.name}_${authActor.idx}_`
+  const authVal = authActor.auth
   if (authConfig.authType == AuthType.BASIC) {
     headers = headers.concat({
       name: "Authorization",
@@ -128,7 +129,7 @@ export const addAuthToRequest = (
     })
     env.push({
       name: `${pre}BASIC_AUTH_CRED`,
-      value: `{{global.${pre}BASIC_AUTH_CRED}}`,
+      value: authVal,
     })
   } else if (authConfig.authType == AuthType.HEADER) {
     headers = headers.concat({
@@ -137,7 +138,7 @@ export const addAuthToRequest = (
     })
     env.push({
       name: `${pre}CREDENTIALS`,
-      value: `{{global.${pre}CREDENTIALS}}`,
+      value: authVal,
     })
   } else if (authConfig.authType == AuthType.JWT) {
     headers = headers.concat({
@@ -146,7 +147,7 @@ export const addAuthToRequest = (
     })
     env.push({
       name: `${pre}JWT`,
-      value: `{{global.${pre}JWT}}`,
+      value: authVal,
     })
   }
   return {
@@ -175,9 +176,23 @@ export const authTestStepPayloadToBuilder = (
     prefix: `STEP_${idx}`,
     entityMap,
   }
-  console.log(ctx)
   let gen = makeSampleRequestNoAuth(endpoint, `STEP_${idx}`, ctx)
   gen = addAuthToRequest(payload.authActorEntity, gen, ctx)
-  let builder = new TestStepBuilder(gen.req)
+
+  let builder = new TestStepBuilder(gen.req).addToEnv(...gen.env)
+  if (payload.authorized) {
+    builder = builder.assert({
+      type: AssertionType.enum.EQ,
+      key: "resp.status",
+      value: [200],
+    })
+  } else {
+    builder = builder.assert({
+      type: AssertionType.enum.EQ,
+      key: "resp.status",
+      value: [401, 403],
+    })
+  }
+
   return builder
 }
