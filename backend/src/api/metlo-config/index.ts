@@ -81,9 +81,7 @@ export const getAgentConfigHandler = async (
           method: true,
           host: true,
           fullTraceCaptureEnabled: true,
-        },
-        order: {
-          numberParams: "ASC",
+          numberParams: true,
         },
       },
     )
