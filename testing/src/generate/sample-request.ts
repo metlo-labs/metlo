@@ -79,12 +79,15 @@ const recurseCreateBody = (
   mapTokens: string[],
   currTokenIndex: number,
   dataField: GenTestEndpointDataField,
+  entityMap: Record<string, any>,
 ): any => {
   if (
     arrayFieldDepth === 0 &&
     (currTokenIndex > mapTokens.length - 1 || !mapTokens[currTokenIndex])
   ) {
-    return getSampleValue(dataField.dataType)
+    return dataField.entity && entityMap[dataField.entity]
+      ? entityMap[dataField.entity]
+      : getSampleValue(dataField.dataType)
   } else if (arrayFieldDepth > 0) {
     return [
       recurseCreateBody(
@@ -93,6 +96,7 @@ const recurseCreateBody = (
         mapTokens,
         currTokenIndex,
         dataField,
+        entityMap,
       ),
     ]
   } else {
@@ -109,6 +113,7 @@ const recurseCreateBody = (
             mapTokens,
             currTokenIndex + 1,
             dataField,
+            entityMap,
           ),
         ],
       }
@@ -121,6 +126,7 @@ const recurseCreateBody = (
           mapTokens,
           currTokenIndex + 1,
           dataField,
+          entityMap,
         ),
       }
     }
@@ -186,9 +192,16 @@ const addBodyToRequest = (
     const mapTokens = dataField.dataPath?.split(".")
     const rootArrayDepth = dataField.arrayFields?.[""]
     if (rootArrayDepth > 0) {
-      body = recurseCreateBody(body, rootArrayDepth, mapTokens, 0, dataField)
+      body = recurseCreateBody(
+        body,
+        rootArrayDepth,
+        mapTokens,
+        0,
+        dataField,
+        ctx.entityMap,
+      )
     } else {
-      body = recurseCreateBody(body, 0, mapTokens, 0, dataField)
+      body = recurseCreateBody(body, 0, mapTokens, 0, dataField, ctx.entityMap)
     }
   }
   if (contentType.includes("form")) {
@@ -252,17 +265,24 @@ const addQueryParamsToRequest = (
   const pre = ctx.prefix
   let queryParams: KeyValType[] = []
   let env: KeyValType[] = []
-  dataFields.forEach(e => {
-    const name = e.dataPath
-    env.push({
-      name: `${pre}${name}`,
-      value: `<<${pre}${name}>>`,
-    })
-    queryParams.push({
-      name: e.dataPath,
-      value: `{{${pre}${name}}}`,
-    })
-  })
+  for (const queryField of dataFields) {
+    if (queryField.entity && ctx.entityMap[queryField.entity]) {
+      queryParams.push({
+        name: queryField.dataPath,
+        value: ctx.entityMap[queryField.entity],
+      })
+    } else {
+      const name = queryField.dataPath
+      env.push({
+        name: `${pre}${name}`,
+        value: `<<${pre}${name}>>`,
+      })
+      queryParams.push({
+        name: queryField.dataPath,
+        value: `{{${pre}${name}}}`,
+      })
+    }
+  }
   return {
     ...gen,
     env: gen.env.concat(env),
