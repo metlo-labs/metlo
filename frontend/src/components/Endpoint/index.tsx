@@ -70,8 +70,6 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
       "rgb(179, 181, 185)",
       "rgb(91, 94, 109)",
     )
-    const [userSet, setUserSet] = useState<boolean>(endpoint.userSet ?? false)
-    const [settingUserSet, updateUserSetLoading] = useState<boolean>(false)
     const [deleting, setDeleting] = useState<boolean>(false)
     const { isOpen, onOpen, onClose } = useDisclosure()
     const cancelRef = React.useRef()
@@ -123,27 +121,6 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
         routerParams["query"] = { tab: newTab }
       }
       router.push(routerParams, undefined, { shallow: true })
-    }
-
-    const handleUserSet = async () => {
-      updateUserSetLoading(true)
-      try {
-        await setUserSetState(endpoint.uuid, !userSet)
-        setUserSet(!userSet)
-      } catch (err) {
-        toast(
-          makeToast(
-            {
-              title: "Could not change userSet state...",
-              status: "error",
-              description: err.response?.data,
-            },
-            err.response?.status,
-          ),
-        )
-      } finally {
-        updateUserSetLoading(false)
-      }
     }
 
     return (
@@ -200,18 +177,6 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
               </Code>
             </Stack>
             <HStack alignSelf="flex-start">
-              <Tooltip
-                label={`Is the endpoint verified? (Currently: ${userSet})`}
-              >
-                <Button
-                  variant={userSet ? "solid" : "outline"}
-                  colorScheme="blue"
-                  onClick={handleUserSet}
-                  isLoading={settingUserSet}
-                >
-                  User Set
-                </Button>
-              </Tooltip>
               <EditPath
                 endpointPath={endpoint.path}
                 endpointId={endpoint.uuid}

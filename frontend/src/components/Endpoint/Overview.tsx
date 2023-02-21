@@ -8,6 +8,8 @@ import {
   Stack,
   HStack,
   Checkbox,
+  Tooltip,
+  Switch,
 } from "@chakra-ui/react"
 import dynamic from "next/dynamic"
 import { DataAttribute, DataHeading } from "components/utils/Card"
@@ -16,7 +18,8 @@ import { RISK_TO_COLOR } from "~/constants"
 import EndpointPIIChart from "./PIIChart"
 import { getDateTimeString } from "utils"
 import { DataTag, Status } from "@common/enums"
-import { updateEndpointAuthenticated } from "api/endpoints"
+import { setUserSetState, updateEndpointAuthenticated } from "api/endpoints"
+import { QuestionOutlineIcon } from "@chakra-ui/icons"
 
 const SpecComponent = dynamic(() => import("./SpecComponent"), { ssr: false })
 
@@ -27,6 +30,8 @@ interface EndpointOverviewProps {
 
 const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
   ({ endpoint, usage }) => {
+    const [userSet, setUserSet] = useState<boolean>(endpoint.userSet ?? false)
+    const [settingUserSet, updateUserSetLoading] = useState<boolean>(false)
     const piiFields = endpoint.dataFields.filter(
       field => field.dataTag === DataTag.PII,
     )
@@ -44,13 +49,29 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
       updateEndpointAuthenticated(endpoint.uuid, authenticated)
       setAuthenticated(authenticated)
     }
+    const handleUserSet = async () => {
+      updateUserSetLoading(true)
+      try {
+        await setUserSetState(endpoint.uuid, !userSet)
+        setUserSet(!userSet)
+      } catch (err) {
+        toast(
+          makeToast(
+            {
+              title: "Could not change userSet state...",
+              status: "error",
+              description: err.response?.data,
+            },
+            err.response?.status,
+          ),
+        )
+      } finally {
+        updateUserSetLoading(false)
+      }
+    }
 
     return (
-      <Stack
-        direction={{ base: "column", lg: "row" }}
-        spacing="0"
-        h="full"
-      >
+      <Stack direction={{ base: "column", lg: "row" }} spacing="0" h="full">
         <Box
           w={{ base: "full", lg: "50%" }}
           overflowY={{ base: "unset", lg: "scroll" }}
@@ -116,6 +137,25 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
                 </Checkbox>
               </HStack>
             </GridItem>
+            <GridItem>
+              <HStack>
+                <Box>
+                  <DataHeading>Verfied by User</DataHeading>
+                </Box>
+                <Box>
+                  <Tooltip
+                    label={`Is the endpoint verified? (Currently: ${userSet})`}
+                  >
+                    <QuestionOutlineIcon boxSize={"3"} />
+                  </Tooltip>
+                </Box>
+              </HStack>
+              <Switch
+                isChecked={userSet}
+                onChange={handleUserSet}
+                colorScheme="red"
+              />
+            </GridItem>
             {usage.length > 0 && (
               <GridItem w="100%" colSpan={2}>
                 <DataHeading>Usage</DataHeading>
@@ -141,3 +181,13 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
 )
 
 export default EndpointOverview
+function toast(arg0: any) {
+  throw new Error("Function not implemented.")
+}
+
+function makeToast(
+  arg0: { title: string; status: string; description: any },
+  status: any,
+): any {
+  throw new Error("Function not implemented.")
+}
