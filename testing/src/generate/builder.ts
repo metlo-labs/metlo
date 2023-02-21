@@ -49,7 +49,7 @@ export class TestStepBuilder {
 
   addAuth(endpoint: GenTestEndpoint, name?: string): TestStepBuilder {
     const currentRequest = this.request
-    const ctx: GenTestContext = { endpoint, prefix: name }
+    const ctx: GenTestContext = { endpoint, prefix: name, entityMap: {} }
     const gen = addAuthToRequest({ req: currentRequest, env: [] }, ctx)
     this.request = gen.req
     this.env.push(...gen.env)

@@ -1259,10 +1259,10 @@
     "@jridgewell/resolve-uri" "3.1.0"
     "@jridgewell/sourcemap-codec" "1.4.14"
 
-"@metlo/testing@^0.2.22":
-  version "0.2.22"
-  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.2.22.tgz#3ad5b3ccb73c343e6c0b491692e27d281a8285b5"
-  integrity sha512-YRoAR9MMeKBxH50esc1XtK9Lwyn9YaHZl1dTrrImtoON1pCCTo2Xk78O83lnr8YrLuRDuqiH6Mfj/odn6jLTCw==
+"@metlo/testing@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.3.2.tgz#0a4527d18bfd850327a483f356326653dba57653"
+  integrity sha512-lnH9K0nK1RbUHhnDdG/3yu8GkXfnpzza0mZcam/agF5M7y2vsGEqFVP+rsite1nDIOoStycapJpbPwzJvvVzKA==
   dependencies:
     axios "^1.2.1"
     chalk "^4.1.2"
@@ -1273,6 +1273,8 @@
     jsdom "^20.0.3"
     lodash.clonedeep "^4.5.0"
     lodash.get "^4.4.2"
+    peggy "^2.0.1"
+    ts-pegjs "^3.0.0"
     uuid "^9.0.0"
     vm2 "^3.9.13"
     zod "^3.20.2"
@@ -2309,6 +2311,11 @@ commander@^6.2.0:
   version "6.2.1"
   resolved "https://registry.yarnpkg.com/commander/-/commander-6.2.1.tgz#0792eb682dfbc325999bb2b84fddddba110ac73c"
   integrity sha512-U7VdrJFnJgo4xjrHpTzu0yrHPGImdsmD95ZlgYSEajAn2JKzDhDTPG9kBTefmObL2w/ngeZnilk+OV9CG3d7UA==
+
+commander@^9.3.0:
+  version "9.5.0"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-9.5.0.tgz#bc08d1eb5cedf7ccb797a96199d41c7bc3e60d30"
+  integrity sha512-KRs7WVDKg86PWiuAqhDrAQnTXZKraVcCc6vFdL14qrZ/DcWwuRo7VoiYXalXO7S5GKpqYiVEwCbgFDfxNHKJBQ==
 
 compute-scroll-into-view@1.0.14:
   version "1.0.14"
@@ -4074,6 +4081,14 @@ path-type@^4.0.0:
   resolved "https://registry.yarnpkg.com/path-type/-/path-type-4.0.0.tgz#84ed01c0a7ba380afe09d90a8c180dcd9d03043b"
   integrity sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==
 
+peggy@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/peggy/-/peggy-2.0.1.tgz#d9bfde03b18d6ec2b9b85b2aa5af51577850152c"
+  integrity sha512-mBqfmdUAOVn7RILpXTbcRBhLfTR4Go0SresSnivGDdRylBOyVFJncFiVyCNNpPWq8HmgeRleXHs/Go4o8kQVXA==
+  dependencies:
+    commander "^9.3.0"
+    source-map-generator "0.8.0"
+
 picocolors@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/picocolors/-/picocolors-1.0.0.tgz#cb5bdc74ff3f51892236eaf79d68bc44564ab81c"
@@ -4536,6 +4551,11 @@ slash@^3.0.0:
   resolved "https://registry.yarnpkg.com/slash/-/slash-3.0.0.tgz#6539be870c165adbd5240220dbe361f1bc4d4634"
   integrity sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==
 
+source-map-generator@0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/source-map-generator/-/source-map-generator-0.8.0.tgz#10d5ca0651e2c9302ea338739cbd4408849c5d00"
+  integrity sha512-psgxdGMwl5MZM9S3FWee4EgsEaIjahYV5AzGnwUvPhWeITz/j6rKpysQHlQ4USdxvINlb8lKfWGIXwfkrgtqkA==
+
 source-map-js@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/source-map-js/-/source-map-js-1.0.2.tgz#adbc361d9c62df380125e7f161f71c826f1e490c"
@@ -4737,6 +4757,11 @@ tr46@~0.0.3:
   version "0.0.3"
   resolved "https://registry.yarnpkg.com/tr46/-/tr46-0.0.3.tgz#8184fd347dac9cdc185992f3a6622e14b9d9ab6a"
   integrity sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==
+
+ts-pegjs@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/ts-pegjs/-/ts-pegjs-3.0.0.tgz#3883d0772c56a059a55c95e09a3e5f4e076acddc"
+  integrity sha512-0yTchsO04jfYl/85sibupLSb7PfXs890jN9WqXoI6+WrFilam3+44ZdjBwIKPc9n2jdSbcxfdMvXNNwNEHSLCg==
 
 tsconfig-paths@^3.14.1:
   version "3.14.1"

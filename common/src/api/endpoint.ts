@@ -59,3 +59,10 @@ export const UpdateFullTraceCaptureEnabledSchema = z.object({
 export type UpdateFullTraceCaptureEnabledParams = z.infer<
   typeof UpdateFullTraceCaptureEnabledSchema
 >
+
+export const UpdateDataFieldEntitySchema = z.object({
+  entity: z.string().nullable(),
+})
+export type UpdateDataFieldEntityParams = z.infer<
+  typeof UpdateDataFieldEntitySchema
+>

@@ -10,6 +10,7 @@ import { Status } from "@common/enums"
 import { ALERT_PAGE_LIMIT } from "~/constants"
 import { getDataClasses } from "api/dataClasses"
 import { GetAlertParams } from "@common/api/alert"
+import { getEntityTags } from "api/testing-config"
 
 const Endpoint = ({
   endpoint,
@@ -18,11 +19,13 @@ const Endpoint = ({
   dataClasses,
   totalAlertsCount,
   initAlertParams,
+  entityTags,
 }) => {
   const parsedEndpoint = superjson.parse(endpoint) as ApiEndpointDetailed | null
   const parsedUsage = superjson.parse(usage) as Usage[] | []
   const parsedAlerts = superjson.parse(alerts) as Alert[] | []
   const parseDataClasses = superjson.parse(dataClasses) as DataClass[] | []
+  const parsedEntityTags = superjson.parse<string[]>(entityTags) ?? []
   if (!parsedEndpoint) {
     return <ErrorPage statusCode={404} />
   }
@@ -35,6 +38,7 @@ const Endpoint = ({
         dataClasses={parseDataClasses}
         initAlertParams={initAlertParams}
         totalAlertsCount={totalAlertsCount}
+        entityTags={parsedEntityTags}
       />
     </PageWrapper>
   )
@@ -55,13 +59,17 @@ export const getServerSideProps: GetServerSideProps = async context => {
   const usagePromise = getUsage(context.query.endpointUUID as string)
   const alertPromise = getAlerts({ ...initAlertParams })
   const dataClassesPromise = getDataClasses({})
+  const entityTagsPromise = getEntityTags({})
   const promises = [
     endpointPromise,
     usagePromise,
     alertPromise,
     dataClassesPromise,
+    entityTagsPromise,
   ]
-  let [endpoint, usage, alerts, dataClasses] = await Promise.all(promises)
+  let [endpoint, usage, alerts, dataClasses, entityTags] = await Promise.all(
+    promises,
+  )
   return {
     props: {
       endpoint: superjson.stringify(endpoint),
@@ -70,6 +78,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
       dataClasses: superjson.stringify(dataClasses),
       totalAlertsCount: alerts[1],
       initAlertParams,
+      entityTags: superjson.stringify(entityTags),
     },
   }
 }

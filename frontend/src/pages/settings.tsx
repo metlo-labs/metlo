@@ -40,6 +40,9 @@ import { GrDocumentConfig } from "icons/gr/GrDocumentConfig"
 import { AiOutlineCode } from "icons/ai/AiOutlineCode"
 import { VscKey } from "icons/vsc/VscKey"
 import BulkActions from "components/Settings/BulkActions"
+import { getTestingConfig } from "api/testing-config"
+import { BiTestTube } from "icons/bi/BiTestTube"
+import { TestingConfig } from "components/TestingConfig"
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const [apiKeys, webhooks, hosts] = await Promise.all([
@@ -48,8 +51,18 @@ export const getServerSideProps: GetServerSideProps = async context => {
     getHosts(),
   ])
   let metloConfig = ""
+  let testingConfig = ""
   try {
-    metloConfig = (await getMetloConfig()).configString
+    const [metloConfigResp, testingConfigResp] = await Promise.allSettled([
+      getMetloConfig(),
+      getTestingConfig(),
+    ])
+    if (metloConfigResp.status === "fulfilled") {
+      metloConfig = metloConfigResp.value?.configString ?? ""
+    }
+    if (testingConfigResp.status === "fulfilled") {
+      testingConfig = testingConfigResp.value?.configString ?? ""
+    }
   } catch (err) {}
 
   return {
@@ -58,11 +71,18 @@ export const getServerSideProps: GetServerSideProps = async context => {
       metloConfig,
       webhooks: superjson.stringify(webhooks),
       hosts,
+      testingConfig,
     },
   }
 }
 
-const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
+const Settings = ({
+  keys: _keysString,
+  metloConfig,
+  webhooks,
+  hosts,
+  testingConfig,
+}) => {
   const [keys, setKeys] = useState<Array<ApiKey>>(superjson.parse(_keysString))
   const [parsedWebhooks, setParsedWebhooks] = useState<WebhookResp[]>(
     superjson.parse(webhooks),
@@ -91,8 +111,10 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
         return 0
       case SettingsTab.CONFIG:
         return 1
-      case SettingsTab.INTEGRATIONS:
+      case SettingsTab.TESTING_CONFIG:
         return 2
+      case SettingsTab.INTEGRATIONS:
+        return 3
       default:
         return 0
     }
@@ -207,8 +229,8 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
             borderRightWidth={{ base: 0, md: 1 }}
           >
             <Grid
-              templateColumns={{ base: "repeat(3, 1fr)", md: "1fr" }}
-              templateRows={{ base: "1fr", md: "repeat(3, 1fr)" }}
+              templateColumns={{ base: "repeat(4, 1fr)", md: "1fr" }}
+              templateRows={{ base: "1fr", md: "repeat(4, 1fr)" }}
               gap="0"
               w="full"
             >
@@ -223,7 +245,7 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
                     w="full"
                     alignItems="center"
                     textAlign="center"
-                    direction={{ base: "column", sm: "row" }}
+                    direction={{ base: "column", md: "row" }}
                     spacing={4}
                   >
                     <VscKey size="20px" />
@@ -242,7 +264,7 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
                     w="full"
                     alignItems="center"
                     textAlign="center"
-                    direction={{ base: "column", sm: "row" }}
+                    direction={{ base: "column", md: "row" }}
                     spacing={4}
                   >
                     <GrDocumentConfig size="20px" />
@@ -255,13 +277,32 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
                   bg={getTab() === 2 ? selectedColor : "inital"}
                   {...tabStyles}
                   borderRightWidth={{ base: 1, md: 0 }}
+                  onClick={() => handleTabClick(SettingsTab.TESTING_CONFIG)}
+                >
+                  <Stack
+                    w="full"
+                    alignItems="center"
+                    textAlign="center"
+                    direction={{ base: "column", md: "row" }}
+                    spacing={4}
+                  >
+                    <BiTestTube size="20px" />
+                    <Text fontWeight="medium">Testing Config</Text>
+                  </Stack>
+                </Tab>
+              </GridItem>
+              <GridItem h="full">
+                <Tab
+                  bg={getTab() === 3 ? selectedColor : "inital"}
+                  {...tabStyles}
+                  borderRightWidth={{ base: 1, md: 0 }}
                   onClick={() => handleTabClick(SettingsTab.INTEGRATIONS)}
                 >
                   <Stack
                     w="full"
                     alignItems="center"
                     textAlign="center"
-                    direction={{ base: "column", sm: "row" }}
+                    direction={{ base: "column", md: "row" }}
                     spacing={4}
                   >
                     <AiOutlineCode size="20px" />
@@ -357,6 +398,9 @@ const Settings = ({ keys: _keysString, metloConfig, webhooks, hosts }) => {
                 </VStack>
                 <BulkActions />
               </VStack>
+            </TabPanel>
+            <TabPanel px="0" w="full" h="full">
+              <TestingConfig configString={testingConfig} />
             </TabPanel>
             <TabPanel px="0" w="full" h="full">
               <Heading fontWeight="semibold" size="xl" mb={4}>

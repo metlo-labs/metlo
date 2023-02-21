@@ -51,6 +51,7 @@ interface EndpointPageProps {
   dataClasses: DataClass[]
   totalAlertsCount: number
   initAlertParams: GetAlertParams
+  entityTags: string[]
 }
 
 const EndpointPage: React.FC<EndpointPageProps> = React.memo(
@@ -61,6 +62,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
     dataClasses,
     totalAlertsCount,
     initAlertParams,
+    entityTags,
   }) => {
     const router = useRouter()
     const headerColor = useColorModeValue(
@@ -227,6 +229,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
                   dataFields={endpoint.dataFields}
                   uuid={uuid as string}
                   dataClasses={dataClasses}
+                  entityTags={entityTags}
                 />
               )}
             </TabPanel>

@@ -49,10 +49,10 @@
     "@types/yargs" "^17.0.8"
     chalk "^4.0.0"
 
-"@metlo/testing@^0.2.22":
-  version "0.2.22"
-  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.2.22.tgz#3ad5b3ccb73c343e6c0b491692e27d281a8285b5"
-  integrity sha512-YRoAR9MMeKBxH50esc1XtK9Lwyn9YaHZl1dTrrImtoON1pCCTo2Xk78O83lnr8YrLuRDuqiH6Mfj/odn6jLTCw==
+"@metlo/testing@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.3.2.tgz#0a4527d18bfd850327a483f356326653dba57653"
+  integrity sha512-lnH9K0nK1RbUHhnDdG/3yu8GkXfnpzza0mZcam/agF5M7y2vsGEqFVP+rsite1nDIOoStycapJpbPwzJvvVzKA==
   dependencies:
     axios "^1.2.1"
     chalk "^4.1.2"
@@ -63,6 +63,8 @@
     jsdom "^20.0.3"
     lodash.clonedeep "^4.5.0"
     lodash.get "^4.4.2"
+    peggy "^2.0.1"
+    ts-pegjs "^3.0.0"
     uuid "^9.0.0"
     vm2 "^3.9.13"
     zod "^3.20.2"
@@ -260,6 +262,11 @@ combined-stream@^1.0.8:
   integrity sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==
   dependencies:
     delayed-stream "~1.0.0"
+
+commander@^9.3.0:
+  version "9.5.0"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-9.5.0.tgz#bc08d1eb5cedf7ccb797a96199d41c7bc3e60d30"
+  integrity sha512-KRs7WVDKg86PWiuAqhDrAQnTXZKraVcCc6vFdL14qrZ/DcWwuRo7VoiYXalXO7S5GKpqYiVEwCbgFDfxNHKJBQ==
 
 cssom@^0.5.0:
   version "0.5.0"
@@ -641,6 +648,14 @@ parse5@^7.1.1:
   dependencies:
     entities "^4.4.0"
 
+peggy@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/peggy/-/peggy-2.0.1.tgz#d9bfde03b18d6ec2b9b85b2aa5af51577850152c"
+  integrity sha512-mBqfmdUAOVn7RILpXTbcRBhLfTR4Go0SresSnivGDdRylBOyVFJncFiVyCNNpPWq8HmgeRleXHs/Go4o8kQVXA==
+  dependencies:
+    commander "^9.3.0"
+    source-map-generator "0.8.0"
+
 picomatch@^2.2.3, picomatch@^2.3.1:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-2.3.1.tgz#3ba3833733646d9d3e4995946c1365a67fb07a42"
@@ -712,6 +727,11 @@ slash@^3.0.0:
   resolved "https://registry.yarnpkg.com/slash/-/slash-3.0.0.tgz#6539be870c165adbd5240220dbe361f1bc4d4634"
   integrity sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==
 
+source-map-generator@0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/source-map-generator/-/source-map-generator-0.8.0.tgz#10d5ca0651e2c9302ea338739cbd4408849c5d00"
+  integrity sha512-psgxdGMwl5MZM9S3FWee4EgsEaIjahYV5AzGnwUvPhWeITz/j6rKpysQHlQ4USdxvINlb8lKfWGIXwfkrgtqkA==
+
 source-map@^0.6.1, source-map@~0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.6.1.tgz#74722af32e9614e9c287a8d0bbde48b5e2f1a263"
@@ -766,6 +786,11 @@ tr46@^3.0.0:
   integrity sha512-l7FvfAHlcmulp8kr+flpQZmVwtu7nfRV7NZujtN0OqES8EL4O4e0qqzL0DC5gAvx/ZC/9lk6rhcUwYvkBnBnYA==
   dependencies:
     punycode "^2.1.1"
+
+ts-pegjs@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/ts-pegjs/-/ts-pegjs-3.0.0.tgz#3883d0772c56a059a55c95e09a3e5f4e076acddc"
+  integrity sha512-0yTchsO04jfYl/85sibupLSb7PfXs890jN9WqXoI6+WrFilam3+44ZdjBwIKPc9n2jdSbcxfdMvXNNwNEHSLCg==
 
 type-check@~0.3.2:
   version "0.3.2"

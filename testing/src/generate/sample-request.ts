@@ -1,12 +1,13 @@
 import { DataType } from "./enums"
 import { KeyValType } from "../types/test"
-import { AuthType, DataSection } from "./enums"
+import { DataSection } from "./enums"
 import {
   GeneratedTestRequest,
   GenTestContext,
   GenTestEndpoint,
   GenTestEndpointDataField,
 } from "./types"
+import { AuthType } from "../types/enums"
 
 const getSampleValue = (dataType: DataType) => {
   switch (dataType) {
@@ -78,12 +79,15 @@ const recurseCreateBody = (
   mapTokens: string[],
   currTokenIndex: number,
   dataField: GenTestEndpointDataField,
+  entityMap: Record<string, any>,
 ): any => {
   if (
     arrayFieldDepth === 0 &&
     (currTokenIndex > mapTokens.length - 1 || !mapTokens[currTokenIndex])
   ) {
-    return getSampleValue(dataField.dataType)
+    return dataField.entity && entityMap[dataField.entity]
+      ? entityMap[dataField.entity]
+      : getSampleValue(dataField.dataType)
   } else if (arrayFieldDepth > 0) {
     return [
       recurseCreateBody(
@@ -92,6 +96,7 @@ const recurseCreateBody = (
         mapTokens,
         currTokenIndex,
         dataField,
+        entityMap,
       ),
     ]
   } else {
@@ -108,6 +113,7 @@ const recurseCreateBody = (
             mapTokens,
             currTokenIndex + 1,
             dataField,
+            entityMap,
           ),
         ],
       }
@@ -120,6 +126,7 @@ const recurseCreateBody = (
           mapTokens,
           currTokenIndex + 1,
           dataField,
+          entityMap,
         ),
       }
     }
@@ -185,9 +192,16 @@ const addBodyToRequest = (
     const mapTokens = dataField.dataPath?.split(".")
     const rootArrayDepth = dataField.arrayFields?.[""]
     if (rootArrayDepth > 0) {
-      body = recurseCreateBody(body, rootArrayDepth, mapTokens, 0, dataField)
+      body = recurseCreateBody(
+        body,
+        rootArrayDepth,
+        mapTokens,
+        0,
+        dataField,
+        ctx.entityMap,
+      )
     } else {
-      body = recurseCreateBody(body, 0, mapTokens, 0, dataField)
+      body = recurseCreateBody(body, 0, mapTokens, 0, dataField, ctx.entityMap)
     }
   }
   if (contentType.includes("form")) {
@@ -251,17 +265,24 @@ const addQueryParamsToRequest = (
   const pre = ctx.prefix
   let queryParams: KeyValType[] = []
   let env: KeyValType[] = []
-  dataFields.forEach(e => {
-    const name = e.dataPath
-    env.push({
-      name: `${pre}${name}`,
-      value: `<<${pre}${name}>>`,
-    })
-    queryParams.push({
-      name: e.dataPath,
-      value: `{{${pre}${name}}}`,
-    })
-  })
+  for (const queryField of dataFields) {
+    if (queryField.entity && ctx.entityMap[queryField.entity]) {
+      queryParams.push({
+        name: queryField.dataPath,
+        value: ctx.entityMap[queryField.entity],
+      })
+    } else {
+      const name = queryField.dataPath
+      env.push({
+        name: `${pre}${name}`,
+        value: `<<${pre}${name}>>`,
+      })
+      queryParams.push({
+        name: queryField.dataPath,
+        value: `{{${pre}${name}}}`,
+      })
+    }
+  }
   return {
     ...gen,
     env: gen.env.concat(env),
@@ -275,22 +296,38 @@ const addQueryParamsToRequest = (
 export const makeSampleRequestNoAuth = (
   endpoint: GenTestEndpoint,
   name?: string,
+  ctx?: GenTestContext,
 ): GeneratedTestRequest => {
   const prefix = name ? name + "_" : ""
+  ctx = ctx || { endpoint, prefix, entityMap: {} }
+
   let env: KeyValType[] = []
-  const paramRegex = new RegExp("{([^{}]+)}", "g")
-  const params = endpoint.path.matchAll(paramRegex)
-  for (const param of params) {
-    env.push({
-      name: `${prefix}${param[1]}`,
-      value: `<<${prefix}${param[1]}>>`,
-    })
+
+  let replacedPath = endpoint.path
+  for (const paramField of endpoint.dataFields.filter(
+    e => e.dataSection == DataSection.REQUEST_PATH,
+  )) {
+    if (paramField.entity && ctx.entityMap[paramField.entity]) {
+      replacedPath = replacedPath.replace(
+        `{${paramField.dataPath}}`,
+        `${ctx.entityMap[paramField.entity]}`,
+      )
+    } else {
+      env.push({
+        name: `${prefix}${paramField.dataPath}`,
+        value: `<<${prefix}${paramField.dataPath}>>`,
+      })
+      replacedPath = replacedPath.replace(
+        `{${paramField.dataPath}}`,
+        `{{${prefix}${paramField.dataPath}}}`,
+      )
+    }
   }
+
   env.push({
     name: "BASE_URL",
     value: `{{default BASE_URL "https://${endpoint.host}"}}`,
   })
-  const replacedPath = endpoint.path.replace(paramRegex, `{{${prefix}$1}}`)
   let gen: GeneratedTestRequest = {
     req: {
       method: endpoint.method,
@@ -298,7 +335,6 @@ export const makeSampleRequestNoAuth = (
     },
     env,
   }
-  const ctx: GenTestContext = { endpoint, prefix }
   gen = addQueryParamsToRequest(gen, ctx)
   gen = addBodyToRequest(gen, ctx)
   return gen
@@ -308,7 +344,7 @@ export const makeSampleRequest = (
   endpoint: GenTestEndpoint,
   name?: string,
 ): GeneratedTestRequest => {
-  const ctx: GenTestContext = { endpoint, prefix: name }
+  const ctx: GenTestContext = { endpoint, prefix: name, entityMap: {} }
   let gen = makeSampleRequestNoAuth(endpoint, name)
   gen = addAuthToRequest(gen, ctx)
   return gen

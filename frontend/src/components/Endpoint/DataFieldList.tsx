@@ -40,6 +40,7 @@ interface DataFieldListProps {
   dataFields: DataField[]
   uuid?: string
   dataClasses: DataClass[]
+  entityTags: string[]
 }
 
 interface FieldSection {
@@ -181,7 +182,7 @@ const expandableTableColumns: TableColumn<FieldSection>[] = [
 ]
 
 const DataFieldList: React.FC<DataFieldListProps> = React.memo(
-  ({ dataFields, uuid, dataClasses }) => {
+  ({ dataFields, uuid, dataClasses, entityTags }) => {
     const [dataFieldList, setDataFieldList] = useState<DataField[]>(dataFields)
     const colorMode = useColorMode()
     const headerBg = useColorModeValue("rgb(252, 252, 252)", "rgb(17, 19, 23)")
@@ -427,6 +428,7 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
             setdataFieldList={setDataFieldList}
             setDataField={setDataField}
             dataClasses={dataClasses}
+            entityTags={entityTags}
           />
         </Box>
       </Box>
