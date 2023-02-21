@@ -15,7 +15,7 @@
     "@chakra-ui/theme-tools": "^2.0.7",
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.9.0",
-    "@metlo/testing": "^0.3.0",
+    "@metlo/testing": "^0.3.2",
     "@monaco-editor/react": "^4.4.5",
     "@next/bundle-analyzer": "^12.3.0",
     "axios": "^0.27.2",
