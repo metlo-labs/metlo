@@ -9,6 +9,7 @@ export interface GenTestEndpointDataField {
   dataPath: string
   dataType: DataType
   traceHash: Record<string, number>
+  entity?: string
 }
 
 export interface GenTestEndpointAuthConfig {
