@@ -4,7 +4,7 @@ import { AppDataSource } from "data-source"
 import { createQB, getQB, insertValueBuilder } from "services/database/utils"
 import { TestingConfig } from "models"
 import { TestingConfigResp } from "@common/types"
-import { parseResourceConfig } from "@metlo/testing"
+import { parseResourceConfig, ResourceConfigParseRes } from "@metlo/testing"
 import { RedisClient } from "utils/redis"
 
 export const getTestingConfig = async (
@@ -18,7 +18,7 @@ export const getTestingConfig = async (
 export const updateTestingConfig = async (
   ctx: MetloContext,
   params: UpdateTestingConfigParams,
-) => {
+): Promise<ResourceConfigParseRes> => {
   const confString = params.configString
   const parseRes = parseResourceConfig(confString)
   if (!parseRes.res) {
