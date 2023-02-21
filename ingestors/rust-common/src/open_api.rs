@@ -130,13 +130,22 @@ pub fn compile_specs(specs: Vec<MetloSpec>) -> CompiledSpecs {
                                     );
                                 }
                             }
-                            status_code_specs.insert(status_code.to_owned(), content_type_specs);
+                            if content_type_specs.len() > 0 {
+                                status_code_specs
+                                    .insert(status_code.to_owned(), content_type_specs);
+                            }
                         }
-                        method_specs.insert(method.to_owned(), status_code_specs);
+                        if status_code_specs.len() > 0 {
+                            method_specs.insert(method.to_owned(), status_code_specs);
+                        }
                     }
-                    path_specs.insert(path.to_owned(), method_specs);
+                    if method_specs.len() > 0 {
+                        path_specs.insert(path.to_owned(), method_specs);
+                    }
                 }
-                compiled_specs.insert(e.name.to_owned(), path_specs);
+                if path_specs.len() > 0 {
+                    compiled_specs.insert(e.name.to_owned(), path_specs);
+                }
             }
         }
     }
