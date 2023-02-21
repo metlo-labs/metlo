@@ -9,6 +9,8 @@ import {
   dumpTestConfig,
   GenTestEndpoint,
   TestTemplate,
+  processResourceConfig,
+  parseResourceConfig,
 } from "@metlo/testing"
 import * as MetloTesting from "@metlo/testing"
 import { TEMPLATES } from "@metlo/testing/dist/templates"
@@ -122,6 +124,26 @@ export const generateTest = async ({
   }
   const genTestEndpoint = res.data
 
+  const configStringRes = await axios.get<{ configString: string }>(
+    urlJoin(config.metloHost, "api/v1/testing-config"),
+    {
+      headers: {
+        Authorization: config.apiKey,
+      },
+      validateStatus: () => true,
+    },
+  )
+  if (configStringRes.status > 300) {
+    console.log(
+      chalk.bold.red(
+        `Failed to generate test [Code ${configStringRes.status}] - ${configStringRes.data}`,
+      ),
+    )
+    return
+  }
+  const parseRes = parseResourceConfig(configStringRes.data.configString)
+  const templateConfig = processResourceConfig(parseRes.res)
+
   let testYaml = ""
   if (testType.endsWith(".js") || testType.endsWith(".ts")) {
     const [test, err] = genTestFromFile(testType, genTestEndpoint)
@@ -136,7 +158,7 @@ export const generateTest = async ({
       console.log(err)
       return
     }
-    const test = template.builder(genTestEndpoint).getTest()
+    const test = template.builder(genTestEndpoint, templateConfig).getTest()
     testYaml = dumpTestConfig(test)
   }
 

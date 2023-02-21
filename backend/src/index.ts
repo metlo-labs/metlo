@@ -18,6 +18,7 @@ import registerTestingRoutes from "api/testing"
 import registerSpecRoutes from "api/spec"
 import registerEndpointRoutes from "api/endpoints"
 import registerTracesRoutes from "api/traces"
+import registerTestingConfigRoutes from "api/testing-config"
 
 const port = process.env.PORT || 8080
 RedisClient.getInstance()
@@ -56,6 +57,7 @@ registerKeyRoutes(apiRouter)
 registerMetloConfigRoutes(apiRouter)
 registerWebhookRoutes(apiRouter)
 registerTracesRoutes(apiRouter)
+registerTestingConfigRoutes(apiRouter)
 
 app.use(apiRouter)
 

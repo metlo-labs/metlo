@@ -4,8 +4,8 @@ import {
   AssertionType,
   ExtractorType,
   Severity,
-  Method,
   PredefinedPayloadType,
+  MethodSchema,
 } from "./enums"
 import { IDRegex } from "./constants"
 import { Context } from "./context"
@@ -33,7 +33,7 @@ export const KeyValSchema = z.object({
 })
 
 export const RequestSchema = z.object({
-  method: Method,
+  method: MethodSchema,
   url: z.string(),
   headers: KeyValSchema.array().optional(),
   query: KeyValSchema.array().optional(),

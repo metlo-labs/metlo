@@ -1,5 +1,5 @@
 import mlog from "logger"
-import { QueryRunner } from "typeorm"
+import { QueryRunner, UpdateResult } from "typeorm"
 import { AppDataSource } from "data-source"
 import {
   ApiEndpoint,
@@ -34,33 +34,7 @@ import { MetloContext } from "types"
 import { retryTypeormTransaction } from "utils/db"
 import { RedisClient } from "utils/redis"
 import { getGlobalFullTraceCaptureCached } from "services/metlo-config"
-
-const getDataFieldsQuery = (ctx: MetloContext) => `
-SELECT
-  uuid,
-  "dataClasses"::text[],
-  "falsePositives"::text[],
-  "scannerIdentified"::text[],
-  "dataType",
-  "dataTag",
-  "dataSection",
-  "createdAt",
-  "updatedAt",
-  "dataPath",
-  "apiEndpointUuid",
-  "statusCode",
-  "contentType",
-  "arrayFields",
-  "isNullable"
-FROM ${DataField.getTableName(ctx)} data_field 
-WHERE
-  "apiEndpointUuid" = $1
-ORDER BY
-  "dataTag" ASC,
-  "statusCode" ASC,
-  "contentType" ASC,
-  "dataPath" ASC
-`
+import Error400BadRequest from "errors/error-400-bad-request"
 
 export class GetEndpointsService {
   static async deleteEndpoint(
@@ -457,10 +431,14 @@ export class GetEndpointsService {
         .from(Alert, "alert")
         .andWhere(`"apiEndpointUuid" = :id`, { id: endpointId })
         .getRawMany()
-      const dataFields: DataField[] = await queryRunner.query(
-        getDataFieldsQuery(ctx),
-        [endpointId],
-      )
+      const dataFields: DataField[] = await getQB(ctx, queryRunner)
+        .from(DataField, "data_field")
+        .andWhere(`"apiEndpointUuid" = :id`, { id: endpointId })
+        .orderBy(`"dataTag"`, "ASC")
+        .addOrderBy(`"statusCode"`, "ASC")
+        .addOrderBy(`"contentType"`, "ASC")
+        .addOrderBy(`"dataPath"`, "ASC")
+        .getRawMany()
       const openapiSpec = await getQB(ctx, queryRunner)
         .from(OpenApiSpec, "spec")
         .andWhere("name = :name", { name: endpoint.openapiSpecName })

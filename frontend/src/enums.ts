@@ -19,6 +19,7 @@ export enum ConnectionTab {
 export enum SettingsTab {
   KEYS = "keys",
   CONFIG = "config",
+  TESTING_CONFIG = "testing-config",
   INTEGRATIONS = "integrations",
 }
 

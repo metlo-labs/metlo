@@ -30,7 +30,7 @@ export const getGenTestEndpoint = async (
   let genTestEndpoint: GenTestEndpoint = {
     host: endpointObj.host,
     path: endpointObj.path,
-    method: endpointObj.method,
+    method: endpointObj.method as any,
     dataFields: endpointObj.dataFields.map(e => ({
       dataSection: e.dataSection,
       arrayFields: e.arrayFields,
@@ -38,6 +38,7 @@ export const getGenTestEndpoint = async (
       dataPath: e.dataPath,
       dataType: e.dataType,
       traceHash: e.traceHash,
+      entity: e.entity,
     })),
   }
   const authConfigRepo = getRepository(ctx, AuthenticationConfig)
