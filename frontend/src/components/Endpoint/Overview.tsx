@@ -10,13 +10,14 @@ import {
   Checkbox,
   Tooltip,
   Switch,
+  useToast,
 } from "@chakra-ui/react"
 import dynamic from "next/dynamic"
 import { DataAttribute, DataHeading } from "components/utils/Card"
 import EndpointUsageChart from "./UsageChart"
 import { RISK_TO_COLOR } from "~/constants"
 import EndpointPIIChart from "./PIIChart"
-import { getDateTimeString } from "utils"
+import { getDateTimeString, makeToast } from "utils"
 import { DataTag, Status } from "@common/enums"
 import { setUserSetState, updateEndpointAuthenticated } from "api/endpoints"
 import { QuestionOutlineIcon } from "@chakra-ui/icons"
@@ -30,6 +31,7 @@ interface EndpointOverviewProps {
 
 const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
   ({ endpoint, usage }) => {
+    const toast = useToast()
     const [userSet, setUserSet] = useState<boolean>(endpoint.userSet ?? false)
     const [settingUserSet, updateUserSetLoading] = useState<boolean>(false)
     const piiFields = endpoint.dataFields.filter(
@@ -58,7 +60,7 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
         toast(
           makeToast(
             {
-              title: "Could not change userSet state...",
+              title: "Could not change endpoint validated state...",
               status: "error",
               description: err.response?.data,
             },
@@ -138,18 +140,12 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
               </HStack>
             </GridItem>
             <GridItem>
-              <HStack>
-                <Box>
-                  <DataHeading>Verfied by User</DataHeading>
-                </Box>
-                <Box>
-                  <Tooltip
-                    label={`Is the endpoint verified? (Currently: ${userSet})`}
-                  >
-                    <QuestionOutlineIcon boxSize={"3"} />
-                  </Tooltip>
-                </Box>
-              </HStack>
+              <Tooltip label="Set this endpoint as validated.">
+                <HStack alignItems="center" pb="1">
+                  <DataHeading pb="0">Endpoint Validated</DataHeading>
+                  <QuestionOutlineIcon boxSize={"3"} />
+                </HStack>
+              </Tooltip>
               <Switch
                 isChecked={userSet}
                 onChange={handleUserSet}
@@ -181,13 +177,3 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
 )
 
 export default EndpointOverview
-function toast(arg0: any) {
-  throw new Error("Function not implemented.")
-}
-
-function makeToast(
-  arg0: { title: string; status: string; description: any },
-  status: any,
-): any {
-  throw new Error("Function not implemented.")
-}
