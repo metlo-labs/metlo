@@ -1,5 +1,5 @@
 import mlog from "logger"
-import { QueryRunner, UpdateResult } from "typeorm"
+import { Not, QueryRunner, UpdateResult } from "typeorm"
 import { AppDataSource } from "data-source"
 import {
   ApiEndpoint,
@@ -548,6 +548,23 @@ export class GetEndpointsService {
       return usage as UsageResponse[]
     } catch (err) {
       mlog.withErr(err).error("Error in Get Endpoints service")
+      throw new Error500InternalServer(err)
+    }
+  }
+
+  static async setUserSet(
+    ctx: MetloContext,
+    endpointId: string,
+    userSetState: boolean,
+  ) {
+    try {
+      await createQB(ctx)
+        .update(ApiEndpoint)
+        .andWhere({ uuid: endpointId })
+        .set({ userSet: userSetState })
+        .execute()
+    } catch (err) {
+      mlog.withErr(err).error("Error in Set UserSet endpoint")
       throw new Error500InternalServer(err)
     }
   }

@@ -27,6 +27,7 @@ import {
   AlertDialogFooter,
   useToast,
   Stack,
+  Tooltip,
 } from "@chakra-ui/react"
 import { useRouter } from "next/router"
 import { SectionHeader } from "components/utils/Card"
@@ -34,7 +35,7 @@ import { Alert, ApiEndpointDetailed, DataClass, Usage } from "@common/types"
 import { GetAlertParams } from "@common/api/alert"
 import { METHOD_TO_COLOR } from "~/constants"
 import { EndpointTab } from "enums"
-import { deleteEndpoint } from "api/endpoints"
+import { deleteEndpoint, setUserSetState } from "api/endpoints"
 import { makeToast } from "utils"
 import { EditPath } from "./EditPath"
 import dynamic from "next/dynamic"

@@ -190,6 +190,17 @@ export const updatePathsHandler = async (
   }
 }
 
+export const setUserSetHandler = async (req: MetloRequest, res: Response) => {
+  try {
+    const { endpointId } = req.params
+    const { userSetState } = req.body
+    await GetEndpointsService.setUserSet(req.ctx, endpointId, userSetState)
+    return await ApiResponseHandler.success(res)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}
+
 export default function registerEndpointRoutes(router: Router) {
   router.get("/api/v1/endpoints/hosts", getHostsHandler)
   router.get("/api/v1/endpoints", getEndpointsHandler)
@@ -223,6 +234,7 @@ export default function registerEndpointRoutes(router: Router) {
   )
   router.post("/api/v1/clear-sensitive-data", clearAllSensitiveDataHandler)
   router.post("/api/v1/clear-all-datafields", bulkDeleteDataFieldsHandler)
+  router.post("/api/v1/endpoint/:endpointId/userSet", setUserSetHandler)
   // DataClass
   router.get("/api/v1/data-class", getDataClassInfo)
 }

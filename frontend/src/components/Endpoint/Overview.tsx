@@ -8,15 +8,19 @@ import {
   Stack,
   HStack,
   Checkbox,
+  Tooltip,
+  Switch,
+  useToast,
 } from "@chakra-ui/react"
 import dynamic from "next/dynamic"
 import { DataAttribute, DataHeading } from "components/utils/Card"
 import EndpointUsageChart from "./UsageChart"
 import { RISK_TO_COLOR } from "~/constants"
 import EndpointPIIChart from "./PIIChart"
-import { getDateTimeString } from "utils"
+import { getDateTimeString, makeToast } from "utils"
 import { DataTag, Status } from "@common/enums"
-import { updateEndpointAuthenticated } from "api/endpoints"
+import { setUserSetState, updateEndpointAuthenticated } from "api/endpoints"
+import { QuestionOutlineIcon } from "@chakra-ui/icons"
 
 const SpecComponent = dynamic(() => import("./SpecComponent"), { ssr: false })
 
@@ -27,6 +31,9 @@ interface EndpointOverviewProps {
 
 const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
   ({ endpoint, usage }) => {
+    const toast = useToast()
+    const [userSet, setUserSet] = useState<boolean>(endpoint.userSet ?? false)
+    const [settingUserSet, updateUserSetLoading] = useState<boolean>(false)
     const piiFields = endpoint.dataFields.filter(
       field => field.dataTag === DataTag.PII,
     )
@@ -44,13 +51,29 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
       updateEndpointAuthenticated(endpoint.uuid, authenticated)
       setAuthenticated(authenticated)
     }
+    const handleUserSet = async () => {
+      updateUserSetLoading(true)
+      try {
+        await setUserSetState(endpoint.uuid, !userSet)
+        setUserSet(!userSet)
+      } catch (err) {
+        toast(
+          makeToast(
+            {
+              title: "Could not change endpoint validated state...",
+              status: "error",
+              description: err.response?.data,
+            },
+            err.response?.status,
+          ),
+        )
+      } finally {
+        updateUserSetLoading(false)
+      }
+    }
 
     return (
-      <Stack
-        direction={{ base: "column", lg: "row" }}
-        spacing="0"
-        h="full"
-      >
+      <Stack direction={{ base: "column", lg: "row" }} spacing="0" h="full">
         <Box
           w={{ base: "full", lg: "50%" }}
           overflowY={{ base: "unset", lg: "scroll" }}
@@ -115,6 +138,19 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
                   No
                 </Checkbox>
               </HStack>
+            </GridItem>
+            <GridItem>
+              <Tooltip label="Set this endpoint as user validated.">
+                <HStack alignItems="center" pb="1">
+                  <DataHeading pb="0">Endpoint Validated</DataHeading>
+                  <QuestionOutlineIcon boxSize={"3"} />
+                </HStack>
+              </Tooltip>
+              <Switch
+                isChecked={userSet}
+                onChange={handleUserSet}
+                colorScheme="red"
+              />
             </GridItem>
             {usage.length > 0 && (
               <GridItem w="100%" colSpan={2}>

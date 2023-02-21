@@ -180,3 +180,15 @@ export const updateFullTraceCaptureEnabled = async (
     { headers },
   )
 }
+
+export const setUserSetState = async (
+  endpointId: string,
+  userSet: boolean,
+  headers?: AxiosRequestHeaders,
+) => {
+  await axios.post(
+    `${getAPIURL()}/endpoint/${endpointId}/userSet`,
+    { userSetState: userSet },
+    { headers },
+  )
+}
