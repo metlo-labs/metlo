@@ -27,6 +27,7 @@ import {
   AlertDialogFooter,
   useToast,
   Stack,
+  Tooltip,
 } from "@chakra-ui/react"
 import { useRouter } from "next/router"
 import { SectionHeader } from "components/utils/Card"
@@ -34,7 +35,7 @@ import { Alert, ApiEndpointDetailed, DataClass, Usage } from "@common/types"
 import { GetAlertParams } from "@common/api/alert"
 import { METHOD_TO_COLOR } from "~/constants"
 import { EndpointTab } from "enums"
-import { deleteEndpoint } from "api/endpoints"
+import { deleteEndpoint, setUserSetState } from "api/endpoints"
 import { makeToast } from "utils"
 import { EditPath } from "./EditPath"
 import dynamic from "next/dynamic"
@@ -69,6 +70,8 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
       "rgb(179, 181, 185)",
       "rgb(91, 94, 109)",
     )
+    const [userSet, setUserSet] = useState<boolean>(endpoint.userSet ?? false)
+    const [settingUserSet, updateUserSetLoading] = useState<boolean>(false)
     const [deleting, setDeleting] = useState<boolean>(false)
     const { isOpen, onOpen, onClose } = useDisclosure()
     const cancelRef = React.useRef()
@@ -120,6 +123,27 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
         routerParams["query"] = { tab: newTab }
       }
       router.push(routerParams, undefined, { shallow: true })
+    }
+
+    const handleUserSet = async () => {
+      updateUserSetLoading(true)
+      try {
+        await setUserSetState(endpoint.uuid, !userSet)
+        setUserSet(!userSet)
+      } catch (err) {
+        toast(
+          makeToast(
+            {
+              title: "Could not change userSet state...",
+              status: "error",
+              description: err.response?.data,
+            },
+            err.response?.status,
+          ),
+        )
+      } finally {
+        updateUserSetLoading(false)
+      }
     }
 
     return (
@@ -176,6 +200,18 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
               </Code>
             </Stack>
             <HStack alignSelf="flex-start">
+              <Tooltip
+                label={`Is the endpoint verified? (Currently: ${userSet})`}
+              >
+                <Button
+                  variant={userSet ? "solid" : "outline"}
+                  colorScheme="blue"
+                  onClick={handleUserSet}
+                  isLoading={settingUserSet}
+                >
+                  User Set
+                </Button>
+              </Tooltip>
               <EditPath
                 endpointPath={endpoint.path}
                 endpointId={endpoint.uuid}
