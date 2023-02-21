@@ -8,7 +8,6 @@ import {
   Stack,
   HStack,
   Checkbox,
-  Tooltip,
   Switch,
   useToast,
 } from "@chakra-ui/react"
@@ -20,7 +19,6 @@ import EndpointPIIChart from "./PIIChart"
 import { getDateTimeString, makeToast } from "utils"
 import { DataTag, Status } from "@common/enums"
 import { setUserSetState, updateEndpointAuthenticated } from "api/endpoints"
-import { QuestionOutlineIcon } from "@chakra-ui/icons"
 
 const SpecComponent = dynamic(() => import("./SpecComponent"), { ssr: false })
 
@@ -140,12 +138,7 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
               </HStack>
             </GridItem>
             <GridItem>
-              <Tooltip label="Set this endpoint as user validated.">
-                <HStack alignItems="center" pb="1">
-                  <DataHeading pb="0">Endpoint Validated</DataHeading>
-                  <QuestionOutlineIcon boxSize={"3"} />
-                </HStack>
-              </Tooltip>
+              <DataHeading>Endpoint Validated</DataHeading>
               <Switch
                 isChecked={userSet}
                 onChange={handleUserSet}
