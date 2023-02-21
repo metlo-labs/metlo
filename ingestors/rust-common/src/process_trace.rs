@@ -10,6 +10,7 @@ use serde_json::{json, Value};
 use std::{
     collections::{HashMap, HashSet},
     io::BufRead,
+    time::Instant,
 };
 
 fn is_endpoint_match(trace_tokens: &Vec<&str>, endpoint_path: String) -> bool {
@@ -363,6 +364,7 @@ fn combine_process_trace_res(
     let mut data_types: HashMap<String, HashSet<String>> = HashMap::new();
     let mut validation_errors: HashMap<String, Vec<String>> = HashMap::new();
 
+    let start = Instant::now();
     for res in results.iter().flatten() {
         block |= res.block;
         if let Some(e_xss) = &res.xss_detected {
@@ -381,6 +383,7 @@ fn combine_process_trace_res(
             validation_errors.extend(e_validation_errors.clone())
         }
     }
+    log::info!("Combine process trace res {:?}", start.elapsed());
 
     ProcessTraceRes {
         block,
@@ -408,6 +411,7 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
         }) => status.to_owned() < 400,
         _ => false,
     };
+    let start1 = Instant::now();
     let proc_req_body = match non_error_status_code {
         true => process_body(
             "reqBody".to_string(),
@@ -421,19 +425,25 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
         ),
         false => None,
     };
+    log::info!("Process request body time {:?}", start1.elapsed());
+    let start2 = Instant::now();
     let proc_req_params = match non_error_status_code {
         true => process_key_val("reqQuery".to_string(), &trace.request.url.parameters),
         false => None,
     };
+    log::info!("Process request query params {:?}", start2.elapsed());
+    let start3 = Instant::now();
     let proc_req_headers = match non_error_status_code {
         true => process_key_val("reqHeaders".to_string(), &trace.request.headers),
         false => None,
     };
+    log::info!("Process request headers {:?}", start3.elapsed());
     let mut openapi_spec_name: Option<String> = None;
     let mut full_trace_capture_enabled: bool = false;
     let mut endpoint_path: String = trace.request.url.path.clone();
     let split_path: Vec<&str> = get_split_path(&trace.request.url.path);
 
+    let start4 = Instant::now();
     let conf_read = METLO_CONFIG.try_read();
     match conf_read {
         Ok(ref conf) => match &conf.endpoints {
@@ -459,9 +469,11 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
         Err(_) => (),
     }
     drop(conf_read);
+    log::info!("Find matching endpoint {:?}", start4.elapsed());
 
     let mut proc_resp_headers: Option<ProcessTraceRes> = None;
     let mut resp_content_type: Option<&String> = None;
+    let start5 = Instant::now();
     let proc_resp_body: Option<ProcessTraceRes> = {
         if let Some(resp) = &trace.response {
             proc_resp_headers = process_key_val("resHeaders".to_string(), &resp.headers);
@@ -490,6 +502,7 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
             )
         }
     };
+    log::info!("Process response body {:?}", start5.elapsed());
 
     (
         combine_process_trace_res(

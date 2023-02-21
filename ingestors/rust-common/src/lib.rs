@@ -7,6 +7,7 @@ use mappers::{map_ingest_api_trace, map_process_trace_res};
 use process_trace::process_api_trace;
 use std::path::Path;
 use std::sync::Arc;
+use std::time::Instant;
 use tokio::net::UnixListener;
 use tokio::sync::{RwLock, Semaphore, TryAcquireError};
 use tokio_stream::wrappers::UnixListenerStream;
@@ -118,8 +119,12 @@ impl MetloIngest for MIngestServer {
             match TASK_RUN_SEMAPHORE.try_acquire() {
                 Ok(permit) => {
                     tokio::spawn(async move {
+                        let start = Instant::now();
                         let res = process_api_trace(&mapped_api_trace);
+                        log::info!("Process Api Trace {:?}", start.elapsed());
+                        let start2 = Instant::now();
                         send_api_trace(mapped_api_trace, res).await;
+                        log::info!("Send Api Trace {:?}", start2.elapsed());
                         drop(permit);
                     });
                 }
