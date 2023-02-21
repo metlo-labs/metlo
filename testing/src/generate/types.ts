@@ -1,5 +1,5 @@
 import { KeyValType, TestRequest } from "../types/test"
-import { AuthType, Method } from "../types/enums"
+import { AuthType, RestMethod } from "../types/enums"
 import { DataSection, DataType } from "./enums"
 
 export interface GenTestEndpointDataField {
@@ -22,7 +22,7 @@ export interface GenTestEndpointAuthConfig {
 export interface GenTestEndpoint {
   host: string
   path: string
-  method: Method
+  method: RestMethod
   dataFields: GenTestEndpointDataField[]
   authConfig?: GenTestEndpointAuthConfig
 }

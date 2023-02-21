@@ -7,7 +7,7 @@ export enum AuthType {
   SESSION_COOKIE = "session_cookie",
 }
 
-export enum Method {
+export enum RestMethod {
   GET = "GET",
   HEAD = "HEAD",
   POST = "POST",
@@ -20,7 +20,7 @@ export enum Method {
 }
 
 export const Severity = z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"])
-export const MethodSchema = z.nativeEnum(Method)
+export const MethodSchema = z.nativeEnum(RestMethod)
 
 export const AssertionType = z.enum(["EQ", "REGEXP", "JS"])
 export const ExtractorType = z.enum(["VALUE", "JS", "REGEXP", "HTML"])

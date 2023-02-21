@@ -182,9 +182,8 @@ export const authTestStepPayloadToBuilder = (
   let builder = new TestStepBuilder(gen.req).addToEnv(...gen.env)
   if (payload.authorized) {
     builder = builder.assert({
-      type: AssertionType.enum.EQ,
-      key: "resp.status",
-      value: [200],
+      type: AssertionType.enum.JS,
+      value: "resp.status < 300"
     })
   } else {
     builder = builder.assert({

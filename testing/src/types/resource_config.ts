@@ -1,7 +1,7 @@
 import { z, ZodError } from "zod"
 
 import { PeggySyntaxError } from "../resource-def/test_resource_config"
-import { AuthType, Method } from "./enums"
+import { AuthType, RestMethod } from "./enums"
 
 const HostDefSchema = z.object({
   type: z.literal("host"),
@@ -36,7 +36,7 @@ const EndpointPermFilterSchema = z
   .object({
     permissions: z.array(z.string()),
     host: z.string().optional(),
-    method: z.nativeEnum(Method).optional(),
+    method: z.nativeEnum(RestMethod).optional(),
     path: z.string().optional(),
     contains_resource: ContainsResourceFilterSchema.optional(),
   })
