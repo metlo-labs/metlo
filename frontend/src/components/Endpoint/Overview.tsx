@@ -140,7 +140,7 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
               </HStack>
             </GridItem>
             <GridItem>
-              <Tooltip label="Set this endpoint as validated.">
+              <Tooltip label="Set this endpoint as user validated.">
                 <HStack alignItems="center" pb="1">
                   <DataHeading pb="0">Endpoint Validated</DataHeading>
                   <QuestionOutlineIcon boxSize={"3"} />
