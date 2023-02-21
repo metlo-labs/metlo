@@ -69,7 +69,10 @@ func (m *Metlo) SendLocalProcess(data MetloTrace) {
 	defer cancel()
 	metloConn := pb.NewMetloIngestClient(m.conn)
 	miTrace := MapMetloTraceToMetloIngestRPC(data)
-	metloConn.ProcessTraceAsync(ctx, &miTrace)
+	_, err := metloConn.ProcessTraceAsync(ctx, &miTrace)
+	if err != nil {
+		utils.Log.WithError(err).Debug("Failed sending trace to rust-common")
+	}
 }
 
 func (m *Metlo) Send(data MetloTrace) {
