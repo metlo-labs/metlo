@@ -7,6 +7,7 @@ import {
   Usage,
 } from "@common/types"
 import {
+  DeleteEndpointParams,
   GetEndpointParams,
   GetHostParams,
   UpdateFullTraceCaptureEnabledParams,
@@ -191,4 +192,11 @@ export const setUserSetState = async (
     { userSetState: userSet },
     { headers },
   )
+}
+
+export const deleteEndpointsBatch = async (
+  uuids: string[],
+  headers?: AxiosRequestHeaders,
+): Promise<void> => {
+  await axios.delete(`${getAPIURL()}/endpoints`, { data: { uuids }, headers })
 }

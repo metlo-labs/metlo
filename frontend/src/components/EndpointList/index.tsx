@@ -1,4 +1,4 @@
-import React from "react"
+import React, { MutableRefObject } from "react"
 import { Box, VStack } from "@chakra-ui/react"
 import { ApiEndpoint, DataClass } from "@common/types"
 import { GetEndpointParams } from "@common/api/endpoint"
@@ -15,6 +15,7 @@ interface EndpointListProps {
   params: GetEndpointParams
   hosts: string[]
   dataClasses: DataClass[]
+  selectedUuids: MutableRefObject<string[]>
 }
 
 const EndpointList: React.FC<EndpointListProps> = React.memo(
@@ -26,6 +27,7 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
     setParams,
     hosts,
     dataClasses,
+    selectedUuids,
   }) => {
     const setCurrentPage = (page: number) => {
       setParams({
@@ -67,6 +69,7 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
             setOrdering={(e: "ASC" | "DESC") => {}}
             setOrderBy={(e: string | undefined) => {}}
             dataClasses={dataClasses}
+            selectedUuids={selectedUuids}
           />
         </Box>
       </VStack>

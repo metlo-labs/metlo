@@ -2,6 +2,7 @@ import { Response, Router } from "express"
 import validator from "validator"
 import { GetEndpointsService } from "services/get-endpoints"
 import {
+  DeleteEndpointsParamsSchema,
   GetEndpointParamsSchema,
   UpdateFullTraceCaptureEnabledSchema,
 } from "@common/api/endpoint"
@@ -201,11 +202,28 @@ export const setUserSetHandler = async (req: MetloRequest, res: Response) => {
   }
 }
 
+export const deleteEndpointsFromFiltersHandler = async (
+  req: MetloRequest,
+  res: Response,
+) => {
+  const parsedBody = DeleteEndpointsParamsSchema.safeParse(req.body)
+  if (parsedBody.success === false) {
+    return await ApiResponseHandler.zerr(res, parsedBody.error)
+  }
+  try {
+    await GetEndpointsService.deleteEndpointsBatchApi(req.ctx, parsedBody.data)
+    await ApiResponseHandler.success(res)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}
+
 export default function registerEndpointRoutes(router: Router) {
   router.get("/api/v1/endpoints/hosts", getHostsHandler)
   router.get("/api/v1/endpoints", getEndpointsHandler)
   router.get("/api/v1/endpoint/:endpointId", getEndpointHandler)
   router.get("/api/v1/endpoint/:endpointId/usage", getUsageHandler)
+  router.delete("/api/v1/endpoints", deleteEndpointsFromFiltersHandler)
   router.delete("/api/v1/hosts", deleteHostsHandler)
   router.get("/api/v1/hosts", getHostsListHandler)
   router.get("/api/v1/hosts-graph", getHostsGraphHandler)
