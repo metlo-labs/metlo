@@ -120,7 +120,7 @@ func MapMetloTraceToMetloIngestRPC(trace MetloTrace) mi.ApiTrace {
 				Parameters: reqURLParams,
 			},
 			Headers: reqHeaders,
-			Body:    &trace.Response.Body,
+			Body:    &trace.Request.Body,
 		},
 		Meta: &mi.ApiMeta{
 			Environment:     trace.Meta.Environment,

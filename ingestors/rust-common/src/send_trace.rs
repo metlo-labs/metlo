@@ -1,4 +1,5 @@
-use reqwest::Url;
+use lazy_static::lazy_static;
+use reqwest::{Client, Url};
 
 use crate::{
     trace::{ApiRequest, ApiResponse, ApiTrace, ProcessTraceRes, ProcessedApiTrace},
@@ -8,6 +9,10 @@ use crate::{
 pub struct LogTraceResp {
     pub ok: bool,
     pub msg: Option<String>,
+}
+
+lazy_static! {
+    pub static ref CLIENT: Client = reqwest::Client::new();
 }
 
 async fn send_trace_inner(
@@ -49,8 +54,7 @@ async fn send_trace_inner(
                 redacted: !trace_capture_enabled,
                 processed_trace_data: processed_trace,
             };
-            let client = reqwest::Client::new();
-            let resp = client
+            let resp = CLIENT
                 .post(url)
                 .header("authorization", api_key)
                 .json(req_body)

@@ -120,7 +120,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some(port) => Some(port),
         None => match env::var("BACKEND_PORT") {
             Ok(s) => Some(s.parse().unwrap()),
-            Err(_) => Some(8080),
+            Err(_) => None,
         },
     };
 
