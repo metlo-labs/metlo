@@ -1,7 +1,21 @@
 import { useRouter } from "next/router"
-import { Heading, VStack } from "@chakra-ui/react"
+import {
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
+  Button,
+  Heading,
+  HStack,
+  Text,
+  useDisclosure,
+  useToast,
+  VStack,
+} from "@chakra-ui/react"
 import superjson from "superjson"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { GetServerSideProps } from "next"
 import { ApiEndpoint, DataClass } from "@common/types"
 import { GetEndpointParams } from "@common/api/endpoint"
@@ -9,9 +23,11 @@ import { RestMethod, RiskScore } from "@common/enums"
 import EndpointList from "components/EndpointList"
 import { PageWrapper } from "components/PageWrapper"
 import { ContentContainer } from "components/utils/ContentContainer"
-import { getEndpoints, getHosts } from "api/endpoints"
+import { deleteEndpointsBatch, getEndpoints, getHosts } from "api/endpoints"
 import { ENDPOINT_PAGE_LIMIT } from "~/constants"
 import { getDataClasses } from "api/dataClasses"
+import { makeToast } from "utils"
+import { formatMetloAPIErr, MetloAPIErr } from "api/utils"
 
 interface EndpointsProps {
   params: string
@@ -32,9 +48,14 @@ const Endpoints: React.FC<EndpointsProps> = ({
   const parsedInitEndpoints = superjson.parse<ApiEndpoint[]>(endpoints)
   const parsedHosts = superjson.parse<string[]>(hosts) ?? []
   const parsedDataClasses = superjson.parse<DataClass[]>(dataClasses) ?? []
+  const toast = useToast()
   const router = useRouter()
 
   const [fetching, setFetching] = useState<boolean>(false)
+  const selectedUuids = useRef<string[]>([])
+  const [deleting, setDeleting] = useState<boolean>(false)
+  const { isOpen, onOpen, onClose } = useDisclosure()
+  const cancelRef = useRef()
 
   const setParams = (newParams: GetEndpointParams) => {
     setFetching(true)
@@ -49,15 +70,56 @@ const Endpoints: React.FC<EndpointsProps> = ({
       },
     })
     setFetching(false)
+    selectedUuids.current = []
+  }
+
+  const deleteEndpointsHandler = async () => {
+    setDeleting(true)
+    try {
+      if (selectedUuids.current.length === 0) {
+        throw new Error("Need to select endpoints to delete")
+      }
+      await deleteEndpointsBatch(selectedUuids.current)
+      toast(
+        makeToast({
+          title: "Successfully deleted endpoints",
+          status: "success",
+        }),
+      )
+      setParams({ offset: 0 })
+      onClose()
+    } catch (err) {
+      toast(
+        makeToast({
+          title: "Deleting endpoints failed",
+          status: "error",
+          description: formatMetloAPIErr(
+            err.response?.data ?? (err as MetloAPIErr),
+          ),
+        }),
+      )
+    } finally {
+      setDeleting(false)
+    }
   }
 
   return (
     <PageWrapper title="Endpoints">
       <ContentContainer maxContentW="100rem" px="8" py="8">
         <VStack w="full" alignItems="flex-start" spacing="0">
-          <Heading fontWeight="semibold" size="xl" mb="4">
-            Endpoints
-          </Heading>
+          <HStack mb="4" w="full" justifyContent="space-between">
+            <Heading fontWeight="semibold" size="xl">
+              Endpoints
+            </Heading>
+            <Button
+              isLoading={deleting}
+              variant="delete"
+              size="md"
+              onClick={onOpen}
+            >
+              Delete
+            </Button>
+          </HStack>
           <EndpointList
             hosts={parsedHosts}
             endpoints={parsedInitEndpoints}
@@ -66,8 +128,42 @@ const Endpoints: React.FC<EndpointsProps> = ({
             totalCount={totalCount}
             setParams={setParams}
             dataClasses={parsedDataClasses}
+            selectedUuids={selectedUuids}
           />
         </VStack>
+        <AlertDialog
+          isOpen={isOpen}
+          leastDestructiveRef={cancelRef}
+          onClose={onClose}
+          size="3xl"
+        >
+          <AlertDialogOverlay>
+            <AlertDialogContent>
+              <AlertDialogHeader>Delete Selected Endpoints</AlertDialogHeader>
+              <AlertDialogBody>
+                Are you sure you want to delete the selected endpoints?
+                <Text>
+                  This will delete{" "}
+                  <strong>{selectedUuids.current.length}</strong> endpoint(s).
+                </Text>
+              </AlertDialogBody>
+              <AlertDialogFooter>
+                <HStack>
+                  <Button ref={cancelRef} onClick={onClose}>
+                    Cancel
+                  </Button>
+                  <Button
+                    isLoading={deleting}
+                    variant="delete"
+                    onClick={deleteEndpointsHandler}
+                  >
+                    Delete
+                  </Button>
+                </HStack>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialogOverlay>
+        </AlertDialog>
       </ContentContainer>
     </PageWrapper>
   )

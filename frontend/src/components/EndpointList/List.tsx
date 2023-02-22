@@ -1,4 +1,4 @@
-import React from "react"
+import React, { MutableRefObject } from "react"
 import {
   Badge,
   Box,
@@ -36,6 +36,7 @@ interface EndpointTablesProps {
   setOrdering: (e: "ASC" | "DESC") => void
   setOrderBy: (e: string | undefined) => void
   dataClasses: DataClass[]
+  selectedUuids: MutableRefObject<string[]>
 }
 
 interface TableLoaderProps {
@@ -114,6 +115,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
     setOrdering,
     setOrderBy,
     dataClasses,
+    selectedUuids,
   }) => {
     const router = useRouter()
     const colorMode = useColorMode()
@@ -124,6 +126,14 @@ const List: React.FC<EndpointTablesProps> = React.memo(
     ) => {
       setOrdering(sortDirection.toUpperCase() as "ASC" | "DESC")
       setOrderBy(column.id?.toString())
+    }
+
+    const handleRowSelect = state => {
+      if (state.selectedRows?.length > 0) {
+        selectedUuids.current = state.selectedRows.map(e => e.uuid)
+      } else {
+        selectedUuids.current = []
+      }
     }
 
     const columns: TableColumn<ApiEndpoint>[] = [
@@ -284,6 +294,12 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         onSort={handleSort}
         onRowClicked={onRowClicked}
         paginationDefaultPage={currentPage}
+        selectableRows
+        selectableRowsHighlight
+        onSelectedRowsChange={handleRowSelect}
+        selectableRowSelected={(row: ApiEndpoint) =>
+          selectedUuids.current.includes(row.uuid)
+        }
       />
     )
 

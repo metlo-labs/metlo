@@ -25,6 +25,12 @@ export const GetEndpointParamsSchema = z.object({
 
 export type GetEndpointParams = z.infer<typeof GetEndpointParamsSchema>
 
+export const DeleteEndpointsParamsSchema = z.object({
+  uuids: z.string().array(),
+})
+
+export type DeleteEndpointParams = z.infer<typeof DeleteEndpointsParamsSchema>
+
 export const UpdateDataFieldClassesParamsSchema = z.object({
   dataClasses: z.string().array(),
   dataSection: z.nativeEnum(DataSection),
