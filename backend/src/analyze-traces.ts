@@ -1,7 +1,7 @@
 import mlog from "logger"
 import { v4 as uuidv4 } from "uuid"
 import { AppDataSource } from "data-source"
-import { ApiEndpoint, DataField } from "models"
+import { ApiEndpoint, DataField, Hosts } from "models"
 import { RedisClient } from "utils/redis"
 import { TRACES_QUEUE } from "~/constants"
 import { QueryRunner, Raw } from "typeorm"
@@ -17,6 +17,7 @@ import { isGraphQlEndpoint } from "services/graphql"
 import { isQueryFailedError, retryTypeormTransaction } from "utils/db"
 import { MetloContext } from "types"
 import {
+  createQB,
   getEntityManager,
   insertValueBuilder,
   insertValuesBuilder,
@@ -171,6 +172,12 @@ const generateEndpoint = async (
     parameterizedPath = trace.path
     pathRegex = trace.path
   } else {
+    await createQB(ctx)
+      .insert()
+      .into(Hosts)
+      .values({ host: trace.host, isPublic: false })
+      .orIgnore()
+      .execute()
     const pathTokens = getPathTokens(trace.path)
     for (let j = 0; j < pathTokens.length; j++) {
       const tokenString = pathTokens[j]

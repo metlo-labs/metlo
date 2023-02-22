@@ -201,6 +201,7 @@ export interface ApiEndpointDetailed extends ApiEndpoint {
 export interface HostResponse {
   host: string
   numEndpoints: number
+  isPublic: boolean
 }
 
 export interface OpenApiSpec {

@@ -17,6 +17,7 @@ import {
   Attack,
   Webhook,
   TestingConfig,
+  Hosts,
 } from "models"
 import { runMigration } from "utils"
 import { initMigration1665782029662 } from "migrations/1665782029662-init-migration"
@@ -44,6 +45,7 @@ import { addHostAndMethodIndex1676006521189 } from "migrations/1676006521189-add
 import { addFullTraceCaptureEnabledColumn1676065168441 } from "migrations/1676065168441-addFullTraceCaptureEnabledColumn"
 import { addOriginalHostTraceColumn1676358211583 } from "migrations/1676358211583-addOriginalHostTraceColumn"
 import { addTestingConfigTable1676508983994 } from "migrations/1676508983994-add-testing-config-table"
+import { hostsList1677073188312 } from "migrations/1677073188312-hosts_list"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -66,6 +68,7 @@ export const AppDataSource: DataSource = new DataSource({
     MetloConfig,
     Webhook,
     TestingConfig,
+    Hosts
   ],
   synchronize: false,
   migrations: [
@@ -93,6 +96,7 @@ export const AppDataSource: DataSource = new DataSource({
     addFullTraceCaptureEnabledColumn1676065168441,
     addOriginalHostTraceColumn1676358211583,
     addTestingConfigTable1676508983994,
+    hostsList1677073188312,
   ],
   migrationsRun: runMigration,
   logging: false,

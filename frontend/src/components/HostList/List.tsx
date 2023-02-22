@@ -145,17 +145,36 @@ const List: React.FC<HostTableProps> = React.memo(
       {
         name: "Endpoints",
         sortable: true,
-        selector: (row: HostResponse) => row.numEndpoints,
+        selector: (row: HostResponse) => row.host || "",
         cell: (row: HostResponse) => (
-          <Text color="gray.900">{row.numEndpoints}</Text>
+          <Text color="gray.900" key={row.host}>
+            {row.numEndpoints}
+          </Text>
         ),
         id: "numEndpoints",
         right: true,
         grow: 4,
       },
       {
+        name: "Is Public Host",
+        sortable: false,
+        selector: (row: HostResponse) => row.host || "",
+        cell: (row: HostResponse) => (
+          <Text
+            color={row.isPublic ? "green.500" : "red.500"}
+            fontWeight={"semibold"}
+          >
+            {row.isPublic ? "Public" : "Private"}
+          </Text>
+        ),
+        id: "isPublic",
+        right: true,
+        grow: 4,
+      },
+      {
         name: "",
         sortable: false,
+        selector: (row: HostResponse) => row.host || "",
         cell: (row: HostResponse) => (
           <Button
             size="xs"
@@ -180,6 +199,7 @@ const List: React.FC<HostTableProps> = React.memo(
 
     const getTable = () => (
       <DataTable
+        keyField="host"
         style={rowStyles}
         paginationComponentOptions={{ noRowsPerPage: true }}
         paginationTotalRows={totalCount}
