@@ -162,7 +162,7 @@ const main = async () => {
     )
   })
 
-  schedule.scheduleJob("*/30 * * * *", async () => {
+  schedule.scheduleJob("*/5 * * * *", async () => {
     await detectPrivateIPQueue.add(
       `${JobName.DETECT_PRIVATE_IP}`,
       {},
