@@ -145,11 +145,9 @@ const List: React.FC<HostTableProps> = React.memo(
       {
         name: "Endpoints",
         sortable: true,
-        selector: (row: HostResponse) => row.host || "",
+        selector: (row: HostResponse) => row.numEndpoints || "",
         cell: (row: HostResponse) => (
-          <Text color="gray.900" key={row.host}>
-            {row.numEndpoints}
-          </Text>
+          <Text color="gray.900">{row.numEndpoints}</Text>
         ),
         id: "numEndpoints",
         right: true,
@@ -158,7 +156,7 @@ const List: React.FC<HostTableProps> = React.memo(
       {
         name: "Is Public Host",
         sortable: false,
-        selector: (row: HostResponse) => row.host || "",
+        selector: (row: HostResponse) => row.isPublic || "",
         cell: (row: HostResponse) => (
           <Text
             color={row.isPublic ? "green.500" : "red.500"}
@@ -174,7 +172,6 @@ const List: React.FC<HostTableProps> = React.memo(
       {
         name: "",
         sortable: false,
-        selector: (row: HostResponse) => row.host || "",
         cell: (row: HostResponse) => (
           <Button
             size="xs"
