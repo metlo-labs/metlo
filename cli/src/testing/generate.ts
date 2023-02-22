@@ -124,25 +124,49 @@ export const generateTest = async ({
   }
   const genTestEndpoint = res.data
 
-  const configStringRes = await axios.get<{ configString: string }>(
-    urlJoin(config.metloHost, "api/v1/testing-config"),
-    {
-      headers: {
-        Authorization: config.apiKey,
+  let testConfigString = null
+  try {
+    const configStringRes = await axios.get<{ configString: string }>(
+      urlJoin(config.metloHost, "api/v1/testing-config"),
+      {
+        headers: {
+          Authorization: config.apiKey,
+        },
+        validateStatus: () => true,
       },
-      validateStatus: () => true,
-    },
-  )
-  if (configStringRes.status > 300) {
+    )
+    if (configStringRes.status > 300) {
+      console.log(
+        chalk.bold.red(
+          `Failed to generate test [Code ${configStringRes.status}] - ${configStringRes.data}`,
+        ),
+      )
+      return
+    }
+    testConfigString = configStringRes?.data?.configString
+  } catch (err) {
     console.log(
       chalk.bold.red(
-        `Failed to generate test [Code ${configStringRes.status}] - ${configStringRes.data}`,
+        `Failed to generate test: Could not retrieve testing config`,
       ),
     )
     return
   }
-  const parseRes = parseResourceConfig(configStringRes.data.configString)
-  const templateConfig = processResourceConfig(parseRes.res)
+
+  let templateConfig = {}
+  if (testConfigString) {
+    const parseRes = parseResourceConfig(testConfigString)
+    if (!parseRes.res) {
+      console.log(
+        chalk.bold.red(
+          `Failed to generate test: ${
+            parseRes.parseError?.message ?? "Invalid Testing Config"
+          }`,
+        ),
+      )
+    }
+    templateConfig = processResourceConfig(parseRes.res)
+  }
 
   let testYaml = ""
   if (testType.endsWith(".js") || testType.endsWith(".ts")) {
@@ -158,8 +182,12 @@ export const generateTest = async ({
       console.log(err)
       return
     }
-    const test = template.builder(genTestEndpoint, templateConfig).getTest()
-    testYaml = dumpTestConfig(test)
+    try {
+      const test = template.builder(genTestEndpoint, templateConfig).getTest()
+      testYaml = dumpTestConfig(test)
+    } catch (err) {
+      console.log(chalk.bold.red(`Failed to generate test: ${err?.message}`))
+    }
   }
 
   if (filePath) {
