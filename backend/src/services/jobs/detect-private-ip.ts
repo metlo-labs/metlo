@@ -21,7 +21,6 @@ export const detectPrivateHosts = async (
           }
         } catch (err) {
           console.log(err)
-          // pass
         }
         await getEntityManager(ctx, queryrunner).update(
           Hosts,

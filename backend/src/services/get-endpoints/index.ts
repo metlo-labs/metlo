@@ -40,7 +40,6 @@ import { retryTypeormTransaction } from "utils/db"
 import { RedisClient } from "utils/redis"
 import { getGlobalFullTraceCaptureCached } from "services/metlo-config"
 import Error400BadRequest from "errors/error-400-bad-request"
-import { groupBy, isArray, mergeWith } from "lodash"
 
 export class GetEndpointsService {
   static async deleteEndpoint(
@@ -538,12 +537,9 @@ export class GetEndpointsService {
         qb = qb.andWhere("host ILIKE :searchQuery", {
           searchQuery: `%${getHostsParams.searchQuery}%`,
         })
-        totalHostsQb = totalHostsQb.andWhere(
-          "endpoint.host ILIKE :searchQuery",
-          {
+        totalHostsQb = totalHostsQb.andWhere("endpoint.host ILIKE :searchQuery", {
             searchQuery: `%${getHostsParams.searchQuery}%`,
-          },
-        )
+        })
       }
 
       qb = qb
@@ -553,17 +549,17 @@ export class GetEndpointsService {
 
       const hostsResp = await qb.getRawMany()
       const totalHosts = await totalHostsQb.getRawOne()
-      let res = hostsResp
+      let hostsRespWithPublicInfo = hostsResp
       try {
         let hosts = await getEntityManager(ctx, queryRunner).find(Hosts)
-        res = hostsResp.map(resp => ({
+        hostsRespWithPublicInfo = hostsResp.map(resp => ({
           ...resp,
           isPublic:
             hosts.find(host => host.host === resp.host)?.isPublic || false,
         }))
       } catch (err) {}
 
-      return [res, totalHosts?.numHosts ?? 0]
+      return [hostsRespWithPublicInfo, totalHosts?.numHosts ?? 0]
     } catch (err) {
       throw new Error500InternalServer(err)
     } finally {
