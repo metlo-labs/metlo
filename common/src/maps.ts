@@ -16,7 +16,7 @@ export const DATA_SECTION_TO_LABEL_MAP: Record<DataSection, string> = {
 }
 
 export const __DATA_CLASS_TO_RISK_SCORE_INTERNAL__: Record<__DataClass_INTERNAL__ | "", RiskScore> = {
-  [__DataClass_INTERNAL__.ADDRESS]: RiskScore.HIGH,
+  [__DataClass_INTERNAL__.ADDRESS]: RiskScore.MEDIUM,
   [__DataClass_INTERNAL__.EMAIL]: RiskScore.MEDIUM,
   [__DataClass_INTERNAL__.CREDIT_CARD]: RiskScore.HIGH,
   [__DataClass_INTERNAL__.SSN]: RiskScore.HIGH,
