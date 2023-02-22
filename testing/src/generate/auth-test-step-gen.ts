@@ -24,8 +24,8 @@ export const getAuthTestPayloads = (
   endpoint: GenTestEndpoint,
   config: TemplateConfig,
 ): AuthTestStepPayload[] => {
-  const host = config.hosts[endpoint.host]
-  if (!host || !host.authType) {
+  const host = config.hosts?.[endpoint.host]
+  if (!host || !host?.authType) {
     throw new Error(`No auth config defined for host: "${endpoint.host}"...`)
   }
   const endpointReqEnts = getEndpointRequestEntities(endpoint, config)
