@@ -402,8 +402,8 @@ export class GetEndpointsService {
         parameters.push(getEndpointParams.methods)
       }
       if (getEndpointParams?.searchQuery) {
-        whereFilter.push(`endpoint.path ILIKE $${argNumber++}`)
-        parameters.push(`%${getEndpointParams.searchQuery}%`)
+        whereFilter.push(`endpoint.path ~ $${argNumber++}`)
+        parameters.push(`${getEndpointParams.searchQuery}`)
       }
       if (getEndpointParams?.isAuthenticated) {
         const isAuthenticated = getEndpointParams.isAuthenticated
