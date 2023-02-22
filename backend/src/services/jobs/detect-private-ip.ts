@@ -45,9 +45,6 @@ export const detectPrivateHosts = async (
             .values([{ isPublic, host }])
             .orUpdate(["isPublic", "host"], ["host"], {})
             .execute()
-          // await getEntityManager(ctx, qr)
-          //   .insert(Hosts, { uuid: host.uuid }, { isPublic })
-          //   .update()
         } catch (err) {
           console.log(err)
         } finally {
