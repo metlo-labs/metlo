@@ -1,5 +1,5 @@
 [package]
-name = "metlo-common-ingestor"
+name = "metlo-agent"
 version = "0.0.1"
 edition = "2021"
 
@@ -7,9 +7,13 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.1.4", features = ["derive"] }
+dirs = "4.0.0"
+dotenv = "0.15.0"
+env_logger = "0.10.0"
 jsonschema = "0.16.1"
 lazy_static = "1.4.0"
 libinjection = "0.3.2"
+log = "0.4.17"
 mime = "0.3.16"
 multipart = "0.18.0"
 prost = "0.11.6"

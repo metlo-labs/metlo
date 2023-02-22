@@ -1,5 +1,5 @@
 use crate::{
-    open_api::{find_open_api_diff, get_split_path},
+    open_api::{find_open_api_diff, get_split_path, EndpointInfo},
     sensitive_data::detect_sensitive_data,
     trace::{ApiResponse, ApiTrace, KeyVal, ProcessTraceRes},
     METLO_CONFIG,
@@ -61,7 +61,7 @@ fn process_json_val(
             insert_data_type(data_types, path, "null".to_string());
         }
         serde_json::Value::Bool(_) => {
-            insert_data_type(data_types, path, "bool".to_string());
+            insert_data_type(data_types, path, "boolean".to_string());
         }
         serde_json::Value::Number(_) => {
             insert_data_type(data_types, path, "number".to_string());
@@ -137,7 +137,7 @@ fn process_json(
     prefix: String,
     value: Value,
     trace: &ApiTrace,
-    openapi_spec_name: Option<String>,
+    endpoint_info: EndpointInfo,
 ) -> Option<ProcessTraceRes> {
     let mut data_types: HashMap<String, HashSet<String>> = HashMap::new();
     let mut xss_detected: HashMap<String, String> = HashMap::new();
@@ -164,7 +164,7 @@ fn process_json(
             .then_some(sensitive_data_detected),
         data_types: (!data_types.is_empty()).then_some(data_types),
         validation_errors: if prefix.clone().starts_with("resBody") {
-            find_open_api_diff(trace, &value, openapi_spec_name)
+            find_open_api_diff(trace, &value, endpoint_info)
         } else {
             None
         },
@@ -177,12 +177,12 @@ fn process_json_string(
     prefix: String,
     body: &str,
     trace: &ApiTrace,
-    openapi_spec_name: Option<String>,
+    endpoint_info: EndpointInfo,
 ) -> Option<ProcessTraceRes> {
     match serde_json::from_str(body) {
-        Ok(value) => process_json(prefix, value, trace, openapi_spec_name),
+        Ok(value) => process_json(prefix, value, trace, endpoint_info),
         Err(_) => {
-            println!("Invalid JSON");
+            log::debug!("Invalid JSON");
             None
         }
     }
@@ -193,7 +193,7 @@ fn process_form_data(
     body: &str,
     mut mime_params: mime::Params,
     trace: &ApiTrace,
-    openapi_spec_name: Option<String>,
+    endpoint_info: EndpointInfo,
 ) -> Option<ProcessTraceRes> {
     let boundary = mime_params.find(|e| e.0 == "boundary");
     if boundary.is_some() {
@@ -204,7 +204,7 @@ fn process_form_data(
             let s = String::from_utf8_lossy(data);
             form_json[field.headers.name.to_string()] = serde_json::Value::String(s.to_string());
         }
-        process_json(prefix, form_json, trace, openapi_spec_name)
+        process_json(prefix, form_json, trace, endpoint_info)
     } else {
         None
     }
@@ -214,12 +214,12 @@ fn process_url_encoded(
     prefix: String,
     body: &str,
     trace: &ApiTrace,
-    openapi_spec_name: Option<String>,
+    endpoint_info: EndpointInfo,
 ) -> Option<ProcessTraceRes> {
     match serde_urlencoded::from_str::<Value>(body) {
-        Ok(value) => process_json(prefix, value, trace, openapi_spec_name),
+        Ok(value) => process_json(prefix, value, trace, endpoint_info),
         Err(_) => {
-            println!("Invalid URL Encoded string");
+            log::debug!("Invalid URL Encoded string");
             None
         }
     }
@@ -229,7 +229,7 @@ fn process_text_plain(
     prefix: String,
     body: &str,
     trace: &ApiTrace,
-    openapi_spec_name: Option<String>,
+    endpoint_info: EndpointInfo,
 ) -> Option<ProcessTraceRes> {
     let is_xss = xss(body).unwrap_or(false);
     let is_sqli = sqli(body).unwrap_or((false, "".to_string()));
@@ -245,7 +245,7 @@ fn process_text_plain(
             HashSet::from(["string".to_string()]),
         )])),
         validation_errors: if prefix.starts_with("resBody") {
-            find_open_api_diff(trace, &Value::String(body.to_owned()), openapi_spec_name)
+            find_open_api_diff(trace, &Value::String(body.to_owned()), endpoint_info)
         } else {
             None
         },
@@ -277,17 +277,17 @@ fn process_body(
     body: &str,
     m: mime::Mime,
     trace: &ApiTrace,
-    openapi_spec_name: Option<String>,
+    endpoint_info: EndpointInfo,
 ) -> Option<ProcessTraceRes> {
     let essence = m.essence_str();
     if essence == mime::APPLICATION_JSON {
-        process_json_string(prefix, body, trace, openapi_spec_name)
+        process_json_string(prefix, body, trace, endpoint_info)
     } else if essence == mime::TEXT_PLAIN {
-        process_text_plain(prefix, body, trace, openapi_spec_name)
+        process_text_plain(prefix, body, trace, endpoint_info)
     } else if essence == mime::MULTIPART_FORM_DATA {
-        process_form_data(prefix, body, m.params(), trace, openapi_spec_name)
+        process_form_data(prefix, body, m.params(), trace, endpoint_info)
     } else if essence == mime::APPLICATION_WWW_FORM_URLENCODED {
-        process_url_encoded(prefix, body, trace, openapi_spec_name)
+        process_url_encoded(prefix, body, trace, endpoint_info)
     } else {
         None
     }
@@ -409,9 +409,16 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
         _ => false,
     };
     let proc_req_body = match non_error_status_code {
-        true => trace.request.body.as_ref().and_then(|e| {
-            process_body("reqBody".to_string(), e, req_mime_type.clone(), trace, None)
-        }),
+        true => process_body(
+            "reqBody".to_string(),
+            trace.request.body.as_str(),
+            req_mime_type.clone(),
+            trace,
+            EndpointInfo {
+                openapi_spec_name: None,
+                endpoint_path: "".to_owned(),
+            },
+        ),
         false => None,
     };
     let proc_req_params = match non_error_status_code {
@@ -424,21 +431,26 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
     };
     let mut openapi_spec_name: Option<String> = None;
     let mut full_trace_capture_enabled: bool = false;
+    let mut endpoint_path: String = trace.request.url.path.clone();
     let split_path: Vec<&str> = get_split_path(&trace.request.url.path);
 
     let conf_read = METLO_CONFIG.try_read();
     match conf_read {
         Ok(ref conf) => match &conf.endpoints {
             Some(endpoints) => {
-                for endpoint in endpoints.iter() {
-                    if endpoint.host != trace.request.url.host
-                        || endpoint.method != trace.request.method
-                    {
-                        continue;
-                    }
-                    if is_endpoint_match(&split_path, endpoint.path.clone()) {
-                        openapi_spec_name = endpoint.openapi_spec_name.to_owned();
-                        full_trace_capture_enabled = endpoint.full_trace_capture_enabled;
+                let key = format!(
+                    "{}-{}",
+                    trace.request.url.host,
+                    trace.request.method.to_lowercase()
+                );
+                if let Some(matched_endpoints) = endpoints.get(&key) {
+                    for endpoint in matched_endpoints.iter() {
+                        if is_endpoint_match(&split_path, endpoint.path.clone()) {
+                            openapi_spec_name = endpoint.openapi_spec_name.to_owned();
+                            full_trace_capture_enabled = endpoint.full_trace_capture_enabled;
+                            endpoint_path = endpoint.path.clone();
+                            break;
+                        }
                     }
                 }
             }
@@ -448,31 +460,36 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
     }
     drop(conf_read);
 
-    let mut proc_resp_body: Option<ProcessTraceRes> = None;
     let mut proc_resp_headers: Option<ProcessTraceRes> = None;
     let mut resp_content_type: Option<&String> = None;
-    if let Some(resp) = &trace.response {
-        proc_resp_headers = process_key_val("resHeaders".to_string(), &resp.headers);
-        resp_content_type = get_content_type(&resp.headers);
-        let resp_mime_type = get_mime_type(resp_content_type);
-        if let Some(resp_body) = &resp.body {
-            proc_resp_body = process_body(
+    let proc_resp_body: Option<ProcessTraceRes> = {
+        if let Some(resp) = &trace.response {
+            proc_resp_headers = process_key_val("resHeaders".to_string(), &resp.headers);
+            resp_content_type = get_content_type(&resp.headers);
+            let resp_mime_type = get_mime_type(resp_content_type);
+            process_body(
                 "resBody".to_string(),
-                resp_body,
+                &resp.body,
                 resp_mime_type,
                 trace,
-                openapi_spec_name,
-            );
+                EndpointInfo {
+                    openapi_spec_name,
+                    endpoint_path,
+                },
+            )
+        } else {
+            process_body(
+                "resBody".to_string(),
+                "",
+                mime::TEXT_PLAIN,
+                trace,
+                EndpointInfo {
+                    openapi_spec_name,
+                    endpoint_path,
+                },
+            )
         }
-    } else {
-        proc_resp_body = process_body(
-            "resBody".to_string(),
-            "",
-            mime::TEXT_PLAIN,
-            trace,
-            openapi_spec_name,
-        )
-    }
+    };
 
     (
         combine_process_trace_res(

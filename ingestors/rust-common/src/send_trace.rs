@@ -1,4 +1,5 @@
-use reqwest::Url;
+use lazy_static::lazy_static;
+use reqwest::{Client, Url};
 
 use crate::{
     trace::{ApiRequest, ApiResponse, ApiTrace, ProcessTraceRes, ProcessedApiTrace},
@@ -8,6 +9,10 @@ use crate::{
 pub struct LogTraceResp {
     pub ok: bool,
     pub msg: Option<String>,
+}
+
+lazy_static! {
+    pub static ref CLIENT: Client = reqwest::Client::new();
 }
 
 async fn send_trace_inner(
@@ -28,7 +33,7 @@ async fn send_trace_inner(
                         method: trace.request.method,
                         url: trace.request.url,
                         headers: vec![],
-                        body: Some("".to_owned()),
+                        body: "".to_string(),
                     }
                 },
                 response: match trace.response {
@@ -39,7 +44,7 @@ async fn send_trace_inner(
                             Some(ApiResponse {
                                 status: r.status,
                                 headers: vec![],
-                                body: Some("".to_owned()),
+                                body: "".to_string(),
                             })
                         }
                     }
@@ -49,8 +54,7 @@ async fn send_trace_inner(
                 redacted: !trace_capture_enabled,
                 processed_trace_data: processed_trace,
             };
-            let client = reqwest::Client::new();
-            let resp = client
+            let resp = CLIENT
                 .post(url)
                 .header("authorization", api_key)
                 .json(req_body)
@@ -85,6 +89,9 @@ pub async fn send_api_trace(trace: ApiTrace, processed_trace: (ProcessTraceRes, 
                 "{}/api/v2/log-request/single",
                 conf.collector_url.clone().unwrap_or_default()
             );
+            let path = trace.request.url.path.clone();
+            let host = trace.request.url.host.clone();
+            let method = trace.request.method.clone();
             let global_full_trace_capture = conf.global_full_trace_capture || processed_trace.1;
             let resp = send_trace_inner(
                 &collector_log_endpoint.as_str(),
@@ -97,12 +104,17 @@ pub async fn send_api_trace(trace: ApiTrace, processed_trace: (ProcessTraceRes, 
             match resp {
                 Ok(LogTraceResp { ok, msg }) => {
                     if ok {
-                        println!("Successfully sent trace!")
+                        log::trace!(
+                            "Successfully sent trace: \nMethod{}\nHost{}\nPath{}",
+                            method,
+                            host,
+                            path,
+                        )
                     } else {
-                        println!("Failed to send trace: {}", msg.unwrap_or_default())
+                        log::warn!("Failed to send trace: {}", msg.unwrap_or_default())
                     }
                 }
-                Err(err) => println!("{}", err.to_string()),
+                Err(err) => log::warn!("{}", err.to_string()),
             }
         }
         _ => (),

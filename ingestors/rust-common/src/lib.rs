@@ -124,11 +124,11 @@ impl MetloIngest for MIngestServer {
                     });
                 }
                 Err(TryAcquireError::NoPermits) => {
-                    println!("no permits avaiable");
+                    log::debug!("no permits avaiable");
                     return Err(Status::new(Code::InvalidArgument, "Invalid API Trace"));
                 }
                 Err(TryAcquireError::Closed) => {
-                    println!("semaphore closed");
+                    log::debug!("semaphore closed");
                     return Err(Status::new(Code::InvalidArgument, "Invalid API Trace"));
                 }
             }
@@ -152,11 +152,11 @@ impl MetloIngest for MIngestServer {
                     return Ok(Response::new(map_process_trace_res(res.0)));
                 }
                 Err(TryAcquireError::NoPermits) => {
-                    println!("no permits avaiable");
+                    log::debug!("no permits avaiable");
                     return Err(Status::new(Code::InvalidArgument, "Invalid API Trace"));
                 }
                 Err(TryAcquireError::Closed) => {
-                    println!("semaphore closed");
+                    log::debug!("semaphore closed");
                     return Err(Status::new(Code::InvalidArgument, "Invalid API Trace"));
                 }
             }

@@ -2,7 +2,9 @@ package metloapi
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,31 +12,74 @@ import (
 	"sync"
 	"time"
 
+	pb "github.com/metlo-labs/metlo/ingestors/govxlan/proto"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/utils"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Metlo struct {
-	mu        sync.Mutex
-	ts        []int64
-	rps       int
-	metloHost string
-	metloKey  string
+	mu           sync.Mutex
+	ts           []int64
+	rps          int
+	metloHost    string
+	metloKey     string
+	localProcess bool
+	conn         *grpc.ClientConn
 }
 
-const MetloDefaultRPS int = 10
+const MetloDefaultRPS int = 20
+const MaxConnectTries int = 10
 
-func InitMetlo(metloHost string, metloKey string, rps int) *Metlo {
+func ConnectLocalProcessAgent() (*grpc.ClientConn, error) {
+	for i := 0; i < MaxConnectTries; i++ {
+		utils.Log.Info("Trying to connect to local metlo processor")
+		conn, err := grpc.Dial("unix:///tmp/metlo.sock", grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err == nil {
+			return conn, err
+		}
+		utils.Log.WithError(err).Info("Couldn't connect to local metlo processor")
+		time.Sleep(time.Second)
+	}
+	return nil, errors.New("COULD NOT CONNECT TO LOCAL METLO PROCESSOR")
+}
+
+func InitMetlo(metloHost string, metloKey string, rps int, localProcess bool) *Metlo {
 	inst := &Metlo{
-		ts:        make([]int64, 0, rps),
-		rps:       rps,
-		metloHost: metloHost + "/api/v1/log-request/single",
-		metloKey:  metloKey,
+		ts:           make([]int64, 0, rps),
+		rps:          rps,
+		metloHost:    metloHost + "/api/v1/log-request/single",
+		metloKey:     metloKey,
+		localProcess: localProcess,
+		conn:         nil,
+	}
+	if localProcess {
+		conn, err := ConnectLocalProcessAgent()
+		inst.conn = conn
+		if err != nil {
+			utils.Log.WithError(err).Fatal()
+		}
 	}
 	return inst
 }
 
+func (m *Metlo) SendLocalProcess(data MetloTrace) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	metloConn := pb.NewMetloIngestClient(m.conn)
+	miTrace := MapMetloTraceToMetloIngestRPC(data)
+	_, err := metloConn.ProcessTraceAsync(ctx, &miTrace)
+	if err != nil {
+		utils.Log.WithError(err).Debug("Failed sending trace to rust-common")
+	}
+}
+
 func (m *Metlo) Send(data MetloTrace) {
+	if m.localProcess {
+		m.SendLocalProcess(data)
+		return
+	}
 	traceHost := data.Request.Url.Host
 	httpTraceHost := fmt.Sprintf("http://%s", traceHost)
 	httpsTraceHost := fmt.Sprintf("https://%s", traceHost)

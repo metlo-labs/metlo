@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use regex::Regex;
 use reqwest::Url;
 use serde::{Deserialize, Serialize};
@@ -32,6 +34,7 @@ pub struct MetloEndpoint {
     pub host: String,
     pub method: String,
     pub full_trace_capture_enabled: bool,
+    pub number_params: u8,
 }
 
 #[derive(Debug, Default, Clone, Deserialize, Serialize)]
@@ -57,7 +60,7 @@ pub struct GlobalConfig {
     pub backend_url: Option<String>,
     pub metlo_config: Option<MetloConfig>,
     pub sensitive_data: Option<Vec<SensitiveData>>,
-    pub endpoints: Option<Vec<MetloEndpoint>>,
+    pub endpoints: Option<HashMap<String, Vec<MetloEndpoint>>>,
     pub specs: Option<CompiledSpecs>,
     pub global_full_trace_capture: bool,
 }
@@ -112,6 +115,24 @@ pub async fn validate_connection(endpoint_url: &str, api_key: &str) -> ValidateR
     }
 }
 
+fn get_endpoints_map(mut endpoints: Vec<MetloEndpoint>) -> HashMap<String, Vec<MetloEndpoint>> {
+    endpoints.sort_by(|a, b| a.number_params.cmp(&b.number_params));
+    let mut endpoints_map: HashMap<String, Vec<MetloEndpoint>> = HashMap::new();
+    for endpoint in endpoints {
+        let key = format!("{}-{}", endpoint.host, endpoint.method.to_lowercase());
+        let curr_endpoints = endpoints_map.get_mut(&key);
+        match curr_endpoints {
+            Some(old) => {
+                old.push(endpoint);
+            }
+            None => {
+                endpoints_map.insert(key, vec![endpoint]);
+            }
+        }
+    }
+    endpoints_map
+}
+
 pub async fn pull_metlo_config() -> Result<(), Box<dyn std::error::Error>> {
     let conf_read = METLO_CONFIG.read().await;
     let backend_url = conf_read.backend_url.clone().unwrap_or_default();
@@ -119,7 +140,7 @@ pub async fn pull_metlo_config() -> Result<(), Box<dyn std::error::Error>> {
     drop(conf_read); // Drop read lock so we can get write lock later
 
     if backend_url.is_empty() || api_key.is_empty() {
-        println!("Metlo Not Initialized");
+        log::info!("Metlo Not Initialized");
         return Ok(());
     }
 
@@ -148,7 +169,7 @@ pub async fn pull_metlo_config() -> Result<(), Box<dyn std::error::Error>> {
                         })
                     }
                     Err(err) => {
-                        print!(
+                        log::info!(
                             "Failed to Compile Regex \"{}\" - {}\n",
                             e.class_name,
                             err.to_string()
@@ -162,11 +183,11 @@ pub async fn pull_metlo_config() -> Result<(), Box<dyn std::error::Error>> {
         .flatten()
         .collect();
     let compiled_specs = compile_specs(resp.specs);
+    let endpoints_map = get_endpoints_map(resp.endpoints);
 
     let mut conf_write = METLO_CONFIG.write().await;
-    //conf_write.metlo_config = Some(resp);
     conf_write.sensitive_data = Some(new_sensitive_data);
-    conf_write.endpoints = Some(resp.endpoints);
+    conf_write.endpoints = Some(endpoints_map);
     conf_write.specs = Some(compiled_specs);
     conf_write.global_full_trace_capture = resp.global_full_trace_capture;
 

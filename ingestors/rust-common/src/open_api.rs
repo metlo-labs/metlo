@@ -1,5 +1,7 @@
 use jsonschema::ValidationError;
 use jsonschema::{Draft, JSONSchema};
+use lazy_static::lazy_static;
+use regex::Regex;
 use serde_json::{json, Value};
 use std::collections::HashMap;
 
@@ -13,12 +15,21 @@ pub struct CompiledSchema {
     schema: JSONSchema,
 }
 
+pub struct EndpointInfo {
+    pub openapi_spec_name: Option<String>,
+    pub endpoint_path: String,
+}
+
 pub type CompiledSpecs = HashMap<
     String,
     HashMap<String, HashMap<String, HashMap<String, HashMap<String, CompiledSchema>>>>,
 >;
 pub type CompiledSpecsSingle =
     HashMap<String, HashMap<String, HashMap<String, HashMap<String, CompiledSchema>>>>;
+
+lazy_static! {
+    pub static ref INVALID_REF_REGEX: Regex = Regex::new(r#""\$ref":\s*(""|"/?\#"|"/+")"#).unwrap();
+}
 
 fn get_validation_error_msg(error: ValidationError) -> String {
     match error.kind {
@@ -29,6 +40,10 @@ fn get_validation_error_msg(error: ValidationError) -> String {
 pub fn compile_specs(specs: Vec<MetloSpec>) -> CompiledSpecs {
     let mut compiled_specs: CompiledSpecs = HashMap::new();
     for e in specs.iter() {
+        if INVALID_REF_REGEX.is_match(&e.spec) {
+            log::debug!("{} has invalid $ref value", &e.name);
+            continue;
+        }
         if let Ok(Value::Object(v)) = serde_json::from_str::<Value>(&e.spec) {
             if let Some(Value::Object(paths)) = v.get("paths") {
                 let default = json!({});
@@ -52,9 +67,19 @@ pub fn compile_specs(specs: Vec<MetloSpec>) -> CompiledSpecs {
                             .unwrap_or(&serde_json::Map::default())
                             .iter()
                         {
+                            let (status_code_val, in_responses_schema) =
+                                match status_code_value.get("$ref") {
+                                    Some(Value::String(ref_string)) => (
+                                        components.pointer(&format!(
+                                            "/responses/{}/content",
+                                            ref_string.rsplit_once('/').unwrap_or_default().1
+                                        )),
+                                        true,
+                                    ),
+                                    _ => (status_code_value.get("content"), false),
+                                };
                             let mut content_type_specs = HashMap::new();
-                            for (content_type, content_type_value) in status_code_value
-                                .get("content")
+                            for (content_type, content_type_value) in status_code_val
                                 .unwrap_or(&serde_json::Value::default())
                                 .as_object()
                                 .unwrap_or(&serde_json::Map::default())
@@ -67,34 +92,60 @@ pub fn compile_specs(specs: Vec<MetloSpec>) -> CompiledSpecs {
                                 if let Some(s) = content_type_value.get("schema") {
                                     let mut schema = s.clone();
                                     schema["components"] = components.clone();
-                                    let compiled_schema = JSONSchema::options()
+                                    let compiled_schema = match JSONSchema::options()
                                         .with_draft(Draft::Draft7)
                                         .compile(&schema)
-                                        .expect("A valid schema");
+                                    {
+                                        Ok(s) => s,
+                                        Err(err) => {
+                                            log::debug!(
+                                                "Failed to compile spec {}: {}",
+                                                e.name,
+                                                err
+                                            );
+                                            continue;
+                                        }
+                                    };
+                                    let mut path_pointer = vec![
+                                        "paths".to_owned(),
+                                        path.to_owned(),
+                                        method.to_owned(),
+                                        "responses".to_owned(),
+                                        status_code.to_owned(),
+                                    ];
                                     content_type_specs.insert(
                                         content_type_tmp,
                                         CompiledSchema {
-                                            path_pointer: vec![
-                                                "paths".to_owned(),
-                                                path.to_owned(),
-                                                method.to_owned(),
-                                                "responses".to_owned(),
-                                                status_code.to_owned(),
-                                                "content".to_owned(),
-                                                content_type.to_owned(),
-                                            ],
+                                            path_pointer: if in_responses_schema {
+                                                path_pointer
+                                            } else {
+                                                path_pointer.append(&mut vec![
+                                                    "content".to_owned(),
+                                                    content_type.to_owned(),
+                                                ]);
+                                                path_pointer
+                                            },
                                             schema: compiled_schema,
                                         },
                                     );
                                 }
                             }
-                            status_code_specs.insert(status_code.to_owned(), content_type_specs);
+                            if content_type_specs.len() > 0 {
+                                status_code_specs
+                                    .insert(status_code.to_owned(), content_type_specs);
+                            }
                         }
-                        method_specs.insert(method.to_owned(), status_code_specs);
+                        if status_code_specs.len() > 0 {
+                            method_specs.insert(method.to_owned(), status_code_specs);
+                        }
                     }
-                    path_specs.insert(path.to_owned(), method_specs);
+                    if method_specs.len() > 0 {
+                        path_specs.insert(path.to_owned(), method_specs);
+                    }
                 }
-                compiled_specs.insert(e.name.to_owned(), path_specs);
+                if path_specs.len() > 0 {
+                    compiled_specs.insert(e.name.to_owned(), path_specs);
+                }
             }
         }
     }
@@ -192,8 +243,12 @@ fn get_compiled_schema<'a>(
     };
     let spec_status_code_map = match spec_method_map {
         Some(status_code_map) => {
+            let first_char = trace_status_code.chars().next().unwrap_or_default();
+            let status_code_range = format!("{}XX", first_char);
             if status_code_map.contains_key(trace_status_code) {
                 status_code_map.get(trace_status_code)
+            } else if status_code_map.contains_key(&status_code_range) {
+                status_code_map.get(&status_code_range)
             } else if status_code_map.contains_key("default") {
                 status_code_map.get("default")
             } else {
@@ -214,11 +269,10 @@ fn get_compiled_schema<'a>(
 pub fn find_open_api_diff(
     trace: &ApiTrace,
     response_body: &Value,
-    openapi_spec_name: Option<String>,
+    endpoint_info: EndpointInfo,
 ) -> Option<HashMap<String, Vec<String>>> {
     let mut validation_errors: HashMap<String, Vec<String>> = HashMap::new();
-    if let (Some(resp), Some(s)) = (&trace.response, openapi_spec_name) {
-        let trace_path = &trace.request.url.path;
+    if let (Some(resp), Some(s)) = (&trace.response, endpoint_info.openapi_spec_name) {
         let trace_method = &trace.request.method;
         let trace_status_code = &resp.status.to_string();
         let trace_content_type = &resp
@@ -227,7 +281,7 @@ pub fn find_open_api_diff(
             .find(|e| e.name.to_lowercase() == "content-type")
             .map(|e| e.value.to_owned())
             .unwrap_or_default();
-        let split_path: Vec<&str> = get_split_path(trace_path);
+        let split_path: Vec<&str> = get_split_path(&endpoint_info.endpoint_path);
 
         let conf_read = METLO_CONFIG.try_read();
         let compiled_specs = match conf_read {
