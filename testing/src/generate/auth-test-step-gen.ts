@@ -8,6 +8,7 @@ import {
   getAllAuthActors,
   getEndpointPermissions,
   getEndpointRequestEntities,
+  getEntityItems,
 } from "./permissions"
 import { makeSampleRequestNoAuth } from "./sample-request"
 import { GeneratedTestRequest, GenTestContext, GenTestEndpoint } from "./types"
@@ -23,11 +24,20 @@ export const getAuthTestPayloads = (
   endpoint: GenTestEndpoint,
   config: TemplateConfig,
 ): AuthTestStepPayload[] => {
-  const host = config.hosts[endpoint.host]
-  if (!host || !host.authType) {
+  const host = config.hosts?.[endpoint.host]
+  if (!host || !host?.authType) {
     throw new Error(`No auth config defined for host: "${endpoint.host}"...`)
   }
   const endpointReqEnts = getEndpointRequestEntities(endpoint, config)
+  const reqEntsMap: Record<string, { item: any }> = {}
+  for (const reqEnt of endpointReqEnts) {
+    const entityItems = getEntityItems(reqEnt.name, config)
+    if (entityItems.length > 0) {
+      reqEntsMap[reqEnt.name] = {
+        item: entityItems[0],
+      }
+    }
+  }
   const resourcePerms = getEndpointPermissions(endpoint, config)
   const allAuthActors = getAllAuthActors(config)
 
@@ -58,9 +68,12 @@ export const getAuthTestPayloads = (
     )
       .filter(([k, v]) => v)
       .map(([k, v]) => k)
-    const defaultPayloadEntities = Object.fromEntries(
-      Object.entries(hasAccessItems).map(([k, v]) => [k, v[0]]),
-    )
+    const defaultPayloadEntities = {
+      ...reqEntsMap,
+      ...Object.fromEntries(
+        Object.entries(hasAccessItems).map(([k, v]) => [k, v[0]]),
+      ),
+    }
 
     if (noResourceLevelAccessItems.length > 0) {
       let payload: AuthTestStepPayload = {
@@ -80,9 +93,7 @@ export const getAuthTestPayloads = (
     if (accessPossible) {
       let payload: AuthTestStepPayload = {
         authActorEntity: authActor,
-        entities: Object.fromEntries(
-          Object.entries(hasAccessItems).map(([k, v]) => [k, v[0]]),
-        ),
+        entities: defaultPayloadEntities,
         authorized: true,
       }
       if (resourceLevelAccessItems.length > 0) {
@@ -183,7 +194,7 @@ export const authTestStepPayloadToBuilder = (
   if (payload.authorized) {
     builder = builder.assert({
       type: AssertionType.enum.JS,
-      value: "resp.status < 300"
+      value: "resp.status < 300",
     })
   } else {
     builder = builder.assert({
