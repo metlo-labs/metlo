@@ -34,7 +34,6 @@ export const detectPrivateHosts = async (
               isPublic = true
             }
           } catch (err) {
-            console.log(err.message)
             if (err.code == "ERR_TLS_CERT_ALTNAME_INVALID") {
               isPublic = true
             }
