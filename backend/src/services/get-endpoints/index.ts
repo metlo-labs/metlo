@@ -537,8 +537,8 @@ export class GetEndpointsService {
         qb = qb.andWhere("host ILIKE :searchQuery", {
           searchQuery: `%${getHostsParams.searchQuery}%`,
         })
-        totalHostsQb = totalHostsQb.andWhere("endpoint.host ILIKE :searchQuery", {
-            searchQuery: `%${getHostsParams.searchQuery}%`,
+        totalHostsQb = totalHostsQb.andWhere("host ILIKE :searchQuery", {
+          searchQuery: `%${getHostsParams.searchQuery}%`,
         })
       }
 
