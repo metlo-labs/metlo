@@ -26,6 +26,7 @@ import { getSensitiveDataMap } from "services/scanner/analyze-trace"
 import { getCombinedDataClassesCached } from "services/data-classes"
 import { getGlobalFullTraceCaptureCached } from "services/metlo-config"
 import { shouldUpdateEndpoint, updateDataFields } from "analyze-traces"
+import { RiskScore } from "@common/enums"
 
 export const analyze = async (
   ctx: MetloContext,
@@ -96,9 +97,20 @@ export const analyze = async (
     apiEndpoint.path,
   )
   const globalFullTraceCapture = await getGlobalFullTraceCaptureCached(ctx)
-  const redact = !(
-    globalFullTraceCapture || apiEndpoint.fullTraceCaptureEnabled
+  let redact = !(globalFullTraceCapture || apiEndpoint.fullTraceCaptureEnabled)
+
+  const allSensitiveData = apiEndpoint.dataFields.map(e => e.dataClasses).flat()
+  const dataClassToSeverity = Object.fromEntries(
+    dataClasses.map(e => [e.className, e.severity]),
   )
+  if (
+    allSensitiveData
+      .map(e => dataClassToSeverity[e])
+      .some(e => e == RiskScore.HIGH)
+  ) {
+    redact = true
+  }
+
   if (redact) {
     filteredApiTrace.redacted = true
     filteredApiTrace.requestHeaders = []

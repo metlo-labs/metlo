@@ -67,9 +67,14 @@ const detectSensitiveDataEndpoint = async (
       dataClassToTrace: Record<string, ApiTrace>
     }
   > = {}
+  const validDataClassNames = new Set(dataClasses.map(e => e.className))
   sensitiveDataMaps.forEach((dataMap, idx) => {
     const trace = traces[idx]
-    Object.entries(dataMap).map(([key, detectedData]) => {
+    Object.entries(dataMap).forEach(([key, detectedData]) => {
+      detectedData = detectedData.filter(e => validDataClassNames.has(e))
+      if (detectedData.length == 0) {
+        return
+      }
       if (!detectedDataClasses[key]) {
         detectedDataClasses[key] = {
           totalCount: 0,
