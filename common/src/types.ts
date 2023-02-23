@@ -68,15 +68,10 @@ export interface Response {
   body: string
 }
 
-export interface SqliRes {
-  data: string
-  fingerprint: string
-}
-
 export interface ProcessedTraceData {
   block: boolean
   xssDetected: Record<string, string>
-  sqliDetected: Record<string, SqliRes>
+  sqliDetected: Record<string, [string, string]>
   sensitiveDataDetected: Record<string, string[]>
   dataTypes: Record<string, string[]>
   requestContentType: string
