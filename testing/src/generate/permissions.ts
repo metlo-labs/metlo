@@ -18,8 +18,8 @@ export type ResourcePerms = Record<string, string[]>
 
 const getAllEntities = (config: TemplateConfig): ResourceEntityKey[] => {
   let resourceEntityKeys: ResourceEntityKey[] = []
-  const confActors = Object.values(config.actors)
-  const confResources = Object.values(config.resources)
+  const confActors = Object.values(config.actors ?? {})
+  const confResources = Object.values(config.resources ?? {})
   const entities = (confActors as (Actor | Resource)[]).concat(confResources)
   for (const e of entities) {
     if (e.items.length > 0) {
@@ -48,6 +48,23 @@ export const getEndpointRequestEntities = (
     .map(e => e.entity as string)
     .map(e => pathToEntity[e])
     .filter(e => e)
+}
+
+export const getEntityMap = (
+  endpoint: GenTestEndpoint,
+  config: TemplateConfig,
+): Record<string, any> => {
+  const endpointReqEnts = getEndpointRequestEntities(endpoint, config)
+  const entityMap: Record<string, any> = {}
+  for (const reqEnt of endpointReqEnts) {
+    const entityItems = getEntityItems(reqEnt.name, config)
+    if (entityItems.length > 0) {
+      Object.entries(entityItems[0]).forEach(([itemKey, itemValue]) => {
+        entityMap[`${reqEnt.name}.${itemKey}`] = itemValue
+      })
+    }
+  }
+  return entityMap
 }
 
 export const getEndpointEntities = (
@@ -247,9 +264,7 @@ export const permissionValid = (
   }
   return {
     valid: true,
-    reason: `Actor has permissions for resource with permission: ${JSON.stringify(
-      permission,
-    )}`,
+    reason: `Actor has ${permission.permissions} access to ${resourceItem.name}.`,
   }
 }
 
@@ -281,7 +296,7 @@ export const getAccessItems = (
     if (permsNeeded.length == 0) {
       out.hasAccess[entName] = allEntityItems.map(e => ({
         item: e,
-        reason: "No permissions required for this endpoint",
+        reason: "No permissions required for this endpoint.",
       }))
       continue
     }
@@ -315,9 +330,11 @@ export const getAccessItems = (
       } else {
         notHasAccessItems.push({
           item: entItem,
-          reason: `Actor does not have ${permsNeeded} access to ${permissionValidations
-            .map(e => e.reason)
-            .join(" or ")}.`,
+          reason: `Actor does not have ${permsNeeded} access to ${
+            permissionValidations.length > 0
+              ? permissionValidations.map(e => e.reason).join(" or ")
+              : entName
+          }.`,
         })
       }
     }

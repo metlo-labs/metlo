@@ -1,11 +1,14 @@
 import { GenTestEndpoint } from "../generate/types"
 import { TestBuilder, TestStepBuilder } from "../generate/builder"
+import { TemplateConfig } from "../types/resource_config"
+import { getEntityMap } from "../generate/permissions"
 
 export default {
   name: "SQLI_TIME_BASED",
   version: 1,
-  builder: (endpoint: GenTestEndpoint) =>
-    new TestBuilder()
+  builder: (endpoint: GenTestEndpoint, config: TemplateConfig) => {
+    const entityMap = getEntityMap(endpoint, config)
+    return new TestBuilder()
       .setMeta({
         name: `${endpoint.path} SQLI TIME BASED`,
         severity: "HIGH",
@@ -15,7 +18,7 @@ export default {
         stopOnFailure: true,
       })
       .addTestStep(
-        TestStepBuilder.sampleRequest(endpoint)
+        TestStepBuilder.sampleRequest(endpoint, undefined, entityMap)
           .addPayloads({
             key: "SQLI_PAYLOAD",
             value: "SQLI_TIME",
@@ -45,5 +48,6 @@ export default {
             return req
           })
           .assert("resp.duration < 1000"),
-      ),
+      )
+  },
 }

@@ -299,7 +299,12 @@ export const makeSampleRequestNoAuth = (
   ctx?: GenTestContext,
 ): GeneratedTestRequest => {
   const prefix = name ? name + "_" : ""
-  ctx = ctx || { endpoint, prefix, entityMap: {} }
+  ctx = {
+    endpoint,
+    prefix: ctx?.prefix ?? prefix,
+    entityMap: ctx?.entityMap ?? {},
+    reason: ctx?.reason,
+  }
 
   let env: KeyValType[] = []
 
@@ -335,6 +340,9 @@ export const makeSampleRequestNoAuth = (
     },
     env,
   }
+  if (ctx.reason) {
+    gen.req.description = ctx.reason
+  }
   gen = addQueryParamsToRequest(gen, ctx)
   gen = addBodyToRequest(gen, ctx)
   return gen
@@ -343,9 +351,14 @@ export const makeSampleRequestNoAuth = (
 export const makeSampleRequest = (
   endpoint: GenTestEndpoint,
   name?: string,
+  entityMap?: Record<string, any>,
 ): GeneratedTestRequest => {
-  const ctx: GenTestContext = { endpoint, prefix: name, entityMap: {} }
-  let gen = makeSampleRequestNoAuth(endpoint, name)
+  const ctx: GenTestContext = {
+    endpoint,
+    prefix: name,
+    entityMap: entityMap ?? {},
+  }
+  let gen = makeSampleRequestNoAuth(endpoint, name, ctx)
   gen = addAuthToRequest(gen, ctx)
   return gen
 }

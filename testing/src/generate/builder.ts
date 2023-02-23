@@ -33,15 +33,26 @@ export class TestStepBuilder {
     this.env = []
   }
 
-  static sampleRequest(endpoint: GenTestEndpoint, name?: string) {
-    const generatedRequest = makeSampleRequest(endpoint, name)
+  static sampleRequest(
+    endpoint: GenTestEndpoint,
+    name?: string,
+    entityMap?: Record<string, any>,
+  ) {
+    const generatedRequest = makeSampleRequest(endpoint, name, entityMap)
     return new TestStepBuilder(generatedRequest.req).addToEnv(
       ...generatedRequest.env,
     )
   }
 
-  static sampleRequestWithoutAuth(endpoint: GenTestEndpoint, name?: string) {
-    const generatedRequest = makeSampleRequestNoAuth(endpoint, name)
+  static sampleRequestWithoutAuth(
+    endpoint: GenTestEndpoint,
+    name?: string,
+    entityMap?: Record<string, any>,
+  ) {
+    const generatedRequest = makeSampleRequestNoAuth(endpoint, name, {
+      endpoint,
+      entityMap: entityMap ?? {},
+    })
     return new TestStepBuilder(generatedRequest.req).addToEnv(
       ...generatedRequest.env,
     )
