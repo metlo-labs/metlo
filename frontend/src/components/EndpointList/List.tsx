@@ -220,9 +220,12 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         sortable: false,
         selector: (row: ApiEndpoint) => row.host || "",
         cell: (row: ApiEndpoint) => (
-          <Text pointerEvents="none" fontWeight="normal">
-            {row.host}
-          </Text>
+          <HStack spacing={1}>
+            <Text pointerEvents="none" fontWeight="normal">
+              {row.host}
+            </Text>
+            <Badge>{row.isPublic ? "Public" : "Private"}</Badge>
+          </HStack>
         ),
         id: "host",
         grow: 2,

@@ -3,6 +3,7 @@ import { z } from "zod"
 import {
   DataSection,
   HostSortOptions,
+  HostType,
   RestMethod,
   RiskScore,
   SortOrder,
@@ -15,6 +16,7 @@ export const GetEndpointParamsSchema = z.object({
   dataClasses: z.string().array().optional(),
   searchQuery: z.string().optional(),
   isAuthenticated: z.string().optional(),
+  hostType: z.nativeEnum(HostType).optional().default(HostType.ANY),
   offset: z
     .union([z.number(), z.string().regex(/^\d+$/).transform(Number)])
     .optional(),
@@ -43,6 +45,7 @@ export type UpdateDataFieldClassesParams = z.infer<
 
 export const GetHostParamsSchema = z.object({
   searchQuery: z.string().optional(),
+  hostType: z.nativeEnum(HostType).optional().default(HostType.ANY),
   offset: z
     .union([z.number(), z.string().regex(/^\d+$/).transform(Number)])
     .optional(),

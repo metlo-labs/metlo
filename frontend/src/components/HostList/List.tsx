@@ -6,6 +6,7 @@ import {
   Wrap,
   WrapItem,
   Button,
+  Badge,
 } from "@chakra-ui/react"
 import { useRouter } from "next/router"
 import EmptyView from "components/utils/EmptyView"
@@ -56,6 +57,12 @@ const TableLoader: React.FC<TableLoaderProps> = ({
     {
       name: "Endpoints",
       id: "numEndpoints",
+      grow: 4,
+    },
+    {
+      name: "Is Public Host",
+      id: "isPublic",
+      right: true,
       grow: 4,
     },
     {
@@ -158,12 +165,9 @@ const List: React.FC<HostTableProps> = React.memo(
         sortable: false,
         selector: (row: HostResponse) => row.isPublic || "",
         cell: (row: HostResponse) => (
-          <Text
-            color={row.isPublic ? "green.500" : "red.500"}
-            fontWeight={"semibold"}
-          >
+          <Badge fontWeight={"semibold"}>
             {row.isPublic ? "Public" : "Private"}
-          </Text>
+          </Badge>
         ),
         id: "isPublic",
         right: true,

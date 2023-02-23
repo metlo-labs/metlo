@@ -19,7 +19,7 @@ import { useState, useRef } from "react"
 import { GetServerSideProps } from "next"
 import { ApiEndpoint, DataClass } from "@common/types"
 import { GetEndpointParams } from "@common/api/endpoint"
-import { RestMethod, RiskScore } from "@common/enums"
+import { HostType, RestMethod, RiskScore } from "@common/enums"
 import EndpointList from "components/EndpointList"
 import { PageWrapper } from "components/PageWrapper"
 import { ContentContainer } from "components/utils/ContentContainer"
@@ -184,6 +184,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
     dataClasses: ((context.query.dataClasses as string) || "")
       .split(",")
       .filter(e => dataClasses.find(({ className }) => className == e)),
+    hostType: (context.query.hostType as HostType) || HostType.ANY,
     offset: parseInt((context.query.offset as string) ?? "0"),
     searchQuery: (context.query.searchQuery as string) ?? "",
     isAuthenticated: (context.query.isAuthenticated as string) ?? "",

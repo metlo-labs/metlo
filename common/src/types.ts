@@ -186,6 +186,7 @@ export interface ApiEndpoint {
   isAuthenticatedUserSet: boolean
   fullTraceCaptureEnabled: boolean
   isGraphQl: boolean
+  isPublic?: boolean
 }
 
 export interface ApiEndpointDetailed extends ApiEndpoint {
