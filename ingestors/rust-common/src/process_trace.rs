@@ -390,10 +390,8 @@ fn combine_process_trace_res(
             .then_some(sensitive_data_detected),
         data_types: (!data_types.is_empty()).then_some(data_types),
         validation_errors: (!validation_errors.is_empty()).then_some(validation_errors),
-        request_content_type: request_content_type.unwrap_or(&"*/*".to_owned()).to_owned(),
-        response_content_type: response_content_type
-            .unwrap_or(&"*/*".to_owned())
-            .to_owned(),
+        request_content_type: request_content_type.unwrap_or(&"".to_owned()).to_owned(),
+        response_content_type: response_content_type.unwrap_or(&"".to_owned()).to_owned(),
     }
 }
 
@@ -408,8 +406,8 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
         }) => status.to_owned() < 400,
         _ => false,
     };
-    let proc_req_body = match non_error_status_code {
-        true => process_body(
+    let proc_req_body = match (non_error_status_code, trace.request.body.len() > 0) {
+        (true, true) => process_body(
             "reqBody".to_string(),
             trace.request.body.as_str(),
             req_mime_type.clone(),
@@ -419,7 +417,7 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
                 endpoint_path: "".to_owned(),
             },
         ),
-        false => None,
+        _ => None,
     };
     let proc_req_params = match non_error_status_code {
         true => process_key_val("reqQuery".to_string(), &trace.request.url.parameters),

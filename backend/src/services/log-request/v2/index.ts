@@ -1,3 +1,4 @@
+import MIMEType from "whatwg-mimetype"
 import mlog from "logger"
 import {
   Meta,
@@ -14,6 +15,18 @@ import { TRACES_QUEUE } from "~/constants"
 import { MetloContext } from "types"
 import { getValidPath } from "utils"
 import Error400BadRequest from "errors/error-400-bad-request"
+
+const getContentType = (contentType: string) => {
+  if (!contentType) {
+    return "*/*"
+  }
+  try {
+    const mimeType = new MIMEType(contentType)
+    return mimeType.essence
+  } catch {
+    return "*/*"
+  }
+}
 
 export const logRequest = async (
   ctx: MetloContext,
@@ -55,6 +68,12 @@ export const logRequest = async (
     const meta = traceParams?.meta ?? ({} as Meta)
     const processedTraceData =
       traceParams?.processedTraceData ?? ({} as ProcessedTraceData)
+    processedTraceData.requestContentType = getContentType(
+      processedTraceData.requestContentType,
+    )
+    processedTraceData.responseContentType = getContentType(
+      processedTraceData.responseContentType,
+    )
     const redacted = traceParams?.redacted
     const apiTraceObj: QueuedApiTrace = {
       path,
