@@ -40,7 +40,11 @@ export const detectPrivateHosts = async (
             .orUpdate(["isPublic", "host"], ["host"], {})
             .execute()
         } catch (err) {
-          mlog.withErr(err).error("Could not write back to Hosts table for public/private hosts")
+          mlog
+            .withErr(err)
+            .error(
+              "Could not write back to Hosts table for public/private hosts",
+            )
         } finally {
           await qr.release()
         }
@@ -48,7 +52,7 @@ export const detectPrivateHosts = async (
     )
   } catch (err) {
     mlog.withErr(err).log("Caught an error write private/public hosts")
-    throw err
+    return false
   } finally {
     await queryRunner.release()
   }
