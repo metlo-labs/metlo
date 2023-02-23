@@ -12,7 +12,7 @@ import { JobName } from "./types"
 import { wrapProcessor } from "./wrap-processor"
 import { updateEndpointIps } from "analyze/jobs"
 import { logAggregatedStats } from "services/logging"
-import { detectPrivateHosts } from "./detect-private-ip"
+import { detectPrivateHosts } from "./detect-private-hosts"
 
 const processor = async (job: Job, done) => {
   const ctx = {}

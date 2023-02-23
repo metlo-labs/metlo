@@ -1,11 +1,6 @@
 import { AppDataSource } from "data-source"
-import { Hosts, ApiKey, ApiEndpoint } from "models"
-import {
-  createQB,
-  getEntityManager,
-  getQB,
-  getRepoQB,
-} from "services/database/utils"
+import { Hosts, ApiEndpoint } from "models"
+import { createQB, getQB } from "services/database/utils"
 import { MetloContext } from "types"
 import axios from "axios"
 import mlog from "logger"
@@ -45,14 +40,14 @@ export const detectPrivateHosts = async (
             .orUpdate(["isPublic", "host"], ["host"], {})
             .execute()
         } catch (err) {
-          console.log(err)
+          mlog.withErr(err).error("Could not write back to Hosts table for public/private hosts")
         } finally {
           await qr.release()
         }
       }),
     )
   } catch (err) {
-    mlog.withErr(err).log("Caught an error detecting private/public IPs")
+    mlog.withErr(err).log("Caught an error write private/public hosts")
     throw err
   } finally {
     await queryRunner.release()
