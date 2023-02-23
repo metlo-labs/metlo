@@ -1,5 +1,4 @@
-use jsonschema::ValidationError;
-use jsonschema::{Draft, JSONSchema};
+use jsonschema::{error::ValidationErrorKind, Draft, JSONSchema, ValidationError};
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde_json::{json, Value};
@@ -31,9 +30,140 @@ lazy_static! {
     pub static ref INVALID_REF_REGEX: Regex = Regex::new(r#""\$ref":\s*(""|"/?\#"|"/+")"#).unwrap();
 }
 
-fn get_validation_error_msg(error: ValidationError) -> String {
-    match error.kind {
-        _ => error.to_string(),
+fn get_validation_error_msg(error: &ValidationError) -> Option<String> {
+    let path_vec = error.instance_path.to_owned().into_vec();
+    let prefix = match path_vec.len() > 0 {
+        true => format!("Response body property {:?}", path_vec.join(".")),
+        false => format!("Response body"),
+    };
+    match &error.kind {
+        ValidationErrorKind::AdditionalItems { limit } => {
+            Some(format!("{} contains more than {} items.", prefix, limit))
+        }
+        ValidationErrorKind::AdditionalProperties { unexpected } => Some(format!(
+            "{} has unallowed additional properties {:?}.",
+            prefix,
+            unexpected.join(", ")
+        )),
+        ValidationErrorKind::AnyOf => Some(format!(
+            "{} is not valid under any of the given schemas.",
+            prefix
+        )),
+        ValidationErrorKind::BacktrackLimitExceeded { error: _ } => None,
+        ValidationErrorKind::Constant { expected_value } => Some(format!(
+            "{} is not expected constant value of {:?}.",
+            prefix, expected_value
+        )),
+        ValidationErrorKind::Contains => Some(format!(
+            "{} doesn't contain items conforming to the specified schema.",
+            prefix
+        )),
+        ValidationErrorKind::ContentEncoding { content_encoding } => Some(format!(
+            "{} does not respect the defined contentEncoding of {}.",
+            prefix, content_encoding
+        )),
+        ValidationErrorKind::ContentMediaType { content_media_type } => Some(format!(
+            "{} does not respect the defined contentMediaType of {}.",
+            prefix, content_media_type
+        )),
+        ValidationErrorKind::Enum { options } => Some(format!(
+            "{} is not equal to one of the allowed values {:?}.",
+            prefix,
+            options.as_array().map_or("".to_string(), |v| v
+                .into_iter()
+                .map(|i| i.as_str().unwrap_or(""))
+                .collect::<Vec<&str>>()
+                .join(", "))
+        )),
+        ValidationErrorKind::ExclusiveMaximum { limit } => Some(format!(
+            "{} is value larger than or equal to {}.",
+            prefix, limit
+        )),
+        ValidationErrorKind::ExclusiveMinimum { limit } => Some(format!(
+            "{} is value smaller than or equal to {}.",
+            prefix, limit
+        )),
+        ValidationErrorKind::FalseSchema => None,
+        ValidationErrorKind::FileNotFound { error: _ } => None,
+        ValidationErrorKind::Format { format } => {
+            Some(format!("{} is not of format {:?}.", prefix, format))
+        }
+        ValidationErrorKind::FromUtf8 { error: _ } => None,
+        ValidationErrorKind::Utf8 { error: _ } => None,
+        ValidationErrorKind::JSONParse { error: _ } => None,
+        ValidationErrorKind::InvalidReference { reference: _ } => None,
+        ValidationErrorKind::InvalidURL { error: _ } => None,
+        ValidationErrorKind::MaxItems { limit } => Some(format!(
+            "{} is array with more than {} items.",
+            prefix, limit
+        )),
+        ValidationErrorKind::Maximum { limit } => {
+            Some(format!("{} is value larger than {}.", prefix, limit))
+        }
+        ValidationErrorKind::MaxLength { limit } => Some(format!(
+            "{} is string longer than {} characters.",
+            prefix, limit
+        )),
+        ValidationErrorKind::MaxProperties { limit } => Some(format!(
+            "{} is object with more than {} properties.",
+            prefix, limit
+        )),
+        ValidationErrorKind::MinItems { limit } => Some(format!(
+            "{} is array with less than {} items.",
+            prefix, limit
+        )),
+        ValidationErrorKind::Minimum { limit } => {
+            Some(format!("{} is value smaller than {}.", prefix, limit))
+        }
+        ValidationErrorKind::MinLength { limit } => Some(format!(
+            "{} is string shorter than {} characters.",
+            prefix, limit
+        )),
+        ValidationErrorKind::MinProperties { limit } => Some(format!(
+            "{} is object with less than {} properties.",
+            prefix, limit
+        )),
+        ValidationErrorKind::MultipleOf { multiple_of } => {
+            Some(format!("{} is not a multiple of {}.", prefix, multiple_of))
+        }
+        ValidationErrorKind::Not { schema: _ } => Some(format!(
+            "{} is not valid for the given negated schema.",
+            prefix
+        )),
+        ValidationErrorKind::OneOfMultipleValid => Some(format!(
+            "{} is valid for more than one of the given schemas.",
+            prefix
+        )),
+        ValidationErrorKind::OneOfNotValid => Some(format!(
+            "{} is not valid for any one of the given schemas.",
+            prefix
+        )),
+        ValidationErrorKind::Pattern { pattern } => {
+            Some(format!("{} does not match pattern {:?}.", prefix, pattern))
+        }
+        ValidationErrorKind::PropertyNames { error: _ } => {
+            Some(format!("{} has invalid property names.", prefix))
+        }
+        ValidationErrorKind::Required { property } => Some(format!(
+            "{} is missing required property {}.",
+            prefix,
+            property.to_string(),
+        )),
+        ValidationErrorKind::Schema => None,
+        ValidationErrorKind::Type { kind } => {
+            let types = match kind {
+                jsonschema::error::TypeKind::Single(s) => s.to_string(),
+                jsonschema::error::TypeKind::Multiple(m) => m
+                    .into_iter()
+                    .map(|e| e.to_string())
+                    .collect::<Vec<String>>()
+                    .join(" or "),
+            };
+            Some(format!("{} is not of type {:?}.", prefix, types))
+        }
+        ValidationErrorKind::UniqueItems => Some(format!("{} has non unique items.", prefix)),
+        ValidationErrorKind::UnknownReferenceScheme { scheme: _ } => None,
+        ValidationErrorKind::Resolver { url: _, error: _ } => None,
     }
 }
 
@@ -304,10 +434,12 @@ pub fn find_open_api_diff(
                     let result = schema.schema.validate(&response_body);
                     if let Err(errors) = result {
                         for error in errors {
-                            validation_errors.insert(
-                                get_validation_error_msg(error),
-                                schema.path_pointer.clone(),
-                            );
+                            match get_validation_error_msg(&error) {
+                                Some(msg) => {
+                                    validation_errors.insert(msg, schema.path_pointer.clone());
+                                }
+                                None => (),
+                            }
                         }
                     }
                 }
