@@ -53,7 +53,7 @@ const processor = async (job: Job, done) => {
     case JobName.DETECT_SENSITIVE_DATA:
       success = await detectSensitiveData(ctx)
       break
-    case JobName.DETECT_PRIVATE_IP:
+    case JobName.DETECT_PRIVATE_HOSTS:
       success = await detectPrivateHosts(ctx)
       break
     default:

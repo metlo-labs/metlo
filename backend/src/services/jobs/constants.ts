@@ -47,7 +47,7 @@ export const JOB_NAME_MAP: Record<JobName, JobMap> = {
     end: "Finished Detecting Sensitive Data",
     threshold: 1000 * 60 * 14,
   },
-  [JobName.DETECT_PRIVATE_IP]: {
+  [JobName.DETECT_PRIVATE_HOSTS]: {
     start: "Detecting Private Hosts...",
     end: "Finished updating private hosts list ",
     threshold: 1000 * 60 * 14,

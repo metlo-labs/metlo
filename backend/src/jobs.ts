@@ -80,7 +80,7 @@ const main = async () => {
   const logAggregatedStatsQueue = createQueue(JobName.LOG_AGGREGATED_STATS)
   const fixEndpointsQueue = createQueue(JobName.FIX_ENDPOINTS)
   const detectSensitiveDataQueue = createQueue(JobName.DETECT_SENSITIVE_DATA)
-  const detectPrivateIPQueue = createQueue(JobName.DETECT_PRIVATE_IP)
+  const detectPrivateIPQueue = createQueue(JobName.DETECT_PRIVATE_HOSTS)
 
   const queues: QueueInterface[] = [
     specQueue,
@@ -164,9 +164,9 @@ const main = async () => {
 
   schedule.scheduleJob("*/5 * * * *", async () => {
     await detectPrivateIPQueue.add(
-      `${JobName.DETECT_PRIVATE_IP}`,
+      `${JobName.DETECT_PRIVATE_HOSTS}`,
       {},
-      { ...defaultJobOptions, jobId: JobName.DETECT_PRIVATE_IP },
+      { ...defaultJobOptions, jobId: JobName.DETECT_PRIVATE_HOSTS },
     )
   })
 
