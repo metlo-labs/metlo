@@ -262,9 +262,21 @@ export const permissionValid = (
       }
     }
   }
+  let reasonItems = ""
+  if (typeof resourceItem.item === "object") {
+    const entries = Object.entries(resourceItem.item)
+    entries.forEach(([itemKey, itemValue], idx) => {
+      reasonItems += `${itemKey} = ${itemValue}`
+      if (idx < entries.length - 1) {
+        reasonItems += ", "
+      }
+    })
+  }
   return {
     valid: true,
-    reason: `Actor has ${permission.permissions} access to ${resourceItem.name}.`,
+    reason: `Actor has ${permission.permissions} access to ${
+      resourceItem.name
+    }${reasonItems ? `: ${reasonItems}` : ""}.`,
   }
 }
 
