@@ -30,11 +30,16 @@ const detectLocal = async (hosts: string[]) => {
 
 const detectProxy = async (hosts: string[]) => {
   return (
-    await axios.post<{ isPublic: boolean; host: string }[]>(
-      `${process.env.HTTP_TEST_PROXY_URL}/api/v1/check-public-host`,
-      { checkHosts: hosts },
+    await Promise.all(
+      chunk(hosts, HOST_TEST_CHUNK_SIZE).map(
+        async host_chunk =>
+          await axios.post<{ isPublic: boolean; host: string }[]>(
+            `${process.env.HTTP_TEST_PROXY_URL}/api/v1/check-public-host`,
+            { checkHosts: host_chunk },
+          ),
+      ),
     )
-  ).data
+  ).flatMap(res => res.data)
 }
 
 export const detectPrivateHosts = async (
