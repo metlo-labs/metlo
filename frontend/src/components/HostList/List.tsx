@@ -6,6 +6,7 @@ import {
   Wrap,
   WrapItem,
   Button,
+  Badge,
 } from "@chakra-ui/react"
 import { useRouter } from "next/router"
 import EmptyView from "components/utils/EmptyView"
@@ -56,6 +57,12 @@ const TableLoader: React.FC<TableLoaderProps> = ({
     {
       name: "Endpoints",
       id: "numEndpoints",
+      grow: 4,
+    },
+    {
+      name: "Is Public Host",
+      id: "isPublic",
+      right: true,
       grow: 4,
     },
     {
@@ -145,11 +152,24 @@ const List: React.FC<HostTableProps> = React.memo(
       {
         name: "Endpoints",
         sortable: true,
-        selector: (row: HostResponse) => row.numEndpoints,
+        selector: (row: HostResponse) => row.numEndpoints || "",
         cell: (row: HostResponse) => (
           <Text color="gray.900">{row.numEndpoints}</Text>
         ),
         id: "numEndpoints",
+        right: true,
+        grow: 4,
+      },
+      {
+        name: "Is Public Host",
+        sortable: false,
+        selector: (row: HostResponse) => row.isPublic || "",
+        cell: (row: HostResponse) => (
+          <Badge fontWeight={"semibold"}>
+            {row.isPublic ? "Public" : "Private"}
+          </Badge>
+        ),
+        id: "isPublic",
         right: true,
         grow: 4,
       },
@@ -180,6 +200,7 @@ const List: React.FC<HostTableProps> = React.memo(
 
     const getTable = () => (
       <DataTable
+        keyField="host"
         style={rowStyles}
         paginationComponentOptions={{ noRowsPerPage: true }}
         paginationTotalRows={totalCount}

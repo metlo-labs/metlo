@@ -1,4 +1,4 @@
-import { ApiEndpoint, DataField } from "models"
+import { ApiEndpoint, DataField, Hosts } from "models"
 import { MetloContext } from "types"
 
 export const getEndpointsQuery = (
@@ -9,7 +9,8 @@ export const getEndpointsQuery = (
 ) => `
   SELECT
     endpoint.*,
-    data_field."dataClasses"
+    data_field."dataClasses",
+    COALESCE("hosts"."isPublic", false) as "isPublic"
   FROM
     ${ApiEndpoint.getTableName(ctx)} endpoint
     LEFT JOIN LATERAL (
@@ -22,6 +23,8 @@ export const getEndpointsQuery = (
         data_field."apiEndpointUuid" = endpoint.uuid
         AND cardinality(data_field."dataClasses") > 0
     ) data_field ON true
+    LEFT JOIN ${Hosts.getTableName(ctx)} hosts
+      on "hosts"."host" = "endpoint"."host"
   ${whereFilter}
   ORDER BY
     endpoint."riskScore" DESC,
@@ -48,5 +51,7 @@ export const getEndpointsCountQuery = (
         data_field."apiEndpointUuid" = endpoint.uuid
         AND cardinality(data_field."dataClasses") > 0
     ) data_field ON true
+    LEFT JOIN ${Hosts.getTableName(ctx)} hosts
+      on "hosts"."host" = "endpoint"."host"
   ${whereFilter}
 `

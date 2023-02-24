@@ -12,7 +12,7 @@ import HostList from "components/HostList"
 import HostGraphComponent from "components/HostsGraph"
 import { useRouter } from "next/router"
 import { HostsTab } from "enums"
-import { HostSortOptions, SortOrder } from "@common/enums"
+import { HostSortOptions, HostType, SortOrder } from "@common/enums"
 
 const Hosts = ({ hosts, hostsGraph, totalCount, params }) => {
   const router = useRouter()
@@ -136,6 +136,7 @@ const Hosts = ({ hosts, hostsGraph, totalCount, params }) => {
 export const getServerSideProps: GetServerSideProps = async context => {
   const params: GetHostParams = {
     searchQuery: (context.query.searchQuery as string) ?? "",
+    hostType: (context.query.hostType as HostType) ?? HostType.ANY,
     offset: parseInt((context.query.offset as string) ?? "0"),
     limit: HOST_PAGE_LIMIT,
     sortBy: ((context.query.sortBy as string) ||

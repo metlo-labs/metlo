@@ -49,6 +49,12 @@ export enum RiskScore {
   HIGH = "high",
 }
 
+export enum HostType {
+  PUBLIC = "Public",
+  PRIVATE = "Private",
+  ANY = "Any",
+}
+
 export enum AlertType {
   NEW_ENDPOINT = "New Endpoint Detected",
   PII_DATA_DETECTED = "PII Data Detected",

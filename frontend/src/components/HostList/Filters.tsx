@@ -13,6 +13,8 @@ import {
   AlertDialogHeader,
   AlertDialogBody,
   AlertDialogFooter,
+  HStack,
+  Box,
 } from "@chakra-ui/react"
 import { BsSearch } from "icons/bs/BsSearch"
 import debounce from "lodash/debounce"
@@ -20,6 +22,8 @@ import { GetHostParams } from "@common/api/endpoint"
 import { deleteHosts } from "api/endpoints"
 import { makeToast } from "utils"
 import { formatMetloAPIErr, MetloAPIErr } from "api/utils"
+import { Select } from "chakra-react-select"
+import { HostType } from "@common/enums"
 
 interface HostFilterProps {
   params: GetHostParams
@@ -30,10 +34,10 @@ interface HostFilterProps {
 
 const HostFilters: React.FC<HostFilterProps> = React.memo(
   ({ params, setParams, selectedHosts, setSelectedHosts }) => {
-    const setSearchQuery = (val: string) => {
+    const setSearchQuery = (searchQuery: string) => {
       setParams(old => ({
         ...old,
-        searchQuery: val,
+        searchQuery,
         offset: 0,
       }))
     }
@@ -53,7 +57,7 @@ const HostFilters: React.FC<HostFilterProps> = React.memo(
       return () => {
         debounceSearch.cancel()
       }
-    }, [params.searchQuery])
+    }, [params.searchQuery, params.hostType])
 
     const handleDeleteHostsClick = async () => {
       try {
@@ -90,23 +94,48 @@ const HostFilters: React.FC<HostFilterProps> = React.memo(
         w="full"
         justifyContent="space-between"
       >
-        <InputGroup>
-          <InputLeftElement pointerEvents="none">
-            <BsSearch />
-          </InputLeftElement>
-          <Input
-            spellCheck={false}
-            value={tmpQuery}
-            onChange={e => {
-              debounceSearch(e.target.value)
-              setTmpQuery(e.target.value)
-            }}
-            w={{ base: "full", lg: "xs" }}
-            type="text"
-            placeholder="Search for host..."
-            bg="white"
-          />
-        </InputGroup>
+        <HStack spacing={4}>
+          <Box>
+            <InputGroup>
+              <InputLeftElement pointerEvents="none">
+                <BsSearch />
+              </InputLeftElement>
+              <Input
+                spellCheck={false}
+                value={tmpQuery}
+                onChange={e => {
+                  debounceSearch(e.target.value)
+                  setTmpQuery(e.target.value)
+                }}
+                w={{ base: "full", lg: "xs" }}
+                type="text"
+                placeholder="Search for host..."
+                bg="white"
+              />
+            </InputGroup>
+          </Box>
+          <Box w={{ base: "full", lg: "xs" }}>
+            <Select
+              className="chakra-react-select"
+              options={[
+                { label: HostType.ANY, value: HostType.ANY },
+                { label: HostType.PUBLIC, value: HostType.PUBLIC },
+                { label: HostType.PRIVATE, value: HostType.PRIVATE },
+              ]}
+              value={{
+                label: params.hostType || HostType.ANY,
+                value: params.hostType || HostType.ANY,
+              }}
+              onChange={e => {
+                setParams(old => ({
+                  ...old,
+                  hostType: e.label || HostType.ANY,
+                }))
+              }}
+              placeholder="Host public visibility..."
+            />
+          </Box>
+        </HStack>
         <Button
           variant="delete"
           isDisabled={selectedHosts.length === 0}

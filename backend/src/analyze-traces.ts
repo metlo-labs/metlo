@@ -1,7 +1,7 @@
 import mlog from "logger"
 import { v4 as uuidv4 } from "uuid"
 import { AppDataSource } from "data-source"
-import { ApiEndpoint, DataField } from "models"
+import { ApiEndpoint, DataField, Hosts } from "models"
 import { RedisClient } from "utils/redis"
 import { TRACES_QUEUE } from "~/constants"
 import { QueryRunner, Raw } from "typeorm"
@@ -163,6 +163,12 @@ const generateEndpoint = async (
     newEndpoint?: boolean,
   ) => Promise<void>,
 ): Promise<void> => {
+  await insertValueBuilder(ctx, queryRunner, Hosts, {
+    host: trace.host,
+    isPublic: false,
+  })
+    .orIgnore()
+    .execute()
   const isGraphQl = isGraphQlEndpoint(trace.path)
   let paramNum = 1
   let parameterizedPath = ""

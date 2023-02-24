@@ -37,4 +37,5 @@ export enum JobName {
   LOG_AGGREGATED_STATS = "log_aggregated_stats",
   FIX_ENDPOINTS = "fix_endpoints",
   DETECT_SENSITIVE_DATA = "detect_sensitive_data",
+  DETECT_PRIVATE_HOSTS = "detect_private_host",
 }

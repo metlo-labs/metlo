@@ -30,6 +30,25 @@ export const getQB = (ctx: MetloContext, queryRunner: QueryRunner) => {
   return qb
 }
 
+export function getLeftJoinQB<Entity extends ObjectLiteral>(
+  ctx: MetloContext,
+  queryRunner: QueryRunner,
+  selectCols: string[],
+  fromEnt: EntityTarget<Entity>,
+  fromAlias: string,
+  leftJoinEnt: Function | string,
+  leftJoinAlias: string,
+  leftJoinCondition?: string,
+) {
+  let qb = queryRunner.manager
+    .createQueryBuilder()
+    .select(selectCols)
+    .from(fromEnt, fromAlias)
+    .leftJoin(leftJoinEnt, leftJoinAlias, leftJoinCondition)
+  qb.where = qb.andWhere
+  return qb
+}
+
 export function insertValueBuilder<Entity extends ObjectLiteral>(
   ctx: MetloContext,
   queryRunner: QueryRunner,

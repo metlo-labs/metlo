@@ -15,7 +15,7 @@ import {
 import { Select } from "chakra-react-select"
 import { BsSearch } from "icons/bs/BsSearch"
 import { GetEndpointParams } from "@common/api/endpoint"
-import { RestMethod, RiskScore } from "@common/enums"
+import { HostType, RestMethod, RiskScore } from "@common/enums"
 import debounce from "lodash/debounce"
 
 interface EndpointFilterProps {
@@ -283,6 +283,30 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
                       offset: 0,
                     })
                   }
+                />
+              </Box>
+            </GridItem>
+            <GridItem colSpan={2}>
+              <Box zIndex="1001" w={{ base: "full", lg: "xs" }}>
+                <FilterHeader title="Host Visibility" />
+                <Select
+                  className="chakra-react-select"
+                  options={[
+                    { label: HostType.ANY, value: HostType.ANY },
+                    { label: HostType.PUBLIC, value: HostType.PUBLIC },
+                    { label: HostType.PRIVATE, value: HostType.PRIVATE },
+                  ]}
+                  size="sm"
+                  value={{
+                    label: params.hostType || HostType.ANY,
+                    value: params.hostType || HostType.ANY,
+                  }}
+                  onChange={e => {
+                    setParams({
+                      hostType: e.label || HostType.ANY,
+                    })
+                  }}
+                  placeholder="Host public visibility..."
                 />
               </Box>
             </GridItem>

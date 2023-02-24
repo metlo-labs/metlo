@@ -12,6 +12,7 @@ import { JobName } from "./types"
 import { wrapProcessor } from "./wrap-processor"
 import { updateEndpointIps } from "analyze/jobs"
 import { logAggregatedStats } from "services/logging"
+import { detectPrivateHosts } from "./detect-private-hosts"
 
 const processor = async (job: Job, done) => {
   const ctx = {}
@@ -51,6 +52,9 @@ const processor = async (job: Job, done) => {
       break
     case JobName.DETECT_SENSITIVE_DATA:
       success = await detectSensitiveData(ctx)
+      break
+    case JobName.DETECT_PRIVATE_HOSTS:
+      success = await detectPrivateHosts(ctx)
       break
     default:
       break

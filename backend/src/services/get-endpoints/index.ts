@@ -1,5 +1,5 @@
 import mlog from "logger"
-import { Not, QueryRunner, UpdateResult } from "typeorm"
+import { QueryRunner } from "typeorm"
 import { AppDataSource } from "data-source"
 import {
   ApiEndpoint,
@@ -10,6 +10,7 @@ import {
   DataField,
   OpenApiSpec,
   Attack,
+  Hosts,
 } from "models"
 import {
   ApiEndpoint as ApiEndpointResponse,
@@ -30,6 +31,7 @@ import { getEndpointsCountQuery, getEndpointsQuery } from "./queries"
 import {
   createQB,
   getEntityManager,
+  getLeftJoinQB,
   getQB,
   getRepoQB,
   getRepository,
@@ -38,7 +40,7 @@ import { MetloContext } from "types"
 import { retryTypeormTransaction } from "utils/db"
 import { RedisClient } from "utils/redis"
 import { getGlobalFullTraceCaptureCached } from "services/metlo-config"
-import Error400BadRequest from "errors/error-400-bad-request"
+import { HostType } from "@common/enums"
 
 export class GetEndpointsService {
   static async deleteEndpoint(
@@ -417,6 +419,17 @@ export class GetEndpointsService {
           )
         }
       }
+      if (
+        getEndpointParams?.hostType &&
+        getEndpointParams.hostType != HostType.ANY
+      ) {
+        const searchingForPublic =
+          getEndpointParams.hostType === HostType.PUBLIC ? true : false
+        whereFilter.push(
+          `(COALESCE(hosts."isPublic", false) = $${argNumber++})`,
+        )
+        parameters.push(`${searchingForPublic}`)
+      }
       if (whereFilter.length > 0) {
         whereFilterString = `WHERE ${whereFilter.join(" AND ")}`
       }
@@ -523,22 +536,58 @@ export class GetEndpointsService {
     try {
       await queryRunner.connect()
 
-      let qb = getQB(ctx, queryRunner)
-        .select(["host", `COUNT(uuid) as "numEndpoints"`])
-        .from(ApiEndpoint, "endpoint")
+      let qb = getLeftJoinQB(
+        ctx,
+        queryRunner,
+        [
+          "endpoint.host as host",
+          `COUNT(endpoint.uuid) as "numEndpoints"`,
+          `COALESCE(hosts."isPublic",false) as "isPublic"`,
+        ],
+        ApiEndpoint,
+        "endpoint",
+        Hosts,
+        "hosts",
+        `"hosts"."host" = "endpoint"."host"`,
+      )
         .distinct(true)
-        .groupBy("host")
-      let totalHostsQb = getQB(ctx, queryRunner)
-        .select([`COUNT(DISTINCT(host))::int as "numHosts"`])
-        .from(ApiEndpoint, "endpoint")
+        .groupBy(`"endpoint"."host", "hosts"."isPublic"`)
+
+      let totalHostsQb = getLeftJoinQB(
+        ctx,
+        queryRunner,
+        [`COUNT(DISTINCT("endpoint"."host"))::int as "numHosts"`],
+        ApiEndpoint,
+        "endpoint",
+        Hosts,
+        "hosts",
+        `"hosts"."host" = "endpoint"."host"`,
+      )
 
       if (getHostsParams?.searchQuery) {
-        qb = qb.andWhere("host ILIKE :searchQuery", {
+        qb = qb.andWhere("endpoint.host ILIKE :searchQuery", {
           searchQuery: `%${getHostsParams.searchQuery}%`,
         })
-        totalHostsQb = totalHostsQb.andWhere("host ILIKE :searchQuery", {
-          searchQuery: `%${getHostsParams.searchQuery}%`,
+        totalHostsQb = totalHostsQb.andWhere(
+          "endpoint.host ILIKE :searchQuery",
+          {
+            searchQuery: `%${getHostsParams.searchQuery}%`,
+          },
+        )
+      }
+
+      if (getHostsParams?.hostType && getHostsParams.hostType != HostType.ANY) {
+        const searchingForPublic =
+          getHostsParams.hostType === HostType.PUBLIC ? true : false
+        qb = qb.andWhere(`COALESCE("hosts"."isPublic", false) = :isPublic`, {
+          isPublic: searchingForPublic,
         })
+        totalHostsQb = totalHostsQb.andWhere(
+          `COALESCE("hosts"."isPublic", false) = :isPublic`,
+          {
+            isPublic: searchingForPublic,
+          },
+        )
       }
 
       qb = qb
