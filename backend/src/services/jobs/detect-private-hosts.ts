@@ -10,7 +10,7 @@ import { HOST_TEST_CHUNK_SIZE } from "~/constants"
 const detectLocal = async (hosts: string[]) => {
   return await Promise.all(
     chunk(hosts, HOST_TEST_CHUNK_SIZE).flatMap(host_chunk =>
-      hosts.map(async host => {
+      host_chunk.map(async host => {
         let isPublic = false
         try {
           const resp = await axios.get(`http://${host}`, { timeout: 5000 })
