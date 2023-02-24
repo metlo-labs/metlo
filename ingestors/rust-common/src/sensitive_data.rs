@@ -21,7 +21,7 @@ pub static ref DEFAULT_SENSITIVE_DATA_LS: Vec<SensitiveData> = vec![
         regex: Regex::new(r#"(^|\s)(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\s|$)"#).unwrap(),
     },
 ];
-static ref AADHAR_MULT: Vec<Vec<usize>> = vec![
+static ref AADHAR_MULT: Vec<Vec<u8>> = vec![
     vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
     vec![1, 2, 3, 4, 0, 6, 7, 8, 9, 5],
     vec![2, 3, 4, 0, 1, 7, 8, 9, 5, 6],
@@ -33,7 +33,7 @@ static ref AADHAR_MULT: Vec<Vec<usize>> = vec![
     vec![8, 7, 6, 5, 9, 3, 2, 1, 0, 4],
     vec![9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
 ];
-static ref AADHAR_PERM: Vec<Vec<usize>> = vec![
+static ref AADHAR_PERM: Vec<Vec<u8>> = vec![
     vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
     vec![1, 5, 7, 6, 2, 8, 3, 0, 9, 4],
     vec![5, 8, 0, 3, 7, 9, 6, 1, 4, 2],
@@ -43,7 +43,7 @@ static ref AADHAR_PERM: Vec<Vec<usize>> = vec![
     vec![2, 7, 9, 3, 8, 0, 6, 4, 1, 5],
     vec![7, 0, 4, 6, 9, 1, 3, 2, 5, 8],
 ];
-static ref AADHAR_INV: Vec<usize> = vec![0, 4, 3, 2, 1, 5, 6, 7, 8, 9];
+static ref AADHAR_INV: Vec<u8> = vec![0, 4, 3, 2, 1, 5, 6, 7, 8, 9];
 }
 
 fn validate_aadhar(e: &str) -> bool {
@@ -57,12 +57,13 @@ fn validate_aadhar(e: &str) -> bool {
             .map(|c| c.to_string().parse::<u8>().unwrap())
             .collect::<Vec<u8>>();
         let check_sum = arr.pop().unwrap();
-        let mut c = 0;
+        let mut c: u8 = 0;
         arr.reverse();
         for i in 0..arr.len() {
-            c = AADHAR_MULT[c][AADHAR_PERM[(i + 1) % 8][usize::from(arr[i])]];
+            c = AADHAR_MULT[usize::from(c)]
+                [usize::from(AADHAR_PERM[(i + 1) % 8][usize::from(arr[i])])];
         }
-        AADHAR_INV[c] == usize::from(check_sum)
+        AADHAR_INV[usize::from(c)] == check_sum
     }
 }
 
