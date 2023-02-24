@@ -11,6 +11,7 @@ import {
   TestStep,
   TestOptions,
 } from "../types/test"
+import { TemplateConfig } from "../types/resource_config"
 import {
   addAuthToRequest,
   makeSampleRequest,
@@ -33,15 +34,23 @@ export class TestStepBuilder {
     this.env = []
   }
 
-  static sampleRequest(endpoint: GenTestEndpoint, name?: string) {
-    const generatedRequest = makeSampleRequest(endpoint, name)
+  static sampleRequest(
+    endpoint: GenTestEndpoint,
+    config: TemplateConfig,
+    name?: string,
+  ) {
+    const generatedRequest = makeSampleRequest(endpoint, config, name)
     return new TestStepBuilder(generatedRequest.req).addToEnv(
       ...generatedRequest.env,
     )
   }
 
-  static sampleRequestWithoutAuth(endpoint: GenTestEndpoint, name?: string) {
-    const generatedRequest = makeSampleRequestNoAuth(endpoint, name)
+  static sampleRequestWithoutAuth(
+    endpoint: GenTestEndpoint,
+    config: TemplateConfig,
+    name?: string,
+  ) {
+    const generatedRequest = makeSampleRequestNoAuth(endpoint, config, name)
     return new TestStepBuilder(generatedRequest.req).addToEnv(
       ...generatedRequest.env,
     )

@@ -33,6 +33,7 @@ export const KeyValSchema = z.object({
 })
 
 export const RequestSchema = z.object({
+  description: z.string().optional(),
   method: MethodSchema,
   url: z.string(),
   headers: KeyValSchema.array().optional(),

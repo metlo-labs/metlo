@@ -1,11 +1,12 @@
 import { GenTestEndpoint } from "../generate/types"
 import { TestBuilder, TestStepBuilder } from "../generate/builder"
 import { AssertionType } from "../types/enums"
+import { TemplateConfig } from "../types/resource_config"
 
 export default {
   name: "BOLA_ADMIN",
   version: 1,
-  builder: (endpoint: GenTestEndpoint) => {
+  builder: (endpoint: GenTestEndpoint, config: TemplateConfig) => {
     if (!endpoint.authConfig) {
       throw new Error(`No auth config defined for host: "${endpoint.host}"...`)
     }
@@ -17,13 +18,13 @@ export default {
         tags: ["BOLA", "ADMIN"],
       })
       .addTestStep(
-        TestStepBuilder.sampleRequest(endpoint, "ADMIN_USER").assert({
+        TestStepBuilder.sampleRequest(endpoint, config, "ADMIN_USER").assert({
           type: AssertionType.enum.JS,
           value: "resp.status < 300",
         }),
       )
       .addTestStep(
-        TestStepBuilder.sampleRequestWithoutAuth(endpoint, "ADMIN_USER")
+        TestStepBuilder.sampleRequestWithoutAuth(endpoint, config, "ADMIN_USER")
           .addAuth(endpoint, "NON_ADMIN_USER")
           .assert({
             type: AssertionType.enum.EQ,

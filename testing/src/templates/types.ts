@@ -5,7 +5,5 @@ import { TemplateConfig } from "types/resource_config"
 export interface TestTemplate {
   name: string
   version: number
-  builder:
-    | ((endpoint: GenTestEndpoint) => TestBuilder)
-    | ((endpoint: GenTestEndpoint, config: TemplateConfig) => TestBuilder)
+  builder: (endpoint: GenTestEndpoint, config: TemplateConfig) => TestBuilder
 }

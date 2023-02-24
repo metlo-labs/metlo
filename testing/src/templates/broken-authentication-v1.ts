@@ -1,11 +1,12 @@
 import { GenTestEndpoint } from "../generate/types"
 import { TestBuilder, TestStepBuilder } from "../generate/builder"
 import { AssertionType } from "../types/enums"
+import { TemplateConfig } from "../types/resource_config"
 
 export default {
   name: "BROKEN_AUTHENTICATION",
   version: 1,
-  builder: (endpoint: GenTestEndpoint) => {
+  builder: (endpoint: GenTestEndpoint, config: TemplateConfig) => {
     if (!endpoint.authConfig) {
       throw new Error(`No auth config defined for host: "${endpoint.host}"...`)
     }
@@ -17,13 +18,13 @@ export default {
         tags: ["BROKEN_AUTHENTICATION"],
       })
       .addTestStep(
-        TestStepBuilder.sampleRequest(endpoint).assert({
+        TestStepBuilder.sampleRequest(endpoint, config).assert({
           type: AssertionType.enum.JS,
           value: "resp.status < 300",
         }),
       )
       .addTestStep(
-        TestStepBuilder.sampleRequestWithoutAuth(endpoint).assert({
+        TestStepBuilder.sampleRequestWithoutAuth(endpoint, config).assert({
           type: AssertionType.enum.EQ,
           key: "resp.status",
           value: [401, 403],

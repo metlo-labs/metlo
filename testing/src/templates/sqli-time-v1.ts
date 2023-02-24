@@ -1,10 +1,11 @@
 import { GenTestEndpoint } from "../generate/types"
 import { TestBuilder, TestStepBuilder } from "../generate/builder"
+import { TemplateConfig } from "../types/resource_config"
 
 export default {
   name: "SQLI_TIME_BASED",
   version: 1,
-  builder: (endpoint: GenTestEndpoint) =>
+  builder: (endpoint: GenTestEndpoint, config: TemplateConfig) =>
     new TestBuilder()
       .setMeta({
         name: `${endpoint.path} SQLI TIME BASED`,
@@ -15,7 +16,7 @@ export default {
         stopOnFailure: true,
       })
       .addTestStep(
-        TestStepBuilder.sampleRequest(endpoint)
+        TestStepBuilder.sampleRequest(endpoint, config)
           .addPayloads({
             key: "SQLI_PAYLOAD",
             value: "SQLI_TIME",
