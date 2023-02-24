@@ -1,6 +1,6 @@
 import { AppDataSource } from "data-source"
 import { Hosts, ApiEndpoint } from "models"
-import { createQB, getQB } from "services/database/utils"
+import { getQB, insertValuesBuilder } from "services/database/utils"
 import { MetloContext } from "types"
 import axios from "axios"
 import mlog from "logger"
@@ -17,39 +17,25 @@ export const detectPrivateHosts = async (
       .distinct(true)
       .groupBy("host")
       .getRawMany()
-    await Promise.all(
+    const vals = await Promise.all(
       hosts.map(async ({ host }) => {
-        const qr = AppDataSource.createQueryRunner()
+        let isPublic = false
         try {
-          await qr.connect()
-          let isPublic = false
-          try {
-            const resp = await axios.get(`http://${host}`, { timeout: 5 })
-            if (resp && resp.status) {
-              isPublic = true
-            }
-          } catch (err) {
-            if (err.code == "ERR_TLS_CERT_ALTNAME_INVALID") {
-              isPublic = true
-            }
+          const resp = await axios.get(`http://${host}`, { timeout: 5000 })
+          if (resp && resp.status) {
+            isPublic = true
           }
-          await createQB(ctx)
-            .insert()
-            .into(Hosts, ["isPublic", "host"])
-            .values([{ isPublic, host }])
-            .orUpdate(["isPublic", "host"], ["host"], {})
-            .execute()
         } catch (err) {
-          mlog
-            .withErr(err)
-            .error(
-              "Could not write back to Hosts table for public/private hosts",
-            )
-        } finally {
-          await qr.release()
+          if (err.code == "ERR_TLS_CERT_ALTNAME_INVALID") {
+            isPublic = true
+          }
         }
+        return { isPublic, host }
       }),
     )
+    await insertValuesBuilder(ctx, queryRunner, Hosts, vals)
+      .orUpdate(["isPublic", "host"], ["host"])
+      .execute()
   } catch (err) {
     mlog.withErr(err).log("Caught an error write private/public hosts")
     return false
