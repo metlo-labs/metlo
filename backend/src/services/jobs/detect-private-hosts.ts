@@ -4,23 +4,27 @@ import { getQB, insertValuesBuilder } from "services/database/utils"
 import { MetloContext } from "types"
 import axios from "axios"
 import mlog from "logger"
+import { chunk } from "lodash"
+import { HOST_TEST_CHUNK_SIZE } from "~/constants"
 
 const detectLocal = async (hosts: string[]) => {
   return await Promise.all(
-    hosts.map(async host => {
-      let isPublic = false
-      try {
-        const resp = await axios.get(`http://${host}`, { timeout: 5000 })
-        if (resp && resp.status) {
-          isPublic = true
+    chunk(hosts, HOST_TEST_CHUNK_SIZE).flatMap(host_chunk =>
+      hosts.map(async host => {
+        let isPublic = false
+        try {
+          const resp = await axios.get(`http://${host}`, { timeout: 5000 })
+          if (resp && resp.status) {
+            isPublic = true
+          }
+        } catch (err) {
+          if (err.code == "ERR_TLS_CERT_ALTNAME_INVALID") {
+            isPublic = true
+          }
         }
-      } catch (err) {
-        if (err.code == "ERR_TLS_CERT_ALTNAME_INVALID") {
-          isPublic = true
-        }
-      }
-      return { isPublic, host }
-    }),
+        return { isPublic, host }
+      }),
+    ),
   )
 }
 
