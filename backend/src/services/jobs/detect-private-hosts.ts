@@ -5,6 +5,34 @@ import { MetloContext } from "types"
 import axios from "axios"
 import mlog from "logger"
 
+const detectLocal = async (hosts: string[]) => {
+  return await Promise.all(
+    hosts.map(async host => {
+      let isPublic = false
+      try {
+        const resp = await axios.get(`http://${host}`, { timeout: 5000 })
+        if (resp && resp.status) {
+          isPublic = true
+        }
+      } catch (err) {
+        if (err.code == "ERR_TLS_CERT_ALTNAME_INVALID") {
+          isPublic = true
+        }
+      }
+      return { isPublic, host }
+    }),
+  )
+}
+
+const detectProxy = async (hosts: string[]) => {
+  return (
+    await axios.post<{ isPublic: boolean; host: string }[]>(
+      `${process.env.HTTP_TEST_PROXY_URL}/api/v1/check-public-host`,
+      { checkHosts: hosts },
+    )
+  ).data
+}
+
 export const detectPrivateHosts = async (
   ctx: MetloContext,
 ): Promise<boolean> => {
@@ -17,22 +45,10 @@ export const detectPrivateHosts = async (
       .distinct(true)
       .groupBy("host")
       .getRawMany()
-    const vals = await Promise.all(
-      hosts.map(async ({ host }) => {
-        let isPublic = false
-        try {
-          const resp = await axios.get(`http://${host}`, { timeout: 5000 })
-          if (resp && resp.status) {
-            isPublic = true
-          }
-        } catch (err) {
-          if (err.code == "ERR_TLS_CERT_ALTNAME_INVALID") {
-            isPublic = true
-          }
-        }
-        return { isPublic, host }
-      }),
-    )
+    const detectFunc = process.env.HTTP_TEST_PROXY_URL
+      ? detectProxy
+      : detectLocal
+    const vals = await detectFunc(hosts.map(e => e.host))
     await insertValuesBuilder(ctx, queryRunner, Hosts, vals)
       .orUpdate(["isPublic", "host"], ["host"])
       .execute()
