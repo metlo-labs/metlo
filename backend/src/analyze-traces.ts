@@ -17,7 +17,6 @@ import { isGraphQlEndpoint } from "services/graphql"
 import { isQueryFailedError, retryTypeormTransaction } from "utils/db"
 import { MetloContext } from "types"
 import {
-  createQB,
   getEntityManager,
   insertValueBuilder,
   insertValuesBuilder,
@@ -164,6 +163,12 @@ const generateEndpoint = async (
     newEndpoint?: boolean,
   ) => Promise<void>,
 ): Promise<void> => {
+  await insertValueBuilder(ctx, queryRunner, Hosts, {
+    host: trace.host,
+    isPublic: false,
+  })
+    .orIgnore()
+    .execute()
   const isGraphQl = isGraphQlEndpoint(trace.path)
   let paramNum = 1
   let parameterizedPath = ""
@@ -172,12 +177,6 @@ const generateEndpoint = async (
     parameterizedPath = trace.path
     pathRegex = trace.path
   } else {
-    await createQB(ctx)
-      .insert()
-      .into(Hosts)
-      .values({ host: trace.host, isPublic: false })
-      .orIgnore()
-      .execute()
     const pathTokens = getPathTokens(trace.path)
     for (let j = 0; j < pathTokens.length; j++) {
       const tokenString = pathTokens[j]

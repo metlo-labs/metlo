@@ -4,7 +4,7 @@ import {
   Box,
   Text,
   useColorMode,
-  HStack,
+  VStack,
   Tag,
   Tooltip,
 } from "@chakra-ui/react"
@@ -220,12 +220,12 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         sortable: false,
         selector: (row: ApiEndpoint) => row.host || "",
         cell: (row: ApiEndpoint) => (
-          <HStack spacing={1}>
+          <VStack spacing={1} alignItems="flex-start">
             <Text pointerEvents="none" fontWeight="normal">
               {row.host}
             </Text>
             <Badge>{row.isPublic ? "Public" : "Private"}</Badge>
-          </HStack>
+          </VStack>
         ),
         id: "host",
         grow: 2,
@@ -247,7 +247,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
           </Tooltip>
         ),
         id: "firstDetected",
-        grow: 1.5,
+        grow: 1.0,
         right: true,
       },
       {
@@ -267,7 +267,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         ),
         id: "lastActive",
         right: true,
-        grow: 1.5,
+        grow: 1.0,
       },
     ]
 

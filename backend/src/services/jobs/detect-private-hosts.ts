@@ -24,7 +24,7 @@ export const detectPrivateHosts = async (
           await qr.connect()
           let isPublic = false
           try {
-            const resp = await axios.get(`http://${host}`)
+            const resp = await axios.get(`http://${host}`, { timeout: 5 })
             if (resp && resp.status) {
               isPublic = true
             }

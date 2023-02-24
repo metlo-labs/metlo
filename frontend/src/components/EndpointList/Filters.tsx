@@ -288,7 +288,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
             </GridItem>
             <GridItem colSpan={2}>
               <Box zIndex="1001" w={{ base: "full", lg: "xs" }}>
-                <FilterHeader title="Sensitive Data Class" />
+                <FilterHeader title="Host Visibility" />
                 <Select
                   className="chakra-react-select"
                   options={[
