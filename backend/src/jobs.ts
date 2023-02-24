@@ -162,7 +162,7 @@ const main = async () => {
     )
   })
 
-  schedule.scheduleJob("0 */6 * * *", async () => {
+  schedule.scheduleJob("0 */1 * * *", async () => {
     await detectPrivateIPQueue.add(
       `${JobName.DETECT_PRIVATE_HOSTS}`,
       {},
