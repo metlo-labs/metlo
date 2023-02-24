@@ -41,3 +41,4 @@ export const TRACES_QUEUE = "traces_queue"
 
 export const TRACE_IN_MEM_RETENTION_COUNT = 100
 export const TRACE_IN_MEM_EXPIRE_SEC = 60 * 60 * 24 * 7
+export const HOST_TEST_CHUNK_SIZE = 10
