@@ -1,7 +1,6 @@
 import { GenTestEndpoint } from "../generate/types"
 import { TestBuilder, TestStepBuilder } from "../generate/builder"
 import { AssertionType } from "../types/enums"
-import { getEntityMap } from "../generate/permissions"
 import { TemplateConfig } from "../types/resource_config"
 
 export default {
@@ -11,7 +10,6 @@ export default {
     if (!endpoint.authConfig) {
       throw new Error(`No auth config defined for host: "${endpoint.host}"...`)
     }
-    const entityMap = getEntityMap(endpoint, config)
 
     return new TestBuilder()
       .setMeta({
@@ -20,17 +18,13 @@ export default {
         tags: ["BOLA", "MULTI-TENANT"],
       })
       .addTestStep(
-        TestStepBuilder.sampleRequest(endpoint, "TENANT_A", entityMap).assert({
+        TestStepBuilder.sampleRequest(endpoint, config, "TENANT_A").assert({
           type: AssertionType.enum.JS,
           value: "resp.status < 300",
         }),
       )
       .addTestStep(
-        TestStepBuilder.sampleRequestWithoutAuth(
-          endpoint,
-          "TENANT_A",
-          entityMap,
-        )
+        TestStepBuilder.sampleRequestWithoutAuth(endpoint, config, "TENANT_A")
           .addAuth(endpoint, "TENANT_B")
           .assert({
             type: AssertionType.enum.EQ,
@@ -39,11 +33,7 @@ export default {
           }),
       )
       .addTestStep(
-        TestStepBuilder.sampleRequestWithoutAuth(
-          endpoint,
-          "TENANT_B",
-          entityMap,
-        )
+        TestStepBuilder.sampleRequestWithoutAuth(endpoint, config, "TENANT_B")
           .addAuth(endpoint, "TENANT_A")
           .assert({
             type: AssertionType.enum.EQ,

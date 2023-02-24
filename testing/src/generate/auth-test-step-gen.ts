@@ -10,7 +10,7 @@ import {
   getEndpointRequestEntities,
   getEntityItems,
 } from "./permissions"
-import { makeSampleRequestNoAuth } from "./sample-request"
+import { makeSampleRequestNoAuthInner } from "./sample-request"
 import { GeneratedTestRequest, GenTestContext, GenTestEndpoint } from "./types"
 
 interface AuthTestStepPayload {
@@ -193,7 +193,7 @@ export const authTestStepPayloadToBuilder = (
   if (payload.reason) {
     ctx.reason = payload.reason
   }
-  let gen = makeSampleRequestNoAuth(endpoint, `STEP_${idx}`, ctx)
+  let gen = makeSampleRequestNoAuthInner(ctx)
   gen = addAuthToRequest(payload.authActorEntity, gen, ctx)
 
   let builder = new TestStepBuilder(gen.req).addToEnv(...gen.env)

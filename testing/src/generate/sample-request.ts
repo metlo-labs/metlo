@@ -8,6 +8,8 @@ import {
   GenTestEndpointDataField,
 } from "./types"
 import { AuthType } from "../types/enums"
+import { TemplateConfig } from "../types/resource_config"
+import { getEntityMap } from "./permissions"
 
 const getSampleValue = (dataType: DataType) => {
   switch (dataType) {
@@ -293,23 +295,13 @@ const addQueryParamsToRequest = (
   }
 }
 
-export const makeSampleRequestNoAuth = (
-  endpoint: GenTestEndpoint,
-  name?: string,
-  ctx?: GenTestContext,
+export const makeSampleRequestNoAuthInner = (
+  ctx: GenTestContext,
 ): GeneratedTestRequest => {
-  const prefix = name ? name + "_" : ""
-  ctx = {
-    endpoint,
-    prefix: ctx?.prefix ?? prefix,
-    entityMap: ctx?.entityMap ?? {},
-    reason: ctx?.reason,
-  }
-
   let env: KeyValType[] = []
 
-  let replacedPath = endpoint.path
-  for (const paramField of endpoint.dataFields.filter(
+  let replacedPath = ctx.endpoint.path
+  for (const paramField of ctx.endpoint.dataFields.filter(
     e => e.dataSection == DataSection.REQUEST_PATH,
   )) {
     if (paramField.entity && ctx.entityMap[paramField.entity]) {
@@ -319,23 +311,23 @@ export const makeSampleRequestNoAuth = (
       )
     } else {
       env.push({
-        name: `${prefix}${paramField.dataPath}`,
-        value: `<<${prefix}${paramField.dataPath}>>`,
+        name: `${ctx.prefix}${paramField.dataPath}`,
+        value: `<<${ctx.prefix}${paramField.dataPath}>>`,
       })
       replacedPath = replacedPath.replace(
         `{${paramField.dataPath}}`,
-        `{{${prefix}${paramField.dataPath}}}`,
+        `{{${ctx.prefix}${paramField.dataPath}}}`,
       )
     }
   }
 
   env.push({
     name: "BASE_URL",
-    value: `{{default BASE_URL "https://${endpoint.host}"}}`,
+    value: `{{default BASE_URL "https://${ctx.endpoint.host}"}}`,
   })
   let gen: GeneratedTestRequest = {
     req: {
-      method: endpoint.method,
+      method: ctx.endpoint.method,
       url: `{{BASE_URL}}${replacedPath}`,
     },
     env,
@@ -348,17 +340,32 @@ export const makeSampleRequestNoAuth = (
   return gen
 }
 
+export const makeSampleRequestNoAuth = (
+  endpoint: GenTestEndpoint,
+  config: TemplateConfig,
+  name?: string,
+): GeneratedTestRequest => {
+  const entityMap = getEntityMap(endpoint, config)
+  const prefix = name ? name + "_" : ""
+  const ctx = {
+    endpoint,
+    prefix,
+    entityMap,
+  }
+  return makeSampleRequestNoAuthInner(ctx)
+}
+
 export const makeSampleRequest = (
   endpoint: GenTestEndpoint,
+  config: TemplateConfig,
   name?: string,
-  entityMap?: Record<string, any>,
 ): GeneratedTestRequest => {
   const ctx: GenTestContext = {
     endpoint,
     prefix: name,
-    entityMap: entityMap ?? {},
+    entityMap: {},
   }
-  let gen = makeSampleRequestNoAuth(endpoint, name, ctx)
+  let gen = makeSampleRequestNoAuth(endpoint, config, name)
   gen = addAuthToRequest(gen, ctx)
   return gen
 }

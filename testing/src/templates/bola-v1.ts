@@ -20,13 +20,13 @@ export default {
         tags: ["BOLA"],
       })
       .addTestStep(
-        TestStepBuilder.sampleRequest(endpoint, "USER_A", entityMap).assert({
+        TestStepBuilder.sampleRequest(endpoint, config, "USER_A").assert({
           type: AssertionType.enum.JS,
           value: "resp.status < 300",
         }),
       )
       .addTestStep(
-        TestStepBuilder.sampleRequestWithoutAuth(endpoint, "USER_A", entityMap)
+        TestStepBuilder.sampleRequestWithoutAuth(endpoint, config, "USER_A")
           .addAuth(endpoint, "USER_B")
           .assert({
             type: AssertionType.enum.EQ,
@@ -35,7 +35,7 @@ export default {
           }),
       )
       .addTestStep(
-        TestStepBuilder.sampleRequestWithoutAuth(endpoint, "USER_B", entityMap)
+        TestStepBuilder.sampleRequestWithoutAuth(endpoint, config, "USER_B")
           .addAuth(endpoint, "USER_A")
           .assert({
             type: AssertionType.enum.EQ,
