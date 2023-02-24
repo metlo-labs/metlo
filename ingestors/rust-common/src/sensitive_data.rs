@@ -21,12 +21,102 @@ pub static ref DEFAULT_SENSITIVE_DATA_LS: Vec<SensitiveData> = vec![
         regex: Regex::new(r#"(^|\s)(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\s|$)"#).unwrap(),
     },
 ];
+static ref AADHAR_MULT: Vec<Vec<u8>> = vec![
+    vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    vec![1, 2, 3, 4, 0, 6, 7, 8, 9, 5],
+    vec![2, 3, 4, 0, 1, 7, 8, 9, 5, 6],
+    vec![3, 4, 0, 1, 2, 8, 9, 5, 6, 7],
+    vec![4, 0, 1, 2, 3, 9, 5, 6, 7, 8],
+    vec![5, 9, 8, 7, 6, 0, 4, 3, 2, 1],
+    vec![6, 5, 9, 8, 7, 1, 0, 4, 3, 2],
+    vec![7, 6, 5, 9, 8, 2, 1, 0, 4, 3],
+    vec![8, 7, 6, 5, 9, 3, 2, 1, 0, 4],
+    vec![9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+];
+static ref AADHAR_PERM: Vec<Vec<u8>> = vec![
+    vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    vec![1, 5, 7, 6, 2, 8, 3, 0, 9, 4],
+    vec![5, 8, 0, 3, 7, 9, 6, 1, 4, 2],
+    vec![8, 9, 1, 6, 0, 4, 3, 5, 2, 7],
+    vec![9, 4, 5, 3, 1, 2, 6, 8, 7, 0],
+    vec![4, 2, 8, 6, 5, 7, 3, 9, 0, 1],
+    vec![2, 7, 9, 3, 8, 0, 6, 4, 1, 5],
+    vec![7, 0, 4, 6, 9, 1, 3, 2, 5, 8],
+];
+static ref AADHAR_INV: Vec<u8> = vec![0, 4, 3, 2, 1, 5, 6, 7, 8, 9];
+}
+
+fn validate_aadhar(e: &str) -> bool {
+    let re = Regex::new(r#"[^0-9]"#).unwrap();
+    let sanitized_text = re.replace_all(e, "");
+    if sanitized_text.len() != 12 {
+        false
+    } else {
+        let mut arr = sanitized_text
+            .chars()
+            .map(|c| c.to_string().parse::<u8>().unwrap())
+            .collect::<Vec<u8>>();
+        let check_sum = arr.pop().unwrap();
+        let mut c: u8 = 0;
+        arr.reverse();
+        for i in 0..arr.len() {
+            c = AADHAR_MULT[usize::from(c)]
+                [usize::from(AADHAR_PERM[(i + 1) % 8][usize::from(arr[i])])];
+        }
+        AADHAR_INV[usize::from(c)] == check_sum
+    }
+}
+
+fn cpf_verifier_digit(ls: &Vec<u8>) -> u8 {
+    let modulus = ls.len() + 1;
+    let multiplied = ls
+        .iter()
+        .enumerate()
+        .map(|(idx, number)| usize::from(number.to_owned()) * (modulus - idx));
+    let res = multiplied
+        .reduce(|buffer, number| buffer + number)
+        .unwrap_or_default()
+        % 11;
+    if res < 2 {
+        0
+    } else {
+        11 - res as u8
+    }
+}
+
+fn validate_brazil_cpf(e: &str) -> bool {
+    let re = Regex::new(r#"[^0-9]"#).unwrap();
+    let sanitized_text = re.replace_all(e, "");
+    if sanitized_text.len() != 11 {
+        false
+    } else {
+        let mut ls = sanitized_text
+            .chars()
+            .map(|c| c.to_string().parse::<u8>().unwrap())
+            .collect::<Vec<u8>>();
+        let check_sum_digit_2 = ls.pop().unwrap();
+        let check_sum_digit_1 = ls.pop().unwrap();
+
+        let real_check_sum_digit_1 = cpf_verifier_digit(&ls);
+        ls.push(real_check_sum_digit_1);
+        let real_check_sum_digit_2 = cpf_verifier_digit(&ls);
+
+        real_check_sum_digit_1 == check_sum_digit_1 && real_check_sum_digit_2 == check_sum_digit_2
+    }
+}
+
+fn validate(sensitive_data_type: String, text: &str) -> bool {
+    match sensitive_data_type.as_str() {
+        "Aadhar Number" => validate_aadhar(text),
+        "Brazil CPF" => validate_brazil_cpf(text),
+        _ => true,
+    }
 }
 
 fn detect_sensitive_data_inner(txt: &str, sensitive_data: &Vec<SensitiveData>) -> HashSet<String> {
     sensitive_data
         .iter()
-        .filter(|e| e.regex.is_match(txt))
+        .filter(|e| e.regex.is_match(txt) && validate(e.sensitive_data_type.clone(), txt))
         .map(|e| e.sensitive_data_type.clone())
         .collect()
 }
