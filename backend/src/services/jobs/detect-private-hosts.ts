@@ -7,34 +7,61 @@ import mlog from "logger"
 import { chunk } from "lodash"
 import { HOST_TEST_CHUNK_SIZE } from "~/constants"
 
-const detectLocal = async (hosts: string[]) => {
-  return await Promise.all(
-    chunk(hosts, HOST_TEST_CHUNK_SIZE).flatMap(host_chunk =>
-      hosts.map(async host => {
-        let isPublic = false
-        try {
-          const resp = await axios.get(`http://${host}`, { timeout: 5000 })
-          if (resp && resp.status) {
-            isPublic = true
+const detectLocal = async (
+  hosts: string[],
+): Promise<
+  {
+    isPublic: boolean
+    host: string
+  }[]
+> => {
+  let data = []
+  for (const host_chunk of chunk(hosts, HOST_TEST_CHUNK_SIZE)) {
+    data.push(
+      ...(await Promise.all(
+        host_chunk.map(async host => {
+          let isPublic = false
+          try {
+            const resp = await axios.get(`http://${host}`, {
+              timeout: 5000,
+              headers: { "Accept-Encoding": "gzip,deflate,compress" },
+            })
+            if (resp && resp.status) {
+              isPublic = true
+            }
+          } catch (err) {
+            if (err.code == "ERR_TLS_CERT_ALTNAME_INVALID") {
+              isPublic = true
+            }
           }
-        } catch (err) {
-          if (err.code == "ERR_TLS_CERT_ALTNAME_INVALID") {
-            isPublic = true
-          }
-        }
-        return { isPublic, host }
-      }),
-    ),
-  )
+          return { isPublic, host }
+        }),
+      )),
+    )
+  }
+  return data
 }
 
-const detectProxy = async (hosts: string[]) => {
-  return (
-    await axios.post<{ isPublic: boolean; host: string }[]>(
-      `${process.env.HTTP_TEST_PROXY_URL}/api/v1/check-public-host`,
-      { checkHosts: hosts },
+const detectProxy = async (
+  hosts: string[],
+): Promise<
+  {
+    isPublic: boolean
+    host: string
+  }[]
+> => {
+  let data = []
+  for (const host_chunk of chunk(hosts, HOST_TEST_CHUNK_SIZE)) {
+    data.push(
+      ...(
+        await axios.post<{ isPublic: boolean; host: string }[]>(
+          `${process.env.HTTP_TEST_PROXY_URL}/api/v1/check-public-host`,
+          { checkHosts: host_chunk },
+        )
+      ).data,
     )
-  ).data
+  }
+  return data
 }
 
 export const detectPrivateHosts = async (
