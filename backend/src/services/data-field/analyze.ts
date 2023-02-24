@@ -40,7 +40,6 @@ const findAllDataFields = async (
   dataFieldMap: Record<string, DataField>,
   newDataFieldMap: Record<string, DataField>,
   updatedDataFieldMap: Record<string, UpdatedDataField>,
-  EMPTY_PARAM: string,
 ) => {
   const statusCode = apiTrace.responseStatus
   const { reqContentType, resContentType } = getContentTypes(
@@ -162,7 +161,6 @@ export const findDataFieldsToSave = async (
     currentDataFieldMap,
     newDataFieldMap,
     updatedDataFieldMap,
-    "",
   )
 
   let traceHashArray = []
