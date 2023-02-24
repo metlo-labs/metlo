@@ -145,7 +145,7 @@ const detectSensitiveDataEndpoint = async (
   await insertValuesBuilder(ctx, queryRunner, Alert, alerts)
     .orIgnore()
     .execute()
-  const newRiskScore = getRiskScore(newDataFields)
+  const newRiskScore = await getRiskScore(ctx, newDataFields)
   if (newRiskScore != endpoint.riskScore) {
     endpoint.riskScore = newRiskScore
     await getEntityManager(ctx, queryRunner).save(endpoint)

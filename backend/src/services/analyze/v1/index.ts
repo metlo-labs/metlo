@@ -43,7 +43,7 @@ export const analyze = async (
   mlog.debug(`Analyzing Trace - Updated Dates: ${traceUUID}`)
 
   const start1 = performance.now()
-  const dataFields = findDataFieldsToSave(ctx, trace, apiEndpoint)
+  const dataFields = await findDataFieldsToSave(ctx, trace, apiEndpoint)
   mlog.time("analyzer.find_data_fields", performance.now() - start1)
   mlog.debug(`Analyzing Trace - Found Datafields: ${traceUUID}`)
 

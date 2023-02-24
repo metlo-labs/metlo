@@ -30,7 +30,7 @@ const getCurrentDataFieldsMap = (
   return [res, currNumDataFields]
 }
 
-const findAllDataFields = (
+const findAllDataFields = async (
   ctx: MetloContext,
   apiTrace: QueuedApiTrace,
   apiEndpointPath: string,
@@ -40,6 +40,7 @@ const findAllDataFields = (
   dataFieldMap: Record<string, DataField>,
   newDataFieldMap: Record<string, DataField>,
   updatedDataFieldMap: Record<string, UpdatedDataField>,
+  EMPTY_PARAM: string,
 ) => {
   const statusCode = apiTrace.responseStatus
   const { reqContentType, resContentType } = getContentTypes(
@@ -133,11 +134,11 @@ const findAllDataFields = (
   )
 }
 
-export const findDataFieldsToSave = (
+export const findDataFieldsToSave = async (
   ctx: MetloContext,
   apiTrace: QueuedApiTrace,
   apiEndpoint: ApiEndpoint,
-): DataField[] => {
+): Promise<DataField[]> => {
   const traceHashObj: Record<string, Set<string>> = {
     [DataSection.REQUEST_HEADER]: new Set<string>([]),
     [DataSection.REQUEST_QUERY]: new Set<string>([]),
@@ -151,7 +152,7 @@ export const findDataFieldsToSave = (
   const newDataFieldMap: Record<string, DataField> = {}
   const updatedDataFieldMap: Record<string, UpdatedDataField> = {}
   const dataFieldLength: DataFieldLength = { numDataFields: currNumDataFields }
-  findAllDataFields(
+  await findAllDataFields(
     ctx,
     apiTrace,
     apiEndpoint?.path,
@@ -161,6 +162,7 @@ export const findDataFieldsToSave = (
     currentDataFieldMap,
     newDataFieldMap,
     updatedDataFieldMap,
+    "",
   )
 
   let traceHashArray = []
@@ -193,7 +195,10 @@ export const findDataFieldsToSave = (
     }
   }
 
-  apiEndpoint.riskScore = getRiskScore(Object.values(currentDataFieldMap) ?? [])
+  apiEndpoint.riskScore = await getRiskScore(
+    ctx,
+    Object.values(currentDataFieldMap) ?? [],
+  )
 
   return resDataFields
 }

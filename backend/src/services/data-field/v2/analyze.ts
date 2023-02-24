@@ -84,11 +84,11 @@ const findAllDataFields = (
   }
 }
 
-export const findDataFieldsToSave = (
+export const findDataFieldsToSave = async (
   ctx: MetloContext,
   apiTrace: QueuedApiTrace,
   apiEndpoint: ApiEndpoint,
-): DataField[] => {
+): Promise<DataField[]> => {
   const traceHashObj: Record<string, Set<string>> = {
     [DataSection.REQUEST_HEADER]: new Set<string>([]),
     [DataSection.REQUEST_QUERY]: new Set<string>([]),
@@ -144,7 +144,10 @@ export const findDataFieldsToSave = (
     }
   }
 
-  apiEndpoint.riskScore = getRiskScore(Object.values(currentDataFieldMap) ?? [])
+  apiEndpoint.riskScore = await getRiskScore(
+    ctx,
+    Object.values(currentDataFieldMap) ?? [],
+  )
 
   return resDataFields
 }

@@ -371,7 +371,7 @@ export class GetEndpointsService {
         dataFields: true,
       },
     })
-    apiEndpoint.riskScore = getRiskScore(apiEndpoint.dataFields)
+    apiEndpoint.riskScore = await getRiskScore(ctx, apiEndpoint.dataFields)
     await getRepoQB(ctx, ApiEndpoint)
       .andWhere("uuid = :uuid", { uuid: apiEndpointUuid })
       .update()
