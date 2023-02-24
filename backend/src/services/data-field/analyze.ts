@@ -30,7 +30,7 @@ const getCurrentDataFieldsMap = (
   return [res, currNumDataFields]
 }
 
-const findAllDataFields = async (
+const findAllDataFields = (
   ctx: MetloContext,
   apiTrace: QueuedApiTrace,
   apiEndpointPath: string,
@@ -151,7 +151,7 @@ export const findDataFieldsToSave = async (
   const newDataFieldMap: Record<string, DataField> = {}
   const updatedDataFieldMap: Record<string, UpdatedDataField> = {}
   const dataFieldLength: DataFieldLength = { numDataFields: currNumDataFields }
-  await findAllDataFields(
+  findAllDataFields(
     ctx,
     apiTrace,
     apiEndpoint?.path,
