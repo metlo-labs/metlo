@@ -45,12 +45,7 @@ export const analyze = async (
   const dataClasses = await getCombinedDataClassesCached(ctx)
 
   const start1 = performance.now()
-  const dataFields = await findDataFieldsToSave(
-    ctx,
-    trace,
-    apiEndpoint,
-    dataClasses,
-  )
+  const dataFields = findDataFieldsToSave(ctx, trace, apiEndpoint, dataClasses)
   mlog.time("analyzer.find_data_fields", performance.now() - start1)
   mlog.debug(`Analyzing Trace - Found Datafields: ${traceUUID}`)
 
