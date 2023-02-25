@@ -41,6 +41,7 @@ import { retryTypeormTransaction } from "utils/db"
 import { RedisClient } from "utils/redis"
 import { getGlobalFullTraceCaptureCached } from "services/metlo-config"
 import { HostType } from "@common/enums"
+import { getCombinedDataClassesCached } from "services/data-classes"
 
 export class GetEndpointsService {
   static async deleteEndpoint(
@@ -371,7 +372,8 @@ export class GetEndpointsService {
         dataFields: true,
       },
     })
-    apiEndpoint.riskScore = await getRiskScore(ctx, apiEndpoint.dataFields)
+    const dataClasses = await getCombinedDataClassesCached(ctx)
+    apiEndpoint.riskScore = getRiskScore(apiEndpoint.dataFields, dataClasses)
     await getRepoQB(ctx, ApiEndpoint)
       .andWhere("uuid = :uuid", { uuid: apiEndpointUuid })
       .update()

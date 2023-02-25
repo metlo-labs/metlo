@@ -1,12 +1,11 @@
 import validator from "validator"
 import { QueryRunner } from "typeorm"
 import { ApiEndpoint, DataField } from "models"
-import { pathParameterRegex, RISK_SCORE_ORDER } from "~/constants"
+import { pathParameterRegex } from "~/constants"
 import { DataType, RiskScore } from "@common/enums"
 import wordJson from "./words.json"
 import { getHigherRiskScore, getPathTokens } from "@common/utils"
-import { getCombinedDataClasses } from "services/data-classes"
-import { MetloContext } from "types"
+import { DataClass } from "@common/types"
 
 export const isDevelopment = process.env.NODE_ENV === "development"
 export const runMigration = process.env.RUN_MIGRATION === "true"
@@ -71,20 +70,19 @@ export const getPathRegex = (path: string): string => {
   )}(/)*$`
 }
 
-export const getRiskScore = async (
-  ctx: MetloContext,
+export const getRiskScore = (
   dataFields: DataField[],
-): Promise<RiskScore> => {
+  dataClasses: DataClass[],
+): RiskScore => {
   if (!dataFields) {
     return RiskScore.NONE
   }
-  const dataclasses = await getCombinedDataClasses(ctx)
   let highestClass = RiskScore.NONE
   for (const dataField of dataFields) {
     if (dataField.dataClasses) {
       dataField.dataClasses.forEach(e => {
         const riskScore =
-          dataclasses.find(cls => cls.className === e)?.severity ||
+          dataClasses.find(cls => cls.className === e)?.severity ||
           RiskScore.NONE
         highestClass = getHigherRiskScore(highestClass, riskScore)
       })
