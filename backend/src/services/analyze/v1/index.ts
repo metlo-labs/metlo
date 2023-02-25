@@ -1,6 +1,6 @@
 import mlog from "logger"
 import { v4 as uuidv4 } from "uuid"
-import { ApiTrace, ApiEndpoint, DataField, Alert } from "models"
+import { ApiTrace, ApiEndpoint, Alert } from "models"
 import { SpecService } from "services/spec"
 import { RedisClient } from "utils/redis"
 import {
@@ -42,8 +42,10 @@ export const analyze = async (
   endpointUpdateDates(trace.createdAt, apiEndpoint)
   mlog.debug(`Analyzing Trace - Updated Dates: ${traceUUID}`)
 
+  const dataClasses = await getCombinedDataClassesCached(ctx)
+
   const start1 = performance.now()
-  const dataFields = findDataFieldsToSave(ctx, trace, apiEndpoint)
+  const dataFields = findDataFieldsToSave(ctx, trace, apiEndpoint, dataClasses)
   mlog.time("analyzer.find_data_fields", performance.now() - start1)
   mlog.debug(`Analyzing Trace - Found Datafields: ${traceUUID}`)
 
@@ -85,7 +87,6 @@ export const analyze = async (
   }
 
   const startSensitiveDataPopulate = performance.now()
-  const dataClasses = await getCombinedDataClassesCached(ctx)
   let filteredApiTrace = {
     ...trace,
     redacted: false,

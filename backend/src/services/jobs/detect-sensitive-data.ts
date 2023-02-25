@@ -4,7 +4,7 @@ import { AppDataSource } from "data-source"
 import { MetloContext } from "types"
 import { getEntityManager, insertValuesBuilder } from "services/database/utils"
 import { RedisClient } from "utils/redis"
-import { getCombinedDataClasses } from "services/data-classes"
+import { getCombinedDataClassesCached } from "services/data-classes"
 import { getSensitiveDataMap } from "services/scanner/analyze-trace"
 import { QueryRunner } from "typeorm"
 import { DataClass } from "@common/types"
@@ -145,7 +145,7 @@ const detectSensitiveDataEndpoint = async (
   await insertValuesBuilder(ctx, queryRunner, Alert, alerts)
     .orIgnore()
     .execute()
-  const newRiskScore = getRiskScore(newDataFields)
+  const newRiskScore = getRiskScore(newDataFields, dataClasses)
   if (newRiskScore != endpoint.riskScore) {
     endpoint.riskScore = newRiskScore
     await getEntityManager(ctx, queryRunner).save(endpoint)
@@ -160,7 +160,7 @@ const detectSensitiveData = async (ctx: MetloContext): Promise<boolean> => {
     mlog.debug("Connected sensitive data queryrunner.")
     const endpoints = await getEntityManager(ctx, queryRunner).find(ApiEndpoint)
     mlog.debug(`Detecting sensitive data for ${endpoints.length} endpoints.`)
-    const dataClasses = await getCombinedDataClasses(ctx)
+    const dataClasses = await getCombinedDataClassesCached(ctx)
     for (const e of endpoints) {
       mlog.debug(`Detecting sensitive data for endpoint: ${e.uuid}`)
       try {

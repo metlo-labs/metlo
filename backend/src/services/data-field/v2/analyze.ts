@@ -1,5 +1,5 @@
 import crypto from "crypto"
-import { QueuedApiTrace } from "@common/types"
+import { DataClass, QueuedApiTrace } from "@common/types"
 import { DataSection } from "@common/enums"
 import { ApiEndpoint, DataField } from "models"
 import { MetloContext } from "types"
@@ -88,6 +88,7 @@ export const findDataFieldsToSave = (
   ctx: MetloContext,
   apiTrace: QueuedApiTrace,
   apiEndpoint: ApiEndpoint,
+  dataClasses: DataClass[],
 ): DataField[] => {
   const traceHashObj: Record<string, Set<string>> = {
     [DataSection.REQUEST_HEADER]: new Set<string>([]),
@@ -144,7 +145,10 @@ export const findDataFieldsToSave = (
     }
   }
 
-  apiEndpoint.riskScore = getRiskScore(Object.values(currentDataFieldMap) ?? [])
+  apiEndpoint.riskScore = getRiskScore(
+    Object.values(currentDataFieldMap) ?? [],
+    dataClasses,
+  )
 
   return resDataFields
 }

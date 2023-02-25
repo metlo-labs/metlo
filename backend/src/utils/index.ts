@@ -4,7 +4,8 @@ import { ApiEndpoint, DataField } from "models"
 import { pathParameterRegex } from "~/constants"
 import { DataType, RiskScore } from "@common/enums"
 import wordJson from "./words.json"
-import { getPathTokens } from "@common/utils"
+import { getHigherRiskScore, getPathTokens } from "@common/utils"
+import { DataClass } from "@common/types"
 
 export const isDevelopment = process.env.NODE_ENV === "development"
 export const runMigration = process.env.RUN_MIGRATION === "true"
@@ -69,27 +70,25 @@ export const getPathRegex = (path: string): string => {
   )}(/)*$`
 }
 
-export const getRiskScore = (dataFields: DataField[]): RiskScore => {
+export const getRiskScore = (
+  dataFields: DataField[],
+  dataClasses: DataClass[],
+): RiskScore => {
   if (!dataFields) {
     return RiskScore.NONE
   }
-  let uniqueSensitiveDataClasses = new Set<string>()
+  let highestClass = RiskScore.NONE
   for (const dataField of dataFields) {
     if (dataField.dataClasses) {
-      dataField.dataClasses.forEach(e => uniqueSensitiveDataClasses.add(e))
+      dataField.dataClasses.forEach(e => {
+        const riskScore =
+          dataClasses.find(cls => cls.className === e)?.severity ||
+          RiskScore.NONE
+        highestClass = getHigherRiskScore(highestClass, riskScore)
+      })
     }
   }
-  const numRiskySensitiveDataClasses = uniqueSensitiveDataClasses.size
-  switch (true) {
-    case numRiskySensitiveDataClasses >= 3:
-      return RiskScore.HIGH
-    case numRiskySensitiveDataClasses >= 2:
-      return RiskScore.MEDIUM
-    case numRiskySensitiveDataClasses >= 1:
-      return RiskScore.LOW
-    default:
-      return RiskScore.NONE
-  }
+  return highestClass
 }
 
 export const getDataType = (data: any): DataType => {
