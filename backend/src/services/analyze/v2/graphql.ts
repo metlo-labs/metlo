@@ -34,6 +34,5 @@ export const processGraphQlData = (
       }
     }
   }
-  console.log(currSensitiveData)
   apiEndpoint.graphQlMetadata.sensitiveDataDetected = currSensitiveData
 }
