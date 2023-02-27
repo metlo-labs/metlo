@@ -42,6 +42,7 @@ import { RedisClient } from "utils/redis"
 import { getGlobalFullTraceCaptureCached } from "services/metlo-config"
 import { HostType } from "@common/enums"
 import { getCombinedDataClassesCached } from "services/data-classes"
+import { getResoucrcePermissionsCached } from "services/testing-config"
 
 export class GetEndpointsService {
   static async deleteEndpoint(
@@ -501,6 +502,11 @@ export class GetEndpointsService {
           where: { apiEndpoint: { uuid: endpointId } },
         },
       )
+      const endpointResourcePermissions = await getResoucrcePermissionsCached(
+        ctx,
+        endpoint,
+        dataFields,
+      )
       const globalFullTraceCapture = await getGlobalFullTraceCaptureCached(ctx)
       return {
         ...endpoint,
@@ -510,6 +516,7 @@ export class GetEndpointsService {
         traces: [...traces],
         tests: tests as Array<any>,
         globalFullTraceCapture,
+        resourcePermissions: endpointResourcePermissions,
       }
     } catch (err) {
       mlog.withErr(err).error("Error in Get Endpoints service")

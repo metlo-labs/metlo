@@ -2,7 +2,7 @@ import { MetloContext } from "types"
 import { UpdateTestingConfigParams } from "@common/api/testing-config"
 import { AppDataSource } from "data-source"
 import { createQB, getQB, insertValueBuilder } from "services/database/utils"
-import { TestingConfig } from "models"
+import { ApiEndpoint, DataField, TestingConfig } from "models"
 import { TestingConfigResp } from "@common/types"
 import { parseResourceConfig, ResourceConfigParseRes } from "@metlo/testing"
 import { RedisClient } from "utils/redis"
@@ -95,5 +95,91 @@ export const getEntityTagsCached = async (
   }
   const realRes = await getEntityTags(ctx)
   await RedisClient.addToRedis(ctx, "entityTagsCached", realRes, 60)
+  return realRes
+}
+
+const getResoucrcePermissions = async (
+  ctx: MetloContext,
+  endpoint: ApiEndpoint,
+  dataFields: DataField[],
+): Promise<string[]> => {
+  const config = (await createQB(ctx)
+    .from(TestingConfig, "config")
+    .getRawOne()) as TestingConfig
+  if (!config) {
+    return []
+  }
+  const parseRes = parseResourceConfig(config.configString)
+  if (!parseRes.res) {
+    throw new Error("Bad Testing Config")
+  }
+  const configObject = parseRes.res
+  const resoucePermissions = new Set<string>()
+  const endpointEntities: { type: string; path: string }[] = []
+  for (const dataField of dataFields) {
+    if (dataField.entity) {
+      endpointEntities.push({
+        type: dataField.entity,
+        path: dataField.dataPath,
+      })
+    }
+  }
+
+  for (const item of configObject) {
+    if (item.type == "resource") {
+      const permFilters = item.members?.endpoints
+      if (permFilters && permFilters.length > 0) {
+        for (const permFilter of permFilters) {
+          if (permFilter.contains_resource) {
+            const containsResource = permFilter.contains_resource
+            if (
+              endpointEntities.some(
+                e =>
+                  ((containsResource.type &&
+                    e.type === containsResource.type) ||
+                    (!containsResource.type && e.type === item.name)) &&
+                  e.path.startsWith(containsResource.path),
+              )
+            ) {
+              permFilter.permissions.forEach(perm => {
+                resoucePermissions.add(`${item.name}.${perm}`)
+              })
+            }
+          } else {
+            if (permFilter.method && permFilter.method !== endpoint.method) {
+              continue
+            }
+            if (permFilter.host && permFilter.host !== endpoint.host) {
+              continue
+            }
+            if (
+              permFilter.path &&
+              !endpoint.path.match(new RegExp(permFilter.path))
+            ) {
+              continue
+            }
+            permFilter.permissions.forEach(perm => {
+              resoucePermissions.add(`${item.name}.${perm}`)
+            })
+          }
+        }
+      }
+    }
+  }
+  return [...resoucePermissions]
+}
+
+export const getResoucrcePermissionsCached = async (
+  ctx: MetloContext,
+  endpoint: ApiEndpoint,
+  dataFields: DataField[],
+): Promise<string[]> => {
+  const key = `endpointResourcePermissionsCached:e#${endpoint.uuid}`
+  const cacheRes: string[] | null = await RedisClient.getFromRedis(ctx, key)
+  if (cacheRes !== null) {
+    return cacheRes
+  }
+  const realRes = await getResoucrcePermissions(ctx, endpoint, dataFields)
+  await RedisClient.addToRedis(ctx, key, realRes, 60)
   return realRes
 }

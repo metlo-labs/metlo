@@ -10,6 +10,8 @@ import {
   Checkbox,
   Switch,
   useToast,
+  Wrap,
+  WrapItem,
 } from "@chakra-ui/react"
 import dynamic from "next/dynamic"
 import { DataAttribute, DataHeading } from "components/utils/Card"
@@ -145,6 +147,24 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
                 colorScheme="red"
               />
             </GridItem>
+            {endpoint.resourcePermissions?.length > 0 ? (
+              <GridItem>
+                <DataHeading>Resource Permissions</DataHeading>
+                <Wrap>
+                  {endpoint.resourcePermissions.map(r => (
+                    <WrapItem key={r}>
+                      <Badge
+                        textTransform="none"
+                        borderWidth="1px"
+                        rounded="sm"
+                      >
+                        {r}
+                      </Badge>
+                    </WrapItem>
+                  ))}
+                </Wrap>
+              </GridItem>
+            ) : null}
             {usage.length > 0 && (
               <GridItem w="100%" colSpan={2}>
                 <DataHeading>Usage</DataHeading>
