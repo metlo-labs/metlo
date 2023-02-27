@@ -12,6 +12,7 @@ import {
   AttackType,
   API_KEY_TYPE,
   DisableRestMethod,
+  GraphQlOperation,
 } from "./enums"
 import "axios"
 import { TestConfig } from "@metlo/testing"
@@ -68,6 +69,28 @@ export interface Response {
   body: string
 }
 
+export interface OperationItem {
+  name: string
+  alias: string
+  arguments: string
+  items: OperationItem[]
+}
+
+export interface Operation {
+  operationName: string
+  operationType: GraphQlOperation
+  items: OperationItem[]
+  variables: string[]
+  xssDetected: Record<string, string>
+  sqliDetected: Record<string, [string, string]>
+  sensitiveDataDetected: Record<string, string[]>
+}
+
+export interface GraphQlData {
+  operationName: string
+  operations: Operation[]
+}
+
 export interface ProcessedTraceData {
   block: boolean
   xssDetected: Record<string, string>
@@ -77,6 +100,7 @@ export interface ProcessedTraceData {
   requestContentType: string
   responseContentType: string
   validationErrors: Record<string, string[]>
+  graphQlData: GraphQlData
 }
 
 export interface TraceParams {

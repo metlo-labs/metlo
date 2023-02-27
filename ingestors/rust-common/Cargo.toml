@@ -10,6 +10,7 @@ clap = { version = "4.1.4", features = ["derive"] }
 dirs = "4.0.0"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
+graphql-parser = "0.4.0"
 jsonschema = "0.16.1"
 lazy_static = "1.4.0"
 libinjection = "0.3.2"

@@ -58,6 +58,7 @@ pub struct ProcessTraceRes {
     pub validation_errors: Option<HashMap<String, Vec<String>>>,
     pub request_content_type: String,
     pub response_content_type: String,
+    pub graph_ql_data: Option<GraphQlRes>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -68,4 +69,32 @@ pub struct ProcessedApiTrace {
     pub meta: Option<ApiMeta>,
     pub processed_trace_data: ProcessTraceRes,
     pub redacted: bool,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OperationItem {
+    pub name: Option<String>,
+    pub alias: Option<String>,
+    pub arguments: Vec<String>,
+    pub items: Vec<OperationItem>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Operation {
+    pub operation_name: Option<String>,
+    pub operation_type: String,
+    pub items: Vec<OperationItem>,
+    pub variables: Vec<String>,
+    pub xss_detected: HashMap<String, String>,
+    pub sqli_detected: HashMap<String, (String, String)>,
+    pub sensitive_data_detected: HashMap<String, HashSet<String>>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GraphQlRes {
+    pub operation_name: Option<String>,
+    pub operations: Vec<Operation>,
 }
