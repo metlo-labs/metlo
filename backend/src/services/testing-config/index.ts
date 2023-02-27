@@ -6,6 +6,16 @@ import { ApiEndpoint, DataField, TestingConfig } from "models"
 import { TestingConfigResp } from "@common/types"
 import { parseResourceConfig, ResourceConfigParseRes } from "@metlo/testing"
 import { RedisClient } from "utils/redis"
+import { DataSection } from "@common/enums"
+
+const DATA_SECTION_TO_PATH: Record<DataSection, string> = {
+  [DataSection.REQUEST_PATH]: "req.path",
+  [DataSection.REQUEST_QUERY]: "req.query",
+  [DataSection.REQUEST_HEADER]: "req.header",
+  [DataSection.REQUEST_BODY]: "req.body",
+  [DataSection.RESPONSE_HEADER]: "res.header",
+  [DataSection.RESPONSE_BODY]: "res.body",
+}
 
 export const getTestingConfig = async (
   ctx: MetloContext,
@@ -132,8 +142,8 @@ const getResourcePermissions = async (
   for (const dataField of dataFields) {
     if (dataField.entity) {
       endpointEntities.push({
-        type: dataField.entity,
-        path: dataField.dataPath,
+        type: dataField.entity.split(".")?.[0],
+        path: DATA_SECTION_TO_PATH[dataField.dataSection],
       })
     }
   }
