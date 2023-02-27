@@ -15,6 +15,21 @@ export const getTestingConfig = async (
     .getRawOne()) as TestingConfig
 }
 
+export const getTestingConfigCached = async (
+  ctx: MetloContext,
+): Promise<TestingConfigResp> => {
+  const cacheRes: TestingConfigResp | null = await RedisClient.getFromRedis(
+    ctx,
+    "testingConfigCached",
+  )
+  if (cacheRes !== null) {
+    return cacheRes
+  }
+  const realRes = await getTestingConfig(ctx)
+  await RedisClient.addToRedis(ctx, "testingConfigCached", realRes, 60)
+  return realRes
+}
+
 export const updateTestingConfig = async (
   ctx: MetloContext,
   params: UpdateTestingConfigParams,
@@ -98,15 +113,13 @@ export const getEntityTagsCached = async (
   return realRes
 }
 
-const getResoucrcePermissions = async (
+const getResourcePermissions = async (
   ctx: MetloContext,
   endpoint: ApiEndpoint,
   dataFields: DataField[],
 ): Promise<string[]> => {
-  const config = (await createQB(ctx)
-    .from(TestingConfig, "config")
-    .getRawOne()) as TestingConfig
-  if (!config) {
+  const config = await getTestingConfigCached(ctx)
+  if (!config?.configString) {
     return []
   }
   const parseRes = parseResourceConfig(config.configString)
@@ -169,7 +182,7 @@ const getResoucrcePermissions = async (
   return [...resoucePermissions]
 }
 
-export const getResoucrcePermissionsCached = async (
+export const getResourcePermissionsCached = async (
   ctx: MetloContext,
   endpoint: ApiEndpoint,
   dataFields: DataField[],
@@ -179,7 +192,7 @@ export const getResoucrcePermissionsCached = async (
   if (cacheRes !== null) {
     return cacheRes
   }
-  const realRes = await getResoucrcePermissions(ctx, endpoint, dataFields)
+  const realRes = await getResourcePermissions(ctx, endpoint, dataFields)
   await RedisClient.addToRedis(ctx, key, realRes, 60)
   return realRes
 }
