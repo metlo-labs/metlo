@@ -11,6 +11,7 @@ export default {
   version: 1,
   builder: (endpoint: GenTestEndpoint, config: TemplateConfig) => {
     const testStepPayloads = getAuthTestPayloads(endpoint, config)
+    const hostInfo = config.hosts[endpoint.host]
     let builder = new TestBuilder().setMeta({
       name: `${endpoint.path} VALIDATE_AUTH_RULES`,
       severity: "HIGH",
@@ -18,7 +19,12 @@ export default {
     })
     for (let i = 0; i < testStepPayloads.length; i++) {
       builder = builder.addTestStep(
-        authTestStepPayloadToBuilder(endpoint, testStepPayloads[i], i),
+        authTestStepPayloadToBuilder(
+          endpoint,
+          testStepPayloads[i],
+          i + 1,
+          hostInfo,
+        ),
       )
     }
     return builder

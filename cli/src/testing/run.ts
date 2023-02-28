@@ -14,6 +14,11 @@ import {
   TestConfig,
   TestConfigSchema,
   TestResult,
+  GenTestEndpoint,
+  generateAuthTests,
+  parseResourceConfig,
+  processResourceConfig,
+  TemplateConfig,
 } from "@metlo/testing"
 import { getConfig } from "../utils"
 import { urlJoin } from "./utils"
@@ -300,5 +305,66 @@ const runTestConfigs = async (
     spinner.succeed(
       chalk.green(`${successTests}/${totalTests} tests succeeded...`),
     )
+  }
+}
+
+export const runAuthTests = async () => {
+  const config = getConfig()
+  try {
+    const res = await axios.get<GenTestEndpoint[]>(
+      urlJoin(config.metloHost, "api/v1/auth-test-endpoints"),
+      {
+        headers: {
+          Authorization: config.apiKey,
+        },
+        validateStatus: () => true,
+      },
+    )
+    if (res.status > 300) {
+      console.log(
+        chalk.bold.red(
+          `Failed to get auth test endpoints [Code ${res.status}] - ${res.data}`,
+        ),
+      )
+      return
+    }
+    const genTestEndpoints = res.data
+    const configStringRes = await axios.get<{ configString: string }>(
+      urlJoin(config.metloHost, "api/v1/testing-config"),
+      {
+        headers: {
+          Authorization: config.apiKey,
+        },
+        validateStatus: () => true,
+      },
+    )
+    if (configStringRes.status > 300) {
+      console.log(
+        chalk.bold.red(
+          `Failed to get testing config test [Code ${configStringRes.status}] - ${configStringRes.data}`,
+        ),
+      )
+      return
+    }
+    const testConfigString = configStringRes?.data?.configString
+    let templateConfig = {} as TemplateConfig
+    if (testConfigString) {
+      const parseRes = parseResourceConfig(testConfigString)
+      if (!parseRes.res) {
+        console.log(
+          chalk.bold.red(
+            `Failed to generate test: ${
+              parseRes.parseError?.message ?? "Invalid Testing Config"
+            }`,
+          ),
+        )
+        return
+      }
+      templateConfig = processResourceConfig(parseRes.res)
+    }
+    const authTestConfigs = generateAuthTests(genTestEndpoints, templateConfig)
+    await runTestConfigs(authTestConfigs, {}, true)
+  } catch (err) {
+    console.log(chalk.bold.red(`Failed to run auth tests: ${err}`))
   }
 }

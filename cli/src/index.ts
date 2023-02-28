@@ -10,7 +10,7 @@ import { gcpTrafficMirrorList } from "./gcp/list"
 import { gcpTrafficMirrorDelete } from "./gcp/remove"
 import { gcpTrafficMirrorCleanUp } from "./gcp/cleanup"
 import { generateTest } from "./testing/generate"
-import { runTests } from "./testing/run"
+import { runAuthTests, runTests } from "./testing/run"
 import { pushTemplates } from "./testing/push-template"
 import { initCustomTemplates } from "./testing/init-custom-templates"
 import { mapOptionParser } from "./utils"
@@ -49,6 +49,7 @@ test
   .option("--envfile <string>", "path for your env file")
   .option("--env <key>=<value>", "environment variables", mapOptionParser)
   .action(runTests)
+test.command("run-auth-tests").action(runAuthTests)
 
 const template = program.command("template")
 template
