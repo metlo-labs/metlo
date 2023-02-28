@@ -1,3 +1,4 @@
+import { RestMethod } from "types/enums"
 import {
   Actor,
   ContainsResourceFilter,
@@ -88,8 +89,16 @@ const validateEndpointFilter = (
   endpointEntities: ResourceEntityKey[],
   defaultResource: string,
 ): boolean => {
-  if (permFilter.method && permFilter.method != endpoint.method) {
-    return false
+  if (permFilter.method) {
+    if (typeof permFilter.method == "string") {
+      if (permFilter.method != endpoint.method) {
+        return false
+      }
+    } else {
+      if (!permFilter.method.includes(endpoint.method)) {
+        return false
+      }
+    }
   }
   if (permFilter.host && !endpoint.host.match(new RegExp(permFilter.host))) {
     return false
