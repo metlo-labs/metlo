@@ -36,7 +36,9 @@ const EndpointPermFilterSchema = z
   .object({
     permissions: z.array(z.string()),
     host: z.string().optional(),
-    method: z.nativeEnum(RestMethod).optional(),
+    method: z
+      .union([z.nativeEnum(RestMethod), z.nativeEnum(RestMethod).array()])
+      .optional(),
     path: z.string().optional(),
     contains_resource: ContainsResourceFilterSchema.optional(),
   })
