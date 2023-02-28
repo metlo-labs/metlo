@@ -46,6 +46,7 @@ import { addFullTraceCaptureEnabledColumn1676065168441 } from "migrations/167606
 import { addOriginalHostTraceColumn1676358211583 } from "migrations/1676358211583-addOriginalHostTraceColumn"
 import { addTestingConfigTable1676508983994 } from "migrations/1676508983994-add-testing-config-table"
 import { hostsList1677073188312 } from "migrations/1677073188312-hosts_list"
+import { endpointGraphqlColumns1677479141637 } from "migrations/1677479141637-endpoint-graphql-columns"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -68,7 +69,7 @@ export const AppDataSource: DataSource = new DataSource({
     MetloConfig,
     Webhook,
     TestingConfig,
-    Hosts
+    Hosts,
   ],
   synchronize: false,
   migrations: [
@@ -97,6 +98,7 @@ export const AppDataSource: DataSource = new DataSource({
     addOriginalHostTraceColumn1676358211583,
     addTestingConfigTable1676508983994,
     hostsList1677073188312,
+    endpointGraphqlColumns1677479141637,
   ],
   migrationsRun: runMigration,
   logging: false,

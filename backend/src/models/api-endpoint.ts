@@ -98,6 +98,12 @@ export class ApiEndpoint extends MetloBaseEntity {
   @Column({ type: "bool", nullable: false, default: false })
   fullTraceCaptureEnabled: boolean
 
+  @Column({ nullable: true })
+  graphQlSchema: string
+
+  @Column({ type: "jsonb", nullable: false, default: {} })
+  graphQlMetadata: Record<string, any>
+
   addNumberParams() {
     if (this.path) {
       const pathTokens = getPathTokens(this.path)

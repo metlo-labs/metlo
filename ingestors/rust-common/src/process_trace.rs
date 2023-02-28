@@ -1,7 +1,8 @@
 use crate::{
     open_api::{find_open_api_diff, get_split_path, EndpointInfo},
+    process_graphql::{process_graphql_body, process_graphql_query},
     sensitive_data::detect_sensitive_data,
-    trace::{ApiResponse, ApiTrace, KeyVal, ProcessTraceRes},
+    trace::{ApiResponse, ApiTrace, GraphQlRes, KeyVal, ProcessTraceRes},
     METLO_CONFIG,
 };
 use libinjection::{sqli, xss};
@@ -170,6 +171,7 @@ fn process_json(
         },
         request_content_type: "".to_owned(),
         response_content_type: "".to_owned(),
+        graph_ql_data: None,
     })
 }
 
@@ -251,6 +253,7 @@ fn process_text_plain(
         },
         request_content_type: "".to_owned(),
         response_content_type: "".to_owned(),
+        graph_ql_data: None,
     };
 
     if is_xss {
@@ -337,6 +340,7 @@ fn process_key_val(prefix: String, vals: &Vec<KeyVal>) -> Option<ProcessTraceRes
         validation_errors: None,
         request_content_type: "".to_owned(),
         response_content_type: "".to_owned(),
+        graph_ql_data: None,
     })
 }
 
@@ -355,6 +359,7 @@ fn combine_process_trace_res(
     results: &[Option<ProcessTraceRes>],
     request_content_type: Option<&String>,
     response_content_type: Option<&String>,
+    proc_graph_ql: Option<GraphQlRes>,
 ) -> ProcessTraceRes {
     let mut block = false;
     let mut xss_detected: HashMap<String, String> = HashMap::new();
@@ -392,6 +397,7 @@ fn combine_process_trace_res(
         validation_errors: (!validation_errors.is_empty()).then_some(validation_errors),
         request_content_type: request_content_type.unwrap_or(&"".to_owned()).to_owned(),
         response_content_type: response_content_type.unwrap_or(&"".to_owned()).to_owned(),
+        graph_ql_data: proc_graph_ql,
     }
 }
 
@@ -406,8 +412,41 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
         }) => status.to_owned() < 400,
         _ => false,
     };
-    let proc_req_body = match (non_error_status_code, trace.request.body.len() > 0) {
-        (true, true) => process_body(
+
+    let mut openapi_spec_name: Option<String> = None;
+    let mut full_trace_capture_enabled: bool = false;
+    let mut is_graph_ql: bool = false;
+    let mut endpoint_path: String = trace.request.url.path.clone();
+    let split_path: Vec<&str> = get_split_path(&trace.request.url.path);
+    let conf_read = METLO_CONFIG.try_read();
+    if let Ok(ref conf) = METLO_CONFIG.try_read() {
+        if let Some(endpoints) = &conf.endpoints {
+            let key = format!(
+                "{}-{}",
+                trace.request.url.host,
+                trace.request.method.to_lowercase()
+            );
+            if let Some(matched_endpoints) = endpoints.get(&key) {
+                for endpoint in matched_endpoints.iter() {
+                    if is_endpoint_match(&split_path, endpoint.path.clone()) {
+                        openapi_spec_name = endpoint.openapi_spec_name.to_owned();
+                        full_trace_capture_enabled = endpoint.full_trace_capture_enabled;
+                        endpoint_path = endpoint.path.clone();
+                        is_graph_ql = endpoint.is_graph_ql;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    drop(conf_read);
+
+    let proc_req_body = match (
+        non_error_status_code,
+        !trace.request.body.is_empty(),
+        !is_graph_ql,
+    ) {
+        (true, true, true) => process_body(
             "reqBody".to_string(),
             trace.request.body.as_str(),
             req_mime_type.clone(),
@@ -419,44 +458,19 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
         ),
         _ => None,
     };
-    let proc_req_params = match non_error_status_code {
-        true => process_key_val("reqQuery".to_string(), &trace.request.url.parameters),
-        false => None,
+    let proc_req_params = match (non_error_status_code, !is_graph_ql) {
+        (true, true) => process_key_val("reqQuery".to_string(), &trace.request.url.parameters),
+        _ => None,
     };
     let proc_req_headers = match non_error_status_code {
         true => process_key_val("reqHeaders".to_string(), &trace.request.headers),
         false => None,
     };
-    let mut openapi_spec_name: Option<String> = None;
-    let mut full_trace_capture_enabled: bool = false;
-    let mut endpoint_path: String = trace.request.url.path.clone();
-    let split_path: Vec<&str> = get_split_path(&trace.request.url.path);
-
-    let conf_read = METLO_CONFIG.try_read();
-    match conf_read {
-        Ok(ref conf) => match &conf.endpoints {
-            Some(endpoints) => {
-                let key = format!(
-                    "{}-{}",
-                    trace.request.url.host,
-                    trace.request.method.to_lowercase()
-                );
-                if let Some(matched_endpoints) = endpoints.get(&key) {
-                    for endpoint in matched_endpoints.iter() {
-                        if is_endpoint_match(&split_path, endpoint.path.clone()) {
-                            openapi_spec_name = endpoint.openapi_spec_name.to_owned();
-                            full_trace_capture_enabled = endpoint.full_trace_capture_enabled;
-                            endpoint_path = endpoint.path.clone();
-                            break;
-                        }
-                    }
-                }
-            }
-            None => (),
-        },
-        Err(_) => (),
-    }
-    drop(conf_read);
+    let proc_graph_ql = match (is_graph_ql, trace.request.method.to_lowercase().as_str()) {
+        (true, "post") => process_graphql_body(&trace.request.body),
+        (true, "get") => process_graphql_query(&trace.request.url.parameters),
+        _ => None,
+    };
 
     let mut proc_resp_headers: Option<ProcessTraceRes> = None;
     let mut resp_content_type: Option<&String> = None;
@@ -500,6 +514,7 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
             ],
             req_content_type,
             resp_content_type,
+            proc_graph_ql,
         ),
         full_trace_capture_enabled,
     )

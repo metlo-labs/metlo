@@ -35,6 +35,7 @@ pub struct MetloEndpoint {
     pub method: String,
     pub full_trace_capture_enabled: bool,
     pub number_params: u8,
+    pub is_graph_ql: bool,
 }
 
 #[derive(Debug, Default, Clone, Deserialize, Serialize)]

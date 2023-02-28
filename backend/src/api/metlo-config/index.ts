@@ -82,6 +82,7 @@ export const getAgentConfigHandler = async (
           host: true,
           fullTraceCaptureEnabled: true,
           numberParams: true,
+          isGraphQl: true,
         },
       },
     )

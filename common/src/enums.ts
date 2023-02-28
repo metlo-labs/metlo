@@ -169,3 +169,9 @@ export enum SortOrder {
   ASC = "ASC",
   DESC = "DESC",
 }
+
+export enum GraphQlOperation {
+  QUERY = "query",
+  MUTATION = "mutation",
+  SUBSCRIPTION = "subscription",
+}
