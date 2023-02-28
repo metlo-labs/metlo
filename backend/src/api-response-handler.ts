@@ -33,4 +33,16 @@ export default class ApiResponseHandler {
         .join("\n"),
     })
   }
+
+  static async rawerror(
+    res: Response,
+    error: any,
+    rest?: object,
+  ): Promise<void> {
+    res.status(400).send({
+      type: "RAW",
+      err: error,
+      ...rest,
+    })
+  }
 }
