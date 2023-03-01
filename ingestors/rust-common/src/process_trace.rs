@@ -18,16 +18,14 @@ fn is_endpoint_match(trace_tokens: &Vec<&str>, endpoint_path: String) -> bool {
     if trace_tokens.len() != endpoint_tokens.len() {
         return false;
     }
-    let mut i = 0;
 
-    for endpoint_token in endpoint_tokens {
+    for (i, endpoint_token) in endpoint_tokens.into_iter().enumerate() {
         let trace_token = trace_tokens[i];
         if endpoint_token != trace_token
             && (!endpoint_token.starts_with('{') && !endpoint_token.ends_with('}'))
         {
             return false;
         }
-        i += 1;
     }
     true
 }
@@ -164,7 +162,7 @@ fn process_json(
         sensitive_data_detected: (!sensitive_data_detected.is_empty())
             .then_some(sensitive_data_detected),
         data_types: (!data_types.is_empty()).then_some(data_types),
-        validation_errors: if prefix.clone().starts_with("resBody") {
+        validation_errors: if prefix.starts_with("resBody") {
             find_open_api_diff(trace, &value, endpoint_info)
         } else {
             None
@@ -198,8 +196,8 @@ fn process_form_data(
     endpoint_info: EndpointInfo,
 ) -> Option<ProcessTraceRes> {
     let boundary = mime_params.find(|e| e.0 == "boundary");
-    if boundary.is_some() {
-        let mut mp = Multipart::with_body(body.as_bytes(), boundary.unwrap().1.as_str());
+    if let Some(b) = boundary {
+        let mut mp = Multipart::with_body(body.as_bytes(), b.1.as_str());
         let mut form_json = json!({});
         while let Some(mut field) = mp.read_entry().unwrap() {
             let data = field.data.fill_buf().unwrap_or(b"");
@@ -292,7 +290,7 @@ fn process_body(
     } else if essence == mime::APPLICATION_WWW_FORM_URLENCODED {
         process_url_encoded(prefix, body, trace, endpoint_info)
     } else {
-        None
+        process_text_plain(prefix, body, trace, endpoint_info)
     }
 }
 
@@ -409,7 +407,7 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
             status,
             headers: _,
             body: _,
-        }) => status.to_owned() < 400,
+        }) => *status < 400,
         _ => false,
     };
 
@@ -449,7 +447,7 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
         (true, true, true) => process_body(
             "reqBody".to_string(),
             trace.request.body.as_str(),
-            req_mime_type.clone(),
+            req_mime_type,
             trace,
             EndpointInfo {
                 openapi_spec_name: None,
