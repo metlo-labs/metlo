@@ -113,7 +113,7 @@ fn validate(sensitive_data_type: String, text: &str) -> bool {
     }
 }
 
-fn detect_sensitive_data_inner(txt: &str, sensitive_data: &Vec<SensitiveData>) -> HashSet<String> {
+fn detect_sensitive_data_inner(txt: &str, sensitive_data: &[SensitiveData]) -> HashSet<String> {
     sensitive_data
         .iter()
         .filter(|e| e.regex.is_match(txt) && validate(e.sensitive_data_type.clone(), txt))

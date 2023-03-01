@@ -32,9 +32,9 @@ lazy_static! {
 
 fn get_validation_error_msg(error: &ValidationError) -> Option<String> {
     let path_vec = error.instance_path.to_owned().into_vec();
-    let prefix = match path_vec.len() > 0 {
+    let prefix = match !path_vec.is_empty() {
         true => format!("Response body property {:?}", path_vec.join(".")),
-        false => format!("Response body"),
+        false => "Response body".to_owned(),
     };
     match &error.kind {
         ValidationErrorKind::AdditionalItems { limit } => {
@@ -70,7 +70,7 @@ fn get_validation_error_msg(error: &ValidationError) -> Option<String> {
             "{} is not equal to one of the allowed values {:?}.",
             prefix,
             options.as_array().map_or("".to_string(), |v| v
-                .into_iter()
+                .iter()
                 .map(|i| i.as_str().unwrap_or(""))
                 .collect::<Vec<&str>>()
                 .join(", "))
@@ -260,31 +260,31 @@ pub fn compile_specs(specs: Vec<MetloSpec>) -> CompiledSpecs {
                                     );
                                 }
                             }
-                            if content_type_specs.len() > 0 {
+                            if !content_type_specs.is_empty() {
                                 status_code_specs
                                     .insert(status_code.to_owned(), content_type_specs);
                             }
                         }
-                        if status_code_specs.len() > 0 {
+                        if !status_code_specs.is_empty() {
                             method_specs.insert(method.to_owned(), status_code_specs);
                         }
                     }
-                    if method_specs.len() > 0 {
+                    if !method_specs.is_empty() {
                         path_specs.insert(path.to_owned(), method_specs);
                     }
                 }
-                if path_specs.len() > 0 {
+                if !path_specs.is_empty() {
                     compiled_specs.insert(e.name.to_owned(), path_specs);
                 }
             }
         }
     }
-    return compiled_specs;
+    compiled_specs
 }
 
-pub fn get_split_path(path: &String) -> Vec<&str> {
+pub fn get_split_path(path: &str) -> Vec<&str> {
     path.split('/')
-        .filter(|token| token.len() > 0)
+        .filter(|token| !token.is_empty())
         .collect::<Vec<&str>>()
 }
 
@@ -298,12 +298,12 @@ fn get_spec_path_map<'a>(
             for n in 0..len {
                 let mut curr_path = trace_tokens[n..len].join("/");
                 if curr_path != "/" {
-                    curr_path.insert_str(0, "/");
+                    curr_path.insert(0, '/');
                 }
                 if s.contains_key(&curr_path) {
                     return s.get(&curr_path);
                 }
-                curr_path.push_str("/");
+                curr_path.push('/');
                 if s.contains_key(&curr_path) {
                     return s.get(&curr_path);
                 }
@@ -315,7 +315,7 @@ fn get_spec_path_map<'a>(
 }
 
 fn get_spec_content_type_schema<'a>(
-    trace_content_type: &String,
+    trace_content_type: &str,
     spec_status_code_map: &'a HashMap<String, CompiledSchema>,
 ) -> Result<Option<&'a CompiledSchema>, String> {
     let content_type = match trace_content_type.parse::<mime::Mime>() {
@@ -332,7 +332,7 @@ fn get_spec_content_type_schema<'a>(
     let mut match_points = 0;
     let mut matched_schema: Option<&CompiledSchema> = None;
     for (media_type_key, value) in spec_status_code_map.iter() {
-        if media_type_key.to_owned() == content_type {
+        if *media_type_key == content_type {
             return Ok(Some(value));
         } else if media_type_key == "*/*" && wildcard_match_points > match_points {
             matched_schema = Some(value);
@@ -361,9 +361,9 @@ fn get_spec_content_type_schema<'a>(
 
 fn get_compiled_schema<'a>(
     trace_tokens: Vec<&'a str>,
-    trace_method: &String,
-    trace_status_code: &String,
-    trace_content_type: &String,
+    trace_method: &str,
+    trace_status_code: &str,
+    trace_content_type: &str,
     compiled_specs: Option<&'a CompiledSpecsSingle>,
 ) -> Result<Option<&'a CompiledSchema>, String> {
     let spec_path_map = get_spec_path_map(trace_tokens, compiled_specs);
@@ -431,25 +431,22 @@ pub fn find_open_api_diff(
         match compiled_schema {
             Ok(r) => {
                 if let Some(schema) = r {
-                    let result = schema.schema.validate(&response_body);
+                    let result = schema.schema.validate(response_body);
                     if let Err(errors) = result {
                         for error in errors {
-                            match get_validation_error_msg(&error) {
-                                Some(msg) => {
-                                    validation_errors.insert(msg, schema.path_pointer.clone());
-                                }
-                                None => (),
+                            if let Some(msg) = get_validation_error_msg(&error) {
+                                validation_errors.insert(msg, schema.path_pointer.clone());
                             }
                         }
                     }
                 }
                 drop(conf_read);
-                return Some(validation_errors);
+                Some(validation_errors)
             }
             Err(e) => {
                 drop(conf_read);
                 validation_errors.insert(e, vec![]);
-                return Some(validation_errors);
+                Some(validation_errors)
             }
         }
     } else {
