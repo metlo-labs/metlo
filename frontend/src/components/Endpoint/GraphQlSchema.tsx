@@ -139,7 +139,7 @@ const GraphQlSchemaComponent: React.FC<GraphQlSchemaComponentProps> =
           >
             <Editor
               width="100%"
-              defaultLanguage="json"
+              defaultLanguage="graphql"
               value={endpoint.graphQlSchema || "No spec generated yet."}
               options={{
                 minimap: {
