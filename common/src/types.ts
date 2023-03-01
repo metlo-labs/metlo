@@ -222,6 +222,7 @@ export interface ApiEndpointDetailed extends ApiEndpoint {
   globalFullTraceCapture?: boolean
   userSet: boolean
   resourcePermissions?: string[]
+  graphQlSchema: string | null
 }
 
 export interface HostResponse {

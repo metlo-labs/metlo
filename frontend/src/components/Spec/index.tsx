@@ -71,13 +71,15 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
             size: "xl",
             description,
             status: "error",
-            duration: 1000000,
+            duration: 25000,
           },
           err.response?.status,
         ),
       )
+    } finally {
+      evt.target.value = ""
+      setFetching(false)
     }
-    setFetching(false)
   }
 
   const handleDelete = async () => {
