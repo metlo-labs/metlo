@@ -159,7 +159,7 @@ export const getAllAuthActors = (config: TemplateConfig): AuthActor[] => {
   return Object.entries(config.actors)
     .filter(([k, v]) => v.items.length > 0 && v.items[0].auth)
     .map(([k, v]) =>
-      v.items.map((e, i) => ({ name: k, auth: e.auth, item: e, idx: i })),
+      v.items.map((e, i) => ({ name: k, auth: e.auth, item: e, idx: i + 1 })),
     )
     .flat()
 }

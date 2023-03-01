@@ -299,6 +299,7 @@ export const makeSampleRequestNoAuthInner = (
   ctx: GenTestContext,
 ): GeneratedTestRequest => {
   let env: KeyValType[] = []
+  ctx.prefix = ctx.prefix ? ctx.prefix + "_" : ""
 
   let replacedPath = ctx.endpoint.path
   for (const paramField of ctx.endpoint.dataFields.filter(
@@ -346,10 +347,9 @@ export const makeSampleRequestNoAuth = (
   name?: string,
 ): GeneratedTestRequest => {
   const entityMap = getEntityMap(endpoint, config)
-  const prefix = name ? name + "_" : ""
   const ctx = {
     endpoint,
-    prefix,
+    prefix: name,
     entityMap,
   }
   return makeSampleRequestNoAuthInner(ctx)

@@ -20,6 +20,7 @@ export interface GenTestEndpointAuthConfig {
 }
 
 export interface GenTestEndpoint {
+  uuid?: string
   host: string
   path: string
   method: RestMethod

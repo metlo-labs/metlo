@@ -1,5 +1,5 @@
 import { AssertionType, AuthType } from "../types/enums"
-import { TemplateConfig } from "../types/resource_config"
+import { Host, TemplateConfig } from "../types/resource_config"
 import { KeyValType } from "../types/test"
 import { TestStepBuilder } from "./builder"
 import {
@@ -82,9 +82,11 @@ export const getAuthTestPayloads = (
         authorized: false,
       }
       if (resourceLevelAccessItems) {
-        payload.reason = `Doesn't have access to resources ${noResourceLevelAccessItems.join(
-          " and ",
-        )}`
+        payload.reason = `Actor doesn't have access to resource${
+          noResourceLevelAccessItems.length > 1
+            ? `s: ${noResourceLevelAccessItems.join(", ")}`
+            : ` ${noResourceLevelAccessItems[0]}`
+        }.`
       }
       payloads.push(payload)
       continue
@@ -97,9 +99,11 @@ export const getAuthTestPayloads = (
         authorized: true,
       }
       if (resourceLevelAccessItems.length > 0) {
-        payload.reason = `Has access to ${resourceLevelAccessItems.join(
-          " and ",
-        )}`
+        payload.reason = `Actor has access to resource${
+          resourceLevelAccessItems.length > 1
+            ? `s: ${resourceLevelAccessItems.join(", ")}`
+            : ` ${resourceLevelAccessItems[0]}`
+        }.`
       }
       payloads.push(payload)
     }
@@ -124,8 +128,9 @@ export const addAuthToRequest = (
   authActor: AuthActor,
   gen: GeneratedTestRequest,
   ctx: GenTestContext,
+  hostInfo: Host,
 ): GeneratedTestRequest => {
-  const authConfig = ctx.endpoint.authConfig
+  const authConfig = hostInfo ?? ctx.endpoint.authConfig
   if (!authConfig) {
     return gen
   }
@@ -142,7 +147,7 @@ export const addAuthToRequest = (
       name: `${pre}BASIC_AUTH_CRED`,
       value: authVal,
     })
-  } else if (authConfig.authType == AuthType.HEADER) {
+  } else if (authConfig.authType == AuthType.HEADER && authConfig.headerKey) {
     headers = headers.concat({
       name: authConfig.headerKey,
       value: `{{${pre}CREDENTIALS}}`,
@@ -151,7 +156,7 @@ export const addAuthToRequest = (
       name: `${pre}CREDENTIALS`,
       value: authVal,
     })
-  } else if (authConfig.authType == AuthType.JWT) {
+  } else if (authConfig.authType == AuthType.JWT && authConfig.headerKey) {
     headers = headers.concat({
       name: authConfig.headerKey,
       value: `{{${pre}JWT}}`,
@@ -175,6 +180,7 @@ export const authTestStepPayloadToBuilder = (
   endpoint: GenTestEndpoint,
   payload: AuthTestStepPayload,
   idx: number,
+  hostInfo: Host,
 ): TestStepBuilder => {
   let entityMap: Record<string, any> = {}
   let description = ""
@@ -194,7 +200,7 @@ export const authTestStepPayloadToBuilder = (
     ctx.reason = payload.reason
   }
   let gen = makeSampleRequestNoAuthInner(ctx)
-  gen = addAuthToRequest(payload.authActorEntity, gen, ctx)
+  gen = addAuthToRequest(payload.authActorEntity, gen, ctx, hostInfo)
 
   let builder = new TestStepBuilder(gen.req).addToEnv(...gen.env)
   if (payload.authorized) {
