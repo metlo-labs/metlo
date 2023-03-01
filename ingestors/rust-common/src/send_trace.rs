@@ -67,57 +67,52 @@ async fn send_trace_inner(
                 });
             }
             let text = resp.text().await?;
-            return Ok(LogTraceResp {
+            Ok(LogTraceResp {
                 ok: false,
                 msg: Some(text),
-            });
-        }
-        Err(e) => {
-            return Ok(LogTraceResp {
-                ok: false,
-                msg: Some(format!("Couldn't parse url: {}", e.to_string())),
             })
         }
+        Err(e) => Ok(LogTraceResp {
+            ok: false,
+            msg: Some(format!("Couldn't parse url: {}", e)),
+        }),
     }
 }
 
 pub async fn send_api_trace(trace: ApiTrace, processed_trace: (ProcessTraceRes, bool)) {
     let conf_read = METLO_CONFIG.try_read();
-    match conf_read {
-        Ok(ref conf) => {
-            let collector_log_endpoint = format!(
-                "{}/api/v2/log-request/single",
-                conf.collector_url.clone().unwrap_or_default()
-            );
-            let path = trace.request.url.path.clone();
-            let host = trace.request.url.host.clone();
-            let method = trace.request.method.clone();
-            let global_full_trace_capture = conf.global_full_trace_capture || processed_trace.1;
-            let resp = send_trace_inner(
-                &collector_log_endpoint.as_str(),
-                &conf.creds.clone().unwrap_or_default().api_key,
-                trace,
-                processed_trace.0,
-                global_full_trace_capture,
-            )
-            .await;
-            match resp {
-                Ok(LogTraceResp { ok, msg }) => {
-                    if ok {
-                        log::trace!(
-                            "Successfully sent trace: \nMethod{}\nHost{}\nPath{}",
-                            method,
-                            host,
-                            path,
-                        )
-                    } else {
-                        log::warn!("Failed to send trace: {}", msg.unwrap_or_default())
-                    }
+    if let Ok(ref conf) = conf_read {
+        let collector_log_endpoint = format!(
+            "{}/api/v2/log-request/single",
+            conf.collector_url.clone().unwrap_or_default()
+        );
+        let path = trace.request.url.path.clone();
+        let host = trace.request.url.host.clone();
+        let method = trace.request.method.clone();
+        let global_full_trace_capture = conf.global_full_trace_capture || processed_trace.1;
+        let resp = send_trace_inner(
+            collector_log_endpoint.as_str(),
+            &conf.creds.clone().unwrap_or_default().api_key,
+            trace,
+            processed_trace.0,
+            global_full_trace_capture,
+        )
+        .await;
+        match resp {
+            Ok(LogTraceResp { ok, msg }) => {
+                if ok {
+                    log::trace!(
+                        "Successfully sent trace: \nMethod{}\nHost{}\nPath{}",
+                        method,
+                        host,
+                        path,
+                    )
+                } else {
+                    log::warn!("Failed to send trace: {}", msg.unwrap_or_default())
                 }
-                Err(err) => log::warn!("{}", err.to_string()),
             }
+            Err(err) => log::warn!("{}", err.to_string()),
         }
-        _ => (),
     }
     drop(conf_read)
 }

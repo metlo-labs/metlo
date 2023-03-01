@@ -91,17 +91,15 @@ async fn validate_connection_inner(
                 });
             }
             let text = resp.text().await?;
-            return Ok(ValidateRequestConnResp {
+            Ok(ValidateRequestConnResp {
                 ok: false,
                 msg: Some(text),
-            });
+            })
         }
-        Err(e) => {
-            return Ok(ValidateRequestConnResp {
-                ok: false,
-                msg: Some(format!("Couldn't parse url: {}", e.to_string())),
-            });
-        }
+        Err(e) => Ok(ValidateRequestConnResp {
+            ok: false,
+            msg: Some(format!("Couldn't parse url: {}", e)),
+        }),
     }
 }
 
@@ -163,19 +161,17 @@ pub async fn pull_metlo_config() -> Result<(), Box<dyn std::error::Error>> {
             Some(unwrapped_regex) => {
                 let regex = Regex::new(unwrapped_regex);
                 match regex {
-                    Ok(r) => {
-                        return Some(SensitiveData {
-                            sensitive_data_type: e.class_name.clone(),
-                            regex: r,
-                        })
-                    }
+                    Ok(r) => Some(SensitiveData {
+                        sensitive_data_type: e.class_name.clone(),
+                        regex: r,
+                    }),
                     Err(err) => {
                         log::info!(
                             "Failed to Compile Regex \"{}\" - {}\n",
                             e.class_name,
                             err.to_string()
                         );
-                        return None;
+                        None
                     }
                 }
             }

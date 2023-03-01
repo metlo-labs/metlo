@@ -346,12 +346,11 @@ pub fn process_graphql_body(body: &str) -> Option<GraphQlRes> {
     match serde_json::from_str(body) {
         Ok(Value::Object(m)) => {
             let query = m.get("query");
-            let default_map = serde_json::Value::default();
-            let variables_map: &Map<String, Value> = m
-                .get("variables")
-                .unwrap_or(&default_map)
-                .as_object()
-                .unwrap();
+            let default_map = Map::new();
+            let variables_map: &Map<String, Value> = match m.get("variables") {
+                Some(v) => v.as_object().unwrap(),
+                None => &default_map,
+            };
             let operation_name = match m.get("operationName") {
                 Some(Value::String(s)) => Some(s.to_owned()),
                 _ => None,

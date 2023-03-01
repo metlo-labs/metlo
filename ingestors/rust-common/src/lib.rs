@@ -99,10 +99,10 @@ pub async fn initialize_metlo(
     conf_write.backend_url = Some(backend_url);
     conf_write.collector_url = Some(collector_url);
 
-    return Ok(InitializeMetloResp {
+    Ok(InitializeMetloResp {
         ok: true,
         msg: None,
-    });
+    })
 }
 
 #[derive(Default)]
