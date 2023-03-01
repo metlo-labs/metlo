@@ -21,6 +21,7 @@ import EndpointPIIChart from "./PIIChart"
 import { getDateTimeString, makeToast } from "utils"
 import { DataTag, Status } from "@common/enums"
 import { setUserSetState, updateEndpointAuthenticated } from "api/endpoints"
+import GraphQlSchemaComponent from "./GraphQlSchema"
 
 const SpecComponent = dynamic(() => import("./SpecComponent"), { ssr: false })
 
@@ -183,7 +184,11 @@ const EndpointOverview: React.FC<EndpointOverviewProps> = React.memo(
             ) : null}
           </Grid>
         </Box>
-        <SpecComponent endpoint={endpoint} />
+        {endpoint.isGraphQl ? (
+          <GraphQlSchemaComponent endpoint={endpoint} />
+        ) : (
+          <SpecComponent endpoint={endpoint} />
+        )}
       </Stack>
     )
   },

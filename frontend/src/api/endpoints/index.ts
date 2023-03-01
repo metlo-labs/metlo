@@ -200,3 +200,32 @@ export const deleteEndpointsBatch = async (
 ): Promise<void> => {
   await axios.delete(`${getAPIURL()}/endpoints`, { data: { uuids }, headers })
 }
+
+export const uploadGraphQlSchema = async (
+  endpointId: string,
+  file: File,
+  headers?: AxiosRequestHeaders,
+): Promise<void> => {
+  const formData = new FormData()
+  formData.append("file", file)
+  return await axios.put(
+    `${getAPIURL()}/endpoint/${endpointId}/graphql-schema`,
+    formData,
+    {
+      headers: {
+        ...headers,
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  )
+}
+
+export const deleteGraphQlSchema = async (
+  endpointId: string,
+  headers?: AxiosRequestHeaders,
+) => {
+  return await axios.delete(
+    `${getAPIURL()}/endpoint/${endpointId}/graphql-schema`,
+    { headers },
+  )
+}

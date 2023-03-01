@@ -1,5 +1,6 @@
 import { Response, Router } from "express"
 import validator from "validator"
+import { MulterSource } from "multer-source"
 import { GetEndpointsService } from "services/get-endpoints"
 import {
   DeleteEndpointsParamsSchema,
@@ -27,6 +28,7 @@ import {
   getHostsListHandler,
 } from "./hosts"
 import { getDataClassInfo } from "api/data-class"
+import { deleteGraphQlSchema, uploadGraphQlSchema } from "services/graphql"
 
 export const getEndpointsHandler = async (
   req: MetloRequest,
@@ -218,6 +220,46 @@ export const deleteEndpointsFromFiltersHandler = async (
   }
 }
 
+export const uploadGraphQlSchemaHandler = async (
+  req: MetloRequest,
+  res: Response,
+) => {
+  const { endpointId } = req.params
+  if (!validator.isUUID(endpointId)) {
+    return await ApiResponseHandler.error(
+      res,
+      new Error404NotFound("Endpoint does not exist."),
+    )
+  }
+  const schemaFile = req.file
+  try {
+    const schema = schemaFile.buffer.toString()
+    await uploadGraphQlSchema(req.ctx, schema, endpointId)
+    await ApiResponseHandler.success(res)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}
+
+export const deleteGraphQlSchemaHandler = async (
+  req: MetloRequest,
+  res: Response,
+) => {
+  const { endpointId } = req.params
+  if (!validator.isUUID(endpointId)) {
+    return await ApiResponseHandler.error(
+      res,
+      new Error404NotFound("Endpoint does not exist."),
+    )
+  }
+  try {
+    await deleteGraphQlSchema(req.ctx, endpointId)
+    await ApiResponseHandler.success(res)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}
+
 export default function registerEndpointRoutes(router: Router) {
   router.get("/api/v1/endpoints/hosts", getHostsHandler)
   router.get("/api/v1/endpoints", getEndpointsHandler)
@@ -253,6 +295,15 @@ export default function registerEndpointRoutes(router: Router) {
   router.post("/api/v1/clear-sensitive-data", clearAllSensitiveDataHandler)
   router.post("/api/v1/clear-all-datafields", bulkDeleteDataFieldsHandler)
   router.post("/api/v1/endpoint/:endpointId/userSet", setUserSetHandler)
+  router.put(
+    "/api/v1/endpoint/:endpointId/graphql-schema",
+    MulterSource.single("file"),
+    uploadGraphQlSchemaHandler,
+  )
+  router.delete(
+    "/api/v1/endpoint/:endpointId/graphql-schema",
+    deleteGraphQlSchemaHandler,
+  )
   // DataClass
   router.get("/api/v1/data-class", getDataClassInfo)
 }
