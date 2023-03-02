@@ -6,21 +6,26 @@ import {
   useToast,
   VStack,
 } from "@chakra-ui/react"
-import Editor from "@monaco-editor/react"
+import Editor, { useMonaco } from "@monaco-editor/react"
 import { updateTestingConfig } from "api/testing-config"
 import { formatMetloAPIErr, MetloAPIErr } from "api/utils"
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 import { makeToast } from "utils"
 
 interface TestingConfigProps {
   configString: string
 }
 
+const LANGUAGE = "hcl"
+
 export const TestingConfig: React.FC<TestingConfigProps> = React.memo(
   ({ configString }) => {
     const [configStringVal, setConfigString] = useState<string>(configString)
     const [updating, setUpdating] = useState<boolean>(false)
+    const modelRef = useRef(null)
+    const monacoRef = useRef(null)
     const toast = useToast()
+    const monaco = useMonaco()
 
     const updateTestingConfigHandler = async () => {
       setUpdating(true)
@@ -37,6 +42,13 @@ export const TestingConfig: React.FC<TestingConfigProps> = React.memo(
           throw new Error("")
         }
       } catch (err) {
+        const data = err.response.data as {
+          message: string
+          startColumn?: number
+          startLine?: number
+          endColumn?: number
+          endLine?: number
+        }
         toast(
           makeToast({
             title: "Updating Testing Config failed",
@@ -44,6 +56,23 @@ export const TestingConfig: React.FC<TestingConfigProps> = React.memo(
             description: formatMetloAPIErr(err.response.data as MetloAPIErr),
           }),
         )
+        if (data.startLine) {
+          const currentEditor =
+            modelRef.current ??
+            monaco.editor
+              .getModels()
+              .find(model => model._languageId == LANGUAGE)
+          monaco.editor.setModelMarkers(currentEditor, "owner", [
+            {
+              startLineNumber: data.startLine,
+              startColumn: data.startColumn,
+              endLineNumber: data.endLine,
+              endColumn: data.endColumn,
+              message: data.message,
+              severity: monacoRef.current.MarkerSeverity.Error,
+            },
+          ])
+        }
       } finally {
         setUpdating(false)
       }
@@ -70,10 +99,26 @@ export const TestingConfig: React.FC<TestingConfigProps> = React.memo(
         </HStack>
         <Box rounded="md" h="full" w="full" borderWidth="1px">
           <Editor
+            onMount={(_, monaco) => {
+              monacoRef.current = monaco
+              modelRef.current = monaco.editor
+                .getModels()
+                .find(model => model._languageId == LANGUAGE)
+            }}
             width="100%"
-            defaultLanguage="hcl"
+            defaultLanguage={LANGUAGE}
             value={configStringVal}
-            onChange={val => setConfigString(val)}
+            onChange={val => {
+              monacoRef.current.editor.setModelMarkers(
+                modelRef.current ??
+                  monaco.editor
+                    .getModels()
+                    .find(model => model._languageId == LANGUAGE),
+                "owner",
+                [],
+              )
+              setConfigString(val)
+            }}
             options={{
               automaticLayout: true,
               scrollBeyondLastLine: false,

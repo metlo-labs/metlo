@@ -25,10 +25,13 @@ const updateTestingConfigHandler = async (
         return await ApiResponseHandler.zerr(res, data.zerr)
       }
       if (data.parseError) {
-        return await ApiResponseHandler.error(
-          res,
-          new Error400BadRequest(data.parseError.message),
-        )
+        return await ApiResponseHandler.rawerror(res, data.parseError.message, {
+          message: data.parseError.message,
+          startColumn: data.parseError.location.start.column,
+          startLine: data.parseError.location.start.line,
+          endColumn: data.parseError.location.end.column,
+          endLine: data.parseError.location.end.line,
+        })
       }
     }
     await RedisClient.deleteFromRedis(req.ctx, ["entityTagsCached"])
