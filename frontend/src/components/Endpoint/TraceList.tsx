@@ -33,6 +33,7 @@ interface TraceListProps {
   endpointUuid?: string
   fullTraceCaptureEnabled?: boolean
   globalFullTraceCapture?: boolean
+  topEndpointsView?: boolean
 }
 
 const getDateTimeString = (date: Date) =>
@@ -46,6 +47,7 @@ const TraceList: React.FC<TraceListProps> = React.memo(
     endpointUuid,
     fullTraceCaptureEnabled,
     globalFullTraceCapture,
+    topEndpointsView,
   }) => {
     const [trace, setTrace] = useState<ApiTrace | undefined>()
     const [fullTraceCaptureEnabledState, setFullTraceCaptureEnabled] =
@@ -261,6 +263,24 @@ const TraceList: React.FC<TraceListProps> = React.memo(
         </Box>
       </VStack>
     )
+
+    if (topEndpointsView) {
+      return (
+        <Box h="full" w="full" position="relative">
+          <Box
+            display="flex"
+            flex={1}
+            height="100%"
+            position="absolute"
+            outline="none"
+            overflow="hidden"
+            w="full"
+          >
+            {tablePanel}
+          </Box>
+        </Box>
+      )
+    }
 
     return (
       <Box h="full" w="full" position="relative">

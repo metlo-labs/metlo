@@ -99,7 +99,7 @@ const TopEndpoints: React.FC<TopEndpointProps> = React.memo(
             />
           </Box>
           <Box flexGrow="1" h="full">
-            <TraceList traces={endpoint ? endpoint.traces : []} />
+            <TraceList traces={endpoint ? endpoint.traces : []} topEndpointsView />
           </Box>
         </HStack>
       </VStack>
