@@ -51,6 +51,15 @@ export const getTopEndpoints = async (ctx: MetloContext) => {
   const traces = await Promise.all(
     endpointStats.map(e =>
       apiTraceRepository.find({
+        select: {
+          uuid: true,
+          path: true,
+          responseStatus: true,
+          createdAt: true,
+          // @ts-ignore
+          meta: true,
+          apiEndpointUuid: true,
+        },
         where: { apiEndpointUuid: e.endpoint },
         order: { createdAt: "DESC" },
         take: 25,
