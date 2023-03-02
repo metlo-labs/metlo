@@ -8,9 +8,13 @@ import { getCombinedDataClassesCached } from "services/data-classes"
 import { getSensitiveDataMap } from "services/scanner/analyze-trace"
 import { QueryRunner } from "typeorm"
 import { DataClass } from "@common/types"
-import { DataTag } from "@common/enums"
+import { DataTag, RiskScore } from "@common/enums"
 import { getRiskScore } from "utils"
-import { createSensitiveDataAlerts } from "services/alert/sensitive-data"
+import {
+  createSensitiveDataAlertGraphQl,
+  createSensitiveDataAlerts,
+} from "services/alert/sensitive-data"
+import { getHigherRiskScore } from "@common/utils"
 
 const MIN_ANALYZE_TRACES = 50
 const MIN_DETECT_THRESH = 0.5
@@ -152,6 +156,110 @@ const detectSensitiveDataEndpoint = async (
   }
 }
 
+const detectSensitiveDataEndpointGraphQl = async (
+  ctx: MetloContext,
+  endpoint: ApiEndpoint,
+  dataClasses: DataClass[],
+  queryRunner: QueryRunner,
+): Promise<void> => {
+  const endpointTraceKey = `endpointTraces:e#${endpoint.uuid}`
+  const traceCache =
+    (await RedisClient.lrange(ctx, endpointTraceKey, 0, -1)) || []
+  if (traceCache.length < MIN_ANALYZE_TRACES) {
+    return
+  }
+  const traces = traceCache.map(
+    e =>
+      JSON.parse(e) as ApiTrace & {
+        sensitiveDataMap?: Record<string, string[]>
+      },
+  )
+  const sensitiveDataMaps = traces.map(e => e.sensitiveDataMap)
+  let detectedDataClasses: Record<
+    string,
+    {
+      totalCount: number
+      dataClassCounts: Record<string, number>
+      dataClassToTrace: Record<string, ApiTrace>
+    }
+  > = {}
+  const validDataClassNames = new Set(dataClasses.map(e => e.className))
+  sensitiveDataMaps.forEach((dataMap, idx) => {
+    const trace = traces[idx]
+    Object.entries(dataMap).forEach(([key, detectedData]) => {
+      detectedData = detectedData.filter(e => validDataClassNames.has(e))
+      if (detectedData.length == 0) {
+        return
+      }
+      if (!detectedDataClasses[key]) {
+        detectedDataClasses[key] = {
+          totalCount: 0,
+          dataClassCounts: {},
+          dataClassToTrace: {},
+        }
+      }
+      detectedDataClasses[key].totalCount += 1
+      detectedData.forEach(e => {
+        if (!detectedDataClasses[key].dataClassCounts[e]) {
+          detectedDataClasses[key].dataClassCounts[e] = 0
+        }
+        detectedDataClasses[key].dataClassCounts[e] += 1
+        detectedDataClasses[key].dataClassToTrace[e] = trace
+      })
+    })
+  })
+
+  const currSensitiveDataMap: Record<string, string[]> =
+    endpoint.graphQlMetadata?.sensitiveDataDetected ?? {}
+  const alerts: Alert[] = []
+  let highestRiskScore = endpoint.riskScore
+  let updated = false
+  for (const key in detectedDataClasses) {
+    const detectedData = detectedDataClasses[key]
+    if (!(detectedData && detectedData.totalCount > MIN_ANALYZE_TRACES)) {
+      continue
+    }
+    const totalCount = detectedData.totalCount
+    const detectedClasses = Object.entries(detectedData.dataClassCounts)
+      .filter(([e, num]) => num / totalCount > MIN_DETECT_THRESH)
+      .map(([e, num]) => e)
+    const currClasses = currSensitiveDataMap[key] ?? []
+    for (const item of detectedClasses) {
+      const riskScore =
+        dataClasses.find(cls => cls.className === item)?.severity ||
+        RiskScore.NONE
+      highestRiskScore = getHigherRiskScore(highestRiskScore, riskScore)
+      if (!currClasses.includes(item)) {
+        updated = true
+        currClasses.push(item)
+      }
+    }
+    currSensitiveDataMap[key] = currClasses
+
+    for (const dataClass of currClasses) {
+      const newAlert = await createSensitiveDataAlertGraphQl(
+        ctx,
+        key,
+        dataClass,
+        endpoint.uuid,
+        detectedData.dataClassToTrace[dataClass],
+        queryRunner,
+      )
+      if (newAlert) {
+        alerts.push(newAlert)
+      }
+    }
+  }
+  await insertValuesBuilder(ctx, queryRunner, Alert, alerts)
+    .orIgnore()
+    .execute()
+  if (updated || highestRiskScore !== endpoint.riskScore) {
+    endpoint.riskScore = highestRiskScore
+    endpoint.graphQlMetadata.sensitiveDataDetected = currSensitiveDataMap
+    await getEntityManager(ctx, queryRunner).save(endpoint)
+  }
+}
+
 const detectSensitiveData = async (ctx: MetloContext): Promise<boolean> => {
   mlog.debug("In detect sensitive data job.")
   const queryRunner = AppDataSource.createQueryRunner()
@@ -164,7 +272,16 @@ const detectSensitiveData = async (ctx: MetloContext): Promise<boolean> => {
     for (const e of endpoints) {
       mlog.debug(`Detecting sensitive data for endpoint: ${e.uuid}`)
       try {
-        await detectSensitiveDataEndpoint(ctx, e, dataClasses, queryRunner)
+        if (e.isGraphQl) {
+          await detectSensitiveDataEndpointGraphQl(
+            ctx,
+            e,
+            dataClasses,
+            queryRunner,
+          )
+        } else {
+          await detectSensitiveDataEndpoint(ctx, e, dataClasses, queryRunner)
+        }
       } catch (err) {
         mlog
           .withErr(err)

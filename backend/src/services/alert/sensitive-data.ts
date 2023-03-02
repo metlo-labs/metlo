@@ -207,3 +207,51 @@ export const createSensitiveDataAlerts = async (
     return []
   }
 }
+
+export const createSensitiveDataAlertGraphQl = async (
+  ctx: MetloContext,
+  path: string,
+  dataClass: string,
+  apiEndpointUuid: string,
+  apiTrace: QueuedApiTrace,
+  queryRunner: QueryRunner,
+): Promise<Alert | null> => {
+  try {
+    const splitPath = path.split(".")
+    let description = ""
+    if (path.startsWith("resBody.data")) {
+      description = `Sensitive data of type ${dataClass} has been detected in field '${splitPath
+        .slice(1, -1)
+        .join(".")}' of the response body.`
+    } else {
+      const operationData = splitPath.shift().split("-")
+      const operationType = operationData[0]
+      const argument = splitPath.pop()
+      description = `Sensitive data of type ${dataClass} has been detected in argument '${argument}' of ${operationType.toUpperCase()} '${splitPath.join(
+        ".",
+      )}' in the request.`
+    }
+    const existing = await existingUnresolvedAlert(
+      ctx,
+      apiEndpointUuid,
+      AlertType.PII_DATA_DETECTED,
+      description,
+      queryRunner,
+    )
+    let newAlert: Alert | null = null
+    if (!existing) {
+      newAlert = new Alert()
+      newAlert.type = AlertType.PII_DATA_DETECTED
+      newAlert.riskScore = ALERT_TYPE_TO_RISK_SCORE[AlertType.PII_DATA_DETECTED]
+      newAlert.apiEndpointUuid = apiEndpointUuid
+      newAlert.context = { trace: apiTrace }
+      newAlert.description = description
+      newAlert.createdAt = apiTrace.createdAt
+      newAlert.updatedAt = apiTrace.createdAt
+    }
+    return newAlert
+  } catch (err) {
+    mlog.withErr(err).error("Error creating sensitive data alert for graphql")
+    return null
+  }
+}
