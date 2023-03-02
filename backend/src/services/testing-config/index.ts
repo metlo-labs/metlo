@@ -169,10 +169,21 @@ const getResourcePermissions = async (
               })
             }
           } else {
-            if (permFilter.method && permFilter.method !== endpoint.method) {
-              continue
+            if (permFilter.method) {
+              if (typeof permFilter.method === "string") {
+                if (permFilter.method !== endpoint.method) {
+                  continue
+                }
+              } else {
+                if (!permFilter.method.includes(endpoint.method)) {
+                  continue
+                }
+              }
             }
-            if (permFilter.host && permFilter.host !== endpoint.host) {
+            if (
+              permFilter.host &&
+              !endpoint.host.match(new RegExp(permFilter.host))
+            ) {
               continue
             }
             if (
