@@ -170,7 +170,7 @@ export const EditPath: React.FC<EditPathProps> = React.memo(
                               size="sm"
                               maxLength={500}
                               spellCheck={false}
-                              w="full"
+                              flexGrow={1}
                               value={e}
                               rounded="md"
                               onChange={val =>
