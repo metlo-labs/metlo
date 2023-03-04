@@ -188,22 +188,22 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
             this.threads = 2;
         }
 
-        metloUrl = callbacks.loadExtensionSetting(METLO_URL_KEY);
-        metloUrlWithEndpoint = metloUrl;
-        if (metloUrl != null) {
-            if (!metloUrl.endsWith("/")) {
-                metloUrlWithEndpoint += "/";
+        Extension.this.metloUrl = callbacks.loadExtensionSetting(METLO_URL_KEY);
+        Extension.this.metloUrlWithEndpoint = Extension.this.metloUrl;
+        if (Extension.this.metloUrl != null) {
+            if (!Extension.this.metloUrl.endsWith("/")) {
+                Extension.this.metloUrlWithEndpoint += "/";
             }
-            metloUrlWithEndpoint += Extension.endpoint_log_single;
+            Extension.this.metloUrlWithEndpoint += Extension.endpoint_log_single;
         }
-        metloApiKey = callbacks.loadExtensionSetting(METLO_APIKEY_KEY);
+        Extension.this.metloApiKey = callbacks.loadExtensionSetting(METLO_APIKEY_KEY);
 
-        this.requests = new RateLimitedRequests(this.rps,
-                this.threads,
+        Extension.this.requests = new RateLimitedRequests(Extension.this.rps,
+                Extension.this.threads,
                 metloUrlWithEndpoint,
                 metloApiKey,
-                this.out,
-                this.err
+                Extension.this.out,
+                Extension.this.err
         );
         validateConfig();
 
@@ -274,8 +274,8 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
                     Extension.this.callbacks.saveExtensionSetting(METLO_APIKEY_KEY, Extension.this.metloApiKey);
                     out.println("Updated config for Metlo");
                     requests = new RateLimitedRequests(
-                            this.rps,
-                            this.threads,
+                            Extension.this.rps,
+                            Extension.this.threads,
                             Extension.this.metloUrlWithEndpoint,
                             Extension.this.metloApiKey,
                             Extension.this.out,
