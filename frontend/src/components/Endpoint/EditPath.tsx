@@ -167,10 +167,12 @@ export const EditPath: React.FC<EditPathProps> = React.memo(
                           <>
                             <Input
                               type="text"
+                              size="sm"
                               maxLength={500}
                               spellCheck={false}
-                              w="50%"
+                              w="full"
                               value={e}
+                              rounded="md"
                               onChange={val =>
                                 editInputHandler(i, val.target.value)
                               }
