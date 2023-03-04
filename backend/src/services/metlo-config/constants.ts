@@ -3,6 +3,8 @@ import { Schema } from "ajv"
 
 const patternName = String.raw`^[- \w]+$`
 
+export const CUSTOM_WORDS_KEY = "customWords"
+
 export const METLO_CONFIG_SCHEMA = {
   type: "object",
   properties: {
@@ -186,6 +188,13 @@ export const METLO_CONFIG_SCHEMA = {
         },
         additionalProperties: false,
       },
+    },
+    customWords: {
+      type: "array",
+      items: {
+        type: "string",
+      },
+      uniqueItems: true,
     },
   },
   additionalProperties: false,

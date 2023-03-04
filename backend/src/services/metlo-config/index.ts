@@ -26,10 +26,12 @@ import {
   insertValueBuilder,
   insertValuesBuilder,
 } from "services/database/utils"
-import { METLO_CONFIG_SCHEMA } from "./constants"
+import { CUSTOM_WORDS_KEY, METLO_CONFIG_SCHEMA } from "./constants"
 import Error422UnprocessableEntity from "errors/error-422-unprocessable-entity"
 import jsyaml from "js-yaml"
 import { decrypt, encrypt, generate_iv } from "utils/encryption"
+import { merge } from "lodash"
+import wordJsonRaw from "../../utils/words.json"
 
 export const getMetloConfig = async (
   ctx: MetloContext,
@@ -372,6 +374,12 @@ const populateEnvironment = (metloConfig: object) => {
   }
 }
 
+const validateCustomWords = async (ctx: MetloContext, metloConfig: object) => {
+  if (CUSTOM_WORDS_KEY in metloConfig) {
+    await RedisClient.deleteKeyFromRedis(ctx, CUSTOM_WORDS_KEY)
+  }
+}
+
 export const populateMetloConfig = async (
   ctx: MetloContext,
   configString: string,
@@ -383,6 +391,7 @@ export const populateMetloConfig = async (
     await queryRunner.startTransaction()
     await populateAuthentication(ctx, metloConfig, queryRunner)
     await populateBlockFields(ctx, metloConfig, queryRunner)
+    await validateCustomWords(ctx, metloConfig)
     const metloConfigEntry = await getQB(ctx, queryRunner)
       .select(["uuid"])
       .from(MetloConfig, "config")
@@ -426,4 +435,40 @@ export const populateMetloConfig = async (
   } finally {
     await queryRunner.release()
   }
+}
+
+const getCustomWords = async (ctx: MetloContext): Promise<string[]> => {
+  try {
+    const config = jsyaml.load(
+      (await getMetloConfig(ctx)).configString,
+    ) as object
+    if (CUSTOM_WORDS_KEY in config) {
+      return config[CUSTOM_WORDS_KEY] as string[]
+    }
+    return []
+  } catch (err) {
+    return []
+  }
+}
+
+const getCustomWordsCached = async (ctx: MetloContext): Promise<string[]> => {
+  const res = await RedisClient.getFromRedis(ctx, CUSTOM_WORDS_KEY)
+  if (res == null) {
+    const newVal = await getCustomWords(ctx)
+    await RedisClient.addToRedis(ctx, CUSTOM_WORDS_KEY, newVal)
+    return newVal
+  }
+  return res
+}
+
+export const getWordList = async (ctx: MetloContext) => {
+  const addWordSet = await getCustomWordsCached(ctx)
+  const wordSet = merge(
+    wordJsonRaw as Record<string, number>,
+    addWordSet.reduce<Record<string, number>>((acc, prev) => {
+      acc[prev] = 1
+      return acc
+    }, {}),
+  )
+  return wordSet
 }
