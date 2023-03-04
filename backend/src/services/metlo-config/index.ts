@@ -163,8 +163,13 @@ export const validateMetloConfig = (configString: string) => {
 export const updateMetloConfig = async (
   ctx: MetloContext,
   updateMetloConfigParams: UpdateMetloConfigParams,
+  currentMetloConfig: MetloConfigResp,
 ) => {
-  await populateMetloConfig(ctx, updateMetloConfigParams.configString)
+  await populateMetloConfig(
+    ctx,
+    updateMetloConfigParams.configString,
+    currentMetloConfig,
+  )
 }
 
 const addToBlockFields = (
@@ -374,15 +379,29 @@ const populateEnvironment = (metloConfig: object) => {
   }
 }
 
-const validateCustomWords = async (ctx: MetloContext, metloConfig: object) => {
-  if (CUSTOM_WORDS_KEY in metloConfig) {
-    await RedisClient.deleteKeyFromRedis(ctx, CUSTOM_WORDS_KEY)
+const validateCustomWords = async (
+  ctx: MetloContext,
+  currentMetloConfig: MetloConfigResp,
+  updatedMetloConfig: object,
+) => {
+  if (CUSTOM_WORDS_KEY in updatedMetloConfig) {
+    return await RedisClient.deleteKeyFromRedis(ctx, CUSTOM_WORDS_KEY)
   }
+  try {
+    // If CUSTOM_WORDS_KEY has been removed, but was previously present
+    if (
+      CUSTOM_WORDS_KEY in
+      (jsyaml.load(currentMetloConfig.configString) as object)
+    ) {
+      await RedisClient.deleteKeyFromRedis(ctx, CUSTOM_WORDS_KEY)
+    }
+  } catch (err) {}
 }
 
 export const populateMetloConfig = async (
   ctx: MetloContext,
   configString: string,
+  currentMetloConfig: MetloConfigResp,
 ) => {
   const queryRunner = AppDataSource.createQueryRunner()
   try {
@@ -391,7 +410,7 @@ export const populateMetloConfig = async (
     await queryRunner.startTransaction()
     await populateAuthentication(ctx, metloConfig, queryRunner)
     await populateBlockFields(ctx, metloConfig, queryRunner)
-    await validateCustomWords(ctx, metloConfig)
+    await validateCustomWords(ctx, currentMetloConfig, metloConfig)
     const metloConfigEntry = await getQB(ctx, queryRunner)
       .select(["uuid"])
       .from(MetloConfig, "config")
