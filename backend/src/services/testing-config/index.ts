@@ -8,6 +8,7 @@ import {
   parseResourceConfig,
   ResourceConfigParseRes,
   findEndpointResourcePermissions,
+  processResourceConfig,
 } from "@metlo/testing"
 import { RedisClient } from "utils/redis"
 
@@ -122,8 +123,16 @@ const getResourcePermissions = async (
   endpoint: ApiEndpoint,
 ): Promise<string[]> => {
   const config = await getTestingConfigCached(ctx)
+  if (!config?.configString) {
+    return []
+  }
+  const parseRes = parseResourceConfig(config.configString)
+  if (!parseRes.res) {
+    return []
+  }
+  const parsedConfig = processResourceConfig(parseRes.res)
   try {
-    return findEndpointResourcePermissions(endpoint, config?.configString)
+    return findEndpointResourcePermissions(endpoint, parsedConfig)
   } catch {
     return []
   }

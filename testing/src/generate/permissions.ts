@@ -8,7 +8,6 @@ import {
   TemplateConfig,
 } from "../types/resource_config"
 import { GenTestEndpoint } from "./types"
-import { parseResourceConfig, processResourceConfig } from "../resource-def"
 
 export interface ResourceEntityKey {
   type: "actor" | "resource"
@@ -377,20 +376,8 @@ export const getAccessItems = (
 
 export const findEndpointResourcePermissions = (
   endpoint: GenTestEndpoint,
-  configString: string,
+  config: TemplateConfig,
 ) => {
-  if (!configString) {
-    return []
-  }
-  const parseRes = parseResourceConfig(configString)
-  if (!parseRes.res) {
-    throw new Error(
-      `Failed to parse Testing Config: ${
-        parseRes.parseError?.message ?? "Invalid Testing Config"
-      }`,
-    )
-  }
-  const config = processResourceConfig(parseRes.res)
   const resources = Object.keys(config.resources)
   if (resources.length === 0) {
     return []
