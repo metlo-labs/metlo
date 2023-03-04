@@ -1,4 +1,4 @@
-import { RestMethod } from "types/enums"
+import { DataSection } from "./enums"
 import {
   Actor,
   ContainsResourceFilter,
@@ -8,6 +8,7 @@ import {
   TemplateConfig,
 } from "../types/resource_config"
 import { GenTestEndpoint } from "./types"
+import { parseResourceConfig, processResourceConfig } from "../resource-def"
 
 export interface ResourceEntityKey {
   type: "actor" | "resource"
@@ -16,6 +17,15 @@ export interface ResourceEntityKey {
 }
 
 export type ResourcePerms = Record<string, string[]>
+
+const DATA_SECTION_TO_PATH: Record<DataSection, string> = {
+  [DataSection.REQUEST_PATH]: "req.path",
+  [DataSection.REQUEST_QUERY]: "req.query",
+  [DataSection.REQUEST_HEADER]: "req.header",
+  [DataSection.REQUEST_BODY]: "req.body",
+  [DataSection.RESPONSE_HEADER]: "res.header",
+  [DataSection.RESPONSE_BODY]: "res.body",
+}
 
 const getAllEntities = (config: TemplateConfig): ResourceEntityKey[] => {
   let resourceEntityKeys: ResourceEntityKey[] = []
@@ -363,4 +373,88 @@ export const getAccessItems = (
     out.notHasAccess[entName] = notHasAccessItems
   }
   return out
+}
+
+export const findEndpointResourcePermissions = (
+  endpoint: GenTestEndpoint,
+  configString: string,
+) => {
+  if (!configString) {
+    return []
+  }
+  const parseRes = parseResourceConfig(configString)
+  if (!parseRes.res) {
+    throw new Error(
+      `Failed to parse Testing Config: ${
+        parseRes.parseError?.message ?? "Invalid Testing Config"
+      }`,
+    )
+  }
+  const config = processResourceConfig(parseRes.res)
+  const resources = Object.keys(config.resources)
+  if (resources.length === 0) {
+    return []
+  }
+
+  const resourcePermissions = new Set<string>()
+  const endpointEntities: { type: string; path: string }[] = []
+  for (const dataField of endpoint.dataFields) {
+    if (dataField.entity) {
+      endpointEntities.push({
+        type: dataField.entity.split(".")?.[0],
+        path: DATA_SECTION_TO_PATH[dataField.dataSection],
+      })
+    }
+  }
+
+  for (const resource of resources) {
+    const permFilters = config.resources[resource]?.endpoints ?? []
+    if (permFilters?.length > 0) {
+      for (const permFilter of permFilters) {
+        if (permFilter.contains_resource) {
+          const containsResource = permFilter.contains_resource
+          if (
+            endpointEntities.some(
+              e =>
+                ((containsResource.type && e.type === containsResource.type) ||
+                  (!containsResource.type && e.type === resource)) &&
+                e.path.startsWith(containsResource.path),
+            )
+          ) {
+            permFilter.permissions.forEach(perm => {
+              resourcePermissions.add(`${resource}.${perm}`)
+            })
+          }
+        } else {
+          if (permFilter.method) {
+            if (typeof permFilter.method === "string") {
+              if (permFilter.method !== endpoint.method) {
+                continue
+              }
+            } else {
+              if (!permFilter.method.includes(endpoint.method)) {
+                continue
+              }
+            }
+          }
+          if (
+            permFilter.host &&
+            !endpoint.host.match(new RegExp(permFilter.host))
+          ) {
+            continue
+          }
+          if (
+            permFilter.path &&
+            !endpoint.path.match(new RegExp(permFilter.path))
+          ) {
+            continue
+          }
+          permFilter.permissions.forEach(perm => {
+            resourcePermissions.add(`${resource}.${perm}`)
+          })
+        }
+      }
+    }
+  }
+  return [...resourcePermissions]
 }

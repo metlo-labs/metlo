@@ -30,7 +30,7 @@
     "@apidevtools/swagger-parser": "^10.1.0",
     "@leoscope/openapi-request-validator": "^1.0.0",
     "@leoscope/openapi-response-validator": "^1.0.2",
-    "@metlo/testing": "^0.3.6",
+    "@metlo/testing": "^0.3.7",
     "@types/async-retry": "^1.4.4",
     "adm-zip": "^0.5.9",
     "async-retry": "^1.3.3",

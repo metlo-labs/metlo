@@ -469,7 +469,7 @@ export class GetEndpointsService {
     const queryRunner = AppDataSource.createQueryRunner()
     try {
       await queryRunner.connect()
-      const endpoint = await getQB(ctx, queryRunner)
+      const endpoint: ApiEndpoint = await getQB(ctx, queryRunner)
         .from(ApiEndpoint, "endpoint")
         .andWhere("uuid = :id", { id: endpointId })
         .getRawOne()
@@ -502,16 +502,15 @@ export class GetEndpointsService {
           where: { apiEndpoint: { uuid: endpointId } },
         },
       )
+      endpoint.dataFields = dataFields
       const endpointResourcePermissions = await getResourcePermissionsCached(
         ctx,
         endpoint,
-        dataFields,
       )
       const globalFullTraceCapture = await getGlobalFullTraceCaptureCached(ctx)
       return {
         ...endpoint,
         alerts,
-        dataFields,
         openapiSpec,
         traces: [...traces],
         tests: tests as Array<any>,
