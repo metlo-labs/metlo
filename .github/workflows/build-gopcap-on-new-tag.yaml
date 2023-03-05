@@ -1,0 +1,27 @@
+name: Build GpPcap on new tag creation
+
+on:  
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build-gopcap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        name: Checkout Directory
+      - name: Build image and extract binaries
+        run: |
+          mkdir .meta
+          BUILDKIT_PROGRESS=plain docker build -f deploy/metlo-daemon-agent/Dockerfile -t metlo/agent:local . -m 2g
+          docker create --name dummy metlo/agent:local
+          docker cp dummy:/app/metlo-pcap .meta/metlo-pcap
+          docker cp dummy:/app/metlo-agent .meta/metlo-agent
+          docker rm -f dummy
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            .meta/metlo-pcap
+            .meta/metlo-agent
