@@ -21,7 +21,7 @@ jobs:
       - name: Extract binaries
         run: |
           mkdir .meta
-          docker create --name dummy metlo/agent:latest
+          docker create --name dummy metlo/agent:local
           docker cp dummy:/app/metlo-pcap .meta/metlo-pcap
           docker cp dummy:/app/metlo-agent .meta/metlo-agent
           docker rm -f dummy
