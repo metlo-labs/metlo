@@ -4,7 +4,6 @@ import { DataSection } from "@common/enums"
 
 export interface NumSensitiveData {
   pathTokens: string[]
-  arrayFields: Record<string, number>
   dataSection: DataSection
 }
 
@@ -42,25 +41,10 @@ const concatString = (
 
 const getSensitiveDataRegex = (
   pathTokens: string[],
-  arrayFields: Record<string, number>,
   providedPrefix?: string,
   skipArray?: boolean,
 ) => {
   let replacedString = ""
-  let fullString = providedPrefix ?? ""
-
-  if (arrayFields[fullString]) {
-    if (providedPrefix) {
-      replacedString += String.raw`\.`
-    }
-    const depth = arrayFields[fullString]
-    for (let i = 0; i < depth; i++) {
-      replacedString += "[0-9]+"
-      if (i !== depth - 1 || pathTokens?.[0]) {
-        replacedString += String.raw`\.`
-      }
-    }
-  }
 
   if (pathTokens[0] === "") {
     return replacedString
@@ -75,13 +59,12 @@ const getSensitiveDataRegex = (
     if (providedPrefix && j === 0 && !replacedString) {
       replacedString = concatString(replacedString, String.raw`\.`, true)
     }
-    fullString = concatString(fullString, token, false)
-    replacedString = concatString(replacedString, token, true)
-    if (!skipArray && arrayFields[fullString]) {
-      const depth = arrayFields[fullString]
-      for (let i = 0; i < depth; i++) {
-        replacedString = concatString(replacedString, String.raw`[0-9]+`, true)
-      }
+    if (!skipArray && token === "[]") {
+      replacedString = concatString(replacedString, String.raw`[0-9]+`, true)
+    } else if (token === "[string]") {
+      replacedString = concatString(replacedString, String.raw`.+`, true)
+    } else {
+      replacedString = concatString(replacedString, token, true)
     }
   }
   return replacedString
@@ -137,12 +120,7 @@ const getNumSensitiveData = (
     const sectionMap = numSensitiveDataMap[item.dataSection]
     for (let i = 0; i < tokensLength; i++) {
       const tmpPathTokens = tokens.slice(0, i + 1)
-      const regex = getSensitiveDataRegex(
-        tmpPathTokens,
-        item.arrayFields,
-        undefined,
-        true,
-      )
+      const regex = getSensitiveDataRegex(tmpPathTokens, undefined, true)
       const regexString = new RegExp(String.raw`^root\.${regex}$`).source
       if (!sectionMap.has(regexString)) {
         sectionMap.set(regexString, 1)
@@ -219,22 +197,16 @@ export const populateSensitiveData = async (
         if (index !== null) {
           pathTokens = pathTokens.slice(1, pathTokens.length)
           const tmpSenDataPrefix = String.raw`${index}\.value`
-          const tmpRegex = getSensitiveDataRegex(
-            pathTokens,
-            dataField.arrayFields,
-            `${pairName}`,
-          )
+          const tmpRegex = getSensitiveDataRegex(pathTokens, `${pairName}`)
           regex = tmpSenDataPrefix + tmpRegex
           if (pathTokens.length > 0) {
             pathTokens = [`${index}`, "value", ...pathTokens]
-          } else if (Object.keys(dataField.arrayFields).length > 0) {
-            pathTokens = [`${index}`, "value"]
           } else {
             pathTokens = [`${index}`]
           }
         }
       } else {
-        regex = getSensitiveDataRegex(pathTokens, dataField.arrayFields)
+        regex = getSensitiveDataRegex(pathTokens)
       }
       const regexString = new RegExp(String.raw`${prefix}${regex}$`).source
 
@@ -245,7 +217,6 @@ export const populateSensitiveData = async (
 
       numSensitiveData.push({
         pathTokens,
-        arrayFields: dataField.arrayFields,
         dataSection: dataField.dataSection,
       })
     }

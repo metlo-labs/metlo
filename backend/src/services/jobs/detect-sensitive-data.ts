@@ -55,10 +55,7 @@ const detectSensitiveDataEndpoint = async (
         sensitiveDataMap?: Record<string, string[]>
       },
   )
-  const sensitiveDataMaps = traces.map(
-    e =>
-      e.sensitiveDataMap || getSensitiveDataMap(dataClasses, e, endpoint.path),
-  )
+  const sensitiveDataMaps = traces.map(e => e.sensitiveDataMap || {})
   let detectedDataClasses: Record<
     string,
     {

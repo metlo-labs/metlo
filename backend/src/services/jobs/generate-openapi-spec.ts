@@ -14,33 +14,14 @@ const replacer = (key, value) => {
   }
 }
 
-const addArrayToSchema = (
-  schema: Map<string, any>,
-  arrayFieldDepth: number,
-  name?: string,
-) => {
-  if (name) {
-    if (!schema.get(name) || !schema.get(name)?.get("items")) {
-      schema.set(
-        name,
-        new Map<string, any>([
-          ["type", DataType.ARRAY],
-          ["items", new Map<string, any>()],
-        ]),
-      )
-    }
-    schema = schema.get(name).get("items")
+const addArrayToSchema = (schema: Map<string, any>) => {
+  schema.delete("nullable")
+  schema.delete("properties")
+  if (!schema.get("items")) {
+    schema.set("type", DataType.ARRAY)
+    schema.set("items", new Map<string, any>())
   }
-
-  for (let j = name ? 1 : 0; j < arrayFieldDepth; j++) {
-    schema.delete("nullable")
-    schema.delete("properties")
-    if (!schema.get("items")) {
-      schema.set("type", DataType.ARRAY)
-      schema.set("items", new Map<string, any>())
-    }
-    schema = schema.get("items")
-  }
+  schema = schema.get("items")
   return schema
 }
 
@@ -77,27 +58,47 @@ const addLeafToSchema = (
 }
 
 const addObjectToSchema = (schema: Map<string, any>, name?: string) => {
+  schema.delete("items")
+  schema.delete("nullable")
+  if (!schema.get("properties")) {
+    schema.set("type", DataType.OBJECT)
+    schema.set("properties", new Map<string, any>())
+  }
+  schema = schema.get("properties")
   if (name) {
-    if (!schema.get(name) || !schema.get(name)?.get("properties")) {
-      schema.set(
-        name,
-        new Map<string, any>([
-          ["type", DataType.OBJECT],
-          ["properties", new Map<string, any>()],
-        ]),
-      )
+    if (!schema.get(name)) {
+      schema.set(name, new Map<string, any>())
     }
-    schema = schema.get(name).get("properties")
-  } else {
-    schema.delete("items")
-    schema.delete("nullable")
-    if (!schema.get("properties")) {
-      schema.set("type", DataType.OBJECT)
-      schema.set("properties", new Map<string, any>())
-    }
-    schema = schema.get("properties")
+    schema = schema.get(name)
   }
   return schema
+}
+
+const addPatternObjectToSchema = (schema: Map<string, any>) => {
+  schema.delete("items")
+  schema.delete("nullable")
+  if (!schema.get("patternProperties")) {
+    schema.set("type", DataType.OBJECT)
+    schema.set(
+      "patternProperties",
+      new Map<string, any>([["^.+$", new Map<string, any>()]]),
+    )
+  }
+  schema = schema.get("patternProperties").get("^.+$")
+  return schema
+}
+
+const addPairObjectDataFieldToSchema = (
+  schema: Map<string, any>,
+  dataField: DataField,
+  mapTokens: string[],
+  pairObjectKey: string,
+) => {
+  if (!schema.get(pairObjectKey)) {
+    schema.set(pairObjectKey, new Map<string, any>())
+  }
+  schema = schema.get(pairObjectKey)
+  addDataFieldToSchema(schema, dataField, mapTokens)
 }
 
 const addBodyDataFieldToSchema = (
@@ -113,47 +114,38 @@ const addBodyDataFieldToSchema = (
     )
   }
   schema = schema.get(contentType).get("schema")
-
-  addDataFieldToSchema(schema, dataField, mapTokens, true)
+  addDataFieldToSchema(schema, dataField, mapTokens)
 }
 
 const addDataFieldToSchema = (
   schema: Map<string, any>,
   dataField: DataField,
   mapTokens: string[],
-  isBody?: boolean,
 ) => {
   let curr = schema
-  const arrayFieldDepth = dataField.arrayFields?.[""]
-  if (arrayFieldDepth) {
-    curr = addArrayToSchema(curr, arrayFieldDepth)
-  }
-  if (isBody && mapTokens[0]?.length > 0) {
-    curr = addObjectToSchema(curr)
-  }
   if (mapTokens.length === 0 || mapTokens[0]?.length === 0) {
     addLeafToSchema(curr, dataField.dataType, dataField.isNullable)
     return
   }
-  let i: number
-  let l = mapTokens.length
-  let fullPath = ""
-  for (i = 0; i < l; i++) {
+  const l = mapTokens.length
+  for (let i = 0; i < l; i++) {
     const name = mapTokens[i]
-    fullPath = fullPath ? `${fullPath}.${name}` : name
     if (i === l - 1) {
-      const arrayFieldDepth = dataField.arrayFields?.[fullPath]
-      if (arrayFieldDepth) {
-        curr = addArrayToSchema(curr, arrayFieldDepth, name)
+      if (name === "[]") {
+        curr = addArrayToSchema(curr)
+        addLeafToSchema(curr, dataField.dataType, dataField.isNullable)
+      } else if (name === "[string]") {
+        curr = addPatternObjectToSchema(curr)
         addLeafToSchema(curr, dataField.dataType, dataField.isNullable)
       } else {
+        curr = addObjectToSchema(curr)
         addLeafToSchema(curr, dataField.dataType, dataField.isNullable, name)
       }
     } else {
-      const arrayFieldDepth = dataField.arrayFields?.[fullPath]
-      if (arrayFieldDepth) {
-        curr = addArrayToSchema(curr, arrayFieldDepth, name)
-        curr = addObjectToSchema(curr)
+      if (name === "[]") {
+        curr = addArrayToSchema(curr)
+      } else if (name === "[string]") {
+        curr = addPatternObjectToSchema(curr)
       } else {
         curr = addObjectToSchema(curr, name)
       }
@@ -183,11 +175,21 @@ const generateSchemas = (dataFields: DataField[]) => {
       })
     } else if (dataField.dataSection === DataSection.REQUEST_HEADER) {
       if (mapTokens[0]?.length > 0) {
-        addDataFieldToSchema(reqHeaderSchema, dataField, mapTokens)
+        addPairObjectDataFieldToSchema(
+          reqHeaderSchema,
+          dataField,
+          mapTokens.slice(1),
+          mapTokens[0],
+        )
       }
     } else if (dataField.dataSection === DataSection.REQUEST_QUERY) {
       if (mapTokens[0]?.length > 0) {
-        addDataFieldToSchema(reqQuerySchema, dataField, mapTokens)
+        addPairObjectDataFieldToSchema(
+          reqQuerySchema,
+          dataField,
+          mapTokens.slice(1),
+          mapTokens[0],
+        )
       }
     } else if (dataField.dataSection === DataSection.REQUEST_BODY) {
       mapTokens = mapTokens ?? [""]
@@ -259,6 +261,7 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<boolean> => {
           )
         }),
       )
+      .andWhere(`endpoint."isGraphQl" = False`)
       .getRawMany()
 
     const currTime = new Date()

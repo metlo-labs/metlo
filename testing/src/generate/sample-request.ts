@@ -77,54 +77,43 @@ export const addAuthToRequest = (
 
 const recurseCreateBody = (
   body: any,
-  arrayFieldDepth: number,
   mapTokens: string[],
   currTokenIndex: number,
   dataField: GenTestEndpointDataField,
   entityMap: Record<string, any>,
 ): any => {
-  if (
-    arrayFieldDepth === 0 &&
-    (currTokenIndex > mapTokens.length - 1 || !mapTokens[currTokenIndex])
-  ) {
+  if (currTokenIndex > mapTokens.length - 1 || !mapTokens[currTokenIndex]) {
     return dataField.entity && entityMap[dataField.entity]
       ? entityMap[dataField.entity]
       : getSampleValue(dataField.dataType)
-  } else if (arrayFieldDepth > 0) {
-    return [
-      recurseCreateBody(
-        body?.[0],
-        arrayFieldDepth - 1,
-        mapTokens,
-        currTokenIndex,
-        dataField,
-        entityMap,
-      ),
-    ]
   } else {
     const currToken = mapTokens?.[currTokenIndex]
-    const currPath = mapTokens.slice(0, currTokenIndex + 1).join(".")
-    const tmpArrayFieldDepth = dataField.arrayFields?.[currPath]
-    if (tmpArrayFieldDepth) {
+    if (currToken === "[]") {
+      return [
+        recurseCreateBody(
+          body?.[0],
+          mapTokens,
+          currTokenIndex + 1,
+          dataField,
+          entityMap,
+        ),
+      ]
+    } else if (currToken === "[string]") {
       return {
         ...body,
-        [currToken]: [
-          recurseCreateBody(
-            body?.[currToken]?.[0],
-            tmpArrayFieldDepth - 1,
-            mapTokens,
-            currTokenIndex + 1,
-            dataField,
-            entityMap,
-          ),
-        ],
+        ANY_STRING: recurseCreateBody(
+          body?.["ANY_STRING"],
+          mapTokens,
+          currTokenIndex + 1,
+          dataField,
+          entityMap,
+        ),
       }
     } else {
       return {
         ...body,
         [currToken]: recurseCreateBody(
           body?.[currToken],
-          0,
           mapTokens,
           currTokenIndex + 1,
           dataField,
@@ -192,19 +181,7 @@ const addBodyToRequest = (
   let body: any = undefined
   for (const dataField of filteredDataFields) {
     const mapTokens = dataField.dataPath?.split(".")
-    const rootArrayDepth = dataField.arrayFields?.[""]
-    if (rootArrayDepth > 0) {
-      body = recurseCreateBody(
-        body,
-        rootArrayDepth,
-        mapTokens,
-        0,
-        dataField,
-        ctx.entityMap,
-      )
-    } else {
-      body = recurseCreateBody(body, 0, mapTokens, 0, dataField, ctx.entityMap)
-    }
+    body = recurseCreateBody(body, mapTokens, 0, dataField, ctx.entityMap)
   }
   if (contentType.includes("form")) {
     return {

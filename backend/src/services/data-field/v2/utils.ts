@@ -1,5 +1,6 @@
 import { DataSection, DataTag, DataType } from "@common/enums"
 import { DataField } from "models"
+import { getMapDataFields } from "../utils"
 
 export interface DataFieldLength {
   numDataFields: number
@@ -16,7 +17,6 @@ interface ProcessedDataFieldData {
   dataType: DataType
   contentType: string
   statusCode: number
-  arrayFields: Record<string, number>
   isNullable: boolean
   apiEndpointUuid: string
 }
@@ -32,40 +32,15 @@ const nonNullDataSections = [
 export const UPDATE_DATA_FIELD_TIME_THRESHOLD =
   (parseInt(process.env.UPDATE_DATA_FIELD_TIME_THRESHOLD) || 60) * 1000
 
-export const isArrayFieldsDiff = (
-  oldFields: Record<string, number>,
-  newFields: Record<string, number>,
-): boolean => {
-  if ((oldFields && !newFields) || (!oldFields && newFields)) {
-    return true
-  }
-  const newFieldKeys = Object.keys(newFields)
-  const oldFieldKeys = Object.keys(oldFields)
-  if (newFieldKeys.length !== oldFieldKeys.length) {
-    return true
-  }
-  return newFieldKeys.some(e => !oldFields[e] || oldFields[e] !== newFields[e])
-}
-
 const updateTraceHashObj = (
   dataSection: DataSection,
   dataPath: string,
-  arrayFields: Record<string, number>,
   traceHashObj: Record<string, Set<string>>,
 ) => {
   if (dataSection === DataSection.REQUEST_PATH) {
     return
   }
-  const arrayFieldsKeys = Object.keys(arrayFields)
-  const arrayFieldsLen = arrayFieldsKeys.length
-  const sortedArrayFields = arrayFieldsKeys
-    .sort()
-    .reduce((acc: string, key: string, idx: number) => {
-      acc += `${key}#${arrayFields[key]}${idx < arrayFieldsLen - 1 ? "::" : ""}`
-      return acc
-    }, "")
-  const key =
-    (dataPath ?? "") + (sortedArrayFields ? `<>${sortedArrayFields}` : "")
+  const key = dataPath ?? ""
   traceHashObj[dataSection].add(key)
 }
 
@@ -97,6 +72,7 @@ export const getDataFieldDataFromProcessedData = (
   requestContentType: string,
   responseContentType: string,
   statusCode: number,
+  mapDataFields: string[],
 ): ProcessedDataFieldData => {
   const res: ProcessedDataFieldData = {
     dataPath: "",
@@ -104,31 +80,46 @@ export const getDataFieldDataFromProcessedData = (
     dataType: DataType.UNKNOWN,
     contentType: "",
     statusCode: -1,
-    arrayFields: {},
     isNullable: false,
     apiEndpointUuid,
   }
+
   const splitPath = dataPath.split(".")
-  res.dataSection = splitPath[0] as DataSection
-  let currDataPath = ""
-  let updated = false
-  let arrayDepth = 0
-  for (let i = 1; i < splitPath.length; i++) {
-    const token = splitPath[i]
-    if (token === "[]") {
-      arrayDepth += 1
-      res.arrayFields[currDataPath] = arrayDepth
+  let tmpMapDataFields = [...mapDataFields]
+  res.dataSection = splitPath.shift() as DataSection
+
+  const info = getContentTypeStatusCode(
+    res.dataSection,
+    requestContentType,
+    responseContentType,
+    statusCode,
+  )
+
+  for (const path of splitPath) {
+    let response = {
+      key: path,
+      filteredMapDataFields: null,
+    }
+    if (path !== "[]") {
+      response = getMapDataFields(
+        info.statusCode,
+        info.contentType,
+        res.dataSection,
+        res.dataPath || null,
+        path,
+        tmpMapDataFields,
+      )
+    }
+    if (res.dataPath.length === 0) {
+      res.dataPath += response.key
     } else {
-      arrayDepth = 0
-      if (updated) {
-        currDataPath += `.${token}`
-      } else {
-        currDataPath += token
-        updated = true
-      }
+      res.dataPath += `.${response.key}`
+    }
+    if (response.filteredMapDataFields) {
+      tmpMapDataFields = response.filteredMapDataFields
     }
   }
-  res.dataPath = currDataPath
+
   for (const item of dataTypes) {
     if (item === "null") {
       res.isNullable = true
@@ -136,12 +127,7 @@ export const getDataFieldDataFromProcessedData = (
       res.dataType = item as DataType
     }
   }
-  const info = getContentTypeStatusCode(
-    res.dataSection,
-    requestContentType,
-    responseContentType,
-    statusCode,
-  )
+
   res.contentType = info.contentType
   res.statusCode = info.statusCode
   return res
@@ -154,7 +140,6 @@ export const handleDataField = (
   dataType: DataType,
   contentType: string,
   statusCode: number,
-  arrayFields: Record<string, number>,
   traceHashObj: Record<string, Set<string>>,
   dataFieldLength: DataFieldLength,
   dataFieldMap: Record<string, DataField>,
@@ -162,7 +147,7 @@ export const handleDataField = (
   updatedDataFieldMap: Record<string, UpdatedDataField>,
   traceTime: Date,
 ) => {
-  updateTraceHashObj(dataSection, dataPath, arrayFields, traceHashObj)
+  updateTraceHashObj(dataSection, dataPath, traceHashObj)
   let existingDataField: DataField = null
   let isNullKey = null
   const key = `${statusCode}_${contentType}_${dataSection}${
@@ -190,7 +175,6 @@ export const handleDataField = (
     dataField.contentType = contentType ?? ""
     dataField.statusCode = statusCode ?? -1
     dataField.isNullable = dataType === DataType.UNKNOWN
-    dataField.arrayFields = { ...arrayFields }
     dataField.dataClasses = []
     dataField.scannerIdentified = []
     dataField.falsePositives = []
@@ -219,14 +203,6 @@ export const handleDataField = (
         existingDataField.contentType = contentType ?? ""
         existingDataField.statusCode = statusCode ?? -1
       }
-    }
-
-    if (
-      traceTime > existingDataField.updatedAt &&
-      isArrayFieldsDiff(existingDataField.arrayFields, arrayFields)
-    ) {
-      existingDataField.arrayFields = { ...arrayFields }
-      updated = true
     }
 
     if (!existingDataField.isNullable && dataType === DataType.UNKNOWN) {

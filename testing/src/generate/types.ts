@@ -4,7 +4,6 @@ import { DataSection, DataType } from "./enums"
 
 export interface GenTestEndpointDataField {
   dataSection: DataSection
-  arrayFields: Record<string, number>
   contentType: string
   dataPath: string
   dataType: DataType
