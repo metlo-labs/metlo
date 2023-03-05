@@ -25,7 +25,7 @@ jobs:
           docker cp dummy:/app/metlo-pcap .meta/metlo-pcap
           docker cp dummy:/app/metlo-agent .meta/metlo-agent
           docker rm -f dummy
-          declare -r RELEASE_NAME={{github.ref_name}}        
+          declare -r RELEASE_NAME={{github.ref_name}} 
           tar -czvf metlo_$(echo ${RELEASE_NAME:1})_linux_amd64.tar.gz .meta/metlo-pcap .meta/metlo-agent
           rm .meta/metlo-pcap
           rm .meta/metlo-agent
@@ -33,4 +33,4 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            .meta/*
+            .meta/metlo_$(echo ${RELEASE_NAME:1})_linux_amd64.tar.gz
