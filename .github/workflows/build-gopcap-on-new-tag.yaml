@@ -21,11 +21,11 @@ jobs:
       - name: Extract binaries
         run: |
           mkdir .meta
-          docker create --name dummy metlo/agent:local
+          docker create --name dummy metlo/agent:latest
           docker cp dummy:/app/metlo-pcap .meta/metlo-pcap
           docker cp dummy:/app/metlo-agent .meta/metlo-agent
           docker rm -f dummy
-          tar -czvf metlo_traffic_mirror_linux_amd64.tar.gz .meta/metlo-pcap .meta/metlo-agent
+          tar -czvf .meta/metlo_traffic_mirror_linux_amd64.tar.gz .meta/metlo-pcap .meta/metlo-agent
           rm .meta/metlo-pcap
           rm .meta/metlo-agent
       - name: Release
