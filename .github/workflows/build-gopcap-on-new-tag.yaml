@@ -20,16 +20,13 @@ jobs:
           tags: metlo/agent:local
       - name: Extract binaries
         run: |
-          mkdir .meta
           docker create --name dummy metlo/agent:local
-          docker cp dummy:/app/metlo-pcap .meta/metlo-pcap
-          docker cp dummy:/app/metlo-agent .meta/metlo-agent
+          docker cp dummy:/app/metlo-pcap metlo-pcap
+          docker cp dummy:/app/metlo-agent metlo-agent
           docker rm -f dummy
-          tar -czvf .meta/metlo_traffic_mirror_linux_amd64.tar.gz .meta/metlo-pcap .meta/metlo-agent
-          rm .meta/metlo-pcap
-          rm .meta/metlo-agent
+          tar -czvf metlo_traffic_mirror_linux_amd64.tar.gz metlo-pcap metlo-agent
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            .meta/metlo_traffic_mirror_linux_amd64.tar.gz
+            metlo_traffic_mirror_linux_amd64.tar.gz
