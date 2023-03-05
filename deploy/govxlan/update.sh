@@ -7,6 +7,8 @@ sudo curl -L https://github.com/metlo-labs/metlo/releases/download/v0.0.6/metlo_
 sudo curl -L https://raw.githubusercontent.com/metlo-labs/metlo/master/deploy/govxlan/metlo-traffic-mirror.service > /home/$WHOAMI/metlo/metlo-traffic-mirror.service
 sudo curl -L https://raw.githubusercontent.com/metlo-labs/metlo/master/deploy/govxlan/metlo-traffic-mirror-analyzer.service > /home/$WHOAMI/metlo/metlo-traffic-mirror-analyzer.service
 sudo tar -xf /home/$WHOAMI/metlo.tar.gz -C /home/$WHOAMI/metlo
+sudo mv /home/$WHOAMI/metlo/.meta/metlo-pcap /home/$WHOAMI/metlo/metlo-pcap
+sudo mv /home/$WHOAMI/metlo/.meta/metlo-agent /home/$WHOAMI/metlo/metlo-agent
 sudo cp /home/$WHOAMI/metlo/metlo-pcap /usr/local/bin
 sudo cp /home/$WHOAMI/metlo/metlo-agent /usr/local/bin
 sudo mv /home/$WHOAMI/metlo/metlo-traffic-mirror.service /lib/systemd/system/metlo-traffic-mirror.service -f
