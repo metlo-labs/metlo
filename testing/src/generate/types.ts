@@ -26,6 +26,10 @@ export interface GenTestEndpoint {
   method: RestMethod
   dataFields: GenTestEndpointDataField[]
   authConfig?: GenTestEndpointAuthConfig
+  isGraphQl: boolean
+  graphQLPath?: string
+  graphQlSchema?: string
+  graphQlMetadata?: Record<string, any>
 }
 
 export interface GenTestContext {
