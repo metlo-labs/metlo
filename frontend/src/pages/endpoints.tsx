@@ -191,9 +191,9 @@ export const getServerSideProps: GetServerSideProps = async context => {
     limit: ENDPOINT_PAGE_LIMIT,
     endpointValidated:
       (context.query.endpointValidated as string) === "true"
-        ? true
+        ? "true"
         : (context.query.endpointValidated as string) === "false"
-        ? false
+        ? "false"
         : null,
   }
   const hostsPromise = getHosts()

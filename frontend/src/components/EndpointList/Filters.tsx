@@ -317,17 +317,21 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
                   className="chakra-react-select"
                   options={[
                     { label: "Any", value: null },
-                    { label: "True", value: true },
-                    { label: "False", value: false },
+                    { label: "True", value: "true" },
+                    { label: "False", value: "false" },
                   ]}
                   size="sm"
                   value={{
-                    label: params.endpointValidated
-                      ? "True"
-                      : params.endpointValidated === false
-                      ? "False"
-                      : "Any",
-                    value: true,
+                    label:
+                      params.endpointValidated === "true"
+                        ? "True"
+                        : params.endpointValidated === "false"
+                        ? "False"
+                        : "Any",
+                    value:
+                      params.endpointValidated === null
+                        ? null
+                        : params.endpointValidated,
                   }}
                   onChange={e => {
                     setParams({
