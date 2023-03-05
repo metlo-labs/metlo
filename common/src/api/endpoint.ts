@@ -17,6 +17,7 @@ export const GetEndpointParamsSchema = z.object({
   searchQuery: z.string().optional(),
   isAuthenticated: z.string().optional(),
   hostType: z.nativeEnum(HostType).optional().default(HostType.ANY),
+  endpointValidated: z.coerce.boolean().optional(),
   offset: z
     .union([z.number(), z.string().regex(/^\d+$/).transform(Number)])
     .optional(),

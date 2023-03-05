@@ -189,6 +189,12 @@ export const getServerSideProps: GetServerSideProps = async context => {
     searchQuery: (context.query.searchQuery as string) ?? "",
     isAuthenticated: (context.query.isAuthenticated as string) ?? "",
     limit: ENDPOINT_PAGE_LIMIT,
+    endpointValidated:
+      (context.query.endpointValidated as string) === "true"
+        ? true
+        : (context.query.endpointValidated as string) === "false"
+        ? false
+        : null,
   }
   const hostsPromise = getHosts()
   const endpointsPromise = getEndpoints(params)
