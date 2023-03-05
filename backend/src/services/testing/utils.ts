@@ -31,6 +31,9 @@ export const getGenTestEndpoint = async (
     host: endpointObj.host,
     path: endpointObj.path,
     method: endpointObj.method,
+    isGraphQl: endpointObj.isGraphQl,
+    graphQlMetadata: endpointObj.graphQlMetadata,
+    graphQlSchema: endpointObj.graphQlSchema,
     dataFields: endpointObj.dataFields.map(e => ({
       dataSection: e.dataSection,
       arrayFields: e.arrayFields,
