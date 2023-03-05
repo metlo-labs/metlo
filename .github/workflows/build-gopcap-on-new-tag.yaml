@@ -1,9 +1,9 @@
-name: Build GpPcap on new tag creation
+name: Build GoPcap on new tag creation
 
-on:  
+on:
   push:
     tags:
-      - '*'
+      - "*"
 
 jobs:
   build-gopcap:
@@ -11,10 +11,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         name: Checkout Directory
-      - name: Build image and extract binaries
+      - name: Build Image
+        uses: docker/build-push-action@v4
+        with:
+          push: false
+          context: .
+          file: ./deploy/metlo-daemon-agent/Dockerfile
+          tags: metlo/agent:local
+      - name: Extract binaries
         run: |
           mkdir .meta
-          BUILDKIT_PROGRESS=plain docker build -f deploy/metlo-daemon-agent/Dockerfile -t metlo/agent:local . -m 2g
           docker create --name dummy metlo/agent:local
           docker cp dummy:/app/metlo-pcap .meta/metlo-pcap
           docker cp dummy:/app/metlo-agent .meta/metlo-agent
