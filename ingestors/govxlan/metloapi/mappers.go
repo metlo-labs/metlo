@@ -30,7 +30,7 @@ func MapHttpToMetloTrace(
 		if k == "" {
 			continue
 		}
-		reqHeaders = append(reqHeaders, NV{Name: k, Value: strings.Join(resp.Header[k], ",")})
+		reqHeaders = append(reqHeaders, NV{Name: k, Value: strings.Join(req.Header[k], ",")})
 	}
 
 	reqURLParams := make([]NV, 0)
