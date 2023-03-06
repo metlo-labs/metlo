@@ -1,6 +1,7 @@
-let express = require("express");
-let { graphqlHTTP } = require("express-graphql");
-let { buildSchema } = require("graphql");
+let express = require("express")
+let { graphqlHTTP } = require("express-graphql")
+let { buildSchema } = require("graphql")
+
 // GraphQL schema
 let schema = buildSchema(`
   type Query {
@@ -24,7 +25,8 @@ let schema = buildSchema(`
         topic: String
         url: String
     }
-`);
+`)
+
 let coursesData = [
   {
     id: 1,
@@ -53,54 +55,57 @@ let coursesData = [
     topic: "JavaScript",
     url: "https://codingthesmartway.com/courses/understand-javascript/",
   },
-];
+]
+
+// Resolvers
 let getCourse = function (args) {
-  let id = args.id;
-  return coursesData.filter((course) => {
-    return course.id == id;
-  })[0];
-};
+  let id = args.id
+  return coursesData.filter(course => {
+    return course.id == id
+  })[0]
+}
 let getCourseComplex = function (args) {
-  let params = args.params;
-  return coursesData[0];
-};
+  let params = args.params
+  return coursesData[0]
+}
 let getCourseComplexMultiple = function (args) {
-  return [...coursesData];
-};
+  return [...coursesData]
+}
 let getCourses = function (args) {
   if (args.topic) {
-    let topic = args.topic;
-    return coursesData.filter((course) => course.topic === topic);
+    let topic = args.topic
+    return coursesData.filter(course => course.topic === topic)
   } else {
-    return coursesData;
+    return coursesData
   }
-};
+}
 let updateCourseTopic = function ({ id, topic }) {
-  coursesData.map((course) => {
+  coursesData.map(course => {
     if (course.id === id) {
-      course.topic = topic;
-      return course;
+      course.topic = topic
+      return course
     }
-  });
-  return coursesData.filter((course) => course.id === id)[0];
-};
+  })
+  return coursesData.filter(course => course.id === id)[0]
+}
 let root = {
   course: getCourse,
   courseComplex: getCourseComplex,
   courseComplexMultiple: getCourseComplexMultiple,
   courses: getCourses,
   updateCourseTopic: updateCourseTopic,
-};
+}
+
 // Create an express server and a GraphQL endpoint
-let app = express();
+let app = express()
 app.use(
   "/graphql",
   graphqlHTTP({
     schema: schema,
     rootValue: root,
     graphiql: true,
-  })
-);
+  }),
+)
 app.listen(4000, () =>
-  console.log("Express GraphQL Server Now Running On localhost:4000/graphql")
-);
+  console.log("Express GraphQL Server Now Running On localhost:4000/graphql"),
+)
