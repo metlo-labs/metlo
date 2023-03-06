@@ -25,7 +25,6 @@ import { getSensitiveDataMap } from "services/scanner/v2/analyze-trace"
 import { getCombinedDataClassesCached } from "services/data-classes"
 import { findOpenApiSpecDiff } from "services/spec/v2"
 import { shouldUpdateEndpoint, updateDataFields } from "analyze-traces"
-import { processGraphQlData } from "./graphql"
 
 export const analyze = async (
   ctx: MetloContext,
@@ -49,10 +48,6 @@ export const analyze = async (
   mlog.debug(`Analyzing Trace - Found Datafields: ${traceUUID}`)
 
   const { processedTraceData, ...apiTrace } = trace
-
-  if (processedTraceData?.graphQlData) {
-    processGraphQlData(processedTraceData.graphQlData, apiEndpoint)
-  }
 
   const start2 = performance.now()
   let alerts = await findOpenApiSpecDiff(

@@ -72,18 +72,20 @@ export interface Response {
 export interface OperationItem {
   name: string
   alias: string
-  arguments: string
+  arguments: string[]
   items: OperationItem[]
+}
+
+export interface Variable {
+  name: string
+  varType: string
 }
 
 export interface Operation {
   operationName: string
   operationType: GraphQlOperation
   items: OperationItem[]
-  variables: string[]
-  xssDetected: Record<string, string>
-  sqliDetected: Record<string, [string, string]>
-  sensitiveDataDetected: Record<string, string[]>
+  variables: Variable[]
 }
 
 export interface GraphQlData {
