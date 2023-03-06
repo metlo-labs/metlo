@@ -22,11 +22,15 @@ fn process_graphql_argument<'a>(
     sqli_detected: &mut HashMap<String, (String, String)>,
     sensitive_data_detected: &mut HashMap<String, HashSet<String>>,
     variables_map: &Map<String, Value>,
+    total_runs: &mut i32,
 ) {
+    *total_runs += 1;
+    if *total_runs > 500 {
+        return;
+    }
     match &argument_value {
         schema::Value::Variable(v) => {
             if let Some(val) = variables_map.get(&v.to_string()) {
-                let mut total_runs = 0;
                 let mut tmp_path = path.clone();
                 process_json_val(
                     &mut tmp_path,
@@ -34,7 +38,7 @@ fn process_graphql_argument<'a>(
                     xss_detected,
                     sqli_detected,
                     sensitive_data_detected,
-                    &mut total_runs,
+                    total_runs,
                     val,
                     None,
                 )
@@ -99,6 +103,7 @@ fn process_graphql_argument<'a>(
                     sqli_detected,
                     sensitive_data_detected,
                     variables_map,
+                    total_runs,
                 )
             }
         }
@@ -112,6 +117,7 @@ fn process_graphql_argument<'a>(
                     sqli_detected,
                     sensitive_data_detected,
                     variables_map,
+                    total_runs,
                 )
             }
         }
@@ -131,6 +137,7 @@ fn process_graphql_operation_item<'a>(
     regular_path: String,
     alias_path: String,
     response_alias_map: &mut HashMap<String, String>,
+    total_runs: &mut i32,
 ) {
     let path_len = path.len();
     for field in selections.iter() {
@@ -156,6 +163,7 @@ fn process_graphql_operation_item<'a>(
                         sqli_detected,
                         sensitive_data_detected,
                         variables_map,
+                        total_runs,
                     )
                 }
                 if f.selection_set.items.is_empty() {
@@ -175,6 +183,7 @@ fn process_graphql_operation_item<'a>(
                     curr_regular,
                     curr_alias,
                     response_alias_map,
+                    total_runs,
                 );
                 items.push(OperationItem {
                     name: Some(name),
@@ -198,6 +207,7 @@ fn process_graphql_operation_item<'a>(
                         regular_path.clone(),
                         alias_path.clone(),
                         response_alias_map,
+                        total_runs,
                     )
                 }
             }
@@ -214,6 +224,7 @@ fn process_graphql_operation_item<'a>(
                 regular_path.clone(),
                 alias_path.clone(),
                 response_alias_map,
+                total_runs,
             ),
         }
     }
@@ -231,6 +242,8 @@ fn process_graphql_operation<'a>(
     sqli_detected: &mut HashMap<String, (String, String)>,
     sensitive_data_detected: &mut HashMap<String, HashSet<String>>,
     response_alias_map: &mut HashMap<String, String>,
+    total_runs: &mut i32,
+    data_section: String,
 ) -> Operation {
     let variables: Vec<Variable> = match variable_definitions {
         Some(v) => v
@@ -244,7 +257,7 @@ fn process_graphql_operation<'a>(
     };
     let mut items: Vec<OperationItem> = vec![];
     process_graphql_operation_item(
-        &("reqBody.".to_owned() + operation_type.as_str()),
+        &(data_section + "." + operation_type.as_str()),
         &selection_set.items,
         &mut items,
         variables_map,
@@ -256,6 +269,7 @@ fn process_graphql_operation<'a>(
         "resBody.".to_owned() + operation_type.as_str(),
         "resBody.data".to_owned(),
         response_alias_map,
+        total_runs,
     );
 
     Operation {
@@ -275,6 +289,8 @@ fn process_graphql_val<'a>(
     sqli_detected: &mut HashMap<String, (String, String)>,
     sensitive_data_detected: &mut HashMap<String, HashSet<String>>,
     response_alias_map: &mut HashMap<String, String>,
+    total_runs: &mut i32,
+    data_section: String,
 ) -> Operation {
     match definition {
         OperationDefinition::SelectionSet(s) => process_graphql_operation(
@@ -289,6 +305,8 @@ fn process_graphql_val<'a>(
             sqli_detected,
             sensitive_data_detected,
             response_alias_map,
+            total_runs,
+            data_section,
         ),
         OperationDefinition::Query(q) => process_graphql_operation(
             q.name.map(|n| n.to_owned()),
@@ -302,6 +320,8 @@ fn process_graphql_val<'a>(
             sqli_detected,
             sensitive_data_detected,
             response_alias_map,
+            total_runs,
+            data_section,
         ),
         OperationDefinition::Mutation(m) => process_graphql_operation(
             m.name.map(|n| n.to_owned()),
@@ -315,6 +335,8 @@ fn process_graphql_val<'a>(
             sqli_detected,
             sensitive_data_detected,
             response_alias_map,
+            total_runs,
+            data_section,
         ),
         OperationDefinition::Subscription(sub) => process_graphql_operation(
             sub.name.map(|n| n.to_owned()),
@@ -328,6 +350,8 @@ fn process_graphql_val<'a>(
             sqli_detected,
             sensitive_data_detected,
             response_alias_map,
+            total_runs,
+            data_section,
         ),
     }
 }
@@ -336,6 +360,7 @@ fn process_graphql_res(
     query: &str,
     operation_name: Option<String>,
     variables_map: &Map<String, Value>,
+    data_section: String,
 ) -> Option<GraphQlRes> {
     let mut operations: Vec<Operation> = vec![];
     let mut fragments_map: HashMap<String, &SelectionSet<&str>> = HashMap::new();
@@ -345,6 +370,7 @@ fn process_graphql_res(
     let mut sqli_detected: HashMap<String, (String, String)> = HashMap::new();
     let mut sensitive_data_detected: HashMap<String, HashSet<String>> = HashMap::new();
     let mut response_alias_map: HashMap<String, String> = HashMap::new();
+    let mut total_runs = 0;
 
     match parse_query::<&str>(query) {
         Ok(ast) => {
@@ -370,6 +396,8 @@ fn process_graphql_res(
                     &mut sqli_detected,
                     &mut sensitive_data_detected,
                     &mut response_alias_map,
+                    &mut total_runs,
+                    data_section.clone(),
                 ));
             }
         }
@@ -411,7 +439,7 @@ pub fn process_graphql_body(body: &str) -> Option<GraphQlRes> {
                 _ => None,
             };
             if let Some(Value::String(q)) = query {
-                process_graphql_res(q, operation_name, variables_map)
+                process_graphql_res(q, operation_name, variables_map, "reqBody".to_owned())
             } else {
                 None
             }
@@ -439,5 +467,5 @@ pub fn process_graphql_query(query_params: &Vec<KeyVal>) -> Option<GraphQlRes> {
             operation_name = Some(item.value.clone())
         }
     }
-    process_graphql_res(query, operation_name, &variables_map)
+    process_graphql_res(query, operation_name, &variables_map, "reqQuery".to_owned())
 }

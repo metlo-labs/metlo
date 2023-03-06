@@ -437,7 +437,7 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
 
     let mut openapi_spec_name: Option<String> = None;
     let mut full_trace_capture_enabled: bool = false;
-    let mut is_graph_ql: bool = false;
+    let mut is_graph_ql: bool = trace.request.url.path == "/graphql";
     let mut endpoint_path: String = trace.request.url.path.clone();
     let split_path: Vec<&str> = get_split_path(&trace.request.url.path);
     let conf_read = METLO_CONFIG.try_read();

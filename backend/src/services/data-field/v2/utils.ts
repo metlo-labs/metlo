@@ -22,6 +22,10 @@ interface ProcessedDataFieldData {
 }
 
 const TOTAL_DATA_FIELDS_LIMIT = 200
+const TOTAL_DATA_FIELDS_LIMIT_GRAPHQL = 300
+const getTotalDataFieldsLimit = (isGraphQl: boolean) => {
+  return isGraphQl ? TOTAL_DATA_FIELDS_LIMIT_GRAPHQL : TOTAL_DATA_FIELDS_LIMIT
+}
 
 const nonNullDataSections = [
   DataSection.REQUEST_BODY,
@@ -161,6 +165,7 @@ export const handleDataField = (
   newDataFieldMap: Record<string, DataField>,
   updatedDataFieldMap: Record<string, UpdatedDataField>,
   traceTime: Date,
+  isGraphQl: boolean,
 ) => {
   updateTraceHashObj(dataSection, dataPath, arrayFields, traceHashObj)
   let existingDataField: DataField = null
@@ -178,7 +183,7 @@ export const handleDataField = (
   }
 
   if (!existingDataField) {
-    if (dataFieldLength.numDataFields >= TOTAL_DATA_FIELDS_LIMIT) {
+    if (dataFieldLength.numDataFields >= getTotalDataFieldsLimit(isGraphQl)) {
       return
     }
     const dataField = DataField.create()
