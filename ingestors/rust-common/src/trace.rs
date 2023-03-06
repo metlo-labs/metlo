@@ -49,6 +49,17 @@ pub struct ApiTrace {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ProcessTraceResInner {
+    pub block: bool,
+    pub xss_detected: Option<HashMap<String, String>>,
+    pub sqli_detected: Option<HashMap<String, (String, String)>>,
+    pub sensitive_data_detected: Option<HashMap<String, HashSet<String>>>,
+    pub data_types: Option<HashMap<String, HashSet<String>>>,
+    pub validation_errors: Option<HashMap<String, Vec<String>>>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ProcessTraceRes {
     pub block: bool,
     pub xss_detected: Option<HashMap<String, String>>,
@@ -58,7 +69,7 @@ pub struct ProcessTraceRes {
     pub validation_errors: Option<HashMap<String, Vec<String>>>,
     pub request_content_type: String,
     pub response_content_type: String,
-    pub graph_ql_data: Option<GraphQlRes>,
+    pub graph_ql_data: Option<GraphQlData>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -82,19 +93,31 @@ pub struct OperationItem {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct Variable {
+    pub name: String,
+    pub var_type: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Operation {
     pub operation_name: Option<String>,
     pub operation_type: String,
     pub items: Vec<OperationItem>,
-    pub variables: Vec<String>,
-    pub xss_detected: HashMap<String, String>,
-    pub sqli_detected: HashMap<String, (String, String)>,
-    pub sensitive_data_detected: HashMap<String, HashSet<String>>,
+    pub variables: Vec<Variable>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GraphQlData {
+    pub operation_name: Option<String>,
+    pub operations: Vec<Operation>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GraphQlRes {
-    pub operation_name: Option<String>,
-    pub operations: Vec<Operation>,
+    pub graph_ql_data: Option<GraphQlData>,
+    pub proc_trace_res: Option<ProcessTraceResInner>,
+    pub response_alias_map: HashMap<String, String>,
 }
