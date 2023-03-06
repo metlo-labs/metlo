@@ -13,18 +13,21 @@ let schema = buildSchema(`
   type Mutation {
     updateCourseTopic(id: Int!, topic: String!): Course
   }
+  type Subscription {
+    courses(topic: String): [Course]
+  }
   input CourseParams {
     id: Int!
     topic: String!
   }
-    type Course {
-        id: Int
-        title: String
-        author: String
-        description: String
-        topic: String
-        url: String
-    }
+  type Course {
+    id: Int
+    title: String
+    author: String
+    description: String
+    topic: String
+    url: String
+  }
 `)
 
 let coursesData = [
