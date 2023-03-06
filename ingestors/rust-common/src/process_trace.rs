@@ -463,9 +463,13 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
     }
     drop(conf_read);
 
-    let proc_graph_ql = match (is_graph_ql, trace.request.method.to_lowercase().as_str()) {
-        (true, "post") => process_graphql_body(&trace.request.body),
-        (true, "get") => process_graphql_query(&trace.request.url.parameters),
+    let proc_graph_ql = match (
+        non_error_status_code,
+        is_graph_ql,
+        trace.request.method.to_lowercase().as_str(),
+    ) {
+        (true, true, "post") => process_graphql_body(&trace.request.body),
+        (true, true, "get") => process_graphql_query(&trace.request.url.parameters),
         _ => None,
     };
     let proc_req_body = match (
