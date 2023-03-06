@@ -47,9 +47,32 @@ pub fn insert_data_type(
 }
 
 fn fix_path(path: &str, response_alias_map: Option<&HashMap<String, String>>) -> String {
-    let regular_path = response_alias_map.and_then(|f| f.get(path).cloned());
-    if let Some(s) = regular_path {
-        s
+    if let Some(map) = response_alias_map {
+        if let Some(s) = map.get(path) {
+            s.clone()
+        } else if path.contains("[]") {
+            let split_path = path.split('.');
+            let mut non_array_path_vec = vec![];
+            let mut array_token_idx = vec![];
+            for (i, token) in split_path.enumerate() {
+                if token == "[]" {
+                    array_token_idx.push(i)
+                } else {
+                    non_array_path_vec.push(token)
+                }
+            }
+            if let Some(s) = map.get(&non_array_path_vec.join(".")) {
+                let mut resolved_path_vec = s.split('.').collect::<Vec<&str>>();
+                for idx in array_token_idx {
+                    resolved_path_vec.insert(idx, "[]");
+                }
+                resolved_path_vec.join(".")
+            } else {
+                path.to_owned()
+            }
+        } else {
+            path.to_owned()
+        }
     } else {
         path.to_owned()
     }
