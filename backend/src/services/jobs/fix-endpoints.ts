@@ -6,6 +6,7 @@ import { updatePaths } from "services/get-endpoints/path-heuristic"
 import { QueryRunner } from "typeorm"
 import { MetloContext } from "types"
 import countBy from "lodash/countBy"
+import { getMinAnalyzeTracesCached } from "services/metlo-config"
 
 enum TokenType {
   CONSTANT,
@@ -14,7 +15,6 @@ enum TokenType {
 const paramRegexp = new RegExp("{param[0-9]+}")
 const validTokenRegexp = new RegExp("^[A-Za-z-_\.]+$")
 const MAX_ANALYZE_TRACES = 20000
-const MIN_ANALYZE_TRACES = parseInt(process.env.MIN_ANALYZE_TRACES) || 100
 const MIN_CONST_RATIO = 0.3
 
 const sanitizePath = (path: string) => {
@@ -32,6 +32,7 @@ const fixEndpoint = async (
   endpoint: ApiEndpoint,
   queryRunner: QueryRunner,
 ): Promise<void> => {
+  const minAnalyzeTraces = await getMinAnalyzeTracesCached(ctx)
   let currentEndpointPath = sanitizePath(endpoint.path)
   const traces = await getEntityManager(ctx, queryRunner).find(ApiTrace, {
     select: {
@@ -45,7 +46,7 @@ const fixEndpoint = async (
     },
     take: MAX_ANALYZE_TRACES,
   })
-  if (traces.length < MIN_ANALYZE_TRACES) {
+  if (traces.length < minAnalyzeTraces) {
     return
   }
 
@@ -71,7 +72,7 @@ const fixEndpoint = async (
     let validTokens: string[] = []
     if (currentEndpointTokenTypes[position] == TokenType.CONSTANT) {
       validTokens.push(currentEndpointTokens[position])
-    } else if (tokenizedTraces.length >= MIN_ANALYZE_TRACES) {
+    } else if (tokenizedTraces.length >= minAnalyzeTraces) {
       const firstTraceTokens = tokenizedTraces.map(e => e[position])
       const tokenCount = countBy(firstTraceTokens)
       validTokens = Object.entries(tokenCount)
