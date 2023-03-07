@@ -43,6 +43,7 @@ const findAllDataFields = (
   newDataFieldMap: Record<string, DataField>,
   updatedDataFieldMap: Record<string, UpdatedDataField>,
   mapDataFields: string[],
+  isGraphQl: boolean,
 ) => {
   const statusCode = apiTrace.responseStatus
   const reqContentType = apiTrace?.processedTraceData?.requestContentType ?? ""
@@ -85,6 +86,7 @@ const findAllDataFields = (
       newDataFieldMap,
       updatedDataFieldMap,
       apiTrace.createdAt,
+      isGraphQl,
     )
   }
 }
@@ -118,6 +120,7 @@ export const findDataFieldsToSave = (
     newDataFieldMap,
     updatedDataFieldMap,
     mapDataFields,
+    apiEndpoint.isGraphQl,
   )
 
   let traceHashArray = []

@@ -37,10 +37,11 @@ import { DATA_SECTION_TO_LABEL_MAP } from "@common/maps"
 import { statusCodeToColor } from "components/utils/StatusCode"
 
 interface DataFieldListProps {
-  dataFields: DataField[]
+  dataFieldList: DataField[]
   uuid?: string
   dataClasses: DataClass[]
   entityTags: string[]
+  setDataFieldList: React.Dispatch<React.SetStateAction<DataField[]>>
 }
 
 interface FieldSection {
@@ -182,8 +183,7 @@ const expandableTableColumns: TableColumn<FieldSection>[] = [
 ]
 
 const DataFieldList: React.FC<DataFieldListProps> = React.memo(
-  ({ dataFields, uuid, dataClasses, entityTags }) => {
-    const [dataFieldList, setDataFieldList] = useState<DataField[]>(dataFields)
+  ({ dataFieldList, uuid, dataClasses, entityTags, setDataFieldList }) => {
     const colorMode = useColorMode()
     const headerBg = useColorModeValue("rgb(252, 252, 252)", "rgb(17, 19, 23)")
     const divColor = useColorModeValue("rgb(216, 216, 216)", "black")
@@ -236,10 +236,6 @@ const DataFieldList: React.FC<DataFieldListProps> = React.memo(
       "rgb(242, 242, 242)",
       "rgb(34, 37, 42)",
     )
-
-    useEffect(() => {
-      setDataFieldList(dataFields)
-    }, [dataFields])
 
     useEffect(() => {
       const tempReqPath = []

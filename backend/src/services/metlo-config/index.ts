@@ -85,6 +85,17 @@ export const getHostMap = async (ctx: MetloContext) => {
   return (configObject.hostMap || []) as HostMapping[]
 }
 
+export const getMinAnalyzeTraces = async (ctx: MetloContext) => {
+  const config = (await createQB(ctx)
+    .from(MetloConfig, "config")
+    .getRawOne()) as MetloConfig
+  if (!config) {
+    return 100
+  }
+  const configObject = jsyaml.load(config.configString) as any
+  return (configObject.minAnalyzeTraces || 100) as number
+}
+
 export const getGlobalFullTraceCaptureCached = async (ctx: MetloContext) => {
   const cacheRes: boolean | null = await RedisClient.getFromRedis(
     ctx,
@@ -111,6 +122,21 @@ export const getHostMapCached = async (
   const realRes = await getHostMap(ctx)
   await RedisClient.addToRedis(ctx, "hostMapCached", realRes, 60)
   return realRes.map(e => ({ host: e.host, pattern: new RegExp(e.pattern) }))
+}
+
+export const getMinAnalyzeTracesCached = async (
+  ctx: MetloContext,
+): Promise<number> => {
+  const cacheRes: number | null = await RedisClient.getFromRedis(
+    ctx,
+    "minAnalyzeTracesCached",
+  )
+  if (cacheRes !== null) {
+    return cacheRes
+  }
+  const realRes = await getMinAnalyzeTraces(ctx)
+  await RedisClient.addToRedis(ctx, "minAnalyzeTracesCached", realRes, 60)
+  return realRes
 }
 
 export const validateMetloConfig = (configString: string) => {
