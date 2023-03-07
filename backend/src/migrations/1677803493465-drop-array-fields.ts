@@ -1,3 +1,4 @@
+import mlog from "logger"
 import { DataField } from "models"
 import { insertValuesBuilder } from "services/database/utils"
 import { MigrationInterface, Not, QueryRunner } from "typeorm"
@@ -11,6 +12,7 @@ export class dropArrayFields1677803493465 implements MigrationInterface {
       .getRawMany()
     for (const dataField of dataFields) {
       const splitPath = dataField.dataPath.split(".")
+      console.log(splitPath, dataField.dataPath, dataField.arrayFields)
       let newPath = ""
       if (dataField.arrayFields[""] && dataField.dataPath !== "") {
         for (let x = 0; x < dataField.arrayFields[""]; x++) {
@@ -49,7 +51,9 @@ export class dropArrayFields1677803493465 implements MigrationInterface {
       )
         .orUpdate(["dataPath"], ["uuid"])
         .execute()
+      mlog.info(`Updated ${max} data fields...`)
     }
+    mlog.info(`Finished updating ${dataFields.length} data fields.`)
     await queryRunner.query(
       `ALTER TABLE "data_field" DROP COLUMN IF EXISTS "arrayFields"`,
     )

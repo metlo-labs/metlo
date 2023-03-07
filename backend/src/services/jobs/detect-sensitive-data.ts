@@ -55,7 +55,28 @@ const detectSensitiveDataEndpoint = async (
         sensitiveDataMap?: Record<string, string[]>
       },
   )
-  const sensitiveDataMaps = traces.map(e => e.sensitiveDataMap || {})
+  const currentDataFields = await getEntityManager(ctx, queryRunner).find(
+    DataField,
+    {
+      where: {
+        apiEndpointUuid: endpoint.uuid,
+      },
+    },
+  )
+  const mapDataFields = []
+  currentDataFields.forEach(item => {
+    const key = `${item.statusCode}_${item.contentType}_${item.dataSection}${
+      item.dataPath ? `.${item.dataPath}` : ""
+    }`
+    if (item.dataPath.includes("[string]")) {
+      mapDataFields.push(key)
+    }
+  })
+  const sensitiveDataMaps = traces.map(
+    e =>
+      e.sensitiveDataMap ||
+      getSensitiveDataMap(dataClasses, e, endpoint.path, mapDataFields),
+  )
   let detectedDataClasses: Record<
     string,
     {
@@ -89,15 +110,6 @@ const detectSensitiveDataEndpoint = async (
       })
     })
   })
-
-  const currentDataFields = await getEntityManager(ctx, queryRunner).find(
-    DataField,
-    {
-      where: {
-        apiEndpointUuid: endpoint.uuid,
-      },
-    },
-  )
 
   let newDataFields: DataField[] = []
   let alerts: Alert[] = []
