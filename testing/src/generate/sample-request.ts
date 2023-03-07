@@ -16,9 +16,8 @@ const getSampleValue = (dataType: DataType) => {
     case DataType.BOOLEAN:
       return true
     case DataType.INTEGER:
-      return Math.floor(Math.random() * (100 - 1 + 1)) + 1
     case DataType.NUMBER:
-      return Number((Math.random() * (1.0 - 100.0) + 100.0).toFixed(3))
+      return Math.floor(Math.random() * (100 - 1 + 1)) + 1
     case DataType.STRING:
       return Math.random().toString(36).slice(2)
     default:
