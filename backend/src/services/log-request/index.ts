@@ -29,6 +29,11 @@ export class LogRequestService {
         mlog.debug("Trace queue overloaded")
         return
       }
+      if (JSON.stringify(traceParams).includes("\x00")) {
+        mlog.debug("Found null char, skipping...")
+        mlog.count("collector.null_char_found")
+        return
+      }
 
       const validPath = getValidPath(traceParams?.request?.url?.path)
       if (!validPath.isValid) {
