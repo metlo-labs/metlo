@@ -27,6 +27,9 @@ app.use(async (req: MetloRequest, res, next) => {
 app.get("/api/v1", (req: Request, res: Response) => {
   res.send("OK")
 })
+app.get("/api/v2", (req: Request, res: Response) => {
+  res.send("OK")
+})
 
 app.use(express.json({ limit: "2mb" }))
 app.use(express.urlencoded({ limit: "2mb", extended: true }))
