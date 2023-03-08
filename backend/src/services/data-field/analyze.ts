@@ -16,18 +16,21 @@ import {
 
 const getCurrentDataFieldsMap = (
   dataFields: DataField[],
-): [Record<string, DataField>, number] => {
+): [Record<string, DataField>, string[], number] => {
   let currNumDataFields = 0
   const res = {}
+  const mapDataFields = []
   dataFields.forEach(item => {
     currNumDataFields += 1
-    res[
-      `${item.statusCode}_${item.contentType}_${item.dataSection}${
-        item.dataPath ? `.${item.dataPath}` : ""
-      }`
-    ] = item
+    const key = `${item.statusCode}_${item.contentType}_${item.dataSection}${
+      item.dataPath ? `.${item.dataPath}` : ""
+    }`
+    res[key] = item
+    if (item.dataPath.includes("[string]")) {
+      mapDataFields.push(key)
+    }
   })
-  return [res, currNumDataFields]
+  return [res, mapDataFields, currNumDataFields]
 }
 
 const findAllDataFields = (
@@ -40,6 +43,7 @@ const findAllDataFields = (
   dataFieldMap: Record<string, DataField>,
   newDataFieldMap: Record<string, DataField>,
   updatedDataFieldMap: Record<string, UpdatedDataField>,
+  mapDataFields: string[],
 ) => {
   const statusCode = apiTrace.responseStatus
   const { reqContentType, resContentType } = getContentTypes(
@@ -58,6 +62,7 @@ const findAllDataFields = (
     newDataFieldMap,
     updatedDataFieldMap,
     apiTrace.createdAt,
+    mapDataFields,
   )
   if (statusCode < 400) {
     findPairObjectDataFields(
@@ -73,6 +78,7 @@ const findAllDataFields = (
       newDataFieldMap,
       updatedDataFieldMap,
       apiTrace.createdAt,
+      mapDataFields,
     )
     findPairObjectDataFields(
       ctx,
@@ -87,6 +93,7 @@ const findAllDataFields = (
       newDataFieldMap,
       updatedDataFieldMap,
       apiTrace.createdAt,
+      mapDataFields,
     )
     findBodyDataFields(
       ctx,
@@ -101,6 +108,7 @@ const findAllDataFields = (
       newDataFieldMap,
       updatedDataFieldMap,
       apiTrace.createdAt,
+      mapDataFields,
     )
   }
   findPairObjectDataFields(
@@ -116,6 +124,7 @@ const findAllDataFields = (
     newDataFieldMap,
     updatedDataFieldMap,
     apiTrace.createdAt,
+    mapDataFields,
   )
   findBodyDataFields(
     ctx,
@@ -130,6 +139,7 @@ const findAllDataFields = (
     newDataFieldMap,
     updatedDataFieldMap,
     apiTrace.createdAt,
+    mapDataFields,
   )
 }
 
@@ -138,7 +148,7 @@ export const findDataFieldsToSave = (
   apiTrace: QueuedApiTrace,
   apiEndpoint: ApiEndpoint,
   dataClasses: DataClass[],
-): DataField[] => {
+): { dataFields: DataField[]; mapDataFields: string[] } => {
   const traceHashObj: Record<string, Set<string>> = {
     [DataSection.REQUEST_HEADER]: new Set<string>([]),
     [DataSection.REQUEST_QUERY]: new Set<string>([]),
@@ -146,9 +156,8 @@ export const findDataFieldsToSave = (
     [DataSection.RESPONSE_HEADER]: new Set<string>([]),
     [DataSection.RESPONSE_BODY]: new Set<string>([]),
   }
-  const [currentDataFieldMap, currNumDataFields] = getCurrentDataFieldsMap(
-    apiEndpoint.dataFields,
-  )
+  const [currentDataFieldMap, mapDataFields, currNumDataFields] =
+    getCurrentDataFieldsMap(apiEndpoint.dataFields)
   const newDataFieldMap: Record<string, DataField> = {}
   const updatedDataFieldMap: Record<string, UpdatedDataField> = {}
   const dataFieldLength: DataFieldLength = { numDataFields: currNumDataFields }
@@ -162,6 +171,7 @@ export const findDataFieldsToSave = (
     currentDataFieldMap,
     newDataFieldMap,
     updatedDataFieldMap,
+    mapDataFields,
   )
 
   let traceHashArray = []
@@ -199,5 +209,5 @@ export const findDataFieldsToSave = (
     dataClasses,
   )
 
-  return resDataFields
+  return { dataFields: resDataFields, mapDataFields }
 }

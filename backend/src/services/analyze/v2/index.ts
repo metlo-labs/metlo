@@ -63,7 +63,7 @@ export const analyze = async (
   const start3 = performance.now()
   const dataFieldAlerts = await createDataFieldAlerts(
     ctx,
-    dataFields,
+    dataFields.dataFields,
     apiEndpoint.uuid,
     apiTrace,
     queryRunner,
@@ -93,6 +93,7 @@ export const analyze = async (
     apiTrace,
     apiEndpoint.path,
     processedTraceData,
+    dataFields.mapDataFields,
   )
   let filteredApiTrace = {
     ...apiTrace,
@@ -107,7 +108,7 @@ export const analyze = async (
 
   await queryRunner.startTransaction()
   const startUpdateDataFields = performance.now()
-  await updateDataFields(ctx, dataFields, queryRunner)
+  await updateDataFields(ctx, dataFields.dataFields, queryRunner)
   mlog.time(
     "analyzer.update_data_fields_query",
     performance.now() - startUpdateDataFields,

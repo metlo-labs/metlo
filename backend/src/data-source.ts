@@ -47,6 +47,7 @@ import { addOriginalHostTraceColumn1676358211583 } from "migrations/167635821158
 import { addTestingConfigTable1676508983994 } from "migrations/1676508983994-add-testing-config-table"
 import { hostsList1677073188312 } from "migrations/1677073188312-hosts_list"
 import { endpointGraphqlColumns1677479141637 } from "migrations/1677479141637-endpoint-graphql-columns"
+import { dropArrayFields1677803493465 } from "migrations/1677803493465-drop-array-fields"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -99,6 +100,7 @@ export const AppDataSource: DataSource = new DataSource({
     addTestingConfigTable1676508983994,
     hostsList1677073188312,
     endpointGraphqlColumns1677479141637,
+    dropArrayFields1677803493465,
   ],
   migrationsRun: runMigration,
   logging: false,

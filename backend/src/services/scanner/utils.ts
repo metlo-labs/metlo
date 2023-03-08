@@ -3,6 +3,7 @@ import { DataSection, DataType } from "@common/enums"
 import { isParameter, parsedJson, parsedJsonNonNull } from "utils"
 import { getPathTokens } from "@common/utils"
 import { scan } from "./scan"
+import { getMapDataFields } from "services/data-field/utils"
 
 const handleDataField = (
   dataClasses: DataClass[],
@@ -34,6 +35,7 @@ const recursiveParseJson = (
   contentType: string,
   statusCode: number,
   sensitiveDataMap: Record<string, string[]>,
+  mapDataFields: string[],
 ) => {
   if (Object(jsonBody) !== jsonBody) {
     handleDataField(
@@ -50,24 +52,34 @@ const recursiveParseJson = (
     for (let i = 0; i < l; i++) {
       recursiveParseJson(
         dataClasses,
-        dataPathPrefix,
+        dataPathPrefix ? dataPathPrefix + ".[]" : "[]",
         dataSection,
         jsonBody[i],
         contentType,
         statusCode,
         sensitiveDataMap,
+        mapDataFields,
       )
     }
   } else if (typeof jsonBody === DataType.OBJECT) {
     for (const key in jsonBody) {
+      const res = getMapDataFields(
+        statusCode,
+        contentType,
+        dataSection,
+        dataPathPrefix,
+        key,
+        mapDataFields,
+      )
       recursiveParseJson(
         dataClasses,
-        dataPathPrefix ? dataPathPrefix + "." + key : key,
+        dataPathPrefix ? dataPathPrefix + "." + res.key : res.key,
         dataSection,
         jsonBody[key],
         contentType,
         statusCode,
         sensitiveDataMap,
+        res.filteredMapDataFields,
       )
     }
   }
@@ -80,6 +92,7 @@ export const findBodySensitiveData = (
   contentType: string,
   statusCode: number,
   sensitiveDataMap: Record<string, string[]>,
+  mapDataFields: string[],
 ) => {
   if (!body && dataSection === DataSection.RESPONSE_BODY) {
     body = ""
@@ -91,24 +104,34 @@ export const findBodySensitiveData = (
       for (let i = 0; i < l; i++) {
         recursiveParseJson(
           dataClasses,
-          null,
+          "[]",
           dataSection,
           jsonBody[i],
           contentType,
           statusCode,
           sensitiveDataMap,
+          mapDataFields,
         )
       }
     } else if (typeof jsonBody === DataType.OBJECT) {
       for (let key in jsonBody) {
+        const res = getMapDataFields(
+          statusCode,
+          contentType,
+          dataSection,
+          null,
+          key,
+          mapDataFields,
+        )
         recursiveParseJson(
           dataClasses,
-          key,
+          res.key,
           dataSection,
           jsonBody[key],
           contentType,
           statusCode,
           sensitiveDataMap,
+          res.filteredMapDataFields,
         )
       }
     } else {
@@ -120,6 +143,7 @@ export const findBodySensitiveData = (
         contentType,
         statusCode,
         sensitiveDataMap,
+        mapDataFields,
       )
     }
   }
@@ -132,6 +156,7 @@ export const findPairObjectSensitiveData = (
   contentType: string,
   statusCode: number,
   sensitiveDataMap: Record<string, string[]>,
+  mapDataFields: string[],
 ) => {
   if (data) {
     for (const item of data) {
@@ -145,6 +170,7 @@ export const findPairObjectSensitiveData = (
         contentType,
         statusCode,
         sensitiveDataMap,
+        mapDataFields,
       )
     }
   }
@@ -155,6 +181,7 @@ export const findPathSensitiveData = (
   path: string,
   endpointPath: string,
   sensitiveDataMap: Record<string, string[]>,
+  mapDataFields: string[],
 ) => {
   if (!path || !endpointPath) {
     return
@@ -175,6 +202,7 @@ export const findPathSensitiveData = (
         "",
         -1,
         sensitiveDataMap,
+        mapDataFields,
       )
     }
   }

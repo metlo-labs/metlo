@@ -12,6 +12,7 @@ export const getSensitiveDataMap = (
   apiTrace: QueuedApiTrace,
   apiEndpointPath: string,
   processedTraceData: ProcessedTraceData,
+  mapDataFields: string[],
 ): Record<DataFieldKey, string[]> => {
   const statusCode = apiTrace.responseStatus
   const sensitiveDataDetected = processedTraceData?.sensitiveDataDetected ?? {}
@@ -24,6 +25,7 @@ export const getSensitiveDataMap = (
     apiTrace.path,
     apiEndpointPath,
     sensitiveDataMap,
+    mapDataFields,
   )
   for (const dataPath in sensitiveDataDetected) {
     const info = getSensitiveDataFieldDataFromProcessedData(
@@ -31,6 +33,7 @@ export const getSensitiveDataMap = (
       reqContentType,
       resContentType,
       statusCode ?? -1,
+      mapDataFields,
     )
     addDataFieldToSensitiveDataMap(
       info.dataPath,

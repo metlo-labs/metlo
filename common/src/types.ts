@@ -191,7 +191,6 @@ export interface DataField {
   statusCode: number
   contentType: string
   isNullable: boolean
-  arrayFields: Record<string, number>
   entity: string
 }
 

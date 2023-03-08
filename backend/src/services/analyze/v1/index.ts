@@ -62,7 +62,7 @@ export const analyze = async (
   const start3 = performance.now()
   const dataFieldAlerts = await createDataFieldAlerts(
     ctx,
-    dataFields,
+    dataFields.dataFields,
     apiEndpoint.uuid,
     trace,
     queryRunner,
@@ -96,6 +96,7 @@ export const analyze = async (
     dataClasses,
     filteredApiTrace,
     apiEndpoint.path,
+    dataFields.mapDataFields,
   )
   const globalFullTraceCapture = await getGlobalFullTraceCaptureCached(ctx)
   let redact = !(globalFullTraceCapture || apiEndpoint.fullTraceCaptureEnabled)
@@ -127,7 +128,7 @@ export const analyze = async (
 
   await queryRunner.startTransaction()
   const startUpdateDataFields = performance.now()
-  await updateDataFields(ctx, dataFields, queryRunner)
+  await updateDataFields(ctx, dataFields.dataFields, queryRunner)
   mlog.time(
     "analyzer.update_data_fields_query",
     performance.now() - startUpdateDataFields,

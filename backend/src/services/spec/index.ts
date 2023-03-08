@@ -34,7 +34,6 @@ import {
   getOpenAPISpecVersion,
   getSpecResponses,
   AjvError,
-  validateSpecSchema,
   getHostsV3,
   getServersV3,
   getSpecPathString,
@@ -119,12 +118,12 @@ export class SpecService {
         "Invalid OpenAPI Spec: No 'swagger' or 'openapi' field defined.",
       )
     }
-    const validationErrors = validateSpecSchema(specObject)
-    if (validationErrors?.length > 0) {
-      throw new Error422UnprocessableEntity("Invalid OpenAPI Spec", {
-        message: "Invalid OpenAPI Spec",
-        error: validationErrors[0],
-      })
+    try {
+      await SwaggerParser.validate(specObject as any)
+    } catch (err) {
+      throw new Error422UnprocessableEntity(
+        `Invalid OpenAPI Spec: ${err.message.toString()}`,
+      )
     }
     const queryRunner = AppDataSource.createQueryRunner()
     await queryRunner.connect()
@@ -219,12 +218,12 @@ export class SpecService {
         "Invalid OpenAPI Spec: No 'swagger' or 'openapi' field defined.",
       )
     }
-    const validationErrors = validateSpecSchema(specObject, specVersion)
-    if (validationErrors?.length > 0) {
-      throw new Error422UnprocessableEntity("Invalid OpenAPI Spec", {
-        message: "Invalid OpenAPI Spec",
-        error: validationErrors[0],
-      })
+    try {
+      await SwaggerParser.validate(specObject as any)
+    } catch (err) {
+      throw new Error422UnprocessableEntity(
+        `Invalid OpenAPI Spec: ${err.message.toString()}`,
+      )
     }
     if (specVersion === 2) {
       const convertedSpec = await Converter.convertObj(specObject, {})
