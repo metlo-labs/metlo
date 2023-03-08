@@ -267,11 +267,11 @@ const generateOpenApiSpec = async (ctx: MetloContext): Promise<boolean> => {
     const currTime = new Date()
     const hostMap: Record<string, ApiEndpoint[]> = {}
     const specIntro = {
-      openapi: "3.0.0",
+      openapi: "3.1.0",
       info: {
-        title: "OpenAPI 3.0 Spec",
+        title: "OpenAPI 3.1 Spec",
         version: "1.0.0",
-        description: "An auto-generated OpenAPI 3.0 specification.",
+        description: "An auto-generated OpenAPI 3.1 specification.",
       },
     }
 
