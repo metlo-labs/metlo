@@ -30,9 +30,9 @@ const sanitizePath = (path: string) => {
 const fixEndpoint = async (
   ctx: MetloContext,
   endpoint: ApiEndpoint,
+  minAnalyzeTraces: number,
   queryRunner: QueryRunner,
 ): Promise<void> => {
-  const minAnalyzeTraces = await getMinAnalyzeTracesCached(ctx)
   let currentEndpointPath = sanitizePath(endpoint.path)
   const traces = await getEntityManager(ctx, queryRunner).find(ApiTrace, {
     select: {
@@ -123,13 +123,15 @@ const fixEndpoints = async (ctx: MetloContext): Promise<boolean> => {
   const queryRunner = AppDataSource.createQueryRunner()
   try {
     await queryRunner.connect()
+    const minAnalyzeTraces = await getMinAnalyzeTracesCached(ctx)
+    mlog.debug(`Fix Endpoints - Min Analyze Traces: ${minAnalyzeTraces}`)
     const endpoints: ApiEndpoint[] = await getQB(ctx, queryRunner)
       .select(["uuid", "path", `"userSet"`])
       .from(ApiEndpoint, "endpoint")
       .getRawMany()
     for (const endpoint of endpoints) {
       if (!endpoint.userSet) {
-        await fixEndpoint(ctx, endpoint, queryRunner)
+        await fixEndpoint(ctx, endpoint, minAnalyzeTraces, queryRunner)
       }
     }
     return true
