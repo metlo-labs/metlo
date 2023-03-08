@@ -33,7 +33,7 @@ type MetloArgs struct {
 	maxRps              int
 	runAsVxlan          bool
 	captureInterfaceRaw string
-	localProcess        *bool
+	localProcess        string
 }
 
 var captureInterfaces []string
@@ -76,11 +76,11 @@ func main() {
 			Name:        "interface, i",
 			Usage:       "Comma separated list of interface(s) for Metlo to listen on",
 			Destination: &args.captureInterfaceRaw,
-		}, cli.BoolFlag{
+		}, cli.StringFlag{
 			Name:        "local-process, p",
 			Usage:       "Process trace data locally. Default true",
 			Required:    false,
-			Destination: args.localProcess,
+			Destination: &args.localProcess,
 		},
 	}
 
@@ -141,17 +141,20 @@ func main() {
 				args.runAsVxlan = false
 			}
 		}
+
+		resolved_local_process := true
 		envLocalProcess := os.Getenv("METLO_LOCAL_PROCESS")
-		if args.localProcess == nil {
+		if args.localProcess == "" {
 			if envLocalProcess != "" {
 				local_process_enabled, err := strconv.ParseBool(envLocalProcess)
-				if err != nil {
-					local_process_enabled = true
+				if err == nil {
+					resolved_local_process = local_process_enabled
 				}
-				args.localProcess = &local_process_enabled
-			} else {
-				local_process_enabled := true
-				args.localProcess = &local_process_enabled
+			}
+		} else {
+			local_process_enabled, err := strconv.ParseBool(args.localProcess)
+			if err == nil {
+				resolved_local_process = local_process_enabled
 			}
 		}
 
@@ -182,7 +185,7 @@ func main() {
 			"metloHost":    args.metloHost,
 			"maxRps":       args.maxRps,
 			"vxlan":        args.runAsVxlan,
-			"localProcess": *args.localProcess,
+			"localProcess": resolved_local_process,
 			"interface":    captureInterfaces,
 		}).Info("Configuration")
 
@@ -196,7 +199,7 @@ func main() {
 			return fmt.Errorf("INVALID MAX RPS: %d. MUST BE BETWEEN 0 AND 300", args.maxRps)
 		}
 
-		metloAPI := metloapi.InitMetlo(args.metloHost, args.apiKey, args.maxRps, *args.localProcess)
+		metloAPI := metloapi.InitMetlo(args.metloHost, args.apiKey, args.maxRps, resolved_local_process)
 
 		if !args.runAsVxlan {
 			runLive(metloAPI, captureInterfaces)
