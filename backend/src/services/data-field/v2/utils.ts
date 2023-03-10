@@ -1,9 +1,10 @@
 import { DataSection, DataTag, DataType } from "@common/enums"
 import { DataField } from "models"
-import { getMapDataFields } from "../utils"
+import { getMapDataFields, UpdateReason } from "../utils"
 
 export interface DataFieldLength {
   numDataFields: number
+  updateReasonMap: Record<UpdateReason, number>
 }
 
 export interface UpdatedDataField {
@@ -171,6 +172,7 @@ export const handleDataField = (
     if (dataFieldLength.numDataFields >= getTotalDataFieldsLimit(isGraphQl)) {
       return
     }
+    dataFieldLength.updateReasonMap[UpdateReason.NEW_DATA_FIELD] += 1
     const dataField = DataField.create()
     dataField.dataPath = dataPath ?? ""
     dataField.dataType = dataType
@@ -197,6 +199,7 @@ export const handleDataField = (
       isNullKey &&
       nonNullDataSections.includes(existingDataField.dataSection)
     ) {
+      dataFieldLength.updateReasonMap[UpdateReason.EXISTING_NULL_KEY] += 1
       updated = true
       if (existingDataField.dataSection === DataSection.REQUEST_BODY) {
         existingDataField.contentType = contentType ?? ""
@@ -211,6 +214,7 @@ export const handleDataField = (
     }
 
     if (!existingDataField.isNullable && dataType === DataType.UNKNOWN) {
+      dataFieldLength.updateReasonMap[UpdateReason.IS_NULLABLE] += 1
       existingDataField.isNullable = true
       updated = true
     }
@@ -220,6 +224,7 @@ export const handleDataField = (
       traceTime > existingDataField.updatedAt &&
       dataType !== DataType.UNKNOWN
     ) {
+      dataFieldLength.updateReasonMap[UpdateReason.UPDATED_DATA_TYPE] += 1
       existingDataField.dataType = dataType
       updated = true
     }

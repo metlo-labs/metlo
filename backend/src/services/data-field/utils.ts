@@ -13,12 +13,31 @@ interface ContentTypeResp {
 
 export interface DataFieldLength {
   numDataFields: number
+  updateReasonMap: Record<UpdateReason, number>
 }
 
 export interface UpdatedDataField {
   dataField: DataField
   updated: boolean
 }
+
+export enum UpdateReason {
+  NEW_DATA_FIELD = "new_data_field",
+  EXISTING_NULL_KEY = "existing_null_key",
+  IS_NULLABLE = "is_nullable",
+  UPDATED_DATA_TYPE = "updated_data_type",
+  NEW_TRACE_HASH = "new_trace_hash",
+  UPDATED_TRACE_HASH = "updated_trace_hash",
+}
+
+export const getInitialUpdateReasonMap = (): Record<UpdateReason, number> => ({
+  [UpdateReason.EXISTING_NULL_KEY]: 0,
+  [UpdateReason.IS_NULLABLE]: 0,
+  [UpdateReason.NEW_DATA_FIELD]: 0,
+  [UpdateReason.NEW_TRACE_HASH]: 0,
+  [UpdateReason.UPDATED_DATA_TYPE]: 0,
+  [UpdateReason.UPDATED_TRACE_HASH]: 0,
+})
 
 const TOTAL_DATA_FIELDS_LIMIT = 200
 
@@ -139,6 +158,7 @@ const handleDataField = (
     if (dataFieldLength.numDataFields >= TOTAL_DATA_FIELDS_LIMIT) {
       return
     }
+    dataFieldLength.updateReasonMap[UpdateReason.NEW_DATA_FIELD] += 1
     const dataField = DataField.create()
     dataField.dataPath = dataPath ?? ""
     dataField.dataType = dataType
@@ -165,6 +185,7 @@ const handleDataField = (
       isNullKey &&
       nonNullDataSections.includes(existingDataField.dataSection)
     ) {
+      dataFieldLength.updateReasonMap[UpdateReason.EXISTING_NULL_KEY] += 1
       updated = true
       if (existingDataField.dataSection === DataSection.REQUEST_BODY) {
         existingDataField.contentType = contentType ?? ""
@@ -179,6 +200,7 @@ const handleDataField = (
     }
 
     if (!existingDataField.isNullable && dataType === DataType.UNKNOWN) {
+      dataFieldLength.updateReasonMap[UpdateReason.IS_NULLABLE] += 1
       existingDataField.isNullable = true
       updated = true
     }
@@ -188,6 +210,7 @@ const handleDataField = (
       traceTime > existingDataField.updatedAt &&
       dataType !== DataType.UNKNOWN
     ) {
+      dataFieldLength.updateReasonMap[UpdateReason.UPDATED_DATA_TYPE] += 1
       existingDataField.dataType = dataType
       updated = true
     }

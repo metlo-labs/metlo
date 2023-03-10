@@ -4,7 +4,11 @@ import { DataSection } from "@common/enums"
 import { ApiEndpoint, DataField } from "models"
 import { MetloContext } from "types"
 import { getRiskScore } from "utils"
-import { findPathDataFields } from "services/data-field/utils"
+import {
+  findPathDataFields,
+  getInitialUpdateReasonMap,
+  UpdateReason,
+} from "services/data-field/utils"
 import {
   DataFieldLength,
   UpdatedDataField,
@@ -12,6 +16,7 @@ import {
   getDataFieldDataFromProcessedData,
   handleDataField,
 } from "./utils"
+import mlog from "logger"
 
 const getCurrentDataFieldsMap = (
   dataFields: DataField[],
@@ -108,7 +113,10 @@ export const findDataFieldsToSave = (
     getCurrentDataFieldsMap(apiEndpoint.dataFields)
   const newDataFieldMap: Record<string, DataField> = {}
   const updatedDataFieldMap: Record<string, UpdatedDataField> = {}
-  const dataFieldLength: DataFieldLength = { numDataFields: currNumDataFields }
+  const dataFieldLength: DataFieldLength = {
+    numDataFields: currNumDataFields,
+    updateReasonMap: getInitialUpdateReasonMap(),
+  }
   findAllDataFields(
     ctx,
     apiTrace,
@@ -142,12 +150,22 @@ export const findDataFieldsToSave = (
 
   for (const key in updatedDataFieldMap) {
     const currDataField = updatedDataFieldMap[key].dataField
+    const existingTraceHash = currDataField.traceHash?.[hash]
     if (
       updatedDataFieldMap[key].updated ||
       !currDataField.traceHash?.[hash] ||
       currentTimestamp - currDataField.traceHash?.[hash] >
         UPDATE_DATA_FIELD_TIME_THRESHOLD
     ) {
+      if (!existingTraceHash) {
+        dataFieldLength.updateReasonMap[UpdateReason.NEW_TRACE_HASH] += 1
+      }
+      if (
+        currentTimestamp - existingTraceHash >
+        UPDATE_DATA_FIELD_TIME_THRESHOLD
+      ) {
+        dataFieldLength.updateReasonMap[UpdateReason.UPDATED_TRACE_HASH] += 1
+      }
       currDataField.traceHash[hash] = currentTimestamp
       resDataFields.push(currDataField)
     }
@@ -158,5 +176,14 @@ export const findDataFieldsToSave = (
     dataClasses,
   )
 
+  mlog.debug(
+    `Updated Data Fields Length: ${
+      resDataFields.length
+    }\nUpdated Data Fields Reason Counts: ${JSON.stringify(
+      dataFieldLength.updateReasonMap,
+      undefined,
+      2,
+    )}`,
+  )
   return { dataFields: resDataFields, mapDataFields }
 }
