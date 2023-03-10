@@ -7,7 +7,6 @@ export interface GenTestEndpointDataField {
   contentType: string
   dataPath: string
   dataType: DataType
-  traceHash: Record<string, number>
   entity?: string
 }
 

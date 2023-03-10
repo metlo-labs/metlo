@@ -15,11 +15,6 @@ export interface DataFieldLength {
   numDataFields: number
 }
 
-export interface UpdatedDataField {
-  dataField: DataField
-  updated: boolean
-}
-
 const TOTAL_DATA_FIELDS_LIMIT = 200
 
 const nonNullDataSections = [
@@ -29,7 +24,7 @@ const nonNullDataSections = [
 ]
 
 export const UPDATE_DATA_FIELD_TIME_THRESHOLD =
-  (parseInt(process.env.UPDATE_DATA_FIELD_TIME_THRESHOLD) || 60) * 1000
+  (parseInt(process.env.UPDATE_DATA_FIELD_TIME_THRESHOLD) || 86400) * 1000
 
 export const getMapDataFields = (
   statusCode: number,
@@ -93,18 +88,6 @@ export const getContentTypes = (
   }
 }
 
-const updateTraceHashObj = (
-  dataSection: DataSection,
-  dataPath: string,
-  traceHashObj: Record<string, Set<string>>,
-) => {
-  if (dataSection === DataSection.REQUEST_PATH) {
-    return
-  }
-  const key = dataPath ?? ""
-  traceHashObj[dataSection].add(key)
-}
-
 const handleDataField = (
   dataPath: string,
   dataSection: DataSection,
@@ -112,14 +95,12 @@ const handleDataField = (
   dataValue: any,
   contentType: string,
   statusCode: number,
-  traceHashObj: Record<string, Set<string>>,
   dataFieldLength: DataFieldLength,
   dataFieldMap: Record<string, DataField>,
   newDataFieldMap: Record<string, DataField>,
-  updatedDataFieldMap: Record<string, UpdatedDataField>,
+  updatedDataFieldMap: Record<string, DataField>,
   traceTime: Date,
 ) => {
-  updateTraceHashObj(dataSection, dataPath, traceHashObj)
   let existingDataField: DataField = null
   let isNullKey = null
   const key = `${statusCode}_${contentType}_${dataSection}${
@@ -144,7 +125,6 @@ const handleDataField = (
     dataField.dataType = dataType
     dataField.dataSection = dataSection
     dataField.apiEndpointUuid = apiEndpointUuid
-    dataField.traceHash = {}
     dataField.contentType = contentType ?? ""
     dataField.statusCode = statusCode ?? -1
     dataField.isNullable = dataType === DataType.UNKNOWN
@@ -153,6 +133,7 @@ const handleDataField = (
     dataField.falsePositives = []
     dataField.createdAt = traceTime
     dataField.updatedAt = traceTime
+    dataField.lastSeen = traceTime
     if (dataField.dataClasses.length > 0) {
       dataField.dataTag = DataTag.PII
     }
@@ -192,18 +173,22 @@ const handleDataField = (
       updated = true
     }
 
-    existingDataField.updatedAt = traceTime
-    if (isNullKey) {
-      dataFieldMap[existingNullKey] = existingDataField
-      updatedDataFieldMap[existingNullKey] = {
-        dataField: existingDataField,
-        updated,
-      }
-    } else if (isNullKey === false) {
-      dataFieldMap[key] = existingDataField
-      updatedDataFieldMap[key] = {
-        dataField: existingDataField,
-        updated,
+    if (
+      traceTime.getTime() - existingDataField.lastSeen.getTime() >
+      UPDATE_DATA_FIELD_TIME_THRESHOLD
+    ) {
+      updated = true
+    }
+
+    if (updated) {
+      existingDataField.updatedAt = traceTime
+      existingDataField.lastSeen = traceTime
+      if (isNullKey) {
+        dataFieldMap[existingNullKey] = existingDataField
+        updatedDataFieldMap[existingNullKey] = existingDataField
+      } else if (isNullKey === false) {
+        dataFieldMap[key] = existingDataField
+        updatedDataFieldMap[key] = existingDataField
       }
     }
   }
@@ -218,10 +203,9 @@ const recursiveParseJson = (
   contentType: string,
   statusCode: number,
   dataFieldMap: Record<string, DataField>,
-  traceHashObj: Record<string, Set<string>>,
   dataFieldLength: DataFieldLength,
   newDataFieldMap: Record<string, DataField>,
-  updatedDataFieldMap: Record<string, UpdatedDataField>,
+  updatedDataFieldMap: Record<string, DataField>,
   traceTime: Date,
   mapDataFields: string[],
 ) => {
@@ -233,7 +217,6 @@ const recursiveParseJson = (
       jsonBody,
       contentType,
       statusCode,
-      traceHashObj,
       dataFieldLength,
       dataFieldMap,
       newDataFieldMap,
@@ -252,7 +235,6 @@ const recursiveParseJson = (
         contentType,
         statusCode,
         dataFieldMap,
-        traceHashObj,
         dataFieldLength,
         newDataFieldMap,
         updatedDataFieldMap,
@@ -279,7 +261,6 @@ const recursiveParseJson = (
         contentType,
         statusCode,
         dataFieldMap,
-        traceHashObj,
         dataFieldLength,
         newDataFieldMap,
         updatedDataFieldMap,
@@ -298,10 +279,9 @@ export const findBodyDataFields = (
   contentType: string,
   statusCode: number,
   dataFieldMap: Record<string, DataField>,
-  traceHashObj: Record<string, Set<string>>,
   dataFieldLength: DataFieldLength,
   newDataFieldMap: Record<string, DataField>,
-  updatedDataFieldMap: Record<string, UpdatedDataField>,
+  updatedDataFieldMap: Record<string, DataField>,
   traceTime: Date,
   mapDataFields: string[],
 ) => {
@@ -322,7 +302,6 @@ export const findBodyDataFields = (
           contentType,
           statusCode,
           dataFieldMap,
-          traceHashObj,
           dataFieldLength,
           newDataFieldMap,
           updatedDataFieldMap,
@@ -349,7 +328,6 @@ export const findBodyDataFields = (
           contentType,
           statusCode,
           dataFieldMap,
-          traceHashObj,
           dataFieldLength,
           newDataFieldMap,
           updatedDataFieldMap,
@@ -367,7 +345,6 @@ export const findBodyDataFields = (
         contentType,
         statusCode,
         dataFieldMap,
-        traceHashObj,
         dataFieldLength,
         newDataFieldMap,
         updatedDataFieldMap,
@@ -386,10 +363,9 @@ export const findPairObjectDataFields = (
   contentType: string,
   statusCode: number,
   dataFieldMap: Record<string, DataField>,
-  traceHashObj: Record<string, Set<string>>,
   dataFieldLength: DataFieldLength,
   newDataFieldMap: Record<string, DataField>,
-  updatedDataFieldMap: Record<string, UpdatedDataField>,
+  updatedDataFieldMap: Record<string, DataField>,
   traceTime: Date,
   mapDataFields: string[],
 ) => {
@@ -406,7 +382,6 @@ export const findPairObjectDataFields = (
         contentType,
         statusCode,
         dataFieldMap,
-        traceHashObj,
         dataFieldLength,
         newDataFieldMap,
         updatedDataFieldMap,
@@ -423,10 +398,9 @@ export const findPathDataFields = (
   endpointPath: string,
   apiEndpointUuid: string,
   dataFieldMap: Record<string, DataField>,
-  traceHashObj: Record<string, Set<string>>,
   dataFieldLength: DataFieldLength,
   newDataFieldMap: Record<string, DataField>,
-  updatedDataFieldMap: Record<string, UpdatedDataField>,
+  updatedDataFieldMap: Record<string, DataField>,
   traceTime: Date,
   mapDataFields: string[],
 ) => {
@@ -450,7 +424,6 @@ export const findPathDataFields = (
         "",
         -1,
         dataFieldMap,
-        traceHashObj,
         dataFieldLength,
         newDataFieldMap,
         updatedDataFieldMap,

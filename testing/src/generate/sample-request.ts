@@ -123,37 +123,8 @@ const recurseCreateBody = (
   }
 }
 
-const getRecentTraceHash = (traceHash: Record<string, number>) => {
-  let res: { hash: string | null; timestamp: number | null } = {
-    hash: null,
-    timestamp: null,
-  }
-  for (const hash in traceHash) {
-    if (!res.timestamp || traceHash[hash] > res.timestamp) {
-      res.hash = hash
-      res.timestamp = traceHash[hash]
-    }
-  }
-  return res
-}
-
 const getDataFieldInfo = (dataFields: GenTestEndpointDataField[]) => {
-  let contentType = dataFields[0].contentType
-  let traceHash = getRecentTraceHash(dataFields[0].traceHash)
-
-  for (const dataField of dataFields) {
-    const currTraceHash = getRecentTraceHash(dataField.traceHash)
-    if (
-      dataField.contentType &&
-      currTraceHash?.timestamp &&
-      traceHash?.timestamp &&
-      currTraceHash?.timestamp > traceHash?.timestamp
-    ) {
-      traceHash = { ...currTraceHash }
-      contentType = dataField.contentType
-    }
-  }
-  return { contentType, traceHash }
+  return dataFields[dataFields.length - 1].contentType
 }
 
 const addBodyToRequest = (
@@ -167,12 +138,9 @@ const addBodyToRequest = (
   if (dataFields.length == 0) {
     return gen
   }
-  const { contentType, traceHash } = getDataFieldInfo(dataFields)
+  const contentType = getDataFieldInfo(dataFields)
   const filteredDataFields = dataFields.filter(
-    e =>
-      e.contentType == contentType &&
-      traceHash.hash &&
-      e.traceHash[traceHash.hash],
+    e => e.contentType == contentType,
   )
   if (filteredDataFields.length === 0) {
     return gen
