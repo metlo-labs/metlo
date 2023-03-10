@@ -70,32 +70,28 @@ export const updateDataFields = async (
     return
   }
   try {
-    await retryTypeormTransaction(
-      () =>
-        insertValuesBuilder(ctx, queryRunner, DataField, dataFields)
-          .orUpdate(
-            [
-              "dataClasses",
-              "scannerIdentified",
-              "falsePositives",
-              "dataType",
-              "dataTag",
-              "updatedAt",
-              "lastSeen",
-              "isNullable",
-              "matches",
-            ],
-            [
-              "dataSection",
-              "dataPath",
-              "apiEndpointUuid",
-              "statusCode",
-              "contentType",
-            ],
-          )
-          .execute(),
-      5,
-    )
+    await insertValuesBuilder(ctx, queryRunner, DataField, dataFields)
+      .orUpdate(
+        [
+          "dataClasses",
+          "scannerIdentified",
+          "falsePositives",
+          "dataType",
+          "dataTag",
+          "updatedAt",
+          "lastSeen",
+          "isNullable",
+          "matches",
+        ],
+        [
+          "dataSection",
+          "dataPath",
+          "apiEndpointUuid",
+          "statusCode",
+          "contentType",
+        ],
+      )
+      .execute()
   } catch (err) {
     if (isQueryFailedError(err) && err.code === "23505") {
       if (queryRunner.isTransactionActive) {
