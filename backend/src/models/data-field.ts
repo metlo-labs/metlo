@@ -85,8 +85,8 @@ export class DataField extends MetloBaseEntity {
   @Column({ nullable: true })
   isNullable: boolean
 
-  @Column({ type: "jsonb", nullable: false, default: {} })
-  traceHash: Record<string, number>
+  @Column({ nullable: false, type: "timestamptz" })
+  lastSeen: Date
 
   @Column({ type: "jsonb", nullable: false, default: {} })
   matches: Record<string, string[]>

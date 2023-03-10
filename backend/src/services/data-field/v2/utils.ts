@@ -1,14 +1,9 @@
 import { DataSection, DataTag, DataType } from "@common/enums"
 import { DataField } from "models"
-import { getMapDataFields } from "../utils"
+import { getMapDataFields, UPDATE_DATA_FIELD_TIME_THRESHOLD } from "../utils"
 
 export interface DataFieldLength {
   numDataFields: number
-}
-
-export interface UpdatedDataField {
-  dataField: DataField
-  updated: boolean
 }
 
 interface ProcessedDataFieldData {
@@ -32,21 +27,6 @@ const nonNullDataSections = [
   DataSection.RESPONSE_BODY,
   DataSection.RESPONSE_HEADER,
 ]
-
-export const UPDATE_DATA_FIELD_TIME_THRESHOLD =
-  (parseInt(process.env.UPDATE_DATA_FIELD_TIME_THRESHOLD) || 60) * 1000
-
-const updateTraceHashObj = (
-  dataSection: DataSection,
-  dataPath: string,
-  traceHashObj: Record<string, Set<string>>,
-) => {
-  if (dataSection === DataSection.REQUEST_PATH) {
-    return
-  }
-  const key = dataPath ?? ""
-  traceHashObj[dataSection].add(key)
-}
 
 export const getContentTypeStatusCode = (
   dataSection: DataSection,
@@ -144,15 +124,13 @@ export const handleDataField = (
   dataType: DataType,
   contentType: string,
   statusCode: number,
-  traceHashObj: Record<string, Set<string>>,
   dataFieldLength: DataFieldLength,
   dataFieldMap: Record<string, DataField>,
   newDataFieldMap: Record<string, DataField>,
-  updatedDataFieldMap: Record<string, UpdatedDataField>,
+  updatedDataFieldMap: Record<string, DataField>,
   traceTime: Date,
   isGraphQl: boolean,
 ) => {
-  updateTraceHashObj(dataSection, dataPath, traceHashObj)
   let existingDataField: DataField = null
   let isNullKey = null
   const key = `${statusCode}_${contentType}_${dataSection}${
@@ -176,7 +154,6 @@ export const handleDataField = (
     dataField.dataType = dataType
     dataField.dataSection = dataSection
     dataField.apiEndpointUuid = apiEndpointUuid
-    dataField.traceHash = {}
     dataField.contentType = contentType ?? ""
     dataField.statusCode = statusCode ?? -1
     dataField.isNullable = dataType === DataType.UNKNOWN
@@ -185,6 +162,7 @@ export const handleDataField = (
     dataField.falsePositives = []
     dataField.createdAt = traceTime
     dataField.updatedAt = traceTime
+    dataField.lastSeen = traceTime
     if (dataField.dataClasses.length > 0) {
       dataField.dataTag = DataTag.PII
     }
@@ -224,18 +202,22 @@ export const handleDataField = (
       updated = true
     }
 
-    existingDataField.updatedAt = traceTime
-    if (isNullKey) {
-      dataFieldMap[existingNullKey] = existingDataField
-      updatedDataFieldMap[existingNullKey] = {
-        dataField: existingDataField,
-        updated,
-      }
-    } else if (isNullKey === false) {
-      dataFieldMap[key] = existingDataField
-      updatedDataFieldMap[key] = {
-        dataField: existingDataField,
-        updated,
+    if (
+      traceTime.getTime() - existingDataField.lastSeen.getTime() >
+      UPDATE_DATA_FIELD_TIME_THRESHOLD
+    ) {
+      updated = true
+    }
+
+    if (updated) {
+      existingDataField.updatedAt = traceTime
+      existingDataField.lastSeen = traceTime
+      if (isNullKey) {
+        dataFieldMap[existingNullKey] = existingDataField
+        updatedDataFieldMap[existingNullKey] = existingDataField
+      } else if (isNullKey === false) {
+        dataFieldMap[key] = existingDataField
+        updatedDataFieldMap[key] = existingDataField
       }
     }
   }
