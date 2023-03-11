@@ -2,7 +2,7 @@ use lazy_static::lazy_static;
 use reqwest::{Client, Url};
 
 use crate::{
-    trace::{ApiRequest, ApiResponse, ApiTrace, ProcessTraceRes, ProcessedApiTrace},
+    trace::{ApiRequest, ApiResponse, ApiTrace, ApiUrl, ProcessTraceRes, ProcessedApiTrace},
     METLO_CONFIG,
 };
 
@@ -31,7 +31,11 @@ async fn send_trace_inner(
                 } else {
                     ApiRequest {
                         method: trace.request.method,
-                        url: trace.request.url,
+                        url: ApiUrl {
+                            host: trace.request.url.host,
+                            path: trace.request.url.path,
+                            parameters: vec![],
+                        },
                         headers: vec![],
                         body: "".to_string(),
                     }

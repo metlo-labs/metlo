@@ -114,6 +114,7 @@ export const analyze = async (
 
   if (redact) {
     filteredApiTrace.redacted = true
+    filteredApiTrace.requestParameters = []
     filteredApiTrace.requestHeaders = []
     filteredApiTrace.responseHeaders = []
     filteredApiTrace.requestBody = ""
