@@ -33,11 +33,7 @@ export const updateMetloConfigHandler = async (
       await ApiResponseHandler.error(res, new Error422UnprocessableEntity(msg))
       return
     }
-    await updateMetloConfig(
-      req.ctx,
-      updateMetloConfigParams,
-      currentMetloConfig,
-    )
+    await updateMetloConfig(req.ctx, updateMetloConfigParams)
     await cleanupStoredDataClasses(
       req.ctx,
       currentMetloConfig,
