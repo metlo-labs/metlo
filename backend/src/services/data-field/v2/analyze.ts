@@ -1,6 +1,4 @@
-import crypto from "crypto"
 import { DataClass, QueuedApiTrace } from "@common/types"
-import { DataSection } from "@common/enums"
 import { ApiEndpoint, DataField } from "models"
 import { MetloContext } from "types"
 import { getRiskScore } from "utils"

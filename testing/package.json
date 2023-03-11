@@ -1,6 +1,6 @@
 {
   "name": "@metlo/testing",
-  "version": "0.3.10",
+  "version": "0.3.11",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -32,6 +32,7 @@
     "handlebars": "^4.7.7",
     "js-yaml": "^4.1.0",
     "jsdom": "^20.0.3",
+    "json-to-graphql-query": "^2.2.5",
     "lodash.clonedeep": "^4.5.0",
     "lodash.get": "^4.4.2",
     "peggy": "^2.0.1",

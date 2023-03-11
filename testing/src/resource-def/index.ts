@@ -57,6 +57,7 @@ export const processResourceConfig = (
         permissions: item.members.permissions || [],
         items: item.members.items || [],
         endpoints: item.members.endpoints || [],
+        graphql: item.members.graphql || [],
       }
     } else if (item.type == "permission_def") {
       out.permissions.push({

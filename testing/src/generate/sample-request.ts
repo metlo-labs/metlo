@@ -1,3 +1,4 @@
+import { jsonToGraphQLQuery } from "json-to-graphql-query"
 import { DataType } from "./enums"
 import { KeyValType } from "../types/test"
 import { DataSection } from "./enums"
@@ -80,13 +81,17 @@ const recurseCreateBody = (
   currTokenIndex: number,
   dataField: GenTestEndpointDataField,
   entityMap: Record<string, any>,
+  isGraphQl: boolean,
 ): any => {
   if (currTokenIndex > mapTokens.length - 1 || !mapTokens[currTokenIndex]) {
     return dataField.entity && entityMap[dataField.entity]
       ? entityMap[dataField.entity]
       : getSampleValue(dataField.dataType)
   } else {
-    const currToken = mapTokens?.[currTokenIndex]
+    let currToken = mapTokens?.[currTokenIndex]
+    if (isGraphQl && currToken === "_arg") {
+      currToken = "__args"
+    }
     if (currToken === "[]") {
       return [
         recurseCreateBody(
@@ -95,6 +100,7 @@ const recurseCreateBody = (
           currTokenIndex + 1,
           dataField,
           entityMap,
+          isGraphQl,
         ),
       ]
     } else if (currToken === "[string]") {
@@ -106,6 +112,7 @@ const recurseCreateBody = (
           currTokenIndex + 1,
           dataField,
           entityMap,
+          isGraphQl,
         ),
       }
     } else {
@@ -117,6 +124,7 @@ const recurseCreateBody = (
           currTokenIndex + 1,
           dataField,
           entityMap,
+          isGraphQl,
         ),
       }
     }
@@ -148,28 +156,17 @@ const addBodyToRequest = (
   let body: any = undefined
   for (const dataField of filteredDataFields) {
     const mapTokens = dataField.dataPath?.split(".")
-    body = recurseCreateBody(body, mapTokens, 0, dataField, ctx.entityMap)
+    body = recurseCreateBody(
+      body,
+      mapTokens,
+      0,
+      dataField,
+      ctx.entityMap,
+      ctx.endpoint.isGraphQl,
+    )
   }
-  if (contentType.includes("form")) {
-    return {
-      ...gen,
-      req: {
-        ...gen.req,
-        headers: (gen.req.headers || []).concat({
-          name: "Content-Type",
-          value: contentType,
-        }),
-        form: Object.entries(body).map(([key, val]) => ({
-          name: key,
-          value: val as string,
-        })),
-      },
-    }
-  } else if (
-    contentType.includes("json") ||
-    contentType == "*/*" ||
-    typeof body == "object"
-  ) {
+
+  if (ctx.endpoint.isGraphQl) {
     return {
       ...gen,
       req: {
@@ -178,20 +175,53 @@ const addBodyToRequest = (
           name: "Content-Type",
           value: "application/json",
         }),
-        data: JSON.stringify(body, null, 4),
+        data: jsonToGraphQLQuery(body),
       },
     }
-  } else if (typeof body == "string") {
-    return {
-      ...gen,
-      req: {
-        ...gen.req,
-        headers: (gen.req.headers || []).concat({
-          name: "Content-Type",
-          value: contentType,
-        }),
-        data: body,
-      },
+  } else {
+    if (contentType.includes("form")) {
+      return {
+        ...gen,
+        req: {
+          ...gen.req,
+          headers: (gen.req.headers || []).concat({
+            name: "Content-Type",
+            value: contentType,
+          }),
+          form: Object.entries(body).map(([key, val]) => ({
+            name: key,
+            value: val as string,
+          })),
+        },
+      }
+    } else if (
+      contentType.includes("json") ||
+      contentType == "*/*" ||
+      typeof body == "object"
+    ) {
+      return {
+        ...gen,
+        req: {
+          ...gen.req,
+          headers: (gen.req.headers || []).concat({
+            name: "Content-Type",
+            value: "application/json",
+          }),
+          data: JSON.stringify(body, null, 4),
+        },
+      }
+    } else if (typeof body == "string") {
+      return {
+        ...gen,
+        req: {
+          ...gen.req,
+          headers: (gen.req.headers || []).concat({
+            name: "Content-Type",
+            value: contentType,
+          }),
+          data: body,
+        },
+      }
     }
   }
   return gen

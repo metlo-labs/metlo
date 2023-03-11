@@ -32,6 +32,17 @@ const ContainsResourceFilterSchema = z.object({
   type: z.string().optional(),
 })
 
+const GraphqlContainsResourceFilterSchema = z.object({
+  type: z.string().optional(),
+})
+
+const GraphqlPermFilterSchema = z
+  .object({
+    contains_resource: GraphqlContainsResourceFilterSchema.optional(),
+    permissions: z.array(z.string()),
+  })
+  .strict()
+
 const EndpointPermFilterSchema = z
   .object({
     permissions: z.array(z.string()),
@@ -52,6 +63,7 @@ const ResourceDefSchema = z.object({
       permissions: z.array(z.string()).optional(),
       items: z.array(z.object({}).passthrough()).optional(),
       endpoints: z.array(EndpointPermFilterSchema).optional(),
+      graphql: z.array(GraphqlPermFilterSchema).optional(),
     })
     .strict(),
 })
@@ -95,6 +107,7 @@ const TestResourceDeclSchema = z.discriminatedUnion("type", [
 export const TestResourceConfigSchema = z.array(TestResourceDeclSchema)
 
 export type EndpointPermFilter = z.infer<typeof EndpointPermFilterSchema>
+export type GraphqlPermFilter = z.infer<typeof GraphqlPermFilterSchema>
 export type HostDef = z.infer<typeof HostDefSchema>
 export type ActorDef = z.infer<typeof ActorDefSchema>
 export type ResourceDef = z.infer<typeof ResourceDefSchema>
@@ -102,6 +115,9 @@ export type PermissionDef = z.infer<typeof PermissionDefSchema>
 export type TestResourceConfig = z.infer<typeof TestResourceConfigSchema>
 export type ContainsResourceFilter = z.infer<
   typeof ContainsResourceFilterSchema
+>
+export type GraphqlContainsResourceFilter = z.infer<
+  typeof GraphqlContainsResourceFilterSchema
 >
 
 export interface ParseErr {}
@@ -143,6 +159,7 @@ export interface Resource {
   permissions: string[]
   items: any[]
   endpoints: EndpointPermFilter[]
+  graphql: GraphqlPermFilter[]
 }
 
 export interface Actor {

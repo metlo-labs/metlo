@@ -9,8 +9,12 @@ export const getGenTestEndpointHandler = async (
   req: MetloRequest,
   res: Response,
 ): Promise<void> => {
-  const queryParams: { endpoint?: string; host?: string; method?: string } =
-    req.query
+  const queryParams: {
+    endpoint?: string
+    host?: string
+    method?: string
+    operationPath?: string
+  } = req.query
   if (!queryParams.endpoint) {
     return await ApiResponseHandler.error(
       res,
@@ -23,6 +27,7 @@ export const getGenTestEndpointHandler = async (
       queryParams.endpoint,
       queryParams.host,
       queryParams.method,
+      queryParams.operationPath,
     )
     if (!endpoint) {
       return await ApiResponseHandler.error(

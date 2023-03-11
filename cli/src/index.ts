@@ -38,6 +38,7 @@ test
   )
   .option("-h,--host <string>", "The host to generate this test for")
   .option("-x,--method <string>", "The method of the endpoint")
+  .option("-o,--operation <string>", "The graphql query/mutation/subscription to test")
   .action(generateTest)
 test
   .command("run")

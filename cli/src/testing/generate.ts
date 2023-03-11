@@ -98,6 +98,7 @@ export const generateTest = async ({
   method,
   endpoint,
   version,
+  operation: operationPath,
 }) => {
   const config = getConfig()
   const res = await axios.get<GenTestEndpoint>(
@@ -107,6 +108,7 @@ export const generateTest = async ({
         method: method,
         endpoint: endpoint,
         host: host,
+        operationPath: operationPath,
       },
       headers: {
         Authorization: config.apiKey,
