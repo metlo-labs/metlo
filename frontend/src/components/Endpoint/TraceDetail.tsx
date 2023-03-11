@@ -125,24 +125,6 @@ export const TraceView: React.FC<{
     numSensitiveDataMap[DataSection.RESPONSE_BODY]?.get(root)
   return (
     <VStack spacing="4" w="full" alignItems="flex-start">
-      <VStack h="full" w="full" alignItems="flex-start">
-        <HStack>
-          <Text fontWeight="semibold">Request Parameters </Text>
-          {reqQueryTotalSenData && (
-            <Text color="red.500">
-              ({reqQueryTotalSenData} PII Field
-              {reqQueryTotalSenData > 1 ? "s" : ""})
-            </Text>
-          )}
-        </HStack>
-        {JSONContentViewer(
-          JSON.stringify(trace.requestParameters),
-          colorMode,
-          undefined,
-          sensitiveDataMap[DataSection.REQUEST_QUERY],
-          numSensitiveDataMap[DataSection.REQUEST_QUERY],
-        )}
-      </VStack>
       {trace.redacted ?? false ? (
         <EmptyView>
           <Heading
@@ -157,6 +139,24 @@ export const TraceView: React.FC<{
         </EmptyView>
       ) : (
         <>
+          <VStack h="full" w="full" alignItems="flex-start">
+            <HStack>
+              <Text fontWeight="semibold">Request Parameters </Text>
+              {reqQueryTotalSenData && (
+                <Text color="red.500">
+                  ({reqQueryTotalSenData} PII Field
+                  {reqQueryTotalSenData > 1 ? "s" : ""})
+                </Text>
+              )}
+            </HStack>
+            {JSONContentViewer(
+              JSON.stringify(trace.requestParameters),
+              colorMode,
+              undefined,
+              sensitiveDataMap[DataSection.REQUEST_QUERY],
+              numSensitiveDataMap[DataSection.REQUEST_QUERY],
+            )}
+          </VStack>
           <VStack h="full" w="full" alignItems="flex-start">
             <HStack>
               <Text fontWeight="semibold">Request Headers </Text>

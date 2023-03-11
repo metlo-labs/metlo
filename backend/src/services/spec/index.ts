@@ -495,6 +495,7 @@ export class SpecService {
     trace: QueuedApiTrace,
     endpoint: ApiEndpoint,
     queryRunner: QueryRunner,
+    redact: boolean,
   ): Promise<Alert[]> {
     try {
       if (
@@ -551,12 +552,24 @@ export class SpecService {
         )
       }
 
+      const filteredApiTrace = {
+        ...trace,
+      }
+      if (redact) {
+        filteredApiTrace.redacted = true
+        filteredApiTrace.requestParameters = []
+        filteredApiTrace.requestHeaders = []
+        filteredApiTrace.responseHeaders = []
+        filteredApiTrace.requestBody = ""
+        filteredApiTrace.responseBody = ""
+      }
+
       const errorItems = { ...respErrorItems }
       return await createSpecDiffAlerts(
         ctx,
         errorItems,
         endpoint.uuid,
-        trace,
+        filteredApiTrace,
         openApiSpec,
         queryRunner,
       )

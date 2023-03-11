@@ -48,12 +48,28 @@ export const analyze = async (
   mlog.time("analyzer.find_data_fields", performance.now() - start1)
   mlog.debug(`Analyzing Trace - Found Datafields: ${traceUUID}`)
 
+  const globalFullTraceCapture = await getGlobalFullTraceCaptureCached(ctx)
+  let redact = !(globalFullTraceCapture || apiEndpoint.fullTraceCaptureEnabled)
+
+  const allSensitiveData = apiEndpoint.dataFields.map(e => e.dataClasses).flat()
+  const dataClassToSeverity = Object.fromEntries(
+    dataClasses.map(e => [e.className, e.severity]),
+  )
+  if (
+    allSensitiveData
+      .map(e => dataClassToSeverity[e])
+      .some(e => e == RiskScore.HIGH)
+  ) {
+    redact = true
+  }
+
   const start2 = performance.now()
   let alerts = await SpecService.findOpenApiSpecDiff(
     ctx,
     trace,
     apiEndpoint,
     queryRunner,
+    redact
   )
   mlog.time("analyzer.find_openapi_spec_diff", performance.now() - start2)
   mlog.debug(`Analyzing Trace - Found OpenAPI Spec Diffs: ${traceUUID}`)
@@ -65,6 +81,7 @@ export const analyze = async (
     apiEndpoint.uuid,
     trace,
     queryRunner,
+    redact,
   )
   alerts = alerts.concat(dataFieldAlerts)
   mlog.time("analyzer.create_data_field_alerts", performance.now() - start3)
@@ -97,23 +114,10 @@ export const analyze = async (
     apiEndpoint.path,
     dataFields.mapDataFields,
   )
-  const globalFullTraceCapture = await getGlobalFullTraceCaptureCached(ctx)
-  let redact = !(globalFullTraceCapture || apiEndpoint.fullTraceCaptureEnabled)
-
-  const allSensitiveData = apiEndpoint.dataFields.map(e => e.dataClasses).flat()
-  const dataClassToSeverity = Object.fromEntries(
-    dataClasses.map(e => [e.className, e.severity]),
-  )
-  if (
-    allSensitiveData
-      .map(e => dataClassToSeverity[e])
-      .some(e => e == RiskScore.HIGH)
-  ) {
-    redact = true
-  }
 
   if (redact) {
     filteredApiTrace.redacted = true
+    filteredApiTrace.requestParameters = []
     filteredApiTrace.requestHeaders = []
     filteredApiTrace.responseHeaders = []
     filteredApiTrace.requestBody = ""
