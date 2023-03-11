@@ -33,8 +33,7 @@ export const isSuspectedParamater = (
   const splitParam = value.split(/[-_]/)
   for (const token of splitParam) {
     if (
-      !wordJson[token.toLowerCase()] ||
-      !customWords.has(token.toLowerCase())
+      !(wordJson[token.toLowerCase()] || customWords.has(token.toLowerCase()))
     ) {
       return true
     }
