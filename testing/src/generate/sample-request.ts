@@ -175,7 +175,14 @@ const addBodyToRequest = (
           name: "Content-Type",
           value: "application/json",
         }),
-        data: jsonToGraphQLQuery(body),
+        data: JSON.stringify(
+          {
+            query: jsonToGraphQLQuery(body),
+            variables: {},
+          },
+          undefined,
+          4,
+        ),
       },
     }
   } else {
