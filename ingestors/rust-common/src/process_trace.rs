@@ -50,7 +50,7 @@ fn fix_path(path: &str, response_alias_map: Option<&HashMap<String, String>>) ->
     if let Some(map) = response_alias_map {
         if let Some(s) = map.get(path) {
             s.clone()
-        } else if path.contains("[]") {
+        } else {
             let split_path = path.split('.');
             let mut non_array_path_vec = vec![];
             let mut array_token_idx = vec![];
@@ -61,17 +61,31 @@ fn fix_path(path: &str, response_alias_map: Option<&HashMap<String, String>>) ->
                     non_array_path_vec.push(token)
                 }
             }
-            if let Some(s) = map.get(&non_array_path_vec.join(".")) {
+            let mut match_idx = 0;
+            let mut matched_path = None;
+            for range in (2..non_array_path_vec.len()).rev() {
+                let slice = &non_array_path_vec[..range].join(".");
+                if let Some(tmp_path) = map.get(slice) {
+                    match_idx = range;
+                    matched_path = Some(tmp_path);
+                    break;
+                }
+            }
+            if let Some(s) = matched_path {
+                let remaining_path = &non_array_path_vec[match_idx..];
                 let mut resolved_path_vec = s.split('.').collect::<Vec<&str>>();
+                if !remaining_path.is_empty() {
+                    resolved_path_vec.extend(remaining_path)
+                }
                 for idx in array_token_idx {
-                    resolved_path_vec.insert(idx, "[]");
+                    if idx > 1 {
+                        resolved_path_vec.insert(idx, "[]");
+                    }
                 }
                 resolved_path_vec.join(".")
             } else {
                 path.to_owned()
             }
-        } else {
-            path.to_owned()
         }
     } else {
         path.to_owned()
@@ -404,7 +418,7 @@ fn combine_process_trace_res(
     results: &[Option<ProcessTraceResInner>],
     request_content_type: Option<&String>,
     response_content_type: Option<&String>,
-    proc_graph_ql: Option<GraphQlData>,
+    proc_graph_ql: Option<Vec<GraphQlData>>,
 ) -> ProcessTraceRes {
     let mut block = false;
     let mut xss_detected: HashMap<String, String> = HashMap::new();
@@ -442,7 +456,7 @@ fn combine_process_trace_res(
         validation_errors: (!validation_errors.is_empty()).then_some(validation_errors),
         request_content_type: request_content_type.unwrap_or(&"".to_owned()).to_owned(),
         response_content_type: response_content_type.unwrap_or(&"".to_owned()).to_owned(),
-        graph_ql_data: proc_graph_ql,
+        graph_ql_data: proc_graph_ql.unwrap_or_default(),
     }
 }
 
@@ -460,7 +474,7 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
 
     let mut openapi_spec_name: Option<String> = None;
     let mut full_trace_capture_enabled: bool = false;
-    let mut is_graph_ql: bool = trace.request.url.path == "/graphql";
+    let mut is_graph_ql: bool = trace.request.url.path.ends_with("/graphql");
     let mut endpoint_path: String = trace.request.url.path.clone();
     let split_path: Vec<&str> = get_split_path(&trace.request.url.path);
     let conf_read = METLO_CONFIG.try_read();
@@ -565,13 +579,13 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
                 proc_resp_headers,
                 proc_graph_ql
                     .as_ref()
-                    .and_then(|f| f.proc_trace_res.to_owned()),
+                    .and_then(|f| Some(f.proc_trace_res.to_owned())),
             ],
             req_content_type,
             resp_content_type,
             proc_graph_ql
                 .as_ref()
-                .and_then(|f| f.graph_ql_data.to_owned()),
+                .and_then(|f| Some(f.graph_ql_data.to_owned())),
         ),
         full_trace_capture_enabled,
     )
