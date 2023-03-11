@@ -66,6 +66,7 @@ export const analyze = async (
     apiEndpoint.uuid,
     apiTrace,
     queryRunner,
+    false,
   )
   alerts = alerts.concat(dataFieldAlerts)
   mlog.time("analyzer.create_data_field_alerts", performance.now() - start3)
