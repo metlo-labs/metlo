@@ -10,9 +10,8 @@ export const getGraphQlPaths = () => {
 }
 
 export const isGraphQlEndpoint = (path: string) => {
-  if (getGraphQlPaths().includes(path)) {
-    return true
-  }
+  const graphQlPaths = getGraphQlPaths()
+  return graphQlPaths.some(e => path.endsWith(e))
 }
 
 export const uploadGraphQlSchema = async (
