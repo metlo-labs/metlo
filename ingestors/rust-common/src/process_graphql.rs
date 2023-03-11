@@ -166,9 +166,7 @@ fn process_graphql_operation_item<'a>(
                         total_runs,
                     )
                 }
-                if f.selection_set.items.is_empty() {
-                    response_alias_map.insert(curr_alias.clone(), curr_regular.clone());
-                }
+                response_alias_map.insert(curr_alias.clone(), curr_regular.clone());
                 let mut operation_items: Vec<OperationItem> = vec![];
                 process_graphql_operation_item(
                     &curr_path,
@@ -408,11 +406,11 @@ fn process_graphql_res(
     }
 
     Some(GraphQlRes {
-        graph_ql_data: Some(GraphQlData {
+        graph_ql_data: vec![GraphQlData {
             operation_name,
             operations,
-        }),
-        proc_trace_res: Some(ProcessTraceResInner {
+        }],
+        proc_trace_res: ProcessTraceResInner {
             block: !(xss_detected.is_empty() && sqli_detected.is_empty()),
             xss_detected: (!xss_detected.is_empty()).then_some(xss_detected),
             sqli_detected: (!sqli_detected.is_empty()).then_some(sqli_detected),
@@ -420,29 +418,76 @@ fn process_graphql_res(
                 .then_some(sensitive_data_detected),
             data_types: (!data_types.is_empty()).then_some(data_types),
             validation_errors: None,
-        }),
+        },
         response_alias_map,
     })
 }
 
+fn process_graphql_obj(m: &Map<String, Value>) -> Option<GraphQlRes> {
+    let query = m.get("query");
+    let default_map = Map::new();
+    let variables_map: &Map<String, Value> = match m.get("variables") {
+        Some(v) => v.as_object().unwrap(),
+        None => &default_map,
+    };
+    let operation_name = match m.get("operationName") {
+        Some(Value::String(s)) => Some(s.to_owned()),
+        _ => None,
+    };
+    if let Some(Value::String(q)) = query {
+        process_graphql_res(q, operation_name, variables_map, "reqBody".to_owned())
+    } else {
+        None
+    }
+}
+
 pub fn process_graphql_body(body: &str) -> Option<GraphQlRes> {
     match serde_json::from_str(body) {
-        Ok(Value::Object(m)) => {
-            let query = m.get("query");
-            let default_map = Map::new();
-            let variables_map: &Map<String, Value> = match m.get("variables") {
-                Some(v) => v.as_object().unwrap(),
-                None => &default_map,
-            };
-            let operation_name = match m.get("operationName") {
-                Some(Value::String(s)) => Some(s.to_owned()),
-                _ => None,
-            };
-            if let Some(Value::String(q)) = query {
-                process_graphql_res(q, operation_name, variables_map, "reqBody".to_owned())
-            } else {
-                None
+        Ok(Value::Object(m)) => process_graphql_obj(&m),
+        Ok(Value::Array(a)) => {
+            let mut block = false;
+            let mut xss_detected: HashMap<String, String> = HashMap::new();
+            let mut sqli_detected: HashMap<String, (String, String)> = HashMap::new();
+            let mut sensitive_data_detected: HashMap<String, HashSet<String>> = HashMap::new();
+            let mut data_types: HashMap<String, HashSet<String>> = HashMap::new();
+            let mut response_alias_map: HashMap<String, String> = HashMap::new();
+            let mut graphql_data: Vec<GraphQlData> = vec![];
+            for item in a.iter() {
+                if let Value::Object(m) = item {
+                    let res = process_graphql_obj(m);
+                    if let Some(r) = res {
+                        block |= r.proc_trace_res.block;
+                        graphql_data.extend(r.graph_ql_data);
+                        if let Some(e_xss) = r.proc_trace_res.xss_detected {
+                            xss_detected.extend(e_xss);
+                        }
+                        if let Some(e_sqli) = r.proc_trace_res.sqli_detected {
+                            sqli_detected.extend(e_sqli);
+                        }
+                        if let Some(e_sensitive_data) = r.proc_trace_res.sensitive_data_detected {
+                            sensitive_data_detected.extend(e_sensitive_data);
+                        }
+                        if let Some(e_data_types) = r.proc_trace_res.data_types {
+                            data_types.extend(e_data_types);
+                        }
+                        response_alias_map.extend(r.response_alias_map);
+                    }
+                }
             }
+
+            Some(GraphQlRes {
+                graph_ql_data: graphql_data,
+                proc_trace_res: ProcessTraceResInner {
+                    block,
+                    xss_detected: (!xss_detected.is_empty()).then_some(xss_detected),
+                    sqli_detected: (!sqli_detected.is_empty()).then_some(sqli_detected),
+                    sensitive_data_detected: (!sensitive_data_detected.is_empty())
+                        .then_some(sensitive_data_detected),
+                    data_types: (!data_types.is_empty()).then_some(data_types),
+                    validation_errors: None,
+                },
+                response_alias_map,
+            })
         }
         Err(_) => {
             log::debug!("Invalid JSON");

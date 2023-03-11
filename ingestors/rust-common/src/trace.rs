@@ -69,7 +69,7 @@ pub struct ProcessTraceRes {
     pub validation_errors: Option<HashMap<String, Vec<String>>>,
     pub request_content_type: String,
     pub response_content_type: String,
-    pub graph_ql_data: Option<GraphQlData>,
+    pub graph_ql_data: Vec<GraphQlData>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -117,7 +117,7 @@ pub struct GraphQlData {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GraphQlRes {
-    pub graph_ql_data: Option<GraphQlData>,
-    pub proc_trace_res: Option<ProcessTraceResInner>,
+    pub graph_ql_data: Vec<GraphQlData>,
+    pub proc_trace_res: ProcessTraceResInner,
     pub response_alias_map: HashMap<String, String>,
 }

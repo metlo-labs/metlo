@@ -102,7 +102,7 @@ export interface ProcessedTraceData {
   requestContentType: string
   responseContentType: string
   validationErrors: Record<string, string[]>
-  graphQlData: GraphQlData
+  graphQlData: GraphQlData[]
 }
 
 export interface TraceParams {
