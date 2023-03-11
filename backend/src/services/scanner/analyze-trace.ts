@@ -14,6 +14,7 @@ export const getSensitiveDataMap = (
   dataClasses: DataClass[],
   apiTrace: ApiTrace,
   apiEndpointPath: string,
+  mapDataFields: string[],
 ): Record<DataFieldKey, string[]> => {
   const statusCode = apiTrace.responseStatus
   const { reqContentType, resContentType } = getContentTypes(
@@ -26,6 +27,7 @@ export const getSensitiveDataMap = (
     apiTrace.path,
     apiEndpointPath,
     sensitiveDataMap,
+    mapDataFields,
   )
   if (statusCode < 400) {
     findPairObjectSensitiveData(
@@ -35,6 +37,7 @@ export const getSensitiveDataMap = (
       "",
       -1,
       sensitiveDataMap,
+      mapDataFields,
     )
     findPairObjectSensitiveData(
       dataClasses,
@@ -43,6 +46,7 @@ export const getSensitiveDataMap = (
       "",
       -1,
       sensitiveDataMap,
+      mapDataFields,
     )
     findBodySensitiveData(
       dataClasses,
@@ -51,6 +55,7 @@ export const getSensitiveDataMap = (
       reqContentType,
       -1,
       sensitiveDataMap,
+      mapDataFields,
     )
   }
   findPairObjectSensitiveData(
@@ -60,6 +65,7 @@ export const getSensitiveDataMap = (
     "",
     statusCode,
     sensitiveDataMap,
+    mapDataFields,
   )
   findBodySensitiveData(
     dataClasses,
@@ -68,6 +74,7 @@ export const getSensitiveDataMap = (
     resContentType,
     statusCode,
     sensitiveDataMap,
+    mapDataFields,
   )
   return sensitiveDataMap
 }

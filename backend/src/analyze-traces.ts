@@ -25,29 +25,6 @@ import { analyze as analyzeV2 } from "services/analyze/v2"
 import { analyze } from "services/analyze/v1"
 import { getHostMapCached, getWordList } from "services/metlo-config"
 
-export const getDataFieldsQuery = (ctx: MetloContext) => `
-SELECT
-  uuid,
-  "dataClasses"::text[],
-  "falsePositives"::text[],
-  "scannerIdentified"::text[],
-  "dataType",
-  "dataTag",
-  "dataSection",
-  "createdAt",
-  "updatedAt",
-  "dataPath",
-  "apiEndpointUuid",
-  "statusCode",
-  "contentType",
-  "arrayFields",
-  "isNullable"
-FROM
-  ${DataField.getTableName(ctx)} data_field
-WHERE
-  "apiEndpointUuid" = $1
-`
-
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms))
 
 const getQueuedApiTrace = async (): Promise<{
@@ -93,33 +70,28 @@ export const updateDataFields = async (
     return
   }
   try {
-    await retryTypeormTransaction(
-      () =>
-        insertValuesBuilder(ctx, queryRunner, DataField, dataFields)
-          .orUpdate(
-            [
-              "dataClasses",
-              "scannerIdentified",
-              "falsePositives",
-              "dataType",
-              "dataTag",
-              "updatedAt",
-              "arrayFields",
-              "isNullable",
-              "traceHash",
-              "matches",
-            ],
-            [
-              "dataSection",
-              "dataPath",
-              "apiEndpointUuid",
-              "statusCode",
-              "contentType",
-            ],
-          )
-          .execute(),
-      5,
-    )
+    await insertValuesBuilder(ctx, queryRunner, DataField, dataFields)
+      .orUpdate(
+        [
+          "dataClasses",
+          "scannerIdentified",
+          "falsePositives",
+          "dataType",
+          "dataTag",
+          "updatedAt",
+          "lastSeen",
+          "isNullable",
+          "matches",
+        ],
+        [
+          "dataSection",
+          "dataPath",
+          "apiEndpointUuid",
+          "statusCode",
+          "contentType",
+        ],
+      )
+      .execute()
   } catch (err) {
     if (isQueryFailedError(err) && err.code === "23505") {
       if (queryRunner.isTransactionActive) {
@@ -135,9 +107,8 @@ export const updateDataFields = async (
             "dataType",
             "dataTag",
             "updatedAt",
-            "arrayFields",
+            "lastSeen",
             "isNullable",
-            "traceHash",
             "matches",
             "statusCode",
             "contentType",

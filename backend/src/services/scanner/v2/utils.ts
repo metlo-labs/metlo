@@ -1,4 +1,5 @@
 import { DataSection } from "@common/enums"
+import { getMapDataFields } from "services/data-field/utils"
 import { getContentTypeStatusCode } from "services/data-field/v2/utils"
 
 export const getSensitiveDataFieldDataFromProcessedData = (
@@ -6,29 +7,42 @@ export const getSensitiveDataFieldDataFromProcessedData = (
   requestContentType: string,
   responseContentType: string,
   statusCode: number,
+  mapDataFields: string[],
 ) => {
-  let currPath = ""
+  let tmpMapDataFields = [...mapDataFields]
   const splitPath = dataPath.split(".")
-  const dataSection = splitPath[0] as DataSection
-  let updated = false
-  for (let i = 1; i < splitPath.length; i++) {
-    const token = splitPath[i]
-    if (token === "[]") {
-      continue
-    }
-    if (updated) {
-      currPath += `.${token}`
-    } else {
-      currPath += token
-      updated = true
-    }
-  }
+  const dataSection = splitPath.shift() as DataSection
   const info = getContentTypeStatusCode(
     dataSection,
     requestContentType,
     responseContentType,
     statusCode,
   )
+  let currPath = ""
+  for (const path of splitPath) {
+    let response = {
+      key: path,
+      filteredMapDataFields: null,
+    }
+    if (path !== "[]") {
+      response = getMapDataFields(
+        info.statusCode,
+        info.contentType,
+        dataSection,
+        currPath || null,
+        path,
+        tmpMapDataFields,
+      )
+    }
+    if (currPath.length === 0) {
+      currPath += response.key
+    } else {
+      currPath += `.${response.key}`
+    }
+    if (response.filteredMapDataFields) {
+      tmpMapDataFields = response.filteredMapDataFields
+    }
+  }
   return {
     dataPath: currPath,
     contentType: info.contentType,

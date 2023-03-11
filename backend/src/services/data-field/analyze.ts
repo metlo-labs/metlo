@@ -1,4 +1,3 @@
-import crypto from "crypto"
 import { DataClass, QueuedApiTrace } from "@common/types"
 import { DataSection } from "@common/enums"
 import { ApiEndpoint, DataField } from "models"
@@ -10,24 +9,25 @@ import {
   findPairObjectDataFields,
   findBodyDataFields,
   DataFieldLength,
-  UpdatedDataField,
-  UPDATE_DATA_FIELD_TIME_THRESHOLD,
 } from "./utils"
 
 const getCurrentDataFieldsMap = (
   dataFields: DataField[],
-): [Record<string, DataField>, number] => {
+): [Record<string, DataField>, string[], number] => {
   let currNumDataFields = 0
   const res = {}
+  const mapDataFields = []
   dataFields.forEach(item => {
     currNumDataFields += 1
-    res[
-      `${item.statusCode}_${item.contentType}_${item.dataSection}${
-        item.dataPath ? `.${item.dataPath}` : ""
-      }`
-    ] = item
+    const key = `${item.statusCode}_${item.contentType}_${item.dataSection}${
+      item.dataPath ? `.${item.dataPath}` : ""
+    }`
+    res[key] = item
+    if (item.dataPath.includes("[string]")) {
+      mapDataFields.push(key)
+    }
   })
-  return [res, currNumDataFields]
+  return [res, mapDataFields, currNumDataFields]
 }
 
 const findAllDataFields = (
@@ -35,11 +35,11 @@ const findAllDataFields = (
   apiTrace: QueuedApiTrace,
   apiEndpointPath: string,
   apiEndpointUuid: string,
-  traceHashObj: Record<string, Set<string>>,
   dataFieldLength: DataFieldLength,
   dataFieldMap: Record<string, DataField>,
   newDataFieldMap: Record<string, DataField>,
-  updatedDataFieldMap: Record<string, UpdatedDataField>,
+  updatedDataFieldMap: Record<string, DataField>,
+  mapDataFields: string[],
 ) => {
   const statusCode = apiTrace.responseStatus
   const { reqContentType, resContentType } = getContentTypes(
@@ -53,11 +53,11 @@ const findAllDataFields = (
     apiEndpointPath,
     apiEndpointUuid,
     dataFieldMap,
-    traceHashObj,
     dataFieldLength,
     newDataFieldMap,
     updatedDataFieldMap,
     apiTrace.createdAt,
+    mapDataFields,
   )
   if (statusCode < 400) {
     findPairObjectDataFields(
@@ -68,11 +68,11 @@ const findAllDataFields = (
       "",
       -1,
       dataFieldMap,
-      traceHashObj,
       dataFieldLength,
       newDataFieldMap,
       updatedDataFieldMap,
       apiTrace.createdAt,
+      mapDataFields,
     )
     findPairObjectDataFields(
       ctx,
@@ -82,11 +82,11 @@ const findAllDataFields = (
       "",
       -1,
       dataFieldMap,
-      traceHashObj,
       dataFieldLength,
       newDataFieldMap,
       updatedDataFieldMap,
       apiTrace.createdAt,
+      mapDataFields,
     )
     findBodyDataFields(
       ctx,
@@ -96,11 +96,11 @@ const findAllDataFields = (
       reqContentType,
       -1,
       dataFieldMap,
-      traceHashObj,
       dataFieldLength,
       newDataFieldMap,
       updatedDataFieldMap,
       apiTrace.createdAt,
+      mapDataFields,
     )
   }
   findPairObjectDataFields(
@@ -111,11 +111,11 @@ const findAllDataFields = (
     "",
     statusCode,
     dataFieldMap,
-    traceHashObj,
     dataFieldLength,
     newDataFieldMap,
     updatedDataFieldMap,
     apiTrace.createdAt,
+    mapDataFields,
   )
   findBodyDataFields(
     ctx,
@@ -125,11 +125,11 @@ const findAllDataFields = (
     resContentType,
     statusCode,
     dataFieldMap,
-    traceHashObj,
     dataFieldLength,
     newDataFieldMap,
     updatedDataFieldMap,
     apiTrace.createdAt,
+    mapDataFields,
   )
 }
 
@@ -138,66 +138,32 @@ export const findDataFieldsToSave = (
   apiTrace: QueuedApiTrace,
   apiEndpoint: ApiEndpoint,
   dataClasses: DataClass[],
-): DataField[] => {
-  const traceHashObj: Record<string, Set<string>> = {
-    [DataSection.REQUEST_HEADER]: new Set<string>([]),
-    [DataSection.REQUEST_QUERY]: new Set<string>([]),
-    [DataSection.REQUEST_BODY]: new Set<string>([]),
-    [DataSection.RESPONSE_HEADER]: new Set<string>([]),
-    [DataSection.RESPONSE_BODY]: new Set<string>([]),
-  }
-  const [currentDataFieldMap, currNumDataFields] = getCurrentDataFieldsMap(
-    apiEndpoint.dataFields,
-  )
+): { dataFields: DataField[]; mapDataFields: string[] } => {
+  const [currentDataFieldMap, mapDataFields, currNumDataFields] =
+    getCurrentDataFieldsMap(apiEndpoint.dataFields)
   const newDataFieldMap: Record<string, DataField> = {}
-  const updatedDataFieldMap: Record<string, UpdatedDataField> = {}
+  const updatedDataFieldMap: Record<string, DataField> = {}
   const dataFieldLength: DataFieldLength = { numDataFields: currNumDataFields }
   findAllDataFields(
     ctx,
     apiTrace,
     apiEndpoint?.path,
     apiEndpoint?.uuid,
-    traceHashObj,
     dataFieldLength,
     currentDataFieldMap,
     newDataFieldMap,
     updatedDataFieldMap,
+    mapDataFields,
   )
 
-  let traceHashArray = []
-  const sortedTraceHashObjKeys = Object.keys(traceHashObj).sort()
-  for (const section of sortedTraceHashObjKeys) {
-    traceHashArray = traceHashArray.concat([...traceHashObj[section]].sort())
-  }
-  const hash = crypto
-    .createHash("sha256")
-    .update(traceHashArray.join())
-    .digest("base64")
-  const currentTimestamp = apiTrace.createdAt.getTime()
-  const resDataFields: DataField[] = []
-
-  for (const key in newDataFieldMap) {
-    newDataFieldMap[key].traceHash = { [hash]: currentTimestamp }
-    resDataFields.push(newDataFieldMap[key])
-  }
-
-  for (const key in updatedDataFieldMap) {
-    const currDataField = updatedDataFieldMap[key].dataField
-    if (
-      updatedDataFieldMap[key].updated ||
-      !currDataField.traceHash?.[hash] ||
-      currentTimestamp - currDataField.traceHash?.[hash] >
-        UPDATE_DATA_FIELD_TIME_THRESHOLD
-    ) {
-      currDataField.traceHash[hash] = currentTimestamp
-      resDataFields.push(currDataField)
-    }
-  }
+  const resDataFields: DataField[] = Object.values(newDataFieldMap).concat(
+    Object.values(updatedDataFieldMap),
+  )
 
   apiEndpoint.riskScore = getRiskScore(
     Object.values(currentDataFieldMap) ?? [],
     dataClasses,
   )
 
-  return resDataFields
+  return { dataFields: resDataFields, mapDataFields }
 }

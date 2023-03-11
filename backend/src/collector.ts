@@ -27,6 +27,9 @@ app.use(async (req: MetloRequest, res, next) => {
 app.get("/api/v1", (req: Request, res: Response) => {
   res.send("OK")
 })
+app.get("/api/v2", (req: Request, res: Response) => {
+  res.send("OK")
+})
 
 app.use(express.json({ limit: "2mb" }))
 app.use(express.urlencoded({ limit: "2mb", extended: true }))
@@ -34,7 +37,8 @@ app.use(verifyApiKeyMiddleware)
 app.use("/api/v1", router)
 app.use("/api/v2", routerV2)
 registerVerificationRoutes(router)
-app.use(bodyParserMiddleware)
+registerVerificationRoutes(routerV2)
+router.use(bodyParserMiddleware)
 
 registerLoggingRoutes(router)
 registerLoggingRoutesV2(routerV2)

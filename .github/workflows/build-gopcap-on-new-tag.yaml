@@ -1,0 +1,32 @@
+name: Build GoPcap on new tag creation
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  build-gopcap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        name: Checkout Directory
+      - name: Build Image
+        uses: docker/build-push-action@v4
+        with:
+          push: false
+          context: .
+          file: ./deploy/govxlan/Dockerfile
+          tags: metlo/agent:local
+      - name: Extract binaries
+        run: |
+          docker create --name dummy metlo/agent:local
+          docker cp dummy:/app/metlo-pcap metlo-pcap
+          docker cp dummy:/app/metlo-agent metlo-agent
+          docker rm -f dummy
+          tar -czvf metlo_traffic_mirror_linux_amd64.tar.gz metlo-pcap metlo-agent
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            metlo_traffic_mirror_linux_amd64.tar.gz

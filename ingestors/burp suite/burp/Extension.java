@@ -1,5 +1,6 @@
 package burp;
 
+import burp.metlo.PingHome;
 import burp.metlo.RateLimitedRequests;
 
 import java.awt.*;
@@ -16,6 +17,8 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
 public class Extension extends AbstractTableModel implements IBurpExtender, ITab, IHttpListener, IMessageEditorController {
+    private final static String endpoint_log_single = "api/v1/log-request/single";
+    private final static String endpoint_ping = "api/v1/verify";
     private final List<LogEntry> log = new ArrayList<>();
     private final String METLO_APIKEY_KEY = "METLO_API_KEY";
     private final String METLO_URL_KEY = "METLO_URL_KEY";
@@ -127,6 +130,24 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
         return _formatted_headers_;
     }
 
+    private void validateConfig() {
+        try {
+            String url = this.metloUrl;
+            if (url != null) {
+                if (!url.endsWith("/")) {
+                    url += "/";
+                }
+                url += Extension.endpoint_ping;
+            }
+            new PingHome(url, this.metloApiKey, this.out, this.err).ping();
+        } catch (Exception err) {
+            err.printStackTrace(this.err);
+            this.metloUrl = "";
+            this.metloApiKey = "";
+        }
+    }
+
+
     //
     // implement IBurpExtender
     //
@@ -147,37 +168,44 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
         try {
             List<String> f = Files.readAllLines(Paths.get("/Users/" + System.getProperty("user.name") + "/.metlo/credentials"), StandardCharsets.UTF_8);
             for (String line : f) {
-                if (line.contains("REQUESTS_PER_SEC")) {
+                if (line.startsWith("REQUESTS_PER_SEC")) {
                     this.rps = Integer.parseInt(line.substring("REQUESTS_PER_SEC=".length()));
                     this.out.println("Loaded Requests/s from config. Set to " + this.rps);
                 }
-                if (line.contains("MAX_THREADS")) {
+                if (line.startsWith("MAX_THREADS")) {
                     this.threads = Integer.parseInt(line.substring("MAX_THREADS=".length()));
                     this.out.println("Loaded Max Threads from config. Set max threads to " + this.threads);
                 }
+            }
+            if (this.rps == null) {
+                this.rps = 100;
+            }
+            if (this.threads == null) {
+                this.threads = 2;
             }
         } catch (Exception e) {
             this.rps = 100;
             this.threads = 2;
         }
 
-        metloUrl = callbacks.loadExtensionSetting(METLO_URL_KEY);
-        metloUrlWithEndpoint = metloUrl;
-        if (metloUrl != null) {
-            if (!metloUrl.endsWith("/")) {
-                metloUrlWithEndpoint += "/";
+        Extension.this.metloUrl = callbacks.loadExtensionSetting(METLO_URL_KEY);
+        Extension.this.metloUrlWithEndpoint = Extension.this.metloUrl;
+        if (Extension.this.metloUrl != null) {
+            if (!Extension.this.metloUrl.endsWith("/")) {
+                Extension.this.metloUrlWithEndpoint += "/";
             }
-            metloUrlWithEndpoint += "api/v1/log-request/single";
+            Extension.this.metloUrlWithEndpoint += Extension.endpoint_log_single;
         }
-        metloApiKey = callbacks.loadExtensionSetting(METLO_APIKEY_KEY);
+        Extension.this.metloApiKey = callbacks.loadExtensionSetting(METLO_APIKEY_KEY);
 
-        this.requests = new RateLimitedRequests(this.rps,
-                this.threads,
+        Extension.this.requests = new RateLimitedRequests(Extension.this.rps,
+                Extension.this.threads,
                 metloUrlWithEndpoint,
                 metloApiKey,
-                this.out,
-                this.err
+                Extension.this.out,
+                Extension.this.err
         );
+        validateConfig();
 
         // create our UI
         SwingUtilities.invokeLater(() -> {
@@ -233,19 +261,27 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
 
                 saveBtn.setText("Save Config");
                 saveBtn.addActionListener((e) -> {
-                    metloUrl = urlTextField.getText();
-                    metloUrlWithEndpoint = metloUrl;
-                    if (metloUrl != null) {
-                        if (!metloUrl.endsWith("/")) {
-                            metloUrlWithEndpoint += "/";
+                    Extension.this.metloUrl = urlTextField.getText();
+                    Extension.this.metloUrlWithEndpoint = metloUrl;
+                    if (Extension.this.metloUrl != null) {
+                        if (!Extension.this.metloUrl.endsWith("/")) {
+                            Extension.this.metloUrlWithEndpoint += "/";
                         }
-                        metloUrlWithEndpoint += "api/v1/log-request/single";
+                        Extension.this.metloUrlWithEndpoint += Extension.endpoint_log_single;
                     }
-                    metloApiKey = apiKeyPasswordField.getText();
-                    Extension.this.callbacks.saveExtensionSetting(METLO_URL_KEY, metloUrl);
-                    Extension.this.callbacks.saveExtensionSetting(METLO_APIKEY_KEY, metloApiKey);
+                    Extension.this.metloApiKey = apiKeyPasswordField.getText();
+                    Extension.this.callbacks.saveExtensionSetting(METLO_URL_KEY, Extension.this.metloUrl);
+                    Extension.this.callbacks.saveExtensionSetting(METLO_APIKEY_KEY, Extension.this.metloApiKey);
                     out.println("Updated config for Metlo");
-                    requests = new RateLimitedRequests(10, 10, metloUrlWithEndpoint, metloApiKey, out, err);
+                    requests = new RateLimitedRequests(
+                            Extension.this.rps,
+                            Extension.this.threads,
+                            Extension.this.metloUrlWithEndpoint,
+                            Extension.this.metloApiKey,
+                            Extension.this.out,
+                            Extension.this.err
+                    );
+                    validateConfig();
                 });
 
                 saveBtn.setBackground(new Color(2384017)); // Corresponds to rgb 66, 76, 249

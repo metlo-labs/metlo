@@ -36,6 +36,7 @@ export const createDataFieldAlerts = async (
   apiEndpointUuid: string,
   apiTrace: QueuedApiTrace,
   queryRunner: QueryRunner,
+  redact: boolean,
 ): Promise<Alert[]> => {
   try {
     if (!dataFields) {
@@ -78,8 +79,17 @@ export const createDataFieldAlerts = async (
                   AlertType.BASIC_AUTHENTICATION_DETECTED
                 ]
               newAlert.apiEndpointUuid = apiEndpointUuid
+              const filteredApiTrace = { ...apiTrace }
+              if (redact) {
+                filteredApiTrace.redacted = true
+                filteredApiTrace.requestParameters = []
+                filteredApiTrace.requestHeaders = []
+                filteredApiTrace.responseHeaders = []
+                filteredApiTrace.requestBody = ""
+                filteredApiTrace.responseBody = ""
+              }
               newAlert.context = {
-                trace: apiTrace,
+                trace: filteredApiTrace,
               }
               newAlert.description = basicAuthDescription
               newAlert.createdAt = apiTrace.createdAt

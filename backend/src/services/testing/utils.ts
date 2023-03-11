@@ -17,11 +17,21 @@ export const getGenTestEndpoint = async (
     endpointObj = await apiEndpointRepository.findOne({
       where: { uuid: endpoint },
       relations: { dataFields: true },
+      order: {
+        dataFields: {
+          updatedAt: "ASC",
+        },
+      },
     })
   } else {
     endpointObj = await apiEndpointRepository.findOne({
       where: { path: endpoint, host: host, method: method as RestMethod },
       relations: { dataFields: true },
+      order: {
+        dataFields: {
+          updatedAt: "ASC",
+        },
+      },
     })
   }
   if (!endpointObj) {
@@ -31,13 +41,14 @@ export const getGenTestEndpoint = async (
     host: endpointObj.host,
     path: endpointObj.path,
     method: endpointObj.method,
+    isGraphQl: endpointObj.isGraphQl,
+    graphQlMetadata: endpointObj.graphQlMetadata,
+    graphQlSchema: endpointObj.graphQlSchema,
     dataFields: endpointObj.dataFields.map(e => ({
       dataSection: e.dataSection,
-      arrayFields: e.arrayFields,
       contentType: e.contentType,
       dataPath: e.dataPath,
       dataType: e.dataType,
-      traceHash: e.traceHash,
       entity: e.entity,
     })),
   }

@@ -9,7 +9,6 @@ import {
 import { QueryRunner } from "typeorm"
 import { QueuedApiTrace } from "@common/types"
 import { endpointUpdateDates } from "utils"
-import { retryTypeormTransaction } from "utils/db"
 import { MetloContext } from "types"
 import {
   getEntityManager,
@@ -25,7 +24,6 @@ import { getSensitiveDataMap } from "services/scanner/v2/analyze-trace"
 import { getCombinedDataClassesCached } from "services/data-classes"
 import { findOpenApiSpecDiff } from "services/spec/v2"
 import { shouldUpdateEndpoint, updateDataFields } from "analyze-traces"
-import { processGraphQlData } from "./graphql"
 
 export const analyze = async (
   ctx: MetloContext,
@@ -50,10 +48,6 @@ export const analyze = async (
 
   const { processedTraceData, ...apiTrace } = trace
 
-  if (processedTraceData?.graphQlData) {
-    processGraphQlData(processedTraceData.graphQlData, apiEndpoint)
-  }
-
   const start2 = performance.now()
   let alerts = await findOpenApiSpecDiff(
     ctx,
@@ -68,10 +62,11 @@ export const analyze = async (
   const start3 = performance.now()
   const dataFieldAlerts = await createDataFieldAlerts(
     ctx,
-    dataFields,
+    dataFields.dataFields,
     apiEndpoint.uuid,
     apiTrace,
     queryRunner,
+    false,
   )
   alerts = alerts.concat(dataFieldAlerts)
   mlog.time("analyzer.create_data_field_alerts", performance.now() - start3)
@@ -98,6 +93,7 @@ export const analyze = async (
     apiTrace,
     apiEndpoint.path,
     processedTraceData,
+    dataFields.mapDataFields,
   )
   let filteredApiTrace = {
     ...apiTrace,
@@ -112,7 +108,7 @@ export const analyze = async (
 
   await queryRunner.startTransaction()
   const startUpdateDataFields = performance.now()
-  await updateDataFields(ctx, dataFields, queryRunner)
+  await updateDataFields(ctx, dataFields.dataFields, queryRunner)
   mlog.time(
     "analyzer.update_data_fields_query",
     performance.now() - startUpdateDataFields,
@@ -120,11 +116,9 @@ export const analyze = async (
   mlog.debug(`Analyzing Trace - Updated Data Fields: ${traceUUID}`)
 
   const start4 = performance.now()
-  const traceRes = await retryTypeormTransaction(
-    () =>
-      getEntityManager(ctx, queryRunner).insert(ApiTrace, [filteredApiTrace]),
-    5,
-  )
+  const traceRes = await getEntityManager(ctx, queryRunner).insert(ApiTrace, [
+    filteredApiTrace,
+  ])
   filteredApiTrace.uuid = traceRes.identifiers[0].uuid
   mlog.time("analyzer.insert_api_trace_query", performance.now() - start4)
   mlog.debug(`Analyzing Trace - Inserted API Trace: ${traceUUID}`)
@@ -146,30 +140,24 @@ export const analyze = async (
   mlog.debug(`Analyzing Trace - Inserted API Trace to Redis: ${traceUUID}`)
 
   const start7 = performance.now()
-  await retryTypeormTransaction(
-    () =>
-      insertValuesBuilder(ctx, queryRunner, Alert, alerts).orIgnore().execute(),
-    5,
-  )
+  await insertValuesBuilder(ctx, queryRunner, Alert, alerts)
+    .orIgnore()
+    .execute()
   mlog.time("analyzer.insert_alerts_query", performance.now() - start7)
   mlog.debug(`Analyzing Trace - Inserted Alerts: ${traceUUID}`)
 
   const start8 = performance.now()
   if (shouldUpdateEndpoint(prevRiskScore, prevLastActive, apiEndpoint)) {
-    await retryTypeormTransaction(
-      () =>
-        getQB(ctx, queryRunner)
-          .update(ApiEndpoint)
-          .set({
-            firstDetected: apiEndpoint.firstDetected,
-            lastActive: apiEndpoint.lastActive,
-            riskScore: apiEndpoint.riskScore,
-            graphQlMetadata: apiEndpoint.graphQlMetadata,
-          })
-          .andWhere("uuid = :id", { id: apiEndpoint.uuid })
-          .execute(),
-      5,
-    )
+    await getQB(ctx, queryRunner)
+      .update(ApiEndpoint)
+      .set({
+        firstDetected: apiEndpoint.firstDetected,
+        lastActive: apiEndpoint.lastActive,
+        riskScore: apiEndpoint.riskScore,
+        graphQlMetadata: apiEndpoint.graphQlMetadata,
+      })
+      .andWhere("uuid = :id", { id: apiEndpoint.uuid })
+      .execute()
   }
   mlog.time("analyzer.update_api_endpoint_query", performance.now() - start8)
   mlog.debug(`Analyzing Trace - Updated API Endpoint: ${traceUUID}`)

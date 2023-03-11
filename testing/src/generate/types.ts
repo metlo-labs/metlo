@@ -4,11 +4,9 @@ import { DataSection, DataType } from "./enums"
 
 export interface GenTestEndpointDataField {
   dataSection: DataSection
-  arrayFields: Record<string, number>
   contentType: string
   dataPath: string
   dataType: DataType
-  traceHash: Record<string, number>
   entity?: string
 }
 
@@ -26,6 +24,10 @@ export interface GenTestEndpoint {
   method: RestMethod
   dataFields: GenTestEndpointDataField[]
   authConfig?: GenTestEndpointAuthConfig
+  isGraphQl: boolean
+  graphQLPath?: string
+  graphQlSchema?: string
+  graphQlMetadata?: Record<string, any>
 }
 
 export interface GenTestContext {

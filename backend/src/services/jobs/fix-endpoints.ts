@@ -6,6 +6,7 @@ import { updatePaths } from "services/get-endpoints/path-heuristic"
 import { QueryRunner } from "typeorm"
 import { MetloContext } from "types"
 import countBy from "lodash/countBy"
+import { getMinAnalyzeTracesCached } from "services/metlo-config"
 
 enum TokenType {
   CONSTANT,
@@ -14,7 +15,6 @@ enum TokenType {
 const paramRegexp = new RegExp("{param[0-9]+}")
 const validTokenRegexp = new RegExp("^[A-Za-z-_\.]+$")
 const MAX_ANALYZE_TRACES = 20000
-const MIN_ANALYZE_TRACES = 100
 const MIN_CONST_RATIO = 0.3
 
 const sanitizePath = (path: string) => {
@@ -30,6 +30,7 @@ const sanitizePath = (path: string) => {
 const fixEndpoint = async (
   ctx: MetloContext,
   endpoint: ApiEndpoint,
+  minAnalyzeTraces: number,
   queryRunner: QueryRunner,
 ): Promise<void> => {
   let currentEndpointPath = sanitizePath(endpoint.path)
@@ -45,7 +46,7 @@ const fixEndpoint = async (
     },
     take: MAX_ANALYZE_TRACES,
   })
-  if (traces.length < MIN_ANALYZE_TRACES) {
+  if (traces.length < minAnalyzeTraces) {
     return
   }
 
@@ -71,7 +72,7 @@ const fixEndpoint = async (
     let validTokens: string[] = []
     if (currentEndpointTokenTypes[position] == TokenType.CONSTANT) {
       validTokens.push(currentEndpointTokens[position])
-    } else if (tokenizedTraces.length >= MIN_ANALYZE_TRACES) {
+    } else if (tokenizedTraces.length >= minAnalyzeTraces) {
       const firstTraceTokens = tokenizedTraces.map(e => e[position])
       const tokenCount = countBy(firstTraceTokens)
       validTokens = Object.entries(tokenCount)
@@ -122,13 +123,15 @@ const fixEndpoints = async (ctx: MetloContext): Promise<boolean> => {
   const queryRunner = AppDataSource.createQueryRunner()
   try {
     await queryRunner.connect()
+    const minAnalyzeTraces = await getMinAnalyzeTracesCached(ctx)
+    mlog.debug(`Fix Endpoints - Min Analyze Traces: ${minAnalyzeTraces}`)
     const endpoints: ApiEndpoint[] = await getQB(ctx, queryRunner)
       .select(["uuid", "path", `"userSet"`])
       .from(ApiEndpoint, "endpoint")
       .getRawMany()
     for (const endpoint of endpoints) {
       if (!endpoint.userSet) {
-        await fixEndpoint(ctx, endpoint, queryRunner)
+        await fixEndpoint(ctx, endpoint, minAnalyzeTraces, queryRunner)
       }
     }
     return true

@@ -1,0 +1,11 @@
+[Unit]
+Description=Metlo Analyzer
+After=network-online.target metlo-traffic-mirror.service
+
+[Service]
+Restart=on-failure
+RestartSec=2
+ExecStart=/usr/local/bin/metlo-agent
+
+[Install]
+WantedBy=multi-user.target

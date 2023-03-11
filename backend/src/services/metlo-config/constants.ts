@@ -154,6 +154,9 @@ export const METLO_CONFIG_SCHEMA = {
     globalFullTraceCapture: {
       type: "boolean",
     },
+    minAnalyzeTraces: {
+      type: "number",
+    },
     hostMap: {
       type: "array",
       items: {

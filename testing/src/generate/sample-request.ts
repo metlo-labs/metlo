@@ -16,9 +16,8 @@ const getSampleValue = (dataType: DataType) => {
     case DataType.BOOLEAN:
       return true
     case DataType.INTEGER:
-      return Math.floor(Math.random() * (100 - 1 + 1)) + 1
     case DataType.NUMBER:
-      return Number((Math.random() * (1.0 - 100.0) + 100.0).toFixed(3))
+      return Math.floor(Math.random() * (100 - 1 + 1)) + 1
     case DataType.STRING:
       return Math.random().toString(36).slice(2)
     default:
@@ -77,54 +76,43 @@ export const addAuthToRequest = (
 
 const recurseCreateBody = (
   body: any,
-  arrayFieldDepth: number,
   mapTokens: string[],
   currTokenIndex: number,
   dataField: GenTestEndpointDataField,
   entityMap: Record<string, any>,
 ): any => {
-  if (
-    arrayFieldDepth === 0 &&
-    (currTokenIndex > mapTokens.length - 1 || !mapTokens[currTokenIndex])
-  ) {
+  if (currTokenIndex > mapTokens.length - 1 || !mapTokens[currTokenIndex]) {
     return dataField.entity && entityMap[dataField.entity]
       ? entityMap[dataField.entity]
       : getSampleValue(dataField.dataType)
-  } else if (arrayFieldDepth > 0) {
-    return [
-      recurseCreateBody(
-        body?.[0],
-        arrayFieldDepth - 1,
-        mapTokens,
-        currTokenIndex,
-        dataField,
-        entityMap,
-      ),
-    ]
   } else {
     const currToken = mapTokens?.[currTokenIndex]
-    const currPath = mapTokens.slice(0, currTokenIndex + 1).join(".")
-    const tmpArrayFieldDepth = dataField.arrayFields?.[currPath]
-    if (tmpArrayFieldDepth) {
+    if (currToken === "[]") {
+      return [
+        recurseCreateBody(
+          body?.[0],
+          mapTokens,
+          currTokenIndex + 1,
+          dataField,
+          entityMap,
+        ),
+      ]
+    } else if (currToken === "[string]") {
       return {
         ...body,
-        [currToken]: [
-          recurseCreateBody(
-            body?.[currToken]?.[0],
-            tmpArrayFieldDepth - 1,
-            mapTokens,
-            currTokenIndex + 1,
-            dataField,
-            entityMap,
-          ),
-        ],
+        ANY_STRING: recurseCreateBody(
+          body?.["ANY_STRING"],
+          mapTokens,
+          currTokenIndex + 1,
+          dataField,
+          entityMap,
+        ),
       }
     } else {
       return {
         ...body,
         [currToken]: recurseCreateBody(
           body?.[currToken],
-          0,
           mapTokens,
           currTokenIndex + 1,
           dataField,
@@ -135,37 +123,8 @@ const recurseCreateBody = (
   }
 }
 
-const getRecentTraceHash = (traceHash: Record<string, number>) => {
-  let res: { hash: string | null; timestamp: number | null } = {
-    hash: null,
-    timestamp: null,
-  }
-  for (const hash in traceHash) {
-    if (!res.timestamp || traceHash[hash] > res.timestamp) {
-      res.hash = hash
-      res.timestamp = traceHash[hash]
-    }
-  }
-  return res
-}
-
 const getDataFieldInfo = (dataFields: GenTestEndpointDataField[]) => {
-  let contentType = dataFields[0].contentType
-  let traceHash = getRecentTraceHash(dataFields[0].traceHash)
-
-  for (const dataField of dataFields) {
-    const currTraceHash = getRecentTraceHash(dataField.traceHash)
-    if (
-      dataField.contentType &&
-      currTraceHash?.timestamp &&
-      traceHash?.timestamp &&
-      currTraceHash?.timestamp > traceHash?.timestamp
-    ) {
-      traceHash = { ...currTraceHash }
-      contentType = dataField.contentType
-    }
-  }
-  return { contentType, traceHash }
+  return dataFields[dataFields.length - 1].contentType
 }
 
 const addBodyToRequest = (
@@ -179,12 +138,9 @@ const addBodyToRequest = (
   if (dataFields.length == 0) {
     return gen
   }
-  const { contentType, traceHash } = getDataFieldInfo(dataFields)
+  const contentType = getDataFieldInfo(dataFields)
   const filteredDataFields = dataFields.filter(
-    e =>
-      e.contentType == contentType &&
-      traceHash.hash &&
-      e.traceHash[traceHash.hash],
+    e => e.contentType == contentType,
   )
   if (filteredDataFields.length === 0) {
     return gen
@@ -192,19 +148,7 @@ const addBodyToRequest = (
   let body: any = undefined
   for (const dataField of filteredDataFields) {
     const mapTokens = dataField.dataPath?.split(".")
-    const rootArrayDepth = dataField.arrayFields?.[""]
-    if (rootArrayDepth > 0) {
-      body = recurseCreateBody(
-        body,
-        rootArrayDepth,
-        mapTokens,
-        0,
-        dataField,
-        ctx.entityMap,
-      )
-    } else {
-      body = recurseCreateBody(body, 0, mapTokens, 0, dataField, ctx.entityMap)
-    }
+    body = recurseCreateBody(body, mapTokens, 0, dataField, ctx.entityMap)
   }
   if (contentType.includes("form")) {
     return {

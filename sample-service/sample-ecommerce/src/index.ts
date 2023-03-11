@@ -32,7 +32,7 @@ declare module "fastify" {
 const app: FastifyInstance = Fastify({})
 const port = Number(process.env.PORT) || 8080
 
-app.register(fastifyMultipart)
+app.register(fastifyMultipart, { attachFieldsToBody: true })
 
 app.register((fastify, options, next) => {
   fastify.get("/", async (request, reply) => {
@@ -75,6 +75,15 @@ app.register((fastify, options, next) => {
 
   fastify.get("/product", getProductsHandler)
   fastify.post("/product/new", createNewProductHandler)
+
+  fastify.post("/product/new/form", async function (req, res) {
+    try {
+      const data = await req.body
+      await ApiResponseHandler.success(res, "Success")
+    } catch (err) {
+      await ApiResponseHandler.error(res, err)
+    }
+  })
 
   fastify.post("/file-upload", async function (req, res) {
     try {

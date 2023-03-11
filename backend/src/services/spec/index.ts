@@ -34,7 +34,6 @@ import {
   getOpenAPISpecVersion,
   getSpecResponses,
   AjvError,
-  validateSpecSchema,
   getHostsV3,
   getServersV3,
   getSpecPathString,
@@ -119,12 +118,12 @@ export class SpecService {
         "Invalid OpenAPI Spec: No 'swagger' or 'openapi' field defined.",
       )
     }
-    const validationErrors = validateSpecSchema(specObject)
-    if (validationErrors?.length > 0) {
-      throw new Error422UnprocessableEntity("Invalid OpenAPI Spec", {
-        message: "Invalid OpenAPI Spec",
-        error: validationErrors[0],
-      })
+    try {
+      await SwaggerParser.validate(specObject as any)
+    } catch (err) {
+      throw new Error422UnprocessableEntity(
+        `Invalid OpenAPI Spec: ${err.message.toString()}`,
+      )
     }
     const queryRunner = AppDataSource.createQueryRunner()
     await queryRunner.connect()
@@ -219,12 +218,12 @@ export class SpecService {
         "Invalid OpenAPI Spec: No 'swagger' or 'openapi' field defined.",
       )
     }
-    const validationErrors = validateSpecSchema(specObject, specVersion)
-    if (validationErrors?.length > 0) {
-      throw new Error422UnprocessableEntity("Invalid OpenAPI Spec", {
-        message: "Invalid OpenAPI Spec",
-        error: validationErrors[0],
-      })
+    try {
+      await SwaggerParser.validate(specObject as any)
+    } catch (err) {
+      throw new Error422UnprocessableEntity(
+        `Invalid OpenAPI Spec: ${err.message.toString()}`,
+      )
     }
     if (specVersion === 2) {
       const convertedSpec = await Converter.convertObj(specObject, {})
@@ -496,6 +495,7 @@ export class SpecService {
     trace: QueuedApiTrace,
     endpoint: ApiEndpoint,
     queryRunner: QueryRunner,
+    redact: boolean,
   ): Promise<Alert[]> {
     try {
       if (
@@ -552,12 +552,24 @@ export class SpecService {
         )
       }
 
+      const filteredApiTrace = {
+        ...trace,
+      }
+      if (redact) {
+        filteredApiTrace.redacted = true
+        filteredApiTrace.requestParameters = []
+        filteredApiTrace.requestHeaders = []
+        filteredApiTrace.responseHeaders = []
+        filteredApiTrace.requestBody = ""
+        filteredApiTrace.responseBody = ""
+      }
+
       const errorItems = { ...respErrorItems }
       return await createSpecDiffAlerts(
         ctx,
         errorItems,
         endpoint.uuid,
-        trace,
+        filteredApiTrace,
         openApiSpec,
         queryRunner,
       )

@@ -27,11 +27,16 @@ import {
   AlertDialogFooter,
   useToast,
   Stack,
-  Tooltip,
 } from "@chakra-ui/react"
 import { useRouter } from "next/router"
 import { SectionHeader } from "components/utils/Card"
-import { Alert, ApiEndpointDetailed, DataClass, Usage } from "@common/types"
+import {
+  Alert,
+  ApiEndpointDetailed,
+  DataClass,
+  DataField,
+  Usage,
+} from "@common/types"
 import { GetAlertParams } from "@common/api/alert"
 import { METHOD_TO_COLOR } from "~/constants"
 import { EndpointTab } from "enums"
@@ -71,6 +76,14 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
       "rgb(91, 94, 109)",
     )
     const [deleting, setDeleting] = useState<boolean>(false)
+    const [dataFields, setDataFields] = useState<DataField[]>(
+      endpoint.dataFields,
+    )
+    const [alertList, setAlertList] = useState<Alert[]>(alerts)
+    const [alertsTotalCount, setAlertsTotalCount] =
+      useState<number>(totalAlertsCount)
+    const [alertParams, setAlertParams] =
+      useState<GetAlertParams>(initAlertParams)
     const { isOpen, onOpen, onClose } = useDisclosure()
     const cancelRef = React.useRef()
     const toast = useToast()
@@ -227,7 +240,8 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
             <TabPanel p="0" h="full">
               {getTab() === 1 && (
                 <DataFieldList
-                  dataFields={endpoint.dataFields}
+                  dataFieldList={dataFields}
+                  setDataFieldList={setDataFields}
                   uuid={uuid as string}
                   dataClasses={dataClasses}
                   entityTags={entityTags}
@@ -249,9 +263,12 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
             <TabPanel p="0" h="full">
               {getTab() === 3 && (
                 <AlertTab
-                  initAlerts={alerts}
-                  initAlertParams={initAlertParams}
-                  initTotalCount={totalAlertsCount}
+                  alerts={alertList}
+                  params={alertParams}
+                  totalCount={alertsTotalCount}
+                  setParamsInner={setAlertParams}
+                  setAlerts={setAlertList}
+                  setTotalCount={setAlertsTotalCount}
                   providedSpecString={endpoint.openapiSpec?.spec}
                   providedSpecExtension={endpoint.openapiSpec?.extension}
                 />

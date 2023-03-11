@@ -11,25 +11,28 @@ import { makeToast } from "utils"
 import { formatMetloAPIErr, MetloAPIErr } from "api/utils"
 
 interface AlertTabProps {
-  initAlertParams: GetAlertParams
-  initAlerts: Alert[]
-  initTotalCount: number
+  params: GetAlertParams
+  alerts: Alert[]
+  totalCount: number
+  setParamsInner: React.Dispatch<React.SetStateAction<GetAlertParams>>
+  setAlerts: React.Dispatch<React.SetStateAction<Alert[]>>
+  setTotalCount: React.Dispatch<React.SetStateAction<number>>
   providedSpecString: string
   providedSpecExtension: SpecExtension
 }
 
 const AlertTab: React.FC<AlertTabProps> = ({
-  initAlertParams,
-  initAlerts,
-  initTotalCount,
+  params,
+  alerts,
+  totalCount,
+  setParamsInner,
+  setAlerts,
+  setTotalCount,
   providedSpecString,
   providedSpecExtension,
 }) => {
-  const [alerts, setAlerts] = useState<Alert[]>(initAlerts)
-  const [totalCount, setTotalCount] = useState<number>(initTotalCount)
   const [fetching, setFetching] = useState<boolean>(false)
   const [updating, setUpdating] = useState<boolean>(false)
-  const [params, setParamsInner] = useState<GetAlertParams>(initAlertParams)
   const toast = useToast()
 
   const fetchAlerts = (fetchParams: GetAlertParams) => {
