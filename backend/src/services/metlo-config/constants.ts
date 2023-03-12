@@ -190,6 +190,13 @@ export const METLO_CONFIG_SCHEMA = {
         additionalProperties: false,
       },
     },
+    customWords: {
+      type: "array",
+      items: {
+        type: "string",
+      },
+      uniqueItems: true,
+    },
   },
   additionalProperties: false,
   definitions: {
