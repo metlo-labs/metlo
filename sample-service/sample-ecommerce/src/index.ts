@@ -1,7 +1,7 @@
-import Fastify, { FastifyInstance } from "fastify"
+import Fastify, { FastifyInstance, FastifyReply, FastifyRequest } from "fastify"
 import fastifyMultipart from "@fastify/multipart"
 import dotenv from "dotenv"
-import { User } from "models"
+import { Cart, Product, User, Warehouse } from "models"
 import { AppDataSource } from "data-source"
 import { hashString } from "utils"
 import { loginUserHandler, registerUserHandler } from "api/user"
@@ -40,7 +40,6 @@ app.register((fastify, options, next) => {
   })
   fastify.post("/register", registerUserHandler)
   fastify.post("/login", loginUserHandler)
-  fastify.get("/product/:productUuid", getProductHandler)
   next()
 })
 
@@ -67,6 +66,26 @@ app.register((fastify, options, next) => {
     }
   })
 
+  fastify.post(
+    "/clear-data",
+    async (req: FastifyRequest, res: FastifyReply): Promise<void> => {
+      if (req.user.apiKey != process.env.API_KEY) {
+        return await ApiResponseHandler.success(res, "UNAUTHORIZED")
+      }
+      try {
+        await AppDataSource.getRepository(Product).delete({})
+        await AppDataSource.getRepository(Cart).delete({})
+        await AppDataSource.getRepository(Warehouse).delete({})
+        await AppDataSource.getRepository(User).delete({})
+        await initializeUser()
+        await ApiResponseHandler.success(res, "OK")
+      } catch (err) {
+        console.log(err)
+        await ApiResponseHandler.error(res, err)
+      }
+    },
+  )
+
   fastify.get("/cart", getCartsHandler)
   fastify.get("/cart/:cartUuid", getCartHandler)
   fastify.post("/cart/new", createNewCartHandler)
@@ -74,6 +93,7 @@ app.register((fastify, options, next) => {
   fastify.post("/cart/:cartUuid/purchase", purchaseCartHandler)
 
   fastify.get("/product", getProductsHandler)
+  fastify.get("/product/:productUuid", getProductHandler)
   fastify.post("/product/new", createNewProductHandler)
 
   fastify.post("/product/new/form", async function (req, res) {
@@ -132,6 +152,7 @@ const initializeUser = async () => {
   user.email = process.env.EMAIL
   user.hashedPassword = await hashString(process.env.PASSWORD)
   user.dob = process.env.DOB
+  user.role = "admin"
   user.apiKey = process.env.API_KEY
   user.phoneNumber = process.env.PHONE_NUMBER
   user.address = process.env.ADDRESS

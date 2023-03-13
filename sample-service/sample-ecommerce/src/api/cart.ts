@@ -51,7 +51,7 @@ export const addProductHandler = async (
   try {
     const { cartUuid } = req.params as { cartUuid: string }
     const { productUuid } = req.body as { productUuid: string }
-    await CartService.addProduct(cartUuid, productUuid)
+    await CartService.addProduct(cartUuid, productUuid, req.user)
     await ApiResponseHandler.success(res, null)
   } catch (err) {
     await ApiResponseHandler.error(res, err)

@@ -4,7 +4,7 @@ import { AppDataSource } from "data-source"
 import { Error400BadRequest, Error404NotFound, Error409Conflict } from "errors"
 import { User } from "models"
 import { LoginUserParams, RegisterUserParams } from "types"
-import { hashString } from "utils"
+import { hashString, NEW_VAL_LIMIT } from "utils"
 
 export class UserService {
   static async registerUser(registerUserParams: RegisterUserParams) {
@@ -14,6 +14,7 @@ export class UserService {
         lastName,
         email,
         password,
+        role,
         dob,
         phoneNumber,
         address,
@@ -30,6 +31,9 @@ export class UserService {
       }
       if (!password) {
         throw new Error400BadRequest("Password is required.")
+      }
+      if (!role) {
+        throw new Error400BadRequest("Role is required.")
       }
       if (!dob) {
         throw new Error400BadRequest("Date of Birth is required.")
@@ -49,11 +53,12 @@ export class UserService {
       user.dob = dob
       user.phoneNumber = phoneNumber
       user.address = address
+      user.role = role
       user.apiKey = `ecommerce_${randomBytes(16).toString("hex")}`
-      if (currNumUsers < 10) {
+      if (!NEW_VAL_LIMIT || currNumUsers < 10) {
         await userRepository.save(user)
       }
-      return user.apiKey
+      return user
     } catch (err) {
       console.error(`Error in UserService.registerUser: ${err}`)
       throw err

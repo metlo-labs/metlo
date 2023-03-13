@@ -27,11 +27,30 @@ export const getProductHandler = async (
 ): Promise<void> => {
   try {
     const { productUuid } = req.params as { productUuid: string }
-    const product = await ProductService.getProduct(productUuid)
+    const product = await ProductService.getProduct(productUuid, req.user)
     if (!product) {
       throw new Error404NotFound("No product found for uuid.")
     }
     await ApiResponseHandler.success(res, product)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}
+
+export const editProductHandler = async (
+  req: FastifyRequest,
+  res: FastifyReply,
+): Promise<void> => {
+  try {
+    const { productUuid } = req.params as { productUuid: string }
+    const editNewProductParams: AddNewProductParams =
+      req.body as AddNewProductParams
+    await ProductService.editProduct(
+      productUuid,
+      editNewProductParams,
+      req.user,
+    )
+    await ApiResponseHandler.success(res, "OK")
   } catch (err) {
     await ApiResponseHandler.error(res, err)
   }

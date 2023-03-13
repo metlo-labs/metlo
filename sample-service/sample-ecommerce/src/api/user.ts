@@ -10,10 +10,11 @@ export const registerUserHandler = async (
   try {
     const registerUserParams: RegisterUserParams =
       req.body as RegisterUserParams
-    const userApiKey = await UserService.registerUser(registerUserParams)
+    let user = await UserService.registerUser(registerUserParams)
+    delete user.hashedPassword
     const payload = {
       msg: "Successfully registered user",
-      apiKey: userApiKey,
+      user,
     }
     await ApiResponseHandler.success(res, payload)
   } catch (err) {
