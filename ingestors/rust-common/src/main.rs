@@ -112,6 +112,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Err(_) => "/tmp/metlo.sock".to_owned(),
         },
     };
+    let port = match args.port {
+        Some(p) => Some(p),
+        None => match env::var("PORT") {
+            Ok(s) => Some(s),
+            Err(_) => None,
+        },
+    };
 
     let collector_port = match args.collector_port {
         Some(port) => Some(port),
@@ -150,7 +157,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    if let Some(p) = args.port {
+    if let Some(p) = port {
         server_port(&p).await?;
     } else {
         server(&listen_socket).await?;
