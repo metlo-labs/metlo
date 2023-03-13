@@ -1,5 +1,5 @@
 import validator from "validator"
-import { FindOptionsWhere, ILike, Not } from "typeorm"
+import { FindOptionsWhere, ILike, In, Not } from "typeorm"
 import { MetloContext } from "types"
 import { getRepository } from "services/database/utils"
 import { ApiEndpoint, AuthenticationConfig, DataField } from "models"
@@ -41,11 +41,13 @@ export const getGenTestEndpoint = async (
     where = [
       {
         apiEndpointUuid: endpointObj.uuid,
-        dataSection: Not(DataSection.REQUEST_BODY),
+        dataSection: Not(
+          In([DataSection.REQUEST_BODY, DataSection.RESPONSE_BODY]),
+        ),
       },
       {
         apiEndpointUuid: endpointObj.uuid,
-        dataSection: DataSection.REQUEST_BODY,
+        dataSection: In([DataSection.REQUEST_BODY, DataSection.RESPONSE_BODY]),
         dataPath: ILike(`%${operationPath}%`),
       },
     ]

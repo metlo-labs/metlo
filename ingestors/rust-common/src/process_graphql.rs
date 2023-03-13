@@ -94,7 +94,8 @@ fn process_graphql_argument<'a>(
             }
         }
         schema::Value::List(ls) => {
-            for e in ls {
+            let limit = std::cmp::min(ls.len(), 15);
+            for e in &ls[..limit] {
                 process_graphql_argument(
                     path.clone() + ".[]",
                     e,

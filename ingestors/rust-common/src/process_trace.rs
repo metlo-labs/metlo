@@ -148,10 +148,11 @@ pub fn process_json_val(
             }
         }
         serde_json::Value::Array(ls) => {
+            let limit = std::cmp::min(ls.len(), 10);
             let old_len = path.len();
             path.push_str(".[]");
 
-            for e in ls {
+            for e in &ls[..limit] {
                 process_json_val(
                     path,
                     data_types,
@@ -577,15 +578,11 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
                 proc_req_headers,
                 proc_resp_body,
                 proc_resp_headers,
-                proc_graph_ql
-                    .as_ref()
-                    .and_then(|f| Some(f.proc_trace_res.to_owned())),
+                proc_graph_ql.as_ref().map(|f| f.proc_trace_res.to_owned()),
             ],
             req_content_type,
             resp_content_type,
-            proc_graph_ql
-                .as_ref()
-                .and_then(|f| Some(f.graph_ql_data.to_owned())),
+            proc_graph_ql.as_ref().map(|f| f.graph_ql_data.to_owned()),
         ),
         full_trace_capture_enabled,
     )
