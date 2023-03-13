@@ -82,7 +82,10 @@ export const getAuthTestPayloads = (
         authorized: false,
       }
       if (resourceLevelAccessItems) {
-        payload.reason = `Actor doesn't have access to resource${
+        payload.reason = `${authActor.name}(${Object.entries(authActor.item)
+          .filter(([k, v]) => k !== "auth")
+          .map(([k, v]) => `${k}=${v}`)
+          .join(",")}) doesn't have access to resource${
           noResourceLevelAccessItems.length > 1
             ? `s: ${noResourceLevelAccessItems.join(", ")}`
             : ` ${noResourceLevelAccessItems[0]}`
@@ -99,7 +102,10 @@ export const getAuthTestPayloads = (
         authorized: true,
       }
       if (resourceLevelAccessItems.length > 0) {
-        payload.reason = `Actor has access to resource${
+        payload.reason = `${authActor.name}(${Object.entries(authActor.item)
+          .filter(([k, v]) => k !== "auth")
+          .map(([k, v]) => `${k}=${v}`)
+          .join(",")}) has access to resource${
           resourceLevelAccessItems.length > 1
             ? `s: ${resourceLevelAccessItems.join(", ")}`
             : ` ${resourceLevelAccessItems[0]}`
@@ -194,22 +200,25 @@ export const authTestStepPayloadToBuilder = (
     endpoint,
     prefix: `STEP_${idx}`,
     entityMap,
-    reason: description,
   }
-  if (payload.reason) {
-    ctx.reason = payload.reason
-  }
+
   let gen = makeSampleRequestNoAuthInner(ctx)
   gen = addAuthToRequest(payload.authActorEntity, gen, ctx, hostInfo)
 
   let builder = new TestStepBuilder(gen.req).addToEnv(...gen.env)
+  const assertion =
+    payload.reason || description
+      ? { description: payload.reason || description }
+      : {}
   if (payload.authorized) {
     builder = builder.assert({
+      ...assertion,
       type: AssertionType.enum.JS,
       value: "resp.status < 300",
     })
   } else {
     builder = builder.assert({
+      ...assertion,
       type: AssertionType.enum.EQ,
       key: "resp.status",
       value: [401, 403],
