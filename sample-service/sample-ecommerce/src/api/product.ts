@@ -56,6 +56,25 @@ export const editProductHandler = async (
   }
 }
 
+export const editProductPriceHandler = async (
+  req: FastifyRequest,
+  res: FastifyReply,
+): Promise<void> => {
+  try {
+    const { productUuid } = req.params as { productUuid: string }
+    const editNewProductParams: AddNewProductParams =
+      req.body as AddNewProductParams
+    await ProductService.editProductPrice(
+      productUuid,
+      editNewProductParams,
+      req.user,
+    )
+    await ApiResponseHandler.success(res, "OK")
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}
+
 export const getProductsHandler = async (
   req: FastifyRequest,
   res: FastifyReply,

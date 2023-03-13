@@ -6,7 +6,10 @@ from producers.ecommerce.new_product import EcommerceMakeProductProducer
 from producers.ecommerce.new_cart import EcommerceMakeCartProducer
 from producers.ecommerce.add_product_to_cart import EcommerceAddProductToCartProducer
 from producers.ecommerce.edit_product import EcommerceEditProductProducer
+from producers.ecommerce.edit_product_price import EcommerceEditProductPriceProducer
 from producers.ecommerce.register import EcommerceRegisterProducer
+from producers.ecommerce.edit_admin_config import EcommerceEditAdminConfigProducer
+from producers.ecommerce.get_admin_config import EcommerceGetAdminConfigProducer
 from producers.paymentprocessor.add_billing import PaymentProcessorAddBillingProducer
 from producers.paymentprocessor.get_billing import PaymentProcessorGetBillingProducer
 from producers.paymentprocessor.add_charge import PaymentProcessorAddChargeProducer
@@ -21,11 +24,14 @@ PRODUCER_CLS_MAP = {
     "ecommerce_make_cart": EcommerceMakeCartProducer,
     "ecommerce_make_product": EcommerceMakeProductProducer,
     "ecommerce_edit_product": EcommerceEditProductProducer,
+    "ecommerce_edit_product_price": EcommerceEditProductPriceProducer,
     "ecommerce_make_purchase": EcommerceMakePurchaseProducer,
     "ecommerce_login": EcommerceLoginProducer,
     "ecommerce_register": EcommerceRegisterProducer,
     "ecommerce_get_product": EcommerceGetProductProducer,
     "ecommerce_get_cart": EcommerceGetCartProducer,
+    "ecommerce_edit_admin_config": EcommerceEditAdminConfigProducer,
+    "ecommerce_get_admin_config": EcommerceGetAdminConfigProducer,
     "payment_processor_user": PaymentProcessorUserProducer,
     "payment_processor_user_verify": PaymentProcessorUserVerifyProducer,
     "payment_processor_get_user": PaymentProcessorGetUserProducer,

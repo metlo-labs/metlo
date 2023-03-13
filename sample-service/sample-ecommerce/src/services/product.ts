@@ -5,6 +5,20 @@ import { AddNewProductParams } from "types"
 import { NEW_VAL_LIMIT } from "utils"
 
 export class ProductService {
+  static async editProductPrice(
+    uuid: string,
+    params: AddNewProductParams,
+    user: User,
+  ) {
+    const { price } = params
+    if (!price) {
+      throw new Error400BadRequest("Please provide product price.")
+    }
+    let product = await ProductService.getProduct(uuid, user)
+    product.price = price
+    product.save()
+  }
+
   static async editProduct(
     uuid: string,
     params: AddNewProductParams,
