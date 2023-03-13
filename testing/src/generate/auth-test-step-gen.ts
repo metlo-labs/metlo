@@ -165,6 +165,18 @@ export const addAuthToRequest = (
       name: `${pre}JWT`,
       value: authVal,
     })
+  } else if (
+    authConfig.authType == AuthType.SESSION_COOKIE &&
+    authConfig.cookieName
+  ) {
+    headers = headers.concat({
+      name: authConfig.cookieName,
+      value: `{{${pre}COOKIE}}`,
+    })
+    env.push({
+      name: `${pre}COOKIE`,
+      value: authVal,
+    })
   }
   return {
     ...gen,

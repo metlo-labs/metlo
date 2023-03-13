@@ -1,4 +1,4 @@
-import { jsonToGraphQLQuery } from "json-to-graphql-query"
+import { jsonToGraphQLQuery, EnumType } from "json-to-graphql-query"
 import { DataType } from "./enums"
 import { KeyValType } from "../types/test"
 import { DataSection } from "./enums"
@@ -64,6 +64,15 @@ export const addAuthToRequest = (
       name: `${pre}JWT`,
       value: `{{global.${pre}JWT}}`,
     })
+  } else if (authConfig.authType == AuthType.SESSION_COOKIE) {
+    headers = headers.concat({
+      name: authConfig.cookieName,
+      value: `{{${pre}COOKIE}}`,
+    })
+    env.push({
+      name: `${pre}COOKIE`,
+      value: `{{global.${pre}COOKIE}}`,
+    })
   }
   return {
     ...gen,
@@ -73,6 +82,16 @@ export const addAuthToRequest = (
     },
     env: gen.env.concat(env),
   }
+}
+
+const isEnumValue = (isGraphQl: boolean, s: string) => {
+  if (!isGraphQl) {
+    return false
+  }
+  if (!isNaN(Number(s))) {
+    return false
+  }
+  return s.toUpperCase() === s
 }
 
 const recurseCreateBody = (
@@ -85,7 +104,9 @@ const recurseCreateBody = (
 ): any => {
   if (currTokenIndex > mapTokens.length - 1 || !mapTokens[currTokenIndex]) {
     return dataField.entity && entityMap[dataField.entity]
-      ? entityMap[dataField.entity]
+      ? isEnumValue(isGraphQl, entityMap[dataField.entity])
+        ? new EnumType(entityMap[dataField.entity])
+        : entityMap[dataField.entity]
       : getSampleValue(dataField.dataType)
   } else {
     let currToken = mapTokens?.[currTokenIndex]
@@ -141,7 +162,13 @@ const addBodyToRequest = (
 ): GeneratedTestRequest => {
   const endpoint = ctx.endpoint
   const dataFields = endpoint.dataFields.filter(
-    e => e.dataSection == DataSection.REQUEST_BODY && e.contentType,
+    e =>
+      (endpoint.isGraphQl
+        ? (e.dataSection === DataSection.REQUEST_BODY ||
+            (e.dataSection === DataSection.RESPONSE_BODY &&
+              !e.dataPath.includes("[]"))) &&
+          e.dataType !== DataType.UNKNOWN
+        : e.dataSection === DataSection.REQUEST_BODY) && e.contentType,
   )
   if (dataFields.length == 0) {
     return gen
@@ -166,7 +193,7 @@ const addBodyToRequest = (
     )
   }
 
-  if (ctx.endpoint.isGraphQl) {
+  if (endpoint.isGraphQl) {
     return {
       ...gen,
       req: {
@@ -177,7 +204,7 @@ const addBodyToRequest = (
         }),
         data: JSON.stringify(
           {
-            query: jsonToGraphQLQuery(body),
+            query: jsonToGraphQLQuery(body, { pretty: true }),
             variables: {},
           },
           undefined,
