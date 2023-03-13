@@ -284,7 +284,7 @@ export const permissionValid = (
   if (typeof resourceItem.item === "object") {
     const entries = Object.entries(resourceItem.item)
     entries.forEach(([itemKey, itemValue], idx) => {
-      reasonItems += `${itemKey} = ${itemValue}`
+      reasonItems += `${itemKey}=${itemValue}`
       if (idx < entries.length - 1) {
         reasonItems += ","
       }
