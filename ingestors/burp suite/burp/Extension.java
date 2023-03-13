@@ -146,7 +146,8 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
             // anyway.
             useBinary = "dist/binaries/metlo-agent-mac";
         } else if (os.toLowerCase().contains("windows")) {
-            useBinary = "dist/binaries/metlo-agent-windows";
+            Extension.this.err.println("Windows is currently not a supported platform");
+//            useBinary = "dist/binaries/metlo-agent-windows";
         } else {
             // Running Linux
             useBinary = "dist/binaries/metlo-agent-linux";
