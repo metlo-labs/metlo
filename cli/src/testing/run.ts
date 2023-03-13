@@ -141,7 +141,11 @@ const runTestPath = async (
           chalk.bold.red(
             `Request ${failure.stepIdx + 1} Assertion ${
               failure.assertionIdx + 1
-            } Failed:`,
+            } Failed: ${
+              typeof failure.assertion === "object"
+                ? failure.assertion.description || ""
+                : ""
+            }`,
           ),
         )
         console.log(chalk.red(JSON.stringify(failure.assertion, null, 4)))
