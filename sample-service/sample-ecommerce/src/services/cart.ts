@@ -1,7 +1,8 @@
 import { AppDataSource } from "data-source"
 import { Error400BadRequest, Error404NotFound } from "errors"
-import { Cart } from "models"
+import { Cart, User } from "models"
 import { PurchaseCartParams } from "types"
+import { NEW_VAL_LIMIT } from "utils"
 import { ProductService } from "./product"
 
 export class CartService {
@@ -11,7 +12,7 @@ export class CartService {
       await queryRunner.connect()
       const numCurrCarts = await queryRunner.manager.count(Cart)
       const cart = queryRunner.manager.create(Cart)
-      if (numCurrCarts < 20) {
+      if (!NEW_VAL_LIMIT || numCurrCarts < 20) {
         await queryRunner.manager.insert(Cart, cart)
       }
       return cart.uuid
@@ -50,10 +51,10 @@ export class CartService {
     }
   }
 
-  static async addProduct(cartUuid: string, productUuid: string) {
+  static async addProduct(cartUuid: string, productUuid: string, user: User) {
     try {
       const cartRepository = AppDataSource.getRepository(Cart)
-      const product = await ProductService.getProduct(productUuid)
+      const product = await ProductService.getProduct(productUuid, user)
       if (!product) {
         throw new Error404NotFound("Product to add to cart not found.")
       }
