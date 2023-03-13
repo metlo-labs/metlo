@@ -3,6 +3,7 @@ export interface RegisterUserParams {
   lastName: string
   email: string
   password: string
+  role: string
   dob: string
   phoneNumber?: string
   address?: string

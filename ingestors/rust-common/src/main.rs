@@ -1,6 +1,6 @@
 use clap::Parser;
 use lazy_static::lazy_static;
-use metlo_agent::{initialize_metlo, refresh_config, server};
+use metlo_agent::{initialize_metlo, refresh_config, server, server_port};
 use reqwest::Url;
 use std::{collections::HashSet, env, time::Duration};
 use tokio::time;
@@ -39,6 +39,10 @@ struct Args {
     /// Log level [trace, debug, info, warn, error]
     #[arg(short, long)]
     log_level: Option<String>,
+
+    /// Open port for connection
+    #[arg(short, long)]
+    port: Option<String>,
 }
 
 #[tokio::main(flavor = "multi_thread")]
@@ -108,6 +112,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Err(_) => "/tmp/metlo.sock".to_owned(),
         },
     };
+    let port = match args.port {
+        Some(p) => Some(p),
+        None => match env::var("PORT") {
+            Ok(s) => Some(s),
+            Err(_) => None,
+        },
+    };
 
     let collector_port = match args.collector_port {
         Some(port) => Some(port),
@@ -145,7 +156,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             log::info!("Done Pulling Metlo Config");
         }
     });
-    server(&listen_socket).await?;
+
+    if let Some(p) = port {
+        server_port(&p).await?;
+    } else {
+        server(&listen_socket).await?;
+    }
 
     Ok(())
 }

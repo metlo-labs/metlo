@@ -13,6 +13,9 @@ export class User extends BaseEntity {
   uuid: string
 
   @Column()
+  role: string
+
+  @Column()
   firstName: string
 
   @Column()

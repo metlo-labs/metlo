@@ -9,7 +9,7 @@ use std::path::Path;
 use std::sync::Arc;
 use tokio::net::UnixListener;
 use tokio::sync::{RwLock, Semaphore, TryAcquireError};
-use tokio_stream::wrappers::UnixListenerStream;
+use tokio_stream::wrappers::{TcpListenerStream, UnixListenerStream};
 use tonic::{transport::Server, Code, Request, Response, Status};
 
 mod mappers;
@@ -180,6 +180,22 @@ pub async fn server(listen_socket: &str) -> Result<(), Box<dyn std::error::Error
     Server::builder()
         .add_service(MetloIngestServer::new(s))
         .serve_with_incoming(uds_stream)
+        .await?;
+
+    Ok(())
+}
+
+pub async fn server_port(port: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let addr = format!("0.0.0.0:{}", port);
+    let listener = std::net::TcpListener::bind(addr)?;
+    listener.set_nonblocking(true)?;
+    let tokio_listener = tokio::net::TcpListener::from_std(listener)?;
+
+    let s = MIngestServer::default();
+
+    Server::builder()
+        .add_service(MetloIngestServer::new(s))
+        .serve_with_incoming(TcpListenerStream::new(tokio_listener))
         .await?;
 
     Ok(())

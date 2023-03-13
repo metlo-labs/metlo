@@ -1,9 +1,32 @@
 import { AppDataSource } from "data-source"
-import { Error400BadRequest } from "errors"
+import { Error400BadRequest, Error401UnauthorizedRequest } from "errors"
 import { Product, User, Warehouse } from "models"
 import { AddNewProductParams } from "types"
+import { NEW_VAL_LIMIT } from "utils"
 
 export class ProductService {
+  static async editProduct(
+    uuid: string,
+    params: AddNewProductParams,
+    user: User,
+  ) {
+    const { name, description, price } = params
+    if (!name || !description || !price) {
+      throw new Error400BadRequest(
+        "Please provide product name, description and price.",
+      )
+    }
+    try {
+      let product = await ProductService.getProduct(uuid, user)
+      product.name = name
+      product.description = description
+      product.price = price
+      product.save()
+    } catch (err) {
+      throw err
+    }
+  }
+
   static async addNewProduct(
     addNewProductParams: AddNewProductParams,
     user: User,
@@ -19,7 +42,7 @@ export class ProductService {
       await queryRunner.connect()
       const numCurrProducts = await queryRunner.manager.count(Product)
       const product = queryRunner.manager.create(Product)
-      if (numCurrProducts < 15) {
+      if (!NEW_VAL_LIMIT || numCurrProducts < 15) {
         let existingWarehouse = await queryRunner.manager.findOneBy(Warehouse, {
           address: warehouseAddress,
         })
@@ -54,7 +77,7 @@ export class ProductService {
     }
   }
 
-  static async getProduct(productUuid: string) {
+  static async getProduct(productUuid: string, user: User) {
     const productRepository = AppDataSource.getRepository(Product)
     const product = await productRepository.findOne({
       where: {
@@ -65,6 +88,9 @@ export class ProductService {
         owner: true,
       },
     })
+    if (product.owner.uuid != user.uuid && user.role != "admin") {
+      throw new Error401UnauthorizedRequest("No access to this product")
+    }
     return product
   }
 }
