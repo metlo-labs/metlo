@@ -188,13 +188,13 @@ pub async fn server(listen_socket: &str) -> Result<(), Box<dyn std::error::Error
 pub async fn server_port(port: &str) -> Result<(), Box<dyn std::error::Error>> {
     let addr = format!("0.0.0.0:{}", port);
     let listener = std::net::TcpListener::bind(addr)?;
-    let listener = tokio::net::TcpListener::from_std(listener)?;
+    let tokio_listener = tokio::net::TcpListener::from_std(listener)?;
 
     let s = MIngestServer::default();
 
     Server::builder()
         .add_service(MetloIngestServer::new(s))
-        .serve_with_incoming(TcpListenerStream::new(listener))
+        .serve_with_incoming(TcpListenerStream::new(tokio_listener))
         .await?;
 
     Ok(())
