@@ -23,10 +23,6 @@ dependencies {
 
     compileOnly 'net.portswigger.burp.extender:burp-extender-api:2.3'
     implementation 'com.google.code.gson:gson:2.10.1'
-
-    // examples/advanced need this for JsonFormat
-//    runtimeOnly("io.netty:netty-resolver-dns-native-macos:4.1.89.Final:osx-aarch_64")
-
 }
 
 protobuf {
