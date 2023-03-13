@@ -15,12 +15,14 @@ import {
 import {
   createNewProductHandler,
   editProductHandler,
+  editProductPriceHandler,
   getProductHandler,
   getProductsHandler,
 } from "api/product"
 import { UserService } from "services/user"
 import { Error401UnauthorizedRequest } from "errors"
 import ApiResponseHandler from "api-response-handler"
+import { editAdminConfig, getAdminConfig } from "api/admin"
 
 dotenv.config()
 
@@ -96,7 +98,11 @@ app.register((fastify, options, next) => {
   fastify.get("/product", getProductsHandler)
   fastify.get("/product/:productUuid", getProductHandler)
   fastify.post("/product/:productUuid", editProductHandler)
+  fastify.post("/product/:productUuid/price", editProductPriceHandler)
   fastify.post("/product/new", createNewProductHandler)
+
+  fastify.get("/admin/config", getAdminConfig)
+  fastify.post("/admin/config", editAdminConfig)
 
   fastify.post("/product/new/form", async function (req, res) {
     try {

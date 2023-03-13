@@ -18,6 +18,28 @@ def main(backend, api_key):
         f"{backend}/register",
         json={
             "firstName": "Test 1",
+            "lastName": "Admin User 1",
+            "email": "admin_user_1@metlo.com",
+            "role": "admin",
+            "address": fake.address(),
+            "phoneNumber": fake.phone_number(),
+            "dob": fake.date_of_birth().isoformat(),
+            "password": fake.sentence(nb_words=5),
+        },
+        headers=headers
+    )
+    if r.status_code > 300:
+        print("Register Admin User 1")
+        print(r.status_code)
+        print(r.text)
+        return
+    admin_user_1 = r.json()['user']
+    admin_user_1_api_key = admin_user_1['apiKey']
+
+    r = requests.post(
+        f"{backend}/register",
+        json={
+            "firstName": "Test 1",
             "lastName": "Regular User 1",
             "email": "regular_user_1@metlo.com",
             "role": "regular",
@@ -106,11 +128,18 @@ host "test-ecommerce.metlo.com" {{
 actor User {{
     items = [
         {{
+            "uuid": "{admin_user_1['uuid']}",
+            "role": "admin",
+            "auth": "{admin_user_1['apiKey']}"
+        }},
+        {{
             "uuid": "{user_1['uuid']}",
+            "role": "regular",
             "auth": "{user_1['apiKey']}"
         }},
         {{
             "uuid": "{user_2['uuid']}",
+            "role": "regular",
             "auth": "{user_2['apiKey']}"
         }}
     ]
@@ -142,6 +171,23 @@ resource Product {{
     ]
 }}
 
+resource AdminAccess {{
+    permissions = ["read", "write"],
+    endpoints = [
+        {{
+            "method": "GET",
+            "path": "/admin/.*",
+            "permissions": ["read"]
+        }},
+        {{
+            "method": "POST",
+            "path": "/admin/.*",
+            "permissions": ["write"]
+        }}
+    ]
+}}
+
+has_permission(User(role="admin"), [ "read", "write" ], AdminAccess)
 has_permission(User, [ "read" ], Product)
 has_permission(User(role="admin"), [ "write" ], Product)
 has_permission(User(uuid="{user_1['uuid']}"), [ "write" ], Product(uuid="{user_1_product}"))
