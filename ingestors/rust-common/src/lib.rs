@@ -188,6 +188,7 @@ pub async fn server(listen_socket: &str) -> Result<(), Box<dyn std::error::Error
 pub async fn server_port(port: &str) -> Result<(), Box<dyn std::error::Error>> {
     let addr = format!("0.0.0.0:{}", port);
     let listener = std::net::TcpListener::bind(addr)?;
+    listener.set_nonblocking(true)?;
     let tokio_listener = tokio::net::TcpListener::from_std(listener)?;
 
     let s = MIngestServer::default();
