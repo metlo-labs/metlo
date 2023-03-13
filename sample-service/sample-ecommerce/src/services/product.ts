@@ -16,15 +16,14 @@ export class ProductService {
         "Please provide product name, description and price.",
       )
     }
-    try {
-      let product = await ProductService.getProduct(uuid, user)
-      product.name = name
-      product.description = description
-      product.price = price
-      product.save()
-    } catch (err) {
-      throw err
+    let product = await ProductService.getProduct(uuid, user)
+    if (product.owner.uuid != user.uuid && user.role != "admin") {
+      throw new Error401UnauthorizedRequest("No access to this product")
     }
+    product.name = name
+    product.description = description
+    product.price = price
+    product.save()
   }
 
   static async addNewProduct(
@@ -88,9 +87,6 @@ export class ProductService {
         owner: true,
       },
     })
-    if (product.owner.uuid != user.uuid && user.role != "admin") {
-      throw new Error401UnauthorizedRequest("No access to this product")
-    }
     return product
   }
 }

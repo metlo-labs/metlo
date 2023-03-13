@@ -341,9 +341,7 @@ export const makeSampleRequestNoAuthInner = (
     },
     env,
   }
-  if (ctx.reason) {
-    gen.req.description = ctx.reason
-  }
+
   gen = addQueryParamsToRequest(gen, ctx)
   gen = addBodyToRequest(gen, ctx)
   return gen

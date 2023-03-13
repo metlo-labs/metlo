@@ -340,7 +340,7 @@ export const permissionValid = (
     if (resourceItem.item[k] != v) {
       return {
         valid: false,
-        reason: `${resourceItem.name}.${k} = ${resourceItem.item[k]}`,
+        reason: `${k}=${resourceItem.item[k]}`,
       }
     }
   }
@@ -348,17 +348,20 @@ export const permissionValid = (
   if (typeof resourceItem.item === "object") {
     const entries = Object.entries(resourceItem.item)
     entries.forEach(([itemKey, itemValue], idx) => {
-      reasonItems += `${itemKey} = ${itemValue}`
+      reasonItems += `${itemKey}=${itemValue}`
       if (idx < entries.length - 1) {
-        reasonItems += ", "
+        reasonItems += ","
       }
     })
   }
   return {
     valid: true,
-    reason: `Actor has ${permission.permissions} access to ${
+    reason: `${authActor.name}(${Object.entries(authActor.item)
+      .filter(([k, v]) => k !== "auth")
+      .map(([k, v]) => `${k}=${v}`)
+      .join(",")}) has ${permission.permissions} access to ${
       resourceItem.name
-    }${reasonItems ? `: ${reasonItems}` : ""}.`,
+    }${reasonItems ? `(${reasonItems})` : ""}.`,
   }
 }
 
@@ -424,9 +427,14 @@ export const getAccessItems = (
       } else {
         notHasAccessItems.push({
           item: entItem,
-          reason: `Actor does not have ${permsNeeded} access to ${
+          reason: `${authActor.name}(${Object.entries(authActor.item)
+            .filter(([k, v]) => k !== "auth")
+            .map(([k, v]) => `${k}=${v}`)
+            .join(",")}) does not have ${permsNeeded} access to ${
             permissionValidations.length > 0
-              ? permissionValidations.map(e => e.reason).join(" or ")
+              ? `${entName}(${permissionValidations
+                  .map(e => e.reason)
+                  .join(",")})`
               : entName
           }.`,
         })

@@ -34,7 +34,6 @@ export interface GenTestContext {
   endpoint: GenTestEndpoint
   entityMap: Record<string, any>
   prefix?: string
-  reason?: string
 }
 
 export interface GeneratedTestRequest {

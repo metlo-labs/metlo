@@ -14,6 +14,7 @@ import {
 } from "api/cart"
 import {
   createNewProductHandler,
+  editProductHandler,
   getProductHandler,
   getProductsHandler,
 } from "api/product"
@@ -94,6 +95,7 @@ app.register((fastify, options, next) => {
 
   fastify.get("/product", getProductsHandler)
   fastify.get("/product/:productUuid", getProductHandler)
+  fastify.post("/product/:productUuid", editProductHandler)
   fastify.post("/product/new", createNewProductHandler)
 
   fastify.post("/product/new/form", async function (req, res) {
