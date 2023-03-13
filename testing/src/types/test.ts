@@ -33,7 +33,6 @@ export const KeyValSchema = z.object({
 })
 
 export const RequestSchema = z.object({
-  description: z.string().optional(),
   method: MethodSchema,
   url: z.string(),
   headers: KeyValSchema.array().optional(),
@@ -50,6 +49,7 @@ export const ExtractorSchema = z.object({
 
 export const AssertionSchema = z.union([
   z.object({
+    description: z.string().optional(),
     type: AssertionType.default(AssertionType.enum.EQ),
     key: z.string().optional(),
     value: z.union([PrimitiveValueSchema, PrimitiveValueSchema.array()]),
