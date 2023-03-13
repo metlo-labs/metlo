@@ -320,7 +320,6 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
         if (Extension.this.subprocess != null) {
             Extension.this.subprocess.destroy();
         }
-        //https://app.metlo.com:8081
         try {
             (new URL(Extension.this.metloUrl)).toURI();
             if (Extension.this.metloUrl != null && Extension.this.metloApiKey != null) {
