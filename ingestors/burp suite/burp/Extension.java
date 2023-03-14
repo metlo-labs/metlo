@@ -28,6 +28,8 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
     private final static Integer MIN_PORT = 30000;
     private final static Integer MAX_PORT = 55000;
     private final List<LogEntry> log = new ArrayList<>();
+    private Integer BACKEND_PORT;
+    private Integer COLLECTOR_PORT;
     private Integer threads;
     private Integer rps;
     private Integer PORT;
@@ -167,6 +169,12 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
                 builder.environment().put("METLO_KEY", this.metloApiKey);
                 builder.environment().put("LOG_LEVEL", "error");
                 builder.environment().put("PORT", Extension.this.PORT.toString());
+                if (Extension.this.COLLECTOR_PORT != null) {
+                    builder.environment().put("COLLECTOR_PORT", Extension.this.COLLECTOR_PORT.toString());
+                }
+                if (Extension.this.BACKEND_PORT != null) {
+                    builder.environment().put("BACKEND_PORT", Extension.this.BACKEND_PORT.toString());
+                }
                 builder.inheritIO();
                 this.subprocess = builder.start();
             } catch (Exception ex) {
@@ -369,15 +377,31 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
 
         // set our extension name
         try {
-            List<String> f = Files.readAllLines(Paths.get("/Users/" + System.getProperty("user.name") + "/.metlo/credentials"), StandardCharsets.UTF_8);
+            List<String> f = Files.readAllLines(
+                    Paths.get("/Users/" + System.getProperty("user.name") + "/.metlo/config"),
+                    StandardCharsets.UTF_8
+            );
             for (String line : f) {
                 if (line.startsWith("REQUESTS_PER_SEC")) {
-                    this.rps = Integer.parseInt(line.substring("REQUESTS_PER_SEC=".length()));
-                    this.out.println("Loaded Requests/s from config. Set to " + this.rps);
-                }
-                if (line.startsWith("MAX_THREADS")) {
-                    this.threads = Integer.parseInt(line.substring("MAX_THREADS=".length()));
-                    this.out.println("Loaded Max Threads from config. Set max threads to " + this.threads);
+                    Extension.this.rps = Integer.parseInt(line.substring("REQUESTS_PER_SEC=".length()));
+                    Extension.this.out.println(
+                            "Loaded Requests/s from config. Set to " + Extension.this.rps
+                    );
+                } else if (line.startsWith("MAX_THREADS")) {
+                    Extension.this.threads = Integer.parseInt(line.substring("MAX_THREADS=".length()));
+                    Extension.this.out.println(
+                            "Loaded Max Threads from config. Set max threads to " + Extension.this.threads
+                    );
+                } else if (line.startsWith("COLLECTOR_PORT")) {
+                    Extension.this.COLLECTOR_PORT = Integer.parseInt(line.substring("COLLECTOR_PORT=".length()));
+                    Extension.this.out.println(
+                            "Loaded COLLECTOR_PORT from config. Set COLLECTOR_PORT to " + Extension.this.COLLECTOR_PORT
+                    );
+                } else if (line.startsWith("BACKEND_PORT")) {
+                    Extension.this.BACKEND_PORT = Integer.parseInt(line.substring("BACKEND_PORT=".length()));
+                    Extension.this.out.println(
+                            "Loaded BACKEND_PORT from config. Set BACKEND_PORT to " + Extension.this.BACKEND_PORT
+                    );
                 }
             }
             if (this.rps == null) {
