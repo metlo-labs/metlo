@@ -63,7 +63,7 @@ fn fix_path(path: &str, response_alias_map: Option<&HashMap<String, String>>) ->
             }
             let mut match_idx = 0;
             let mut matched_path = None;
-            for range in (2..non_array_path_vec.len()).rev() {
+            for range in (2..=non_array_path_vec.len()).rev() {
                 let slice = &non_array_path_vec[..range].join(".");
                 if let Some(tmp_path) = map.get(slice) {
                     match_idx = range;
@@ -75,11 +75,21 @@ fn fix_path(path: &str, response_alias_map: Option<&HashMap<String, String>>) ->
                 let remaining_path = &non_array_path_vec[match_idx..];
                 let mut resolved_path_vec = s.split('.').collect::<Vec<&str>>();
                 if !remaining_path.is_empty() {
+                    resolved_path_vec.push("__resp");
                     resolved_path_vec.extend(remaining_path)
                 }
+
+                let mut filtered_count = 0;
                 for idx in array_token_idx {
+                    if idx <= 1 {
+                        filtered_count += 1;
+                    }
                     if idx > 1 {
-                        resolved_path_vec.insert(idx, "[]");
+                        let incr_index = resolved_path_vec[..idx]
+                            .iter()
+                            .filter(|&e| e.starts_with("__on_") || e == &"__resp")
+                            .count();
+                        resolved_path_vec.insert(idx - filtered_count + incr_index, "[]");
                     }
                 }
                 resolved_path_vec.join(".")
@@ -412,7 +422,9 @@ fn get_content_type(headers: &[KeyVal]) -> Option<&String> {
 }
 
 fn get_mime_type(content_type_header: Option<&String>) -> mime::Mime {
-    content_type_header.map_or(mime::TEXT_PLAIN, |e| e.parse().unwrap_or(mime::TEXT_PLAIN))
+    content_type_header.map_or(mime::TEXT_PLAIN, |e| {
+        e.trim().parse().unwrap_or(mime::TEXT_PLAIN)
+    })
 }
 
 fn combine_process_trace_res(
