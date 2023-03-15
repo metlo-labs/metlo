@@ -1,9 +1,9 @@
 import validator from "validator"
 import { MetloContext } from "types"
 import { getRepository } from "services/database/utils"
-import { ApiEndpoint, AuthenticationConfig, DataField } from "models"
+import { ApiEndpoint, AuthenticationConfig } from "models"
 import { GenTestEndpoint } from "@metlo/testing"
-import { DataSection, RestMethod } from "@common/enums"
+import { RestMethod } from "@common/enums"
 
 export const getGenTestEndpoint = async (
   ctx: MetloContext,
