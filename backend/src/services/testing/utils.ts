@@ -40,16 +40,9 @@ export const getGenTestEndpoint = async (
     return null
   }
 
-  let path = endpointObj.path
-  if (endpointObj.isGraphQl) {
-    const splitPath = path.split("/")
-    const graphQlPath = splitPath.pop()
-    path = `${splitPath.join("/")}/${graphQlPath.split(".")[0]}`
-  }
-
   let genTestEndpoint: GenTestEndpoint = {
     host: endpointObj.host,
-    path,
+    path: endpointObj.path,
     method: endpointObj.method,
     isGraphQl: endpointObj.isGraphQl,
     graphQlMetadata: endpointObj.graphQlMetadata,

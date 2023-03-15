@@ -375,6 +375,13 @@ export const makeSampleRequestNoAuthInner = (
   ctx.prefix = ctx.prefix ? ctx.prefix + "_" : ""
 
   let replacedPath = ctx.endpoint.path
+  if (ctx.endpoint.isGraphQl) {
+    const splitPath = replacedPath.split("/")
+    const graphQlPath = splitPath.pop()
+    if (graphQlPath) {
+      replacedPath = `${splitPath.join("/")}/${graphQlPath.split(".")[0]}`
+    }
+  }
   for (const paramField of ctx.endpoint.dataFields.filter(
     e => e.dataSection == DataSection.REQUEST_PATH,
   )) {
