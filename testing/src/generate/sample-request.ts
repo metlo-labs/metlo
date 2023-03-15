@@ -84,35 +84,19 @@ export const addAuthToRequest = (
   }
 }
 
-const isEnumValue = (isGraphQl: boolean, s: string) => {
-  if (!isGraphQl) {
-    return false
-  }
-  if (!isNaN(Number(s))) {
-    return false
-  }
-  return s.toUpperCase() === s
-}
-
 const recurseCreateBody = (
   body: any,
   mapTokens: string[],
   currTokenIndex: number,
   dataField: GenTestEndpointDataField,
   entityMap: Record<string, any>,
-  isGraphQl: boolean,
 ): any => {
   if (currTokenIndex > mapTokens.length - 1 || !mapTokens[currTokenIndex]) {
     return dataField.entity && entityMap[dataField.entity]
-      ? isEnumValue(isGraphQl, entityMap[dataField.entity])
-        ? new EnumType(entityMap[dataField.entity])
-        : entityMap[dataField.entity]
+      ? entityMap[dataField.entity]
       : getSampleValue(dataField.dataType)
   } else {
-    let currToken = mapTokens?.[currTokenIndex]
-    if (isGraphQl && currToken === "_arg") {
-      currToken = "__args"
-    }
+    const currToken = mapTokens?.[currTokenIndex]
     if (currToken === "[]") {
       return [
         recurseCreateBody(
@@ -121,7 +105,6 @@ const recurseCreateBody = (
           currTokenIndex + 1,
           dataField,
           entityMap,
-          isGraphQl,
         ),
       ]
     } else if (currToken === "[string]") {
@@ -133,7 +116,6 @@ const recurseCreateBody = (
           currTokenIndex + 1,
           dataField,
           entityMap,
-          isGraphQl,
         ),
       }
     } else {
@@ -145,7 +127,73 @@ const recurseCreateBody = (
           currTokenIndex + 1,
           dataField,
           entityMap,
-          isGraphQl,
+        ),
+      }
+    }
+  }
+}
+
+const getGraphQlEntityValue = (s: any): any => {
+  if (typeof s !== "string") {
+    return s
+  }
+  if (s.startsWith("ENUM.")) {
+    return new EnumType(s.split("ENUM.")[1])
+  }
+  return s
+}
+
+const recurseCreateBodyGraphQl = (
+  body: any,
+  mapTokens: string[],
+  currTokenIndex: number,
+  dataField: GenTestEndpointDataField,
+  entityMap: Record<string, any>,
+): any => {
+  if (currTokenIndex > mapTokens.length - 1 || !mapTokens[currTokenIndex]) {
+    if (typeof body === "object") {
+      return body
+    }
+    return dataField.entity && entityMap[dataField.entity]
+      ? getGraphQlEntityValue(entityMap[dataField.entity])
+      : getSampleValue(dataField.dataType)
+  } else {
+    let currToken = mapTokens?.[currTokenIndex]
+    if (currToken.startsWith("__on_")) {
+      currToken = `... on ${currToken.split("__on_")[1]}`
+    } else if (currToken === "__resp") {
+      return getSampleValue(DataType.STRING)
+    }
+
+    if (currToken === "[]") {
+      if (dataField.dataSection === DataSection.RESPONSE_BODY) {
+        return recurseCreateBodyGraphQl(
+          body,
+          mapTokens,
+          currTokenIndex + 1,
+          dataField,
+          entityMap,
+        )
+      } else {
+        return [
+          recurseCreateBodyGraphQl(
+            body?.[0],
+            mapTokens,
+            currTokenIndex + 1,
+            dataField,
+            entityMap,
+          ),
+        ]
+      }
+    } else {
+      return {
+        ...body,
+        [currToken]: recurseCreateBodyGraphQl(
+          body?.[currToken],
+          mapTokens,
+          currTokenIndex + 1,
+          dataField,
+          entityMap,
         ),
       }
     }
@@ -165,8 +213,7 @@ const addBodyToRequest = (
     e =>
       (endpoint.isGraphQl
         ? (e.dataSection === DataSection.REQUEST_BODY ||
-            (e.dataSection === DataSection.RESPONSE_BODY &&
-              !e.dataPath.includes("[]"))) &&
+            e.dataSection === DataSection.RESPONSE_BODY) &&
           e.dataType !== DataType.UNKNOWN
         : e.dataSection === DataSection.REQUEST_BODY) && e.contentType,
   )
@@ -181,16 +228,10 @@ const addBodyToRequest = (
     return gen
   }
   let body: any = undefined
+  const func = endpoint.isGraphQl ? recurseCreateBodyGraphQl : recurseCreateBody
   for (const dataField of filteredDataFields) {
     const mapTokens = dataField.dataPath?.split(".")
-    body = recurseCreateBody(
-      body,
-      mapTokens,
-      0,
-      dataField,
-      ctx.entityMap,
-      ctx.endpoint.isGraphQl,
-    )
+    body = func(body, mapTokens, 0, dataField, ctx.entityMap)
   }
 
   if (endpoint.isGraphQl) {

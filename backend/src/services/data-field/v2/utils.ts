@@ -17,7 +17,7 @@ interface ProcessedDataFieldData {
 }
 
 const TOTAL_DATA_FIELDS_LIMIT = 200
-const TOTAL_DATA_FIELDS_LIMIT_GRAPHQL = 300
+const TOTAL_DATA_FIELDS_LIMIT_GRAPHQL = 250
 const getTotalDataFieldsLimit = (isGraphQl: boolean) => {
   return isGraphQl ? TOTAL_DATA_FIELDS_LIMIT_GRAPHQL : TOTAL_DATA_FIELDS_LIMIT
 }

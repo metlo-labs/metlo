@@ -43,6 +43,7 @@ export const processResourceConfig = (
         headerKey: item.members.headerKey,
         jwtUserPath: item.members.jwtUserPath,
         cookieName: item.members.cookieName,
+        responseAssertion: item.members.responseAssertion
       }
     } else if (item.type == "actor") {
       out.actors[item.name] = {
@@ -57,7 +58,6 @@ export const processResourceConfig = (
         permissions: item.members.permissions || [],
         items: item.members.items || [],
         endpoints: item.members.endpoints || [],
-        graphql: item.members.graphql || [],
       }
     } else if (item.type == "permission_def") {
       out.permissions.push({

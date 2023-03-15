@@ -13,7 +13,6 @@ export const getGenTestEndpointHandler = async (
     endpoint?: string
     host?: string
     method?: string
-    operationPath?: string
   } = req.query
   if (!queryParams.endpoint) {
     return await ApiResponseHandler.error(
@@ -27,7 +26,6 @@ export const getGenTestEndpointHandler = async (
       queryParams.endpoint,
       queryParams.host,
       queryParams.method,
-      queryParams.operationPath,
     )
     if (!endpoint) {
       return await ApiResponseHandler.error(

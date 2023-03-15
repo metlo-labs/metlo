@@ -194,6 +194,19 @@ export const addAuthToRequest = (
   }
 }
 
+const getResponseAssertion = (hostInfo: Host, endpoint: GenTestEndpoint) => {
+  if (!hostInfo.responseAssertion) {
+    return null
+  }
+  for (const assertion of hostInfo.responseAssertion) {
+    if (assertion.path && !endpoint.path.match(new RegExp(assertion.path))) {
+      continue
+    }
+    return assertion
+  }
+  return null
+}
+
 export const authTestStepPayloadToBuilder = (
   endpoint: GenTestEndpoint,
   payload: AuthTestStepPayload,
@@ -222,19 +235,28 @@ export const authTestStepPayloadToBuilder = (
     payload.reason || description
       ? { description: payload.reason || description }
       : {}
+  const responseAssertion = getResponseAssertion(hostInfo, endpoint)
   if (payload.authorized) {
     builder = builder.assert({
       ...assertion,
       type: AssertionType.enum.JS,
-      value: "resp.status < 300",
+      value: responseAssertion?.success || "resp.status < 300",
     })
   } else {
-    builder = builder.assert({
-      ...assertion,
-      type: AssertionType.enum.EQ,
-      key: "resp.status",
-      value: [401, 403],
-    })
+    if (responseAssertion?.error) {
+      builder = builder.assert({
+        ...assertion,
+        type: AssertionType.enum.JS,
+        value: responseAssertion.error,
+      })
+    } else {
+      builder = builder.assert({
+        ...assertion,
+        type: AssertionType.enum.EQ,
+        key: "resp.status",
+        value: [401, 403, 404],
+      })
+    }
   }
 
   return builder

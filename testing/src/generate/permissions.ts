@@ -3,8 +3,6 @@ import {
   Actor,
   ContainsResourceFilter,
   EndpointPermFilter,
-  GraphqlContainsResourceFilter,
-  GraphqlPermFilter,
   Permission,
   Resource,
   TemplateConfig,
@@ -121,7 +119,7 @@ const checkContainsResource = (
         (!containsResource.type && e.name === defaultResource)) &&
       `${DATA_SECTION_TO_PATH[e.dataSection]}${
         e.dataPath ? `.${e.dataPath}` : ""
-      }`.startsWith(containsResource.path),
+      }`.startsWith(containsResource.path || ""),
   )
 }
 
@@ -164,28 +162,6 @@ const validateEndpointFilter = (
   return true
 }
 
-const validateGraphQlFilter = (
-  permFilter: GraphqlPermFilter,
-  endpointEntites: ContainsResourceFilterKey[],
-  defaultResource: string,
-): boolean => {
-  if (permFilter.contains_resource) {
-    const containsResource =
-      permFilter.contains_resource as GraphqlContainsResourceFilter
-    if (
-      containsResource.type &&
-      !endpointEntites.find(e => e.name === containsResource.type)
-    ) {
-      return false
-    } else if (!endpointEntites.find(e => e.name === defaultResource)) {
-      return false
-    }
-    return true
-  } else {
-    return false
-  }
-}
-
 export const getEndpointPermissions = (
   endpoint: GenTestEndpoint,
   config: TemplateConfig,
@@ -194,33 +170,15 @@ export const getEndpointPermissions = (
   const resources = Object.values(config.resources)
   const endpointEntities = getEndpointEntities(endpoint, config)
   resources.forEach(resource => {
-    let endpointPerms = new Set<string>()
-    if (endpoint.isGraphQl) {
-      const permFilters = resource.graphql
-      endpointPerms = new Set(
-        permFilters
-          .filter(e =>
-            validateGraphQlFilter(e, endpointEntities, resource.name),
-          )
-          .map(e => e.permissions)
-          .flat(),
-      )
-    } else {
-      const permFilters = resource.endpoints
-      endpointPerms = new Set(
-        permFilters
-          .filter(e =>
-            validateEndpointFilter(
-              endpoint,
-              e,
-              endpointEntities,
-              resource.name,
-            ),
-          )
-          .map(e => e.permissions)
-          .flat(),
-      )
-    }
+    const permFilters = resource.endpoints
+    const endpointPerms = new Set(
+      permFilters
+        .filter(e =>
+          validateEndpointFilter(endpoint, e, endpointEntities, resource.name),
+        )
+        .map(e => e.permissions)
+        .flat(),
+    )
     if (endpointPerms.size > 0) {
       out[resource.name] = out[resource.name]
         ? out[resource.name].concat([...endpointPerms])
@@ -460,54 +418,21 @@ export const findEndpointResourcePermissions = (
 
   for (const resource of resources) {
     const permFilters = config.resources[resource]?.endpoints ?? []
-    const permFiltersGraphql = config.resources[resource]?.graphql ?? []
-    if (endpoint.isGraphQl && permFiltersGraphql.length > 0) {
-      for (const permFilter of permFiltersGraphql) {
-        if (validateGraphQlFilter(permFilter, endpointEntities, resource)) {
-          permFilter.permissions.forEach(perm => {
-            resourcePermissions.add(`${resource}.${perm}`)
-          })
-        }
-      }
-    } else if (!endpoint.isGraphQl && permFilters.length > 0) {
+    if (permFilters.length > 0) {
       for (const permFilter of permFilters) {
-        if (permFilter.contains_resource) {
-          const containsResource = permFilter.contains_resource
-          if (
-            checkContainsResource(containsResource, resource, endpointEntities)
-          ) {
-            permFilter.permissions.forEach(perm => {
-              resourcePermissions.add(`${resource}.${perm}`)
-            })
-          }
-        } else {
-          if (permFilter.method) {
-            if (typeof permFilter.method === "string") {
-              if (permFilter.method !== endpoint.method) {
-                continue
-              }
-            } else {
-              if (!permFilter.method.includes(endpoint.method)) {
-                continue
-              }
-            }
-          }
-          if (
-            permFilter.host &&
-            !endpoint.host.match(new RegExp(permFilter.host))
-          ) {
-            continue
-          }
-          if (
-            permFilter.path &&
-            !endpoint.path.match(new RegExp(permFilter.path))
-          ) {
-            continue
-          }
-          permFilter.permissions.forEach(perm => {
-            resourcePermissions.add(`${resource}.${perm}`)
-          })
+        if (
+          !validateEndpointFilter(
+            endpoint,
+            permFilter,
+            endpointEntities,
+            resource,
+          )
+        ) {
+          continue
         }
+        permFilter.permissions.forEach(perm => {
+          resourcePermissions.add(`${resource}.${perm}`)
+        })
       }
     }
   }

@@ -1,65 +1,55 @@
 import validator from "validator"
-import { FindOptionsWhere, ILike, In, Not } from "typeorm"
 import { MetloContext } from "types"
 import { getRepository } from "services/database/utils"
 import { ApiEndpoint, AuthenticationConfig, DataField } from "models"
 import { GenTestEndpoint } from "@metlo/testing"
 import { DataSection, RestMethod } from "@common/enums"
-import Error400BadRequest from "errors/error-400-bad-request"
 
 export const getGenTestEndpoint = async (
   ctx: MetloContext,
   endpoint: string,
   host?: string,
   method?: string,
-  operationPath?: string,
 ): Promise<GenTestEndpoint | null> => {
   let endpointObj: ApiEndpoint | null = null
   const apiEndpointRepository = getRepository(ctx, ApiEndpoint)
   if (validator.isUUID(endpoint)) {
     endpointObj = await apiEndpointRepository.findOne({
       where: { uuid: endpoint },
+      relations: { dataFields: true },
+      order: {
+        dataFields: {
+          dataSection: "ASC",
+          updatedAt: "ASC",
+        },
+      },
     })
   } else {
     endpointObj = await apiEndpointRepository.findOne({
       where: { path: endpoint, host: host, method: method as RestMethod },
+      relations: { dataFields: true },
+      order: {
+        dataFields: {
+          dataSection: "ASC",
+          updatedAt: "ASC",
+        },
+      },
     })
   }
   if (!endpointObj) {
     return null
   }
 
-  if (endpointObj.isGraphQl && !operationPath) {
-    throw new Error400BadRequest(
-      "Must specify operation path for graphql endpoint",
-    )
-  }
-  let where: FindOptionsWhere<DataField> | FindOptionsWhere<DataField>[] = {
-    apiEndpointUuid: endpointObj.uuid,
-  }
+  let path = endpointObj.path
   if (endpointObj.isGraphQl) {
-    where = [
-      {
-        apiEndpointUuid: endpointObj.uuid,
-        dataSection: Not(
-          In([DataSection.REQUEST_BODY, DataSection.RESPONSE_BODY]),
-        ),
-      },
-      {
-        apiEndpointUuid: endpointObj.uuid,
-        dataSection: In([DataSection.REQUEST_BODY, DataSection.RESPONSE_BODY]),
-        dataPath: ILike(`%${operationPath}%`),
-      },
-    ]
+    const splitPath = path.split("/")
+    const graphQlPath = splitPath.pop()
+    path = `${splitPath.join("/")}/${graphQlPath.split(".")[0]}`
   }
-  endpointObj.dataFields = await getRepository(ctx, DataField).find({
-    where,
-    order: { updatedAt: "ASC" },
-  })
 
   let genTestEndpoint: GenTestEndpoint = {
     host: endpointObj.host,
-    path: endpointObj.path,
+    path,
     method: endpointObj.method,
     isGraphQl: endpointObj.isGraphQl,
     graphQlMetadata: endpointObj.graphQlMetadata,
