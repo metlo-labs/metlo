@@ -8,7 +8,7 @@ import {
   GenTestEndpoint,
   GenTestEndpointDataField,
 } from "./types"
-import { AuthType } from "../types/enums"
+import { AuthType, RestMethod } from "../types/enums"
 import { TemplateConfig } from "../types/resource_config"
 import { getEntityMap } from "./permissions"
 
@@ -213,7 +213,8 @@ const addBodyToRequest = (
     e =>
       (endpoint.isGraphQl
         ? (e.dataSection === DataSection.REQUEST_BODY ||
-            e.dataSection === DataSection.RESPONSE_BODY) &&
+            (e.dataSection === DataSection.RESPONSE_BODY &&
+              endpoint.method !== RestMethod.GET)) &&
           e.dataType !== DataType.UNKNOWN
         : e.dataSection === DataSection.REQUEST_BODY) && e.contentType,
   )
@@ -307,8 +308,12 @@ const addQueryParamsToRequest = (
   ctx: GenTestContext,
 ): GeneratedTestRequest => {
   const endpoint = ctx.endpoint
-  const dataFields = endpoint.dataFields.filter(
-    e => e.dataSection == DataSection.REQUEST_QUERY,
+  const isGraphQlGet = endpoint.isGraphQl && endpoint.method === RestMethod.GET
+  const dataFields = endpoint.dataFields.filter(e =>
+    isGraphQlGet
+      ? e.dataSection === DataSection.REQUEST_QUERY ||
+        e.dataSection === DataSection.RESPONSE_BODY
+      : e.dataSection === DataSection.REQUEST_QUERY,
   )
   if (dataFields.length == 0) {
     return gen
@@ -316,22 +321,41 @@ const addQueryParamsToRequest = (
   const pre = ctx.prefix
   let queryParams: KeyValType[] = []
   let env: KeyValType[] = []
-  for (const queryField of dataFields) {
-    if (queryField.entity && ctx.entityMap[queryField.entity]) {
-      queryParams.push({
-        name: queryField.dataPath,
-        value: ctx.entityMap[queryField.entity],
-      })
-    } else {
-      const name = queryField.dataPath
-      env.push({
-        name: `${pre}${name}`,
-        value: `<<${pre}${name}>>`,
-      })
-      queryParams.push({
-        name: queryField.dataPath,
-        value: `{{${pre}${name}}}`,
-      })
+  let body: any = undefined
+
+  if (isGraphQlGet) {
+    for (const queryField of dataFields) {
+      const mapTokens = queryField.dataPath.split(".")
+      body = recurseCreateBodyGraphQl(
+        body,
+        mapTokens,
+        0,
+        queryField,
+        ctx.entityMap,
+      )
+    }
+    queryParams.push({
+      name: "query",
+      value: jsonToGraphQLQuery(body, { pretty: true }),
+    })
+  } else {
+    for (const queryField of dataFields) {
+      if (queryField.entity && ctx.entityMap[queryField.entity]) {
+        queryParams.push({
+          name: queryField.dataPath,
+          value: ctx.entityMap[queryField.entity],
+        })
+      } else {
+        const name = queryField.dataPath
+        env.push({
+          name: `${pre}${name}`,
+          value: `<<${pre}${name}>>`,
+        })
+        queryParams.push({
+          name: queryField.dataPath,
+          value: `{{${pre}${name}}}`,
+        })
+      }
     }
   }
   return {
