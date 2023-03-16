@@ -411,7 +411,9 @@ fn get_content_type(headers: &[KeyVal]) -> Option<&String> {
 }
 
 fn get_mime_type(content_type_header: Option<&String>) -> mime::Mime {
-    content_type_header.map_or(mime::TEXT_PLAIN, |e| e.parse().unwrap_or(mime::TEXT_PLAIN))
+    content_type_header.map_or(mime::TEXT_PLAIN, |e| {
+        e.trim().parse().unwrap_or(mime::TEXT_PLAIN)
+    })
 }
 
 fn combine_process_trace_res(
