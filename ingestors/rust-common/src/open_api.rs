@@ -318,7 +318,10 @@ fn get_spec_content_type_schema<'a>(
     trace_content_type: &str,
     spec_status_code_map: &'a HashMap<String, CompiledSchema>,
 ) -> Result<Option<&'a CompiledSchema>, String> {
-    let content_type = match trace_content_type.parse::<mime::Mime>() {
+    if trace_content_type.trim().is_empty() {
+        return Err("No Content-Type is used for the response body.".to_owned());
+    }
+    let content_type = match trace_content_type.trim().parse::<mime::Mime>() {
         Ok(m) => m.essence_str().to_owned(),
         Err(_) => {
             return Err(format!(
