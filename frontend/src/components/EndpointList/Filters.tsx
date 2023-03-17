@@ -310,6 +310,38 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
                 />
               </Box>
             </GridItem>
+            <GridItem colSpan={2}>
+              <Box zIndex="1001" w={{ base: "full", lg: "xs" }}>
+                <FilterHeader title="Endpoint Validated" />
+                <Select
+                  className="chakra-react-select"
+                  options={[
+                    { label: "Any", value: null },
+                    { label: "True", value: "true" },
+                    { label: "False", value: "false" },
+                  ]}
+                  size="sm"
+                  value={{
+                    label:
+                      params.endpointValidated === "true"
+                        ? "True"
+                        : params.endpointValidated === "false"
+                        ? "False"
+                        : "Any",
+                    value:
+                      params.endpointValidated === null
+                        ? null
+                        : params.endpointValidated,
+                  }}
+                  onChange={e => {
+                    setParams({
+                      endpointValidated: e.value,
+                    })
+                  }}
+                  placeholder="Endpoint manually validated..."
+                />
+              </Box>
+            </GridItem>
           </Grid>
         </Collapse>
       </VStack>

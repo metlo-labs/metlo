@@ -438,6 +438,13 @@ export class GetEndpointsService {
         )
         parameters.push(`${searchingForPublic}`)
       }
+      if (getEndpointParams.endpointValidated) {
+        whereFilter.push(
+          `endpoint."userSet" = $${argNumber++}`,
+        )
+        parameters.push(getEndpointParams.endpointValidated)
+      }
+
       if (whereFilter.length > 0) {
         whereFilterString = `WHERE ${whereFilter.join(" AND ")}`
       }
