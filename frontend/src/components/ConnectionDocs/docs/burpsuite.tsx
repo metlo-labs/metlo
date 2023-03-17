@@ -18,7 +18,7 @@ const BurpSuiteDocs: React.FC<DocsParams> = React.memo(({ host, apiKey }) => {
         <Box w="full">
           <VStack w="full" alignItems="flex-start">
             <Text w="full">
-              The first step is to download Metlo's Burp Suite extension:
+              The first step is to download Metlo{"'"}s Burp Suite extension:
             </Text>
             <Button>
               <a href="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/metlo-burpsuite-plugin-latest.jar">
