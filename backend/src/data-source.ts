@@ -108,7 +108,6 @@ const migrationsRun = runMigration
 const logging = false
 
 if (process.env.DB_URL) {
-  console.log("Init from url")
   _tempAppDataSource = new DataSource({
     type,
     url: process.env.DB_URL,
@@ -119,7 +118,6 @@ if (process.env.DB_URL) {
     logging,
   })
 } else {
-  console.log("Init from creds")
   _tempAppDataSource = new DataSource({
     type,
     entities,
