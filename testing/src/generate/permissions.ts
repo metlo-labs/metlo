@@ -15,6 +15,14 @@ export interface ResourceEntityKey {
   path: string
 }
 
+interface ContainsResourceFilterKey {
+  type: "actor" | "resource"
+  name: string
+  path: string
+  dataPath: string
+  dataSection: DataSection
+}
+
 export type ResourcePerms = Record<string, string[]>
 
 const DATA_SECTION_TO_PATH: Record<DataSection, string> = {
@@ -80,22 +88,45 @@ export const getEntityMap = (
 export const getEndpointEntities = (
   endpoint: GenTestEndpoint,
   config: TemplateConfig,
-): ResourceEntityKey[] => {
+): ContainsResourceFilterKey[] => {
   const validEntities = getAllEntities(config)
   const pathToEntity = Object.fromEntries(
     validEntities.map(e => [`${e.name}.${e.path}`, e]),
   )
   return endpoint.dataFields
     .filter(e => e.entity)
-    .map(e => e.entity as string)
-    .map(e => pathToEntity[e])
-    .filter(e => e)
+    .map(e => ({
+      entity: e.entity as string,
+      dataPath: e.dataPath,
+      dataSection: e.dataSection,
+    }))
+    .map(e => ({
+      ...pathToEntity[e.entity],
+      dataPath: e.dataPath,
+      dataSection: e.dataSection,
+    }))
+    .filter(e => e.name)
+}
+
+const checkContainsResource = (
+  containsResource: ContainsResourceFilter,
+  defaultResource: string,
+  filters: ContainsResourceFilterKey[],
+) => {
+  return filters.some(
+    e =>
+      ((containsResource.type && e.name === containsResource.type) ||
+        (!containsResource.type && e.name === defaultResource)) &&
+      `${DATA_SECTION_TO_PATH[e.dataSection]}${
+        e.dataPath ? `.${e.dataPath}` : ""
+      }`.startsWith(containsResource.path || ""),
+  )
 }
 
 const validateEndpointFilter = (
   endpoint: GenTestEndpoint,
   permFilter: EndpointPermFilter,
-  endpointEntities: ResourceEntityKey[],
+  endpointEntities: ContainsResourceFilterKey[],
   defaultResource: string,
 ): boolean => {
   if (permFilter.method) {
@@ -119,19 +150,10 @@ const validateEndpointFilter = (
     const contains_resource =
       permFilter.contains_resource as ContainsResourceFilter
     if (
-      contains_resource.type &&
-      !endpointEntities.find(
-        e =>
-          e.type == contains_resource.type &&
-          e.path.startsWith(contains_resource.path),
-      )
-    ) {
-      return false
-    } else if (
-      !endpointEntities.find(
-        e =>
-          e.type == defaultResource &&
-          e.path.startsWith(contains_resource.path),
+      !checkContainsResource(
+        contains_resource,
+        defaultResource,
+        endpointEntities,
       )
     ) {
       return false
@@ -392,62 +414,25 @@ export const findEndpointResourcePermissions = (
   }
 
   const resourcePermissions = new Set<string>()
-  const endpointEntities: { type: string; path: string }[] = []
-  for (const dataField of endpoint.dataFields) {
-    if (dataField.entity) {
-      endpointEntities.push({
-        type: dataField.entity.split(".")?.[0],
-        path: DATA_SECTION_TO_PATH[dataField.dataSection],
-      })
-    }
-  }
+  const endpointEntities = getEndpointEntities(endpoint, config)
 
   for (const resource of resources) {
     const permFilters = config.resources[resource]?.endpoints ?? []
-    if (permFilters?.length > 0) {
+    if (permFilters.length > 0) {
       for (const permFilter of permFilters) {
-        if (permFilter.contains_resource) {
-          const containsResource = permFilter.contains_resource
-          if (
-            endpointEntities.some(
-              e =>
-                ((containsResource.type && e.type === containsResource.type) ||
-                  (!containsResource.type && e.type === resource)) &&
-                e.path.startsWith(containsResource.path),
-            )
-          ) {
-            permFilter.permissions.forEach(perm => {
-              resourcePermissions.add(`${resource}.${perm}`)
-            })
-          }
-        } else {
-          if (permFilter.method) {
-            if (typeof permFilter.method === "string") {
-              if (permFilter.method !== endpoint.method) {
-                continue
-              }
-            } else {
-              if (!permFilter.method.includes(endpoint.method)) {
-                continue
-              }
-            }
-          }
-          if (
-            permFilter.host &&
-            !endpoint.host.match(new RegExp(permFilter.host))
-          ) {
-            continue
-          }
-          if (
-            permFilter.path &&
-            !endpoint.path.match(new RegExp(permFilter.path))
-          ) {
-            continue
-          }
-          permFilter.permissions.forEach(perm => {
-            resourcePermissions.add(`${resource}.${perm}`)
-          })
+        if (
+          !validateEndpointFilter(
+            endpoint,
+            permFilter,
+            endpointEntities,
+            resource,
+          )
+        ) {
+          continue
         }
+        permFilter.permissions.forEach(perm => {
+          resourcePermissions.add(`${resource}.${perm}`)
+        })
       }
     }
   }
