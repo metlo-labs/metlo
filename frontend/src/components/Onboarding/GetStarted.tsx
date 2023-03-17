@@ -40,8 +40,16 @@ const CONNECTION_TYPE_TO_LABEL: { type: ConnectionType; label: string }[] = [
     label: "GCP Traffic Mirroring",
   },
   {
+    type: ConnectionType.DOCKERCOMPOSE,
+    label: "Docker Compose",
+  },
+  {
     type: ConnectionType.KUBERNETES,
     label: "Kubernetes",
+  },
+  {
+    type: ConnectionType.BURPSUITE,
+    label: "Burp Suite",
   },
 ]
 
@@ -59,7 +67,7 @@ export const GetStarted: React.FC = React.memo(({}) => {
       </Heading>
       <DataHeading fontSize="lg" pb="4">
         Add a connection to get started. You can always add more connections
-        later from the <strong>Settings</strong> page.
+        later from the Settings page.
       </DataHeading>
       <Divider />
       <VStack spacing={4} w="full">
@@ -73,16 +81,16 @@ export const GetStarted: React.FC = React.memo(({}) => {
               as="button"
               onClick={() => handleButtonClick(conn.type)}
               key={conn.type}
-              bg="#EDF2F7"
               borderColor="#CBD5E0"
               borderRadius="10px"
-              borderWidth="2px"
+              borderWidth="1px"
               borderStyle="solid"
               padding="20px"
+              _hover={{ backgroundColor: "gray.50", borderColor: "primary" }}
             >
               <VStack>
                 <Image
-                alt={`connection-${conn.type}`}
+                  alt={`connection-${conn.type}`}
                   boxSize="50px"
                   src={`/static-images/connections/${conn.type}_light.svg`}
                 />

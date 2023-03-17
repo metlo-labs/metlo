@@ -22,6 +22,8 @@ import KubernetesDocs from "components/ConnectionDocs/docs/kubernetes"
 import GoDocs from "components/ConnectionDocs/docs/go"
 import { addKey, getOnboardingKeys } from "api/keys"
 import { makeToast } from "utils"
+import DockerComposeDocs from "components/ConnectionDocs/docs/dockercompose"
+import BurpSuiteDocs from "components/ConnectionDocs/docs/burpsuite"
 
 interface ConnectionSetupProps {
   type: ConnectionType
@@ -107,8 +109,14 @@ export const ConnectionSetup: React.FC<ConnectionSetupProps> = React.memo(
       case ConnectionType.JAVA:
         body = <JavaDocs host={host} apiKey={apiKey} />
         break
+      case ConnectionType.DOCKERCOMPOSE:
+        body = <DockerComposeDocs host={host} apiKey={apiKey} />
+        break
       case ConnectionType.KUBERNETES:
         body = <KubernetesDocs />
+        break
+      case ConnectionType.BURPSUITE:
+        body = <BurpSuiteDocs host={host} apiKey={apiKey} />
         break
       case ConnectionType.GOLANG:
         body = <GoDocs host={host} apiKey={apiKey} />

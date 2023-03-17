@@ -91,6 +91,8 @@ export enum ConnectionType {
   JAVA = "JAVA",
   GOLANG = "GOLANG",
   KUBERNETES = "KUBERNETES",
+  DOCKERCOMPOSE = "DOCKERCOMPOSE",
+  BURPSUITE = "BURPSUITE",
 }
 
 export enum SpecExtension {
