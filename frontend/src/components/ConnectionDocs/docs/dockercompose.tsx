@@ -12,7 +12,7 @@ const DockerComposeDocs: React.FC<DocsParams> = React.memo(
           <Box w="full">
             <VStack w="full">
               <Text w="full">
-                If you’re app is deployed using docker compose you can add Metlo
+                If your app is deployed using docker compose you can add Metlo
                 as a service to capture API traffic data as shown below:
               </Text>
               <Code w="full" p={2}>
