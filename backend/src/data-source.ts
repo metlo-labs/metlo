@@ -1,5 +1,6 @@
 import "dotenv/config"
 import { DataSource } from "typeorm"
+import { BaseDataSourceOptions } from "typeorm/data-source/BaseDataSourceOptions"
 import {
   ApiEndpoint,
   DataField,
@@ -50,60 +51,88 @@ import { endpointGraphqlColumns1677479141637 } from "migrations/1677479141637-en
 import { dropArrayFields1677803493465 } from "migrations/1677803493465-drop-array-fields"
 import { removeTraceHash1678477672617 } from "migrations/1678477672617-remove-trace-hash"
 
-export const AppDataSource: DataSource = new DataSource({
-  type: "postgres",
-  url: process.env.DB_URL,
-  entities: [
-    ApiEndpoint,
-    DataField,
-    ApiTrace,
-    OpenApiSpec,
-    Alert,
-    Session,
-    Connections,
-    ApiEndpointTest,
-    ApiKey,
-    BlockFields,
-    InstanceSettings,
-    AuthenticationConfig,
-    AggregateTraceDataHourly,
-    Attack,
-    MetloConfig,
-    Webhook,
-    TestingConfig,
-    Hosts,
-  ],
-  synchronize: false,
-  migrations: [
-    initMigration1665782029662,
-    addUniqueConstraintApiEndpoint1666678487137,
-    dropAnalyzedColumnFromApiTrace1666752646836,
-    addIndexForDataField1666941075032,
-    addIsgraphqlColumnApiEndpoint1667095325334,
-    addApiEndpointUuidIndexForAlert1667259254414,
-    addMetloConfigTable1667599667595,
-    updateDisabledPathsColumnBlockFieldsTable1667606447208,
-    removeApiKeyTypeEnum1669778297643,
-    addWebhookTable1670447292139,
-    addEndpointIps1670653006577,
-    addHostsColumnToWebhook1671143857165,
-    addApiSpecColumnsToDataField1671511060114,
-    addUniqueNullIndexForDataField1671609270282,
-    customDataClasses1671813043343,
-    dataFieldUniqueConstraint1672708787156,
-    addTracehashColumnToDataField1672962660470,
-    userSetEndpointColumn1673073826153,
-    removeHostPrimaryKeyAuthenticationconfig1673465613593,
-    metloConfigEnv1673503553138,
-    addHostAndMethodIndex1676006521189,
-    addFullTraceCaptureEnabledColumn1676065168441,
-    addOriginalHostTraceColumn1676358211583,
-    addTestingConfigTable1676508983994,
-    hostsList1677073188312,
-    endpointGraphqlColumns1677479141637,
-    dropArrayFields1677803493465,
-    removeTraceHash1678477672617,
-  ],
-  migrationsRun: runMigration,
-  logging: false,
-})
+let _tempAppDataSource: DataSource = null
+const type = "postgres"
+const entities: Partial<BaseDataSourceOptions["entities"]> = [
+  ApiEndpoint,
+  DataField,
+  ApiTrace,
+  OpenApiSpec,
+  Alert,
+  Session,
+  Connections,
+  ApiEndpointTest,
+  ApiKey,
+  BlockFields,
+  InstanceSettings,
+  AuthenticationConfig,
+  AggregateTraceDataHourly,
+  Attack,
+  MetloConfig,
+  Webhook,
+  TestingConfig,
+  Hosts,
+]
+const migrations: Partial<BaseDataSourceOptions["migrations"]> = [
+  initMigration1665782029662,
+  addUniqueConstraintApiEndpoint1666678487137,
+  dropAnalyzedColumnFromApiTrace1666752646836,
+  addIndexForDataField1666941075032,
+  addIsgraphqlColumnApiEndpoint1667095325334,
+  addApiEndpointUuidIndexForAlert1667259254414,
+  addMetloConfigTable1667599667595,
+  updateDisabledPathsColumnBlockFieldsTable1667606447208,
+  removeApiKeyTypeEnum1669778297643,
+  addWebhookTable1670447292139,
+  addEndpointIps1670653006577,
+  addHostsColumnToWebhook1671143857165,
+  addApiSpecColumnsToDataField1671511060114,
+  addUniqueNullIndexForDataField1671609270282,
+  customDataClasses1671813043343,
+  dataFieldUniqueConstraint1672708787156,
+  addTracehashColumnToDataField1672962660470,
+  userSetEndpointColumn1673073826153,
+  removeHostPrimaryKeyAuthenticationconfig1673465613593,
+  metloConfigEnv1673503553138,
+  addHostAndMethodIndex1676006521189,
+  addFullTraceCaptureEnabledColumn1676065168441,
+  addOriginalHostTraceColumn1676358211583,
+  addTestingConfigTable1676508983994,
+  hostsList1677073188312,
+  endpointGraphqlColumns1677479141637,
+  dropArrayFields1677803493465,
+  removeTraceHash1678477672617,
+]
+const synchronize = false
+const migrationsRun = runMigration
+const logging = false
+
+if (process.env.DB_URL) {
+  console.log("Init from url")
+  _tempAppDataSource = new DataSource({
+    type,
+    url: process.env.DB_URL,
+    entities,
+    migrations,
+    synchronize,
+    migrationsRun,
+    logging,
+  })
+} else {
+  console.log("Init from creds")
+  _tempAppDataSource = new DataSource({
+    type,
+    entities,
+    migrations,
+    synchronize,
+    migrationsRun,
+    logging,
+    host: process.env.DB_HOST,
+    username: process.env.DB_USER,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD,
+    port: parseInt(process.env.DB_PORT),
+  })
+}
+
+export const AppDataSource = _tempAppDataSource
