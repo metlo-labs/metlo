@@ -36,6 +36,8 @@ lazy_static! {
         specs: None,
         global_full_trace_capture: false,
         encryption_public_key: None,
+        authentication_config: vec![],
+        hmac_key: None,
     });
 }
 
