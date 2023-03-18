@@ -71,10 +71,10 @@ const Hosts = ({ hosts, hostsGraph, totalCount, params }) => {
             justifyContent="space-between"
             alignItems={{ base: "flex-start", sm: "flex-end" }}
             mb="4"
-            px={{ base: "0", md: "8" }}
+            px={{ base: "0", md: "4" }}
             pt={{ base: "0", md: "8" }}
           >
-            <Heading fontWeight="semibold" size="xl">
+            <Heading fontWeight="semibold" size="lg">
               Hosts
             </Heading>
             <HStack spacing="0" w={{ base: "full", sm: "unset" }}>
@@ -113,11 +113,7 @@ const Hosts = ({ hosts, hostsGraph, totalCount, params }) => {
               <HostGraphComponent {...parsedHostsGraph} />
             </Box>
           ) : (
-            <Box
-              w="full"
-              px={{ base: "0", md: "8" }}
-              pb={{ base: "0", md: "8" }}
-            >
+            <Box w="full" px={{ base: "0", md: "4" }}>
               <HostList
                 hosts={parsedHosts}
                 fetching={fetching}

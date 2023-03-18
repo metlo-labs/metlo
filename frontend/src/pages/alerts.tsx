@@ -139,7 +139,7 @@ const Alerts = ({ initParams, initAlerts, initTotalCount, initHosts }) => {
           alignItems="flex-end"
           mb="4"
         >
-          <Heading fontWeight="semibold" size="xl">
+          <Heading fontWeight="semibold" size="lg">
             Alerts
           </Heading>
           <HStack>

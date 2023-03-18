@@ -31,6 +31,19 @@ export const __DATA_CLASS_TO_RISK_SCORE_INTERNAL__: Record<__DataClass_INTERNAL_
   "": RiskScore.NONE,
 }
 
+export const __DATA_CLASS_TO_SHORT_NAME_INTERNAL__ = {
+  [__DataClass_INTERNAL__.CREDIT_CARD]: "CCN",
+  [__DataClass_INTERNAL__.SSN]: "SSN",
+  [__DataClass_INTERNAL__.IP_ADDRESS]: "IP",
+  [__DataClass_INTERNAL__.DOB]: "DOB",
+  [__DataClass_INTERNAL__.VIN]: "VIN",
+  [__DataClass_INTERNAL__.COORDINATE]: "Coordinates",
+  [__DataClass_INTERNAL__.DL_NUMBER]: "DL",
+  [__DataClass_INTERNAL__.AADHAR_NUMBER]: "Aadhar",
+  [__DataClass_INTERNAL__.PHONE_NUMBER]: "Phone Num",
+  [__DataClass_INTERNAL__.BRAZIL_CPF]: "CPF",
+}
+
 export const ALERT_TYPE_TO_RISK_SCORE: Record<AlertType, RiskScore> = {
   [AlertType.NEW_ENDPOINT]: RiskScore.LOW,
   [AlertType.OPEN_API_SPEC_DIFF]: RiskScore.MEDIUM,

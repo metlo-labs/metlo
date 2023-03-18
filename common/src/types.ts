@@ -439,6 +439,7 @@ export interface DataClass {
   className: string
   severity: RiskScore
   regex?: string
+  shortName?: string
 }
 
 export interface TestingConfigResp {
