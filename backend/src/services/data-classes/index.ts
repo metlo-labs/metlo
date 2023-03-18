@@ -3,7 +3,10 @@ import { MetloContext } from "types"
 import jsyaml from "js-yaml"
 import { RiskScore, __DataClass_INTERNAL__ } from "@common/enums"
 import { DataClass, MetloConfigResp } from "@common/types"
-import { __DATA_CLASS_TO_RISK_SCORE_INTERNAL__ } from "@common/maps"
+import {
+  __DATA_CLASS_TO_RISK_SCORE_INTERNAL__,
+  __DATA_CLASS_TO_SHORT_NAME_INTERNAL__,
+} from "@common/maps"
 import { __DATA_CLASS_REGEX_MAP_INTERNAL__ } from "services/scanner/scan"
 import { RedisClient } from "../../utils/redis"
 import { customDataClass, rawDataClass } from "./utils"
@@ -86,6 +89,7 @@ export const getCombinedDataClasses = async (ctx: MetloContext) => {
     metloDefinedClassMap.push({
       className: enumKey,
       severity: __DATA_CLASS_TO_RISK_SCORE_INTERNAL__[enumKey],
+      shortName: __DATA_CLASS_TO_SHORT_NAME_INTERNAL__[enumKey],
       regex: reg,
     })
   })
@@ -93,7 +97,11 @@ export const getCombinedDataClasses = async (ctx: MetloContext) => {
     if (cls.regex) {
       return { ...cls, regex: cls.regex.source }
     } else {
-      return { className: cls.className, severity: cls.severity }
+      return {
+        className: cls.className,
+        severity: cls.severity,
+        shortName: cls.shortName,
+      }
     }
   }) as DataClass[]
 }

@@ -105,10 +105,10 @@ const Endpoints: React.FC<EndpointsProps> = ({
 
   return (
     <PageWrapper title="Endpoints">
-      <ContentContainer maxContentW="100rem" px="8" py="8">
+      <ContentContainer maxContentW="100rem" px="4" py="8">
         <VStack w="full" alignItems="flex-start" spacing="0">
           <HStack mb="4" w="full" justifyContent="space-between">
-            <Heading fontWeight="semibold" size="xl">
+            <Heading fontWeight="semibold" size="lg">
               Endpoints
             </Heading>
             <Button
