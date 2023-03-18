@@ -35,6 +35,7 @@ lazy_static! {
         endpoints: None,
         specs: None,
         global_full_trace_capture: false,
+        encryption_public_key: None,
     });
 }
 

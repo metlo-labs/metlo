@@ -52,6 +52,7 @@ pub struct MetloConfig {
     pub endpoints: Vec<MetloEndpoint>,
     pub specs: Vec<MetloSpec>,
     pub global_full_trace_capture: bool,
+    pub encryption_public_key: Option<String>,
 }
 
 #[derive(Debug)]
@@ -64,6 +65,7 @@ pub struct GlobalConfig {
     pub endpoints: Option<HashMap<String, Vec<MetloEndpoint>>>,
     pub specs: Option<CompiledSpecs>,
     pub global_full_trace_capture: bool,
+    pub encryption_public_key: Option<String>,
 }
 
 pub struct ValidateRequestConnResp {
@@ -187,6 +189,7 @@ pub async fn pull_metlo_config() -> Result<(), Box<dyn std::error::Error>> {
     conf_write.endpoints = Some(endpoints_map);
     conf_write.specs = Some(compiled_specs);
     conf_write.global_full_trace_capture = resp.global_full_trace_capture;
+    conf_write.encryption_public_key = resp.encryption_public_key;
 
     Ok(())
 }

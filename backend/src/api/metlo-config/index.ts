@@ -104,6 +104,7 @@ export const getAgentConfigHandler = async (
       endpoints: endpointInfo,
       specs: specInfo,
       globalFullTraceCapture,
+      encryptionPublicKey: null,
     })
   } catch (err) {
     await ApiResponseHandler.error(res, err)

@@ -74,12 +74,20 @@ pub struct ProcessTraceRes {
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct Encryption {
+    pub key: String,
+    pub generated_ivs: HashMap<String, Vec<u8>>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ProcessedApiTrace {
     pub request: ApiRequest,
     pub response: Option<ApiResponse>,
     pub meta: Option<ApiMeta>,
     pub processed_trace_data: ProcessTraceRes,
     pub redacted: bool,
+    pub encryption: Option<Encryption>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
