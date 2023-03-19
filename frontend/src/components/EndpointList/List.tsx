@@ -137,8 +137,6 @@ const List: React.FC<EndpointTablesProps> = React.memo(
       }
     }
 
-    console.log(dataClasses)
-
     const columns: TableColumn<ApiEndpoint>[] = [
       {
         name: "Risk",
@@ -163,7 +161,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         sortable: false,
         selector: (row: ApiEndpoint) => row.method + row.path,
         cell: (row: ApiEndpoint) => (
-          <VStack spacing={1} alignItems="flex-start">
+          <VStack pointerEvents="none" spacing={1} alignItems="flex-start">
             <Text
               pointerEvents="none"
               fontWeight="medium"
@@ -182,6 +180,34 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         ),
         id: "endpoint",
         grow: 4,
+      },
+      {
+        name: "Permissions",
+        sortable: false,
+        cell: (row: ApiEndpoint) => {
+          return (
+            <Box pointerEvents="none">
+              <HStack>
+                {row.resourcePermissions.map(e => {
+                  return (
+                    <Badge
+                      textTransform="unset"
+                      fontWeight="semibold"
+                      px="2"
+                      py="1"
+                      rounded="md"
+                      key={e}
+                    >
+                      {e}
+                    </Badge>
+                  )
+                })}
+              </HStack>
+            </Box>
+          )
+        },
+        id: "permissions",
+        grow: 1.5,
       },
       {
         name: "Visibility",

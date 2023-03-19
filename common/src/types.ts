@@ -199,6 +199,7 @@ export interface ApiEndpoint {
   path: string
   createdAt: Date
   updatedAt: Date
+  resourcePermissions: string[]
   dataClasses?: string[]
   firstDetected?: Date
   lastActive?: Date
@@ -222,7 +223,6 @@ export interface ApiEndpointDetailed extends ApiEndpoint {
   dataFields: DataField[]
   globalFullTraceCapture?: boolean
   userSet: boolean
-  resourcePermissions?: string[]
   graphQlSchema: string | null
 }
 

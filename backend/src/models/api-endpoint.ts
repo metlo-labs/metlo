@@ -64,6 +64,9 @@ export class ApiEndpoint extends MetloBaseEntity {
   @Column({ type: "uuid", array: true, default: [] })
   oldEndpointUuids: string[]
 
+  @Column({ type: "varchar", array: true, default: [] })
+  resourcePermissions: string[]
+
   @OneToMany(() => DataField, dataField => dataField.apiEndpoint)
   dataFields: DataField[]
 

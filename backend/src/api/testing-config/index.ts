@@ -3,11 +3,11 @@ import { MetloRequest } from "types"
 import ApiResponseHandler from "api-response-handler"
 import {
   getEntityTagsCached,
+  getAllResourcePermissionsCached,
   getTestingConfig,
   updateTestingConfig,
 } from "services/testing-config"
 import { UpdateTestingConfigParamsSchema } from "@common/api/testing-config"
-import Error400BadRequest from "errors/error-400-bad-request"
 import { RedisClient } from "utils/redis"
 
 const updateTestingConfigHandler = async (
@@ -71,8 +71,24 @@ const getEntityTagsHandler = async (
   }
 }
 
+const getResourcePermissionsHandler = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const perms = await getAllResourcePermissionsCached(req.ctx)
+    await ApiResponseHandler.success(res, perms)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}
+
 export default function registerTestingConfigRoutes(router: Router) {
   router.get("/api/v1/testing-config", getTestingConfigHandler)
   router.put("/api/v1/testing-config", updateTestingConfigHandler)
   router.get("/api/v1/testing-config/entity-tags", getEntityTagsHandler)
+  router.get(
+    "/api/v1/testing-config/resource-permissions",
+    getResourcePermissionsHandler,
+  )
 }
