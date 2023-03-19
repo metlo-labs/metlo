@@ -111,6 +111,7 @@ export interface TraceParams {
   meta: Meta
   processedTraceData?: ProcessedTraceData
   redacted?: boolean
+  sessionMeta?: SessionMeta
 }
 
 export interface GetAttackParams {

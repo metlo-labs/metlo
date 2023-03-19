@@ -1,6 +1,7 @@
 import { Response, Router } from "express"
 import { UpdateMetloConfigParams } from "@common/types"
 import {
+  getAuthenticationConfig,
   getGlobalFullTraceCaptureCached,
   getMetloConfig,
   updateMetloConfig,
@@ -99,11 +100,13 @@ export const getAgentConfigHandler = async (
     const globalFullTraceCapture = await getGlobalFullTraceCaptureCached(
       req.ctx,
     )
+    const authenticationConfig = await getAuthenticationConfig(req.ctx)
     await ApiResponseHandler.success(res, {
       sensitiveDataList: dataClassInfo,
       endpoints: endpointInfo,
       specs: specInfo,
       globalFullTraceCapture,
+      authenticationConfig,
       encryptionPublicKey: null,
     })
   } catch (err) {
