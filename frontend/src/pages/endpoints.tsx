@@ -211,7 +211,6 @@ export const getServerSideProps: GetServerSideProps = async context => {
   ])
   const endpoints = endpointsResp[0]
   const totalCount = endpointsResp[1]
-  console.log(params)
   return {
     props: {
       params: superjson.stringify(params),
