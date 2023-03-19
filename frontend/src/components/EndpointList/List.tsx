@@ -187,14 +187,27 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         cell: (row: ApiEndpoint) => {
           return (
             <Box pointerEvents="none">
-              {row.resourcePermissions.map(e => {
-                return <Badge key={e}>{e}</Badge>
-              })}
+              <HStack>
+                {row.resourcePermissions.map(e => {
+                  return (
+                    <Badge
+                      textTransform="unset"
+                      fontWeight="semibold"
+                      px="2"
+                      py="1"
+                      rounded="md"
+                      key={e}
+                    >
+                      {e}
+                    </Badge>
+                  )
+                })}
+              </HStack>
             </Box>
           )
         },
         id: "permissions",
-        grow: 1,
+        grow: 1.5,
       },
       {
         name: "Visibility",

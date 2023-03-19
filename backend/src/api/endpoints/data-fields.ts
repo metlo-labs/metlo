@@ -12,8 +12,13 @@ import { createQB, getEntityManager, getQB } from "services/database/utils"
 import { Alert, ApiEndpoint, DataField } from "models"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { AlertType, RiskScore } from "@common/enums"
-import { getEntityTagsCached } from "services/testing-config"
+import {
+  getEntityTagsCached,
+  getTemplateConfig,
+  getTestingConfigCached,
+} from "services/testing-config"
 import Error400BadRequest from "errors/error-400-bad-request"
+import { populateEndpointPerms } from "services/testing-config/populate-endpoint-perms"
 
 export const updateDataFieldClasses = async (
   req: MetloRequest,
@@ -163,6 +168,10 @@ export const updateDataFieldEntityHandler = async (
       .set({ entity: entity })
       .andWhere("uuid = :id", { id: dataFieldId })
       .execute()
+    const testingConf = await getTemplateConfig(req.ctx)
+    if (testingConf) {
+      await populateEndpointPerms(req.ctx, queryRunner, testingConf)
+    }
     const updatedDataField = await getEntityManager(
       req.ctx,
       queryRunner,

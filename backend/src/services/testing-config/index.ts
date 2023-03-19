@@ -9,6 +9,7 @@ import {
   ResourceConfigParseRes,
   findEndpointResourcePermissions,
   processResourceConfig,
+  TemplateConfig,
 } from "@metlo/testing"
 import { RedisClient } from "utils/redis"
 import { populateEndpointPerms } from "./populate-endpoint-perms"
@@ -34,6 +35,20 @@ export const getTestingConfigCached = async (
   const realRes = await getTestingConfig(ctx)
   await RedisClient.addToRedis(ctx, "testingConfigCached", realRes, 60)
   return realRes
+}
+
+export const getTemplateConfig = async (
+  ctx: MetloContext,
+): Promise<TemplateConfig | null> => {
+  const conf = await getTestingConfig(ctx)
+  if (!conf || !conf.configString) {
+    return null
+  }
+  const parseRes = parseResourceConfig(conf.configString)
+  if (!parseRes.res) {
+    return null
+  }
+  return processResourceConfig(parseRes.res)
 }
 
 export const updateTestingConfig = async (
@@ -67,7 +82,11 @@ export const updateTestingConfig = async (
         newConfig,
       ).execute()
     }
-    await populateEndpointPerms(ctx, queryRunner, processResourceConfig(parseRes.res))
+    await populateEndpointPerms(
+      ctx,
+      queryRunner,
+      processResourceConfig(parseRes.res),
+    )
   } catch (err) {
     if (queryRunner.isTransactionActive) {
       await queryRunner.rollbackTransaction()

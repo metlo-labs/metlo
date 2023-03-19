@@ -1,8 +1,18 @@
+import { DataSection } from "@common/enums"
 import { TemplateConfig } from "@metlo/testing"
 import { ApiEndpoint, DataField } from "models"
 import { getQB } from "services/database/utils"
 import { QueryRunner } from "typeorm"
 import { MetloContext } from "types"
+
+const pathToDataSection: Record<string, DataSection> = {
+  "req.path": DataSection.REQUEST_PATH,
+  "req.query": DataSection.REQUEST_QUERY,
+  "req.header": DataSection.REQUEST_HEADER,
+  "req.body": DataSection.REQUEST_BODY,
+  "res.header": DataSection.RESPONSE_HEADER,
+  "res.body": DataSection.RESPONSE_BODY,
+}
 
 export const populateEndpointPerms = async (
   ctx: MetloContext,
@@ -12,7 +22,6 @@ export const populateEndpointPerms = async (
   if (Object.keys(testingConf.resources).length == 0) {
     return
   }
-
   let argNumber = 1
   let parameters: any[] = []
   let permissionToQuery: Record<string, string[]> = {}
@@ -33,7 +42,11 @@ export const populateEndpointPerms = async (
       }
       if (endpointRule.contains_resource) {
         query.push(`(entity_map #> $${argNumber++} IS NOT NULL)`)
-        parameters.push(`{${name}, ${endpointRule.contains_resource.path}}`)
+        parameters.push(
+          `{${name}, ${
+            pathToDataSection[endpointRule.contains_resource.path]
+          }}`,
+        )
       }
       endpointRule.permissions.forEach(perm => {
         const resourcePermName = `${name}.${perm}`
