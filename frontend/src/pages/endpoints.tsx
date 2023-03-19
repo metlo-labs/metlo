@@ -181,11 +181,11 @@ export const getServerSideProps: GetServerSideProps = async context => {
   const dataClasses: DataClass[] = await getDataClasses({})
   const resourcePermissions: string[] = await getResourcePerms()
 
-  const riskScores = ((context.query.riskScores as string) || "")
-    .split(",")
-    .filter(e => Object.values(RiskScore).includes(e as RiskScore))
-    .map(e => e as RiskScore)
   let params: GetEndpointParams = {
+    riskScores: ((context.query.riskScores as string) || "")
+      .split(",")
+      .filter(e => Object.values(RiskScore).includes(e as RiskScore))
+      .map(e => e as RiskScore),
     hosts: ((context.query.hosts as string) || null)?.split(",") ?? [],
     methods: ((context.query.methods as string) || "")
       .split(",")
