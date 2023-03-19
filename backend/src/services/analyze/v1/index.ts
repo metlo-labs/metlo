@@ -69,7 +69,7 @@ export const analyze = async (
     trace,
     apiEndpoint,
     queryRunner,
-    redact
+    redact,
   )
   mlog.time("analyzer.find_openapi_spec_diff", performance.now() - start2)
   mlog.debug(`Analyzing Trace - Found OpenAPI Spec Diffs: ${traceUUID}`)
