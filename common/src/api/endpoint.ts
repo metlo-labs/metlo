@@ -14,6 +14,7 @@ export const GetEndpointParamsSchema = z.object({
   riskScores: z.nativeEnum(RiskScore).array().optional(),
   methods: z.nativeEnum(RestMethod).array().optional(),
   dataClasses: z.string().array().optional(),
+  resourcePermissions: z.string().array().optional(),
   searchQuery: z.string().optional(),
   isAuthenticated: z.string().optional(),
   hostType: z.nativeEnum(HostType).optional().default(HostType.ANY),

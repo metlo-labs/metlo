@@ -10,7 +10,6 @@ import {
   GridItem,
   Button,
   Collapse,
-  Stack,
 } from "@chakra-ui/react"
 import { Select } from "chakra-react-select"
 import { BsSearch } from "icons/bs/BsSearch"
@@ -22,6 +21,7 @@ interface EndpointFilterProps {
   hostList: string[]
   riskList: string[]
   dataClassesList: string[]
+  resourcePermissions: string[]
   params: GetEndpointParams
   setParams: (newParams: GetEndpointParams) => void
 }
@@ -37,9 +37,9 @@ const getAuthenticationLabel = (value: AuthenticationFilter) => {
     case AuthenticationFilter.ALL:
       return "All"
     case AuthenticationFilter.AUTHENTICATED:
-      return "Authenticated"
+      return "Yes"
     case AuthenticationFilter.UNAUTHENTICATED:
-      return "Unauthenticated"
+      return "No"
     default:
       return "All"
   }
@@ -52,7 +52,14 @@ const FilterHeader: React.FC<{ title: string }> = React.memo(({ title }) => (
 ))
 
 const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
-  ({ hostList, riskList, dataClassesList, params, setParams }) => {
+  ({
+    hostList,
+    riskList,
+    dataClassesList,
+    resourcePermissions,
+    params,
+    setParams,
+  }) => {
     const setSearchQuery = (val: string) => {
       setParams({
         searchQuery: val,
@@ -86,14 +93,33 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
           w="full"
           templateColumns={{
             base: "1fr",
-            sm: "repeat(2, 1fr)",
-            lg: "repeat(3, 1fr)",
-            xl: "repeat(4, 1fr)",
-            "2xl": "repeat(5, 1fr)",
+            sm: "repeat(8, 1fr)",
+            lg: "repeat(12, 1fr)",
+            xl: "repeat(16, 1fr)",
+            "2xl": "repeat(20, 1fr)",
           }}
           zIndex="overlay"
         >
-          <GridItem colSpan={{ base: 1, sm: 2, lg: 1 }}>
+          <GridItem colSpan={6} alignSelf="end">
+            <Box zIndex="1002" w="full">
+              <InputGroup w="full">
+                <InputLeftElement pointerEvents="none">
+                  <BsSearch />
+                </InputLeftElement>
+                <Input
+                  value={tmpQuery}
+                  spellCheck={false}
+                  onChange={e => {
+                    debounceSearch(e.target.value)
+                    setTmpQuery(e.target.value)
+                  }}
+                  type="text"
+                  placeholder="Search for endpoint..."
+                />
+              </InputGroup>
+            </Box>
+          </GridItem>
+          <GridItem colSpan={4}>
             <Box zIndex="1003">
               <FilterHeader title="Method" />
               <Select
@@ -122,7 +148,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
               />
             </Box>
           </GridItem>
-          <GridItem colSpan={{ base: 1, sm: 2 }}>
+          <GridItem colSpan={7}>
             <Box zIndex="1004">
               <FilterHeader title="Host" />
               <Select
@@ -148,35 +174,7 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
               />
             </Box>
           </GridItem>
-          <GridItem>
-            <Box zIndex="1000">
-              <FilterHeader title="Authentication" />
-              <Select
-                className="chakra-react-select"
-                value={{
-                  label: getAuthenticationLabel(
-                    params.isAuthenticated as AuthenticationFilter,
-                  ),
-                  value: params.isAuthenticated,
-                }}
-                size="sm"
-                options={Object.keys(AuthenticationFilter).map(e => ({
-                  label: getAuthenticationLabel(AuthenticationFilter[e]),
-                  value: AuthenticationFilter[e],
-                }))}
-                placeholder="Filter by Authentication"
-                instanceId="endpoint-tbl-env-isAuthenticated"
-                onChange={e =>
-                  e.value !== params.isAuthenticated &&
-                  setParams({
-                    isAuthenticated: e.value,
-                    offset: 0,
-                  })
-                }
-              />
-            </Box>
-          </GridItem>
-          <GridItem>
+          <GridItem colSpan={3}>
             <Box zIndex="1002">
               <FilterHeader title="Risk Score" />
               <Select
@@ -207,40 +205,113 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
               />
             </Box>
           </GridItem>
-        </Grid>
-        <Stack
-          direction={{ base: "column", sm: "row" }}
-          justifyContent="space-between"
-          w="full"
-        >
-          <InputGroup w="full">
-            <InputLeftElement pointerEvents="none">
-              <BsSearch />
-            </InputLeftElement>
-            <Input
-              value={tmpQuery}
-              spellCheck={false}
-              onChange={e => {
-                debounceSearch(e.target.value)
-                setTmpQuery(e.target.value)
-              }}
-              w={{ base: "full", sm: "sm" }}
-              type="text"
-              placeholder="Search for endpoint..."
-            />
-          </InputGroup>
-          <Button
-            color="metloBlue"
-            variant="link"
-            onClick={() => setShowAdvanced(e => !e)}
-            alignSelf={{ base: "flex-end", sm: "initial" }}
+          <GridItem colSpan={2}>
+            <Box zIndex="1000">
+              <FilterHeader title="Authenticated" />
+              <Select
+                className="chakra-react-select"
+                value={{
+                  label: getAuthenticationLabel(
+                    params.isAuthenticated as AuthenticationFilter,
+                  ),
+                  value: params.isAuthenticated,
+                }}
+                size="sm"
+                options={Object.keys(AuthenticationFilter).map(e => ({
+                  label: getAuthenticationLabel(AuthenticationFilter[e]),
+                  value: AuthenticationFilter[e],
+                }))}
+                placeholder="Filter by Authentication"
+                instanceId="endpoint-tbl-env-isAuthenticated"
+                onChange={e =>
+                  e.value !== params.isAuthenticated &&
+                  setParams({
+                    isAuthenticated: e.value,
+                    offset: 0,
+                  })
+                }
+              />
+            </Box>
+          </GridItem>
+          <GridItem colSpan={2}>
+            <Box zIndex="1002" w="full">
+              <FilterHeader title="Visibility" />
+              <Select
+                className="chakra-react-select"
+                options={[
+                  { label: HostType.ANY, value: HostType.ANY },
+                  { label: HostType.PUBLIC, value: HostType.PUBLIC },
+                  { label: HostType.PRIVATE, value: HostType.PRIVATE },
+                ]}
+                size="sm"
+                value={{
+                  label: params.hostType || HostType.ANY,
+                  value: params.hostType || HostType.ANY,
+                }}
+                onChange={e => {
+                  setParams({
+                    hostType: e.label || HostType.ANY,
+                  })
+                }}
+                placeholder="Host public visibility..."
+              />
+            </Box>
+          </GridItem>
+          <GridItem colSpan={6}>
+            <Box zIndex="1002" w="full">
+              <FilterHeader title="Permissions" />
+              <Select
+                className="chakra-react-select"
+                value={
+                  params &&
+                  params?.resourcePermissions?.map(host => ({
+                    label: host,
+                    value: host,
+                  }))
+                }
+                isMulti={true}
+                size="sm"
+                options={resourcePermissions.map(e => ({
+                  label: e,
+                  value: e,
+                }))}
+                placeholder="Filter by permission..."
+                instanceId="endpoint-tbl-permissions"
+                onChange={e =>
+                  setParams({
+                    resourcePermissions: e.map(val => val.label),
+                    offset: 0,
+                  })
+                }
+              />
+            </Box>
+          </GridItem>
+          <GridItem
+            colSpan={1}
+            gridColumn={{
+              base: 1,
+              sm: 8,
+              lg: 12,
+              xl: 16,
+              "2xl": 20,
+            }}
+            alignSelf="flex-end"
           >
-            {!showAdvanced ? "+" : "-"} More Filters
-            {numExtraFiltersSpecified > 0
-              ? ` (${numExtraFiltersSpecified})`
-              : ""}
-          </Button>
-        </Stack>
+            <Box zIndex="1002" w="full">
+              <Button
+                color="metloBlue"
+                variant="link"
+                onClick={() => setShowAdvanced(e => !e)}
+                alignSelf={{ base: "flex-end", sm: "initial" }}
+              >
+                {!showAdvanced ? "+" : "-"} More Filters
+                {numExtraFiltersSpecified > 0
+                  ? ` (${numExtraFiltersSpecified})`
+                  : ""}
+              </Button>
+            </Box>
+          </GridItem>
+        </Grid>
         <Collapse
           in={showAdvanced}
           style={{ width: "100%", overflow: "visible" }}
@@ -283,30 +354,6 @@ const EndpointFilters: React.FC<EndpointFilterProps> = React.memo(
                       offset: 0,
                     })
                   }
-                />
-              </Box>
-            </GridItem>
-            <GridItem colSpan={2}>
-              <Box zIndex="1001" w={{ base: "full", lg: "xs" }}>
-                <FilterHeader title="Host Visibility" />
-                <Select
-                  className="chakra-react-select"
-                  options={[
-                    { label: HostType.ANY, value: HostType.ANY },
-                    { label: HostType.PUBLIC, value: HostType.PUBLIC },
-                    { label: HostType.PRIVATE, value: HostType.PRIVATE },
-                  ]}
-                  size="sm"
-                  value={{
-                    label: params.hostType || HostType.ANY,
-                    value: params.hostType || HostType.ANY,
-                  }}
-                  onChange={e => {
-                    setParams({
-                      hostType: e.label || HostType.ANY,
-                    })
-                  }}
-                  placeholder="Host public visibility..."
                 />
               </Box>
             </GridItem>

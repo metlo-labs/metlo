@@ -11,6 +11,7 @@ import {
   processResourceConfig,
 } from "@metlo/testing"
 import { RedisClient } from "utils/redis"
+import { populateEndpointPerms } from "./populate-endpoint-perms"
 
 export const getTestingConfig = async (
   ctx: MetloContext,
@@ -66,6 +67,7 @@ export const updateTestingConfig = async (
         newConfig,
       ).execute()
     }
+    await populateEndpointPerms(ctx, queryRunner, processResourceConfig(parseRes.res))
   } catch (err) {
     if (queryRunner.isTransactionActive) {
       await queryRunner.rollbackTransaction()
@@ -115,6 +117,38 @@ export const getEntityTagsCached = async (
   }
   const realRes = await getEntityTags(ctx)
   await RedisClient.addToRedis(ctx, "entityTagsCached", realRes, 60)
+  return realRes
+}
+
+const getAllResourcePermissions = async (
+  ctx: MetloContext,
+): Promise<string[]> => {
+  const config = await getTestingConfigCached(ctx)
+  if (!config?.configString) {
+    return []
+  }
+  const parseRes = parseResourceConfig(config.configString)
+  if (!parseRes.res) {
+    return []
+  }
+  const parsedConfig = processResourceConfig(parseRes.res)
+  return Object.entries(parsedConfig.resources)
+    .map(([name, resource]) => resource.permissions.map(e => `${name}.${e}`))
+    .flat()
+}
+
+export const getAllResourcePermissionsCached = async (
+  ctx: MetloContext,
+): Promise<string[]> => {
+  const cacheRes: string[] | null = await RedisClient.getFromRedis(
+    ctx,
+    "allResourcePermissionsCached",
+  )
+  if (cacheRes !== null) {
+    return cacheRes
+  }
+  const realRes = await getAllResourcePermissions(ctx)
+  await RedisClient.addToRedis(ctx, "allResourcePermissionsCached", realRes, 60)
   return realRes
 }
 
