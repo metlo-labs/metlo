@@ -8,6 +8,8 @@ import {
   Tag,
   Tooltip,
   HStack,
+  Wrap,
+  WrapItem,
 } from "@chakra-ui/react"
 import { useRouter } from "next/router"
 import EmptyView from "components/utils/EmptyView"
@@ -187,22 +189,23 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         cell: (row: ApiEndpoint) => {
           return (
             <Box pointerEvents="none">
-              <HStack>
+              <Wrap>
                 {row.resourcePermissions.map(e => {
                   return (
-                    <Badge
-                      textTransform="unset"
-                      fontWeight="semibold"
-                      px="2"
-                      py="1"
-                      rounded="md"
-                      key={e}
-                    >
-                      {e}
-                    </Badge>
+                    <WrapItem key={e}>
+                      <Badge
+                        textTransform="unset"
+                        fontWeight="semibold"
+                        px="2"
+                        py="1"
+                        rounded="md"
+                      >
+                        {e}
+                      </Badge>
+                    </WrapItem>
                   )
                 })}
-              </HStack>
+              </Wrap>
             </Box>
           )
         },
