@@ -137,11 +137,23 @@ export const handleDataField = (
     dataPath ? `.${dataPath}` : ""
   }`
   const existingNullKey = `-1__${dataSection}${dataPath ? `.${dataPath}` : ""}`
+  const existingNullKeyWithStatus = `${statusCode}__${dataSection}${
+    dataPath ? `.${dataPath}` : ""
+  }`
+  const existingNullKeyWithContent = `-1_${contentType}_${dataSection}${
+    dataPath ? `.${dataPath}` : ""
+  }`
   if (dataFieldMap[key]) {
     existingDataField = dataFieldMap[key]
     isNullKey = false
   } else if (dataFieldMap[existingNullKey]) {
     existingDataField = dataFieldMap[existingNullKey]
+    isNullKey = true
+  } else if (dataFieldMap[existingNullKeyWithStatus]) {
+    existingDataField = dataFieldMap[existingNullKeyWithStatus]
+    isNullKey = true
+  } else if (dataFieldMap[existingNullKeyWithContent]) {
+    existingDataField = dataFieldMap[existingNullKeyWithContent]
     isNullKey = true
   }
 
