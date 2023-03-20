@@ -63,7 +63,11 @@ pub struct MetloConfig {
     pub endpoints: Vec<MetloEndpoint>,
     pub specs: Vec<MetloSpec>,
     pub global_full_trace_capture: bool,
+
+    #[serde(default)]
     pub encryption_public_key: Option<String>,
+
+    #[serde(default)]
     pub authentication_config: Vec<Authentication>,
 }
 
