@@ -54,7 +54,12 @@ export const getOpenAPISpecVersion = (specObject: any): number | null => {
   if (specObject["swagger"]) {
     return 2
   } else if (specObject["openapi"]) {
-    return 3
+    const version = specObject["openapi"]
+    if (typeof version === "string" && version.trim().startsWith("3.1")) {
+      return 3.1
+    } else {
+      return 3
+    }
   }
   return null
 }

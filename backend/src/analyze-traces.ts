@@ -65,7 +65,6 @@ export const updateDataFields = async (
   ctx: MetloContext,
   dataFields: DataField[],
   queryRunner: QueryRunner,
-  fromSpec: boolean,
 ) => {
   if (dataFields.length === 0) {
     return
@@ -94,7 +93,7 @@ export const updateDataFields = async (
       )
       .execute()
   } catch (err) {
-    if (isQueryFailedError(err) && err.code === "23505" && !fromSpec) {
+    if (isQueryFailedError(err) && err.code === "23505") {
       if (queryRunner.isTransactionActive) {
         await queryRunner.rollbackTransaction()
       }

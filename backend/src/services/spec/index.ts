@@ -51,11 +51,15 @@ import {
   getAllOldEndpoints,
 } from "./queries"
 import { MetloContext } from "types"
-import { getEntityManager, getQB, getRepository } from "services/database/utils"
+import {
+  getEntityManager,
+  getQB,
+  getRepository,
+  insertValuesBuilder,
+} from "services/database/utils"
 import Error400BadRequest from "errors/error-400-bad-request"
 import { createSpecDiffAlerts } from "services/alert/openapi-spec"
 import { BlockFieldsService } from "services/block-fields"
-import { updateDataFields } from "analyze-traces"
 
 interface EndpointsMap {
   endpoint: ApiEndpoint
@@ -123,15 +127,6 @@ export class SpecService {
     if (!specVersion) {
       throw new Error422UnprocessableEntity(
         "Invalid OpenAPI Spec: No 'swagger' or 'openapi' field defined.",
-      )
-    }
-    try {
-      specObject = await SwaggerParser.validate(specObject as any, {
-        dereference: { circular: "ignore" },
-      })
-    } catch (err) {
-      throw new Error422UnprocessableEntity(
-        `Invalid OpenAPI Spec: ${err.message.toString()}`,
       )
     }
     const queryRunner = AppDataSource.createQueryRunner()
@@ -246,16 +241,22 @@ export class SpecService {
     }
 
     let parsedSpec = specObject
-    if (specVersion === 2 || !existingQueryRunner) {
-      try {
+    try {
+      if (specVersion === 3.1) {
+        parsedSpec = await SwaggerParser.dereference(specObject as any, {
+          dereference: { circular: "ignore" },
+          resolve: { file: false },
+        })
+      } else {
         parsedSpec = await SwaggerParser.validate(specObject as any, {
           dereference: { circular: "ignore" },
+          resolve: { file: false },
         })
-      } catch (err) {
-        throw new Error422UnprocessableEntity(
-          `Invalid OpenAPI Spec: ${err.message.toString()}`,
-        )
       }
+    } catch (err) {
+      throw new Error422UnprocessableEntity(
+        `Invalid OpenAPI Spec: ${err.message.toString()}`,
+      )
     }
 
     const paths: JSONValue = specObject["paths"]
@@ -300,7 +301,7 @@ export class SpecService {
         const servers = getServersV3(specObject, path, method)
         if (!servers || servers?.length === 0) {
           throw new Error422UnprocessableEntity(
-            "No servers found in spec file.",
+            "No servers or host found in spec file.",
           )
         }
         hosts = getHostsV3(servers)
@@ -382,6 +383,8 @@ export class SpecService {
                     }
                   }
                 })
+              } else {
+                exists = true
               }
               if (!exists) {
                 endpointsMap[apiEndpoint.uuid].similarEndpoints[item.uuid] =
@@ -517,7 +520,18 @@ export class SpecService {
         const dataFields = parameterDataFields
           .concat(requestBodyDataFields)
           .concat(responseDataFields)
-        await updateDataFields(ctx, dataFields, queryRunner, true)
+        await insertValuesBuilder(ctx, queryRunner, DataField, dataFields)
+          .orUpdate(
+            ["dataType", "isNullable"],
+            [
+              "dataSection",
+              "dataPath",
+              "apiEndpointUuid",
+              "statusCode",
+              "contentType",
+            ],
+          )
+          .execute()
       }
       if (!existingQueryRunner) {
         await queryRunner.commitTransaction()
