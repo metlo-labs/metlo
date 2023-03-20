@@ -286,7 +286,7 @@ export class SpecService {
     existingSpec.spec = specString
     existingSpec.specUpdatedAt = currTime
     existingSpec.updatedAt = currTime
-    const pathKeys = Object.keys(paths)
+    const pathKeys = Object.keys(paths ?? [])
     const endpointsMap: Record<string, EndpointsMap> = {}
     let specHosts: Set<string> = new Set()
     for (const path of pathKeys) {
