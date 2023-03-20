@@ -712,7 +712,7 @@ const recurseCreateDataFields = (
         count + 1,
       )
     }
-  } else if (!schema["$ref"]) {
+  } else if (!schema["$ref"] && schema.type) {
     const key = `${statusCode}_${contentType}_${dataSection}${
       dataPath ? `.${dataPath}` : ""
     }`
