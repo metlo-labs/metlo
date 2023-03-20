@@ -255,7 +255,9 @@ export class SpecService {
       }
     } catch (err) {
       throw new Error422UnprocessableEntity(
-        `Invalid OpenAPI Spec: ${err.message.toString()}`,
+        `Invalid OpenAPI Spec v${
+          specObject["swagger"] ?? specObject["openapi"]
+        }: ${err.message.toString()}`,
       )
     }
 
