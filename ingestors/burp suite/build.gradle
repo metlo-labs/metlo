@@ -1,28 +1,107 @@
-apply plugin: 'java'
-
+plugins {
+    id 'com.google.protobuf' version '0.9.1'
+    id 'java'
+}
 repositories {
     mavenCentral()
 }
+def grpcVersion = "1.53.0"
+def protobufVersion = "3.21.12"
+def protocVersion = protobufVersion
 
 dependencies {
+    implementation "io.grpc:grpc-protobuf:${grpcVersion}"
+    implementation "io.grpc:grpc-stub:${grpcVersion}"
+    compileOnly "org.apache.tomcat:annotations-api:6.0.53"
+
+    implementation "com.google.protobuf:protobuf-java-util:${protobufVersion}"
+
+    implementation "io.grpc:grpc-netty-shaded:${grpcVersion}"
+
+    testImplementation "io.grpc:grpc-testing:${grpcVersion}"
+
     compileOnly 'net.portswigger.burp.extender:burp-extender-api:2.3'
     implementation 'com.google.code.gson:gson:2.10.1'
 }
 
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:${protocVersion}" }
+    plugins {
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}" }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {}
+        }
+    }
+}
+
 sourceSets {
     main {
+        proto {
+            srcDir 'burp/dist/proto'
+        }
         java {
-            srcDir '.'
+            srcDirs "burp"
+            srcDirs 'build/generated/source/proto/main/grpc'
+            srcDirs 'build/generated/source/proto/main/java'
         }
     }
 }
 
 task fatJar(type: Jar) {
-    archiveBaseName = project.name + '-all'
-    from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    archiveClassifier = "all"
+    from {
+        configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
     with jar
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+// TODO: How can we do cross compilation here ?
+//task stopTomcat(type: Exec) {
+//    workingDir '../tomcat/bin'
+//    // on windows:
+//    // commandLine 'cmd', '/c', 'stop.bat'
+//    // on linux
+//    commandLine 'cd', '..', "&&",
+//
+//    //store the output instead of printing to the console:
+//    standardOutput = new ByteArrayOutputStream()
+//
+//    //extension method stopTomcat.output() can be used to obtain the output:
+//    ext.output = {
+//        return standardOutput.toString()
+//    }
+//}
+
+task copyFiles_binaries(type: Copy) {
+    from "../rust-common/target/release/"
+    include "metlo-agent"
+    into 'burp/dist/binaries'
 }
 
+task copyFiles_protos(type: Copy) {
+    from "../rust-common/proto/"
+    include "metloingest.proto"
+    into 'burp/dist/proto'
+}
+
+processResources {
+    from("burp/dist") {
+        into "dist"
+    }
+}
+
+fatJar.dependsOn(copyFiles_binaries)
+fatJar.dependsOn(copyFiles_protos)
+compileJava.dependsOn(copyFiles_binaries)
+compileJava.dependsOn(copyFiles_protos)
+
+processResources.dependsOn(copyFiles_binaries)
+processResources.dependsOn(copyFiles_protos)
+generateProto.dependsOn(copyFiles_binaries)
+generateProto.dependsOn(copyFiles_protos)
 
 artifacts {
     archives fatJar

@@ -1,7 +1,7 @@
-package burp;
-
-import burp.metlo.PingHome;
-import burp.metlo.RateLimitedRequests;
+import burp.*;
+import metlo.PingHome;
+import metlo.RateLimitedRequests;
+import metloingest.Metloingest;
 
 import java.awt.*;
 import java.io.*;
@@ -9,8 +9,12 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.CodeSource;
+import java.security.ProtectionDomain;
 import java.util.*;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.AbstractTableModel;
@@ -19,14 +23,18 @@ import javax.swing.table.TableModel;
 public class Extension extends AbstractTableModel implements IBurpExtender, ITab, IHttpListener, IMessageEditorController {
     private final static String endpoint_log_single = "api/v1/log-request/single";
     private final static String endpoint_ping = "api/v1/verify";
+    private final static String METLO_APIKEY_KEY = "METLO_API_KEY";
+    private final static String METLO_URL_KEY = "METLO_URL_KEY";
+    private final static Integer MIN_PORT = 30000;
+    private final static Integer MAX_PORT = 55000;
     private final List<LogEntry> log = new ArrayList<>();
-    private final String METLO_APIKEY_KEY = "METLO_API_KEY";
-    private final String METLO_URL_KEY = "METLO_URL_KEY";
+    private Integer BACKEND_PORT;
+    private Integer COLLECTOR_PORT;
     private Integer threads;
     private Integer rps;
+    private Integer PORT;
     private String metloApiKey = null;
     private String metloUrl = null;
-    private String metloUrlWithEndpoint = null;
     private RateLimitedRequests requests;
     private IBurpExtenderCallbacks callbacks;
     private IExtensionHelpers helpers;
@@ -36,47 +44,184 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
     private IHttpRequestResponse currentlyDisplayedItem;
     private PrintWriter err;
     private PrintWriter out;
+    private Process subprocess;
 
-    private Map<String, Object> createDataBinding(IHttpRequestResponse requestResponse, burp.IRequestInfo req, burp.IResponseInfo res) {
-        Map<String, Object> DATA = new HashMap<>();
-        Map<String, Object> REQUEST = new HashMap<>();
-        Map<String, Object> REQUEST_URL = new HashMap<>();
-        Map<String, Object> RESPONSE = new HashMap<>();
-        Map<String, Object> META = new HashMap<>();
-        URL reqURL = req.getUrl();
-        REQUEST_URL.put("host", reqURL.getHost());
-        REQUEST_URL.put("path", reqURL.getPath());
-        if (reqURL.getQuery() != null) {
-            REQUEST_URL.put("parameters", this.HTTPQueryToMap(reqURL.getQuery().split("&")));
+    private URI getFile(final URI where, final String fileName) throws IOException {
+        final File location;
+        final URI fileURI;
+
+        location = new File(where);
+
+        // not in a JAR, just return the path on disk
+        if (location.isDirectory()) {
+            fileURI = URI.create(where + fileName);
         } else {
-            REQUEST_URL.put("parameters", new ArrayList<String>());
+            final ZipFile zipFile;
+
+            zipFile = new ZipFile(location);
+
+            try {
+                fileURI = extract(zipFile, fileName);
+            } finally {
+                zipFile.close();
+            }
         }
-        REQUEST.put("url", REQUEST_URL);
+
+        return (fileURI);
+    }
+
+    private URI extract(final ZipFile zipFile, final String fileName) throws IOException {
+        final File tempFile;
+        final ZipEntry entry;
+        final InputStream zipStream;
+        OutputStream fileStream;
+
+        List<String> parts = Arrays.asList(fileName.split("/"));
+
+        tempFile = new File(System.getProperty("java.io.tmpdir") + "/" + parts.get(parts.size() - 1));
+        tempFile.createNewFile();
+        tempFile.deleteOnExit();
+        tempFile.setExecutable(true);
+        entry = zipFile.getEntry(fileName);
+
+        if (entry == null) {
+            throw new FileNotFoundException("cannot find file: " + fileName + " in archive: " + zipFile.getName());
+        }
+
+        zipStream = zipFile.getInputStream(entry);
+        fileStream = null;
+
         try {
-            REQUEST.put("headers", this.headersToMap(req.getHeaders()));
-        } catch (Exception e) {
-            e.printStackTrace(this.err);
-            REQUEST.put("headers", new ArrayList<Map<String, String>>());
+            final byte[] buf;
+            int i;
+
+            fileStream = new FileOutputStream(tempFile);
+            buf = new byte[1024];
+            i = 0;
+
+            while ((i = zipStream.read(buf)) != -1) {
+                fileStream.write(buf, 0, i);
+            }
+        } finally {
+            close(zipStream);
+            close(fileStream);
         }
+
+        return (tempFile.toURI());
+    }
+
+    private void close(final Closeable stream) {
+        if (stream != null) {
+            try {
+                stream.close();
+            } catch (final IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private URI getJarURI() throws URISyntaxException {
+        final ProtectionDomain domain;
+        final CodeSource source;
+        final URL url;
+        final URI uri;
+
+        domain = Extension.class.getProtectionDomain();
+        source = domain.getCodeSource();
+        url = source.getLocation();
+        uri = url.toURI();
+
+        return (uri);
+    }
+
+    public void startSubprocess() throws URISyntaxException, IOException {
+        boolean canEnable = true;
+        final URI uri;
+        final URI exe;
+        String os = System.getProperty("os.name");
+        String useBinary = null;
+
+        if (os.toLowerCase().contains("mac")) {
+            // Running mac. Decide if using arm64 or amd64.
+            // Second question, do we care?
+            // Rosetta should handle it, and you're not running prod stuff on a Mac device
+            // anyway.
+            useBinary = "dist/binaries/metlo-agent-mac";
+        } else if (os.toLowerCase().contains("windows")) {
+            Extension.this.err.println("Windows is currently not a supported platform");
+//            useBinary = "dist/binaries/metlo-agent-windows";
+        } else {
+            // Running Linux
+            useBinary = "dist/binaries/metlo-agent-linux";
+        }
+
+        if (useBinary != null) {
+            uri = getJarURI();
+            exe = getFile(uri, useBinary);
+            try {
+                // create a new process
+                List<String> args = new ArrayList<>();
+                // Take substring 5...end to get rid of file:// URI indicator at start
+                args.add(exe.toString().substring(5));
+
+                ProcessBuilder builder = new ProcessBuilder(args);
+                builder.environment().put("METLO_HOST", this.metloUrl);
+                builder.environment().put("METLO_KEY", this.metloApiKey);
+                builder.environment().put("LOG_LEVEL", "error");
+                builder.environment().put("PORT", Extension.this.PORT.toString());
+                if (Extension.this.COLLECTOR_PORT != null) {
+                    builder.environment().put("COLLECTOR_PORT", Extension.this.COLLECTOR_PORT.toString());
+                }
+                if (Extension.this.BACKEND_PORT != null) {
+                    builder.environment().put("BACKEND_PORT", Extension.this.BACKEND_PORT.toString());
+                }
+                builder.inheritIO();
+                this.subprocess = builder.start();
+            } catch (Exception ex) {
+                this.err.println("Metlo agent for Java encountered an error.");
+                ex.printStackTrace(this.err);
+            }
+        } else {
+            this.err.println("Could not instrument metlo agent for java.");
+        }
+    }
+
+
+    //
+    // implement IBurpExtender
+    //
+
+    private Metloingest.ApiTrace createDataBinding(IHttpRequestResponse requestResponse, burp.IRequestInfo req, burp.IResponseInfo res) {
         int reqLen = requestResponse.getRequest().length - req.getBodyOffset();
         byte[] req_body = new byte[reqLen];
         System.arraycopy(requestResponse.getRequest(), req.getBodyOffset(), req_body, 0, reqLen);
+        URL reqURL = req.getUrl();
+
+        Metloingest.ApiUrl REQUEST_URL = Metloingest.ApiUrl.newBuilder()
+                .setHost(reqURL.getHost())
+                .setPath(reqURL.getPath())
+                .addAllParameters(
+                        reqURL.getQuery() != null ?
+                                this.HTTPQueryToMap(reqURL.getQuery().split("&")) :
+                                new ArrayList<Metloingest.KeyVal>()
+                )
+                .build();
 
         int resLen = requestResponse.getResponse().length - res.getBodyOffset();
         byte[] res_body = new byte[resLen];
         System.arraycopy(requestResponse.getResponse(), res.getBodyOffset(), res_body, 0, resLen);
-        REQUEST.put("body", new String(req_body, StandardCharsets.UTF_8));
-        REQUEST.put("method", req.getMethod());
 
-        RESPONSE.put("status", res.getStatusCode());
-        try {
-            RESPONSE.put("headers", this.headersToMap(res.getHeaders()));
-        } catch (Exception e) {
-            e.printStackTrace(this.err);
-            RESPONSE.put("headers", new ArrayList<Map<String, String>>());
-        }
-
-        RESPONSE.put("body", new String(res_body, StandardCharsets.UTF_8));
+        Metloingest.ApiRequest REQUEST = Metloingest.ApiRequest.newBuilder()
+                .setUrl(REQUEST_URL)
+                .addAllHeaders(this.headersToMap(req.getHeaders()))
+                .setMethod(req.getMethod())
+                .setBody(new String(req_body, StandardCharsets.UTF_8))
+                .build();
+        Metloingest.ApiResponse RESPONSE = Metloingest.ApiResponse.newBuilder()
+                .setStatus(res.getStatusCode())
+                .setBody(new String(res_body, StandardCharsets.UTF_8))
+                .addAllHeaders(this.headersToMap(res.getHeaders()))
+                .build();
         String hostAddress = "0.0.0.0";
         try {
             InetAddress inet = InetAddress.getByName(reqURL.getHost());
@@ -84,51 +229,66 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
         } catch (UnknownHostException e) {
             e.printStackTrace(this.err);
         }
+        Metloingest.ApiMeta META = Metloingest.ApiMeta.newBuilder()
+                .setSource("127.0.0.1")
+                .setSourcePort(0)
+                .setDestination(hostAddress)
+                .setDestinationPort(reqURL.getPort())
+                .setEnvironment("production")
+                .setIncoming(true)
+                .setSource("burp_suite")
+                .build();
+        Metloingest.ApiTrace TRACE = Metloingest.ApiTrace.newBuilder()
+                .setRequest(REQUEST)
+                .setResponse(RESPONSE)
+                .setMeta(META)
+                .build();
 
-        META.put("source", "127.0.0.1");
-        META.put("sourcePort", 0);
-        META.put("destination", hostAddress);
-        META.put("destinationPort", reqURL.getPort());
-        META.put("environment", "production");
-        META.put("incoming", "true");
-        META.put("metloSource", "burp_suite");
-
-        DATA.put("request", REQUEST);
-        DATA.put("response", RESPONSE);
-        DATA.put("meta", META);
-
-        return DATA;
+        return TRACE;
     }
 
-    private List<Map<String, String>> HTTPQueryToMap(String[] params) {
-        List<Map<String, String>> _formatted_params_ = new ArrayList<>();
+    //
+    // implement ITab
+    //
+
+    private List<Metloingest.KeyVal> HTTPQueryToMap(String[] params) {
+        List<Metloingest.KeyVal> _formatted_params_ = new ArrayList<>();
         for (String paramRaw : params) {
-            String[] split = paramRaw.split("=");
-            if (split.length != 2) {
+            String[] splits = paramRaw.split("=");
+            if (splits.length != 2) {
                 continue;
             } else {
-                Map<String, String> _map = new HashMap<>();
-                _map.put("name", URLDecoder.decode(split[0], StandardCharsets.UTF_8));
-                _map.put("value", URLDecoder.decode(split[1], StandardCharsets.UTF_8));
-                _formatted_params_.add(_map);
+                _formatted_params_.add(Metloingest.KeyVal.newBuilder().
+                        setName(URLDecoder.decode(splits[0], StandardCharsets.UTF_8)).
+                        setValue(URLDecoder.decode(splits[1], StandardCharsets.UTF_8)).
+                        build());
             }
         }
         return _formatted_params_;
     }
 
-    private List<Map<String, String>> headersToMap(List<String> headers) {
-        List<Map<String, String>> _formatted_headers_ = new ArrayList<>();
-        for (String header : headers) {
-            String[] splits = header.split(":", 2);
-            if (splits.length == 2) {
-                Map<String, String> _map = new HashMap<>();
-                _map.put("name", URLDecoder.decode(splits[0], StandardCharsets.UTF_8));
-                _map.put("value", URLDecoder.decode(splits[1], StandardCharsets.UTF_8));
-                _formatted_headers_.add(_map);
+    private List<Metloingest.KeyVal> headersToMap(List<String> headers) {
+        List<Metloingest.KeyVal> _formatted_headers_ = new ArrayList<>();
+        try {
+            for (String header : headers) {
+                String[] splits = header.split(":", 2);
+                if (splits.length == 2) {
+                    _formatted_headers_.add(Metloingest.KeyVal.newBuilder().
+                            setName(URLDecoder.decode(splits[0], StandardCharsets.UTF_8)).
+                            setValue(URLDecoder.decode(splits[1], StandardCharsets.UTF_8)).
+                            build());
+
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace(this.err);
         }
         return _formatted_headers_;
     }
+
+    //
+    // implement IHttpListener
+    //
 
     private void validateConfig() {
         try {
@@ -147,15 +307,67 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
         }
     }
 
+    //
+    // extend AbstractTableModel
+    //
 
-    //
-    // implement IBurpExtender
-    //
+    private void restartComponents(String _metloUrl, String _apiKey) {
+        Extension.this.PORT = (new Random()).nextInt(MIN_PORT, MAX_PORT);
+        Extension.this.metloUrl = _metloUrl;
+        if (Extension.this.metloUrl != null) {
+            boolean needsSlash = !Extension.this.metloUrl.endsWith("/");
+            Extension.this.metloUrl += needsSlash ? "/" : "";
+        }
+        Extension.this.metloApiKey = _apiKey;
+        Extension.this.requests = new RateLimitedRequests(
+                Extension.this.rps,
+                Extension.this.PORT,
+                Extension.this.threads,
+                Extension.this.out,
+                Extension.this.err
+        );
+        if (Extension.this.subprocess != null) {
+            Extension.this.subprocess.destroy();
+        }
+        try {
+            (new URL(Extension.this.metloUrl)).toURI();
+            if (Extension.this.metloUrl != null && Extension.this.metloApiKey != null) {
+                validateConfig();
+                Extension.this.startSubprocess();
+            } else {
+                if (Extension.this.metloUrl == null) {
+                    this.err.println(
+                            "Metlo URL is empty. Please input a valid Metlo Host and save!"
+                    );
+                }
+                if (Extension.this.metloApiKey == null) {
+                    this.err.println(
+                            "Metlo API Key is empty. Please input a valid Metlo API Key and save!"
+                    );
+                }
+            }
+        } catch (URISyntaxException | MalformedURLException e) {
+            this.err.println("Could not validate Metlo URL '" + _metloUrl + "'");
+            e.printStackTrace(this.err);
+        } catch (IOException e) {
+            this.err.println("Could not start Metlo Analyzer");
+            e.printStackTrace(this.err);
+        }
+    }
+
+    private void shutdown() {
+        if (Extension.this.subprocess != null) {
+            Extension.this.subprocess.destroy();
+        }
+        Extension.this.requests.shutdown();
+    }
 
     @Override
     public void registerExtenderCallbacks(final IBurpExtenderCallbacks callbacks) {
         // keep a reference to our callbacks object
         this.callbacks = callbacks;
+
+        callbacks.setExtensionName("Metlo Agent");
 
         // obtain an extension helpers object
         this.helpers = callbacks.getHelpers();
@@ -164,17 +376,32 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
         this.out = new PrintWriter(this.callbacks.getStdout(), true);
 
         // set our extension name
-        callbacks.setExtensionName("Metlo Agent");
         try {
-            List<String> f = Files.readAllLines(Paths.get("/Users/" + System.getProperty("user.name") + "/.metlo/credentials"), StandardCharsets.UTF_8);
+            List<String> f = Files.readAllLines(
+                    Paths.get("/Users/" + System.getProperty("user.name") + "/.metlo/config"),
+                    StandardCharsets.UTF_8
+            );
             for (String line : f) {
                 if (line.startsWith("REQUESTS_PER_SEC")) {
-                    this.rps = Integer.parseInt(line.substring("REQUESTS_PER_SEC=".length()));
-                    this.out.println("Loaded Requests/s from config. Set to " + this.rps);
-                }
-                if (line.startsWith("MAX_THREADS")) {
-                    this.threads = Integer.parseInt(line.substring("MAX_THREADS=".length()));
-                    this.out.println("Loaded Max Threads from config. Set max threads to " + this.threads);
+                    Extension.this.rps = Integer.parseInt(line.substring("REQUESTS_PER_SEC=".length()));
+                    Extension.this.out.println(
+                            "Loaded Requests/s from config. Set to " + Extension.this.rps
+                    );
+                } else if (line.startsWith("MAX_THREADS")) {
+                    Extension.this.threads = Integer.parseInt(line.substring("MAX_THREADS=".length()));
+                    Extension.this.out.println(
+                            "Loaded Max Threads from config. Set max threads to " + Extension.this.threads
+                    );
+                } else if (line.startsWith("COLLECTOR_PORT")) {
+                    Extension.this.COLLECTOR_PORT = Integer.parseInt(line.substring("COLLECTOR_PORT=".length()));
+                    Extension.this.out.println(
+                            "Loaded COLLECTOR_PORT from config. Set COLLECTOR_PORT to " + Extension.this.COLLECTOR_PORT
+                    );
+                } else if (line.startsWith("BACKEND_PORT")) {
+                    Extension.this.BACKEND_PORT = Integer.parseInt(line.substring("BACKEND_PORT=".length()));
+                    Extension.this.out.println(
+                            "Loaded BACKEND_PORT from config. Set BACKEND_PORT to " + Extension.this.BACKEND_PORT
+                    );
                 }
             }
             if (this.rps == null) {
@@ -188,28 +415,18 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
             this.threads = 2;
         }
 
-        Extension.this.metloUrl = callbacks.loadExtensionSetting(METLO_URL_KEY);
-        Extension.this.metloUrlWithEndpoint = Extension.this.metloUrl;
-        if (Extension.this.metloUrl != null) {
-            if (!Extension.this.metloUrl.endsWith("/")) {
-                Extension.this.metloUrlWithEndpoint += "/";
-            }
-            Extension.this.metloUrlWithEndpoint += Extension.endpoint_log_single;
-        }
-        Extension.this.metloApiKey = callbacks.loadExtensionSetting(METLO_APIKEY_KEY);
+        String _startupMetloUrl = callbacks.loadExtensionSetting(METLO_URL_KEY);
+        String _startupApiKey = callbacks.loadExtensionSetting(METLO_APIKEY_KEY);
 
-        Extension.this.requests = new RateLimitedRequests(Extension.this.rps,
-                Extension.this.threads,
-                metloUrlWithEndpoint,
-                metloApiKey,
-                Extension.this.out,
-                Extension.this.err
-        );
-        validateConfig();
+        // Add shutdown hooks
+        callbacks.registerExtensionStateListener(this::shutdown);
+        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
 
         // create our UI
         SwingUtilities.invokeLater(() -> {
             try {
+                restartComponents(_startupMetloUrl, _startupApiKey);
+
                 JPanel primary = new JPanel();
                 component = primary;
                 JPanel jPanel1 = new javax.swing.JPanel();
@@ -234,7 +451,7 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
                 urlLabel.setPreferredSize(new Dimension(100, 33));
                 urlLabel.setMinimumSize(new Dimension(100, 33));
                 urlLabel.setMaximumSize(new Dimension(100, 33));
-                urlTextField.setText(metloUrl != null ? metloUrl : "");
+                urlTextField.setText(_startupMetloUrl != null ? _startupMetloUrl : "");
                 urlTextField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 33));
                 urlTextField.setMinimumSize(new Dimension(100, 33));
                 urlTextField.setPreferredSize(new Dimension(100, 33));
@@ -254,34 +471,19 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
                 apiKeyLabel.setMaximumSize(new Dimension(100, 33));
                 apiKeyLabel.setMinimumSize(new Dimension(100, 33));
                 JPasswordField apiKeyPasswordField = new javax.swing.JPasswordField();
-                apiKeyPasswordField.setText(metloApiKey != null ? metloApiKey : "");
+                apiKeyPasswordField.setText(_startupApiKey != null ? _startupApiKey : "");
 
                 jPanel2.add(apiKeyLabel, BorderLayout.LINE_START);
                 jPanel2.add(apiKeyPasswordField, BorderLayout.CENTER);
 
                 saveBtn.setText("Save Config");
                 saveBtn.addActionListener((e) -> {
-                    Extension.this.metloUrl = urlTextField.getText();
-                    Extension.this.metloUrlWithEndpoint = metloUrl;
-                    if (Extension.this.metloUrl != null) {
-                        if (!Extension.this.metloUrl.endsWith("/")) {
-                            Extension.this.metloUrlWithEndpoint += "/";
-                        }
-                        Extension.this.metloUrlWithEndpoint += Extension.endpoint_log_single;
-                    }
-                    Extension.this.metloApiKey = apiKeyPasswordField.getText();
+                    restartComponents(urlTextField.getText(), apiKeyPasswordField.getText());
+
                     Extension.this.callbacks.saveExtensionSetting(METLO_URL_KEY, Extension.this.metloUrl);
                     Extension.this.callbacks.saveExtensionSetting(METLO_APIKEY_KEY, Extension.this.metloApiKey);
+
                     out.println("Updated config for Metlo");
-                    requests = new RateLimitedRequests(
-                            Extension.this.rps,
-                            Extension.this.threads,
-                            Extension.this.metloUrlWithEndpoint,
-                            Extension.this.metloApiKey,
-                            Extension.this.out,
-                            Extension.this.err
-                    );
-                    validateConfig();
                 });
 
                 saveBtn.setBackground(new Color(2384017)); // Corresponds to rgb 66, 76, 249
@@ -335,10 +537,6 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
         });
     }
 
-    //
-    // implement ITab
-    //
-
     @Override
     public String getTabCaption() {
         return "Metlo";
@@ -349,10 +547,6 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
         return this.component;
     }
 
-    //
-    // implement IHttpListener
-    //
-
     @Override
     public void processHttpMessage(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
         // only process responses
@@ -362,14 +556,8 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
                 int row = log.size();
                 try {
                     IHttpRequestResponsePersisted persistedReq = callbacks.saveBuffersToTempFiles((messageInfo));
-                    this.requests.send(
-                            this.createDataBinding(
-                                    persistedReq,
-                                    this.helpers.analyzeRequest(messageInfo.getHttpService(), messageInfo.getRequest()),
-                                    this.helpers.analyzeResponse(messageInfo.getResponse())
-                            ));
-                    log.add(new LogEntry(toolFlag, persistedReq,
-                            helpers.analyzeRequest(messageInfo).getUrl()));
+                    this.requests.send(this.createDataBinding(persistedReq, this.helpers.analyzeRequest(messageInfo.getHttpService(), messageInfo.getRequest()), this.helpers.analyzeResponse(messageInfo.getResponse())));
+                    log.add(new LogEntry(toolFlag, persistedReq, helpers.analyzeRequest(messageInfo).getUrl()));
                     fireTableRowsInserted(row, row);
                 } catch (Exception e) {
                     e.printStackTrace(this.err);
@@ -379,7 +567,8 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
     }
 
     //
-    // extend AbstractTableModel
+    // implement IMessageEditorController
+    // this allows our request/response viewers to obtain details about the messages being displayed
     //
 
     @Override
@@ -391,7 +580,6 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
     public int getColumnCount() {
         return 4;
     }
-
 
     @Override
     public String getColumnName(int column) {
@@ -414,6 +602,10 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
         }
         return col;
     }
+
+    //
+    // extend JTable to handle cell selection
+    //
 
     @Override
     public synchronized Object getValueAt(int rowIndex, int columnIndex) {
@@ -438,10 +630,9 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
         return col;
     }
 
-    //
-    // implement IMessageEditorController
-    // this allows our request/response viewers to obtain details about the messages being displayed
-    //
+//
+// class to hold details of each log entry
+//
 
     @Override
     public byte[] getRequest() {
@@ -458,10 +649,6 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
         return currentlyDisplayedItem.getHttpService();
     }
 
-    //
-    // extend JTable to handle cell selection
-    //
-
     private static class LogEntry {
         final int tool;
         final IHttpRequestResponsePersisted requestResponse;
@@ -473,10 +660,6 @@ public class Extension extends AbstractTableModel implements IBurpExtender, ITab
             this.url = url;
         }
     }
-
-//
-// class to hold details of each log entry
-//
 
     private class Table extends JTable {
         public Table(TableModel tableModel) {
