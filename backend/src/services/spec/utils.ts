@@ -628,7 +628,6 @@ const recurseCreateDataFields = (
   if (count > 20) {
     return
   }
-  //console.log("dataPath", dataPath)
   if (schema.oneOf) {
     for (const item of schema.oneOf) {
       recurseCreateDataFields(

@@ -251,7 +251,6 @@ export class SpecService {
         parsedSpec = await SwaggerParser.validate(specObject as any, {
           dereference: { circular: "ignore" },
         })
-        console.log("woah validated")
       } catch (err) {
         throw new Error422UnprocessableEntity(
           `Invalid OpenAPI Spec: ${err.message.toString()}`,
