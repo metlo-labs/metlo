@@ -37,6 +37,10 @@ import {
   getHostsV3,
   getServersV3,
   getSpecPathString,
+  getParameters,
+  getDataFieldsForParameters,
+  getDataFieldsForRequestBody,
+  getDataFieldsForResponse,
 } from "./utils"
 import Error404NotFound from "errors/error-404-not-found"
 import Error500InternalServer from "errors/error-500-internal-server"
@@ -51,10 +55,13 @@ import { getEntityManager, getQB, getRepository } from "services/database/utils"
 import Error400BadRequest from "errors/error-400-bad-request"
 import { createSpecDiffAlerts } from "services/alert/openapi-spec"
 import { BlockFieldsService } from "services/block-fields"
+import { updateDataFields } from "analyze-traces"
 
 interface EndpointsMap {
   endpoint: ApiEndpoint
   similarEndpoints: Record<string, ApiEndpoint>
+  specPath: string
+  specMethod: string
 }
 
 export class SpecService {
@@ -107,7 +114,7 @@ export class SpecService {
 
   static async updateSpec(
     ctx: MetloContext,
-    specObject: JSONValue,
+    specObject: any,
     fileName: string,
     extension: SpecExtension,
     specString: string,
@@ -119,7 +126,9 @@ export class SpecService {
       )
     }
     try {
-      await SwaggerParser.validate(specObject as any)
+      specObject = await SwaggerParser.validate(specObject as any, {
+        dereference: { circular: "ignore" },
+      })
     } catch (err) {
       throw new Error422UnprocessableEntity(
         `Invalid OpenAPI Spec: ${err.message.toString()}`,
@@ -205,7 +214,7 @@ export class SpecService {
 
   static async uploadNewSpec(
     ctx: MetloContext,
-    specObject: JSONValue,
+    specObject: any,
     fileName: string,
     extension: SpecExtension,
     specString: string,
@@ -218,13 +227,7 @@ export class SpecService {
         "Invalid OpenAPI Spec: No 'swagger' or 'openapi' field defined.",
       )
     }
-    try {
-      await SwaggerParser.validate(specObject as any)
-    } catch (err) {
-      throw new Error422UnprocessableEntity(
-        `Invalid OpenAPI Spec: ${err.message.toString()}`,
-      )
-    }
+
     if (specVersion === 2) {
       const convertedSpec = await Converter.convertObj(specObject, {})
       if (!convertedSpec?.openapi) {
@@ -239,6 +242,20 @@ export class SpecService {
         specString = doc.toString()
       } else {
         specString = JSON.stringify(specObject, null, 2)
+      }
+    }
+
+    let parsedSpec = specObject
+    if (specVersion === 2 || !existingQueryRunner) {
+      try {
+        parsedSpec = await SwaggerParser.validate(specObject as any, {
+          dereference: { circular: "ignore" },
+        })
+        console.log("woah validated")
+      } catch (err) {
+        throw new Error422UnprocessableEntity(
+          `Invalid OpenAPI Spec: ${err.message.toString()}`,
+        )
       }
     }
 
@@ -337,6 +354,8 @@ export class SpecService {
             endpointsMap[apiEndpoint.uuid] = {
               endpoint: apiEndpoint,
               similarEndpoints: {},
+              specPath: path,
+              specMethod: method,
             }
 
             const similarEndpoints = await apiEndpointRepository.find({
@@ -473,6 +492,33 @@ export class SpecService {
             .andWhere(`"uuid" IN(:...ids)`, { ids: similarEndpointUuids })
             .execute()
         }
+
+        // Generate DataFields based on spec
+        const parameters = getParameters(
+          parsedSpec,
+          item.specPath,
+          item.specMethod,
+        )
+        const parameterDataFields = getDataFieldsForParameters(
+          parameters,
+          item.endpoint.uuid,
+        )
+        const requestBodyDataFields = getDataFieldsForRequestBody(
+          parsedSpec,
+          item.specPath,
+          item.specMethod,
+          item.endpoint.uuid,
+        )
+        const responseDataFields = getDataFieldsForResponse(
+          parsedSpec,
+          item.specPath,
+          item.specMethod,
+          item.endpoint.uuid,
+        )
+        const dataFields = parameterDataFields
+          .concat(requestBodyDataFields)
+          .concat(responseDataFields)
+        await updateDataFields(ctx, dataFields, queryRunner, true)
       }
       if (!existingQueryRunner) {
         await queryRunner.commitTransaction()

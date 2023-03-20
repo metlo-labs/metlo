@@ -1,11 +1,12 @@
 import { ErrorObject } from "ajv/dist/2019"
-import { OpenAPI } from "openapi-types"
+import { OpenAPI, OpenAPIV3, OpenAPIV3_1 } from "openapi-types"
 import OpenAPISchemaValidator from "openapi-schema-validator"
-import { ApiEndpoint } from "models"
+import { ApiEndpoint, DataField } from "models"
 import { getDataType, getValidPath } from "utils"
-import { DataType } from "@common/enums"
+import { DataSection, DataType } from "@common/enums"
 import Error422UnprocessableEntity from "errors/error-422-unprocessable-entity"
 import { getPathTokens } from "@common/utils"
+import Error400BadRequest from "errors/error-400-bad-request"
 
 export interface VariableObject {
   enum?: string[]
@@ -557,4 +558,320 @@ export const getHostsV2 = (specObject: any): Set<string> => {
     hosts.add(baseHost)
   }
   return hosts
+}
+
+export const getParameters = (
+  specObject: OpenAPI.Document,
+  path: string,
+  method: string,
+) => {
+  return (
+    specObject?.["paths"]?.[path]?.[method]?.["parameters"] ??
+    specObject?.["paths"]?.[path]?.parameters ??
+    []
+  )
+}
+
+const getParameterDataSection = (location: string) => {
+  switch (location) {
+    case "path":
+      return DataSection.REQUEST_PATH
+    case "query":
+      return DataSection.REQUEST_QUERY
+    case "header":
+    case "cookie":
+      return DataSection.REQUEST_HEADER
+    default:
+      throw new Error400BadRequest(
+        `Invalid location for parameter: ${location}`,
+      )
+  }
+}
+
+const getSpecDataType = (
+  providedType:
+    | "string"
+    | "number"
+    | "boolean"
+    | "object"
+    | "array"
+    | "integer"
+    | "null"
+    | ("array" | OpenAPIV3_1.NonArraySchemaObjectType)[],
+) => {
+  if (Array.isArray(providedType)) {
+    const entry = providedType.find(e => e !== "null")
+    if (!entry) {
+      return DataType.UNKNOWN
+    }
+    return entry as DataType
+  } else {
+    return providedType === "null"
+      ? DataType.UNKNOWN
+      : (providedType as DataType)
+  }
+}
+
+const recurseCreateDataFields = (
+  dataFields: Record<string, DataField>,
+  dataPath: string,
+  dataSection: DataSection,
+  contentType: string,
+  statusCode: number,
+  apiEndpointUuid: string,
+  schema: OpenAPIV3.SchemaObject | OpenAPIV3_1.SchemaObject,
+  count: number,
+) => {
+  if (!schema) {
+    return
+  }
+  if (count > 20) {
+    return
+  }
+  //console.log("dataPath", dataPath)
+  if (schema.oneOf) {
+    for (const item of schema.oneOf) {
+      recurseCreateDataFields(
+        dataFields,
+        dataPath,
+        dataSection,
+        contentType,
+        statusCode,
+        apiEndpointUuid,
+        item as OpenAPIV3.SchemaObject | OpenAPIV3_1.SchemaObject,
+        count,
+      )
+    }
+  } else if (schema.anyOf) {
+    for (const item of schema.anyOf) {
+      recurseCreateDataFields(
+        dataFields,
+        dataPath,
+        dataSection,
+        contentType,
+        statusCode,
+        apiEndpointUuid,
+        item as OpenAPIV3.SchemaObject | OpenAPIV3_1.SchemaObject,
+        count,
+      )
+    }
+  } else if (schema.allOf) {
+    for (const item of schema.allOf) {
+      recurseCreateDataFields(
+        dataFields,
+        dataPath,
+        dataSection,
+        contentType,
+        statusCode,
+        apiEndpointUuid,
+        item as OpenAPIV3.SchemaObject | OpenAPIV3_1.SchemaObject,
+        count,
+      )
+    }
+  } else if (schema["items"]) {
+    recurseCreateDataFields(
+      dataFields,
+      `${dataPath ? `${dataPath}.` : ""}[]`,
+      dataSection,
+      contentType,
+      statusCode,
+      apiEndpointUuid,
+      schema["items"],
+      count + 1,
+    )
+  } else if (schema["patternProperties"]) {
+    const keys = Object.keys(schema["patternProperties"])
+    if (keys.length > 0) {
+      recurseCreateDataFields(
+        dataFields,
+        `${dataPath ? `${dataPath}.` : ""}[string]`,
+        dataSection,
+        contentType,
+        statusCode,
+        apiEndpointUuid,
+        schema["patternProperties"][keys[0]],
+        count + 1,
+      )
+    }
+  } else if (schema.properties) {
+    for (const property in schema.properties) {
+      recurseCreateDataFields(
+        dataFields,
+        `${dataPath ? `${dataPath}.` : ""}${property}`,
+        dataSection,
+        contentType,
+        statusCode,
+        apiEndpointUuid,
+        schema.properties[property] as
+          | OpenAPIV3.SchemaObject
+          | OpenAPIV3_1.SchemaObject,
+        count + 1,
+      )
+    }
+  } else if (!schema["$ref"]) {
+    const key = `${statusCode}_${contentType}_${dataSection}${
+      dataPath ? `.${dataPath}` : ""
+    }`
+    if (!dataFields[key]) {
+      const dataField = new DataField()
+      dataField.dataSection = dataSection
+      dataField.dataPath = dataPath ?? ""
+      dataField.statusCode = statusCode
+      dataField.contentType = contentType
+      dataField.dataType = getSpecDataType(schema.type)
+      dataField.isNullable =
+        schema["nullable"] ||
+        (Array.isArray(schema.type)
+          ? schema.type.includes("null")
+          : schema.type === "null")
+      dataField.apiEndpointUuid = apiEndpointUuid
+      dataFields[key] = dataField
+    } else {
+      const existing = dataFields[key]
+      const dataType = getSpecDataType(schema.type)
+      if (
+        existing.dataType === DataType.UNKNOWN &&
+        dataType !== DataType.UNKNOWN
+      ) {
+        existing.dataType = dataType
+      }
+      if (
+        (existing.isNullable === false && schema["nullable"]) ||
+        (Array.isArray(schema.type)
+          ? schema.type.includes("null")
+          : schema.type === "null")
+      ) {
+        existing.isNullable = true
+      }
+      dataFields[key] = existing
+    }
+  }
+}
+
+export const getDataFieldsForParameters = (
+  parameters: (OpenAPIV3.ParameterObject | OpenAPIV3_1.ParameterObject)[],
+  apiEndpointUuid: string,
+): DataField[] => {
+  if (!parameters) {
+    return []
+  }
+  const dataFields: Record<string, DataField> = {}
+  for (const parameter of parameters) {
+    const dataSection = getParameterDataSection(parameter.in)
+    let schema = parameter.schema
+    if (!schema && parameter.content) {
+      const keys = Object.keys(parameter.content)
+      if (keys.length > 0) {
+        schema = parameter.content[keys[0]].schema
+      }
+    }
+    recurseCreateDataFields(
+      dataFields,
+      parameter.name,
+      dataSection,
+      "",
+      -1,
+      apiEndpointUuid,
+      schema as OpenAPIV3.SchemaObject | OpenAPIV3_1.SchemaObject,
+      0,
+    )
+  }
+  return Object.values(dataFields)
+}
+
+export const getDataFieldsForRequestBody = (
+  parsedSpec: OpenAPI.Document,
+  path: string,
+  method: string,
+  apiEndpointUuid: string,
+): DataField[] => {
+  if (!parsedSpec) {
+    return []
+  }
+  const requestBody = parsedSpec.paths?.[path]?.[
+    method as OpenAPIV3.HttpMethods
+  ]?.requestBody as OpenAPIV3.RequestBodyObject | OpenAPIV3_1.RequestBodyObject
+  if (!requestBody) {
+    return []
+  }
+
+  const dataFields: Record<string, DataField> = {}
+  const content = requestBody.content
+  for (const mediaType in content) {
+    recurseCreateDataFields(
+      dataFields,
+      null,
+      DataSection.REQUEST_BODY,
+      mediaType,
+      -1,
+      apiEndpointUuid,
+      content[mediaType].schema as
+        | OpenAPIV3.SchemaObject
+        | OpenAPIV3_1.SchemaObject,
+      0,
+    )
+  }
+  return Object.values(dataFields)
+}
+
+export const getDataFieldsForResponse = (
+  parsedSpec: OpenAPI.Document,
+  path: string,
+  method: string,
+  apiEndpointUuid: string,
+): DataField[] => {
+  if (!parsedSpec) {
+    return []
+  }
+  let responses =
+    parsedSpec.paths?.[path]?.[method as OpenAPIV3.HttpMethods].responses
+  if (!responses) {
+    return []
+  }
+
+  const dataFields: Record<string, DataField> = {}
+  for (const statusCode in responses) {
+    const status = statusCode === "default" ? -1 : parseInt(statusCode)
+    if (isNaN(status)) {
+      throw new Error400BadRequest(
+        `Status code in responses object is not a valid integer: ${statusCode}`,
+      )
+    }
+    const statusResponse = responses[statusCode] as
+      | OpenAPIV3.ResponseObject
+      | OpenAPIV3_1.ResponseObject
+    const headers = statusResponse?.headers
+    if (headers) {
+      for (const header in headers) {
+        recurseCreateDataFields(
+          dataFields,
+          header,
+          DataSection.RESPONSE_HEADER,
+          "",
+          status,
+          apiEndpointUuid,
+          headers[header]?.["schema"],
+          0,
+        )
+      }
+    }
+    const content = statusResponse?.content
+    if (content) {
+      for (const mediaType in content) {
+        recurseCreateDataFields(
+          dataFields,
+          null,
+          DataSection.RESPONSE_BODY,
+          mediaType,
+          status,
+          apiEndpointUuid,
+          content[mediaType].schema as
+            | OpenAPIV3.SchemaObject
+            | OpenAPIV3_1.SchemaObject,
+          0,
+        )
+      }
+    }
+  }
+  return Object.values(dataFields)
 }
