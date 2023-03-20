@@ -48,6 +48,11 @@ export class LogRequestService {
       const responseBody = traceParams?.response?.body
       const responseStatus = traceParams?.response?.status
       const meta = traceParams?.meta ?? ({} as Meta)
+
+      if (!method || !responseStatus) {
+        return
+      }
+
       const apiTraceObj: QueuedApiTrace = {
         path,
         method,
@@ -63,8 +68,8 @@ export class LogRequestService {
         sessionMeta: {} as SessionMeta,
       }
 
-      await BlockFieldsService.redactBlockedFields(ctx, apiTraceObj)
       await AuthenticationConfigService.setSessionMetadata(ctx, apiTraceObj)
+      await BlockFieldsService.redactBlockedFields(ctx, apiTraceObj)
 
       mlog.debug("Pushed trace to redis queue")
       await unsafeRedisClient.rpush(

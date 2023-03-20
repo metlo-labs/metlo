@@ -1,4 +1,8 @@
-import { MetloConfigResp, UpdateMetloConfigParams } from "@common/types"
+import {
+  AuthenticationConfig,
+  MetloConfigResp,
+  UpdateMetloConfigParams,
+} from "@common/types"
 import { RedisClient } from "utils/redis"
 import { AppDataSource } from "data-source"
 import { MetloConfig } from "models/metlo-config"
@@ -85,6 +89,13 @@ export const getCustomWordsCached = async (
 ): Promise<Set<string>> => {
   const conf = await getMetloConfigProcessedCached(ctx)
   return new Set(conf.customWords || [])
+}
+
+export const getAuthenticationConfig = async (
+  ctx: MetloContext,
+): Promise<AuthenticationConfig[]> => {
+  const conf = await getMetloConfigProcessedCached(ctx)
+  return conf.authentication ?? []
 }
 
 export const updateMetloConfig = async (
