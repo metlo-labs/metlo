@@ -28,12 +28,14 @@ import { ENDPOINT_PAGE_LIMIT } from "~/constants"
 import { getDataClasses } from "api/dataClasses"
 import { makeToast } from "utils"
 import { formatMetloAPIErr, MetloAPIErr } from "api/utils"
+import { getResourcePerms } from "api/testing-config"
 
 interface EndpointsProps {
   params: string
   endpoints: string
   totalCount: number
   hosts: string
+  resourcePermissions: string
   dataClasses: string
 }
 
@@ -42,11 +44,14 @@ const Endpoints: React.FC<EndpointsProps> = ({
   endpoints,
   totalCount,
   hosts,
+  resourcePermissions,
   dataClasses,
 }) => {
   const parsedInitParams = superjson.parse<GetEndpointParams>(params)
   const parsedInitEndpoints = superjson.parse<ApiEndpoint[]>(endpoints)
   const parsedHosts = superjson.parse<string[]>(hosts) ?? []
+  const parsedResourcePermissions =
+    superjson.parse<string[]>(resourcePermissions) ?? []
   const parsedDataClasses = superjson.parse<DataClass[]>(dataClasses) ?? []
   const toast = useToast()
   const router = useRouter()
@@ -63,10 +68,12 @@ const Endpoints: React.FC<EndpointsProps> = ({
     router.push({
       query: {
         ...newParams,
-        riskScores: newParams.riskScores?.join(",") ?? "",
-        hosts: newParams.hosts?.join(",") ?? "",
-        methods: newParams.methods?.join(",") ?? "",
-        dataClasses: newParams.dataClasses?.join(",") ?? "",
+        riskScores: newParams.riskScores?.join(",") ?? undefined,
+        hosts: newParams.hosts?.join(",") ?? undefined,
+        methods: newParams.methods?.join(",") ?? undefined,
+        dataClasses: newParams.dataClasses?.join(",") ?? undefined,
+        resourcePermissions:
+          newParams.resourcePermissions?.join(",") ?? undefined,
       },
     })
     setFetching(false)
@@ -105,10 +112,10 @@ const Endpoints: React.FC<EndpointsProps> = ({
 
   return (
     <PageWrapper title="Endpoints">
-      <ContentContainer maxContentW="100rem" px="8" py="8">
+      <ContentContainer maxContentW="100rem" px="4" py="8">
         <VStack w="full" alignItems="flex-start" spacing="0">
           <HStack mb="4" w="full" justifyContent="space-between">
-            <Heading fontWeight="semibold" size="xl">
+            <Heading fontWeight="semibold" size="lg">
               Endpoints
             </Heading>
             <Button
@@ -127,6 +134,7 @@ const Endpoints: React.FC<EndpointsProps> = ({
             params={parsedInitParams}
             totalCount={totalCount}
             setParams={setParams}
+            resourcePermissions={parsedResourcePermissions}
             dataClasses={parsedDataClasses}
             selectedUuids={selectedUuids}
           />
@@ -171,7 +179,9 @@ const Endpoints: React.FC<EndpointsProps> = ({
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const dataClasses: DataClass[] = await getDataClasses({})
-  const params: GetEndpointParams = {
+  const resourcePermissions: string[] = await getResourcePerms()
+
+  let params: GetEndpointParams = {
     riskScores: ((context.query.riskScores as string) || "")
       .split(",")
       .filter(e => Object.values(RiskScore).includes(e as RiskScore))
@@ -184,6 +194,9 @@ export const getServerSideProps: GetServerSideProps = async context => {
     dataClasses: ((context.query.dataClasses as string) || "")
       .split(",")
       .filter(e => dataClasses.find(({ className }) => className == e)),
+    resourcePermissions: ((context.query.resourcePermissions as string) || "")
+      .split(",")
+      .filter(e => e),
     hostType: (context.query.hostType as HostType) || HostType.ANY,
     offset: parseInt((context.query.offset as string) ?? "0"),
     searchQuery: (context.query.searchQuery as string) ?? "",
@@ -204,6 +217,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
       endpoints: superjson.stringify(endpoints),
       totalCount: totalCount,
       hosts: superjson.stringify(hosts),
+      resourcePermissions: superjson.stringify(resourcePermissions),
       dataClasses: superjson.stringify(dataClasses),
     },
   }

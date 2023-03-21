@@ -411,6 +411,12 @@ export class GetEndpointsService {
         whereFilter.push(`endpoint."method" = ANY($${argNumber++})`)
         parameters.push(getEndpointParams.methods)
       }
+      if (getEndpointParams?.resourcePermissions) {
+        whereFilter.push(
+          `endpoint."resourcePermissions" && $${argNumber++}`,
+        )
+        parameters.push(getEndpointParams.resourcePermissions)
+      }
       if (getEndpointParams?.searchQuery) {
         whereFilter.push(`endpoint.path ~* $${argNumber++}`)
         parameters.push(`${getEndpointParams.searchQuery}`)

@@ -20,7 +20,7 @@ const NodeDocs: React.FC<DocsParams> = React.memo(({ apiKey, host }) => {
               It can be installed from <Code>npm</Code> by running
             </Box>
             <Code w="full" p={2}>
-              npm install melto
+              npm install metlo
             </Code>
             <Box w="full">
               It can be installed from <Code>yarn</Code> by running
@@ -40,7 +40,7 @@ const NodeDocs: React.FC<DocsParams> = React.memo(({ apiKey, host }) => {
           <Code w="full" p={2}>
             <SyntaxHighlighter
               customStyle={{ background: "none", padding: 0 }}
-              language="java"
+              language="javascript"
             >
               {`import metlo from "metlo"
 metlo("${apiKey}", "${host}")

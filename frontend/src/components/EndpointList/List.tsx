@@ -7,6 +7,9 @@ import {
   VStack,
   Tag,
   Tooltip,
+  HStack,
+  Wrap,
+  WrapItem,
 } from "@chakra-ui/react"
 import { useRouter } from "next/router"
 import EmptyView from "components/utils/EmptyView"
@@ -156,35 +159,73 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         grow: 0,
       },
       {
-        name: "Method",
-        sortable: false,
-        cell: (row: ApiEndpoint) => (
-          <Text pointerEvents="none" color="gray.900" fontWeight="semibold">
-            {row.method}
-          </Text>
-        ),
-        grow: 0,
-        width: "100px",
-      },
-      {
-        name: "Path",
+        name: "Endpoint",
         sortable: false,
         selector: (row: ApiEndpoint) => row.method + row.path,
         cell: (row: ApiEndpoint) => (
-          <Text
-            pointerEvents="none"
-            fontWeight="medium"
-            fontFamily="mono"
-            color="gray.900"
-          >
-            {row.path}
-          </Text>
+          <VStack pointerEvents="none" spacing={1} alignItems="flex-start">
+            <Text
+              pointerEvents="none"
+              fontWeight="medium"
+              fontFamily="mono"
+              color="gray.900"
+            >
+              <HStack>
+                <strong>{row.method}</strong>
+                <Text>{row.path}</Text>
+              </HStack>
+            </Text>
+            <Text pointerEvents="none" fontWeight="normal">
+              {row.host}
+            </Text>
+          </VStack>
         ),
-        id: "path",
+        id: "endpoint",
         grow: 4,
       },
       {
-        name: "Sensitive Data Classes",
+        name: "Permissions",
+        sortable: false,
+        cell: (row: ApiEndpoint) => {
+          return (
+            <Box pointerEvents="none">
+              <Wrap>
+                {row.resourcePermissions.map(e => {
+                  return (
+                    <WrapItem key={e}>
+                      <Badge
+                        textTransform="unset"
+                        fontWeight="semibold"
+                        px="2"
+                        py="1"
+                        rounded="md"
+                      >
+                        {e}
+                      </Badge>
+                    </WrapItem>
+                  )
+                })}
+              </Wrap>
+            </Box>
+          )
+        },
+        id: "permissions",
+        grow: 1.5,
+      },
+      {
+        name: "Visibility",
+        sortable: false,
+        selector: (row: ApiEndpoint) => row.host || "",
+        cell: (row: ApiEndpoint) => (
+          <VStack spacing={1} alignItems="flex-start">
+            <Badge>{row.isPublic ? "Public" : "Private"}</Badge>
+          </VStack>
+        ),
+        id: "visibility",
+        grow: 0,
+      },
+      {
+        name: "Sensitive Data",
         sortable: false,
         cell: (row: ApiEndpoint) => {
           return (
@@ -205,7 +246,8 @@ const List: React.FC<EndpointTablesProps> = React.memo(
                       ]
                     }
                   >
-                    {e}
+                    {dataClasses.find(({ className }) => className == e)
+                      ?.shortName || e}
                   </Tag>
                 )
               })}
@@ -213,42 +255,7 @@ const List: React.FC<EndpointTablesProps> = React.memo(
           )
         },
         id: "dataClasses",
-        grow: 2,
-      },
-      {
-        name: "Host",
-        sortable: false,
-        selector: (row: ApiEndpoint) => row.host || "",
-        cell: (row: ApiEndpoint) => (
-          <VStack spacing={1} alignItems="flex-start">
-            <Text pointerEvents="none" fontWeight="normal">
-              {row.host}
-            </Text>
-            <Badge>{row.isPublic ? "Public" : "Private"}</Badge>
-          </VStack>
-        ),
-        id: "host",
-        grow: 2,
-      },
-      {
-        name: "First Detected",
-        sortable: false,
-        selector: (row: ApiEndpoint) =>
-          getDateTimeString(row.firstDetected) || "N/A",
-        cell: (row: ApiEndpoint) => (
-          <Tooltip
-            placement="top"
-            label={getDateTimeString(row.firstDetected) || "N/A"}
-            wordBreak="keep-all"
-          >
-            <Text data-tag="allowRowEvents" fontWeight="normal">
-              {getDateTimeRelative(row.firstDetected) || "N/A"}
-            </Text>
-          </Tooltip>
-        ),
-        id: "firstDetected",
-        grow: 1.0,
-        right: true,
+        grow: 1,
       },
       {
         name: "Last Active",
@@ -267,7 +274,8 @@ const List: React.FC<EndpointTablesProps> = React.memo(
         ),
         id: "lastActive",
         right: true,
-        grow: 1.0,
+        grow: 0,
+        width: "150px",
       },
     ]
 

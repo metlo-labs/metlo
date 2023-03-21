@@ -41,6 +41,13 @@ export const analyze = async (
   endpointUpdateDates(trace.createdAt, apiEndpoint)
   mlog.debug(`Analyzing Trace - Updated Dates: ${traceUUID}`)
 
+  if (Array.isArray(trace.requestBody)) {
+    trace.requestBody = JSON.stringify(trace.requestBody)
+  }
+  if (Array.isArray(trace.responseBody)) {
+    trace.responseBody = JSON.stringify(trace.responseBody)
+  }
+
   const dataClasses = await getCombinedDataClassesCached(ctx)
 
   const start1 = performance.now()
@@ -69,7 +76,7 @@ export const analyze = async (
     trace,
     apiEndpoint,
     queryRunner,
-    redact
+    redact,
   )
   mlog.time("analyzer.find_openapi_spec_diff", performance.now() - start2)
   mlog.debug(`Analyzing Trace - Found OpenAPI Spec Diffs: ${traceUUID}`)
@@ -93,13 +100,6 @@ export const analyze = async (
       trace.createdAt,
     )
     alerts = alerts.concat(newEndpointAlert)
-  }
-
-  if (Array.isArray(trace.requestBody)) {
-    trace.requestBody = JSON.stringify(trace.requestBody)
-  }
-  if (Array.isArray(trace.responseBody)) {
-    trace.responseBody = JSON.stringify(trace.responseBody)
   }
 
   const startSensitiveDataPopulate = performance.now()
@@ -131,7 +131,7 @@ export const analyze = async (
 
   await queryRunner.startTransaction()
   const startUpdateDataFields = performance.now()
-  await updateDataFields(ctx, dataFields.dataFields, queryRunner)
+  await updateDataFields(ctx, dataFields.dataFields, queryRunner, false)
   mlog.time(
     "analyzer.update_data_fields_query",
     performance.now() - startUpdateDataFields,

@@ -45,6 +45,13 @@ export const analyze = async (
   endpointUpdateDates(trace.createdAt, apiEndpoint)
   mlog.debug(`Analyzing Trace - Updated Dates: ${traceUUID}`)
 
+  if (Array.isArray(trace.requestBody)) {
+    trace.requestBody = JSON.stringify(trace.requestBody)
+  }
+  if (Array.isArray(trace.responseBody)) {
+    trace.responseBody = JSON.stringify(trace.responseBody)
+  }
+
   const dataClasses = await getCombinedDataClassesCached(ctx)
 
   const start1 = performance.now()
@@ -86,13 +93,6 @@ export const analyze = async (
     alerts = alerts.concat(newEndpointAlert)
   }
 
-  if (Array.isArray(apiTrace.requestBody)) {
-    apiTrace.requestBody = JSON.stringify(apiTrace.requestBody)
-  }
-  if (Array.isArray(apiTrace.responseBody)) {
-    apiTrace.responseBody = JSON.stringify(apiTrace.responseBody)
-  }
-
   const startSensitiveDataPopulate = performance.now()
   const sensitiveDataMap = getSensitiveDataMap(
     dataClasses,
@@ -114,7 +114,7 @@ export const analyze = async (
 
   await queryRunner.startTransaction()
   const startUpdateDataFields = performance.now()
-  await updateDataFields(ctx, dataFields.dataFields, queryRunner)
+  await updateDataFields(ctx, dataFields.dataFields, queryRunner, false)
   mlog.time(
     "analyzer.update_data_fields_query",
     performance.now() - startUpdateDataFields,

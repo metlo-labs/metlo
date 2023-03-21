@@ -14,6 +14,7 @@ interface EndpointListProps {
   setParams: (newParams: GetEndpointParams) => void
   params: GetEndpointParams
   hosts: string[]
+  resourcePermissions: string[]
   dataClasses: DataClass[]
   selectedUuids: MutableRefObject<string[]>
 }
@@ -26,6 +27,7 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
     params,
     setParams,
     hosts,
+    resourcePermissions,
     dataClasses,
     selectedUuids,
   }) => {
@@ -46,7 +48,8 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
         <Box
           roundedTop="xl"
           bg="white"
-          p="4"
+          py="2"
+          px="4"
           borderBottom="1px"
           borderColor="inherit"
           w="full"
@@ -54,6 +57,7 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
           <EndpointFilters
             hostList={hosts}
             riskList={Object.values(RiskScore)}
+            resourcePermissions={resourcePermissions}
             dataClassesList={dataClasses.map(({ className }) => className)}
             params={params}
             setParams={setParams}

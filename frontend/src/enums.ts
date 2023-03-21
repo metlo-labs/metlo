@@ -14,6 +14,8 @@ export enum ConnectionTab {
   JAVA = "java",
   GO = "go",
   KUBERNETES = "kubernetes",
+  DOCKER_COMPOSE = "dockercompose",
+  BURP_SUITE = "burpsuite",
 }
 
 export enum SettingsTab {

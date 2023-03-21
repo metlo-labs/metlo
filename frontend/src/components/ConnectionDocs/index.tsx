@@ -21,6 +21,8 @@ import JavaDocs from "./docs/java"
 import KubernetesDocs from "./docs/kubernetes"
 import GoDocs from "./docs/go"
 import { ConnectionTab } from "enums"
+import DockerComposeDocs from "./docs/dockercompose"
+import BurpSuiteDocs from "./docs/burpsuite"
 
 interface ConnectionDocsListProps {}
 
@@ -43,8 +45,12 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
         return 4
       case ConnectionTab.GO:
         return 5
-      case ConnectionTab.KUBERNETES:
+      case ConnectionTab.DOCKER_COMPOSE:
         return 6
+      case ConnectionTab.KUBERNETES:
+        return 7
+      case ConnectionTab.BURP_SUITE:
+        return 8
       default:
         return 0
     }
@@ -64,7 +70,7 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
   return (
     <VStack spacing={12} w={"full"}>
       <VStack spacing={6} w={"full"}>
-        <Tabs w={"full"} index={getTab()}>
+        <Tabs w={"full"} index={getTab()} flexWrap="wrap">
           <TabList w={"full"}>
             <Tab onClick={() => handleTabClick(null)}>
               <HStack>
@@ -138,16 +144,42 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
                 <Box display={{ base: "none", lg: "block" }}>Go</Box>
               </HStack>
             </Tab>
+            <Tab onClick={() => handleTabClick(ConnectionTab.DOCKER_COMPOSE)}>
+              <HStack>
+                <Box>
+                  <Image
+                    alt={`DockerCompose-image`}
+                    boxSize={"20px"}
+                    src={`/static-images/connections/${ConnectionType.DOCKERCOMPOSE}_${colorMode.colorMode}.svg`}
+                  />
+                </Box>
+                <Box display={{ base: "none", lg: "block" }}>
+                  Docker Compose
+                </Box>
+              </HStack>
+            </Tab>
             <Tab onClick={() => handleTabClick(ConnectionTab.KUBERNETES)}>
               <HStack>
                 <Box>
                   <Image
-                    alt={`Python-image`}
+                    alt={`Kubernetes-image`}
                     boxSize={"20px"}
                     src={`/static-images/connections/${ConnectionType.KUBERNETES}_${colorMode.colorMode}.svg`}
                   />
                 </Box>
                 <Box display={{ base: "none", lg: "block" }}>Kubernetes</Box>
+              </HStack>
+            </Tab>
+            <Tab onClick={() => handleTabClick(ConnectionTab.BURP_SUITE)}>
+              <HStack>
+                <Box>
+                  <Image
+                    alt={`BurpSuite-image`}
+                    boxSize={"20px"}
+                    src={`/static-images/connections/${ConnectionType.BURPSUITE}_${colorMode.colorMode}.svg`}
+                  />
+                </Box>
+                <Box display={{ base: "none", lg: "block" }}>Burp Suite</Box>
               </HStack>
             </Tab>
           </TabList>
@@ -171,7 +203,13 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
               <GoDocs host={host} apiKey={apiKey} />
             </TabPanel>
             <TabPanel>
+              <DockerComposeDocs host={host} apiKey={apiKey} />
+            </TabPanel>
+            <TabPanel>
               <KubernetesDocs />
+            </TabPanel>
+            <TabPanel>
+              <BurpSuiteDocs host={host} apiKey={apiKey} />
             </TabPanel>
           </TabPanels>
         </Tabs>

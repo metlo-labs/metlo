@@ -75,6 +75,7 @@ export const logRequest = async (
       processedTraceData.responseContentType,
     )
     const redacted = traceParams?.redacted
+    const sessionMeta = traceParams?.sessionMeta ?? ({} as SessionMeta)
     const apiTraceObj: QueuedApiTrace = {
       path,
       method,
@@ -87,13 +88,15 @@ export const logRequest = async (
       responseBody,
       meta,
       createdAt: new Date(),
-      sessionMeta: {} as SessionMeta,
+      sessionMeta,
       processedTraceData,
       redacted,
     }
 
+    if (!traceParams?.sessionMeta) {
+      await AuthenticationConfigService.setSessionMetadata(ctx, apiTraceObj)
+    }
     await BlockFieldsService.redactBlockedFields(ctx, apiTraceObj)
-    await AuthenticationConfigService.setSessionMetadata(ctx, apiTraceObj)
 
     mlog.debug("Pushed trace to redis queue")
     await unsafeRedisClient.rpush(

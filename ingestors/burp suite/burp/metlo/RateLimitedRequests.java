@@ -1,67 +1,65 @@
-package burp.metlo;
+package metlo;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import com.google.gson.Gson;
+import com.google.common.util.concurrent.ListenableFuture;
+import io.grpc.Grpc;
+import io.grpc.InsecureChannelCredentials;
+import io.grpc.ManagedChannel;
+import io.grpc.StatusRuntimeException;
+import metloingest.MetloIngestGrpc;
+import metloingest.Metloingest;
+
+
+class GrpcClient {
+    public static void send(MetloIngestGrpc.MetloIngestFutureStub stub, Metloingest.ApiTrace data, PrintWriter err) throws ExecutionException, InterruptedException {
+        Metloingest.ProcessTraceAsyncRes response = null;
+        try {
+            response = stub.processTraceAsync(data).get();
+            if (!response.getOk()) {
+                err.println("Received an error in analyzing trace to Metlo");
+            }
+        } catch (StatusRuntimeException e) {
+            err.printf("RPC failed: %s", e.getStatus());
+            e.printStackTrace(err);
+        }
+    }
+}
+
 
 public class RateLimitedRequests {
     private final Integer rps;
-    private final String host;
-    private final String key;
+    private final Integer port;
     private final ThreadPoolExecutor pool;
     private final PrintWriter out;
     private final PrintWriter err;
+    private final MetloIngestGrpc.MetloIngestFutureStub stub;
+    private final ManagedChannel channel;
     private List<Long> ts;
 
-    public RateLimitedRequests(Integer rps, Integer pool_size, String host, String api_key, PrintWriter out, PrintWriter err) {
+    public RateLimitedRequests(Integer rps, Integer port, Integer pool_size, PrintWriter out, PrintWriter err) {
         this.rps = rps;
-        this.host = host;
-        this.key = api_key;
+        this.port = port;
         this.out = out;
         this.err = err;
         this.ts = Collections.synchronizedList(new ArrayList<Long>());
         this.pool = new ThreadPoolExecutor(0, pool_size,
                 60L, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<Runnable>());
+                new LinkedBlockingQueue<>());
+        String target = "localhost:" + port.toString();
+        this.channel = Grpc.newChannelBuilder(target, InsecureChannelCredentials.create()).build();
+        this.stub = MetloIngestGrpc.newFutureStub(this.channel);
     }
 
-    private void pushRequest(Map<String, Object> data) throws IOException {
-        URL url = new URL(this.host);
-        URLConnection con = url.openConnection();
-        HttpURLConnection http = (HttpURLConnection) con;
-        http.setRequestMethod("POST"); // PUT is another valid option
-        http.setRequestProperty("Authorization", this.key);
-        http.setDoOutput(true);
-        Gson gson = new Gson();
-        String json = gson.toJson(data);
-
-        byte[] out = json.getBytes(StandardCharsets.UTF_8);
-        int length = out.length;
-
-
-        http.setFixedLengthStreamingMode(length);
-        http.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-        http.connect();
-        try (OutputStream os = http.getOutputStream()) {
-            os.write(out);
-        }
-        int code = http.getResponseCode();
+    public void shutdown() {
+        this.channel.shutdown();
     }
-
 
     private synchronized Boolean allow() {
 
@@ -84,11 +82,11 @@ public class RateLimitedRequests {
 
     }
 
-    public void send(Map<String, Object> data) {
+    public void send(Metloingest.ApiTrace data) {
         if (this.allow()) {
             this.pool.submit(() -> {
                 try {
-                    pushRequest(data);
+                    GrpcClient.send(this.stub, data, this.err);
                 } catch (Exception e) {
                     e.printStackTrace(this.err);
                 }

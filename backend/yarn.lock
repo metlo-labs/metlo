@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@apidevtools/json-schema-ref-parser@9.0.6":
-  version "9.0.6"
-  resolved "https://registry.yarnpkg.com/@apidevtools/json-schema-ref-parser/-/json-schema-ref-parser-9.0.6.tgz#5d9000a3ac1fd25404da886da6b266adcd99cf1c"
-  integrity sha512-M3YgsLjI0lZxvrpeGVk9Ap032W6TPQkH6pRAZz81Ac3WUNF79VQooAFnp8umjvVzUmD93NkogxEwbSce7qMsUg==
+"@apidevtools/json-schema-ref-parser@9.0.6", "@apidevtools/json-schema-ref-parser@9.0.7":
+  version "9.0.7"
+  resolved "https://registry.yarnpkg.com/@apidevtools/json-schema-ref-parser/-/json-schema-ref-parser-9.0.7.tgz#64aa7f5b34e43d74ea9e408b90ddfba02050dde3"
+  integrity sha512-QdwOGF1+eeyFh+17v2Tz626WX0nucd1iKOm6JUTUvCZdbolblCOOQCxGrQPY0f7jEhn36PiAWqZnsC2r5vmUWg==
   dependencies:
     "@jsdevtools/ono" "^7.1.3"
     call-me-maybe "^1.0.1"
@@ -146,10 +146,10 @@
     ajv "^8.4.0"
     openapi-types "^12.0.2"
 
-"@metlo/testing@^0.3.12":
-  version "0.3.12"
-  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.3.12.tgz#bce135699f7b5fade91cbea18586c3f3882b4b43"
-  integrity sha512-I4fpLSs/5L5ysIRmmERkApW986MedKeuAPRrq/ZSM3sQo7LPtRP6iNSeGTpkGyOljE7YG0IW7MXedLLbio142w==
+"@metlo/testing@^0.3.13":
+  version "0.3.13"
+  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.3.13.tgz#2f2bd3124233cfd093755714b8444fed24a5ef24"
+  integrity sha512-U1KKqhJFEJRygOfg5puTZtUVL20Q6ZCZSv6szPixcJleQsCB0S4H5i5QsxPXsk5DjTegkX3+BAYrGfQ5WJOVYA==
   dependencies:
     axios "^1.2.1"
     chalk "^4.1.2"

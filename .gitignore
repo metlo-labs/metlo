@@ -29,6 +29,7 @@ ingestors/burp suite/.idea/
 ingestors/burp suite/gradle.properties
 ingestors/burp suite/target/
 ingestors/burp suite/build/
+ingestors/burp suite/burp/dist/
 
 .meta/*
 ingestors/govxlan/govxlan

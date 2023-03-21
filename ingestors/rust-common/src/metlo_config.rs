@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use regex::Regex;
 use reqwest::Url;
+use ring::hmac;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -40,6 +41,16 @@ pub struct MetloEndpoint {
 
 #[derive(Debug, Default, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct Authentication {
+    pub host: String,
+    pub auth_type: String,
+    pub header_key: Option<String>,
+    pub jwt_user_path: Option<String>,
+    pub cookie_name: Option<String>,
+}
+
+#[derive(Debug, Default, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct MetloSpec {
     pub name: String,
     pub spec: String,
@@ -52,6 +63,12 @@ pub struct MetloConfig {
     pub endpoints: Vec<MetloEndpoint>,
     pub specs: Vec<MetloSpec>,
     pub global_full_trace_capture: bool,
+
+    #[serde(default)]
+    pub encryption_public_key: Option<String>,
+
+    #[serde(default)]
+    pub authentication_config: Vec<Authentication>,
 }
 
 #[derive(Debug)]
@@ -64,6 +81,9 @@ pub struct GlobalConfig {
     pub endpoints: Option<HashMap<String, Vec<MetloEndpoint>>>,
     pub specs: Option<CompiledSpecs>,
     pub global_full_trace_capture: bool,
+    pub encryption_public_key: Option<String>,
+    pub authentication_config: Vec<Authentication>,
+    pub hmac_key: Option<hmac::Key>,
 }
 
 pub struct ValidateRequestConnResp {
@@ -187,6 +207,8 @@ pub async fn pull_metlo_config() -> Result<(), Box<dyn std::error::Error>> {
     conf_write.endpoints = Some(endpoints_map);
     conf_write.specs = Some(compiled_specs);
     conf_write.global_full_trace_capture = resp.global_full_trace_capture;
+    conf_write.encryption_public_key = resp.encryption_public_key;
+    conf_write.authentication_config = resp.authentication_config;
 
     Ok(())
 }

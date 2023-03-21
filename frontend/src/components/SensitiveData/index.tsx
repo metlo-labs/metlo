@@ -32,9 +32,9 @@ const SensitiveDataPage: React.FC<SensitiveDataPageProps> = React.memo(
     }
 
     return (
-      <ContentContainer maxContentW="100rem" px="8" py="8">
+      <ContentContainer maxContentW="100rem" px="4" py="8">
         <VStack w="full" alignItems="flex-start">
-          <Heading fontWeight="semibold" size="xl" mb="4">
+          <Heading fontWeight="semibold" size="lg" mb="4">
             Sensitive Data
           </Heading>
         </VStack>
