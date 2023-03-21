@@ -7,7 +7,9 @@ use crate::{
 };
 use graphql_parser::{
     parse_query,
-    query::{Definition, OperationDefinition, Selection, SelectionSet, VariableDefinition},
+    query::{
+        Definition, OperationDefinition, Selection, SelectionSet, TypeCondition, VariableDefinition,
+    },
     schema,
 };
 use libinjection::{sqli, xss};
@@ -94,7 +96,8 @@ fn process_graphql_argument<'a>(
             }
         }
         schema::Value::List(ls) => {
-            for e in ls {
+            let limit = std::cmp::min(ls.len(), 15);
+            for e in &ls[..limit] {
                 process_graphql_argument(
                     path.clone() + ".[]",
                     e,
@@ -156,7 +159,7 @@ fn process_graphql_operation_item<'a>(
                     arguments.push(arg.0.to_owned());
 
                     process_graphql_argument(
-                        curr_path.clone() + "._arg." + arg.0,
+                        curr_path.clone() + ".__args." + arg.0,
                         &arg.1,
                         data_types,
                         xss_detected,
@@ -209,21 +212,30 @@ fn process_graphql_operation_item<'a>(
                     )
                 }
             }
-            Selection::InlineFragment(i) => process_graphql_operation_item(
-                path,
-                &i.selection_set.items,
-                items,
-                variables_map,
-                data_types,
-                xss_detected,
-                sqli_detected,
-                sensitive_data_detected,
-                fragments_map,
-                regular_path.clone(),
-                alias_path.clone(),
-                response_alias_map,
-                total_runs,
-            ),
+            Selection::InlineFragment(i) => {
+                let (curr_path, curr_regular_path) = match &i.type_condition {
+                    Some(TypeCondition::On(t)) => (
+                        format!("{}.__on_{}", path, t),
+                        format!("{}.__on_{}", regular_path, t),
+                    ),
+                    None => (path.to_owned(), regular_path.clone()),
+                };
+                process_graphql_operation_item(
+                    &curr_path,
+                    &i.selection_set.items,
+                    items,
+                    variables_map,
+                    data_types,
+                    xss_detected,
+                    sqli_detected,
+                    sensitive_data_detected,
+                    fragments_map,
+                    curr_regular_path,
+                    alias_path.clone(),
+                    response_alias_map,
+                    total_runs,
+                );
+            }
         }
     }
 }

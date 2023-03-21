@@ -63,7 +63,7 @@ fn fix_path(path: &str, response_alias_map: Option<&HashMap<String, String>>) ->
             }
             let mut match_idx = 0;
             let mut matched_path = None;
-            for range in (2..non_array_path_vec.len()).rev() {
+            for range in (2..=non_array_path_vec.len()).rev() {
                 let slice = &non_array_path_vec[..range].join(".");
                 if let Some(tmp_path) = map.get(slice) {
                     match_idx = range;
@@ -75,11 +75,21 @@ fn fix_path(path: &str, response_alias_map: Option<&HashMap<String, String>>) ->
                 let remaining_path = &non_array_path_vec[match_idx..];
                 let mut resolved_path_vec = s.split('.').collect::<Vec<&str>>();
                 if !remaining_path.is_empty() {
+                    resolved_path_vec.push("__resp");
                     resolved_path_vec.extend(remaining_path)
                 }
+
+                let mut filtered_count = 0;
                 for idx in array_token_idx {
+                    if idx <= 1 {
+                        filtered_count += 1;
+                    }
                     if idx > 1 {
-                        resolved_path_vec.insert(idx, "[]");
+                        let incr_index = resolved_path_vec[..idx]
+                            .iter()
+                            .filter(|&e| e.starts_with("__on_") || e == &"__resp")
+                            .count();
+                        resolved_path_vec.insert(idx - filtered_count + incr_index, "[]");
                     }
                 }
                 resolved_path_vec.join(".")
@@ -148,10 +158,11 @@ pub fn process_json_val(
             }
         }
         serde_json::Value::Array(ls) => {
+            let limit = std::cmp::min(ls.len(), 10);
             let old_len = path.len();
             path.push_str(".[]");
 
-            for e in ls {
+            for e in &ls[..limit] {
                 process_json_val(
                     path,
                     data_types,
@@ -579,15 +590,11 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
                 proc_req_headers,
                 proc_resp_body,
                 proc_resp_headers,
-                proc_graph_ql
-                    .as_ref()
-                    .and_then(|f| Some(f.proc_trace_res.to_owned())),
+                proc_graph_ql.as_ref().map(|f| f.proc_trace_res.to_owned()),
             ],
             req_content_type,
             resp_content_type,
-            proc_graph_ql
-                .as_ref()
-                .and_then(|f| Some(f.graph_ql_data.to_owned())),
+            proc_graph_ql.as_ref().map(|f| f.graph_ql_data.to_owned()),
         ),
         full_trace_capture_enabled,
     )

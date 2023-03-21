@@ -260,6 +260,7 @@ export const generateEndpointsMap = async (
       )
       .andWhere("method = :method", { method })
       .andWhere("host = :host", { host })
+      .andWhere(`"isGraphQl" = False`)
       .getRawMany()
     similarEndpoints.forEach(item => {
       let exists = false

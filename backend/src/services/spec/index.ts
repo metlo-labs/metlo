@@ -362,6 +362,7 @@ export class SpecService {
                 path: Raw(alias => `${alias} ~ :pathRegex`, { pathRegex }),
                 method: methodEnum,
                 host,
+                isGraphQl: false,
               },
             })
             similarEndpoints.forEach(item => {
