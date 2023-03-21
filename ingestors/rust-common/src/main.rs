@@ -1,7 +1,8 @@
 use clap::Parser;
 use lazy_static::lazy_static;
-use metlo_agent::{initialize_metlo, refresh_config, server, server_port};
+use metlo_agent::{initialize_metlo, refresh_config, server, server_port, METLO_CONFIG};
 use reqwest::Url;
+use ring::hmac;
 use std::{collections::HashSet, env, time::Duration};
 use tokio::time;
 
@@ -43,6 +44,10 @@ struct Args {
     /// Open port for connection
     #[arg(short, long)]
     port: Option<String>,
+
+    /// Encryption Key
+    #[arg(short, long)]
+    encryption_key: Option<String>,
 }
 
 #[tokio::main(flavor = "multi_thread")]
@@ -134,6 +139,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Err(_) => None,
         },
     };
+
+    let encryption_key = match args.encryption_key {
+        Some(e) => Ok(hmac::Key::new(hmac::HMAC_SHA256, e.as_bytes())),
+        None => match env::var("ENCRYPTION_KEY") {
+            Ok(s) => Ok(hmac::Key::new(hmac::HMAC_SHA256, s.as_bytes())),
+            Err(_) => {
+                let rng = ring::rand::SystemRandom::new();
+                hmac::Key::generate(hmac::HMAC_SHA256, &rng)
+            }
+        },
+    };
+
+    if let Ok(e) = encryption_key {
+        let mut conf_write = METLO_CONFIG.write().await;
+        conf_write.hmac_key = Some(e);
+    } else {
+        log::error!("Failed to generate hmac encryption key.")
+    }
 
     let init_res =
         initialize_metlo(valid_host, api_key.unwrap(), collector_port, backend_port).await?;

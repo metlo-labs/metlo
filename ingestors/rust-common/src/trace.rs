@@ -58,28 +58,11 @@ pub struct ProcessTraceResInner {
     pub validation_errors: Option<HashMap<String, Vec<String>>>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ProcessTraceRes {
-    pub block: bool,
-    pub xss_detected: Option<HashMap<String, String>>,
-    pub sqli_detected: Option<HashMap<String, (String, String)>>,
-    pub sensitive_data_detected: Option<HashMap<String, HashSet<String>>>,
-    pub data_types: Option<HashMap<String, HashSet<String>>>,
-    pub validation_errors: Option<HashMap<String, Vec<String>>>,
-    pub request_content_type: String,
-    pub response_content_type: String,
-    pub graph_ql_data: Vec<GraphQlData>,
-}
-
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ProcessedApiTrace {
-    pub request: ApiRequest,
-    pub response: Option<ApiResponse>,
-    pub meta: Option<ApiMeta>,
-    pub processed_trace_data: ProcessTraceRes,
-    pub redacted: bool,
+pub struct Encryption {
+    pub key: String,
+    pub generated_ivs: HashMap<String, Vec<u8>>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -120,4 +103,40 @@ pub struct GraphQlRes {
     pub graph_ql_data: Vec<GraphQlData>,
     pub proc_trace_res: ProcessTraceResInner,
     pub response_alias_map: HashMap<String, String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProcessTraceRes {
+    pub block: bool,
+    pub xss_detected: Option<HashMap<String, String>>,
+    pub sqli_detected: Option<HashMap<String, (String, String)>>,
+    pub sensitive_data_detected: Option<HashMap<String, HashSet<String>>>,
+    pub data_types: Option<HashMap<String, HashSet<String>>>,
+    pub validation_errors: Option<HashMap<String, Vec<String>>>,
+    pub request_content_type: String,
+    pub response_content_type: String,
+    pub graph_ql_data: Vec<GraphQlData>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SessionMeta {
+    pub authentication_provided: Option<bool>,
+    pub authentication_successful: Option<bool>,
+    pub auth_type: Option<String>,
+    pub unique_session_key: Option<String>,
+    pub user: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProcessedApiTrace {
+    pub request: ApiRequest,
+    pub response: Option<ApiResponse>,
+    pub meta: Option<ApiMeta>,
+    pub processed_trace_data: ProcessTraceRes,
+    pub redacted: bool,
+    pub encryption: Option<Encryption>,
+    pub session_meta: Option<SessionMeta>,
 }

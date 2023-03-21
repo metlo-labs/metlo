@@ -105,12 +105,19 @@ export interface ProcessedTraceData {
   graphQlData: GraphQlData[]
 }
 
+export interface Encryption {
+  key: string
+  generatedIvs: Record<string, number[]>
+}
+
 export interface TraceParams {
   request: Request
   response: Response
   meta: Meta
   processedTraceData?: ProcessedTraceData
   redacted?: boolean
+  sessionMeta?: SessionMeta
+  encryption?: Encryption
 }
 
 export interface GetAttackParams {
@@ -118,6 +125,7 @@ export interface GetAttackParams {
   riskScores?: RiskScore[]
   offset?: number
   limit?: number
+  status?: boolean
 }
 
 export type JSONValue =
@@ -143,6 +151,7 @@ export interface QueuedApiTrace {
   processedTraceData?: ProcessedTraceData
   redacted?: boolean
   originalHost?: string
+  encryption?: Encryption
 }
 
 export interface ApiTrace extends QueuedApiTrace {
@@ -393,6 +402,7 @@ export interface UpdateMetloConfigParams {
 export interface MetloConfigResp {
   uuid: string
   configString: string
+  encryptionPublicKey?: string
 }
 
 export interface WebhookRun {
