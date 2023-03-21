@@ -139,7 +139,7 @@ fn get_session_metadata(
     }
 }
 
-fn encode_body(
+fn encrypt_body(
     cipher: &AesGcm<Aes256, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>,
     body: &str,
     name: &str,
@@ -151,11 +151,11 @@ fn encode_body(
             generated_ivs.insert(name.to_owned(), nonce.to_vec());
             Ok(general_purpose::STANDARD.encode(t))
         }
-        Err(e) => Err(format!("Error encoding body: {:?}", e).into()),
+        Err(e) => Err(format!("Error encrypting body: {:?}", e).into()),
     }
 }
 
-fn encode_key_val(
+fn encrypt_key_val(
     cipher: &AesGcm<Aes256, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>,
     items: Vec<KeyVal>,
     name: String,
@@ -181,16 +181,16 @@ fn encode_key_val(
                     })
                 }
                 (Err(e_1), Err(e_2)) => {
-                    Err(format!("Error encoding KeyVal: {:?}, {:?}", e_1, e_2).into())
+                    Err(format!("Error encrypting KeyVal: {:?}, {:?}", e_1, e_2).into())
                 }
-                (Err(e), _) => Err(format!("Error encoding Key of KeyVal: {:?}", e).into()),
-                (_, Err(e)) => Err(format!("Error encoding Value of KeyVal: {:?}", e).into()),
+                (Err(e), _) => Err(format!("Error encrypting Key of KeyVal: {:?}", e).into()),
+                (_, Err(e)) => Err(format!("Error encrypting Value of KeyVal: {:?}", e).into()),
             }
         })
         .collect()
 }
 
-fn encoded_trace(
+fn encrypt_trace(
     trace: ApiTrace,
     processed_trace: ProcessTraceRes,
     trace_capture_enabled: bool,
@@ -211,20 +211,20 @@ fn encoded_trace(
                         url: ApiUrl {
                             host: trace.request.url.host,
                             path: trace.request.url.path,
-                            parameters: encode_key_val(
+                            parameters: encrypt_key_val(
                                 &cipher,
                                 trace.request.url.parameters,
                                 "reqQuery".to_owned(),
                                 &mut generated_ivs,
                             )?,
                         },
-                        headers: encode_key_val(
+                        headers: encrypt_key_val(
                             &cipher,
                             trace.request.headers,
                             "reqHeaders".to_owned(),
                             &mut generated_ivs,
                         )?,
-                        body: encode_body(
+                        body: encrypt_body(
                             &cipher,
                             &trace.request.body,
                             "reqBody",
@@ -234,13 +234,13 @@ fn encoded_trace(
                     response: match trace.response {
                         Some(r) => Some(ApiResponse {
                             status: r.status,
-                            headers: encode_key_val(
+                            headers: encrypt_key_val(
                                 &cipher,
                                 r.headers,
                                 "resHeaders".to_owned(),
                                 &mut generated_ivs,
                             )?,
-                            body: encode_body(&cipher, &r.body, "resBody", &mut generated_ivs)?,
+                            body: encrypt_body(&cipher, &r.body, "resBody", &mut generated_ivs)?,
                         }),
                         None => None,
                     },
@@ -284,7 +284,7 @@ async fn send_trace_inner(
     match url_res {
         Ok(url) => {
             let req_body: ProcessedApiTrace = match trace_capture_enabled {
-                true => encoded_trace(
+                true => encrypt_trace(
                     trace,
                     processed_trace,
                     trace_capture_enabled,
