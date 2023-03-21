@@ -39,7 +39,7 @@ export const getMetloConfigProcessed = async (
   const config: MetloConfig = await createQB(ctx)
     .from(MetloConfig, "config")
     .getRawOne()
-  if (!config) {
+  if (!config?.configString) {
     return {}
   }
   return jsyaml.load(config.configString) as MetloConfigType
