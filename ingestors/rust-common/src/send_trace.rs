@@ -164,16 +164,27 @@ fn encode_key_val(
     items
         .iter()
         .map(|e| {
-            let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
-            match cipher.encrypt(&nonce, e.value.as_bytes()) {
-                Ok(t) => {
-                    generated_ivs.insert(name.clone() + "." + &e.name, nonce.to_vec());
+            let nonce_key = Aes256Gcm::generate_nonce(&mut OsRng);
+            let nonce_val = Aes256Gcm::generate_nonce(&mut OsRng);
+            match (
+                cipher.encrypt(&nonce_key, e.name.as_bytes()),
+                cipher.encrypt(&nonce_val, e.value.as_bytes()),
+            ) {
+                (Ok(k), Ok(v)) => {
+                    let encrypted_key = general_purpose::STANDARD.encode(k);
+                    let encrypted_val = general_purpose::STANDARD.encode(v);
+                    generated_ivs.insert(name.clone() + "." + &encrypted_key, nonce_key.to_vec());
+                    generated_ivs.insert(name.clone() + "." + &encrypted_val, nonce_val.to_vec());
                     Ok(KeyVal {
-                        name: e.name.clone(),
-                        value: general_purpose::STANDARD.encode(t),
+                        name: encrypted_key,
+                        value: encrypted_val,
                     })
                 }
-                Err(e) => Err(format!("Error encoding KeyVal: {:?}", e).into()),
+                (Err(e_1), Err(e_2)) => {
+                    Err(format!("Error encoding KeyVal: {:?}, {:?}", e_1, e_2).into())
+                }
+                (Err(e), _) => Err(format!("Error encoding Key of KeyVal: {:?}", e).into()),
+                (_, Err(e)) => Err(format!("Error encoding Value of KeyVal: {:?}", e).into()),
             }
         })
         .collect()
