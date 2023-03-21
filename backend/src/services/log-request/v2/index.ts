@@ -93,6 +93,9 @@ export const logRequest = async (
       redacted,
     }
 
+    if (!traceParams?.sessionMeta) {
+      await AuthenticationConfigService.setSessionMetadata(ctx, apiTraceObj)
+    }
     await BlockFieldsService.redactBlockedFields(ctx, apiTraceObj)
 
     mlog.debug("Pushed trace to redis queue")
