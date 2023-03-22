@@ -10,6 +10,13 @@ import { DataClass } from "@common/types"
 export const isDevelopment = process.env.NODE_ENV === "development"
 export const runMigration = process.env.RUN_MIGRATION === "true"
 
+interface EndpointToken {
+  token_0: string
+  token_1: string
+  token_2: string
+  token_3: string
+}
+
 export const getExistingConstraint = (
   queryRunner: QueryRunner,
   constraintName: string,
@@ -74,6 +81,39 @@ export const getPathRegex = (path: string): string => {
     pathParameterRegex,
     String.raw`/[^/]+`,
   )}(/)*$`
+}
+
+export const getEndpointToken = (path: string): EndpointToken => {
+  const endpointToken: EndpointToken = {
+    token_0: null,
+    token_1: null,
+    token_2: null,
+    token_3: null,
+  }
+  if (!path) {
+    return endpointToken
+  }
+  const splitPath = path.split("/")
+  if (splitPath.length > 0 && splitPath[0] === "") {
+    splitPath.shift()
+  }
+  endpointToken.token_0 =
+    splitPath[0]?.startsWith("{") && splitPath[0]?.endsWith("}")
+      ? "{param}"
+      : splitPath[0] ?? null
+  endpointToken.token_1 =
+    splitPath[1]?.startsWith("{") && splitPath[1]?.endsWith("}")
+      ? "{param}"
+      : splitPath[1] ?? null
+  endpointToken.token_2 =
+    splitPath[2]?.startsWith("{") && splitPath[2]?.endsWith("}")
+      ? "{param}"
+      : splitPath[2] ?? null
+  endpointToken.token_3 =
+    splitPath[3]?.startsWith("{") && splitPath[3]?.endsWith("}")
+      ? "{param}"
+      : splitPath[3] ?? null
+  return endpointToken
 }
 
 export const getRiskScore = (
