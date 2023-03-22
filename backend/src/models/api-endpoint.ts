@@ -107,6 +107,18 @@ export class ApiEndpoint extends MetloBaseEntity {
   @Column({ type: "jsonb", nullable: false, default: {} })
   graphQlMetadata: Record<string, any>
 
+  @Column({ nullable: true })
+  token_0: string
+
+  @Column({ nullable: true })
+  token_1: string
+
+  @Column({ nullable: true })
+  token_2: string
+
+  @Column({ nullable: true })
+  token_3: string
+
   addNumberParams() {
     if (this.path) {
       const pathTokens = getPathTokens(this.path)

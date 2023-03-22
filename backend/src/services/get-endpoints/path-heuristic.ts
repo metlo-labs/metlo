@@ -13,7 +13,12 @@ import {
   insertValueBuilder,
 } from "services/database/utils"
 import { MetloContext } from "types"
-import { endpointAddNumberParams, getPathRegex, getValidPath } from "utils"
+import {
+  endpointAddNumberParams,
+  getEndpointToken,
+  getPathRegex,
+  getValidPath,
+} from "utils"
 import Error404NotFound from "errors/error-404-not-found"
 import { GetEndpointsService } from "."
 import { createNewEndpointAlert } from "services/alert/new-endpoint"
@@ -236,12 +241,17 @@ export const generateEndpointsMap = async (
 
   for (const path of [...set]) {
     const pathRegex = getPathRegex(path)
+    const endpointToken = getEndpointToken(path)
     const apiEndpoint = new ApiEndpoint()
     apiEndpoint.uuid = uuidv4()
     apiEndpoint.path = path
     apiEndpoint.pathRegex = pathRegex
     apiEndpoint.method = method
     apiEndpoint.host = host
+    apiEndpoint.token_0 = endpointToken.token_0
+    apiEndpoint.token_1 = endpointToken.token_1
+    apiEndpoint.token_2 = endpointToken.token_2
+    apiEndpoint.token_3 = endpointToken.token_3
     endpointAddNumberParams(apiEndpoint)
     endpointsMap[apiEndpoint.uuid] = {
       endpoint: apiEndpoint,
@@ -279,6 +289,8 @@ export const generateEndpointsMap = async (
             }
           }
         })
+      } else {
+        exists = true
       }
       if (!exists) {
         endpointsMap[apiEndpoint.uuid].similarEndpoints[item.uuid] = item
