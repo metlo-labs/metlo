@@ -61,9 +61,15 @@ export const logRequest = async (
     const host = traceParams?.request?.url?.host
     const requestParameters = traceParams?.request?.url?.parameters ?? []
     const requestHeaders = traceParams?.request?.headers ?? []
-    const requestBody = traceParams?.request?.body
+    let requestBody = traceParams?.request?.body
+    if (requestBody && typeof requestBody === "string") {
+      requestBody = requestBody.replace(/\u0000/g, "")
+    }
     const responseHeaders = traceParams?.response?.headers ?? []
-    const responseBody = traceParams?.response?.body
+    let responseBody = traceParams?.response?.body
+    if (responseBody && typeof responseBody === "string") {
+      responseBody = responseBody.replace(/\u0000/g, "")
+    }
     const responseStatus = traceParams?.response?.status
     const meta = traceParams?.meta ?? ({} as Meta)
     const processedTraceData =
