@@ -26,6 +26,7 @@ import {
 import Error400BadRequest from "errors/error-400-bad-request"
 import { populateEndpointPerms } from "services/testing-config/populate-endpoint-perms"
 import Error409Conflict from "errors/error-409-conflict"
+import Error404NotFound from "errors/error-404-not-found"
 
 export const updateDataFieldClasses = async (
   req: MetloRequest,
@@ -210,6 +211,9 @@ export const updateDataFieldPathHandler = async (
       DataField,
       { where: { uuid: dataFieldId } },
     )
+    if (!dataField) {
+      throw new Error404NotFound("Data field not found.")
+    }
     const existingDataPath = await getEntityManager(
       req.ctx,
       queryRunner,
