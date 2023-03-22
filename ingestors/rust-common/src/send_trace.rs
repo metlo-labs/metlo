@@ -378,7 +378,7 @@ pub async fn send_api_trace(trace: ApiTrace, processed_trace: (ProcessTraceRes, 
                         path,
                     )
                 } else {
-                    log::warn!("Failed to send trace: {}", msg.unwrap_or_default())
+                    log::debug!("Failed to send trace: {}", msg.unwrap_or_default())
                 }
             }
             Err(err) => log::warn!("{}", err.to_string()),
