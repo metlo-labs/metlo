@@ -76,3 +76,10 @@ export const UpdateDataFieldEntitySchema = z.object({
 export type UpdateDataFieldEntityParams = z.infer<
   typeof UpdateDataFieldEntitySchema
 >
+
+export const UpdateDataFieldPathSchema = z.object({
+  dataPath: z.string(),
+})
+export type UpdateDataFieldPathParams = z.infer<
+  typeof UpdateDataFieldPathSchema
+>

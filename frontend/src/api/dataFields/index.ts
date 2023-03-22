@@ -57,3 +57,16 @@ export const updateDataFieldEntity = async (
   )
   return resp.data
 }
+
+export const updateDataFieldPath = async (
+  dataFieldId: string,
+  dataPath: string,
+  headers?: AxiosRequestHeaders,
+): Promise<void> => {
+  const resp = await axios.put(
+    `${getAPIURL()}/data-field/${dataFieldId}/update-data-path`,
+    { dataPath },
+    { headers },
+  )
+  return resp.data
+}

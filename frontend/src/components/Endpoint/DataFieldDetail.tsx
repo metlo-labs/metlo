@@ -9,6 +9,9 @@ import {
   Badge,
   useToast,
   Button,
+  HStack,
+  IconButton,
+  Input,
 } from "@chakra-ui/react"
 import { Select } from "chakra-react-select"
 import { DataClass, DataField } from "@common/types"
@@ -23,11 +26,13 @@ import {
   deleteDataField,
   updateDataFieldClasses,
   updateDataFieldEntity,
+  updateDataFieldPath,
 } from "api/dataFields"
 import { RiskScore } from "@common/enums"
 import { DataFieldTagList } from "./DataFieldTags"
 import { statusCodeToColor } from "components/utils/StatusCode"
 import { formatMetloAPIErr, MetloAPIErr } from "api/utils"
+import { HiPencil } from "icons/hi/HiPencil"
 
 interface DataFieldDetailProps {
   dataField: DataField
@@ -50,6 +55,11 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
     const toast = useToast()
     const [currDataField, setCurrDataField] = useState<DataField>(dataField)
     const [updating, setUpdating] = useState<boolean>(false)
+    const [dataPathEditing, setDataPathEditing] = useState<boolean>(false)
+    const [updatedPath, setUpdatedPath] = useState<string>(
+      currDataField.dataPath,
+    )
+    const [updatingDataPath, setUpdatingDataPath] = useState<boolean>(false)
     const [riskScore, setRiskScore] = useState<RiskScore>()
 
     useEffect(() => {
@@ -63,6 +73,8 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
             getRiskScores(currDataField.dataClasses, dataClasses),
           ),
         )
+        setDataPathEditing(false)
+        setUpdatedPath(currDataField.dataPath)
       },
       [currDataField, dataClasses],
     )
@@ -94,6 +106,30 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
         )
       } finally {
         setUpdating(false)
+      }
+    }
+
+    const handleUpdateDataPath = async () => {
+      setUpdatingDataPath(true)
+      try {
+        await updateDataFieldPath(currDataField.uuid, updatedPath)
+        setCurrDataField(old => ({ ...old, dataPath: updatedPath }))
+        setdataFieldList(
+          dataFieldList.map(e =>
+            e.uuid === currDataField.uuid ? { ...e, dataPath: updatedPath } : e,
+          ),
+        )
+        setDataPathEditing(false)
+      } catch (err) {
+        toast(
+          makeToast({
+            title: "Data Path Update failed",
+            status: "error",
+            description: formatMetloAPIErr(err.response.data as MetloAPIErr),
+          }),
+        )
+      } finally {
+        setUpdatingDataPath(false)
       }
     }
 
@@ -151,9 +187,51 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
             <VStack alignItems="flex-start">
               <Text fontWeight="semibold">Field</Text>
               {currDataField.dataPath ? (
-                <Code p="1" wordBreak="break-all" rounded="md" fontSize="sm">
-                  {currDataField.dataPath}
-                </Code>
+                <HStack>
+                  {dataPathEditing ? (
+                    <Input
+                      rounded="md"
+                      spellCheck={false}
+                      defaultValue={currDataField.dataPath}
+                      size="sm"
+                      onChange={e => setUpdatedPath(e.target.value)}
+                    />
+                  ) : (
+                    <Code
+                      p="1"
+                      wordBreak="break-all"
+                      rounded="md"
+                      fontSize="sm"
+                    >
+                      {currDataField.dataPath}
+                    </Code>
+                  )}
+                  {dataPathEditing ? (
+                    <HStack>
+                      <Button
+                        size="sm"
+                        isLoading={updatingDataPath}
+                        variant="create"
+                        onClick={handleUpdateDataPath}
+                      >
+                        Save
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => setDataPathEditing(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </HStack>
+                  ) : (
+                    <IconButton
+                      variant="unstyled"
+                      aria-label="edit-data-path"
+                      icon={<HiPencil />}
+                      onClick={() => setDataPathEditing(true)}
+                    />
+                  )}
+                </HStack>
               ) : (
                 <Text>None</Text>
               )}

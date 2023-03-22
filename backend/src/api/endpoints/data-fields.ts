@@ -3,12 +3,18 @@ import { updateDataClasses, deleteDataField } from "services/data-field"
 import {
   UpdateDataFieldClassesParamsSchema,
   UpdateDataFieldEntitySchema,
+  UpdateDataFieldPathSchema,
 } from "@common/api/endpoint"
 import ApiResponseHandler from "api-response-handler"
 import { GetEndpointsService } from "services/get-endpoints"
 import { MetloRequest } from "types"
 import { AppDataSource } from "data-source"
-import { createQB, getEntityManager, getQB } from "services/database/utils"
+import {
+  createQB,
+  getEntityManager,
+  getQB,
+  getRepoQB,
+} from "services/database/utils"
 import { Alert, ApiEndpoint, DataField } from "models"
 import Error500InternalServer from "errors/error-500-internal-server"
 import { AlertType, RiskScore } from "@common/enums"
@@ -19,6 +25,7 @@ import {
 } from "services/testing-config"
 import Error400BadRequest from "errors/error-400-bad-request"
 import { populateEndpointPerms } from "services/testing-config/populate-endpoint-perms"
+import Error409Conflict from "errors/error-409-conflict"
 
 export const updateDataFieldClasses = async (
   req: MetloRequest,
@@ -183,5 +190,53 @@ export const updateDataFieldEntityHandler = async (
     if (!queryRunner.isReleased) {
       await queryRunner.release()
     }
+  }
+}
+
+export const updateDataFieldPathHandler = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
+  const { dataFieldId } = req.params
+  const parsedBody = UpdateDataFieldPathSchema.safeParse(req.body)
+  if (parsedBody.success === false) {
+    return await ApiResponseHandler.zerr(res, parsedBody.error)
+  }
+  const queryRunner = AppDataSource.createQueryRunner()
+  try {
+    const { dataPath } = parsedBody.data
+    await queryRunner.connect()
+    const dataField = await getEntityManager(req.ctx, queryRunner).findOne(
+      DataField,
+      { where: { uuid: dataFieldId } },
+    )
+    const existingDataPath = await getEntityManager(
+      req.ctx,
+      queryRunner,
+    ).findOne(DataField, {
+      select: {
+        uuid: true,
+      },
+      where: {
+        dataPath,
+        dataSection: dataField.dataSection,
+        apiEndpointUuid: dataField.apiEndpointUuid,
+        contentType: dataField.contentType,
+        statusCode: dataField.statusCode,
+      },
+    })
+    if (existingDataPath) {
+      throw new Error409Conflict(
+        "Data Field already exists with this data path.",
+      )
+    }
+    await getRepoQB(req.ctx, DataField)
+      .update()
+      .set({ dataPath })
+      .andWhere("uuid = :id", { id: dataField.uuid })
+      .execute()
+    await ApiResponseHandler.success(res)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
   }
 }
