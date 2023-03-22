@@ -716,13 +716,17 @@ const recurseCreateDataFields = (
     const key = `${statusCode}_${contentType}_${dataSection}${
       dataPath ? `.${dataPath}` : ""
     }`
+    const specDataType = getSpecDataType(schema.type)
+    if (!specDataType) {
+      return
+    }
     if (!dataFields[key]) {
       const dataField = new DataField()
       dataField.dataSection = dataSection
       dataField.dataPath = dataPath ?? ""
       dataField.statusCode = statusCode
       dataField.contentType = contentType
-      dataField.dataType = getSpecDataType(schema.type)
+      dataField.dataType = specDataType
       dataField.isNullable =
         schema["nullable"] ||
         (Array.isArray(schema.type)
@@ -732,7 +736,7 @@ const recurseCreateDataFields = (
       dataFields[key] = dataField
     } else {
       const existing = dataFields[key]
-      const dataType = getSpecDataType(schema.type)
+      const dataType = specDataType
       if (
         existing.dataType === DataType.UNKNOWN &&
         dataType !== DataType.UNKNOWN
