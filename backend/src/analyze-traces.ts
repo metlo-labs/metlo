@@ -310,7 +310,7 @@ const analyzeTraces = async (): Promise<void> => {
         let traces: QueuedApiTrace[] = [trace]
 
         const isGraphQl = isGraphQlEndpoint(trace.path)
-        if (isGraphQl) {
+        if (isGraphQl && version === 2) {
           const startCreateGraphQlTraces = performance.now()
           traces = createGraphQlTraces(trace)
           mlog.time(
