@@ -37,7 +37,7 @@ const ActorDefSchema = z.object({
 })
 
 const ContainsResourceFilterSchema = z.object({
-  path: z.string().optional(),
+  path: z.string(),
   type: z.string().optional(),
 })
 
