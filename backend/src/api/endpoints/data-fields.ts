@@ -238,5 +238,9 @@ export const updateDataFieldPathHandler = async (
     await ApiResponseHandler.success(res)
   } catch (err) {
     await ApiResponseHandler.error(res, err)
+  } finally {
+    if (!queryRunner.isReleased) {
+      await queryRunner.release()
+    }
   }
 }
