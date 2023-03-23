@@ -17,7 +17,6 @@ import {
   insertValuesBuilder,
 } from "services/database/utils"
 import { sendWebhookRequests } from "services/webhook"
-import { updateIPs } from "analyze/update-ips"
 import { findDataFieldsToSave } from "services/data-field/analyze"
 import { createDataFieldAlerts } from "services/alert/sensitive-data"
 import { createNewEndpointAlert } from "services/alert/new-endpoint"
