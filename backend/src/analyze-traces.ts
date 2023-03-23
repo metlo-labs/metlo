@@ -265,7 +265,6 @@ const analyzeTraces = async (): Promise<void> => {
         const start = performance.now()
         let endpointQb = getQB(ctx, queryRunner)
           .from(ApiEndpoint, "endpoint")
-          .andWhere(`:path ~ "pathRegex"`, { path: trace.path })
           .andWhere("method = :method", { method: trace.method })
           .andWhere("host = :host", { host: trace.host })
         endpointQb = pathTokens[0]
@@ -304,6 +303,11 @@ const analyzeTraces = async (): Promise<void> => {
               }),
             )
           : endpointQb.andWhere("token_3 IS NULL")
+        if (pathTokens.length > 4) {
+          endpointQb = endpointQb.andWhere(`:path ~ "pathRegex"`, {
+            path: trace.path,
+          })
+        }
         const apiEndpoint: ApiEndpoint = await endpointQb
           .addOrderBy(`"numberParams"`, "ASC")
           .getRawOne()

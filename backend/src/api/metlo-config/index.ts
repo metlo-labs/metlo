@@ -18,6 +18,7 @@ import Error422UnprocessableEntity from "errors/error-422-unprocessable-entity"
 import { AppDataSource } from "data-source"
 import { getEntityManager } from "services/database/utils"
 import { ApiEndpoint, OpenApiSpec } from "models"
+import { RedisClient } from "utils/redis"
 
 export const updateMetloConfigHandler = async (
   req: MetloRequest,
@@ -69,6 +70,11 @@ export const getAgentConfigHandler = async (
   req: MetloRequest,
   res: Response,
 ): Promise<void> => {
+  const cacheRes = await RedisClient.getFromRedis(req.ctx, "agentConfigCached")
+  if (cacheRes) {
+    await ApiResponseHandler.success(res, cacheRes)
+    return
+  }
   const queryRunner = AppDataSource.createQueryRunner()
   try {
     await queryRunner.connect()
@@ -101,14 +107,16 @@ export const getAgentConfigHandler = async (
       req.ctx,
     )
     const authenticationConfig = await getAuthenticationConfig(req.ctx)
-    await ApiResponseHandler.success(res, {
+    const data = {
       sensitiveDataList: dataClassInfo,
       endpoints: endpointInfo,
       specs: specInfo,
       globalFullTraceCapture,
       authenticationConfig,
       encryptionPublicKey: null,
-    })
+    }
+    await RedisClient.addToRedis(req.ctx, "agentConfigCached", data, 30)
+    await ApiResponseHandler.success(res, data)
   } catch (err) {
     await ApiResponseHandler.error(res, err)
   } finally {
