@@ -32,6 +32,11 @@ export const analyze = async (
   queryRunner: QueryRunner,
   newEndpoint?: boolean,
 ) => {
+  if (apiEndpoint.isGraphQl) {
+    const splitPath = trace.path.split("/")
+    const graphQlPath = splitPath.pop()
+    trace.path = `${splitPath.join("/")}/${graphQlPath.split(".")[0]}`
+  }
   const traceUUID = uuidv4()
   mlog.debug(`Analyzing Trace: ${traceUUID}`)
   const prevRiskScore = apiEndpoint.riskScore
