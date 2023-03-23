@@ -195,12 +195,15 @@ const generateEndpoint = async (
     newEndpoint?: boolean,
   ) => Promise<void>,
 ): Promise<void> => {
+  const startGenerateEndpoint = performance.now()
   await insertValueBuilder(ctx, queryRunner, Hosts, {
     host: trace.host,
     isPublic: false,
   })
     .orIgnore()
     .execute()
+  mlog.time("analyzer.insert_host", performance.now() - startGenerateEndpoint)
+
   let paramNum = 1
   let parameterizedPath = ""
   let pathRegex = String.raw``
@@ -260,6 +263,11 @@ const generateEndpoint = async (
         5,
       )
       await queryRunner.commitTransaction()
+      mlog.time(
+        "analyzer.insert_new_endpoint",
+        performance.now() - startGenerateEndpoint,
+      )
+
       await analyzeFunc(ctx, trace, apiEndpoint, queryRunner, true)
     } catch (err) {
       if (queryRunner.isTransactionActive) {

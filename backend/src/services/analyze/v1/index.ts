@@ -48,13 +48,17 @@ export const analyze = async (
     trace.responseBody = JSON.stringify(trace.responseBody)
   }
 
+  const startDataClasses = performance.now()
   const dataClasses = await getCombinedDataClassesCached(ctx)
+  mlog.time("analyzer.get_data_classes", performance.now() - startDataClasses)
+  mlog.debug(`Analyzing Trace - Got Data Classes: ${traceUUID}`)
 
   const start1 = performance.now()
   const dataFields = findDataFieldsToSave(ctx, trace, apiEndpoint, dataClasses)
   mlog.time("analyzer.find_data_fields", performance.now() - start1)
   mlog.debug(`Analyzing Trace - Found Datafields: ${traceUUID}`)
 
+  const startRedact = performance.now()
   const globalFullTraceCapture = await getGlobalFullTraceCaptureCached(ctx)
   let redact = !(globalFullTraceCapture || apiEndpoint.fullTraceCaptureEnabled)
 
@@ -69,6 +73,8 @@ export const analyze = async (
   ) {
     redact = true
   }
+  mlog.time("analyzer.find_should_redact", performance.now() - startRedact)
+  mlog.debug(`Analyzing Trace - Found should redact: ${traceUUID}`)
 
   const start2 = performance.now()
   let alerts = await SpecService.findOpenApiSpecDiff(
@@ -188,7 +194,11 @@ export const analyze = async (
   await updateIPs(ctx, trace, apiEndpoint, queryRunner)
   mlog.time("analyzer.update_ips", performance.now() - start9)
   mlog.debug(`Analyzing Trace - Updated IPs: ${traceUUID}`)
+
+  const startDbCommit = performance.now()
   await queryRunner.commitTransaction()
+  mlog.time("analyzer.commit_db_transaction", performance.now() - startDbCommit)
+  mlog.debug(`Analyzing Trace - Commited DB Transaction: ${traceUUID}`)
 
   const start10 = performance.now()
   await sendWebhookRequests(ctx, alerts, apiEndpoint)
