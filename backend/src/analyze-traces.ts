@@ -331,57 +331,69 @@ const analyzeTraces = async (): Promise<void> => {
           if (pathTokens.length > 0 && pathTokens[0] === "") {
             pathTokens.shift()
           }
-          
-        const start = performance.now()
-        let endpointQb = getQB(ctx, queryRunner)
-          .from(ApiEndpoint, "endpoint")
-          .andWhere("method = :method", { method: trace.method })
-          .andWhere("host = :host", { host: trace.host })
-        endpointQb = pathTokens[0]
-          ? endpointQb.andWhere(
-              new Brackets(qb => {
-                qb.where("token_0 = '{param}'").orWhere("token_0 = :token_0", {
-                  token_0: pathTokens[0],
-                })
-              }),
-            )
-          : endpointQb.andWhere("token_0 IS NULL")
-        endpointQb = pathTokens[1]
-          ? endpointQb.andWhere(
-              new Brackets(qb => {
-                qb.where("token_1 = '{param}'").orWhere("token_1 = :token_1", {
-                  token_1: pathTokens[1],
-                })
-              }),
-            )
-          : endpointQb.andWhere("token_1 IS NULL")
-        endpointQb = pathTokens[2]
-          ? endpointQb.andWhere(
-              new Brackets(qb => {
-                qb.where("token_2 = '{param}'").orWhere("token_2 = :token_2", {
-                  token_2: pathTokens[2],
-                })
-              }),
-            )
-          : endpointQb.andWhere("token_2 IS NULL")
-        endpointQb = pathTokens[3]
-          ? endpointQb.andWhere(
-              new Brackets(qb => {
-                qb.where("token_3 = '{param}'").orWhere("token_3 = :token_3", {
-                  token_3: pathTokens[3],
-                })
-              }),
-            )
-          : endpointQb.andWhere("token_3 IS NULL")
-        if (pathTokens.length > 4) {
-          endpointQb = endpointQb.andWhere(`:path ~ "pathRegex"`, {
-            path: trace.path,
-          })
-        }
-        const apiEndpoint: ApiEndpoint = await endpointQb
-          .addOrderBy(`"numberParams"`, "ASC")
-          .getRawOne()
-        mlog.time("analyzer.query_endpoint", performance.now() - start)
+
+          const start = performance.now()
+          let endpointQb = getQB(ctx, queryRunner)
+            .from(ApiEndpoint, "endpoint")
+            .andWhere("method = :method", { method: trace.method })
+            .andWhere("host = :host", { host: trace.host })
+          endpointQb = pathTokens[0]
+            ? endpointQb.andWhere(
+                new Brackets(qb => {
+                  qb.where("token_0 = '{param}'").orWhere(
+                    "token_0 = :token_0",
+                    {
+                      token_0: pathTokens[0],
+                    },
+                  )
+                }),
+              )
+            : endpointQb.andWhere("token_0 IS NULL")
+          endpointQb = pathTokens[1]
+            ? endpointQb.andWhere(
+                new Brackets(qb => {
+                  qb.where("token_1 = '{param}'").orWhere(
+                    "token_1 = :token_1",
+                    {
+                      token_1: pathTokens[1],
+                    },
+                  )
+                }),
+              )
+            : endpointQb.andWhere("token_1 IS NULL")
+          endpointQb = pathTokens[2]
+            ? endpointQb.andWhere(
+                new Brackets(qb => {
+                  qb.where("token_2 = '{param}'").orWhere(
+                    "token_2 = :token_2",
+                    {
+                      token_2: pathTokens[2],
+                    },
+                  )
+                }),
+              )
+            : endpointQb.andWhere("token_2 IS NULL")
+          endpointQb = pathTokens[3]
+            ? endpointQb.andWhere(
+                new Brackets(qb => {
+                  qb.where("token_3 = '{param}'").orWhere(
+                    "token_3 = :token_3",
+                    {
+                      token_3: pathTokens[3],
+                    },
+                  )
+                }),
+              )
+            : endpointQb.andWhere("token_3 IS NULL")
+          if (pathTokens.length > 4) {
+            endpointQb = endpointQb.andWhere(`:path ~ "pathRegex"`, {
+              path: trace.path,
+            })
+          }
+          const apiEndpoint: ApiEndpoint = await endpointQb
+            .addOrderBy(`"numberParams"`, "ASC")
+            .getRawOne()
+          mlog.time("analyzer.query_endpoint", performance.now() - start)
 
           if (
             apiEndpoint &&
