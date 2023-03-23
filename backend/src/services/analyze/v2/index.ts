@@ -51,7 +51,10 @@ export const analyze = async (
     trace.responseBody = JSON.stringify(trace.responseBody)
   }
 
+  const startDataClasses = performance.now()
   const dataClasses = await getCombinedDataClassesCached(ctx)
+  mlog.time("analyzer.get_data_classes", performance.now() - startDataClasses)
+  mlog.debug(`Analyzing Trace - Got Data Classes: ${traceUUID}`)
 
   const start1 = performance.now()
   const dataFields = findDataFieldsToSave(ctx, trace, apiEndpoint, dataClasses)
@@ -171,7 +174,11 @@ export const analyze = async (
   await updateIPs(ctx, trace, apiEndpoint, queryRunner)
   mlog.time("analyzer.update_ips", performance.now() - start9)
   mlog.debug(`Analyzing Trace - Updated IPs: ${traceUUID}`)
+
+  const startDbCommit = performance.now()
   await queryRunner.commitTransaction()
+  mlog.time("analyzer.commit_db_transaction", performance.now() - startDbCommit)
+  mlog.debug(`Analyzing Trace - Commited DB Transaction: ${traceUUID}`)
 
   const start10 = performance.now()
   await sendWebhookRequests(ctx, alerts, apiEndpoint)
