@@ -170,18 +170,13 @@ export const analyze = async (
   mlog.time("analyzer.update_api_endpoint_query", performance.now() - start8)
   mlog.debug(`Analyzing Trace - Updated API Endpoint: ${traceUUID}`)
 
-  const start9 = performance.now()
-  await updateIPs(ctx, trace, apiEndpoint, queryRunner)
-  mlog.time("analyzer.update_ips", performance.now() - start9)
-  mlog.debug(`Analyzing Trace - Updated IPs: ${traceUUID}`)
-
   const startDbCommit = performance.now()
   await queryRunner.commitTransaction()
   mlog.time("analyzer.commit_db_transaction", performance.now() - startDbCommit)
   mlog.debug(`Analyzing Trace - Commited DB Transaction: ${traceUUID}`)
 
-  const start10 = performance.now()
+  const start9 = performance.now()
   await sendWebhookRequests(ctx, alerts, apiEndpoint)
-  mlog.time("analyzer.sent_webhook_requests", performance.now() - start10)
+  mlog.time("analyzer.sent_webhook_requests", performance.now() - start9)
   mlog.debug(`Analyzing Trace - Sent Webhook Requests: ${traceUUID}`)
 }

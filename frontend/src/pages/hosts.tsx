@@ -1,7 +1,7 @@
 import { GetServerSideProps } from "next"
-import { useState, useRef, useEffect } from "react"
+import { useState, useEffect } from "react"
 import superjson from "superjson"
-import { Box, Badge, Heading, HStack, VStack, Stack } from "@chakra-ui/react"
+import { Box, Heading, VStack, Stack } from "@chakra-ui/react"
 import { getHostsGraph, getHostsList } from "api/endpoints"
 import { HostGraph, HostResponse } from "@common/types"
 import { GetHostParams } from "@common/api/endpoint"
@@ -77,6 +77,7 @@ const Hosts = ({ hosts, hostsGraph, totalCount, params }) => {
             <Heading fontWeight="semibold" size="lg">
               Hosts
             </Heading>
+            {/*
             <HStack spacing="0" w={{ base: "full", sm: "unset" }}>
               <Badge
                 as="button"
@@ -107,6 +108,7 @@ const Hosts = ({ hosts, hostsGraph, totalCount, params }) => {
                 Graph
               </Badge>
             </HStack>
+  */}
           </Stack>
           {isGraph ? (
             <Box flex="1" w="full">
