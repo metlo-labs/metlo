@@ -29,7 +29,7 @@ type Metlo struct {
 	conn         *grpc.ClientConn
 }
 
-const MetloDefaultRPS int = 20
+const MetloDefaultRPS int = 5
 const MaxConnectTries int = 10
 
 func ConnectLocalProcessAgent() (*grpc.ClientConn, error) {

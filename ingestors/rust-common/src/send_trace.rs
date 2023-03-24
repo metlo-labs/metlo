@@ -190,6 +190,61 @@ fn encrypt_key_val(
         .collect()
 }
 
+fn encrypt_xss(
+    cipher: &AesGcm<Aes256, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>,
+    xss_detected: Option<&HashMap<String, String>>,
+    generated_ivs: &mut HashMap<String, Vec<u8>>,
+) -> Result<Option<HashMap<String, String>>, Box<dyn std::error::Error>> {
+    let mut encrypted_xss: Option<HashMap<String, String>> = None;
+    if let Some(m) = xss_detected {
+        let mut encrypted_xss_inner: HashMap<String, String> = HashMap::new();
+        let res: Result<(), aes_gcm::Error> = m.iter().try_for_each(|e| {
+            let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
+            let encrypted = cipher.encrypt(&nonce, e.1.as_bytes())?;
+            generated_ivs.insert("xss.".to_owned() + e.0, nonce.to_vec());
+            encrypted_xss_inner.insert(e.0.clone(), general_purpose::STANDARD.encode(encrypted));
+            Ok(())
+        });
+        if res.is_err() {
+            return Err(
+                format!("Error encrypting XSS detections: {:?}", res.err().unwrap()).into(),
+            );
+        } else {
+            encrypted_xss = Some(encrypted_xss_inner);
+        }
+    }
+    Ok(encrypted_xss)
+}
+
+fn encrypt_sqli(
+    cipher: &AesGcm<Aes256, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>,
+    sqli_detected: Option<&HashMap<String, (String, String)>>,
+    generated_ivs: &mut HashMap<String, Vec<u8>>,
+) -> Result<Option<HashMap<String, (String, String)>>, Box<dyn std::error::Error>> {
+    let mut encrypted_sqli: Option<HashMap<String, (String, String)>> = None;
+    if let Some(m) = sqli_detected {
+        let mut encrypted_sqli_inner: HashMap<String, (String, String)> = HashMap::new();
+        let res: Result<(), aes_gcm::Error> = m.iter().try_for_each(|e| {
+            let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
+            let encrypted = cipher.encrypt(&nonce, e.1 .0.as_bytes())?;
+            generated_ivs.insert("sqli.".to_owned() + e.0, nonce.to_vec());
+            encrypted_sqli_inner.insert(
+                e.0.clone(),
+                (general_purpose::STANDARD.encode(encrypted), e.1 .1.clone()),
+            );
+            Ok(())
+        });
+        if res.is_err() {
+            return Err(
+                format!("Error encrypting SQLI detections: {:?}", res.err().unwrap()).into(),
+            );
+        } else {
+            encrypted_sqli = Some(encrypted_sqli_inner)
+        }
+    }
+    Ok(encrypted_sqli)
+}
+
 fn encrypt_trace(
     trace: ApiTrace,
     processed_trace: ProcessTraceRes,
@@ -246,7 +301,25 @@ fn encrypt_trace(
                     },
                     meta: trace.meta,
                     redacted: !trace_capture_enabled,
-                    processed_trace_data: processed_trace,
+                    processed_trace_data: ProcessTraceRes {
+                        block: processed_trace.block,
+                        xss_detected: encrypt_xss(
+                            &cipher,
+                            processed_trace.xss_detected.as_ref(),
+                            &mut generated_ivs,
+                        )?,
+                        sqli_detected: encrypt_sqli(
+                            &cipher,
+                            processed_trace.sqli_detected.as_ref(),
+                            &mut generated_ivs,
+                        )?,
+                        sensitive_data_detected: processed_trace.sensitive_data_detected,
+                        data_types: processed_trace.data_types,
+                        validation_errors: processed_trace.validation_errors,
+                        request_content_type: processed_trace.request_content_type,
+                        response_content_type: processed_trace.response_content_type,
+                        graph_ql_data: processed_trace.graph_ql_data,
+                    },
                     encryption: Some(Encryption {
                         key: general_purpose::STANDARD.encode(encrypted_key),
                         generated_ivs,
@@ -378,7 +451,7 @@ pub async fn send_api_trace(trace: ApiTrace, processed_trace: (ProcessTraceRes, 
                         path,
                     )
                 } else {
-                    log::warn!("Failed to send trace: {}", msg.unwrap_or_default())
+                    log::debug!("Failed to send trace: {}", msg.unwrap_or_default())
                 }
             }
             Err(err) => log::warn!("{}", err.to_string()),

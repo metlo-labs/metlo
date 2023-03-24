@@ -59,10 +59,18 @@ export const makeRequest = (
     .join("&")
   const currUrlCookies = ctx.cookies[host] || {}
   const headers: Record<string, string> = Object.fromEntries(
-    (req.headers || []).map(({ name, value }) => [
-      stringReplacement(name, ctx.envVars),
-      stringReplacement(value, ctx.envVars),
-    ]),
+    (req.headers || []).map(({ name, value }) => {
+      if (value.includes("COOKIE")) {
+        const replaced = stringReplacement(value, ctx.envVars)
+        const split = replaced.split(/=(.*)/s)
+        currUrlCookies[split[0]] = split[1]
+        return []
+      }
+      return [
+        stringReplacement(name, ctx.envVars),
+        stringReplacement(value, ctx.envVars),
+      ]
+    }),
   )
 
   let data: any = undefined

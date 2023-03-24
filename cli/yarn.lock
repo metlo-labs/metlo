@@ -854,10 +854,10 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@metlo/testing@^0.3.13":
-  version "0.3.13"
-  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.3.13.tgz#2f2bd3124233cfd093755714b8444fed24a5ef24"
-  integrity sha512-U1KKqhJFEJRygOfg5puTZtUVL20Q6ZCZSv6szPixcJleQsCB0S4H5i5QsxPXsk5DjTegkX3+BAYrGfQ5WJOVYA==
+"@metlo/testing@^0.3.14":
+  version "0.3.14"
+  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.3.14.tgz#a29a4e781e3f09591cd4d90e64b066535e371d99"
+  integrity sha512-ElQihM727cIQzvIEli1mXyq8A4jPWNf1xKUjEgum7pJ+PNI41A4nwswib7fP4PH0fTgI4edThWMmJiNQwul6Ag==
   dependencies:
     axios "^1.2.1"
     chalk "^4.1.2"
@@ -866,6 +866,7 @@
     handlebars "^4.7.7"
     js-yaml "^4.1.0"
     jsdom "^20.0.3"
+    json-to-graphql-query "^2.2.5"
     lodash.clonedeep "^4.5.0"
     lodash.get "^4.4.2"
     peggy "^2.0.1"
@@ -2048,6 +2049,11 @@ json-bigint@^1.0.0:
   integrity sha512-SiPv/8VpZuWbvLSMtTDU8hEfrZWg/mH/nV/b4o0CYbSxu1UIQPLdwKOCIyLQX+VIPO5vrLX3i8qtqFyhdPSUSQ==
   dependencies:
     bignumber.js "^9.0.0"
+
+json-to-graphql-query@^2.2.5:
+  version "2.2.5"
+  resolved "https://registry.yarnpkg.com/json-to-graphql-query/-/json-to-graphql-query-2.2.5.tgz#56b072a693b50fd4dc981367b60d52e3dc78f426"
+  integrity sha512-5Nom9inkIMrtY992LMBBG1Zaekrc10JaRhyZgprwHBVMDtRgllTvzl0oBbg13wJsVZoSoFNNMaeIVQs0P04vsA==
 
 json5@^2.2.1:
   version "2.2.2"

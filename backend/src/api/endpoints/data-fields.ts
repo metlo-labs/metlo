@@ -155,13 +155,13 @@ export const updateDataFieldEntityHandler = async (
   if (parsedBody.success === false) {
     return await ApiResponseHandler.zerr(res, parsedBody.error)
   }
+  const queryRunner = AppDataSource.createQueryRunner()
   try {
     const { entity } = parsedBody.data
     const entityTags = await getEntityTagsCached(req.ctx)
     if (entity && !entityTags.includes(entity)) {
       throw new Error400BadRequest(`${entity} is not a valid entity.`)
     }
-    const queryRunner = AppDataSource.createQueryRunner()
     await queryRunner.connect()
     await getQB(req.ctx, queryRunner)
       .update(DataField)
@@ -179,5 +179,9 @@ export const updateDataFieldEntityHandler = async (
     await ApiResponseHandler.success(res, updatedDataField)
   } catch (err) {
     await ApiResponseHandler.error(res, err)
+  } finally {
+    if (!queryRunner.isReleased) {
+      await queryRunner.release()
+    }
   }
 }

@@ -72,6 +72,10 @@ export const getHostGraphInner = async (
 }
 
 export const getHostGraph = async (ctx: MetloContext) => {
+  return {
+    hosts: {},
+    edges: [],
+  }
   const cacheRes = await RedisClient.getFromRedis(ctx, "endpointHostGraph")
   if (cacheRes) {
     return cacheRes

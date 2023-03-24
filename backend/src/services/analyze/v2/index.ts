@@ -16,7 +16,6 @@ import {
   insertValuesBuilder,
 } from "services/database/utils"
 import { sendWebhookRequests } from "services/webhook"
-import { updateIPs } from "analyze/update-ips"
 import { findDataFieldsToSave } from "services/data-field/v2/analyze"
 import { createDataFieldAlerts } from "services/alert/sensitive-data"
 import { createNewEndpointAlert } from "services/alert/new-endpoint"
@@ -32,6 +31,11 @@ export const analyze = async (
   queryRunner: QueryRunner,
   newEndpoint?: boolean,
 ) => {
+  if (apiEndpoint.isGraphQl) {
+    const splitPath = trace.path.split("/")
+    const graphQlPath = splitPath.pop()
+    trace.path = `${splitPath.join("/")}/${graphQlPath.split(".")[0]}`
+  }
   const traceUUID = uuidv4()
   mlog.debug(`Analyzing Trace: ${traceUUID}`)
   const prevRiskScore = apiEndpoint.riskScore
@@ -46,7 +50,10 @@ export const analyze = async (
     trace.responseBody = JSON.stringify(trace.responseBody)
   }
 
+  const startDataClasses = performance.now()
   const dataClasses = await getCombinedDataClassesCached(ctx)
+  mlog.time("analyzer.get_data_classes", performance.now() - startDataClasses)
+  mlog.debug(`Analyzing Trace - Got Data Classes: ${traceUUID}`)
 
   const start1 = performance.now()
   const dataFields = findDataFieldsToSave(ctx, trace, apiEndpoint, dataClasses)
@@ -162,14 +169,13 @@ export const analyze = async (
   mlog.time("analyzer.update_api_endpoint_query", performance.now() - start8)
   mlog.debug(`Analyzing Trace - Updated API Endpoint: ${traceUUID}`)
 
-  const start9 = performance.now()
-  await updateIPs(ctx, trace, apiEndpoint, queryRunner)
-  mlog.time("analyzer.update_ips", performance.now() - start9)
-  mlog.debug(`Analyzing Trace - Updated IPs: ${traceUUID}`)
+  const startDbCommit = performance.now()
   await queryRunner.commitTransaction()
+  mlog.time("analyzer.commit_db_transaction", performance.now() - startDbCommit)
+  mlog.debug(`Analyzing Trace - Commited DB Transaction: ${traceUUID}`)
 
-  const start10 = performance.now()
+  const start9 = performance.now()
   await sendWebhookRequests(ctx, alerts, apiEndpoint)
-  mlog.time("analyzer.sent_webhook_requests", performance.now() - start10)
+  mlog.time("analyzer.sent_webhook_requests", performance.now() - start9)
   mlog.debug(`Analyzing Trace - Sent Webhook Requests: ${traceUUID}`)
 }

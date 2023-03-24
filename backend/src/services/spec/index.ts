@@ -26,7 +26,12 @@ import {
   QueuedApiTrace,
 } from "@common/types"
 import { AppDataSource } from "data-source"
-import { getPathRegex, getValidPath, parsedJsonNonNull } from "utils"
+import {
+  getEndpointToken,
+  getPathRegex,
+  getValidPath,
+  parsedJsonNonNull,
+} from "utils"
 import Error409Conflict from "errors/error-409-conflict"
 import Error422UnprocessableEntity from "errors/error-422-unprocessable-entity"
 import {
@@ -330,12 +335,17 @@ export class SpecService {
               relations: { openapiSpec: true },
             })
             if (!apiEndpoint) {
+              const endpointToken = getEndpointToken(validPathString)
               apiEndpoint = new ApiEndpoint()
               apiEndpoint.uuid = uuidv4()
               apiEndpoint.path = validPathString
               apiEndpoint.pathRegex = pathRegex
               apiEndpoint.method = methodEnum
               apiEndpoint.host = host
+              apiEndpoint.token_0 = endpointToken.token_0
+              apiEndpoint.token_1 = endpointToken.token_1
+              apiEndpoint.token_2 = endpointToken.token_2
+              apiEndpoint.token_3 = endpointToken.token_3
               apiEndpoint.openapiSpec = existingSpec
               apiEndpoint.addNumberParams()
               apiEndpoint.riskScore = RiskScore.NONE
@@ -365,6 +375,7 @@ export class SpecService {
                 path: Raw(alias => `${alias} ~ :pathRegex`, { pathRegex }),
                 method: methodEnum,
                 host,
+                isGraphQl: false,
               },
             })
             similarEndpoints.forEach(item => {
