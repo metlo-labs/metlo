@@ -15,7 +15,19 @@ export const DATA_SECTION_TO_LABEL_MAP: Record<DataSection, string> = {
   [DataSection.RESPONSE_BODY]: "Response Body",
 }
 
-export const __DATA_CLASS_TO_RISK_SCORE_INTERNAL__: Record<__DataClass_INTERNAL__ | "", RiskScore> = {
+export const PATH_TO_DATA_SECTION: Record<string, DataSection> = {
+  "req.path": DataSection.REQUEST_PATH,
+  "req.query": DataSection.REQUEST_QUERY,
+  "req.header": DataSection.REQUEST_HEADER,
+  "req.body": DataSection.REQUEST_BODY,
+  "res.header": DataSection.RESPONSE_HEADER,
+  "res.body": DataSection.RESPONSE_BODY,
+}
+
+export const __DATA_CLASS_TO_RISK_SCORE_INTERNAL__: Record<
+  __DataClass_INTERNAL__ | "",
+  RiskScore
+> = {
   [__DataClass_INTERNAL__.ADDRESS]: RiskScore.MEDIUM,
   [__DataClass_INTERNAL__.EMAIL]: RiskScore.MEDIUM,
   [__DataClass_INTERNAL__.CREDIT_CARD]: RiskScore.HIGH,
