@@ -43,6 +43,7 @@ export const processResourceConfig = (
         headerKey: item.members.headerKey,
         jwtUserPath: item.members.jwtUserPath,
         cookieName: item.members.cookieName,
+        responseAssertions: item.members.responseAssertions,
       }
     } else if (item.type == "actor") {
       out.actors[item.name] = {

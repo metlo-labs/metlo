@@ -171,12 +171,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let mut interval = time::interval(Duration::from_secs(60));
         loop {
             interval.tick().await;
-            log::info!("Pulling Metlo Config");
+            log::trace!("Pulling Metlo Config");
             let res = refresh_config().await;
             if let Err(e) = res {
                 log::warn!("Error pulling metlo config: \n{}", e.to_string());
             }
-            log::info!("Done Pulling Metlo Config");
+            log::trace!("Done Pulling Metlo Config");
         }
     });
 

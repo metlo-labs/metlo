@@ -19,6 +19,7 @@ export const getGenTestEndpoint = async (
       relations: { dataFields: true },
       order: {
         dataFields: {
+          dataSection: "ASC",
           updatedAt: "ASC",
         },
       },
@@ -29,6 +30,7 @@ export const getGenTestEndpoint = async (
       relations: { dataFields: true },
       order: {
         dataFields: {
+          dataSection: "ASC",
           updatedAt: "ASC",
         },
       },

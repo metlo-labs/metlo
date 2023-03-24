@@ -171,6 +171,18 @@ export const addAuthToRequest = (
       name: `${pre}JWT`,
       value: authVal,
     })
+  } else if (
+    authConfig.authType == AuthType.SESSION_COOKIE &&
+    authConfig.cookieName
+  ) {
+    headers = headers.concat({
+      name: authConfig.cookieName,
+      value: `{{${pre}COOKIE}}`,
+    })
+    env.push({
+      name: `${pre}COOKIE`,
+      value: authVal,
+    })
   }
   return {
     ...gen,
@@ -180,6 +192,19 @@ export const addAuthToRequest = (
     },
     env: gen.env.concat(env),
   }
+}
+
+const getResponseAssertion = (hostInfo: Host, endpoint: GenTestEndpoint) => {
+  if (!hostInfo.responseAssertions) {
+    return null
+  }
+  for (const assertion of hostInfo.responseAssertions) {
+    if (assertion.path && !endpoint.path.match(new RegExp(assertion.path))) {
+      continue
+    }
+    return assertion
+  }
+  return null
 }
 
 export const authTestStepPayloadToBuilder = (
@@ -210,19 +235,28 @@ export const authTestStepPayloadToBuilder = (
     payload.reason || description
       ? { description: payload.reason || description }
       : {}
+  const responseAssertion = getResponseAssertion(hostInfo, endpoint)
   if (payload.authorized) {
     builder = builder.assert({
       ...assertion,
       type: AssertionType.enum.JS,
-      value: "resp.status < 300",
+      value: responseAssertion?.success || "resp.status < 300",
     })
   } else {
-    builder = builder.assert({
-      ...assertion,
-      type: AssertionType.enum.EQ,
-      key: "resp.status",
-      value: [401, 403],
-    })
+    if (responseAssertion?.unauthenticated) {
+      builder = builder.assert({
+        ...assertion,
+        type: AssertionType.enum.JS,
+        value: responseAssertion.unauthenticated,
+      })
+    } else {
+      builder = builder.assert({
+        ...assertion,
+        type: AssertionType.enum.EQ,
+        key: "resp.status",
+        value: [401, 403, 404],
+      })
+    }
   }
 
   return builder

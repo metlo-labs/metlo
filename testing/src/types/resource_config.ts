@@ -13,6 +13,17 @@ const HostDefSchema = z.object({
       headerKey: z.string().optional(),
       jwtUserPath: z.string().optional(),
       cookieName: z.string().optional(),
+      responseAssertions: z
+        .array(
+          z
+            .object({
+              path: z.string().optional(),
+              success: z.string().optional(),
+              unauthenticated: z.string().optional(),
+            })
+            .strict(),
+        )
+        .optional(),
     })
     .strict(),
 })
@@ -128,6 +139,12 @@ export interface Permission {
   resource: PermissionResource
 }
 
+export interface ResponseAssertion {
+  path?: string
+  success?: string
+  unauthenticated?: string
+}
+
 export interface Host {
   name: string
   testingHost?: string
@@ -135,6 +152,7 @@ export interface Host {
   headerKey?: string
   jwtUserPath?: string
   cookieName?: string
+  responseAssertions?: ResponseAssertion[]
 }
 
 export interface Resource {

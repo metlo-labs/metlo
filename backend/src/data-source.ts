@@ -50,6 +50,7 @@ import { endpointGraphqlColumns1677479141637 } from "migrations/1677479141637-en
 import { dropArrayFields1677803493465 } from "migrations/1677803493465-drop-array-fields"
 import { removeTraceHash1678477672617 } from "migrations/1678477672617-remove-trace-hash"
 import { addResourcePermsEndpoint1679174209000 } from "migrations/1679174209000-add-resource-perms-endpoint"
+import { apiEndpointTokenColumns1679515538397 } from "migrations/1679515538397-api-endpoint-token-columns"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -105,6 +106,7 @@ export const AppDataSource: DataSource = new DataSource({
     dropArrayFields1677803493465,
     removeTraceHash1678477672617,
     addResourcePermsEndpoint1679174209000,
+    apiEndpointTokenColumns1679515538397,
   ],
   migrationsRun: runMigration,
   logging: false,

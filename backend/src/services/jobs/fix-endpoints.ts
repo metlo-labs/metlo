@@ -128,6 +128,8 @@ const fixEndpoints = async (ctx: MetloContext): Promise<boolean> => {
     const endpoints: ApiEndpoint[] = await getQB(ctx, queryRunner)
       .select(["uuid", "path", `"userSet"`])
       .from(ApiEndpoint, "endpoint")
+      .andWhere(`"userSet" = False`)
+      .andWhere(`"isGraphQl" = False`)
       .getRawMany()
     for (const endpoint of endpoints) {
       if (!endpoint.userSet) {
