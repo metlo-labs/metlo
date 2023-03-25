@@ -1,5 +1,5 @@
 import { Response } from "express"
-import { Not, Raw } from "typeorm"
+import { Not, QueryRunner, Raw } from "typeorm"
 import { updateDataClasses, deleteDataField } from "services/data-field"
 import {
   UpdateDataFieldClassesParamsSchema,
@@ -8,7 +8,7 @@ import {
 } from "@common/api/endpoint"
 import ApiResponseHandler from "api-response-handler"
 import { GetEndpointsService } from "services/get-endpoints"
-import { MetloRequest } from "types"
+import { MetloContext, MetloRequest } from "types"
 import { AppDataSource } from "data-source"
 import {
   createQB,
@@ -195,6 +195,112 @@ export const updateDataFieldEntityHandler = async (
   }
 }
 
+const updateRequestPathDataPath = async (
+  ctx: MetloContext,
+  dataField: DataField,
+  newDataPath: string,
+  queryRunner: QueryRunner,
+) => {
+  const apiEndpoint = await getEntityManager(ctx, queryRunner).findOne(
+    ApiEndpoint,
+    {
+      select: {
+        uuid: true,
+        path: true,
+      },
+      where: {
+        uuid: dataField.apiEndpointUuid,
+      },
+    },
+  )
+  await queryRunner.startTransaction()
+  await getRepoQB(ctx, DataField)
+    .update()
+    .set({ dataPath: newDataPath })
+    .andWhere("uuid = :id", { id: dataField.uuid })
+    .execute()
+  const newPath = apiEndpoint.path.replace(
+    `{${dataField.dataPath}}`,
+    `{${newDataPath}}`,
+  )
+  await getRepoQB(ctx, ApiEndpoint)
+    .update()
+    .set({ path: newPath })
+    .andWhere("uuid = :id", { id: apiEndpoint.uuid })
+    .execute()
+  await queryRunner.commitTransaction()
+}
+
+const getUpdatedDataPaths = async (
+  ctx: MetloContext,
+  dataField: DataField,
+  newDataPath: string,
+  queryRunner: QueryRunner,
+) => {
+  const splitPath = newDataPath.split(".")
+  const updatedIndexes = []
+  let isStringPath = false
+  const regexSplitPath = splitPath.map((e, idx) => {
+    if (e === "[string]") {
+      updatedIndexes.push(idx)
+      isStringPath = true
+      return String.raw`[^\.]+`
+    } else if (isStringPath) {
+      return String.raw`[^\.]+`
+    } else {
+      return e
+    }
+  })
+  const pathRegex = regexSplitPath.join(String.raw`\.`)
+  const matchingDataFields = await getEntityManager(ctx, queryRunner).find(
+    DataField,
+    {
+      select: {
+        uuid: true,
+        dataPath: true,
+      },
+      where: {
+        dataPath: Raw(alias => `${alias} ~ :path`, { path: pathRegex }),
+        dataSection: dataField.dataSection,
+        apiEndpointUuid: dataField.apiEndpointUuid,
+        contentType: dataField.contentType,
+        statusCode: dataField.statusCode,
+        uuid: Not(dataField.uuid),
+      },
+    },
+  )
+
+  const resp: {
+    deleted: string[]
+    updated: Record<string, any>
+    updateDataFields: DataField[]
+  } = {
+    updated: { [dataField.uuid]: { ...dataField, dataPath: newDataPath } },
+    deleted: [],
+    updateDataFields: [],
+  }
+
+  for (const e of matchingDataFields) {
+    const split = e.dataPath.split(".")
+    if (split.length !== splitPath.length) {
+      continue
+    }
+    if (updatedIndexes.length > 0) {
+      for (const idx of updatedIndexes) {
+        split[idx] = "[string]"
+      }
+      e.dataPath = split.join(".")
+    }
+    if (e.dataPath === newDataPath) {
+      resp.deleted.push(e.uuid)
+    } else {
+      resp.updateDataFields.push(e)
+      resp.updated[e.uuid] = e
+    }
+  }
+  return resp
+}
+
 export const updateDataFieldPathHandler = async (
   req: MetloRequest,
   res: Response,
@@ -237,99 +343,18 @@ export const updateDataFieldPathHandler = async (
     }
 
     if (dataField.dataSection === DataSection.REQUEST_PATH) {
-      const apiEndpoint = await getEntityManager(req.ctx, queryRunner).findOne(
-        ApiEndpoint,
-        {
-          select: {
-            uuid: true,
-            path: true,
-          },
-          where: {
-            uuid: dataField.apiEndpointUuid,
-          },
-        },
-      )
-      await queryRunner.startTransaction()
-      await getRepoQB(req.ctx, DataField)
-        .update()
-        .set({ dataPath })
-        .andWhere("uuid = :id", { id: dataField.uuid })
-        .execute()
-      const newPath = apiEndpoint.path.replace(
-        `{${dataField.dataPath}}`,
-        `{${dataPath}}`,
-      )
-      await getRepoQB(req.ctx, ApiEndpoint)
-        .update()
-        .set({ path: newPath })
-        .andWhere("uuid = :id", { id: apiEndpoint.uuid })
-        .execute()
-      await queryRunner.commitTransaction()
+      await updateRequestPathDataPath(req.ctx, dataField, dataPath, queryRunner)
       return await ApiResponseHandler.success(res, {
         updated: { [dataField.uuid]: { ...dataField, dataPath } },
       })
     }
 
-    const splitPath = dataPath.split(".")
-    const updatedIndexes = []
-    let isStringPath = false
-    const regexSplitPath = splitPath.map((e, idx) => {
-      if (e === "[string]") {
-        updatedIndexes.push(idx)
-        isStringPath = true
-        return String.raw`[^\.]+`
-      } else if (isStringPath) {
-        return String.raw`[^\.]+`
-      } else {
-        return e
-      }
-    })
-    const pathRegex = regexSplitPath.join(String.raw`\.`)
-    const matchingDataFields = await getEntityManager(
+    const resp = await getUpdatedDataPaths(
       req.ctx,
+      dataField,
+      dataPath,
       queryRunner,
-    ).find(DataField, {
-      select: {
-        uuid: true,
-        dataPath: true,
-      },
-      where: {
-        dataPath: Raw(alias => `${alias} ~ :path`, { path: pathRegex }),
-        dataSection: dataField.dataSection,
-        apiEndpointUuid: dataField.apiEndpointUuid,
-        contentType: dataField.contentType,
-        statusCode: dataField.statusCode,
-        uuid: Not(dataField.uuid),
-      },
-    })
-
-    const resp: {
-      deleted: string[]
-      updated: Record<string, any>
-    } = {
-      updated: { [dataField.uuid]: { ...dataField, dataPath } },
-      deleted: [],
-    }
-
-    const updateDataFields = []
-    for (const e of matchingDataFields) {
-      const split = e.dataPath.split(".")
-      if (split.length !== splitPath.length) {
-        continue
-      }
-      if (updatedIndexes.length > 0) {
-        for (const idx of updatedIndexes) {
-          split[idx] = "[string]"
-        }
-        e.dataPath = split.join(".")
-      }
-      if (e.dataPath === dataPath) {
-        resp.deleted.push(e.uuid)
-      } else {
-        updateDataFields.push(e)
-        resp.updated[e.uuid] = e
-      }
-    }
+    )
 
     await queryRunner.startTransaction()
     await getQB(req.ctx, queryRunner)
@@ -337,7 +362,7 @@ export const updateDataFieldPathHandler = async (
       .from(DataField)
       .andWhereInIds(resp.deleted)
       .execute()
-    await getEntityManager(req.ctx, queryRunner).saveList(updateDataFields)
+    await getEntityManager(req.ctx, queryRunner).saveList(resp.updateDataFields)
     await getRepoQB(req.ctx, DataField)
       .update()
       .set({ dataPath })
