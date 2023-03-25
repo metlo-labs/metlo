@@ -11,8 +11,11 @@ import { createQB, getQB, insertValueBuilder } from "services/database/utils"
 import jsyaml from "js-yaml"
 import { decrypt, encrypt, generate_iv } from "utils/encryption"
 import { HostMappingCompiled, MetloConfigType } from "./types"
-import { validateMetloConfig } from "./validate"
-import { populateAuthentication, populateBlockFields } from "./populate-tables"
+import {
+  validateMetloConfig,
+  validateAuthentication,
+  validateBlockFields,
+} from "./validate"
 
 export const getMetloConfig = async (
   ctx: MetloContext,
@@ -105,6 +108,24 @@ export const updateMetloConfig = async (
   await populateMetloConfig(ctx, updateMetloConfigParams.configString)
 }
 
+export const getAuthenticationConfigForHost = async (
+  ctx: MetloContext,
+  host: string,
+): Promise<AuthenticationConfig | null> => {
+  const authenticationConfig = await getAuthenticationConfig(ctx)
+  const hostMap = await getHostMapCached(ctx)
+  let currHost = host
+  for (const e of hostMap) {
+    const match = host.match(e.pattern)
+    if (match && match[0].length === host.length) {
+      currHost = e.host
+      break
+    }
+  }
+  const authConfig = authenticationConfig.find(e => e.host === currHost)
+  return authConfig ?? null
+}
+
 const populateEnvironment = (metloConfig: object) => {
   const parsedConfigString = metloConfig
   if ("globalTestEnv" in parsedConfigString) {
@@ -140,8 +161,8 @@ export const populateMetloConfig = async (
     await queryRunner.connect()
     const metloConfig = validateMetloConfig(configString)
     await queryRunner.startTransaction()
-    await populateAuthentication(ctx, metloConfig, queryRunner)
-    await populateBlockFields(ctx, metloConfig, queryRunner)
+    await validateAuthentication(ctx, metloConfig)
+    await validateBlockFields(ctx, metloConfig)
     const metloConfigEntry = await getQB(ctx, queryRunner)
       .select(["uuid"])
       .from(MetloConfig, "config")

@@ -1,3 +1,4 @@
+import { DisableRestMethod } from "@common/enums"
 import { AuthenticationConfig } from "@common/types"
 
 export interface HostMapping {
@@ -10,10 +11,20 @@ export interface HostMappingCompiled {
   pattern: RegExp
 }
 
+export interface DisablePaths {
+  disable_paths: string[]
+}
+
+export type BlockFieldConfig = Record<
+  string,
+  DisablePaths | Record<DisableRestMethod, DisablePaths>
+>
+
 export interface MetloConfigType {
   globalFullTraceCapture?: boolean
   minAnalyzeTraces?: number
   hostMap?: HostMapping[]
   authentication?: AuthenticationConfig[]
   customWords?: string[]
+  blockFields?: Record<string, BlockFieldConfig>
 }

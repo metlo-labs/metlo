@@ -10,9 +10,7 @@ import {
   Connections,
   ApiEndpointTest,
   ApiKey,
-  BlockFields,
   InstanceSettings,
-  AuthenticationConfig,
   AggregateTraceDataHourly,
   Attack,
   Webhook,
@@ -51,6 +49,7 @@ import { dropArrayFields1677803493465 } from "migrations/1677803493465-drop-arra
 import { removeTraceHash1678477672617 } from "migrations/1678477672617-remove-trace-hash"
 import { addResourcePermsEndpoint1679174209000 } from "migrations/1679174209000-add-resource-perms-endpoint"
 import { apiEndpointTokenColumns1679515538397 } from "migrations/1679515538397-api-endpoint-token-columns"
+import { dropBlockFieldAuthenticationTables1679774815747 } from "migrations/1679774815747-drop-block-field-authentication-tables"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -65,9 +64,7 @@ export const AppDataSource: DataSource = new DataSource({
     Connections,
     ApiEndpointTest,
     ApiKey,
-    BlockFields,
     InstanceSettings,
-    AuthenticationConfig,
     AggregateTraceDataHourly,
     Attack,
     MetloConfig,
@@ -107,6 +104,7 @@ export const AppDataSource: DataSource = new DataSource({
     removeTraceHash1678477672617,
     addResourcePermsEndpoint1679174209000,
     apiEndpointTokenColumns1679515538397,
+    dropBlockFieldAuthenticationTables1679774815747,
   ],
   migrationsRun: runMigration,
   logging: false,
