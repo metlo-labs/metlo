@@ -112,12 +112,25 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
     const handleUpdateDataPath = async () => {
       setUpdatingDataPath(true)
       try {
-        await updateDataFieldPath(currDataField.uuid, updatedPath)
-        setCurrDataField(old => ({ ...old, dataPath: updatedPath }))
-        setdataFieldList(
-          dataFieldList.map(e =>
-            e.uuid === currDataField.uuid ? { ...e, dataPath: updatedPath } : e,
-          ),
+        const resp = await updateDataFieldPath(currDataField.uuid, updatedPath)
+        if (resp) {
+          setCurrDataField(old => ({ ...old, dataPath: updatedPath }))
+          setdataFieldList(
+            (resp.deleted.length > 0
+              ? dataFieldList.filter(e => !resp.deleted.includes(e.uuid))
+              : dataFieldList
+            ).map(e =>
+              resp.updated?.[e.uuid]
+                ? { ...e, dataPath: resp.updated[e.uuid].dataPath }
+                : e,
+            ),
+          )
+        }
+        toast(
+          makeToast({
+            title: "Updated Data Paths",
+            status: "success",
+          }),
         )
         setDataPathEditing(false)
       } catch (err) {

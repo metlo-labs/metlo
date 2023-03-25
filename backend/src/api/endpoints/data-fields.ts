@@ -1,4 +1,5 @@
 import { Response } from "express"
+import { Not, Raw } from "typeorm"
 import { updateDataClasses, deleteDataField } from "services/data-field"
 import {
   UpdateDataFieldClassesParamsSchema,
@@ -234,13 +235,87 @@ export const updateDataFieldPathHandler = async (
         "Data Field already exists with this data path.",
       )
     }
+
+    const splitPath = dataPath.split(".")
+    const updatedIndexes = []
+    let isStringPath = false
+    const regexSplitPath = splitPath.map((e, idx) => {
+      if (e === "[string]") {
+        updatedIndexes.push(idx)
+        isStringPath = true
+        return String.raw`[^\.]+`
+      } else if (isStringPath) {
+        return String.raw`[^\.]+`
+      } else {
+        return e
+      }
+    })
+    const pathRegex = regexSplitPath.join(String.raw`\.`)
+    const matchingDataFields = await getEntityManager(
+      req.ctx,
+      queryRunner,
+    ).find(DataField, {
+      select: {
+        uuid: true,
+        dataPath: true,
+      },
+      where: {
+        dataPath: Raw(alias => `${alias} ~ :path`, { path: pathRegex }),
+        dataSection: dataField.dataSection,
+        apiEndpointUuid: dataField.apiEndpointUuid,
+        contentType: dataField.contentType,
+        statusCode: dataField.statusCode,
+        uuid: Not(dataField.uuid),
+      },
+    })
+
+    const resp: {
+      deleted: string[]
+      updated: Record<string, any>
+    } = {
+      updated: { [dataField.uuid]: { ...dataField, dataPath } },
+      deleted: [],
+    }
+
+    const updateDataFields = []
+    for (const e of matchingDataFields) {
+      const split = e.dataPath.split(".")
+      if (split.length !== splitPath.length) {
+        continue
+      }
+      if (updatedIndexes.length > 0) {
+        for (const idx of updatedIndexes) {
+          split[idx] = "[string]"
+        }
+        e.dataPath = split.join(".")
+      }
+      if (e.dataPath === dataPath) {
+        resp.deleted.push(e.uuid)
+      } else {
+        updateDataFields.push(e)
+        resp.updated[e.uuid] = e
+      }
+    }
+
+    await queryRunner.startTransaction()
+    await getQB(req.ctx, queryRunner)
+      .delete()
+      .from(DataField)
+      .andWhereInIds(resp.deleted)
+      .execute()
+    await getEntityManager(req.ctx, queryRunner).saveList(updateDataFields)
     await getRepoQB(req.ctx, DataField)
       .update()
       .set({ dataPath })
       .andWhere("uuid = :id", { id: dataField.uuid })
       .execute()
-    await ApiResponseHandler.success(res)
+    await queryRunner.commitTransaction()
+
+    await ApiResponseHandler.success(res, resp)
   } catch (err) {
+    if (queryRunner.isTransactionActive) {
+      await queryRunner.rollbackTransaction()
+    }
     await ApiResponseHandler.error(res, err)
   } finally {
     if (!queryRunner.isReleased) {
