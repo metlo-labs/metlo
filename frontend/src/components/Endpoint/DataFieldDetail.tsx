@@ -114,7 +114,10 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
       try {
         const resp = await updateDataFieldPath(currDataField.uuid, updatedPath)
         if (resp) {
-          setCurrDataField(old => ({ ...old, dataPath: updatedPath }))
+          setCurrDataField(old => ({
+            ...old,
+            dataPath: resp.updated[old.uuid].dataPath,
+          }))
           setdataFieldList(
             (resp.deleted?.length > 0
               ? dataFieldList.filter(e => !resp.deleted.includes(e.uuid))

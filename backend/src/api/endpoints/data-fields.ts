@@ -312,7 +312,8 @@ export const updateDataFieldPathHandler = async (
   }
   const queryRunner = AppDataSource.createQueryRunner()
   try {
-    const { dataPath } = parsedBody.data
+    let { dataPath } = parsedBody.data
+    dataPath = dataPath.trim()
     await queryRunner.connect()
     const dataField = await getEntityManager(req.ctx, queryRunner).findOne(
       DataField,
