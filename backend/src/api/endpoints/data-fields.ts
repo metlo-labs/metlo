@@ -18,7 +18,7 @@ import {
 } from "services/database/utils"
 import { Alert, ApiEndpoint, DataField } from "models"
 import Error500InternalServer from "errors/error-500-internal-server"
-import { AlertType, RiskScore } from "@common/enums"
+import { AlertType, DataSection, RiskScore } from "@common/enums"
 import {
   getEntityTagsCached,
   getTemplateConfig,
@@ -234,6 +234,40 @@ export const updateDataFieldPathHandler = async (
       throw new Error409Conflict(
         "Data Field already exists with this data path.",
       )
+    }
+
+    if (dataField.dataSection === DataSection.REQUEST_PATH) {
+      const apiEndpoint = await getEntityManager(req.ctx, queryRunner).findOne(
+        ApiEndpoint,
+        {
+          select: {
+            uuid: true,
+            path: true,
+          },
+          where: {
+            uuid: dataField.apiEndpointUuid,
+          },
+        },
+      )
+      await queryRunner.startTransaction()
+      await getRepoQB(req.ctx, DataField)
+        .update()
+        .set({ dataPath })
+        .andWhere("uuid = :id", { id: dataField.uuid })
+        .execute()
+      const newPath = apiEndpoint.path.replace(
+        `{${dataField.dataPath}}`,
+        `{${dataPath}}`,
+      )
+      await getRepoQB(req.ctx, ApiEndpoint)
+        .update()
+        .set({ path: newPath })
+        .andWhere("uuid = :id", { id: apiEndpoint.uuid })
+        .execute()
+      await queryRunner.commitTransaction()
+      return await ApiResponseHandler.success(res, {
+        updated: { [dataField.uuid]: { ...dataField, dataPath } },
+      })
     }
 
     const splitPath = dataPath.split(".")

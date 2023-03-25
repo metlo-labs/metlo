@@ -116,7 +116,7 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
         if (resp) {
           setCurrDataField(old => ({ ...old, dataPath: updatedPath }))
           setdataFieldList(
-            (resp.deleted.length > 0
+            (resp.deleted?.length > 0
               ? dataFieldList.filter(e => !resp.deleted.includes(e.uuid))
               : dataFieldList
             ).map(e =>
@@ -138,7 +138,7 @@ const DataFieldDetail: React.FC<DataFieldDetailProps> = React.memo(
           makeToast({
             title: "Data Path Update failed",
             status: "error",
-            description: formatMetloAPIErr(err.response.data as MetloAPIErr),
+            description: formatMetloAPIErr(err.response?.data as MetloAPIErr),
           }),
         )
       } finally {
