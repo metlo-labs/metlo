@@ -1,5 +1,5 @@
 import axios, { AxiosRequestHeaders } from "axios"
-import { DataField } from "@common/types"
+import { DataField, UpdatedDataPathResp } from "@common/types"
 import { UpdateDataFieldClassesParams } from "@common/api/endpoint"
 import { getAPIURL } from "~/constants"
 
@@ -53,6 +53,19 @@ export const updateDataFieldEntity = async (
   const resp = await axios.put<DataField>(
     `${getAPIURL()}/data-field/${dataFieldId}/update-entity`,
     { entity },
+    { headers },
+  )
+  return resp.data
+}
+
+export const updateDataFieldPath = async (
+  dataFieldId: string,
+  dataPath: string,
+  headers?: AxiosRequestHeaders,
+): Promise<UpdatedDataPathResp> => {
+  const resp = await axios.put(
+    `${getAPIURL()}/data-field/${dataFieldId}/update-data-path`,
+    { dataPath },
     { headers },
   )
   return resp.data
