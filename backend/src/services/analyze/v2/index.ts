@@ -29,7 +29,9 @@ export const analyze = async (
   trace: QueuedApiTrace,
   apiEndpoint: ApiEndpoint,
   queryRunner: QueryRunner,
-  newEndpoint?: boolean,
+  newEndpoint: boolean,
+  skipDataFields: boolean,
+  hasValidLicense: boolean,
 ) => {
   if (apiEndpoint.isGraphQl) {
     const splitPath = trace.path.split("/")
@@ -56,7 +58,9 @@ export const analyze = async (
   mlog.debug(`Analyzing Trace - Got Data Classes: ${traceUUID}`)
 
   const start1 = performance.now()
-  const dataFields = findDataFieldsToSave(ctx, trace, apiEndpoint, dataClasses)
+  const dataFields = skipDataFields
+    ? { dataFields: [], mapDataFields: [] }
+    : findDataFieldsToSave(ctx, trace, apiEndpoint, dataClasses)
   mlog.time("analyzer.find_data_fields", performance.now() - start1)
   mlog.debug(`Analyzing Trace - Found Datafields: ${traceUUID}`)
 
@@ -113,15 +117,6 @@ export const analyze = async (
   )
   mlog.debug(`Analyzing Trace - Populated Sensitive Data: ${traceUUID}`)
 
-  await queryRunner.startTransaction()
-  const startUpdateDataFields = performance.now()
-  await updateDataFields(ctx, dataFields.dataFields, queryRunner, false)
-  mlog.time(
-    "analyzer.update_data_fields_query",
-    performance.now() - startUpdateDataFields,
-  )
-  mlog.debug(`Analyzing Trace - Updated Data Fields: ${traceUUID}`)
-
   const start4 = performance.now()
   const traceRes = await getEntityManager(ctx, queryRunner).insert(ApiTrace, [
     filteredApiTrace,
@@ -146,13 +141,6 @@ export const analyze = async (
   )
   mlog.debug(`Analyzing Trace - Inserted API Trace to Redis: ${traceUUID}`)
 
-  const start7 = performance.now()
-  await insertValuesBuilder(ctx, queryRunner, Alert, alerts)
-    .orIgnore()
-    .execute()
-  mlog.time("analyzer.insert_alerts_query", performance.now() - start7)
-  mlog.debug(`Analyzing Trace - Inserted Alerts: ${traceUUID}`)
-
   const start8 = performance.now()
   if (shouldUpdateEndpoint(prevRiskScore, prevLastActive, apiEndpoint)) {
     await getQB(ctx, queryRunner)
@@ -169,10 +157,20 @@ export const analyze = async (
   mlog.time("analyzer.update_api_endpoint_query", performance.now() - start8)
   mlog.debug(`Analyzing Trace - Updated API Endpoint: ${traceUUID}`)
 
-  const startDbCommit = performance.now()
-  await queryRunner.commitTransaction()
-  mlog.time("analyzer.commit_db_transaction", performance.now() - startDbCommit)
-  mlog.debug(`Analyzing Trace - Commited DB Transaction: ${traceUUID}`)
+  const startUpdateDataFields = performance.now()
+  await updateDataFields(ctx, dataFields.dataFields, queryRunner, false)
+  mlog.time(
+    "analyzer.update_data_fields_query",
+    performance.now() - startUpdateDataFields,
+  )
+  mlog.debug(`Analyzing Trace - Updated Data Fields: ${traceUUID}`)
+
+  const start7 = performance.now()
+  await insertValuesBuilder(ctx, queryRunner, Alert, alerts)
+    .orIgnore()
+    .execute()
+  mlog.time("analyzer.insert_alerts_query", performance.now() - start7)
+  mlog.debug(`Analyzing Trace - Inserted Alerts: ${traceUUID}`)
 
   const start9 = performance.now()
   await sendWebhookRequests(ctx, alerts, apiEndpoint)
