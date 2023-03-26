@@ -293,7 +293,7 @@ export const getValidPath = (
   return { isValid: true, path: validPath, errMsg: "" }
 }
 
-const skipDataFieldsCache = new NodeCache({ stdTTL: 600, checkperiod: 10 })
+const skipDataFieldsCache = new NodeCache({ stdTTL: 600, checkperiod: 120 })
 
 export const shouldSkipDataFields = async (
   ctx: MetloContext,
