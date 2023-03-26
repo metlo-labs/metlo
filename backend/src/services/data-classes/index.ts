@@ -14,23 +14,26 @@ import { DataField } from "models"
 import { getEntityManager } from "services/database/utils"
 import { ArrayOverlap } from "typeorm"
 import { AppDataSource } from "data-source"
+import mlog from "logger"
+import { NodeCache } from "utils/node-cache"
 
 const DATA_CLASS_KEY = "CACHED_DATA_CLASSES"
 const DEFAULT_CLASSES = Object.values(__DataClass_INTERNAL__)
+const myCache = new NodeCache({ stdTTL: 30, checkperiod: 10 })
 
 async function getOrSet(
   ctx: MetloContext,
   key: string,
   fn: () => Promise<DataClass[]>,
 ) {
-  const fetchValue = (await RedisClient.getFromRedis(ctx, key)) as
-    | DataClass[]
-    | null
+  const startGetFromRedis = performance.now()
+  const fetchValue = myCache.get(ctx, key) as DataClass[] | undefined
+  mlog.time("analyzer.get_dc_from_redis", performance.now() - startGetFromRedis)
   if (fetchValue && fetchValue.length > 0) {
     return fetchValue
   } else {
     const fnValue = await fn()
-    await RedisClient.addToRedis(ctx, key, fnValue, 30)
+    myCache.set(ctx, key, fnValue, 30)
     return fnValue
   }
 }
