@@ -45,12 +45,12 @@ export const getMetloConfigProcessed = async (
   return jsyaml.load(config.configString) as MetloConfigType
 }
 
-const myCache = new NodeCache({ stdTTL: 60, checkperiod: 10 })
+const metloConfigCache = new NodeCache({ stdTTL: 60, checkperiod: 10 })
 
 export const getMetloConfigProcessedCached = async (
   ctx: MetloContext,
 ): Promise<MetloConfigType> => {
-  const cacheRes: MetloConfigType | undefined = myCache.get(
+  const cacheRes: MetloConfigType | undefined = metloConfigCache.get(
     ctx,
     "cachedMetloConfig",
   )
@@ -58,7 +58,7 @@ export const getMetloConfigProcessedCached = async (
     return cacheRes
   }
   const realRes = await getMetloConfigProcessed(ctx)
-  myCache.set(ctx, "cachedMetloConfig", realRes)
+  metloConfigCache.set(ctx, "cachedMetloConfig", realRes)
   return realRes
 }
 

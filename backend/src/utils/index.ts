@@ -293,7 +293,7 @@ export const getValidPath = (
   return { isValid: true, path: validPath, errMsg: "" }
 }
 
-const myCache = new NodeCache({ stdTTL: 600, checkperiod: 10 })
+const skipDataFieldsCache = new NodeCache({ stdTTL: 600, checkperiod: 10 })
 
 export const shouldSkipDataFields = async (
   ctx: MetloContext,
@@ -304,15 +304,15 @@ export const shouldSkipDataFields = async (
     return false
   }
   const key = `${endpointUuid}_${traceStatusCode}_lastSeen`
-  const lastUpdated: number | undefined = myCache.get(ctx, key) as
+  const lastUpdated: number | undefined = skipDataFieldsCache.get(ctx, key) as
     | number
     | undefined
   if (!lastUpdated) {
-    myCache.set(ctx, key, new Date().getTime())
+    skipDataFieldsCache.set(ctx, key, new Date().getTime())
     return false
   }
   if (new Date().getTime() - lastUpdated > 4_000) {
-    myCache.set(ctx, key, new Date().getTime())
+    skipDataFieldsCache.set(ctx, key, new Date().getTime())
     return false
   }
   return true
