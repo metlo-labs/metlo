@@ -63,19 +63,7 @@ export const analyze = async (
 
   const startRedact = performance.now()
   const globalFullTraceCapture = await getGlobalFullTraceCaptureCached(ctx)
-  let redact = !(globalFullTraceCapture || apiEndpoint.fullTraceCaptureEnabled)
-
-  const allSensitiveData = apiEndpoint.dataFields.map(e => e.dataClasses).flat()
-  const dataClassToSeverity = Object.fromEntries(
-    dataClasses.map(e => [e.className, e.severity]),
-  )
-  if (
-    allSensitiveData
-      .map(e => dataClassToSeverity[e])
-      .some(e => e == RiskScore.HIGH)
-  ) {
-    redact = true
-  }
+  const redact = !(globalFullTraceCapture || apiEndpoint.fullTraceCaptureEnabled)
   mlog.time("analyzer.find_should_redact", performance.now() - startRedact)
   mlog.debug(`Analyzing Trace - Found should redact: ${traceUUID}`)
 
