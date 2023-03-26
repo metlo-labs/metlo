@@ -29,7 +29,7 @@ export const setSessionMetadata = async (
     } else {
       cachedAuthConfig = {} as AuthenticationConfig
     }
-    RedisClient.addToRedis(ctx, redisKey, cachedAuthConfig, 60)
+    await RedisClient.addToRedis(ctx, redisKey, cachedAuthConfig, 60)
   }
 
   if (Object.keys(cachedAuthConfig).length === 0) {
