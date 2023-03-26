@@ -3,7 +3,6 @@ import {
   MetloConfigResp,
   UpdateMetloConfigParams,
 } from "@common/types"
-import { RedisClient } from "utils/redis"
 import { AppDataSource } from "data-source"
 import { MetloConfig } from "models/metlo-config"
 import { MetloContext } from "types"
@@ -16,6 +15,7 @@ import {
   validateAuthentication,
   validateBlockFields,
 } from "./validate"
+import { NodeCache } from "utils/node-cache"
 
 export const getMetloConfig = async (
   ctx: MetloContext,
@@ -48,18 +48,20 @@ export const getMetloConfigProcessed = async (
   return jsyaml.load(config.configString) as MetloConfigType
 }
 
+const metloConfigCache = new NodeCache({ stdTTL: 60, checkperiod: 10 })
+
 export const getMetloConfigProcessedCached = async (
   ctx: MetloContext,
 ): Promise<MetloConfigType> => {
-  const cacheRes: MetloConfigType | null = await RedisClient.getFromRedis(
+  const cacheRes: MetloConfigType | undefined = metloConfigCache.get(
     ctx,
     "cachedMetloConfig",
   )
-  if (cacheRes !== null) {
+  if (cacheRes) {
     return cacheRes
   }
   const realRes = await getMetloConfigProcessed(ctx)
-  await RedisClient.addToRedis(ctx, "cachedMetloConfig", realRes, 60)
+  metloConfigCache.set(ctx, "cachedMetloConfig", realRes)
   return realRes
 }
 
