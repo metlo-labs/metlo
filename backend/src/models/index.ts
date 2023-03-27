@@ -4,7 +4,6 @@ import { ApiTrace } from "models/api-trace"
 import { OpenApiSpec } from "models/openapi-spec"
 import { Alert } from "models/alert"
 import { Session } from "models/sessions"
-import { Connections } from "./connections"
 import { ApiEndpointTest } from "./api-endpoint-test"
 import { ApiKey } from "./keys"
 import { InstanceSettings } from "./instance-settings"
@@ -21,7 +20,6 @@ export type DatabaseModel =
   | OpenApiSpec
   | Alert
   | Session
-  | Connections
   | ApiEndpointTest
   | ApiKey
   | InstanceSettings
@@ -38,7 +36,6 @@ export {
   OpenApiSpec,
   Alert,
   Session,
-  Connections,
   ApiEndpointTest,
   ApiKey,
   InstanceSettings,
