@@ -1,9 +1,10 @@
 import validator from "validator"
 import { MetloContext } from "types"
 import { getRepository } from "services/database/utils"
-import { ApiEndpoint, AuthenticationConfig } from "models"
+import { ApiEndpoint } from "models"
 import { GenTestEndpoint } from "@metlo/testing"
 import { RestMethod } from "@common/enums"
+import { getAuthenticationConfigForHost } from "services/metlo-config"
 
 export const getGenTestEndpoint = async (
   ctx: MetloContext,
@@ -54,10 +55,8 @@ export const getGenTestEndpoint = async (
       entity: e.entity,
     })),
   }
-  const authConfigRepo = getRepository(ctx, AuthenticationConfig)
-  const authConfig = await authConfigRepo.findOneBy({
-    host: endpointObj.host,
-  })
+
+  const authConfig = await getAuthenticationConfigForHost(ctx, endpointObj.host)
   if (authConfig) {
     genTestEndpoint.authConfig = {
       authType: authConfig.authType,

@@ -8,8 +8,8 @@ import {
   TraceParams,
 } from "@common/types"
 import Error500InternalServer from "errors/error-500-internal-server"
-import { BlockFieldsService } from "services/block-fields"
-import { AuthenticationConfigService } from "services/authentication-config"
+import { redactBlockedFields } from "services/block-fields"
+import { setSessionMetadata } from "services/authentication-config"
 import { RedisClient } from "utils/redis"
 import { TRACES_QUEUE } from "~/constants"
 import { MetloContext } from "types"
@@ -94,9 +94,9 @@ export const logRequest = async (
     }
 
     if (!traceParams?.sessionMeta) {
-      await AuthenticationConfigService.setSessionMetadata(ctx, apiTraceObj)
+      await setSessionMetadata(ctx, apiTraceObj)
     }
-    await BlockFieldsService.redactBlockedFields(ctx, apiTraceObj)
+    await redactBlockedFields(ctx, apiTraceObj)
 
     mlog.debug("Pushed trace to redis queue")
     await unsafeRedisClient.rpush(
