@@ -33,7 +33,7 @@ export const __DATA_CLASS_TO_RISK_SCORE_INTERNAL__: Record<
   [__DataClass_INTERNAL__.CREDIT_CARD]: RiskScore.HIGH,
   [__DataClass_INTERNAL__.SSN]: RiskScore.HIGH,
   [__DataClass_INTERNAL__.PHONE_NUMBER]: RiskScore.MEDIUM,
-  [__DataClass_INTERNAL__.IP_ADDRESS]: RiskScore.MEDIUM,
+  [__DataClass_INTERNAL__.IP_ADDRESS]: RiskScore.LOW,
   [__DataClass_INTERNAL__.DOB]: RiskScore.MEDIUM,
   [__DataClass_INTERNAL__.VIN]: RiskScore.LOW,
   [__DataClass_INTERNAL__.COORDINATE]: RiskScore.MEDIUM,
