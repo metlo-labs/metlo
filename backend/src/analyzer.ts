@@ -8,7 +8,6 @@ import { GRAPHQL_SECTIONS, TRACES_QUEUE } from "./constants"
 import { isGraphQlEndpoint } from "services/graphql"
 import { DataSection } from "@common/enums"
 import { shouldSkipDataFields } from "utils"
-import { getHostMapCached } from "services/metlo-config"
 import { AppDataSource } from "data-source"
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms))
@@ -24,7 +23,7 @@ const pool = new Piscina({
   filename: path.resolve(__dirname, "analyze-traces.js"),
   maxThreads: parseInt(process.env.NUM_WORKERS || "4"),
   idleTimeout: 10 * 60 * 1000,
-  maxQueue: 32,
+  maxQueue: 4096,
 })
 
 const getQueuedApiTrace = async (): Promise<TraceTask> => {
@@ -96,71 +95,58 @@ const createGraphQlTraces = (trace: QueuedApiTrace): QueuedApiTrace[] => {
 }
 
 const runTrace = async (task: TraceTask) => {
-  const startRunTrace = performance.now()
-  const singleTrace = task.trace
-  let traces: QueuedApiTrace[] = [singleTrace]
-  const isGraphQl = isGraphQlEndpoint(singleTrace.path)
-  if (isGraphQl && task.version === 2) {
-    const startCreateGraphQlTraces = performance.now()
-    traces = createGraphQlTraces(singleTrace)
-    mlog.time(
-      "analyzer.create_graphql_traces",
-      performance.now() - startCreateGraphQlTraces,
-    )
-  }
-  for (const traceItem of traces) {
-    const start = performance.now()
-    const hostMap = await getHostMapCached(task.ctx)
-    mlog.time("analyzer.get_host_map", performance.now() - start)
-
-    const start_match_host_map = performance.now()
-    for (const e of hostMap) {
-      const match = traceItem.host.match(e.pattern)
-      if (match && match[0].length == traceItem.host.length) {
-        traceItem.originalHost = traceItem.host
-        traceItem.host = e.host
-        break
-      }
+  try {
+    const startRunTrace = performance.now()
+    const singleTrace = task.trace
+    let traces: QueuedApiTrace[] = [singleTrace]
+    const isGraphQl = isGraphQlEndpoint(singleTrace.path)
+    if (isGraphQl && task.version === 2) {
+      const startCreateGraphQlTraces = performance.now()
+      traces = createGraphQlTraces(singleTrace)
+      mlog.time(
+        "analyzer.create_graphql_traces",
+        performance.now() - startCreateGraphQlTraces,
+      )
     }
-    mlog.time(
-      "analyzer.match_host_map",
-      performance.now() - start_match_host_map,
-    )
+    for (const traceItem of traces) {
+      const start = performance.now()
+      const endpoint = await pool.run({
+        type: "get_endpoint",
+        task: {
+          ctx: task.ctx,
+          trace: task.trace,
+        },
+      })
 
-    const endpoint = await pool.run({
-      type: "get_endpoint",
-      task: {
-        ctx: task.ctx,
-        trace: task.trace,
-      },
-    })
+      const start_skip_data_fields = performance.now()
+      const skipDataFields =
+        endpoint &&
+        (await shouldSkipDataFields(
+          task.ctx,
+          endpoint.uuid,
+          task.trace.responseStatus,
+        ))
+      mlog.time(
+        "analyzer.skip_data_fields",
+        performance.now() - start_skip_data_fields,
+      )
 
-    const start_skip_data_fields = performance.now()
-    const skipDataFields =
-      endpoint &&
-      (await shouldSkipDataFields(
-        task.ctx,
-        endpoint.uuid,
-        task.trace.responseStatus,
-      ))
-    mlog.time(
-      "analyzer.skip_data_fields",
-      performance.now() - start_skip_data_fields,
-    )
-
-    await pool.run({
-      type: "analyze",
-      task: {
-        ...task,
-        isGraphQl: isGraphQl,
-        apiEndpoint: endpoint,
-        trace: traceItem,
-        skipDataFields: skipDataFields,
-      },
-    })
-    mlog.time("analyzer.total_analysis", performance.now() - start)
+      await pool.run({
+        type: "analyze",
+        task: {
+          ...task,
+          isGraphQl: isGraphQl,
+          apiEndpoint: endpoint,
+          trace: traceItem,
+          skipDataFields: skipDataFields,
+        },
+      })
+      mlog.time("analyzer.total_analysis", performance.now() - start)
+    }
+    mlog.time("analyzer.total_run_trace", performance.now() - startRunTrace)
+  } catch (err) {
+    mlog.withErr(err).error("Encountered error while analyzing traces")
   }
-  mlog.time("analyzer.total_run_trace", performance.now() - startRunTrace)
 }
 
 const main = async () => {
@@ -169,8 +155,8 @@ const main = async () => {
   mlog.info("AppDataSource Initialized...")
   mlog.info("Running Analyzer...")
   while (true) {
-    if (pool.queueSize >= pool.options.maxQueue / 2) {
-      await sleep(10)
+    if (pool.queueSize >= 32) {
+      await sleep(100)
     } else {
       const queuedTask = await getQueuedApiTrace()
       if (queuedTask != null) {
