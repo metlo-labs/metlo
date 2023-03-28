@@ -98,6 +98,22 @@ const runTrace = async (task: TraceTask) => {
   try {
     const startRunTrace = performance.now()
     const singleTrace = task.trace
+    const mapped_host_res: { mappedHost: string | null; isBlocked: boolean } =
+      await pool.run({
+        type: "get_mapped_host",
+        task: {
+          ctx: task.ctx,
+          host: singleTrace.host,
+        },
+      })
+    if (mapped_host_res.isBlocked) {
+      return
+    }
+    if (mapped_host_res.mappedHost) {
+      singleTrace.originalHost = singleTrace.host
+      singleTrace.host = mapped_host_res.mappedHost
+    }
+
     let traces: QueuedApiTrace[] = [singleTrace]
     const isGraphQl = isGraphQlEndpoint(singleTrace.path)
     if (isGraphQl && task.version === 2) {
@@ -114,7 +130,7 @@ const runTrace = async (task: TraceTask) => {
         type: "get_endpoint",
         task: {
           ctx: task.ctx,
-          trace: task.trace,
+          trace: traceItem,
         },
       })
 

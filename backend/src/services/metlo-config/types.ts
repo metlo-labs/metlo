@@ -16,4 +16,5 @@ export interface MetloConfigType {
   hostMap?: HostMapping[]
   authentication?: AuthenticationConfig[]
   customWords?: string[]
+  hostBlockList?: string[]
 }

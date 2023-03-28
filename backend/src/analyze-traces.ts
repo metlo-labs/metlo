@@ -23,7 +23,11 @@ import {
 } from "services/database/utils"
 import { analyze as analyzeV2 } from "services/analyze/v2"
 import { analyze } from "services/analyze/v1"
-import { getCustomWordsCached } from "services/metlo-config"
+import {
+  getCustomWordsCached,
+  getHostBlockListCached,
+  getHostMapCached,
+} from "services/metlo-config"
 
 export const shouldUpdateEndpoint = (
   prevRiskScore: RiskScore,
@@ -262,6 +266,58 @@ const getQueryRunner = async () => {
   return queryRunner
 }
 
+const getMappedHost = async (task: {
+  ctx: MetloContext
+  host: string
+}): Promise<{ mappedHost: string | null; isBlocked: boolean }> => {
+  let mappedHost = null
+  let isBlocked = false
+  try {
+    await getDataSource()
+    let queryRunner = await getQueryRunner()
+    const { ctx, host } = task
+    const start = performance.now()
+    const hostMap = await getHostMapCached(ctx, queryRunner)
+    mlog.time("analyzer.get_host_map", performance.now() - start)
+
+    const startBlockList = performance.now()
+    const hostBlockList = await getHostBlockListCached(ctx, queryRunner)
+    mlog.time(
+      "analyzer.get_host_block_list",
+      performance.now() - startBlockList,
+    )
+
+    const startMatchHostMap = performance.now()
+    for (const e of hostMap) {
+      const match = host.match(e.pattern)
+      if (match && match[0].length == host.length) {
+        mappedHost = e.host
+        break
+      }
+    }
+    mlog.time("analyzer.mast_host_map", performance.now() - startMatchHostMap)
+
+    const startMatchBlockList = performance.now()
+    for (const e of hostBlockList) {
+      const match = e.test(mappedHost ?? host)
+      if (match) {
+        isBlocked = true
+        break
+      }
+    }
+    mlog.time(
+      "analyzer.match_host_block_list",
+      performance.now() - startMatchBlockList,
+    )
+    return { mappedHost, isBlocked }
+  } catch (err) {
+    mlog.withErr(err).error("Encountered error while processing trace host")
+    if (queryRunner.isTransactionActive) {
+      await queryRunner.rollbackTransaction()
+    }
+  }
+}
+
 const analyzeTraces = async (task: {
   trace: QueuedApiTrace
   ctx: MetloContext
@@ -399,6 +455,8 @@ const runTask = async (task: { type: string; task: any }) => {
     await analyzeTraces(task.task)
   } else if (task.type == "get_endpoint") {
     return await getEndpoint(task.task)
+  } else if (task.type == "get_mapped_host") {
+    return await getMappedHost(task.task)
   }
 }
 
