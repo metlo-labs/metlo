@@ -54,7 +54,12 @@ export const getOpenAPISpecVersion = (specObject: any): number | null => {
   if (specObject["swagger"]) {
     return 2
   } else if (specObject["openapi"]) {
-    return 3
+    const version = specObject["openapi"]
+    if (typeof version === "string" && version.trim().startsWith("3.1")) {
+      return 3.1
+    } else {
+      return 3
+    }
   }
   return null
 }
@@ -707,17 +712,21 @@ const recurseCreateDataFields = (
         count + 1,
       )
     }
-  } else if (!schema["$ref"]) {
+  } else if (!schema["$ref"] && schema.type) {
     const key = `${statusCode}_${contentType}_${dataSection}${
       dataPath ? `.${dataPath}` : ""
     }`
+    const specDataType = getSpecDataType(schema.type)
+    if (!specDataType) {
+      return
+    }
     if (!dataFields[key]) {
       const dataField = new DataField()
       dataField.dataSection = dataSection
       dataField.dataPath = dataPath ?? ""
       dataField.statusCode = statusCode
       dataField.contentType = contentType
-      dataField.dataType = getSpecDataType(schema.type)
+      dataField.dataType = specDataType
       dataField.isNullable =
         schema["nullable"] ||
         (Array.isArray(schema.type)
@@ -727,7 +736,7 @@ const recurseCreateDataFields = (
       dataFields[key] = dataField
     } else {
       const existing = dataFields[key]
-      const dataType = getSpecDataType(schema.type)
+      const dataType = specDataType
       if (
         existing.dataType === DataType.UNKNOWN &&
         dataType !== DataType.UNKNOWN
