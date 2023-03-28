@@ -158,7 +158,7 @@ export const analyze = async (
   mlog.debug(`Analyzing Trace - Updated API Endpoint: ${traceUUID}`)
 
   const startUpdateDataFields = performance.now()
-  await updateDataFields(ctx, dataFields.dataFields, queryRunner, false)
+  await updateDataFields(ctx, dataFields.dataFields, queryRunner)
   mlog.time(
     "analyzer.update_data_fields_query",
     performance.now() - startUpdateDataFields,
