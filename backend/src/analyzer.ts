@@ -107,6 +107,7 @@ const runTrace = async (task: TraceTask) => {
         },
       })
     if (mapped_host_res.isBlocked) {
+      mlog.count("analyzer.blocked_host_skipped_count")
       return
     }
     if (mapped_host_res.mappedHost) {
