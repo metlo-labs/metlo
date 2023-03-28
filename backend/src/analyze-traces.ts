@@ -295,7 +295,7 @@ const getMappedHost = async (task: {
         break
       }
     }
-    mlog.time("analyzer.mast_host_map", performance.now() - startMatchHostMap)
+    mlog.time("analyzer.match_host_map", performance.now() - startMatchHostMap)
 
     const startMatchBlockList = performance.now()
     for (const e of hostBlockList) {
