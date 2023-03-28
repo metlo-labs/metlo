@@ -136,7 +136,7 @@ export const analyze = async (
 
   await queryRunner.startTransaction()
   const startUpdateDataFields = performance.now()
-  await updateDataFields(ctx, dataFields.dataFields, queryRunner)
+  await updateDataFields(ctx, dataFields.dataFields, queryRunner, false)
   mlog.time(
     "analyzer.update_data_fields_query",
     performance.now() - startUpdateDataFields,
