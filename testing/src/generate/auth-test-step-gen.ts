@@ -219,9 +219,11 @@ export const authTestStepPayloadToBuilder = (
     if (item?.reason) {
       description += description?.length > 0 ? ` ${item.reason}` : item.reason
     }
-    Object.entries(item.item).forEach(([itemKey, itemValue]) => {
-      entityMap[`${name}.${itemKey}`] = itemValue
-    })
+    if (item?.item) {
+      Object.entries(item.item).forEach(([itemKey, itemValue]) => {
+        entityMap[`${name}.${itemKey}`] = itemValue
+      })
+    }
   })
   const ctx: GenTestContext = {
     endpoint,
