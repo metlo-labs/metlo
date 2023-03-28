@@ -216,7 +216,9 @@ export const authTestStepPayloadToBuilder = (
   let entityMap: Record<string, any> = {}
   let description = ""
   Object.entries(payload.entities).forEach(([name, item]) => {
-    description = item.reason
+    if (item?.reason) {
+      description += description?.length > 0 ? ` ${item.reason}` : item.reason
+    }
     Object.entries(item.item).forEach(([itemKey, itemValue]) => {
       entityMap[`${name}.${itemKey}`] = itemValue
     })
@@ -232,8 +234,8 @@ export const authTestStepPayloadToBuilder = (
 
   let builder = new TestStepBuilder(gen.req).addToEnv(...gen.env)
   const assertion =
-    payload.reason || description
-      ? { description: payload.reason || description }
+    payload?.reason || description
+      ? { description: payload?.reason || description }
       : {}
   const responseAssertion = getResponseAssertion(hostInfo, endpoint)
   if (payload.authorized) {
