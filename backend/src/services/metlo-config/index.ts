@@ -50,7 +50,7 @@ export const getMetloConfigProcessed = async (
   return jsyaml.load(config.configString) as MetloConfigType
 }
 
-const metloConfigCache = new NodeCache({ stdTTL: 10, checkperiod: 5 })
+const metloConfigCache = new NodeCache({ stdTTL: 60, checkperiod: 10 })
 
 export const getMetloConfigProcessedCached = async (
   ctx: MetloContext,
