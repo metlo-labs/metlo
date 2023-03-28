@@ -197,6 +197,14 @@ export const METLO_CONFIG_SCHEMA = {
       },
       uniqueItems: true,
     },
+    hostBlockList: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "regex",
+      },
+      uniqueItems: true,
+    },
   },
   additionalProperties: false,
   definitions: {
