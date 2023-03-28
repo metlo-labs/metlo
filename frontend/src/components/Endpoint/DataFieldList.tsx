@@ -58,27 +58,7 @@ interface Filters {
 const columns = (dataClassInfo: DataClass[]): TableColumn<DataField>[] => {
   return [
     {
-      name: "Tag",
-      selector: (row: DataField) => row.dataTag,
-      cell: (row: DataField) => (
-        <Box pointerEvents="none">
-          {row.dataTag && (
-            <Badge
-              py="1"
-              px="2"
-              fontSize="sm"
-              colorScheme={TAG_TO_COLOR[row.dataTag]}
-              pointerEvents="none"
-            >
-              {row.dataTag}
-            </Badge>
-          )}
-        </Box>
-      ),
-      grow: 0,
-    },
-    {
-      name: "Risk Score",
+      name: "Risk",
       sortable: true,
       selector: (row: DataField) => {
         return (
@@ -107,7 +87,7 @@ const columns = (dataClassInfo: DataClass[]): TableColumn<DataField>[] => {
         </Badge>
       ),
       id: "riskScore",
-      grow: 0.5,
+      grow: 0,
     },
     {
       name: "Status",
@@ -128,7 +108,7 @@ const columns = (dataClassInfo: DataClass[]): TableColumn<DataField>[] => {
           ) : null}
         </Box>
       ),
-      grow: 0.5,
+      grow: 0,
     },
     {
       name: "Content Type",
@@ -145,7 +125,7 @@ const columns = (dataClassInfo: DataClass[]): TableColumn<DataField>[] => {
       sortable: true,
       selector: (row: DataField) => row.dataClasses.join(", ") || "",
       id: "dataClasses",
-      grow: 1,
+      grow: 2,
     },
     {
       name: "Field",
@@ -163,6 +143,24 @@ const columns = (dataClassInfo: DataClass[]): TableColumn<DataField>[] => {
         </Box>
       ),
       id: "dataPath",
+      grow: 2,
+    },
+    {
+      name: "Entity",
+      sortable: true,
+      selector: (row: DataField) => row.entity,
+      cell: (row: DataField) => (
+        <Box pointerEvents="none">
+          {row.entity ? (
+            <Code p="1" pointerEvents="none">
+              {row.entity}
+            </Code>
+          ) : (
+            <Text>None</Text>
+          )}
+        </Box>
+      ),
+      id: "dataPath",
       grow: 1,
     },
     {
@@ -170,7 +168,8 @@ const columns = (dataClassInfo: DataClass[]): TableColumn<DataField>[] => {
       sortable: true,
       selector: (row: DataField) => getDateTimeString(row.createdAt) || "",
       id: "dateIdentified",
-      grow: 1,
+      grow: 0,
+      width: "200px"
     },
   ]
 }

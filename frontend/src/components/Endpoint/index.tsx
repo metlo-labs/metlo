@@ -144,7 +144,7 @@ const EndpointPage: React.FC<EndpointPageProps> = React.memo(
         h="full"
         overflow={{ base: "auto", md: "hidden" }}
       >
-        <VStack w="full" alignItems="flex-start" pt="6" px="6">
+        <VStack w="full" alignItems="flex-start" pt="4" px="6">
           <NextLink href="/endpoints">
             <HStack color={headerColor} spacing="1" cursor="pointer">
               <TiFlowSwitch />

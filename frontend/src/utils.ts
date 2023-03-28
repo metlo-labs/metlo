@@ -8,7 +8,7 @@ import { DataClass } from "@common/types"
 export const getDateTimeString = (date: Date) => {
   if (date) {
     return DateTime.fromISO(date.toString()).toLocaleString(
-      DateTime.DATETIME_MED,
+      DateTime.DATETIME_SHORT,
     )
   }
   return null
