@@ -381,7 +381,7 @@ export const getAccessItems = (
       )
       const valid = permissionValidations.find(e => e.valid)
       if (valid) {
-        hasAccessItems.push({ item: entItem, reason: valid.reason })
+        hasAccessItems.push({ item: entItem, reason: valid?.reason })
       } else {
         notHasAccessItems.push({
           item: entItem,
@@ -391,6 +391,7 @@ export const getAccessItems = (
             .join(",")}) does not have ${permsNeeded} access to ${
             permissionValidations.length > 0
               ? `${entName}(${permissionValidations
+                  .filter(e => e?.reason)
                   .map(e => e.reason)
                   .join(",")})`
               : entName
