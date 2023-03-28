@@ -1,12 +1,20 @@
 import { RiskScore } from "@common/enums"
 import Zod from "zod"
 
-export interface rawDataClass {
+interface rawDataClassRegex {
   className: string
   severity: RiskScore
-  regex: RegExp
+  regex?: RegExp
   shortName?: string
 }
+interface rawDataClassKeyRegex {
+  className: string
+  severity: RiskScore
+  keyRegex?: RegExp
+  shortName?: string
+}
+
+export interface rawDataClass extends rawDataClassRegex, rawDataClassKeyRegex {}
 
 const scoreArray = Object.keys(RiskScore)
 
@@ -18,5 +26,11 @@ const SCORE_VALUES: [string, ...string[]] = [
 
 export const customDataClass = Zod.object({
   severity: Zod.enum(SCORE_VALUES),
-  patterns: Zod.string().array(),
+  patterns: Zod.string().array().optional(),
+  keyPatterns: Zod.string().array().optional(),
 })
+  .partial()
+  .refine(
+    data => data.severity && (data.patterns || data.keyPatterns),
+    "Severity must be provided along with either of patterns or keyPatterns",
+  )

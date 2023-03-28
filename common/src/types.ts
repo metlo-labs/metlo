@@ -449,6 +449,7 @@ export interface DataClass {
   className: string
   severity: RiskScore
   regex?: string
+  keyRegex?: string
   shortName?: string
 }
 

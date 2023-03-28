@@ -2,7 +2,7 @@ import { DataClass, PairObject } from "@common/types"
 import { DataSection, DataType } from "@common/enums"
 import { isParameter, parsedJson, parsedJsonNonNull } from "utils"
 import { getPathTokens } from "@common/utils"
-import { scan } from "./scan"
+import { scanKey, scanValue } from "./scan"
 import { getMapDataFields } from "services/data-field/utils"
 
 const handleDataField = (
@@ -17,9 +17,15 @@ const handleDataField = (
   const key = `${statusCode}_${contentType}_${dataSection}${
     dataPath ? `.${dataPath}` : ""
   }`
-  const detectedData = scan(dataValue, dataClasses)
+  const detectedDataInValue = scanValue(dataValue, dataClasses)
+  const detectedDataInPath = scanKey(dataPath, dataClasses)
   let newDataClasses = sensitiveDataMap[key] || []
-  detectedData.forEach(e => {
+  detectedDataInValue.forEach(e => {
+    if (!newDataClasses.includes(e)) {
+      newDataClasses.push(e)
+    }
+  })
+  detectedDataInPath.forEach(e => {
     if (!newDataClasses.includes(e)) {
       newDataClasses.push(e)
     }

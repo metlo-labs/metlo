@@ -137,8 +137,27 @@ export const METLO_CONFIG_SCHEMA = {
                 format: "regex",
               },
             },
+            keyPatterns: {
+              type: "array",
+              minItems: 1,
+              uniqueItems: true,
+              items: {
+                type: "string",
+                format: "regex",
+              },
+            },
           },
-          required: ["severity", "patterns"],
+          anyOf: [
+            {
+              required: ["severity", "patterns"],
+            },
+            {
+              required: ["severity", "keyPatterns"],
+            },
+            {
+              required: ["severity", "keyPatterns", "patterns"],
+            },
+          ],
         },
       },
       additionalProperties: false,
