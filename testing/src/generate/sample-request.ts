@@ -162,7 +162,7 @@ const recurseCreateBodyGraphQl = (
     if (currToken.startsWith("__on_")) {
       currToken = `... on ${currToken.split("__on_")[1]}`
     } else if (currToken === "__resp") {
-      return getSampleValue(DataType.STRING)
+      return body ?? getSampleValue(DataType.STRING)
     }
 
     if (currToken === "[]") {

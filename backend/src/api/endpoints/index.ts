@@ -21,6 +21,7 @@ import {
   deleteDataFieldHandler,
   updateDataFieldClasses,
   updateDataFieldEntityHandler,
+  updateDataFieldPathHandler,
 } from "./data-fields"
 import {
   deleteHostsHandler,
@@ -291,6 +292,10 @@ export default function registerEndpointRoutes(router: Router) {
   router.put(
     "/api/v1/data-field/:dataFieldId/update-entity",
     updateDataFieldEntityHandler,
+  )
+  router.put(
+    "/api/v1/data-field/:dataFieldId/update-data-path",
+    updateDataFieldPathHandler,
   )
   router.post("/api/v1/clear-sensitive-data", clearAllSensitiveDataHandler)
   router.post("/api/v1/clear-all-datafields", bulkDeleteDataFieldsHandler)

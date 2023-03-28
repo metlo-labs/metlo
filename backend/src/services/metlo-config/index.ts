@@ -1,9 +1,9 @@
+import { QueryRunner } from "typeorm"
 import {
   AuthenticationConfig,
   MetloConfigResp,
   UpdateMetloConfigParams,
 } from "@common/types"
-import { RedisClient } from "utils/redis"
 import { AppDataSource } from "data-source"
 import { MetloConfig } from "models/metlo-config"
 import { MetloContext } from "types"
@@ -13,6 +13,7 @@ import { decrypt, encrypt, generate_iv } from "utils/encryption"
 import { HostMappingCompiled, MetloConfigType } from "./types"
 import { validateMetloConfig } from "./validate"
 import { populateAuthentication, populateBlockFields } from "./populate-tables"
+import { NodeCache } from "utils/node-cache"
 
 export const getMetloConfig = async (
   ctx: MetloContext,
@@ -35,28 +36,35 @@ export const getMetloConfig = async (
 
 export const getMetloConfigProcessed = async (
   ctx: MetloContext,
+  queryRunner?: QueryRunner,
 ): Promise<MetloConfigType> => {
-  const config: MetloConfig = await createQB(ctx)
-    .from(MetloConfig, "config")
-    .getRawOne()
+  const config: MetloConfig = queryRunner
+    ? await getQB(ctx, queryRunner)
+        .from(MetloConfig, "config")
+        .limit(1)
+        .getRawOne()
+    : await createQB(ctx).from(MetloConfig, "config").limit(1).getRawOne()
   if (!config?.configString) {
     return {}
   }
   return jsyaml.load(config.configString) as MetloConfigType
 }
 
+const metloConfigCache = new NodeCache({ stdTTL: 60, checkperiod: 10 })
+
 export const getMetloConfigProcessedCached = async (
   ctx: MetloContext,
+  queryRunner?: QueryRunner,
 ): Promise<MetloConfigType> => {
-  const cacheRes: MetloConfigType | null = await RedisClient.getFromRedis(
+  const cacheRes: MetloConfigType | undefined = metloConfigCache.get(
     ctx,
     "cachedMetloConfig",
   )
-  if (cacheRes !== null) {
+  if (cacheRes) {
     return cacheRes
   }
-  const realRes = await getMetloConfigProcessed(ctx)
-  await RedisClient.addToRedis(ctx, "cachedMetloConfig", realRes, 60)
+  const realRes = await getMetloConfigProcessed(ctx, queryRunner)
+  metloConfigCache.set(ctx, "cachedMetloConfig", realRes)
   return realRes
 }
 
@@ -69,12 +77,21 @@ export const getGlobalFullTraceCaptureCached = async (
 
 export const getHostMapCached = async (
   ctx: MetloContext,
+  queryRunner?: QueryRunner,
 ): Promise<HostMappingCompiled[]> => {
-  const conf = await getMetloConfigProcessedCached(ctx)
+  const conf = await getMetloConfigProcessedCached(ctx, queryRunner)
   return (conf.hostMap || []).map(e => ({
     host: e.host,
     pattern: new RegExp(e.pattern),
   }))
+}
+
+export const getHostBlockListCached = async (
+  ctx: MetloContext,
+  queryRunner?: QueryRunner,
+): Promise<RegExp[]> => {
+  const conf = await getMetloConfigProcessedCached(ctx, queryRunner)
+  return conf?.hostBlockList?.map(e => new RegExp(e)) ?? []
 }
 
 export const getMinAnalyzeTracesCached = async (

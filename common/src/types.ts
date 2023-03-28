@@ -456,3 +456,8 @@ export interface TestingConfigResp {
   uuid: string
   configString: string
 }
+
+export interface UpdatedDataPathResp {
+  deleted: string[]
+  updated: Record<string, DataField>
+}

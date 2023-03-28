@@ -186,7 +186,7 @@ pub async fn pull_metlo_config() -> Result<(), Box<dyn std::error::Error>> {
                         regex: r,
                     }),
                     Err(err) => {
-                        log::info!(
+                        log::debug!(
                             "Failed to Compile Regex \"{}\" - {}\n",
                             e.class_name,
                             err.to_string()
