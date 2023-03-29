@@ -39,6 +39,7 @@ export const RequestSchema = z.object({
   query: KeyValSchema.array().optional(),
   form: KeyValSchema.array().optional(),
   data: z.string().optional(),
+  graphql: z.string().optional(),
 })
 
 export const ExtractorSchema = z.object({

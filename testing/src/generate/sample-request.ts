@@ -167,6 +167,13 @@ const recurseCreateBodyGraphQl = (
 
     if (currToken === "[]") {
       if (dataField.dataSection === DataSection.RESPONSE_BODY) {
+        if (
+          typeof body === "object" &&
+          currTokenIndex > 1 &&
+          !mapTokens.slice(0, currTokenIndex).includes("__args")
+        ) {
+          body["__typename"] = true
+        }
         return recurseCreateBodyGraphQl(
           body,
           mapTokens,
@@ -186,6 +193,13 @@ const recurseCreateBodyGraphQl = (
         ]
       }
     } else {
+      if (
+        typeof body === "object" &&
+        currTokenIndex > 1 &&
+        !mapTokens.slice(0, currTokenIndex).includes("__args")
+      ) {
+        body["__typename"] = true
+      }
       return {
         ...body,
         [currToken]: recurseCreateBodyGraphQl(
@@ -244,14 +258,7 @@ const addBodyToRequest = (
           name: "Content-Type",
           value: "application/json",
         }),
-        data: JSON.stringify(
-          {
-            query: jsonToGraphQLQuery(body, { pretty: true }),
-            variables: {},
-          },
-          undefined,
-          4,
-        ),
+        graphql: jsonToGraphQLQuery(body, { pretty: true }),
       },
     }
   } else {
