@@ -2,7 +2,7 @@ import { GenTestEndpoint } from "../generate/types"
 import { TestBuilder, TestStepBuilder } from "../generate/builder"
 import { AssertionType, AuthType } from "../types/enums"
 import { TemplateConfig } from "../types/resource_config"
-import { getResponseAssertion } from "generate/auth-test-step-gen"
+import { getResponseAssertion } from "../generate/auth-test-step-gen"
 
 export default {
   name: "GENERIC",
