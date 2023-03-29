@@ -239,18 +239,18 @@ const getUpdatedDataPaths = async (
 ) => {
   const splitPath = newDataPath
     .replace(/[/\-\\^$*+?.()|[\]{}]/g, "\\$&")
-    .split(".")
+    .split(String.raw`\.`)
   const updatedIndexes = []
   let isStringPath = false
   const regexSplitPath = splitPath.map((e, idx) => {
     if (e === String.raw`\[string\]`) {
       updatedIndexes.push(idx)
       isStringPath = true
-      return String.raw`[^\.]+`
+      return String.raw`[^\.(\[\])]+`
     } else if (e === String.raw`\[\]`) {
       return String.raw`\[\]`
     } else if (isStringPath) {
-      return String.raw`[^\.]+`
+      return String.raw`[^\.(\[\])]+`
     } else {
       return e
     }
