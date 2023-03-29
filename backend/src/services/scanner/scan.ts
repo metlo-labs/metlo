@@ -67,29 +67,13 @@ export const scanValue = (text: any, dataClasses: DataClass[]): string[] => {
 
 export const scanKey = (text: string, dataClasses: DataClass[]): string[] => {
   const res: string[] = []
-  let convertedText: string
-  try {
-    convertedText = text.toString()
-  } catch (err) {
-    return res
-  }
   dataClasses.forEach(({ className, keyRegex: keyExp }) => {
     if (keyExp) {
-      if (STRING_ONLY_DATA_CLASSES.has(className) && typeof text !== "string") {
-        return
-      }
-      if (keyExp) {
-        const keyMatch = new RegExp(keyExp)
-        const matchedKey = keyMatch.test(convertedText)
-        const matchRes = returnMatch(
-          matchedKey,
-          className,
-          convertedText,
-          keyMatch,
-        )
-        if (matchRes) {
-          res.push(className)
-        }
+      const keyMatch = new RegExp(keyExp)
+      const matchedKey = keyMatch.test(text)
+      const matchRes = returnMatch(matchedKey, className, text, keyMatch)
+      if (matchRes) {
+        res.push(className)
       }
     }
   })
