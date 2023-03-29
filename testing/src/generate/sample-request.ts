@@ -170,7 +170,7 @@ const recurseCreateBodyGraphQl = (
         if (
           typeof body === "object" &&
           currTokenIndex > 1 &&
-          !mapTokens.slice(0, currTokenIndex).includes("__args")
+          !mapTokens?.slice(0, currTokenIndex)?.includes("__args")
         ) {
           body["__typename"] = true
         }
@@ -196,7 +196,7 @@ const recurseCreateBodyGraphQl = (
       if (
         typeof body === "object" &&
         currTokenIndex > 1 &&
-        !mapTokens.slice(0, currTokenIndex).includes("__args")
+        !mapTokens?.slice(0, currTokenIndex)?.includes("__args")
       ) {
         body["__typename"] = true
       }
