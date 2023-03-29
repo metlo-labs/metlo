@@ -145,9 +145,7 @@ fn detect_sensitive_data_in_path_inner(
     sensitive_data
         .iter()
         .filter(|e| match &e.key_regex {
-            Some(regex) => {
-                return regex.is_match(txt) && validate(e.sensitive_data_type.clone(), txt);
-            }
+            Some(regex) => regex.is_match(txt) && validate(e.sensitive_data_type.clone(), txt),
             None => false,
         })
         .map(|e| e.sensitive_data_type.clone())

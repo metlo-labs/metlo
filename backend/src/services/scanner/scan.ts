@@ -65,7 +65,7 @@ export const scanValue = (text: any, dataClasses: DataClass[]): string[] => {
   return res
 }
 
-export const scanKey = (text: any, dataClasses: DataClass[]): string[] => {
+export const scanKey = (text: string, dataClasses: DataClass[]): string[] => {
   const res: string[] = []
   let convertedText: string
   try {
