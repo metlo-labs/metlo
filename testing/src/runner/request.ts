@@ -84,6 +84,10 @@ export const makeRequest = (
       ),
     )
     data = formData
+  } else if (req.graphql) {
+    data = JSON.stringify({
+      query: req.graphql,
+    })
   } else if (req.data) {
     data = stringReplacement(req.data, ctx.envVars)
   }

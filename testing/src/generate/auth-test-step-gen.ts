@@ -194,8 +194,8 @@ export const addAuthToRequest = (
   }
 }
 
-const getResponseAssertion = (hostInfo: Host, endpoint: GenTestEndpoint) => {
-  if (!hostInfo.responseAssertions) {
+export const getResponseAssertion = (hostInfo: Host, endpoint: GenTestEndpoint) => {
+  if (!hostInfo?.responseAssertions) {
     return null
   }
   for (const assertion of hostInfo.responseAssertions) {
