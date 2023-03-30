@@ -42,6 +42,11 @@ export const analyze = async (
   endpointUpdateDates(trace.createdAt, apiEndpoint)
   mlog.debug(`Analyzing Trace - Updated Dates: ${traceUUID}`)
 
+  trace.requestParameters = trace.requestParameters.map(e => ({
+    name: (e.name || "").split("[")[0],
+    value: e.value,
+  }))
+
   if (Array.isArray(trace.requestBody)) {
     trace.requestBody = JSON.stringify(trace.requestBody)
   }
