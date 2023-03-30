@@ -204,7 +204,7 @@ pub fn process_json_val(
     }
 }
 
-fn process_path(
+pub fn process_path(
     path: &String,
     resolved_path: String,
     sensitive_data_detected: &mut HashMap<String, HashSet<String>>,
@@ -417,7 +417,7 @@ fn process_key_val(prefix: String, vals: &Vec<KeyVal>) -> Option<ProcessTraceRes
             let old_sensitive_data = sensitive_data_detected.get_mut(&path);
             match old_sensitive_data {
                 None => {
-                    sensitive_data_detected.insert(path, sensitive_data);
+                    sensitive_data_detected.insert(path.clone(), sensitive_data);
                 }
                 Some(old) => {
                     for e in sensitive_data {
@@ -426,6 +426,7 @@ fn process_key_val(prefix: String, vals: &Vec<KeyVal>) -> Option<ProcessTraceRes
                 }
             }
         }
+        process_path(&path, path.clone(), &mut sensitive_data_detected);
     }
 
     Some(ProcessTraceResInner {
@@ -516,7 +517,7 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
     let mut endpoint_path: String = trace.request.url.path.clone();
     let split_path: Vec<&str> = get_split_path(&trace.request.url.path);
     let conf_read = METLO_CONFIG.try_read();
-    if let Ok(ref conf) = METLO_CONFIG.try_read() {
+    if let Ok(ref conf) = conf_read {
         if let Some(endpoints) = &conf.endpoints {
             let key = format!(
                 "{}-{}",
