@@ -25,6 +25,7 @@ pub struct MetloSensitiveData {
     class_name: String,
     severity: String,
     regex: Option<String>,
+    key_regex: Option<String>,
 }
 
 #[derive(Debug, Default, Clone, Deserialize, Serialize)]
@@ -173,29 +174,54 @@ pub async fn pull_metlo_config() -> Result<(), Box<dyn std::error::Error>> {
         .await?
         .json::<MetloConfig>()
         .await?;
-
     let new_sensitive_data: Vec<SensitiveData> = resp
         .sensitive_data_list
         .iter()
-        .map(|e| match &e.regex {
-            Some(unwrapped_regex) => {
-                let regex = Regex::new(unwrapped_regex);
-                match regex {
-                    Ok(r) => Some(SensitiveData {
-                        sensitive_data_type: e.class_name.clone(),
-                        regex: r,
-                    }),
-                    Err(err) => {
-                        log::debug!(
-                            "Failed to Compile Regex \"{}\" - {}\n",
-                            e.class_name,
-                            err.to_string()
-                        );
-                        None
-                    }
-                }
+        .map(|e| match (&e.regex, &e.key_regex) {
+            (Some(regex), Some(key_regex)) => {
+                let _regex = Regex::new(regex);
+                let _key_regex = Regex::new(key_regex);
+                Some(SensitiveData {
+                    sensitive_data_type: e.class_name.clone(),
+                    regex: match _regex {
+                        Ok(r) => Some(r),
+                        Err(_) => None,
+                    },
+                    key_regex: match _key_regex {
+                        Ok(r) => Some(r),
+                        Err(_) => None,
+                    },
+                })
             }
-            None => None,
+            (Some(regex), None) => {
+                let _regex = Regex::new(regex);
+                Some(SensitiveData {
+                    sensitive_data_type: e.class_name.clone(),
+                    regex: match _regex {
+                        Ok(r) => Some(r),
+                        Err(_) => None,
+                    },
+                    key_regex: None,
+                })
+            }
+            (None, Some(key_regex)) => {
+                let _key_regex = Regex::new(key_regex);
+                Some(SensitiveData {
+                    sensitive_data_type: e.class_name.clone(),
+                    regex: None,
+                    key_regex: match _key_regex {
+                        Ok(r) => Some(r),
+                        Err(_) => None,
+                    },
+                })
+            }
+            (None, None) => {
+                log::debug!(
+                    "Missing both regex and key_regex fields in \"{}\"\n",
+                    e.class_name,
+                );
+                None
+            }
         })
         .flatten()
         .collect();

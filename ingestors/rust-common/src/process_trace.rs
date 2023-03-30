@@ -1,7 +1,7 @@
 use crate::{
     open_api::{find_open_api_diff, get_split_path, EndpointInfo},
     process_graphql::{process_graphql_body, process_graphql_query},
-    sensitive_data::detect_sensitive_data,
+    sensitive_data::{detect_sensitive_data, detect_sensitive_in_path_data},
     trace::{ApiResponse, ApiTrace, GraphQlData, KeyVal, ProcessTraceRes, ProcessTraceResInner},
     METLO_CONFIG,
 };
@@ -120,14 +120,17 @@ pub fn process_json_val(
         serde_json::Value::Null => {
             let resolved_path = fix_path(path, response_alias_map);
             insert_data_type(data_types, resolved_path.as_str(), "null".to_string());
+            process_path(path, resolved_path, sensitive_data_detected)
         }
         serde_json::Value::Bool(_) => {
             let resolved_path = fix_path(path, response_alias_map);
             insert_data_type(data_types, resolved_path.as_str(), "boolean".to_string());
+            process_path(path, resolved_path, sensitive_data_detected)
         }
         serde_json::Value::Number(_) => {
             let resolved_path = fix_path(path, response_alias_map);
             insert_data_type(data_types, resolved_path.as_str(), "number".to_string());
+            process_path(path, resolved_path, sensitive_data_detected)
         }
         serde_json::Value::String(e) => {
             let resolved_path = fix_path(path, response_alias_map);
@@ -156,6 +159,7 @@ pub fn process_json_val(
                     }
                 }
             }
+            process_path(path, resolved_path, sensitive_data_detected)
         }
         serde_json::Value::Array(ls) => {
             let limit = std::cmp::min(ls.len(), 10);
@@ -195,6 +199,27 @@ pub fn process_json_val(
                 );
 
                 path.truncate(old_len);
+            }
+        }
+    }
+}
+
+pub fn process_path(
+    path: &String,
+    resolved_path: String,
+    sensitive_data_detected: &mut HashMap<String, HashSet<String>>,
+) {
+    let sensitive_data_path = detect_sensitive_in_path_data(path.as_str());
+    if !sensitive_data_path.is_empty() {
+        let old_sensitive_data = sensitive_data_detected.get_mut(&resolved_path);
+        match old_sensitive_data {
+            None => {
+                sensitive_data_detected.insert(resolved_path.clone(), sensitive_data_path);
+            }
+            Some(old) => {
+                for e in sensitive_data_path {
+                    old.insert(e);
+                }
             }
         }
     }
@@ -392,7 +417,7 @@ fn process_key_val(prefix: String, vals: &Vec<KeyVal>) -> Option<ProcessTraceRes
             let old_sensitive_data = sensitive_data_detected.get_mut(&path);
             match old_sensitive_data {
                 None => {
-                    sensitive_data_detected.insert(path, sensitive_data);
+                    sensitive_data_detected.insert(path.clone(), sensitive_data);
                 }
                 Some(old) => {
                     for e in sensitive_data {
@@ -401,6 +426,7 @@ fn process_key_val(prefix: String, vals: &Vec<KeyVal>) -> Option<ProcessTraceRes
                 }
             }
         }
+        process_path(&path, path.clone(), &mut sensitive_data_detected);
     }
 
     Some(ProcessTraceResInner {
@@ -491,7 +517,7 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
     let mut endpoint_path: String = trace.request.url.path.clone();
     let split_path: Vec<&str> = get_split_path(&trace.request.url.path);
     let conf_read = METLO_CONFIG.try_read();
-    if let Ok(ref conf) = METLO_CONFIG.try_read() {
+    if let Ok(ref conf) = conf_read {
         if let Some(endpoints) = &conf.endpoints {
             let key = format!(
                 "{}-{}",

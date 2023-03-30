@@ -1,5 +1,5 @@
 use crate::{
-    process_trace::{insert_data_type, process_json_val},
+    process_trace::{insert_data_type, process_json_val, process_path},
     sensitive_data::detect_sensitive_data,
     trace::{
         GraphQlData, GraphQlRes, KeyVal, Operation, OperationItem, ProcessTraceResInner, Variable,
@@ -47,11 +47,21 @@ fn process_graphql_argument<'a>(
             }
         }
         schema::Value::Boolean(_) => {
-            insert_data_type(data_types, path.as_str(), "boolean".to_owned())
+            insert_data_type(data_types, path.as_str(), "boolean".to_owned());
+            process_path(&path, path.clone(), sensitive_data_detected);
         }
-        schema::Value::Float(_) => insert_data_type(data_types, path.as_str(), "number".to_owned()),
-        schema::Value::Int(_) => insert_data_type(data_types, path.as_str(), "number".to_owned()),
-        schema::Value::Null => insert_data_type(data_types, path.as_str(), "null".to_owned()),
+        schema::Value::Float(_) => {
+            insert_data_type(data_types, path.as_str(), "number".to_owned());
+            process_path(&path, path.clone(), sensitive_data_detected);
+        }
+        schema::Value::Int(_) => {
+            insert_data_type(data_types, path.as_str(), "number".to_owned());
+            process_path(&path, path.clone(), sensitive_data_detected);
+        }
+        schema::Value::Null => {
+            insert_data_type(data_types, path.as_str(), "null".to_owned());
+            process_path(&path, path.clone(), sensitive_data_detected);
+        }
         schema::Value::String(s) => {
             insert_data_type(data_types, path.as_str(), "string".to_owned());
             let text = s.as_str();
@@ -72,6 +82,7 @@ fn process_graphql_argument<'a>(
                     Some(old) => old.extend(sensitive_data),
                 }
             }
+            process_path(&path, path.clone(), sensitive_data_detected);
         }
         schema::Value::Enum(e) => {
             let s = &e.to_owned().to_owned();
@@ -94,6 +105,7 @@ fn process_graphql_argument<'a>(
                     Some(old) => old.extend(sensitive_data),
                 }
             }
+            process_path(&path, path.clone(), sensitive_data_detected);
         }
         schema::Value::List(ls) => {
             let limit = std::cmp::min(ls.len(), 10);
@@ -439,7 +451,7 @@ fn process_graphql_obj(m: &Map<String, Value>) -> Option<GraphQlRes> {
     let query = m.get("query");
     let default_map = Map::new();
     let variables_map: &Map<String, Value> = match m.get("variables") {
-        Some(v) => v.as_object().unwrap(),
+        Some(v) => v.as_object().unwrap_or(&default_map),
         None => &default_map,
     };
     let operation_name = match m.get("operationName") {

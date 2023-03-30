@@ -39,7 +39,7 @@ export const VALIDATION_FUNC_MAP: Record<any, (e: string) => boolean> = {
   [__DataClass_INTERNAL__.BRAZIL_CPF]: validateBrazilCPF,
 }
 
-export const scan = (text: any, dataClasses: DataClass[]): string[] => {
+export const scanValue = (text: any, dataClasses: DataClass[]): string[] => {
   const res: string[] = []
   let convertedText: string
   try {
@@ -52,20 +52,50 @@ export const scan = (text: any, dataClasses: DataClass[]): string[] => {
       if (STRING_ONLY_DATA_CLASSES.has(className) && typeof text !== "string") {
         return
       }
-      const r = new RegExp(exp)
-      const match = r.test(convertedText)
-      if (match) {
-        const validationFunc = VALIDATION_FUNC_MAP[className]
-        if (validationFunc) {
-          const matchArr = convertedText.match(r)
-          if (matchArr && validationFunc(matchArr[0])) {
-            res.push(className)
-          }
-        } else {
+      if (exp) {
+        const r = new RegExp(exp)
+        const matchedValue = r.test(convertedText)
+        const matchRes = returnMatch(matchedValue, className, convertedText, r)
+        if (matchRes) {
           res.push(className)
         }
       }
     }
   })
   return res
+}
+
+export const scanKey = (text: string, dataClasses: DataClass[]): string[] => {
+  const res: string[] = []
+  dataClasses.forEach(({ className, keyRegex: keyExp }) => {
+    if (keyExp) {
+      const keyMatch = new RegExp(keyExp)
+      const matchedKey = keyMatch.test(text)
+      const matchRes = returnMatch(matchedKey, className, text, keyMatch)
+      if (matchRes) {
+        res.push(className)
+      }
+    }
+  })
+  return res
+}
+
+const returnMatch = (
+  match: boolean,
+  className: string,
+  convertedText: string,
+  matcher: RegExp,
+): boolean => {
+  if (match) {
+    const validationFunc = VALIDATION_FUNC_MAP[className]
+    if (validationFunc) {
+      const matchArr = convertedText.match(matcher)
+      if (matchArr && validationFunc(matchArr[0])) {
+        return true
+      }
+    } else {
+      return true
+    }
+  }
+  return false
 }

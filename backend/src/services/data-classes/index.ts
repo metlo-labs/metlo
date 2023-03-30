@@ -78,12 +78,22 @@ export const getCombinedDataClasses = async (ctx: MetloContext) => {
       })
       .filter(v => v !== undefined)
     roughMap.forEach(v => {
-      const [key, { severity, patterns: regexList, ...rest1 }, ...rest] =
-        Object.entries(v)[0]
+      const [
+        key,
+        { severity, patterns: regexList, keyPatterns: keyRegexList, ...rest1 },
+        ...rest
+      ] = Object.entries(v)[0]
       userDefinedClassMap.push({
         className: key,
         severity: RiskScore[severity] as RiskScore,
-        regex: new RegExp(regexList.map(regex => `(${regex})`).join("|")),
+        regex:
+          regexList && regexList.length > 0
+            ? new RegExp(regexList.map(regex => `(${regex})`).join("|"))
+            : null,
+        keyRegex:
+          keyRegexList && keyRegexList.length > 0
+            ? new RegExp(keyRegexList.map(regex => `(${regex})`).join("|"))
+            : null,
       })
     })
   }
@@ -98,7 +108,16 @@ export const getCombinedDataClasses = async (ctx: MetloContext) => {
   })
   return [...metloDefinedClassMap, ...userDefinedClassMap].map(cls => {
     if (cls.regex) {
+      if (cls.keyRegex) {
+        return {
+          ...cls,
+          regex: cls.regex.source,
+          keyRegex: cls.keyRegex.source,
+        }
+      }
       return { ...cls, regex: cls.regex.source }
+    } else if (cls.keyRegex) {
+      return { ...cls, keyRegex: cls.keyRegex.source }
     } else {
       return {
         className: cls.className,
