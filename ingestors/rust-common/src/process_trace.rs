@@ -519,11 +519,15 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
     let conf_read = METLO_CONFIG.try_read();
     if let Ok(ref conf) = conf_read {
         if let Some(endpoints) = &conf.endpoints {
-            let key = format!(
-                "{}-{}",
-                trace.request.url.host,
-                trace.request.method.to_lowercase()
-            );
+            let mapped_host = conf
+                .host_mapping
+                .iter()
+                .find(|&h| h.pattern.is_match(&trace.request.url.host));
+            let curr_host = match mapped_host {
+                Some(h) => &h.host,
+                None => &trace.request.url.host,
+            };
+            let key = format!("{}-{}", curr_host, trace.request.method.to_lowercase());
             if let Some(matched_endpoints) = endpoints.get(&key) {
                 for endpoint in matched_endpoints.iter() {
                     if is_endpoint_match(&split_path, endpoint.path.clone()) {

@@ -10,7 +10,7 @@ import { MetloContext } from "types"
 import { createQB, getQB, insertValueBuilder } from "services/database/utils"
 import jsyaml from "js-yaml"
 import { decrypt, encrypt, generate_iv } from "utils/encryption"
-import { HostMappingCompiled, MetloConfigType } from "./types"
+import { HostMapping, HostMappingCompiled, MetloConfigType } from "./types"
 import { validateMetloConfig } from "./validate"
 import { populateAuthentication, populateBlockFields } from "./populate-tables"
 import { NodeCache } from "utils/node-cache"
@@ -84,6 +84,14 @@ export const getHostMapCached = async (
     host: e.host,
     pattern: new RegExp(e.pattern),
   }))
+}
+
+export const getHostMapNonCompiledCached = async (
+  ctx: MetloContext,
+  queryRunner?: QueryRunner,
+): Promise<HostMapping[]> => {
+  const conf = await getMetloConfigProcessedCached(ctx, queryRunner)
+  return conf?.hostMap ?? []
 }
 
 export const getHostBlockListCached = async (

@@ -59,6 +59,19 @@ pub struct MetloSpec {
 
 #[derive(Debug, Default, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct HostMapping {
+    pub host: String,
+    pub pattern: String,
+}
+
+#[derive(Debug)]
+pub struct HostMappingCompiled {
+    pub host: String,
+    pub pattern: Regex,
+}
+
+#[derive(Debug, Default, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct MetloConfig {
     pub sensitive_data_list: Vec<MetloSensitiveData>,
     pub endpoints: Vec<MetloEndpoint>,
@@ -70,6 +83,9 @@ pub struct MetloConfig {
 
     #[serde(default)]
     pub authentication_config: Vec<Authentication>,
+
+    #[serde(default)]
+    pub host_mapping: Vec<HostMapping>,
 }
 
 #[derive(Debug)]
@@ -85,6 +101,7 @@ pub struct GlobalConfig {
     pub encryption_public_key: Option<String>,
     pub authentication_config: Vec<Authentication>,
     pub hmac_key: Option<hmac::Key>,
+    pub host_mapping: Vec<HostMappingCompiled>,
 }
 
 pub struct ValidateRequestConnResp {
@@ -225,6 +242,17 @@ pub async fn pull_metlo_config() -> Result<(), Box<dyn std::error::Error>> {
         })
         .flatten()
         .collect();
+    let compiled_host_map: Vec<HostMappingCompiled> = resp
+        .host_mapping
+        .iter()
+        .filter_map(|h| match Regex::new(&h.pattern) {
+            Ok(r) => Some(HostMappingCompiled {
+                host: h.host.clone(),
+                pattern: r,
+            }),
+            Err(_) => None,
+        })
+        .collect();
     let compiled_specs = compile_specs(resp.specs);
     let endpoints_map = get_endpoints_map(resp.endpoints);
 
@@ -235,6 +263,7 @@ pub async fn pull_metlo_config() -> Result<(), Box<dyn std::error::Error>> {
     conf_write.global_full_trace_capture = resp.global_full_trace_capture;
     conf_write.encryption_public_key = resp.encryption_public_key;
     conf_write.authentication_config = resp.authentication_config;
+    conf_write.host_mapping = compiled_host_map;
 
     Ok(())
 }

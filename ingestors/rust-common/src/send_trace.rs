@@ -426,10 +426,18 @@ pub async fn send_api_trace(trace: ApiTrace, processed_trace: (ProcessTraceRes, 
         let host = trace.request.url.host.clone();
         let method = trace.request.method.clone();
         let global_full_trace_capture = conf.global_full_trace_capture || processed_trace.1;
+        let mapped_host = conf
+            .host_mapping
+            .iter()
+            .find(|&h| h.pattern.is_match(&trace.request.url.host));
+        let curr_host = match mapped_host {
+            Some(h) => &h.host,
+            None => &trace.request.url.host,
+        };
         let authentication = conf
             .authentication_config
             .iter()
-            .find(|e| e.host == trace.request.url.host);
+            .find(|e| e.host.as_str() == curr_host);
         let resp = send_trace_inner(
             collector_log_endpoint.as_str(),
             &conf.creds.clone().unwrap_or_default().api_key,

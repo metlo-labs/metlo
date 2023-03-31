@@ -38,6 +38,7 @@ lazy_static! {
         encryption_public_key: None,
         authentication_config: vec![],
         hmac_key: None,
+        host_mapping: vec![],
     });
 }
 
