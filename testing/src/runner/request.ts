@@ -56,6 +56,7 @@ export const makeRequest = (
           ctx.envVars,
         )}`,
     )
+    .filter(e => !e.startsWith("<<") && !e.endsWith(">>"))
     .join("&")
   const currUrlCookies = ctx.cookies[host] || {}
   const headers: Record<string, string> = Object.fromEntries(
