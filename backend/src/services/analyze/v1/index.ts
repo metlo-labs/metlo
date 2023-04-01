@@ -6,6 +6,7 @@ import { RedisClient } from "utils/redis"
 import {
   TRACE_IN_MEM_EXPIRE_SEC,
   TRACE_IN_MEM_RETENTION_COUNT,
+  TRACE_PATH_IN_MEM_RETENTION_COUNT,
 } from "~/constants"
 import { QueryRunner } from "typeorm"
 import { QueuedApiTrace } from "@common/types"
@@ -68,7 +69,9 @@ export const analyze = async (
 
   const startRedact = performance.now()
   const globalFullTraceCapture = await getGlobalFullTraceCaptureCached(ctx)
-  const redact = !(globalFullTraceCapture || apiEndpoint.fullTraceCaptureEnabled)
+  const redact = !(
+    globalFullTraceCapture || apiEndpoint.fullTraceCaptureEnabled
+  )
   mlog.time("analyzer.find_should_redact", performance.now() - startRedact)
   mlog.debug(`Analyzing Trace - Found should redact: ${traceUUID}`)
 
@@ -149,6 +152,21 @@ export const analyze = async (
   ])
   RedisClient.ltrim(ctx, endpointTraceKey, 0, TRACE_IN_MEM_RETENTION_COUNT - 1)
   RedisClient.expire(ctx, endpointTraceKey, TRACE_IN_MEM_EXPIRE_SEC)
+
+  if (!apiEndpoint.userSet) {
+    const endpointPathKey = `endpointPaths:e#${apiEndpoint.uuid}`
+    RedisClient.pushValueToRedisList(ctx, endpointPathKey, [
+      filteredApiTrace.path,
+    ])
+    RedisClient.ltrim(
+      ctx,
+      endpointTraceKey,
+      0,
+      TRACE_PATH_IN_MEM_RETENTION_COUNT - 1,
+    )
+    RedisClient.expire(ctx, endpointPathKey, TRACE_IN_MEM_EXPIRE_SEC)
+  }
+
   mlog.time(
     "analyzer.insert_api_trace_redis",
     performance.now() - startTraceRedis,

@@ -1,20 +1,19 @@
 import mlog from "logger"
 import { AppDataSource } from "data-source"
-import { ApiEndpoint, ApiTrace } from "models"
-import { getEntityManager, getQB } from "services/database/utils"
+import { ApiEndpoint } from "models"
+import { getQB } from "services/database/utils"
 import { updatePaths } from "services/get-endpoints/path-heuristic"
-import { QueryRunner } from "typeorm"
 import { MetloContext } from "types"
 import countBy from "lodash/countBy"
 import { getMinAnalyzeTracesCached } from "services/metlo-config"
+import { RedisClient } from "utils/redis"
 
 enum TokenType {
   CONSTANT,
   PARAM,
 }
 const paramRegexp = new RegExp("{param[0-9]+}")
-const validTokenRegexp = new RegExp("^[A-Za-z-_\.]+$")
-const MAX_ANALYZE_TRACES = 20000
+const validTokenRegexp = new RegExp("^[A-Za-z-_.]+$")
 const MIN_CONST_RATIO = 0.3
 
 const sanitizePath = (path: string) => {
@@ -31,22 +30,13 @@ const fixEndpoint = async (
   ctx: MetloContext,
   endpoint: ApiEndpoint,
   minAnalyzeTraces: number,
-  queryRunner: QueryRunner,
 ): Promise<void> => {
   let currentEndpointPath = sanitizePath(endpoint.path)
-  const traces = await getEntityManager(ctx, queryRunner).find(ApiTrace, {
-    select: {
-      path: true,
-    },
-    where: {
-      apiEndpointUuid: endpoint.uuid,
-    },
-    order: {
-      createdAt: "DESC",
-    },
-    take: MAX_ANALYZE_TRACES,
-  })
-  if (traces.length < minAnalyzeTraces) {
+  const endpointPathKey = `endpointPaths:e#${endpoint.uuid}`
+  const tracePaths =
+    (await RedisClient.lrange(ctx, endpointPathKey, 0, -1)) || []
+
+  if (tracePaths.length < minAnalyzeTraces) {
     return
   }
 
@@ -54,8 +44,8 @@ const fixEndpoint = async (
   const currentEndpointTokenTypes = currentEndpointTokens.map(e =>
     e.match(paramRegexp) ? TokenType.PARAM : TokenType.CONSTANT,
   )
-  const tokenizedTraces = traces
-    .map(t => sanitizePath(t.path).split("/"))
+  const tokenizedTraces = tracePaths
+    .map(t => sanitizePath(t).split("/"))
     .filter(t => t.length == currentEndpointTokens.length)
 
   const getPaths = (
@@ -133,7 +123,7 @@ const fixEndpoints = async (ctx: MetloContext): Promise<boolean> => {
       .getRawMany()
     for (const endpoint of endpoints) {
       if (!endpoint.userSet) {
-        await fixEndpoint(ctx, endpoint, minAnalyzeTraces, queryRunner)
+        await fixEndpoint(ctx, endpoint, minAnalyzeTraces)
       }
     }
     return true
