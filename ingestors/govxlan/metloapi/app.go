@@ -132,6 +132,9 @@ func (m *Metlo) Send(data MetloTrace) {
 }
 
 func (m *Metlo) Allow() bool {
+	if m.localProcess {
+		return true
+	}
 	m.mu.Lock()
 	tmp_ts := make([]int64, 0, 10)
 	now := time.Now()
