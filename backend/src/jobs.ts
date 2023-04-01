@@ -73,10 +73,7 @@ const createQueue = (jobName: JobName) => {
 
 const main = async () => {
   const specQueue = createQueue(JobName.GENERATE_OPENAPI_SPEC)
-  const unauthQueue = createQueue(JobName.CHECK_UNAUTH_ENDPOINTS)
-  const monitorEndpointsHstsQueue = createQueue(JobName.MONITOR_ENDPOINT_HSTS)
   const clearApiTracesQueue = createQueue(JobName.CLEAR_API_TRACES)
-  const updateEndpointIpsQueue = createQueue(JobName.UPDATE_ENDPOINT_IPS)
   const logAggregatedStatsQueue = createQueue(JobName.LOG_AGGREGATED_STATS)
   const fixEndpointsQueue = createQueue(JobName.FIX_ENDPOINTS)
   const detectSensitiveDataQueue = createQueue(JobName.DETECT_SENSITIVE_DATA)
@@ -84,10 +81,7 @@ const main = async () => {
 
   const queues: QueueInterface[] = [
     specQueue,
-    unauthQueue,
-    monitorEndpointsHstsQueue,
     clearApiTracesQueue,
-    updateEndpointIpsQueue,
     logAggregatedStatsQueue,
     fixEndpointsQueue,
     detectSensitiveDataQueue,
@@ -102,35 +96,11 @@ const main = async () => {
     )
   })
 
-  schedule.scheduleJob("30 * * * *", async () => {
-    await unauthQueue.add(
-      `${JobName.CHECK_UNAUTH_ENDPOINTS}`,
-      {},
-      { ...defaultJobOptions, jobId: JobName.CHECK_UNAUTH_ENDPOINTS },
-    )
-  })
-
-  schedule.scheduleJob("15 * * * *", async () => {
-    await monitorEndpointsHstsQueue.add(
-      `${JobName.MONITOR_ENDPOINT_HSTS}`,
-      {},
-      { ...defaultJobOptions, jobId: JobName.MONITOR_ENDPOINT_HSTS },
-    )
-  })
-
   schedule.scheduleJob("*/10 * * * *", async () => {
     await clearApiTracesQueue.add(
       `${JobName.CLEAR_API_TRACES}`,
       {},
       { ...defaultJobOptions, jobId: JobName.CLEAR_API_TRACES },
-    )
-  })
-
-  schedule.scheduleJob("0 */4 * * *", async () => {
-    await updateEndpointIpsQueue.add(
-      `${JobName.UPDATE_ENDPOINT_IPS}`,
-      {},
-      { ...defaultJobOptions, jobId: JobName.UPDATE_ENDPOINT_IPS },
     )
   })
 

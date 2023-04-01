@@ -16,19 +16,6 @@ export const aggregateTracesDataHourlyQuery = (ctx: MetloContext) => `
   DO UPDATE SET "numCalls" = EXCLUDED."numCalls" + aggregate_trace_data_hourly."numCalls"
 `
 
-export const updateUnauthenticatedEndpoints = (ctx: MetloContext) => `
-  UPDATE api_endpoint
-  SET "isAuthenticatedDetected" = FALSE
-  WHERE uuid IN (
-    SELECT
-      DISTINCT("apiEndpointUuid")
-    FROM ${ApiTrace.getTableName(ctx)} api_trace
-    WHERE
-      "sessionMeta" ->> 'authenticationProvided' = 'false'
-      AND "sessionMeta" ->> 'authenticationSuccessful' = 'true'
-  )
-`
-
 export const getUnauthenticatedEndpointsSensitiveData = (ctx: MetloContext) => `
   With endpoints AS (
     SELECT DISTINCT

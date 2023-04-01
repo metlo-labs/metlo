@@ -441,8 +441,8 @@ export class SpecService {
         if (similarEndpointUuids.length > 0) {
           await getEntityManager(ctx, queryRunner).save(item.endpoint)
           const updateTracesQb = getQB(ctx, queryRunner)
-            .update(ApiTrace)
-            .set({ apiEndpointUuid: item.endpoint.uuid })
+            .delete()
+            .from(ApiTrace)
             .andWhere(`"apiEndpointUuid" IN(:...ids)`, {
               ids: similarEndpointUuids,
             })

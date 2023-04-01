@@ -1,16 +1,13 @@
 import mlog from "logger"
 import { Job } from "bull"
 import { AppDataSource } from "data-source"
-import checkForUnauthenticatedEndpoints from "./check-unauthenticated-endpoints"
 import clearApiTraces from "./clear-api-traces"
 import { JOB_NAME_MAP } from "./constants"
 import generateOpenApiSpec from "./generate-openapi-spec"
-import monitorEndpointForHSTS from "./monitor-endpoint-hsts"
 import fixEndpoints from "./fix-endpoints"
 import detectSensitiveData from "./detect-sensitive-data"
 import { JobName } from "./types"
 import { wrapProcessor } from "./wrap-processor"
-import { updateEndpointIps } from "analyze/jobs"
 import { logAggregatedStats } from "services/logging"
 import { detectPrivateHosts } from "./detect-private-hosts"
 
@@ -32,17 +29,8 @@ const processor = async (job: Job, done) => {
     case JobName.GENERATE_OPENAPI_SPEC:
       success = await generateOpenApiSpec(ctx)
       break
-    case JobName.CHECK_UNAUTH_ENDPOINTS:
-      success = await checkForUnauthenticatedEndpoints(ctx)
-      break
-    case JobName.MONITOR_ENDPOINT_HSTS:
-      success = await monitorEndpointForHSTS(ctx)
-      break
     case JobName.CLEAR_API_TRACES:
       success = await clearApiTraces(ctx)
-      break
-    case JobName.UPDATE_ENDPOINT_IPS:
-      success = await updateEndpointIps(ctx)
       break
     case JobName.LOG_AGGREGATED_STATS:
       success = await logAggregatedStats(ctx)
