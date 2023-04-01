@@ -38,6 +38,7 @@ pub struct ApiMeta {
     pub source_port: u16,
     pub destination: String,
     pub destination_port: u16,
+    pub original_source: Option<String>,
 }
 
 #[derive(Deserialize, Debug, Serialize)]

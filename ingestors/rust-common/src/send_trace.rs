@@ -21,7 +21,7 @@ use rsa::{pkcs8::DecodePublicKey, Oaep, PublicKey, RsaPublicKey};
 use crate::{
     metlo_config::Authentication,
     trace::{
-        ApiRequest, ApiResponse, ApiTrace, ApiUrl, Encryption, KeyVal, ProcessTraceRes,
+        ApiMeta, ApiRequest, ApiResponse, ApiTrace, ApiUrl, Encryption, KeyVal, ProcessTraceRes,
         ProcessedApiTrace, SessionMeta,
     },
     METLO_CONFIG,
@@ -342,6 +342,18 @@ fn encrypt_trace(
     }
 }
 
+fn get_x_forwarded_for(headers: &Vec<KeyVal>) -> Option<String> {
+    headers
+        .iter()
+        .find(|e| e.name.to_lowercase() == "x-forwarded-for")
+        .and_then(|e| {
+            e.value
+                .split(',')
+                .nth(0)
+                .and_then(|item| Some(item.trim().to_owned()))
+        })
+}
+
 async fn send_trace_inner(
     collector_log_url: &str,
     api_key: &str,
@@ -356,7 +368,8 @@ async fn send_trace_inner(
     let session_meta = get_session_metadata(authentication, hmac_key, &trace);
     match url_res {
         Ok(url) => {
-            let req_body: ProcessedApiTrace = match trace_capture_enabled {
+            let x_forwarded_for = get_x_forwarded_for(trace.request.headers.as_ref());
+            let mut req_body: ProcessedApiTrace = match trace_capture_enabled {
                 true => encrypt_trace(
                     trace,
                     processed_trace,
@@ -390,6 +403,18 @@ async fn send_trace_inner(
                     session_meta: Some(session_meta),
                 },
             };
+
+            if let (Some(e), Some(m)) = (x_forwarded_for, &req_body.meta) {
+                req_body.meta = Some(ApiMeta {
+                    environment: m.environment.clone(),
+                    incoming: m.incoming,
+                    source: e,
+                    source_port: m.source_port,
+                    destination: m.destination.clone(),
+                    destination_port: m.destination_port,
+                    original_source: Some(m.source.clone()),
+                })
+            }
             let resp = CLIENT
                 .post(url)
                 .header("authorization", api_key)

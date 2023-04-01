@@ -23,6 +23,7 @@ export interface Meta {
   sourcePort: string
   destination: string
   destinationPort: string
+  originalSource?: string
 }
 
 export interface SessionMeta {
