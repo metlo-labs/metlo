@@ -105,6 +105,24 @@ export class RedisClient {
     }
   }
 
+  public static async pushToListPipeline(
+    ctx: MetloContext,
+    key: string,
+    data: (string | number | Buffer)[],
+    maxItems: number,
+    expSecs: number,
+  ) {
+    try {
+        const pipeline = this.getInstance().pipeline()
+        pipeline.lpush(key, ...data)
+        pipeline.ltrim(key, 0, maxItems - 1)
+        pipeline.expire(key, expSecs)
+        await pipeline.exec()
+    } catch (err) {
+      mlog.withErr(err).error("Error pushing value to redis list pipeline")
+    }
+  }
+
   public static async popValueFromRedisList(
     ctx: MetloContext,
     key: string,
