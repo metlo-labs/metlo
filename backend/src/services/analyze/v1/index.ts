@@ -159,16 +159,13 @@ export const analyze = async (
 
   if (!apiEndpoint.userSet) {
     const endpointPathKey = `endpointPaths:e#${apiEndpoint.uuid}`
-    await RedisClient.pushValueToRedisList(ctx, endpointPathKey, [
-      filteredApiTrace.path,
-    ])
-    await RedisClient.ltrim(
+    await RedisClient.pushToListPipeline(
       ctx,
-      endpointTraceKey,
-      0,
-      TRACE_PATH_IN_MEM_RETENTION_COUNT - 1,
+      endpointPathKey,
+      [filteredApiTrace.path],
+      TRACE_PATH_IN_MEM_RETENTION_COUNT,
+      TRACE_IN_MEM_EXPIRE_SEC,
     )
-    await RedisClient.expire(ctx, endpointPathKey, TRACE_IN_MEM_EXPIRE_SEC)
   }
 
   mlog.time(
