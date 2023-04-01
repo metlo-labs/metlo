@@ -24,6 +24,7 @@ import { getSensitiveDataMap } from "services/scanner/v2/analyze-trace"
 import { getCombinedDataClassesCached } from "services/data-classes"
 import { findOpenApiSpecDiff } from "services/spec/v2"
 import { shouldUpdateEndpoint, updateDataFields } from "analyze-traces"
+import { AnalysisType } from "@common/enums"
 
 export const analyze = async (
   ctx: MetloContext,
@@ -128,14 +129,21 @@ export const analyze = async (
 
   const startTraceRedis = performance.now()
   const endpointTraceKey = `endpointTraces:e#${apiEndpoint.uuid}`
-  await RedisClient.pushValueToRedisList(ctx, endpointTraceKey, [
-    JSON.stringify({
-      ...filteredApiTrace,
-      sensitiveDataMap,
-    }),
-  ])
-  await RedisClient.ltrim(ctx, endpointTraceKey, 0, TRACE_IN_MEM_RETENTION_COUNT - 1)
-  await RedisClient.expire(ctx, endpointTraceKey, TRACE_IN_MEM_EXPIRE_SEC)
+  if (trace.analysisType === AnalysisType.FULL) {
+    await RedisClient.pushValueToRedisList(ctx, endpointTraceKey, [
+      JSON.stringify({
+        ...filteredApiTrace,
+        sensitiveDataMap,
+      }),
+    ])
+    await RedisClient.ltrim(
+      ctx,
+      endpointTraceKey,
+      0,
+      TRACE_IN_MEM_RETENTION_COUNT - 1,
+    )
+    await RedisClient.expire(ctx, endpointTraceKey, TRACE_IN_MEM_EXPIRE_SEC)
+  }
 
   if (!apiEndpoint.userSet) {
     const endpointPathKey = `endpointPaths:e#${apiEndpoint.uuid}`
