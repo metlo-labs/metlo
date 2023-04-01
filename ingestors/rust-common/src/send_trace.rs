@@ -24,7 +24,7 @@ use crate::{
         ApiMeta, ApiRequest, ApiResponse, ApiTrace, ApiUrl, Encryption, KeyVal, ProcessTraceRes,
         ProcessedApiTrace, SessionMeta,
     },
-    METLO_CONFIG,
+    TraceInfo, METLO_CONFIG,
 };
 
 pub struct LogTraceResp {
@@ -342,16 +342,11 @@ fn encrypt_trace(
     }
 }
 
-fn get_x_forwarded_for(headers: &Vec<KeyVal>) -> Option<String> {
+fn get_x_forwarded_for(headers: &[KeyVal]) -> Option<String> {
     headers
         .iter()
         .find(|e| e.name.to_lowercase() == "x-forwarded-for")
-        .and_then(|e| {
-            e.value
-                .split(',')
-                .nth(0)
-                .and_then(|item| Some(item.trim().to_owned()))
-        })
+        .and_then(|e| e.value.split(',').next().map(|item| item.trim().to_owned()))
 }
 
 async fn send_trace_inner(
@@ -440,7 +435,11 @@ async fn send_trace_inner(
     }
 }
 
-pub async fn send_api_trace(trace: ApiTrace, processed_trace: (ProcessTraceRes, bool)) {
+pub async fn send_api_trace(
+    trace: ApiTrace,
+    processed_trace: ProcessTraceRes,
+    trace_info: &TraceInfo,
+) {
     let conf_read = METLO_CONFIG.try_read();
     if let Ok(ref conf) = conf_read {
         let collector_log_endpoint = format!(
@@ -450,16 +449,17 @@ pub async fn send_api_trace(trace: ApiTrace, processed_trace: (ProcessTraceRes, 
         let path = trace.request.url.path.clone();
         let host = trace.request.url.host.clone();
         let method = trace.request.method.clone();
-        let global_full_trace_capture = conf.global_full_trace_capture || processed_trace.1;
+        let global_full_trace_capture =
+            conf.global_full_trace_capture || trace_info.full_trace_capture_enabled;
         let authentication = conf
             .authentication_config
             .iter()
-            .find(|e| e.host == trace.request.url.host);
+            .find(|e| e.host == trace_info.current_host);
         let resp = send_trace_inner(
             collector_log_endpoint.as_str(),
             &conf.creds.clone().unwrap_or_default().api_key,
             trace,
-            processed_trace.0,
+            processed_trace,
             global_full_trace_capture,
             conf.encryption_public_key.clone(),
             authentication,

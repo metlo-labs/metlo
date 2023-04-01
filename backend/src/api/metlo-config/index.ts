@@ -3,7 +3,10 @@ import { UpdateMetloConfigParams } from "@common/types"
 import {
   getAuthenticationConfig,
   getGlobalFullTraceCaptureCached,
+  getHostBlockListCached,
+  getHostMapCached,
   getMetloConfig,
+  getPathBlockListCached,
   updateMetloConfig,
 } from "services/metlo-config"
 import ApiResponseHandler from "api-response-handler"
@@ -107,6 +110,9 @@ export const getAgentConfigHandler = async (
       req.ctx,
     )
     const authenticationConfig = await getAuthenticationConfig(req.ctx)
+    const hostMap = await getHostMapCached(req.ctx, queryRunner)
+    const hostBlockList = await getHostBlockListCached(req.ctx, queryRunner)
+    const pathBlockList = await getPathBlockListCached(req.ctx, queryRunner)
     const data = {
       sensitiveDataList: dataClassInfo,
       endpoints: endpointInfo,
@@ -114,6 +120,9 @@ export const getAgentConfigHandler = async (
       globalFullTraceCapture,
       authenticationConfig,
       encryptionPublicKey: null,
+      hostMap,
+      hostBlockList,
+      pathBlockList,
     }
     await RedisClient.addToRedis(req.ctx, "agentConfigCached", data, 30)
     await ApiResponseHandler.success(res, data)

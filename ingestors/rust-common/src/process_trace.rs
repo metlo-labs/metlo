@@ -1,9 +1,9 @@
 use crate::{
-    open_api::{find_open_api_diff, get_split_path, EndpointInfo},
+    open_api::{find_open_api_diff, EndpointInfo},
     process_graphql::{process_graphql_body, process_graphql_query},
     sensitive_data::{detect_sensitive_data, detect_sensitive_in_path_data},
     trace::{ApiResponse, ApiTrace, GraphQlData, KeyVal, ProcessTraceRes, ProcessTraceResInner},
-    METLO_CONFIG,
+    TraceInfo,
 };
 use libinjection::{sqli, xss};
 use multipart::server::Multipart;
@@ -12,23 +12,6 @@ use std::{
     collections::{HashMap, HashSet},
     io::BufRead,
 };
-
-fn is_endpoint_match(trace_tokens: &Vec<&str>, endpoint_path: String) -> bool {
-    let endpoint_tokens = get_split_path(&endpoint_path);
-    if trace_tokens.len() != endpoint_tokens.len() {
-        return false;
-    }
-
-    for (i, endpoint_token) in endpoint_tokens.into_iter().enumerate() {
-        let trace_token = trace_tokens[i];
-        if endpoint_token != trace_token
-            && (!endpoint_token.starts_with('{') && !endpoint_token.ends_with('}'))
-        {
-            return false;
-        }
-    }
-    true
-}
 
 pub fn insert_data_type(
     data_types: &mut HashMap<String, HashSet<String>>,
@@ -499,7 +482,7 @@ fn combine_process_trace_res(
     }
 }
 
-pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
+pub fn process_api_trace(trace: &ApiTrace, trace_info: &TraceInfo) -> ProcessTraceRes {
     let req_content_type = get_content_type(&trace.request.headers);
     let req_mime_type = get_mime_type(req_content_type);
     let non_error_status_code = match &trace.response {
@@ -511,37 +494,9 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
         _ => false,
     };
 
-    let mut openapi_spec_name: Option<String> = None;
-    let mut full_trace_capture_enabled: bool = false;
-    let mut is_graph_ql: bool = trace.request.url.path.ends_with("/graphql");
-    let mut endpoint_path: String = trace.request.url.path.clone();
-    let split_path: Vec<&str> = get_split_path(&trace.request.url.path);
-    let conf_read = METLO_CONFIG.try_read();
-    if let Ok(ref conf) = conf_read {
-        if let Some(endpoints) = &conf.endpoints {
-            let key = format!(
-                "{}-{}",
-                trace.request.url.host,
-                trace.request.method.to_lowercase()
-            );
-            if let Some(matched_endpoints) = endpoints.get(&key) {
-                for endpoint in matched_endpoints.iter() {
-                    if is_endpoint_match(&split_path, endpoint.path.clone()) {
-                        openapi_spec_name = endpoint.openapi_spec_name.to_owned();
-                        full_trace_capture_enabled = endpoint.full_trace_capture_enabled;
-                        endpoint_path = endpoint.path.clone();
-                        is_graph_ql = endpoint.is_graph_ql;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    drop(conf_read);
-
     let proc_graph_ql = match (
         non_error_status_code,
-        is_graph_ql,
+        trace_info.is_graph_ql,
         trace.request.method.to_lowercase().as_str(),
     ) {
         (true, true, "post") => process_graphql_body(&trace.request.body),
@@ -551,7 +506,7 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
     let proc_req_body = match (
         non_error_status_code,
         !trace.request.body.is_empty(),
-        !is_graph_ql,
+        !trace_info.is_graph_ql,
     ) {
         (true, true, true) => process_body(
             "reqBody".to_string(),
@@ -566,7 +521,7 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
         ),
         _ => None,
     };
-    let proc_req_params = match (non_error_status_code, !is_graph_ql) {
+    let proc_req_params = match (non_error_status_code, !trace_info.is_graph_ql) {
         (true, true) => process_key_val("reqQuery".to_string(), &trace.request.url.parameters),
         _ => None,
     };
@@ -588,8 +543,8 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
                 resp_mime_type,
                 trace,
                 EndpointInfo {
-                    openapi_spec_name,
-                    endpoint_path,
+                    openapi_spec_name: trace_info.openapi_spec_name.clone(),
+                    endpoint_path: trace_info.endpoint_path.clone(),
                 },
                 proc_graph_ql.as_ref().map(|f| &f.response_alias_map),
             )
@@ -600,28 +555,25 @@ pub fn process_api_trace(trace: &ApiTrace) -> (ProcessTraceRes, bool) {
                 mime::TEXT_PLAIN,
                 trace,
                 EndpointInfo {
-                    openapi_spec_name,
-                    endpoint_path,
+                    openapi_spec_name: trace_info.openapi_spec_name.clone(),
+                    endpoint_path: trace_info.endpoint_path.clone(),
                 },
                 proc_graph_ql.as_ref().map(|f| &f.response_alias_map),
             )
         }
     };
 
-    (
-        combine_process_trace_res(
-            &[
-                proc_req_body,
-                proc_req_params,
-                proc_req_headers,
-                proc_resp_body,
-                proc_resp_headers,
-                proc_graph_ql.as_ref().map(|f| f.proc_trace_res.to_owned()),
-            ],
-            req_content_type,
-            resp_content_type,
-            proc_graph_ql.as_ref().map(|f| f.graph_ql_data.to_owned()),
-        ),
-        full_trace_capture_enabled,
+    combine_process_trace_res(
+        &[
+            proc_req_body,
+            proc_req_params,
+            proc_req_headers,
+            proc_resp_body,
+            proc_resp_headers,
+            proc_graph_ql.as_ref().map(|f| f.proc_trace_res.to_owned()),
+        ],
+        req_content_type,
+        resp_content_type,
+        proc_graph_ql.as_ref().map(|f| f.graph_ql_data.to_owned()),
     )
 }

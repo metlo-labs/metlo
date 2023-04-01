@@ -10,6 +10,16 @@ export interface HostMappingCompiled {
   pattern: RegExp
 }
 
+export interface PathBlockList {
+  host: string
+  paths: string[]
+}
+
+export interface PathBlockListCompiled {
+  host: RegExp
+  paths: RegExp[]
+}
+
 export interface MetloConfigType {
   globalFullTraceCapture?: boolean
   minAnalyzeTraces?: number
@@ -17,4 +27,5 @@ export interface MetloConfigType {
   authentication?: AuthenticationConfig[]
   customWords?: string[]
   hostBlockList?: string[]
+  pathBlockList?: PathBlockList[]
 }
