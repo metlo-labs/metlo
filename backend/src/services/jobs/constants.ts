@@ -12,11 +12,6 @@ export const JOB_NAME_MAP: Record<JobName, JobMap> = {
     end: "Finished generating OpenAPI Spec Files",
     threshold: 1000 * 60 * 55,
   },
-  [JobName.CHECK_UNAUTH_ENDPOINTS]: {
-    start: "Checking for Unauthenticated Endpoint...",
-    end: "Finished checking for Unauthenticated Endpoints",
-    threshold: 300_000,
-  },
   [JobName.CLEAR_API_TRACES]: {
     start: "Clearing Api Trace data...",
     end: "Finished clearing Api Trace data",

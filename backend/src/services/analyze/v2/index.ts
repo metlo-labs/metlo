@@ -5,6 +5,7 @@ import { RedisClient } from "utils/redis"
 import {
   TRACE_IN_MEM_EXPIRE_SEC,
   TRACE_IN_MEM_RETENTION_COUNT,
+  TRACE_PATH_IN_MEM_RETENTION_COUNT,
 } from "~/constants"
 import { QueryRunner } from "typeorm"
 import { QueuedApiTrace } from "@common/types"
@@ -127,14 +128,29 @@ export const analyze = async (
 
   const startTraceRedis = performance.now()
   const endpointTraceKey = `endpointTraces:e#${apiEndpoint.uuid}`
-  RedisClient.pushValueToRedisList(ctx, endpointTraceKey, [
+  await RedisClient.pushValueToRedisList(ctx, endpointTraceKey, [
     JSON.stringify({
       ...filteredApiTrace,
       sensitiveDataMap,
     }),
   ])
-  RedisClient.ltrim(ctx, endpointTraceKey, 0, TRACE_IN_MEM_RETENTION_COUNT - 1)
-  RedisClient.expire(ctx, endpointTraceKey, TRACE_IN_MEM_EXPIRE_SEC)
+  await RedisClient.ltrim(ctx, endpointTraceKey, 0, TRACE_IN_MEM_RETENTION_COUNT - 1)
+  await RedisClient.expire(ctx, endpointTraceKey, TRACE_IN_MEM_EXPIRE_SEC)
+
+  if (!apiEndpoint.userSet) {
+    const endpointPathKey = `endpointPaths:e#${apiEndpoint.uuid}`
+    await RedisClient.pushValueToRedisList(ctx, endpointPathKey, [
+      filteredApiTrace.path,
+    ])
+    await RedisClient.ltrim(
+      ctx,
+      endpointTraceKey,
+      0,
+      TRACE_PATH_IN_MEM_RETENTION_COUNT - 1,
+    )
+    await RedisClient.expire(ctx, endpointPathKey, TRACE_IN_MEM_EXPIRE_SEC)
+  }
+
   mlog.time(
     "analyzer.insert_api_trace_redis",
     performance.now() - startTraceRedis,

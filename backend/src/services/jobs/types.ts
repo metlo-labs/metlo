@@ -30,7 +30,6 @@ export interface Responses {
 
 export enum JobName {
   GENERATE_OPENAPI_SPEC = "generate_openapi_spec",
-  CHECK_UNAUTH_ENDPOINTS = "check_unauth_endpoints",
   CLEAR_API_TRACES = "clear_api_traces",
   LOG_AGGREGATED_STATS = "log_aggregated_stats",
   FIX_ENDPOINTS = "fix_endpoints",

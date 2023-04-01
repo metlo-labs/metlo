@@ -73,7 +73,6 @@ const createQueue = (jobName: JobName) => {
 
 const main = async () => {
   const specQueue = createQueue(JobName.GENERATE_OPENAPI_SPEC)
-  const unauthQueue = createQueue(JobName.CHECK_UNAUTH_ENDPOINTS)
   const clearApiTracesQueue = createQueue(JobName.CLEAR_API_TRACES)
   const logAggregatedStatsQueue = createQueue(JobName.LOG_AGGREGATED_STATS)
   const fixEndpointsQueue = createQueue(JobName.FIX_ENDPOINTS)
@@ -82,7 +81,6 @@ const main = async () => {
 
   const queues: QueueInterface[] = [
     specQueue,
-    unauthQueue,
     clearApiTracesQueue,
     logAggregatedStatsQueue,
     fixEndpointsQueue,
@@ -95,14 +93,6 @@ const main = async () => {
       `${JobName.GENERATE_OPENAPI_SPEC}`,
       {},
       { ...defaultJobOptions, jobId: JobName.GENERATE_OPENAPI_SPEC },
-    )
-  })
-
-  schedule.scheduleJob("30 * * * *", async () => {
-    await unauthQueue.add(
-      `${JobName.CHECK_UNAUTH_ENDPOINTS}`,
-      {},
-      { ...defaultJobOptions, jobId: JobName.CHECK_UNAUTH_ENDPOINTS },
     )
   })
 

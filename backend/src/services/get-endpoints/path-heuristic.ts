@@ -1,15 +1,14 @@
 import mlog from "logger"
 import { Brackets, QueryRunner } from "typeorm"
 import { v4 as uuidv4 } from "uuid"
-import { AlertType, RestMethod, RiskScore } from "@common/enums"
+import { RestMethod, RiskScore } from "@common/enums"
 import { getPathTokens } from "@common/utils"
 import { AppDataSource } from "data-source"
 import Error400BadRequest from "errors/error-400-bad-request"
-import { Alert, ApiEndpoint, ApiTrace } from "models"
+import { Alert, ApiEndpoint } from "models"
 import {
   getEntityManager,
   getQB,
-  getRepository,
   insertValueBuilder,
 } from "services/database/utils"
 import { MetloContext } from "types"
@@ -22,8 +21,8 @@ import {
 import Error404NotFound from "errors/error-404-not-found"
 import { GetEndpointsService } from "."
 import { createNewEndpointAlert } from "services/alert/new-endpoint"
+import { RedisClient } from "utils/redis"
 
-const TRACE_LIMIT = 10_000
 const THRESHOLD = 0.1
 
 interface EndpointsMap {
@@ -31,10 +30,10 @@ interface EndpointsMap {
   similarEndpoints: Record<string, ApiEndpoint>
 }
 
-const getCounterMap = (traces: ApiTrace[]) => {
+const getCounterMap = (tracePaths: string[]) => {
   const counterMap = {}
-  for (const trace of traces) {
-    const pathTokens = getPathTokens(trace.path)
+  for (const tracePath of tracePaths) {
+    const pathTokens = getPathTokens(tracePath)
     for (let i = 0; i < pathTokens.length; i++) {
       const token = pathTokens[i]
       const pos = i.toString()
@@ -53,12 +52,12 @@ const getCounterMap = (traces: ApiTrace[]) => {
 
 const getDistinctPaths = (
   counterMap: any,
-  traces: ApiTrace[],
+  paths: string[],
   numTraces: number,
 ): Record<string, number> => {
   const distinctPaths: Record<string, number> = {}
-  for (const trace of traces) {
-    const pathTokens = getPathTokens(trace.path)
+  for (const tracePath of paths) {
+    const pathTokens = getPathTokens(tracePath)
     let path = ""
     let totalPercent = 0
     const numTokens = pathTokens.length
@@ -87,24 +86,15 @@ export const getTopSuggestedPaths = async (
   endpointId: string,
   minNumTraces?: number,
 ): Promise<string[]> => {
-  const traces = await getRepository(ctx, ApiTrace).find({
-    select: {
-      path: true,
-    },
-    where: {
-      apiEndpointUuid: endpointId,
-    },
-    take: TRACE_LIMIT,
-    order: {
-      createdAt: "DESC",
-    },
-  })
-  const numTraces = traces.length
+  const endpointPathKey = `endpointPaths:e#${endpointId}`
+  const tracePaths =
+    (await RedisClient.lrange(ctx, endpointPathKey, 0, -1)) || []
+  const numTraces = tracePaths.length
   if (minNumTraces && numTraces < minNumTraces) {
     return []
   }
-  const counterMap = getCounterMap(traces)
-  const distinctPaths = getDistinctPaths(counterMap, traces, numTraces)
+  const counterMap = getCounterMap(tracePaths)
+  const distinctPaths = getDistinctPaths(counterMap, tracePaths, numTraces)
   const sorted = Object.keys(distinctPaths).sort(
     (a, b) => distinctPaths[b] - distinctPaths[a],
   )
