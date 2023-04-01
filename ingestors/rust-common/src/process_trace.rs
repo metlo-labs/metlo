@@ -482,9 +482,21 @@ fn combine_process_trace_res(
     }
 }
 
-pub fn process_api_trace(trace: &ApiTrace, trace_info: &TraceInfo) -> ProcessTraceRes {
+pub fn process_api_trace(
+    trace: &ApiTrace,
+    trace_info: &TraceInfo,
+    analysis_type: &str,
+) -> ProcessTraceRes {
     let req_content_type = get_content_type(&trace.request.headers);
     let req_mime_type = get_mime_type(req_content_type);
+
+    if analysis_type == "partial" {
+        let mut resp_content_type: Option<&String> = None;
+        if let Some(resp) = &trace.response {
+            resp_content_type = get_content_type(&resp.headers);
+        }
+        return combine_process_trace_res(&[], req_content_type, resp_content_type, None);
+    }
     let non_error_status_code = match &trace.response {
         Some(ApiResponse {
             status,

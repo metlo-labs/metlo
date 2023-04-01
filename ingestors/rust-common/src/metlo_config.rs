@@ -8,7 +8,8 @@ use serde::{Deserialize, Serialize};
 use crate::{
     open_api::{compile_specs, CompiledSpecs},
     sensitive_data::SensitiveData,
-    METLO_CONFIG,
+    trace::{ApiTrace, ProcessTraceRes},
+    TraceInfo, METLO_CONFIG,
 };
 
 #[derive(Debug, Default, Clone)]
@@ -123,6 +124,20 @@ pub struct GlobalConfig {
     pub host_map: Vec<HostMapCompiled>,
     pub host_block_list: Vec<Regex>,
     pub path_block_list: Vec<PathBlockListCompiled>,
+}
+
+#[derive(Debug, Clone)]
+pub struct BufferItem {
+    pub trace: ApiTrace,
+    pub processed_trace: ProcessTraceRes,
+    pub trace_info: TraceInfo,
+    pub analysis_type: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct RequestBuffer {
+    pub partial_analysis: Vec<BufferItem>,
+    pub full_analysis: Vec<BufferItem>,
 }
 
 pub struct ValidateRequestConnResp {

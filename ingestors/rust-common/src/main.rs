@@ -1,6 +1,8 @@
 use clap::Parser;
 use lazy_static::lazy_static;
-use metlo_agent::{initialize_metlo, refresh_config, server, server_port, METLO_CONFIG};
+use metlo_agent::{
+    initialize_metlo, refresh_config, send_trace_batch, server, server_port, METLO_CONFIG,
+};
 use reqwest::Url;
 use ring::hmac;
 use std::{collections::HashSet, env, time::Duration};
@@ -177,6 +179,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 log::warn!("Error pulling metlo config: \n{}", e.to_string());
             }
             log::trace!("Done Pulling Metlo Config");
+        }
+    });
+
+    tokio::task::spawn(async {
+        let mut interval = time::interval(Duration::from_secs(1));
+        loop {
+            interval.tick().await;
+            log::trace!("Sending Processed traces in buffer");
+            let res = send_trace_batch().await;
+            if let Err(e) = res {
+                log::warn!("Error sending batched traces: \n{}", e.to_string())
+            }
         }
     });
 

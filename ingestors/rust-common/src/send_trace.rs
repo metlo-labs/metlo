@@ -19,12 +19,12 @@ use reqwest::{Client, Url};
 use rsa::{pkcs8::DecodePublicKey, Oaep, PublicKey, RsaPublicKey};
 
 use crate::{
-    metlo_config::Authentication,
+    metlo_config::{Authentication, BufferItem},
     trace::{
         ApiMeta, ApiRequest, ApiResponse, ApiTrace, ApiUrl, Encryption, KeyVal, ProcessTraceRes,
         ProcessedApiTrace, SessionMeta,
     },
-    TraceInfo, METLO_CONFIG,
+    METLO_CONFIG, REQUEST_BUFFER,
 };
 
 pub struct LogTraceResp {
@@ -98,6 +98,7 @@ fn get_session_metadata(
     authentication: Option<&Authentication>,
     hmac_key: &Option<hmac::Key>,
     trace: &ApiTrace,
+    x_forwarded_for: &Option<String>,
 ) -> SessionMeta {
     let mut session_meta: SessionMeta = SessionMeta {
         authentication_provided: None,
@@ -126,7 +127,10 @@ fn get_session_metadata(
             session_meta
         } else if let Some(meta) = &trace.meta {
             if !meta.source.is_empty() {
-                let tag = hmac::sign(key, meta.source.as_bytes());
+                let tag = hmac::sign(
+                    key,
+                    x_forwarded_for.as_ref().unwrap_or(&meta.source).as_bytes(),
+                );
                 session_meta.unique_session_key =
                     Some(general_purpose::STANDARD.encode(tag.as_ref()));
             }
@@ -251,6 +255,7 @@ fn encrypt_trace(
     trace_capture_enabled: bool,
     encryption_public_key: Option<String>,
     session_meta: SessionMeta,
+    analysis_type: String,
 ) -> Result<ProcessedApiTrace, Box<dyn std::error::Error>> {
     if let Some(public_key) = encryption_public_key {
         match RsaPublicKey::from_public_key_pem(&public_key) {
@@ -325,6 +330,7 @@ fn encrypt_trace(
                         generated_ivs,
                     }),
                     session_meta: Some(session_meta),
+                    analysis_type,
                 })
             }
             Err(e) => Err(format!("Error reading encryption key: {:?}", e).into()),
@@ -335,9 +341,10 @@ fn encrypt_trace(
             response: trace.response,
             meta: trace.meta,
             redacted: !trace_capture_enabled,
-            processed_trace_data: processed_trace,
+            processed_trace_data: processed_trace.clone(),
             encryption: None,
             session_meta: Some(session_meta),
+            analysis_type,
         })
     }
 }
@@ -349,7 +356,7 @@ fn get_x_forwarded_for(headers: &[KeyVal]) -> Option<String> {
         .and_then(|e| e.value.split(',').next().map(|item| item.trim().to_owned()))
 }
 
-async fn send_trace_inner(
+/*async fn send_trace_inner(
     collector_log_url: &str,
     api_key: &str,
     trace: ApiTrace,
@@ -483,4 +490,160 @@ pub async fn send_api_trace(
         }
     }
     drop(conf_read)
+}*/
+
+fn send_trace_batch_inner(
+    buffer_item: BufferItem,
+    global_full_trace_capture: bool,
+    encryption_public_key: Option<String>,
+    hmac_key: &Option<hmac::Key>,
+) -> Result<ProcessedApiTrace, Box<dyn std::error::Error>> {
+    let trace_capture_enabled =
+        global_full_trace_capture || buffer_item.trace_info.full_trace_capture_enabled;
+
+    let x_forwarded_for = get_x_forwarded_for(buffer_item.trace.request.headers.as_ref());
+    let session_meta = get_session_metadata(
+        buffer_item.trace_info.authentication.as_ref(),
+        &hmac_key,
+        &buffer_item.trace,
+        &x_forwarded_for,
+    );
+    let mut req_body: ProcessedApiTrace = match trace_capture_enabled {
+        true => encrypt_trace(
+            buffer_item.trace,
+            buffer_item.processed_trace,
+            trace_capture_enabled,
+            encryption_public_key,
+            session_meta,
+            buffer_item.analysis_type,
+        )?,
+        false => ProcessedApiTrace {
+            request: ApiRequest {
+                method: buffer_item.trace.request.method,
+                url: ApiUrl {
+                    host: buffer_item.trace.request.url.host,
+                    path: buffer_item.trace.request.url.path,
+                    parameters: vec![],
+                },
+                headers: vec![],
+                body: "".to_string(),
+            },
+            response: match &buffer_item.trace.response {
+                Some(r) => Some(ApiResponse {
+                    status: r.status,
+                    headers: vec![],
+                    body: "".to_string(),
+                }),
+                None => None,
+            },
+            meta: buffer_item.trace.meta,
+            redacted: !trace_capture_enabled,
+            processed_trace_data: buffer_item.processed_trace,
+            encryption: None,
+            session_meta: Some(session_meta),
+            analysis_type: buffer_item.analysis_type,
+        },
+    };
+
+    if let (Some(e), Some(m)) = (x_forwarded_for, &req_body.meta) {
+        req_body.meta = Some(ApiMeta {
+            environment: m.environment.clone(),
+            incoming: m.incoming,
+            source: e,
+            source_port: m.source_port,
+            destination: m.destination.clone(),
+            destination_port: m.destination_port,
+            original_source: Some(m.source.clone()),
+        })
+    }
+    Ok(req_body)
+}
+
+async fn send_batch_request(
+    collector_log_url: &str,
+    api_key: &str,
+    requests: &Vec<ProcessedApiTrace>,
+) -> Result<LogTraceResp, Box<dyn std::error::Error>> {
+    let url_res = Url::parse(collector_log_url);
+    match url_res {
+        Ok(url) => {
+            let resp = CLIENT
+                .post(url)
+                .header("authorization", api_key)
+                .json(&requests)
+                .send()
+                .await?;
+            if resp.status() == reqwest::StatusCode::OK {
+                return Ok(LogTraceResp {
+                    ok: true,
+                    msg: None,
+                });
+            }
+            let text = resp.text().await?;
+            Ok(LogTraceResp {
+                ok: false,
+                msg: Some(text),
+            })
+        }
+        Err(e) => Ok(LogTraceResp {
+            ok: false,
+            msg: Some(format!("Couldn't parse url: {}", e)),
+        }),
+    }
+}
+
+pub async fn send_api_trace_batch() -> Result<(), Box<dyn std::error::Error>> {
+    let mut buffer_items = vec![];
+    let mut buffer_write = REQUEST_BUFFER.try_write();
+    if let Ok(ref mut buf) = buffer_write {
+        for item in buf.partial_analysis.to_owned() {
+            buffer_items.push(item)
+        }
+        for item in buf.full_analysis.to_owned() {
+            buffer_items.push(item)
+        }
+        buf.partial_analysis = vec![];
+        buf.full_analysis = vec![];
+    }
+    drop(buffer_write);
+
+    let conf_read = METLO_CONFIG.try_read();
+    if let Ok(ref conf) = &conf_read {
+        let collector_log_endpoint = format!(
+            "{}/api/v2/log-request/batch",
+            conf.collector_url.clone().unwrap_or_default()
+        );
+
+        let mut requests = vec![];
+        for item in buffer_items {
+            match send_trace_batch_inner(
+                item,
+                conf.global_full_trace_capture,
+                conf.encryption_public_key.clone(),
+                &conf.hmac_key,
+            ) {
+                Ok(e) => requests.push(e),
+                Err(_) => (),
+            }
+        }
+        let resp = send_batch_request(
+            collector_log_endpoint.as_str(),
+            &conf.creds.clone().unwrap_or_default().api_key,
+            &requests,
+        )
+        .await;
+        match resp {
+            Ok(LogTraceResp { ok, msg }) => {
+                if ok {
+                    log::trace!("Successfully sent batched traces")
+                } else {
+                    log::debug!("Failed to send trace: {}", msg.unwrap_or_default())
+                }
+            }
+            Err(err) => log::debug!("{}", err.to_string()),
+        }
+    }
+    drop(conf_read);
+
+    Ok(())
 }

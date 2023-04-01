@@ -1,7 +1,7 @@
 use crate::metlo_config::*;
 use lazy_static::lazy_static;
 use open_api::get_split_path;
-use send_trace::send_api_trace;
+use send_trace::send_api_trace_batch;
 use trace::ApiTrace;
 
 use crate::metloingest::metlo_ingest_server::{MetloIngest, MetloIngestServer};
@@ -44,6 +44,10 @@ lazy_static! {
         host_block_list: vec![],
         path_block_list: vec![],
     });
+    pub static ref REQUEST_BUFFER: RwLock<RequestBuffer> = RwLock::new(RequestBuffer {
+        partial_analysis: vec![],
+        full_analysis: vec![]
+    });
 }
 
 pub struct InitializeMetloResp {
@@ -51,6 +55,7 @@ pub struct InitializeMetloResp {
     pub msg: Option<String>,
 }
 
+#[derive(Debug, Clone)]
 pub struct TraceInfo {
     pub openapi_spec_name: Option<String>,
     pub full_trace_capture_enabled: bool,
@@ -58,6 +63,7 @@ pub struct TraceInfo {
     pub endpoint_path: String,
     pub current_host: String,
     pub block: bool,
+    pub authentication: Option<Authentication>,
 }
 
 pub async fn initialize_metlo(
@@ -146,6 +152,7 @@ fn get_trace_info(trace: &ApiTrace) -> TraceInfo {
     let mut endpoint_path: String = trace.request.url.path.clone();
     let mut current_host: String = trace.request.url.host.clone();
     let mut block: bool = false;
+    let mut authentication: Option<Authentication> = None;
     let split_path: Vec<&str> = get_split_path(&trace.request.url.path);
     let conf_read = METLO_CONFIG.try_read();
     if let Ok(ref conf) = conf_read {
@@ -190,6 +197,11 @@ fn get_trace_info(trace: &ApiTrace) -> TraceInfo {
                     }
                 }
             }
+            authentication = conf
+                .authentication_config
+                .iter()
+                .find(|&e| e.host == current_host)
+                .cloned();
         }
     }
     drop(conf_read);
@@ -201,7 +213,25 @@ fn get_trace_info(trace: &ApiTrace) -> TraceInfo {
         endpoint_path,
         current_host,
         block,
+        authentication,
     }
+}
+
+fn get_analysis_type() -> Option<&'static str> {
+    let buffer_read = REQUEST_BUFFER.try_read();
+    let res = if let Ok(ref buf) = buffer_read {
+        if buf.full_analysis.len() < 5 {
+            Some("full")
+        } else if buf.partial_analysis.len() < 100 {
+            Some("partial")
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+    drop(buffer_read);
+    res
 }
 
 #[derive(Default)]
@@ -218,10 +248,34 @@ impl MetloIngest for MIngestServer {
             match TASK_RUN_SEMAPHORE.try_acquire() {
                 Ok(permit) => {
                     tokio::spawn(async move {
-                        let trace_info = get_trace_info(&mapped_api_trace);
-                        if !trace_info.block {
-                            let res = process_api_trace(&mapped_api_trace, &trace_info);
-                            send_api_trace(mapped_api_trace, res, &trace_info).await;
+                        let analysis_type = get_analysis_type();
+                        if analysis_type.is_some() {
+                            let trace_info = get_trace_info(&mapped_api_trace);
+                            if !trace_info.block {
+                                let res = process_api_trace(
+                                    &mapped_api_trace,
+                                    &trace_info,
+                                    analysis_type.unwrap(),
+                                );
+                                let mut req_buffer_write = REQUEST_BUFFER.try_write();
+                                if let Ok(ref mut buf) = req_buffer_write {
+                                    let analysis_type_unwrap = analysis_type.unwrap();
+                                    let buffer_item = BufferItem {
+                                        trace: mapped_api_trace,
+                                        processed_trace: res,
+                                        trace_info,
+                                        analysis_type: String::from(analysis_type_unwrap),
+                                    };
+                                    match analysis_type_unwrap {
+                                        "partial" => {
+                                            buf.partial_analysis.push(buffer_item);
+                                        }
+                                        "full" => buf.full_analysis.push(buffer_item),
+                                        _ => (),
+                                    }
+                                }
+                                drop(req_buffer_write);
+                            }
                         }
                         drop(permit);
                     });
@@ -251,7 +305,7 @@ impl MetloIngest for MIngestServer {
             match TASK_RUN_SEMAPHORE.try_acquire() {
                 Ok(permit) => {
                     let trace_info = get_trace_info(&mapped_api_trace);
-                    let res = process_api_trace(&mapped_api_trace, &trace_info);
+                    let res = process_api_trace(&mapped_api_trace, &trace_info, "full_analysis");
                     drop(permit);
                     return Ok(Response::new(map_process_trace_res(res)));
                 }
@@ -306,4 +360,8 @@ pub async fn server_port(port: &str) -> Result<(), Box<dyn std::error::Error>> {
 
 pub async fn refresh_config() -> Result<(), Box<dyn std::error::Error>> {
     pull_metlo_config().await
+}
+
+pub async fn send_trace_batch() -> Result<(), Box<dyn std::error::Error>> {
+    send_api_trace_batch().await
 }

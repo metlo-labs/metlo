@@ -13,6 +13,7 @@ import {
   API_KEY_TYPE,
   DisableRestMethod,
   GraphQlOperation,
+  AnalysisType,
 } from "./enums"
 import "axios"
 import { TestConfig } from "@metlo/testing"
@@ -119,6 +120,7 @@ export interface TraceParams {
   redacted?: boolean
   sessionMeta?: SessionMeta
   encryption?: Encryption
+  analysisType?: AnalysisType
 }
 
 export interface GetAttackParams {
@@ -153,6 +155,7 @@ export interface QueuedApiTrace {
   redacted?: boolean
   originalHost?: string
   encryption?: Encryption
+  analysisType?: AnalysisType
 }
 
 export interface ApiTrace extends QueuedApiTrace {
