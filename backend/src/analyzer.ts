@@ -143,6 +143,7 @@ const runTrace = async (task: TraceTask) => {
           task.ctx,
           endpoint.uuid,
           task.trace.responseStatus,
+          task.trace.analysisType,
         ))
       mlog.time(
         "analyzer.skip_data_fields",

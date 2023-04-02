@@ -129,7 +129,7 @@ export const analyze = async (
 
   const startTraceRedis = performance.now()
   const endpointTraceKey = `endpointTraces:e#${apiEndpoint.uuid}`
-  if (trace.analysisType === AnalysisType.FULL) {
+  if (apiTrace.analysisType === AnalysisType.FULL) {
     await RedisClient.pushValueToRedisList(ctx, endpointTraceKey, [
       JSON.stringify({
         ...filteredApiTrace,

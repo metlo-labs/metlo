@@ -257,6 +257,7 @@ fn encrypt_trace(
     session_meta: SessionMeta,
     analysis_type: String,
 ) -> Result<ProcessedApiTrace, Box<dyn std::error::Error>> {
+    let is_full_analysis = analysis_type == "full";
     if let Some(public_key) = encryption_public_key {
         match RsaPublicKey::from_public_key_pem(&public_key) {
             Ok(rsa) => {
@@ -271,36 +272,53 @@ fn encrypt_trace(
                         url: ApiUrl {
                             host: trace.request.url.host,
                             path: trace.request.url.path,
-                            parameters: encrypt_key_val(
+                            parameters: match is_full_analysis {
+                                true => encrypt_key_val(
+                                    &cipher,
+                                    trace.request.url.parameters,
+                                    "reqQuery".to_owned(),
+                                    &mut generated_ivs,
+                                )?,
+                                false => vec![],
+                            },
+                        },
+                        headers: match is_full_analysis {
+                            true => encrypt_key_val(
                                 &cipher,
-                                trace.request.url.parameters,
-                                "reqQuery".to_owned(),
+                                trace.request.headers,
+                                "reqHeaders".to_owned(),
                                 &mut generated_ivs,
                             )?,
+                            false => vec![],
                         },
-                        headers: encrypt_key_val(
-                            &cipher,
-                            trace.request.headers,
-                            "reqHeaders".to_owned(),
-                            &mut generated_ivs,
-                        )?,
-                        body: encrypt_body(
-                            &cipher,
-                            &trace.request.body,
-                            "reqBody",
-                            &mut generated_ivs,
-                        )?,
+                        body: match is_full_analysis {
+                            true => encrypt_body(
+                                &cipher,
+                                &trace.request.body,
+                                "reqBody",
+                                &mut generated_ivs,
+                            )?,
+                            false => "".to_string(),
+                        },
                     },
                     response: match trace.response {
                         Some(r) => Some(ApiResponse {
                             status: r.status,
-                            headers: encrypt_key_val(
-                                &cipher,
-                                r.headers,
-                                "resHeaders".to_owned(),
-                                &mut generated_ivs,
-                            )?,
-                            body: encrypt_body(&cipher, &r.body, "resBody", &mut generated_ivs)?,
+                            headers: match is_full_analysis {
+                                true => encrypt_key_val(
+                                    &cipher,
+                                    r.headers,
+                                    "resHeaders".to_owned(),
+                                    &mut generated_ivs,
+                                )?,
+                                false => vec![],
+                            },
+                            body: match is_full_analysis {
+                                true => {
+                                    encrypt_body(&cipher, &r.body, "resBody", &mut generated_ivs)?
+                                }
+                                false => "".to_string(),
+                            },
                         }),
                         None => None,
                     },
@@ -337,7 +355,25 @@ fn encrypt_trace(
         }
     } else {
         Ok(ProcessedApiTrace {
-            request: trace.request,
+            request: ApiRequest {
+                method: trace.request.method,
+                url: ApiUrl {
+                    host: trace.request.url.host,
+                    path: trace.request.url.path,
+                    parameters: match is_full_analysis {
+                        true => trace.request.url.parameters,
+                        false => vec![],
+                    },
+                },
+                headers: match is_full_analysis {
+                    true => trace.request.headers,
+                    false => vec![],
+                },
+                body: match is_full_analysis {
+                    true => trace.request.body,
+                    false => "".to_string(),
+                },
+            },
             response: trace.response,
             meta: trace.meta,
             redacted: !trace_capture_enabled,

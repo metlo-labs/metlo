@@ -299,6 +299,7 @@ export const shouldSkipDataFields = async (
   ctx: MetloContext,
   endpointUuid: string,
   traceStatusCode: number,
+  analysisType?: string,
 ) => {
   if (!endpointUuid || !traceStatusCode) {
     return false
@@ -308,11 +309,15 @@ export const shouldSkipDataFields = async (
     | number
     | undefined
   if (!lastUpdated) {
-    skipDataFieldsCache.set(ctx, key, new Date().getTime())
+    if (analysisType === "full") {
+      skipDataFieldsCache.set(ctx, key, new Date().getTime())
+    }
     return false
   }
   if (new Date().getTime() - lastUpdated > 4_000) {
-    skipDataFieldsCache.set(ctx, key, new Date().getTime())
+    if (analysisType === "full") {
+      skipDataFieldsCache.set(ctx, key, new Date().getTime())
+    }
     return false
   }
   return true
