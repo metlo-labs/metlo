@@ -17,6 +17,8 @@ interface EndpointToken {
   token_1: string
   token_2: string
   token_3: string
+  token_4: string
+  token_5: string
 }
 
 export const getExistingConstraint = (
@@ -91,6 +93,8 @@ export const getEndpointToken = (path: string): EndpointToken => {
     token_1: null,
     token_2: null,
     token_3: null,
+    token_4: null,
+    token_5: null,
   }
   if (!path) {
     return endpointToken
@@ -115,6 +119,14 @@ export const getEndpointToken = (path: string): EndpointToken => {
     splitPath[3]?.startsWith("{") && splitPath[3]?.endsWith("}")
       ? "{param}"
       : splitPath[3] ?? null
+  endpointToken.token_4 =
+    splitPath[4]?.startsWith("{") && splitPath[4]?.endsWith("}")
+      ? "{param}"
+      : splitPath[4] ?? null
+  endpointToken.token_5 =
+    splitPath[5]?.startsWith("{") && splitPath[5]?.endsWith("}")
+      ? "{param}"
+      : splitPath[5] ?? null
   return endpointToken
 }
 
