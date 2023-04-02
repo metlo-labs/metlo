@@ -119,6 +119,12 @@ export class ApiEndpoint extends MetloBaseEntity {
   @Column({ nullable: true })
   token_3: string
 
+  @Column({ nullable: true })
+  token_4: string
+
+  @Column({ nullable: true })
+  token_5: string
+
   addNumberParams() {
     if (this.path) {
       const pathTokens = getPathTokens(this.path)

@@ -161,6 +161,8 @@ const generateEndpoint = async (
     apiEndpoint.token_1 = endpointToken.token_1
     apiEndpoint.token_2 = endpointToken.token_2
     apiEndpoint.token_3 = endpointToken.token_3
+    apiEndpoint.token_4 = endpointToken.token_4
+    apiEndpoint.token_5 = endpointToken.token_5
     endpointAddNumberParams(apiEndpoint)
     apiEndpoint.dataFields = []
     if (isGraphQl) {
@@ -429,7 +431,25 @@ const getEndpoint = async (task: {
           }),
         )
       : endpointQb.andWhere("token_3 IS NULL")
-    if (pathTokens.length > 4) {
+    endpointQb = pathTokens[4]
+      ? endpointQb.andWhere(
+          new Brackets(qb => {
+            qb.where("token_4 = '{param}'").orWhere("token_4 = :token_4", {
+              token_4: pathTokens[4],
+            })
+          }),
+        )
+      : endpointQb.andWhere("token_4 IS NULL")
+    endpointQb = pathTokens[5]
+      ? endpointQb.andWhere(
+          new Brackets(qb => {
+            qb.where("token_5 = '{param}'").orWhere("token_5 = :token_5", {
+              token_5: pathTokens[5],
+            })
+          }),
+        )
+      : endpointQb.andWhere("token_5 IS NULL")
+    if (pathTokens.length > 6) {
       endpointQb = endpointQb.andWhere(`:path ~ "pathRegex"`, {
         path: trace.path,
       })
