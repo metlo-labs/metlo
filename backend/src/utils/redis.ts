@@ -113,11 +113,11 @@ export class RedisClient {
     expSecs: number,
   ) {
     try {
-        const pipeline = this.getInstance().pipeline()
-        pipeline.lpush(key, ...data)
-        pipeline.ltrim(key, 0, maxItems - 1)
-        pipeline.expire(key, expSecs)
-        await pipeline.exec()
+      const pipeline = this.getInstance().pipeline()
+      pipeline.lpush(key, ...data)
+      pipeline.ltrim(key, 0, maxItems - 1)
+      pipeline.expire(key, expSecs)
+      await pipeline.exec()
     } catch (err) {
       mlog.withErr(err).error("Error pushing value to redis list pipeline")
     }
@@ -205,5 +205,18 @@ export class RedisClient {
     data
       .then(resp => redisClient.set(key, JSON.stringify(resp)))
       .catch(err => redisClient.set(key, JSON.stringify(err)))
+  }
+
+  public static hashIncrement(
+    ctx: MetloContext,
+    hashKey: string,
+    key: string,
+  ): Promise<number> {
+    const redisClient = RedisClient.getInstance()
+    return redisClient.hincrby(hashKey, key, 1)
+  }
+
+  public static getHash(ctx: MetloContext, hashKey: string) {
+    return RedisClient.getInstance().hgetall(hashKey)
   }
 }

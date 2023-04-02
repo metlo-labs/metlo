@@ -78,6 +78,9 @@ const main = async () => {
   const fixEndpointsQueue = createQueue(JobName.FIX_ENDPOINTS)
   const detectSensitiveDataQueue = createQueue(JobName.DETECT_SENSITIVE_DATA)
   const detectPrivateIPQueue = createQueue(JobName.DETECT_PRIVATE_HOSTS)
+  const updateHourlyTraceAggregate = createQueue(
+    JobName.UPDATE_HOURLY_TRACE_AGG,
+  )
 
   const queues: QueueInterface[] = [
     specQueue,
@@ -137,6 +140,14 @@ const main = async () => {
       `${JobName.DETECT_PRIVATE_HOSTS}`,
       {},
       { ...defaultJobOptions, jobId: JobName.DETECT_PRIVATE_HOSTS },
+    )
+  })
+
+  schedule.scheduleJob("*/5 * * * *", async () => {
+    await updateHourlyTraceAggregate.add(
+      `${JobName.UPDATE_HOURLY_TRACE_AGG}`,
+      {},
+      { ...defaultJobOptions, jobId: JobName.UPDATE_HOURLY_TRACE_AGG },
     )
   })
 

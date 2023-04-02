@@ -35,4 +35,5 @@ export enum JobName {
   FIX_ENDPOINTS = "fix_endpoints",
   DETECT_SENSITIVE_DATA = "detect_sensitive_data",
   DETECT_PRIVATE_HOSTS = "detect_private_host",
+  UPDATE_HOURLY_TRACE_AGG = "update_hourly_trace_aggregate",
 }

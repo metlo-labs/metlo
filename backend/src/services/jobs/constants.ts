@@ -37,4 +37,9 @@ export const JOB_NAME_MAP: Record<JobName, JobMap> = {
     end: "Finished updating private hosts list ",
     threshold: 1000 * 60 * 55,
   },
+  [JobName.UPDATE_HOURLY_TRACE_AGG]: {
+    start: "Starting update of hourly endpoint calls",
+    end: "Done updating of hourly endpoint calls",
+    threshold: 1000 * 60 * 14,
+  },
 }

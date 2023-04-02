@@ -10,6 +10,7 @@ import { JobName } from "./types"
 import { wrapProcessor } from "./wrap-processor"
 import { logAggregatedStats } from "services/logging"
 import { detectPrivateHosts } from "./detect-private-hosts"
+import { updateHourlyTraceAggregate } from "./update-hourly-trace-agg"
 
 const processor = async (job: Job, done) => {
   const ctx = {}
@@ -43,6 +44,9 @@ const processor = async (job: Job, done) => {
       break
     case JobName.DETECT_PRIVATE_HOSTS:
       success = await detectPrivateHosts(ctx)
+      break
+    case JobName.UPDATE_HOURLY_TRACE_AGG:
+      success = await updateHourlyTraceAggregate(ctx)
       break
     default:
       break
