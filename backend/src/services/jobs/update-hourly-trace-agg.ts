@@ -1,9 +1,8 @@
 import { AppDataSource } from "data-source"
-import { execute } from "graphql"
 import mlog from "logger"
 import { AggregateTraceDataHourly } from "models"
 import { getQB, getRepository } from "services/database/utils"
-import { In, Raw } from "typeorm"
+import { In } from "typeorm"
 import { MetloContext } from "types"
 import { RedisClient } from "utils/redis"
 import { ENDPOINT_CALL_COUNT_HASH } from "~/constants"
@@ -14,13 +13,10 @@ export async function updateHourlyTraceAggregate(ctx: MetloContext) {
   const queryRunner = AppDataSource.createQueryRunner()
   try {
     await queryRunner.connect()
-
     const qb = getQB(ctx, queryRunner)
-    const _currentTime = new Date().getTime()
-    const currentTime = new Date(
-      _currentTime - (_currentTime % (1000 * 60 * 60)),
-    )
-    const existingEndopints = (
+    const currentTime = new Date().getTime()
+    const currentHour = new Date(currentTime - (currentTime % (1000 * 60 * 60)))
+    const existingEndpoints = (
       await getRepository(ctx, AggregateTraceDataHourly).find({
         where: { apiEndpointUuid: In(Object.keys(res)) },
         select: { apiEndpointUuid: true },
@@ -28,33 +24,22 @@ export async function updateHourlyTraceAggregate(ctx: MetloContext) {
     ).map(entry => entry.apiEndpointUuid)
 
     const newEndpoints = Object.keys(res).filter(
-      endpointUUID => !existingEndopints.includes(endpointUUID),
+      endpointUUID => !existingEndpoints.includes(endpointUUID),
     )
-    
-    // Delete things older than 1 hour
-    await qb
-      .delete()
-      .from(AggregateTraceDataHourly)
-      .where({
-        hour: Raw(alias => `(:currentTime - ${alias}) > '1 HOUR'::interval`, {
-          currentTime,
-        }),
-      })
-      .execute()
 
-    const resExisting = await Promise.allSettled(
-      existingEndopints.map(endpointUUID => {
+    await Promise.allSettled(
+      existingEndpoints.map(endpointUUID => {
         return qb
           .update(AggregateTraceDataHourly)
           .set({
             numCalls: () => `"numCalls" + :newCalls `,
           })
           .setParameter("newCalls", parseInt(res[endpointUUID]))
-          .where({ apiEndpointUuid: endpointUUID, hour: currentTime })
+          .where({ apiEndpointUuid: endpointUUID, hour: currentHour })
           .execute()
       }),
     )
-    const resNew = await qb
+    await qb
       .createQueryBuilder()
       .insert()
       .into(AggregateTraceDataHourly)
@@ -62,7 +47,7 @@ export async function updateHourlyTraceAggregate(ctx: MetloContext) {
         newEndpoints.map(endpointUUID => ({
           apiEndpointUuid: endpointUUID,
           numCalls: parseInt(res[endpointUUID]),
-          hour: currentTime,
+          hour: currentHour,
         })),
       )
       .execute()

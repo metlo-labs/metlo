@@ -1,12 +1,6 @@
 import { UsageStats } from "@common/types"
 import mlog from "logger"
-import {
-  AggregateTraceDataHourly,
-  Alert,
-  ApiEndpoint,
-  ApiTrace,
-  DataField,
-} from "models"
+import { AggregateTraceDataHourly, Alert, ApiEndpoint, DataField } from "models"
 import { DatabaseService } from "services/database"
 import { MetloContext } from "types"
 import { RedisClient } from "utils/redis"
@@ -21,29 +15,13 @@ export const getUsageStats = async (ctx: MetloContext) => {
     GROUP BY 1
     ORDER BY 1
   `
-  const lastNRequestsQuery = `
-    SELECT
-      CAST(SUM(CASE WHEN traces."createdAt" > (NOW() - INTERVAL '1 minutes') THEN 1 ELSE 0 END) AS INTEGER) as "last1MinCnt",
-      CAST(COUNT(*) AS INTEGER) as "last60MinCnt"
-    FROM ${ApiTrace.getTableName(ctx)} traces
-    WHERE traces."createdAt" > (NOW() - INTERVAL '60 minutes')
-  `
-  const queryResponses = await DatabaseService.executeRawQueries([
-    statsQuery,
-    lastNRequestsQuery,
-  ])
   const stats: {
     day: string
     cnt: number
-  }[] = queryResponses[0]
-  const lastNRequests: {
-    last1MinCnt: number
-    last60MinCnt: number
-  } = queryResponses[1]
+  }[] = await DatabaseService.executeRawQuery(statsQuery)
   return {
     dailyUsage: stats,
-    last1MinCnt: lastNRequests[0].last1MinCnt,
-    last60MinCnt: lastNRequests[0].last60MinCnt,
+    last1MinCnt: 0,
   } as UsageStats
 }
 
