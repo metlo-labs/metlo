@@ -219,4 +219,8 @@ export class RedisClient {
   public static getHash(ctx: MetloContext, hashKey: string) {
     return RedisClient.getInstance().hgetall(hashKey)
   }
+
+  public static increment(ctx: MetloContext, key: string) {
+    return RedisClient.getInstance().incr(key)
+  }
 }

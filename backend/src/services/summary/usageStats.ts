@@ -4,6 +4,24 @@ import { AggregateTraceDataHourly, Alert, ApiEndpoint, DataField } from "models"
 import { DatabaseService } from "services/database"
 import { MetloContext } from "types"
 import { RedisClient } from "utils/redis"
+import { ORG_ENDPOINT_CALL_COUNT, USAGE_GRANULARITY } from "~/constants"
+
+const getLastMinCounts = async (ctx: MetloContext) => {
+  const time = new Date().getTime()
+  // Subtract USAGE_GRANULARITY again to get previous slot
+  const timePrevSlot = time - (time % USAGE_GRANULARITY) - USAGE_GRANULARITY
+  let key = `${ORG_ENDPOINT_CALL_COUNT}_${timePrevSlot}`
+  let stat = await RedisClient.getFromRedis(ctx, key)
+  if (stat === null) {
+    const timeCurrSlot = time - (time % USAGE_GRANULARITY)
+    key = `${ORG_ENDPOINT_CALL_COUNT}_${timeCurrSlot}`
+    stat = await RedisClient.getFromRedis(ctx, key)
+    if (stat === null) {
+      stat = 0
+    }
+  }
+  return stat
+}
 
 export const getUsageStats = async (ctx: MetloContext) => {
   const statsQuery = `
@@ -21,7 +39,7 @@ export const getUsageStats = async (ctx: MetloContext) => {
   }[] = await DatabaseService.executeRawQuery(statsQuery)
   return {
     dailyUsage: stats,
-    last1MinCnt: 0,
+    last1MinCnt: await getLastMinCounts(ctx),
   } as UsageStats
 }
 

@@ -29,7 +29,7 @@ import {
   getHostMapCached,
 } from "services/metlo-config"
 import { RedisClient } from "utils/redis"
-import { ENDPOINT_CALL_COUNT_HASH } from "./constants"
+import { ENDPOINT_CALL_COUNT_HASH, ORG_ENDPOINT_CALL_COUNT, USAGE_GRANULARITY } from "./constants"
 
 export const shouldUpdateEndpoint = (
   prevRiskScore: RiskScore,
@@ -324,6 +324,12 @@ const getMappedHost = async (task: {
 
 const setEndpointCalled = async (ctx: MetloContext, endpointUUID: string) => {
   await RedisClient.hashIncrement(ctx, ENDPOINT_CALL_COUNT_HASH, endpointUUID)
+  const time = new Date().getTime()
+  const timeSlot = time - (time % USAGE_GRANULARITY)
+  const key = `${ORG_ENDPOINT_CALL_COUNT}_${timeSlot}`
+  await RedisClient.increment(ctx, key)
+  // Expire in 2 mins
+  await RedisClient.expire(ctx, key, 2 * 60)
 }
 
 const analyzeTraces = async (task: {
