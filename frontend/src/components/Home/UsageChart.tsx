@@ -119,12 +119,6 @@ const UsageChart: React.FC<UsageChartProps> = React.memo(
               </Text>
               <Text color="gray.600">Calls Per Minute</Text>
             </VStack>
-            <VStack spacing={0} alignItems="flex-start">
-              <Text fontWeight="semibold" fontSize="lg">
-                {usageData.last60MinCnt || 0}
-              </Text>
-              <Text color="gray.600">Calls Last Hour</Text>
-            </VStack>
           </VStack>
         </HStack>
       </VStack>

@@ -15,17 +15,17 @@ import {
   Box,
   useColorModeValue,
 } from "@chakra-ui/react"
-import { EndpointAndUsage } from "@common/types"
+import { ApiEndpointDetailed } from "@common/types"
 import TraceList from "components/Endpoint/TraceList"
 
 interface TopEndpointProps extends StackProps {
-  endpoints: EndpointAndUsage[]
+  endpoints: ApiEndpointDetailed[]
 }
 
 interface EndpointListProps {
   selectedEndpoint: string
   setSelectedEndpoint: (e: string) => void
-  endpoints: EndpointAndUsage[]
+  endpoints: ApiEndpointDetailed[]
 }
 
 const EndpointList: React.FC<EndpointListProps> = React.memo(
@@ -40,7 +40,6 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
           <Thead h="52px">
             <Tr>
               <Th>Endpoint</Th>
-              <Th>Calls/Min</Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -54,7 +53,6 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
                 <Td fontFamily="mono" fontSize="xs">
                   {e.path}
                 </Td>
-                <Td fontSize="xs">{e.last1MinCnt}</Td>
               </Tr>
             ))}
           </Tbody>

@@ -12,7 +12,6 @@ import { QueuedApiTrace } from "@common/types"
 import { endpointUpdateDates } from "utils"
 import { MetloContext } from "types"
 import {
-  getEntityManager,
   getQB,
   insertValuesBuilder,
 } from "services/database/utils"
@@ -109,6 +108,7 @@ export const analyze = async (
   )
   let filteredApiTrace = {
     ...apiTrace,
+    uuid: traceUUID,
     apiEndpointUuid: apiEndpoint.uuid,
   } as ApiTrace
 
@@ -117,14 +117,6 @@ export const analyze = async (
     performance.now() - startSensitiveDataPopulate,
   )
   mlog.debug(`Analyzing Trace - Populated Sensitive Data: ${traceUUID}`)
-
-  const start4 = performance.now()
-  const traceRes = await getEntityManager(ctx, queryRunner).insert(ApiTrace, [
-    filteredApiTrace,
-  ])
-  filteredApiTrace.uuid = traceRes.identifiers[0].uuid
-  mlog.time("analyzer.insert_api_trace_query", performance.now() - start4)
-  mlog.debug(`Analyzing Trace - Inserted API Trace: ${traceUUID}`)
 
   const startTraceRedis = performance.now()
   const endpointTraceKey = `endpointTraces:e#${apiEndpoint.uuid}`

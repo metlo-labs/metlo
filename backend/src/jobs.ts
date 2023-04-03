@@ -73,19 +73,21 @@ const createQueue = (jobName: JobName) => {
 
 const main = async () => {
   const specQueue = createQueue(JobName.GENERATE_OPENAPI_SPEC)
-  const clearApiTracesQueue = createQueue(JobName.CLEAR_API_TRACES)
   const logAggregatedStatsQueue = createQueue(JobName.LOG_AGGREGATED_STATS)
   const fixEndpointsQueue = createQueue(JobName.FIX_ENDPOINTS)
   const detectSensitiveDataQueue = createQueue(JobName.DETECT_SENSITIVE_DATA)
   const detectPrivateIPQueue = createQueue(JobName.DETECT_PRIVATE_HOSTS)
+  const updateHourlyTraceAggregate = createQueue(
+    JobName.UPDATE_HOURLY_TRACE_AGG,
+  )
 
   const queues: QueueInterface[] = [
     specQueue,
-    clearApiTracesQueue,
     logAggregatedStatsQueue,
     fixEndpointsQueue,
     detectSensitiveDataQueue,
     detectPrivateIPQueue,
+    updateHourlyTraceAggregate,
   ]
 
   schedule.scheduleJob("*/60 * * * *", async () => {
@@ -93,14 +95,6 @@ const main = async () => {
       `${JobName.GENERATE_OPENAPI_SPEC}`,
       {},
       { ...defaultJobOptions, jobId: JobName.GENERATE_OPENAPI_SPEC },
-    )
-  })
-
-  schedule.scheduleJob("*/10 * * * *", async () => {
-    await clearApiTracesQueue.add(
-      `${JobName.CLEAR_API_TRACES}`,
-      {},
-      { ...defaultJobOptions, jobId: JobName.CLEAR_API_TRACES },
     )
   })
 
@@ -137,6 +131,14 @@ const main = async () => {
       `${JobName.DETECT_PRIVATE_HOSTS}`,
       {},
       { ...defaultJobOptions, jobId: JobName.DETECT_PRIVATE_HOSTS },
+    )
+  })
+
+  schedule.scheduleJob("*/5 * * * *", async () => {
+    await updateHourlyTraceAggregate.add(
+      `${JobName.UPDATE_HOURLY_TRACE_AGG}`,
+      {},
+      { ...defaultJobOptions, jobId: JobName.UPDATE_HOURLY_TRACE_AGG },
     )
   })
 
