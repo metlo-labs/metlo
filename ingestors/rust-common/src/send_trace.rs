@@ -374,7 +374,19 @@ fn encrypt_trace(
                     false => "".to_string(),
                 },
             },
-            response: trace.response,
+            response: trace.response.and_then(|resp| {
+                Some(ApiResponse {
+                    status: resp.status,
+                    headers: match is_full_analysis {
+                        true => resp.headers,
+                        false => vec![],
+                    },
+                    body: match is_full_analysis {
+                        true => resp.body,
+                        false => "".to_string(),
+                    },
+                })
+            }),
             meta: trace.meta,
             redacted: !trace_capture_enabled,
             processed_trace_data: processed_trace.clone(),
