@@ -1,8 +1,7 @@
 import { AppDataSource } from "data-source"
 import mlog from "logger"
 import { AggregateTraceDataHourly } from "models"
-import { getQB, getRepository } from "services/database/utils"
-import { In } from "typeorm"
+import { getQB } from "services/database/utils"
 import { MetloContext } from "types"
 import { RedisClient } from "utils/redis"
 import { ENDPOINT_CALL_COUNT_HASH } from "~/constants"
@@ -16,43 +15,37 @@ export async function updateHourlyTraceAggregate(ctx: MetloContext) {
     const qb = getQB(ctx, queryRunner)
     const currentTime = new Date().getTime()
     const currentHour = new Date(currentTime - (currentTime % (1000 * 60 * 60)))
-    const existingEndpoints = (
-      await getRepository(ctx, AggregateTraceDataHourly).find({
-        where: { apiEndpointUuid: In(Object.keys(res)), hour: currentHour },
-        select: { apiEndpointUuid: true },
-      })
-    ).map(entry => entry.apiEndpointUuid)
 
-    const newEndpoints = Object.keys(res).filter(
-      endpointUUID => !existingEndpoints.includes(endpointUUID),
-    )
+    const tableMeta = AppDataSource.getMetadata(AggregateTraceDataHourly)
+    const apiEndpointUuidDBName =
+      tableMeta.findColumnWithPropertyName("apiEndpointUuid").databaseName
+    const numCallsDBName =
+      tableMeta.findColumnWithPropertyName("numCalls").databaseName
+    const hourDBName = tableMeta.findColumnWithPropertyName("hour").databaseName
 
-    await Promise.allSettled(
-      existingEndpoints.map(endpointUUID => {
-        return qb
-          .update(AggregateTraceDataHourly)
-          .set({
-            numCalls: () => `"numCalls" + :newCalls `,
-          })
-          .setParameter("newCalls", parseInt(res[endpointUUID]))
-          .where({ apiEndpointUuid: endpointUUID, hour: currentHour })
-          .execute()
-      }),
-    )
     await qb
       .createQueryBuilder()
       .insert()
       .into(AggregateTraceDataHourly)
       .values(
-        newEndpoints.map(endpointUUID => ({
+        Object.entries(res).map(([endpointUUID, count]) => ({
           apiEndpointUuid: endpointUUID,
-          numCalls: parseInt(res[endpointUUID]),
+          numCalls: parseInt(count),
           hour: currentHour,
         })),
+      )
+      // onConflict has been deprecated, but only way to write this without completely handwritten query.
+      .onConflict(
+        `( "${apiEndpointUuidDBName}","${hourDBName}" )
+         do update
+         set "${numCallsDBName}" = ${AggregateTraceDataHourly.getTableName(
+          ctx,
+        )}."${numCallsDBName}" + EXCLUDED."${numCallsDBName}"`,
       )
       .execute()
   } catch (err) {
     mlog.withErr(err).err("Error while updating hourly trace aggregate table")
+    return false
   } finally {
     await queryRunner.release()
   }
