@@ -220,7 +220,18 @@ export class RedisClient {
     return RedisClient.getInstance().hgetall(hashKey)
   }
 
-  public static increment(ctx: MetloContext, key: string) {
-    return RedisClient.getInstance().incr(key)
+  public static async increment(
+    ctx: MetloContext,
+    key: string,
+    expireIn?: number,
+  ) {
+    if (expireIn) {
+      const pipeline = RedisClient.getInstance().pipeline()
+      pipeline.incr(key)
+      pipeline.expire(key, expireIn)
+      return await pipeline.exec()
+    } else {
+      return RedisClient.getInstance().incr(key)
+    }
   }
 }
