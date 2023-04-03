@@ -18,7 +18,7 @@ export async function updateHourlyTraceAggregate(ctx: MetloContext) {
     const currentHour = new Date(currentTime - (currentTime % (1000 * 60 * 60)))
     const existingEndpoints = (
       await getRepository(ctx, AggregateTraceDataHourly).find({
-        where: { apiEndpointUuid: In(Object.keys(res)) },
+        where: { apiEndpointUuid: In(Object.keys(res)), hour: currentHour },
         select: { apiEndpointUuid: true },
       })
     ).map(entry => entry.apiEndpointUuid)
