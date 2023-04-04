@@ -105,6 +105,24 @@ export class RedisClient {
     }
   }
 
+  public static async pushToListPipeline(
+    ctx: MetloContext,
+    key: string,
+    data: (string | number | Buffer)[],
+    maxItems: number,
+    expSecs: number,
+  ) {
+    try {
+      const pipeline = this.getInstance().pipeline()
+      pipeline.lpush(key, ...data)
+      pipeline.ltrim(key, 0, maxItems - 1)
+      pipeline.expire(key, expSecs)
+      await pipeline.exec()
+    } catch (err) {
+      mlog.withErr(err).error("Error pushing value to redis list pipeline")
+    }
+  }
+
   public static async popValueFromRedisList(
     ctx: MetloContext,
     key: string,
@@ -187,5 +205,33 @@ export class RedisClient {
     data
       .then(resp => redisClient.set(key, JSON.stringify(resp)))
       .catch(err => redisClient.set(key, JSON.stringify(err)))
+  }
+
+  public static hashIncrement(
+    ctx: MetloContext,
+    hashKey: string,
+    key: string,
+  ): Promise<number> {
+    const redisClient = RedisClient.getInstance()
+    return redisClient.hincrby(hashKey, key, 1)
+  }
+
+  public static getHash(ctx: MetloContext, hashKey: string) {
+    return RedisClient.getInstance().hgetall(hashKey)
+  }
+
+  public static async increment(
+    ctx: MetloContext,
+    key: string,
+    expireIn?: number,
+  ) {
+    if (expireIn) {
+      const pipeline = RedisClient.getInstance().pipeline()
+      pipeline.incr(key)
+      pipeline.expire(key, expireIn)
+      return await pipeline.exec()
+    } else {
+      return RedisClient.getInstance().incr(key)
+    }
   }
 }

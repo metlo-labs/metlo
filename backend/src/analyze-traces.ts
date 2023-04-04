@@ -29,6 +29,12 @@ import {
   getHostMapCompiledCached,
   getPathBlockListCompiledCached,
 } from "services/metlo-config"
+import { RedisClient } from "utils/redis"
+import {
+  ENDPOINT_CALL_COUNT_HASH,
+  ORG_ENDPOINT_CALL_COUNT,
+  USAGE_GRANULARITY,
+} from "./constants"
 
 export const shouldUpdateEndpoint = (
   prevRiskScore: RiskScore,
@@ -162,6 +168,8 @@ const generateEndpoint = async (
     apiEndpoint.token_1 = endpointToken.token_1
     apiEndpoint.token_2 = endpointToken.token_2
     apiEndpoint.token_3 = endpointToken.token_3
+    apiEndpoint.token_4 = endpointToken.token_4
+    apiEndpoint.token_5 = endpointToken.token_5
     endpointAddNumberParams(apiEndpoint)
     apiEndpoint.dataFields = []
     if (isGraphQl) {
@@ -198,6 +206,7 @@ const generateEndpoint = async (
         false,
         hasValidEnterpriseLicense,
       )
+      await setEndpointCalled(ctx, apiEndpoint.uuid)
     } catch (err) {
       if (queryRunner.isTransactionActive) {
         await queryRunner.rollbackTransaction()
@@ -351,6 +360,15 @@ const getMappedHost = async (task: {
   }
 }
 
+const setEndpointCalled = async (ctx: MetloContext, endpointUUID: string) => {
+  await RedisClient.hashIncrement(ctx, ENDPOINT_CALL_COUNT_HASH, endpointUUID)
+  const time = new Date().getTime()
+  const timeSlot = time - (time % USAGE_GRANULARITY)
+  const key = `${ORG_ENDPOINT_CALL_COUNT}_${timeSlot}`
+  // Expire in 2 mins
+  await RedisClient.increment(ctx, key, 2 * 60)
+}
+
 const analyzeTraces = async (task: {
   trace: QueuedApiTrace
   ctx: MetloContext
@@ -389,6 +407,7 @@ const analyzeTraces = async (task: {
         task.skipDataFields,
         hasValidEnterpriseLicense,
       )
+      await setEndpointCalled(ctx, apiEndpoint.uuid)
     } else {
       if (trace.responseStatus !== 404 && trace.responseStatus !== 405) {
         await generateEndpoint(
@@ -463,7 +482,25 @@ const getEndpoint = async (task: {
           }),
         )
       : endpointQb.andWhere("token_3 IS NULL")
-    if (pathTokens.length > 4) {
+    endpointQb = pathTokens[4]
+      ? endpointQb.andWhere(
+          new Brackets(qb => {
+            qb.where("token_4 = '{param}'").orWhere("token_4 = :token_4", {
+              token_4: pathTokens[4],
+            })
+          }),
+        )
+      : endpointQb.andWhere("token_4 IS NULL")
+    endpointQb = pathTokens[5]
+      ? endpointQb.andWhere(
+          new Brackets(qb => {
+            qb.where("token_5 = '{param}'").orWhere("token_5 = :token_5", {
+              token_5: pathTokens[5],
+            })
+          }),
+        )
+      : endpointQb.andWhere("token_5 IS NULL")
+    if (pathTokens.length > 6) {
       endpointQb = endpointQb.andWhere(`:path ~ "pathRegex"`, {
         path: trace.path,
       })

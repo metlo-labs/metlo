@@ -12,11 +12,7 @@ import { QueryRunner } from "typeorm"
 import { QueuedApiTrace } from "@common/types"
 import { endpointUpdateDates } from "utils"
 import { MetloContext } from "types"
-import {
-  getEntityManager,
-  getQB,
-  insertValuesBuilder,
-} from "services/database/utils"
+import { getQB, insertValuesBuilder } from "services/database/utils"
 import { sendWebhookRequests } from "services/webhook"
 import { findDataFieldsToSave } from "services/data-field/analyze"
 import { createDataFieldAlerts } from "services/alert/sensitive-data"
@@ -25,7 +21,6 @@ import { getSensitiveDataMap } from "services/scanner/analyze-trace"
 import { getCombinedDataClassesCached } from "services/data-classes"
 import { getGlobalFullTraceCaptureCached } from "services/metlo-config"
 import { shouldUpdateEndpoint, updateDataFields } from "analyze-traces"
-import { RiskScore } from "@common/enums"
 
 export const analyze = async (
   ctx: MetloContext,
@@ -110,6 +105,7 @@ export const analyze = async (
   const startSensitiveDataPopulate = performance.now()
   let filteredApiTrace = {
     ...trace,
+    uuid: traceUUID,
     redacted: false,
     apiEndpointUuid: apiEndpoint.uuid,
   } as ApiTrace
@@ -134,37 +130,30 @@ export const analyze = async (
   )
   mlog.debug(`Analyzing Trace - Populated Sensitive Data: ${traceUUID}`)
 
-  const start4 = performance.now()
-  const traceRes = await getEntityManager(ctx, queryRunner).insert(ApiTrace, [
-    filteredApiTrace,
-  ])
-  filteredApiTrace.uuid = traceRes.identifiers[0].uuid
-  mlog.time("analyzer.insert_api_trace_query", performance.now() - start4)
-  mlog.debug(`Analyzing Trace - Inserted API Trace: ${traceUUID}`)
-
   const startTraceRedis = performance.now()
   const endpointTraceKey = `endpointTraces:e#${apiEndpoint.uuid}`
-  await RedisClient.pushValueToRedisList(ctx, endpointTraceKey, [
-    JSON.stringify({
-      ...filteredApiTrace,
-      sensitiveDataMap,
-    }),
-  ])
-  await RedisClient.ltrim(ctx, endpointTraceKey, 0, TRACE_IN_MEM_RETENTION_COUNT - 1)
-  await RedisClient.expire(ctx, endpointTraceKey, TRACE_IN_MEM_EXPIRE_SEC)
+  await RedisClient.pushToListPipeline(
+    ctx,
+    endpointTraceKey,
+    [
+      JSON.stringify({
+        ...filteredApiTrace,
+        sensitiveDataMap,
+      }),
+    ],
+    TRACE_IN_MEM_RETENTION_COUNT,
+    TRACE_IN_MEM_EXPIRE_SEC,
+  )
 
   if (!apiEndpoint.userSet) {
     const endpointPathKey = `endpointPaths:e#${apiEndpoint.uuid}`
-    await RedisClient.pushValueToRedisList(ctx, endpointPathKey, [
-      filteredApiTrace.path,
-    ])
-    await RedisClient.ltrim(
+    await RedisClient.pushToListPipeline(
       ctx,
-      endpointTraceKey,
-      0,
-      TRACE_PATH_IN_MEM_RETENTION_COUNT - 1,
+      endpointPathKey,
+      [filteredApiTrace.path],
+      TRACE_PATH_IN_MEM_RETENTION_COUNT,
+      TRACE_IN_MEM_EXPIRE_SEC,
     )
-    await RedisClient.expire(ctx, endpointPathKey, TRACE_IN_MEM_EXPIRE_SEC)
   }
 
   mlog.time(

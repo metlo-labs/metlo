@@ -1,21 +1,6 @@
 import { Alert, ApiEndpoint, ApiTrace, DataField } from "models"
 import { MetloContext } from "types"
 
-export const aggregateTracesDataHourlyQuery = (ctx: MetloContext) => `
-  INSERT INTO aggregate_trace_data_hourly ("apiEndpointUuid", "hour", "numCalls")
-  SELECT
-    "apiEndpointUuid",
-    DATE_TRUNC('hour', "createdAt") as hour,
-    COUNT(*) as "numCalls"
-  FROM ${ApiTrace.getTableName(ctx)} traces
-  WHERE
-    "apiEndpointUuid" IS NOT NULL
-    AND "createdAt" <= $1
-  GROUP BY 1, 2
-  ON CONFLICT ON CONSTRAINT unique_constraint_hourly
-  DO UPDATE SET "numCalls" = EXCLUDED."numCalls" + aggregate_trace_data_hourly."numCalls"
-`
-
 export const getUnauthenticatedEndpointsSensitiveData = (ctx: MetloContext) => `
   With endpoints AS (
     SELECT DISTINCT

@@ -12,7 +12,6 @@ import { QueuedApiTrace } from "@common/types"
 import { endpointUpdateDates } from "utils"
 import { MetloContext } from "types"
 import {
-  getEntityManager,
   getQB,
   insertValuesBuilder,
 } from "services/database/utils"
@@ -110,6 +109,7 @@ export const analyze = async (
   )
   let filteredApiTrace = {
     ...apiTrace,
+    uuid: traceUUID,
     apiEndpointUuid: apiEndpoint.uuid,
   } as ApiTrace
 
@@ -119,44 +119,32 @@ export const analyze = async (
   )
   mlog.debug(`Analyzing Trace - Populated Sensitive Data: ${traceUUID}`)
 
-  const start4 = performance.now()
-  const traceRes = await getEntityManager(ctx, queryRunner).insert(ApiTrace, [
-    filteredApiTrace,
-  ])
-  filteredApiTrace.uuid = traceRes.identifiers[0].uuid
-  mlog.time("analyzer.insert_api_trace_query", performance.now() - start4)
-  mlog.debug(`Analyzing Trace - Inserted API Trace: ${traceUUID}`)
-
   const startTraceRedis = performance.now()
   const endpointTraceKey = `endpointTraces:e#${apiEndpoint.uuid}`
   if (apiTrace.analysisType === AnalysisType.FULL) {
-    await RedisClient.pushValueToRedisList(ctx, endpointTraceKey, [
-      JSON.stringify({
-        ...filteredApiTrace,
-        sensitiveDataMap,
-      }),
-    ])
-    await RedisClient.ltrim(
+    await RedisClient.pushToListPipeline(
       ctx,
       endpointTraceKey,
-      0,
-      TRACE_IN_MEM_RETENTION_COUNT - 1,
+      [
+        JSON.stringify({
+          ...filteredApiTrace,
+          sensitiveDataMap,
+        }),
+      ],
+      TRACE_IN_MEM_RETENTION_COUNT,
+      TRACE_IN_MEM_EXPIRE_SEC,
     )
-    await RedisClient.expire(ctx, endpointTraceKey, TRACE_IN_MEM_EXPIRE_SEC)
   }
 
   if (!apiEndpoint.userSet) {
     const endpointPathKey = `endpointPaths:e#${apiEndpoint.uuid}`
-    await RedisClient.pushValueToRedisList(ctx, endpointPathKey, [
-      filteredApiTrace.path,
-    ])
-    await RedisClient.ltrim(
+    await RedisClient.pushToListPipeline(
       ctx,
-      endpointTraceKey,
-      0,
-      TRACE_PATH_IN_MEM_RETENTION_COUNT - 1,
+      endpointPathKey,
+      [filteredApiTrace.path],
+      TRACE_PATH_IN_MEM_RETENTION_COUNT,
+      TRACE_IN_MEM_EXPIRE_SEC,
     )
-    await RedisClient.expire(ctx, endpointPathKey, TRACE_IN_MEM_EXPIRE_SEC)
   }
 
   mlog.time(

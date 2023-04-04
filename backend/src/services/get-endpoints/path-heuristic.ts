@@ -242,6 +242,8 @@ export const generateEndpointsMap = async (
     apiEndpoint.token_1 = endpointToken.token_1
     apiEndpoint.token_2 = endpointToken.token_2
     apiEndpoint.token_3 = endpointToken.token_3
+    apiEndpoint.token_4 = endpointToken.token_4
+    apiEndpoint.token_5 = endpointToken.token_5
     endpointAddNumberParams(apiEndpoint)
     endpointsMap[apiEndpoint.uuid] = {
       endpoint: apiEndpoint,

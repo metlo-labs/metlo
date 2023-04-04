@@ -256,16 +256,9 @@ export interface OpenApiSpec {
   specUpdatedAt: Date
 }
 
-export interface EndpointAndUsage extends ApiEndpointDetailed {
-  last30MinCnt: number
-  last5MinCnt: number
-  last1MinCnt: number
-}
-
 export interface UsageStats {
   dailyUsage: { day: string; cnt: number }[]
   last1MinCnt: number
-  last60MinCnt: number
 }
 
 export interface Summary {
@@ -277,7 +270,7 @@ export interface Summary {
   piiDataTypeCount: Map<string, number>
   alertTypeCount: Map<AlertType, number>
   topAlerts: Alert[]
-  topEndpoints: EndpointAndUsage[]
+  topEndpoints: ApiEndpointDetailed[]
   usageStats: UsageStats
   numConnections: number
 }

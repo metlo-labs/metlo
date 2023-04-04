@@ -1,4 +1,5 @@
 import { DataSection, RiskScore, SpecExtension } from "@common/enums"
+import { MetloContext } from "types"
 
 export const pathParameterRegex: RegExp = new RegExp(String.raw`/{[^/]+}`, "g")
 
@@ -38,6 +39,10 @@ export const BLOCK_FIELDS_LIST_KEY = "block_fields_list"
 export const BLOCK_FIELDS_ALL_REGEX = "^.*$"
 
 export const TRACES_QUEUE = "traces_queue"
+
+export const ENDPOINT_CALL_COUNT_HASH = `endpoints_call_count`
+export const ORG_ENDPOINT_CALL_COUNT = `org_endpoints_call_count`
+export const USAGE_GRANULARITY = 1000 * 60
 
 export const TRACE_IN_MEM_RETENTION_COUNT = 100
 export const TRACE_PATH_IN_MEM_RETENTION_COUNT = 2000
