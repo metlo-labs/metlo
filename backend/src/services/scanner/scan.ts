@@ -1,6 +1,7 @@
 import { __DataClass_INTERNAL__ } from "@common/enums"
 import {
   AADHAR_REGEXP,
+  ADDRESS_KEY_REGEXP,
   ADDRESS_REGEXP,
   BRAZIL_CPF_REGEXP,
   COORDINATE_REGEXP,
@@ -14,7 +15,6 @@ import { DataClass } from "@common/types"
 import { validateAadhar, validateBrazilCPF } from "./validate"
 
 export const __DATA_CLASS_REGEX_MAP_INTERNAL__ = {
-  [__DataClass_INTERNAL__.ADDRESS]: ADDRESS_REGEXP,
   [__DataClass_INTERNAL__.COORDINATE]: COORDINATE_REGEXP,
   [__DataClass_INTERNAL__.CREDIT_CARD]: CREDIT_CARD_REGEXP,
   [__DataClass_INTERNAL__.EMAIL]: EMAIL_REGEXP,
@@ -23,6 +23,10 @@ export const __DATA_CLASS_REGEX_MAP_INTERNAL__ = {
   [__DataClass_INTERNAL__.SSN]: SSN_REGEXP,
   [__DataClass_INTERNAL__.AADHAR_NUMBER]: AADHAR_REGEXP,
   [__DataClass_INTERNAL__.BRAZIL_CPF]: BRAZIL_CPF_REGEXP,
+}
+
+export const __DATA_CLASS_KEY_REGEX_MAP_INTERNAL__ = {
+  [__DataClass_INTERNAL__.ADDRESS]: ADDRESS_KEY_REGEXP,
 }
 
 const STRING_ONLY_DATA_CLASSES: Set<string> = new Set([
