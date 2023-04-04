@@ -101,3 +101,8 @@ export const PHONE_NUMBER_REGEXP = new RegExp(phoneNumberPattern)
 export const VIN_REGEXP = new RegExp(vinPattern)
 export const AADHAR_REGEXP = new RegExp(aadharPatern)
 export const BRAZIL_CPF_REGEXP = new RegExp(brazilCPFPattern)
+
+/** Key Regexes */
+const addressKeyPattern = String.raw`address`
+
+export const ADDRESS_KEY_REGEXP = new RegExp(addressKeyPattern)

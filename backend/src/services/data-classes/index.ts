@@ -7,7 +7,7 @@ import {
   __DATA_CLASS_TO_RISK_SCORE_INTERNAL__,
   __DATA_CLASS_TO_SHORT_NAME_INTERNAL__,
 } from "@common/maps"
-import { __DATA_CLASS_REGEX_MAP_INTERNAL__ } from "services/scanner/scan"
+import { __DATA_CLASS_KEY_REGEX_MAP_INTERNAL__, __DATA_CLASS_REGEX_MAP_INTERNAL__ } from "services/scanner/scan"
 import { RedisClient } from "../../utils/redis"
 import { customDataClass, rawDataClass } from "./utils"
 import { DataField } from "models"
@@ -99,11 +99,13 @@ export const getCombinedDataClasses = async (ctx: MetloContext) => {
   }
   getValidMetloDataClasses(ctx, jsConfig).forEach(enumKey => {
     const reg = __DATA_CLASS_REGEX_MAP_INTERNAL__[enumKey]
+    const keyRegex = __DATA_CLASS_KEY_REGEX_MAP_INTERNAL__[enumKey]
     metloDefinedClassMap.push({
       className: enumKey,
       severity: __DATA_CLASS_TO_RISK_SCORE_INTERNAL__[enumKey],
       shortName: __DATA_CLASS_TO_SHORT_NAME_INTERNAL__[enumKey],
       regex: reg,
+      keyRegex
     })
   })
   return [...metloDefinedClassMap, ...userDefinedClassMap].map(cls => {
