@@ -26,18 +26,22 @@ type Metlo struct {
 	metloHost    string
 	metloKey     string
 	localProcess bool
-	conn         *grpc.ClientConn
+	stream       pb.MetloIngest_ProcessTraceAsyncClient
 }
 
 const MetloDefaultRPS int = 5
 const MaxConnectTries int = 10
 
-func ConnectLocalProcessAgent() (*grpc.ClientConn, error) {
+func ConnectLocalProcessAgent() (pb.MetloIngest_ProcessTraceAsyncClient, error) {
 	for i := 0; i < MaxConnectTries; i++ {
 		utils.Log.Info("Trying to connect to local metlo processor")
 		conn, err := grpc.Dial("unix:///tmp/metlo.sock", grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err == nil {
-			return conn, err
+			metloConn := pb.NewMetloIngestClient(conn)
+			stream, err_stream := metloConn.ProcessTraceAsync(context.Background())
+			if err_stream == nil {
+				return stream, err_stream
+			}
 		}
 		utils.Log.WithError(err).Info("Couldn't connect to local metlo processor")
 		time.Sleep(time.Second)
@@ -52,11 +56,11 @@ func InitMetlo(metloHost string, metloKey string, rps int, localProcess bool) *M
 		metloHost:    metloHost + "/api/v1/log-request/single",
 		metloKey:     metloKey,
 		localProcess: localProcess,
-		conn:         nil,
+		stream:       nil,
 	}
 	if localProcess {
 		conn, err := ConnectLocalProcessAgent()
-		inst.conn = conn
+		inst.stream = conn
 		if err != nil {
 			utils.Log.WithError(err).Fatal()
 		}
@@ -65,11 +69,8 @@ func InitMetlo(metloHost string, metloKey string, rps int, localProcess bool) *M
 }
 
 func (m *Metlo) SendLocalProcess(data MetloTrace) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	metloConn := pb.NewMetloIngestClient(m.conn)
 	miTrace := MapMetloTraceToMetloIngestRPC(data)
-	_, err := metloConn.ProcessTraceAsync(ctx, &miTrace)
+	err := m.stream.Send(&miTrace)
 	if err != nil {
 		utils.Log.WithError(err).Debug("Failed sending trace to rust-common")
 	}

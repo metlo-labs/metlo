@@ -241,60 +241,61 @@ pub struct MIngestServer {}
 impl MetloIngest for MIngestServer {
     async fn process_trace_async(
         &self,
-        request: Request<metloingest::ApiTrace>,
+        request: Request<tonic::Streaming<metloingest::ApiTrace>>,
     ) -> Result<Response<metloingest::ProcessTraceAsyncRes>, Status> {
-        let map_req = map_ingest_api_trace(request.into_inner());
-        if let Some(mapped_api_trace) = map_req {
-            match TASK_RUN_SEMAPHORE.try_acquire() {
-                Ok(permit) => {
-                    tokio::spawn(async move {
-                        let analysis_type = get_analysis_type();
-                        if analysis_type.is_some() {
-                            let trace_info = get_trace_info(&mapped_api_trace);
-                            if !trace_info.block {
-                                let res = process_api_trace(
-                                    &mapped_api_trace,
-                                    &trace_info,
-                                    analysis_type.unwrap(),
-                                );
-                                let mut req_buffer_write = REQUEST_BUFFER.try_write();
-                                if let Ok(ref mut buf) = req_buffer_write {
-                                    let analysis_type_unwrap = analysis_type.unwrap();
-                                    let buffer_item = BufferItem {
-                                        trace: mapped_api_trace,
-                                        processed_trace: res,
-                                        trace_info,
-                                        analysis_type: String::from(analysis_type_unwrap),
-                                    };
-                                    match analysis_type_unwrap {
-                                        "partial" => {
-                                            buf.partial_analysis.push(buffer_item);
+        let mut stream = request.into_inner();
+        while let Some(req) = stream.message().await? {
+            let map_req = map_ingest_api_trace(req);
+            if let Some(mapped_api_trace) = map_req {
+                match TASK_RUN_SEMAPHORE.try_acquire() {
+                    Ok(permit) => {
+                        tokio::spawn(async move {
+                            let analysis_type = get_analysis_type();
+                            if analysis_type.is_some() {
+                                let trace_info = get_trace_info(&mapped_api_trace);
+                                if !trace_info.block {
+                                    let res = process_api_trace(
+                                        &mapped_api_trace,
+                                        &trace_info,
+                                        analysis_type.unwrap(),
+                                    );
+                                    let mut req_buffer_write = REQUEST_BUFFER.try_write();
+                                    if let Ok(ref mut buf) = req_buffer_write {
+                                        let analysis_type_unwrap = analysis_type.unwrap();
+                                        let buffer_item = BufferItem {
+                                            trace: mapped_api_trace,
+                                            processed_trace: res,
+                                            trace_info,
+                                            analysis_type: String::from(analysis_type_unwrap),
+                                        };
+                                        match analysis_type_unwrap {
+                                            "partial" => {
+                                                buf.partial_analysis.push(buffer_item);
+                                            }
+                                            "full" => buf.full_analysis.push(buffer_item),
+                                            _ => (),
                                         }
-                                        "full" => buf.full_analysis.push(buffer_item),
-                                        _ => (),
                                     }
+                                    drop(req_buffer_write);
                                 }
-                                drop(req_buffer_write);
                             }
-                        }
-                        drop(permit);
-                    });
-                }
-                Err(TryAcquireError::NoPermits) => {
-                    log::debug!("no permits avaiable");
-                    return Err(Status::new(Code::InvalidArgument, "Invalid API Trace"));
-                }
-                Err(TryAcquireError::Closed) => {
-                    log::debug!("semaphore closed");
-                    return Err(Status::new(Code::InvalidArgument, "Invalid API Trace"));
+                            drop(permit);
+                        });
+                    }
+                    Err(TryAcquireError::NoPermits) => {
+                        log::debug!("no permits avaiable");
+                        return Err(Status::new(Code::InvalidArgument, "Invalid API Trace"));
+                    }
+                    Err(TryAcquireError::Closed) => {
+                        log::debug!("semaphore closed");
+                        return Err(Status::new(Code::InvalidArgument, "Invalid API Trace"));
+                    }
                 }
             }
-            return Ok(Response::new(metloingest::ProcessTraceAsyncRes {
-                ok: true,
-            }));
-        } else {
-            return Err(Status::new(Code::InvalidArgument, "Invalid API Trace"));
-        };
+        }
+        return Ok(Response::new(metloingest::ProcessTraceAsyncRes {
+            ok: true,
+        }));
     }
     async fn process_trace(
         &self,
