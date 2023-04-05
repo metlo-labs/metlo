@@ -170,7 +170,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     log::info!("Initialized Metlo");
 
     tokio::task::spawn(async {
-        let mut interval = time::interval(Duration::from_secs(60));
+        let mut interval = time::interval(Duration::from_secs(300));
         loop {
             interval.tick().await;
             log::trace!("Pulling Metlo Config");
