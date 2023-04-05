@@ -222,7 +222,7 @@ impl MetloIngest for MIngestServer {
         &self,
         request: Request<tonic::Streaming<metloingest::ApiTrace>>,
     ) -> Result<Response<metloingest::ProcessTraceAsyncRes>, Status> {
-        let stream = request.into_inner();
+        let mut stream = request.into_inner();
         while let Some(req) = stream.message().await? {
             let map_req = map_ingest_api_trace(req);
             if let Some(mapped_api_trace) = map_req {
