@@ -25,8 +25,9 @@ import { analyze as analyzeV2 } from "services/analyze/v2"
 import { analyze } from "services/analyze/v1"
 import {
   getCustomWordsCached,
-  getHostBlockListCached,
-  getHostMapCached,
+  getHostBlockListCompiledCached,
+  getHostMapCompiledCached,
+  getPathBlockListCompiledCached,
 } from "services/metlo-config"
 import { RedisClient } from "utils/redis"
 import {
@@ -277,19 +278,20 @@ const getQueryRunner = async () => {
 const getMappedHost = async (task: {
   ctx: MetloContext
   host: string
+  tracePath: string
 }): Promise<{ mappedHost: string | null; isBlocked: boolean }> => {
   let mappedHost = null
   let isBlocked = false
   try {
     await getDataSource()
     let queryRunner = await getQueryRunner()
-    const { ctx, host } = task
+    const { ctx, host, tracePath } = task
     const start = performance.now()
-    const hostMap = await getHostMapCached(ctx, queryRunner)
+    const hostMap = await getHostMapCompiledCached(ctx, queryRunner)
     mlog.time("analyzer.get_host_map", performance.now() - start)
 
     const startBlockList = performance.now()
-    const hostBlockList = await getHostBlockListCached(ctx, queryRunner)
+    const hostBlockList = await getHostBlockListCompiledCached(ctx, queryRunner)
     mlog.time(
       "analyzer.get_host_block_list",
       performance.now() - startBlockList,
@@ -317,6 +319,37 @@ const getMappedHost = async (task: {
       "analyzer.match_host_block_list",
       performance.now() - startMatchBlockList,
     )
+
+    if (!isBlocked) {
+      const startPathBlockList = performance.now()
+      const pathBlockList = await getPathBlockListCompiledCached(
+        ctx,
+        queryRunner,
+      )
+      mlog.time(
+        "analyzer.get_path_block_list",
+        performance.now() - startPathBlockList,
+      )
+
+      const startMatchPathBlockList = performance.now()
+      for (const item of pathBlockList) {
+        const match = item.host.test(mappedHost ?? host)
+        if (match) {
+          for (const path of item.paths) {
+            const matchPath = path.test(tracePath)
+            if (matchPath) {
+              isBlocked = true
+              break
+            }
+          }
+        }
+      }
+      mlog.time(
+        "analyzer.match_path_block_list",
+        performance.now() - startMatchPathBlockList,
+      )
+    }
+
     return { mappedHost, isBlocked }
   } catch (err) {
     mlog.withErr(err).error("Encountered error while processing trace host")

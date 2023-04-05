@@ -1,6 +1,8 @@
 use crate::metlo_config::*;
 use lazy_static::lazy_static;
+use open_api::get_split_path;
 use send_trace::send_api_trace;
+use trace::ApiTrace;
 
 use crate::metloingest::metlo_ingest_server::{MetloIngest, MetloIngestServer};
 use mappers::{map_ingest_api_trace, map_process_trace_res};
@@ -38,12 +40,26 @@ lazy_static! {
         encryption_public_key: None,
         authentication_config: vec![],
         hmac_key: None,
+        host_map: vec![],
+        host_block_list: vec![],
+        path_block_list: vec![],
     });
 }
 
 pub struct InitializeMetloResp {
     pub ok: bool,
     pub msg: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct TraceInfo {
+    pub openapi_spec_name: Option<String>,
+    pub full_trace_capture_enabled: bool,
+    pub is_graph_ql: bool,
+    pub endpoint_path: String,
+    pub current_host: String,
+    pub block: bool,
+    pub authentication: Option<Authentication>,
 }
 
 pub async fn initialize_metlo(
@@ -108,6 +124,95 @@ pub async fn initialize_metlo(
     })
 }
 
+fn is_endpoint_match(trace_tokens: &Vec<&str>, endpoint_path: String) -> bool {
+    let endpoint_tokens = get_split_path(&endpoint_path);
+    if trace_tokens.len() != endpoint_tokens.len() {
+        return false;
+    }
+
+    for (i, endpoint_token) in endpoint_tokens.into_iter().enumerate() {
+        let trace_token = trace_tokens[i];
+        if endpoint_token != trace_token
+            && (!endpoint_token.starts_with('{') && !endpoint_token.ends_with('}'))
+        {
+            return false;
+        }
+    }
+    true
+}
+
+fn get_trace_info(trace: &ApiTrace) -> TraceInfo {
+    let mut openapi_spec_name: Option<String> = None;
+    let mut full_trace_capture_enabled: bool = false;
+    let mut is_graph_ql: bool = trace.request.url.path.ends_with("/graphql");
+    let mut endpoint_path: String = trace.request.url.path.clone();
+    let mut current_host: String = trace.request.url.host.clone();
+    let mut block: bool = false;
+    let mut authentication: Option<Authentication> = None;
+    let split_path: Vec<&str> = get_split_path(&trace.request.url.path);
+    let conf_read = METLO_CONFIG.try_read();
+    if let Ok(ref conf) = conf_read {
+        if let Some(e) = conf
+            .host_map
+            .iter()
+            .find(|&h| h.pattern.is_match(&trace.request.url.host))
+        {
+            current_host = e.host.clone();
+        }
+        if !conf.host_block_list.is_empty() {
+            for host in conf.host_block_list.iter() {
+                if host.is_match(&current_host) {
+                    block = true;
+                    break;
+                }
+            }
+        }
+        if !block && !conf.path_block_list.is_empty() {
+            for item in conf.path_block_list.iter() {
+                if item.host.is_match(&current_host) {
+                    for path in item.paths.iter() {
+                        if path.is_match(&trace.request.url.path) {
+                            block = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if let (false, Some(endpoints)) = (block, &conf.endpoints) {
+            let key = format!("{}-{}", current_host, trace.request.method.to_lowercase());
+            if let Some(matched_endpoints) = endpoints.get(&key) {
+                for endpoint in matched_endpoints.iter() {
+                    if is_endpoint_match(&split_path, endpoint.path.clone()) {
+                        openapi_spec_name = endpoint.openapi_spec_name.to_owned();
+                        full_trace_capture_enabled = endpoint.full_trace_capture_enabled;
+                        endpoint_path = endpoint.path.clone();
+                        is_graph_ql = endpoint.is_graph_ql;
+                        break;
+                    }
+                }
+            }
+            authentication = conf
+                .authentication_config
+                .iter()
+                .find(|&e| e.host == current_host)
+                .cloned();
+        }
+    }
+    drop(conf_read);
+
+    TraceInfo {
+        openapi_spec_name,
+        full_trace_capture_enabled,
+        is_graph_ql,
+        endpoint_path,
+        current_host,
+        block,
+        authentication,
+    }
+}
+
 #[derive(Default)]
 pub struct MIngestServer {}
 
@@ -122,8 +227,11 @@ impl MetloIngest for MIngestServer {
             match TASK_RUN_SEMAPHORE.try_acquire() {
                 Ok(permit) => {
                     tokio::spawn(async move {
-                        let res = process_api_trace(&mapped_api_trace);
-                        send_api_trace(mapped_api_trace, res).await;
+                        let trace_info = get_trace_info(&mapped_api_trace);
+                        if !trace_info.block {
+                            let res = process_api_trace(&mapped_api_trace, &trace_info);
+                            send_api_trace(mapped_api_trace, res).await;
+                        }
                         drop(permit);
                     });
                 }
@@ -151,7 +259,8 @@ impl MetloIngest for MIngestServer {
         if let Some(mapped_api_trace) = map_req {
             match TASK_RUN_SEMAPHORE.try_acquire() {
                 Ok(permit) => {
-                    let res = process_api_trace(&mapped_api_trace);
+                    let trace_info = get_trace_info(&mapped_api_trace);
+                    let res = process_api_trace(&mapped_api_trace, &trace_info);
                     drop(permit);
                     return Ok(Response::new(map_process_trace_res(res.0)));
                 }

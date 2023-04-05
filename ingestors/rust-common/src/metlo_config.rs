@@ -59,6 +59,32 @@ pub struct MetloSpec {
 
 #[derive(Debug, Default, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct HostMap {
+    pub host: String,
+    pub pattern: String,
+}
+
+#[derive(Debug)]
+pub struct HostMapCompiled {
+    pub host: String,
+    pub pattern: Regex,
+}
+
+#[derive(Debug, Default, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PathBlockList {
+    pub host: String,
+    pub paths: Vec<String>,
+}
+
+#[derive(Debug)]
+pub struct PathBlockListCompiled {
+    pub host: Regex,
+    pub paths: Vec<Regex>,
+}
+
+#[derive(Debug, Default, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct MetloConfig {
     pub sensitive_data_list: Vec<MetloSensitiveData>,
     pub endpoints: Vec<MetloEndpoint>,
@@ -70,6 +96,15 @@ pub struct MetloConfig {
 
     #[serde(default)]
     pub authentication_config: Vec<Authentication>,
+
+    #[serde(default)]
+    pub host_map: Vec<HostMap>,
+
+    #[serde(default)]
+    pub host_block_list: Vec<String>,
+
+    #[serde(default)]
+    pub path_block_list: Vec<PathBlockList>,
 }
 
 #[derive(Debug)]
@@ -85,6 +120,9 @@ pub struct GlobalConfig {
     pub encryption_public_key: Option<String>,
     pub authentication_config: Vec<Authentication>,
     pub hmac_key: Option<hmac::Key>,
+    pub host_map: Vec<HostMapCompiled>,
+    pub host_block_list: Vec<Regex>,
+    pub path_block_list: Vec<PathBlockListCompiled>,
 }
 
 pub struct ValidateRequestConnResp {
@@ -227,6 +265,43 @@ pub async fn pull_metlo_config() -> Result<(), Box<dyn std::error::Error>> {
         .collect();
     let compiled_specs = compile_specs(resp.specs);
     let endpoints_map = get_endpoints_map(resp.endpoints);
+    let compiled_host_map: Vec<HostMapCompiled> = resp
+        .host_map
+        .iter()
+        .filter_map(|h| match Regex::new(&h.pattern) {
+            Ok(r) => Some(HostMapCompiled {
+                host: h.host.clone(),
+                pattern: r,
+            }),
+            Err(_) => None,
+        })
+        .collect();
+    let compiled_host_block_list: Vec<Regex> = resp
+        .host_block_list
+        .iter()
+        .filter_map(|h| match Regex::new(h) {
+            Ok(r) => Some(r),
+            Err(_) => None,
+        })
+        .collect();
+    let compiled_path_block_list: Vec<PathBlockListCompiled> = resp
+        .path_block_list
+        .iter()
+        .filter_map(|e| match Regex::new(&e.host) {
+            Ok(r) => Some(PathBlockListCompiled {
+                host: r,
+                paths: e
+                    .paths
+                    .iter()
+                    .filter_map(|p| match Regex::new(p) {
+                        Ok(reg) => Some(reg),
+                        Err(_) => None,
+                    })
+                    .collect(),
+            }),
+            Err(_) => None,
+        })
+        .collect();
 
     let mut conf_write = METLO_CONFIG.write().await;
     conf_write.sensitive_data = Some(new_sensitive_data);
@@ -235,6 +310,9 @@ pub async fn pull_metlo_config() -> Result<(), Box<dyn std::error::Error>> {
     conf_write.global_full_trace_capture = resp.global_full_trace_capture;
     conf_write.encryption_public_key = resp.encryption_public_key;
     conf_write.authentication_config = resp.authentication_config;
+    conf_write.host_map = compiled_host_map;
+    conf_write.host_block_list = compiled_host_block_list;
+    conf_write.path_block_list = compiled_path_block_list;
 
     Ok(())
 }
