@@ -224,24 +224,24 @@ export const METLO_CONFIG_SCHEMA = {
       },
       uniqueItems: true,
     },
-  },
-  pathBlockList: {
-    type: "array",
-    items: {
-      type: "object",
-      properties: {
-        host: {
-          type: "string",
-          minLength: 1,
-          format: "regex",
-        },
-        paths: {
-          type: "array",
-          uniqueItems: true,
-          items: {
+    pathBlockList: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          host: {
             type: "string",
             minLength: 1,
             format: "regex",
+          },
+          paths: {
+            type: "array",
+            uniqueItems: true,
+            items: {
+              type: "string",
+              minLength: 1,
+              format: "regex",
+            },
           },
         },
       },
