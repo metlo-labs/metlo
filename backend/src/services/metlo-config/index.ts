@@ -10,7 +10,13 @@ import { MetloContext } from "types"
 import { createQB, getQB, insertValueBuilder } from "services/database/utils"
 import jsyaml from "js-yaml"
 import { decrypt, encrypt, generate_iv } from "utils/encryption"
-import { HostMappingCompiled, MetloConfigType } from "./types"
+import {
+  HostMapping,
+  HostMappingCompiled,
+  MetloConfigType,
+  PathBlockList,
+  PathBlockListCompiled,
+} from "./types"
 import { validateMetloConfig } from "./validate"
 import { populateAuthentication, populateBlockFields } from "./populate-tables"
 import { NodeCache } from "utils/node-cache"
@@ -78,9 +84,17 @@ export const getGlobalFullTraceCaptureCached = async (
 export const getHostMapCached = async (
   ctx: MetloContext,
   queryRunner?: QueryRunner,
+): Promise<HostMapping[]> => {
+  const conf = await getMetloConfigProcessedCached(ctx, queryRunner)
+  return conf?.hostMap ?? []
+}
+
+export const getHostMapCompiledCached = async (
+  ctx: MetloContext,
+  queryRunner?: QueryRunner,
 ): Promise<HostMappingCompiled[]> => {
   const conf = await getMetloConfigProcessedCached(ctx, queryRunner)
-  return (conf.hostMap || []).map(e => ({
+  return (conf?.hostMap ?? []).map(e => ({
     host: e.host,
     pattern: new RegExp(e.pattern),
   }))
@@ -89,9 +103,36 @@ export const getHostMapCached = async (
 export const getHostBlockListCached = async (
   ctx: MetloContext,
   queryRunner?: QueryRunner,
+): Promise<string[]> => {
+  const conf = await getMetloConfigProcessedCached(ctx, queryRunner)
+  return conf?.hostBlockList ?? []
+}
+
+export const getHostBlockListCompiledCached = async (
+  ctx: MetloContext,
+  queryRunner?: QueryRunner,
 ): Promise<RegExp[]> => {
   const conf = await getMetloConfigProcessedCached(ctx, queryRunner)
   return conf?.hostBlockList?.map(e => new RegExp(e)) ?? []
+}
+
+export const getPathBlockListCached = async (
+  ctx: MetloContext,
+  queryRunner?: QueryRunner,
+): Promise<PathBlockList[]> => {
+  const conf = await getMetloConfigProcessedCached(ctx, queryRunner)
+  return conf?.pathBlockList ?? []
+}
+
+export const getPathBlockListCompiledCached = async (
+  ctx: MetloContext,
+  queryRunner?: QueryRunner,
+): Promise<PathBlockListCompiled[]> => {
+  const conf = await getMetloConfigProcessedCached(ctx, queryRunner)
+  return (conf?.pathBlockList ?? []).map(e => ({
+    host: new RegExp(e.host),
+    paths: (e?.paths ?? []).map(path => new RegExp(path)),
+  }))
 }
 
 export const getMinAnalyzeTracesCached = async (

@@ -104,6 +104,7 @@ const runTrace = async (task: TraceTask) => {
         task: {
           ctx: task.ctx,
           host: singleTrace.host,
+          tracePath: singleTrace.path,
         },
       })
     if (mapped_host_res.isBlocked) {
