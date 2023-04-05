@@ -482,9 +482,22 @@ fn combine_process_trace_res(
     }
 }
 
-pub fn process_api_trace(trace: &ApiTrace, trace_info: &TraceInfo) -> (ProcessTraceRes, bool) {
+pub fn process_api_trace(
+    trace: &ApiTrace,
+    trace_info: &TraceInfo,
+    analysis_type: &str,
+) -> ProcessTraceRes {
     let req_content_type = get_content_type(&trace.request.headers);
     let req_mime_type = get_mime_type(req_content_type);
+
+    if analysis_type == "partial" {
+        let mut resp_content_type: Option<&String> = None;
+        if let Some(resp) = &trace.response {
+            resp_content_type = get_content_type(&resp.headers);
+        }
+        return combine_process_trace_res(&[], req_content_type, resp_content_type, None);
+    }
+
     let non_error_status_code = match &trace.response {
         Some(ApiResponse {
             status,
@@ -563,20 +576,17 @@ pub fn process_api_trace(trace: &ApiTrace, trace_info: &TraceInfo) -> (ProcessTr
         }
     };
 
-    (
-        combine_process_trace_res(
-            &[
-                proc_req_body,
-                proc_req_params,
-                proc_req_headers,
-                proc_resp_body,
-                proc_resp_headers,
-                proc_graph_ql.as_ref().map(|f| f.proc_trace_res.to_owned()),
-            ],
-            req_content_type,
-            resp_content_type,
-            proc_graph_ql.as_ref().map(|f| f.graph_ql_data.to_owned()),
-        ),
-        trace_info.full_trace_capture_enabled,
+    combine_process_trace_res(
+        &[
+            proc_req_body,
+            proc_req_params,
+            proc_req_headers,
+            proc_resp_body,
+            proc_resp_headers,
+            proc_graph_ql.as_ref().map(|f| f.proc_trace_res.to_owned()),
+        ],
+        req_content_type,
+        resp_content_type,
+        proc_graph_ql.as_ref().map(|f| f.graph_ql_data.to_owned()),
     )
 }

@@ -1,20 +1,20 @@
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct KeyVal {
     pub name: String,
     pub value: String,
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct ApiUrl {
     pub host: String,
     pub path: String,
     pub parameters: Vec<KeyVal>,
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct ApiRequest {
     pub method: String,
     pub url: ApiUrl,
@@ -22,14 +22,14 @@ pub struct ApiRequest {
     pub body: String,
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct ApiResponse {
     pub status: u16,
     pub headers: Vec<KeyVal>,
     pub body: String,
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ApiMeta {
     pub environment: String,
@@ -38,9 +38,10 @@ pub struct ApiMeta {
     pub source_port: u16,
     pub destination: String,
     pub destination_port: u16,
+    pub original_source: Option<String>,
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct ApiTrace {
     pub request: ApiRequest,
     pub response: Option<ApiResponse>,
@@ -139,4 +140,5 @@ pub struct ProcessedApiTrace {
     pub redacted: bool,
     pub encryption: Option<Encryption>,
     pub session_meta: Option<SessionMeta>,
+    pub analysis_type: String,
 }

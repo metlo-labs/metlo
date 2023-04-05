@@ -2,7 +2,7 @@ import validator from "validator"
 import { QueryRunner } from "typeorm"
 import { ApiEndpoint, DataField } from "models"
 import { pathParameterRegex } from "~/constants"
-import { DataType, RiskScore } from "@common/enums"
+import { AnalysisType, DataType, RiskScore } from "@common/enums"
 import wordJson from "./words.json"
 import { getHigherRiskScore, getPathTokens } from "@common/utils"
 import { DataClass } from "@common/types"
@@ -311,6 +311,7 @@ export const shouldSkipDataFields = async (
   ctx: MetloContext,
   endpointUuid: string,
   traceStatusCode: number,
+  analysisType?: AnalysisType,
 ) => {
   if (!endpointUuid || !traceStatusCode) {
     return false
@@ -320,11 +321,15 @@ export const shouldSkipDataFields = async (
     | number
     | undefined
   if (!lastUpdated) {
-    skipDataFieldsCache.set(ctx, key, new Date().getTime())
+    if (analysisType === AnalysisType.FULL) {
+      skipDataFieldsCache.set(ctx, key, new Date().getTime())
+    }
     return false
   }
   if (new Date().getTime() - lastUpdated > 4_000) {
-    skipDataFieldsCache.set(ctx, key, new Date().getTime())
+    if (analysisType === AnalysisType.FULL) {
+      skipDataFieldsCache.set(ctx, key, new Date().getTime())
+    }
     return false
   }
   return true

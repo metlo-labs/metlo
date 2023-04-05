@@ -15,6 +15,7 @@ import { TRACES_QUEUE } from "~/constants"
 import { MetloContext } from "types"
 import { getValidPath } from "utils"
 import Error400BadRequest from "errors/error-400-bad-request"
+import { AnalysisType } from "@common/enums"
 
 const getContentType = (contentType: string) => {
   if (!contentType) {
@@ -91,6 +92,7 @@ export const logRequest = async (
       sessionMeta,
       processedTraceData,
       redacted,
+      analysisType: traceParams?.analysisType ?? AnalysisType.FULL,
     }
 
     if (!traceParams?.sessionMeta) {

@@ -224,6 +224,7 @@ const generateEndpoint = async (
             ctx,
             existingEndpoint.uuid,
             trace.responseStatus,
+            trace.analysisType,
           )
           await analyzeFunc(
             ctx,

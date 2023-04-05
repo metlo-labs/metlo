@@ -11,10 +11,7 @@ import { QueryRunner } from "typeorm"
 import { QueuedApiTrace } from "@common/types"
 import { endpointUpdateDates } from "utils"
 import { MetloContext } from "types"
-import {
-  getQB,
-  insertValuesBuilder,
-} from "services/database/utils"
+import { getQB, insertValuesBuilder } from "services/database/utils"
 import { sendWebhookRequests } from "services/webhook"
 import { findDataFieldsToSave } from "services/data-field/v2/analyze"
 import { createDataFieldAlerts } from "services/alert/sensitive-data"
@@ -23,6 +20,7 @@ import { getSensitiveDataMap } from "services/scanner/v2/analyze-trace"
 import { getCombinedDataClassesCached } from "services/data-classes"
 import { findOpenApiSpecDiff } from "services/spec/v2"
 import { shouldUpdateEndpoint, updateDataFields } from "analyze-traces"
+import { AnalysisType } from "@common/enums"
 
 export const analyze = async (
   ctx: MetloContext,
@@ -120,18 +118,20 @@ export const analyze = async (
 
   const startTraceRedis = performance.now()
   const endpointTraceKey = `endpointTraces:e#${apiEndpoint.uuid}`
-  await RedisClient.pushToListPipeline(
-    ctx,
-    endpointTraceKey,
-    [
-      JSON.stringify({
-        ...filteredApiTrace,
-        sensitiveDataMap,
-      }),
-    ],
-    TRACE_IN_MEM_RETENTION_COUNT,
-    TRACE_IN_MEM_EXPIRE_SEC,
-  )
+  if (apiTrace.analysisType === AnalysisType.FULL) {
+    await RedisClient.pushToListPipeline(
+      ctx,
+      endpointTraceKey,
+      [
+        JSON.stringify({
+          ...filteredApiTrace,
+          sensitiveDataMap,
+        }),
+      ],
+      TRACE_IN_MEM_RETENTION_COUNT,
+      TRACE_IN_MEM_EXPIRE_SEC,
+    )
+  }
 
   if (!apiEndpoint.userSet) {
     const endpointPathKey = `endpointPaths:e#${apiEndpoint.uuid}`
