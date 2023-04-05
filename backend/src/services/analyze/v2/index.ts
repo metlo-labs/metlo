@@ -161,20 +161,18 @@ export const analyze = async (
 
   const startTraceRedis = performance.now()
   const endpointTraceKey = `endpointTraces:e#${apiEndpoint.uuid}`
-  if (apiTrace.analysisType === AnalysisType.FULL) {
-    await RedisClient.pushToListPipeline(
-      ctx,
-      endpointTraceKey,
-      [
-        JSON.stringify({
-          ...filteredApiTrace,
-          sensitiveDataMap,
-        }),
-      ],
-      TRACE_IN_MEM_RETENTION_COUNT,
-      TRACE_IN_MEM_EXPIRE_SEC,
-    )
-  }
+  await RedisClient.pushToListPipeline(
+    ctx,
+    endpointTraceKey,
+    [
+      JSON.stringify({
+        ...filteredApiTrace,
+        sensitiveDataMap,
+      }),
+    ],
+    TRACE_IN_MEM_RETENTION_COUNT,
+    TRACE_IN_MEM_EXPIRE_SEC,
+  )
 
   if (!apiEndpoint.userSet) {
     const endpointPathKey = `endpointPaths:e#${apiEndpoint.uuid}`
