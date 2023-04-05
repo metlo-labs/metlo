@@ -5,7 +5,7 @@ option go_package = "github.com/metlo-labs/metlo/ingestors/govxlan/metloingest";
 
 service MetloIngest {
     rpc ProcessTrace (ApiTrace) returns (ProcessTraceRes);
-    rpc ProcessTraceAsync (ApiTrace) returns (ProcessTraceAsyncRes);
+    rpc ProcessTraceAsync (stream ApiTrace) returns (ProcessTraceAsyncRes);
 }
 
 message KeyVal {
