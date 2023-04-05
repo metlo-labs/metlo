@@ -185,6 +185,17 @@ export const logRequestBatch = async (
 ): Promise<void> => {
   mlog.debug("Called Log Request Service Batch Func")
   const unsafeRedisClient = RedisClient.getInstance()
+  let queueLength = 0
+  try {
+    queueLength = await unsafeRedisClient.llen(TRACES_QUEUE)
+  } catch (err) {
+    mlog.withErr(err).debug(`Error checking queue length`)
+  }
+  mlog.debug(`Trace queue length ${queueLength}`)
+  if (queueLength > 1000) {
+    mlog.debug("Trace queue overloaded")
+    return
+  }
   const fullTraces: QueuedApiTrace[] = []
   const partialTraces: QueuedApiTrace[] = []
   for (let i = 0; i < traceParamsBatch.length; i++) {
@@ -198,15 +209,17 @@ export const logRequestBatch = async (
     }
   }
   if (fullTraces.length > 0) {
-    await unsafeRedisClient.rpush(
-      TRACES_QUEUE,
-      JSON.stringify({
-        ctx,
-        version: 2,
-        analysisType: AnalysisType.FULL,
-        traces: fullTraces,
-      }),
-    )
+    for (const apiTraceObj of fullTraces) {
+      await unsafeRedisClient.rpush(
+        TRACES_QUEUE,
+        JSON.stringify({
+          ctx,
+          version: 2,
+          analysisType: AnalysisType.FULL,
+          trace: apiTraceObj,
+        }),
+      )
+    }
   }
   if (partialTraces.length > 0) {
     await unsafeRedisClient.rpush(
