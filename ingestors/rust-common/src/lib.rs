@@ -220,36 +220,37 @@ pub struct MIngestServer {}
 impl MetloIngest for MIngestServer {
     async fn process_trace_async(
         &self,
-        request: Request<metloingest::ApiTrace>,
+        request: Request<tonic::Streaming<metloingest::ApiTrace>>,
     ) -> Result<Response<metloingest::ProcessTraceAsyncRes>, Status> {
-        let map_req = map_ingest_api_trace(request.into_inner());
-        if let Some(mapped_api_trace) = map_req {
-            match TASK_RUN_SEMAPHORE.try_acquire() {
-                Ok(permit) => {
-                    tokio::spawn(async move {
-                        let trace_info = get_trace_info(&mapped_api_trace);
-                        if !trace_info.block {
-                            let res = process_api_trace(&mapped_api_trace, &trace_info);
-                            send_api_trace(mapped_api_trace, res).await;
-                        }
-                        drop(permit);
-                    });
-                }
-                Err(TryAcquireError::NoPermits) => {
-                    log::debug!("no permits avaiable");
-                    return Err(Status::new(Code::InvalidArgument, "Invalid API Trace"));
-                }
-                Err(TryAcquireError::Closed) => {
-                    log::debug!("semaphore closed");
-                    return Err(Status::new(Code::InvalidArgument, "Invalid API Trace"));
+        let stream = request.into_inner();
+        while let Some(req) = stream.message().await? {
+            let map_req = map_ingest_api_trace(req);
+            if let Some(mapped_api_trace) = map_req {
+                match TASK_RUN_SEMAPHORE.try_acquire() {
+                    Ok(permit) => {
+                        tokio::spawn(async move {
+                            let trace_info = get_trace_info(&mapped_api_trace);
+                            if !trace_info.block {
+                                let res = process_api_trace(&mapped_api_trace, &trace_info);
+                                send_api_trace(mapped_api_trace, res).await;
+                            }
+                            drop(permit);
+                        });
+                    }
+                    Err(TryAcquireError::NoPermits) => {
+                        log::debug!("no permits avaiable");
+                        return Err(Status::new(Code::InvalidArgument, "Invalid API Trace"));
+                    }
+                    Err(TryAcquireError::Closed) => {
+                        log::debug!("semaphore closed");
+                        return Err(Status::new(Code::InvalidArgument, "Invalid API Trace"));
+                    }
                 }
             }
-            return Ok(Response::new(metloingest::ProcessTraceAsyncRes {
-                ok: true,
-            }));
-        } else {
-            return Err(Status::new(Code::InvalidArgument, "Invalid API Trace"));
-        };
+        }
+        return Ok(Response::new(metloingest::ProcessTraceAsyncRes {
+            ok: true,
+        }));
     }
     async fn process_trace(
         &self,
