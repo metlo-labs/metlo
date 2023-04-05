@@ -22,6 +22,49 @@ import { findOpenApiSpecDiff } from "services/spec/v2"
 import { shouldUpdateEndpoint, updateDataFields } from "analyze-traces"
 import { AnalysisType } from "@common/enums"
 
+export const analyzePartial = async (
+  ctx: MetloContext,
+  trace: QueuedApiTrace,
+  apiEndpoint: ApiEndpoint,
+  queryRunner: QueryRunner,
+  newEndpoint: boolean,
+  skipDataFields: boolean,
+  hasValidLicense: boolean,
+) => {
+  if (apiEndpoint.isGraphQl) {
+    const splitPath = trace.path.split("/")
+    const graphQlPath = splitPath.pop()
+    trace.path = `${splitPath.join("/")}/${graphQlPath.split(".")[0]}`
+  }
+  const traceUUID = uuidv4()
+
+  if (Array.isArray(trace.requestBody)) {
+    trace.requestBody = JSON.stringify(trace.requestBody)
+  }
+  if (Array.isArray(trace.responseBody)) {
+    trace.responseBody = JSON.stringify(trace.responseBody)
+  }
+
+  const { processedTraceData, ...apiTrace } = trace
+
+  let filteredApiTrace = {
+    ...apiTrace,
+    uuid: traceUUID,
+    apiEndpointUuid: apiEndpoint.uuid,
+  } as ApiTrace
+
+  if (!apiEndpoint.userSet) {
+    const endpointPathKey = `endpointPaths:e#${apiEndpoint.uuid}`
+    await RedisClient.pushToListPipeline(
+      ctx,
+      endpointPathKey,
+      [filteredApiTrace.path],
+      TRACE_PATH_IN_MEM_RETENTION_COUNT,
+      TRACE_IN_MEM_EXPIRE_SEC,
+    )
+  }
+}
+
 export const analyze = async (
   ctx: MetloContext,
   trace: QueuedApiTrace,

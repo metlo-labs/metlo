@@ -164,6 +164,12 @@ export interface ApiTrace extends QueuedApiTrace {
   apiEndpointUuid: string
 }
 
+export interface QueuedApiTraceBatch {
+  analysisType: AnalysisType
+  trace?: QueuedApiTrace
+  traces?: QueuedApiTrace[]
+}
+
 export interface Alert {
   uuid: string
   type: AlertType
