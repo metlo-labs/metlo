@@ -1,21 +1,41 @@
 import mlog from "logger"
 import IORedis from "ioredis"
 import { MetloContext } from "types"
+import { USAGE_GRANULARITY } from "../constants"
 
 export class RedisClient {
   private static instance: RedisClient
-  private static client: IORedis
+  private static usageInstance: RedisClient
+  private static queueInstance: RedisClient
+  private client: IORedis
 
   private constructor(url) {
-    RedisClient.client = new IORedis(url)
+    this.client = new IORedis(url)
   }
 
   public static getInstance(): IORedis {
     if (!RedisClient.instance) {
       RedisClient.instance = new RedisClient(process.env.REDIS_URL)
     }
+    return RedisClient.instance.client
+  }
 
-    return RedisClient.client
+  public static getUsageInstance(): IORedis {
+    if (!RedisClient.usageInstance) {
+      RedisClient.usageInstance = new RedisClient(
+        process.env.USAGE_REDIS_URL || process.env.REDIS_URL,
+      )
+    }
+    return RedisClient.usageInstance.client
+  }
+
+  public static getQueueInstance(): IORedis {
+    if (!RedisClient.queueInstance) {
+      RedisClient.queueInstance = new RedisClient(
+        process.env.QUEUE_REDIS_URL || process.env.REDIS_URL,
+      )
+    }
+    return RedisClient.queueInstance.client
   }
 
   public static async addToRedis(
@@ -207,31 +227,37 @@ export class RedisClient {
       .catch(err => redisClient.set(key, JSON.stringify(err)))
   }
 
-  public static hashIncrement(
-    ctx: MetloContext,
-    hashKey: string,
-    key: string,
-  ): Promise<number> {
-    const redisClient = RedisClient.getInstance()
-    return redisClient.hincrby(hashKey, key, 1)
-  }
-
-  public static getHash(ctx: MetloContext, hashKey: string) {
-    return RedisClient.getInstance().hgetall(hashKey)
-  }
-
-  public static async increment(
-    ctx: MetloContext,
-    key: string,
-    expireIn?: number,
-  ) {
-    if (expireIn) {
-      const pipeline = RedisClient.getInstance().pipeline()
-      pipeline.incr(key)
-      pipeline.expire(key, expireIn)
-      return await pipeline.exec()
-    } else {
-      return RedisClient.getInstance().incr(key)
+  public static async getFromRedisUsage(ctx: MetloContext, key: string) {
+    try {
+      return JSON.parse(await this.getUsageInstance().get(key))
+    } catch {
+      return null
     }
+  }
+
+  public static getHashUsage(ctx: MetloContext, hashKey: string) {
+    return RedisClient.getUsageInstance().hgetall(hashKey)
+  }
+
+  public static async deleteUsage(ctx: MetloContext, key: string) {
+    const redisClient = RedisClient.getUsageInstance()
+    return await redisClient.del([key])
+  }
+
+  public static async incrementEndpointSeenUsage(
+    ctx: MetloContext,
+    endpointUUID: string,
+    endpointCallCountKey: string,
+    orgCallCountKey: string,
+  ) {
+    const time = new Date().getTime()
+    const timeSlot = time - (time % USAGE_GRANULARITY)
+    const callCountKey = `${orgCallCountKey}_${timeSlot}`
+
+    const pipeline = RedisClient.getUsageInstance().pipeline()
+    pipeline.hincrby(endpointCallCountKey, endpointUUID, 1)
+    pipeline.incr(callCountKey)
+    pipeline.expire(callCountKey, 2 * 60)
+    return await pipeline.exec()
   }
 }

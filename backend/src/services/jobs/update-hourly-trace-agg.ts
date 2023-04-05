@@ -7,8 +7,8 @@ import { RedisClient } from "utils/redis"
 import { ENDPOINT_CALL_COUNT_HASH } from "~/constants"
 
 export async function updateHourlyTraceAggregate(ctx: MetloContext) {
-  const res = await RedisClient.getHash(ctx, ENDPOINT_CALL_COUNT_HASH)
-  await RedisClient.deleteKeyFromRedis(ctx, ENDPOINT_CALL_COUNT_HASH)
+  const res = await RedisClient.getHashUsage(ctx, ENDPOINT_CALL_COUNT_HASH)
+  await RedisClient.deleteUsage(ctx, ENDPOINT_CALL_COUNT_HASH)
   const queryRunner = AppDataSource.createQueryRunner()
   try {
     await queryRunner.connect()

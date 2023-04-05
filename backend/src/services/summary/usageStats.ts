@@ -11,11 +11,11 @@ const getLastMinCounts = async (ctx: MetloContext) => {
   // Subtract USAGE_GRANULARITY again to get previous slot
   const timePrevSlot = time - (time % USAGE_GRANULARITY) - USAGE_GRANULARITY
   let key = `${ORG_ENDPOINT_CALL_COUNT}_${timePrevSlot}`
-  let stat = await RedisClient.getFromRedis(ctx, key)
+  let stat = await RedisClient.getFromRedisUsage(ctx, key)
   if (stat === null) {
     const timeCurrSlot = time - (time % USAGE_GRANULARITY)
     key = `${ORG_ENDPOINT_CALL_COUNT}_${timeCurrSlot}`
-    stat = await RedisClient.getFromRedis(ctx, key)
+    stat = await RedisClient.getFromRedisUsage(ctx, key)
     if (stat === null) {
       stat = 0
     }
