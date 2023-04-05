@@ -238,10 +238,10 @@ impl MetloIngest for MIngestServer {
                         });
                     }
                     Err(TryAcquireError::NoPermits) => {
-                        log::info!("no permits avaiable");
+                        log::debug!("no permits avaiable");
                     }
                     Err(TryAcquireError::Closed) => {
-                        log::info!("semaphore closed");
+                        log::debug!("semaphore closed");
                     }
                 }
             }
