@@ -167,7 +167,7 @@ export interface ApiTrace extends QueuedApiTrace {
 export interface QueuedApiTraceBatch {
   analysisType: AnalysisType
   trace?: QueuedApiTrace
-  traces?: QueuedApiTrace[]
+  partialTraces?: QueuedApiTrace[]
 }
 
 export interface Alert {

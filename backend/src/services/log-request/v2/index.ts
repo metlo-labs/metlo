@@ -228,7 +228,7 @@ export const logRequestBatch = async (
         ctx,
         version: 2,
         analysisType: AnalysisType.PARTIAL,
-        traces: partialTraces,
+        partialTraces,
       }),
     )
   }

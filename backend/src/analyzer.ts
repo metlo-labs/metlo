@@ -16,7 +16,7 @@ interface TraceTask {
   ctx: MetloContext
   version: number
   trace?: QueuedApiTrace
-  traces?: QueuedApiTrace[]
+  partialTraces?: QueuedApiTrace[]
   hasValidEnterpriseLicense?: boolean
   analysisType?: AnalysisType
 }
@@ -97,7 +97,7 @@ const createGraphQlTraces = (trace: QueuedApiTrace): QueuedApiTrace[] => {
 }
 
 const runTrace = async (task: TraceTask) => {
-  const taskTraces = task.traces ?? [task.trace]
+  const taskTraces = task.partialTraces ?? [task.trace]
   for (const taskTrace of taskTraces) {
     try {
       const startRunTrace = performance.now()

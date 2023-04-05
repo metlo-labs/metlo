@@ -52,17 +52,6 @@ export const analyzePartial = async (
     uuid: traceUUID,
     apiEndpointUuid: apiEndpoint.uuid,
   } as ApiTrace
-
-  if (!apiEndpoint.userSet) {
-    const endpointPathKey = `endpointPaths:e#${apiEndpoint.uuid}`
-    await RedisClient.pushToListPipeline(
-      ctx,
-      endpointPathKey,
-      [filteredApiTrace.path],
-      TRACE_PATH_IN_MEM_RETENTION_COUNT,
-      TRACE_IN_MEM_EXPIRE_SEC,
-    )
-  }
 }
 
 export const analyze = async (
