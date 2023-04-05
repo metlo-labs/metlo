@@ -238,12 +238,10 @@ impl MetloIngest for MIngestServer {
                         });
                     }
                     Err(TryAcquireError::NoPermits) => {
-                        log::debug!("no permits avaiable");
-                        return Err(Status::new(Code::InvalidArgument, "Invalid API Trace"));
+                        log::info!("no permits avaiable");
                     }
                     Err(TryAcquireError::Closed) => {
-                        log::debug!("semaphore closed");
-                        return Err(Status::new(Code::InvalidArgument, "Invalid API Trace"));
+                        log::info!("semaphore closed");
                     }
                 }
             }
