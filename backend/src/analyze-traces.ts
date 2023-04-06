@@ -426,6 +426,24 @@ const analyzeTraces = async (task: {
   mlog.time("analyzer.total_analysis_func", performance.now() - start)
 }
 
+const analyzePartial = async (task: {
+  trace: QueuedApiTrace
+  apiEndpoint: ApiEndpoint
+  ctx: MetloContext
+}) => {
+  const start = performance.now()
+  try {
+    const { trace, ctx, apiEndpoint } = task
+    if (apiEndpoint) {
+      trace.createdAt = new Date(trace.createdAt)
+      await setEndpointCalled(ctx, apiEndpoint.uuid)
+    }
+  } catch (err) {
+    mlog.withErr(err).error("Encountered error while analyzing traces")
+  }
+  mlog.time("analyzer.total_analysis_func", performance.now() - start)
+}
+
 const getEndpoint = async (task: {
   trace: QueuedApiTrace
   ctx: MetloContext
@@ -443,60 +461,20 @@ const getEndpoint = async (task: {
       .from(ApiEndpoint, "endpoint")
       .andWhere("method = :method", { method: trace.method })
       .andWhere("host = :host", { host: trace.host })
-    endpointQb = pathTokens[0]
-      ? endpointQb.andWhere(
-          new Brackets(qb => {
-            qb.where("token_0 = '{param}'").orWhere("token_0 = :token_0", {
-              token_0: pathTokens[0],
-            })
-          }),
-        )
-      : endpointQb.andWhere("token_0 IS NULL")
-    endpointQb = pathTokens[1]
-      ? endpointQb.andWhere(
-          new Brackets(qb => {
-            qb.where("token_1 = '{param}'").orWhere("token_1 = :token_1", {
-              token_1: pathTokens[1],
-            })
-          }),
-        )
-      : endpointQb.andWhere("token_1 IS NULL")
-    endpointQb = pathTokens[2]
-      ? endpointQb.andWhere(
-          new Brackets(qb => {
-            qb.where("token_2 = '{param}'").orWhere("token_2 = :token_2", {
-              token_2: pathTokens[2],
-            })
-          }),
-        )
-      : endpointQb.andWhere("token_2 IS NULL")
-    endpointQb = pathTokens[3]
-      ? endpointQb.andWhere(
-          new Brackets(qb => {
-            qb.where("token_3 = '{param}'").orWhere("token_3 = :token_3", {
-              token_3: pathTokens[3],
-            })
-          }),
-        )
-      : endpointQb.andWhere("token_3 IS NULL")
-    endpointQb = pathTokens[4]
-      ? endpointQb.andWhere(
-          new Brackets(qb => {
-            qb.where("token_4 = '{param}'").orWhere("token_4 = :token_4", {
-              token_4: pathTokens[4],
-            })
-          }),
-        )
-      : endpointQb.andWhere("token_4 IS NULL")
-    endpointQb = pathTokens[5]
-      ? endpointQb.andWhere(
-          new Brackets(qb => {
-            qb.where("token_5 = '{param}'").orWhere("token_5 = :token_5", {
-              token_5: pathTokens[5],
-            })
-          }),
-        )
-      : endpointQb.andWhere("token_5 IS NULL")
+    for (let i = 0; i <= 5; i++) {
+      endpointQb = pathTokens[i]
+        ? endpointQb.andWhere(
+            new Brackets(qb => {
+              qb.where(`token_${i} = '{param}'`).orWhere(
+                `token_${i} = :token_${i}`,
+                {
+                  [`token_${i}`]: pathTokens[i],
+                },
+              )
+            }),
+          )
+        : endpointQb.andWhere(`token_${i} IS NULL`)
+    }
     if (pathTokens.length > 6) {
       endpointQb = endpointQb.andWhere(`:path ~ "pathRegex"`, {
         path: trace.path,
@@ -520,6 +498,8 @@ const getEndpoint = async (task: {
 const runTask = async (task: { type: string; task: any }) => {
   if (task.type == "analyze") {
     await analyzeTraces(task.task)
+  } else if (task.type == "analyze_partial") {
+    await analyzePartial(task.task)
   } else if (task.type == "get_endpoint") {
     return await getEndpoint(task.task)
   } else if (task.type == "get_mapped_host") {

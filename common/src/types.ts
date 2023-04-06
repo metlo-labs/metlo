@@ -13,6 +13,7 @@ import {
   API_KEY_TYPE,
   DisableRestMethod,
   GraphQlOperation,
+  AnalysisType,
 } from "./enums"
 import "axios"
 import { TestConfig } from "@metlo/testing"
@@ -23,6 +24,7 @@ export interface Meta {
   sourcePort: string
   destination: string
   destinationPort: string
+  originalSource?: string
 }
 
 export interface SessionMeta {
@@ -118,6 +120,8 @@ export interface TraceParams {
   redacted?: boolean
   sessionMeta?: SessionMeta
   encryption?: Encryption
+  analysisType?: AnalysisType
+  graphqlPaths?: string[]
 }
 
 export interface GetAttackParams {
@@ -152,6 +156,8 @@ export interface QueuedApiTrace {
   redacted?: boolean
   originalHost?: string
   encryption?: Encryption
+  analysisType?: AnalysisType
+  graphqlPaths?: string[]
 }
 
 export interface ApiTrace extends QueuedApiTrace {
