@@ -46,6 +46,20 @@ export const analyzePartial = async (
 
   const { processedTraceData, ...apiTrace } = trace
 
+  if (newEndpoint) {
+    const newEndpointAlert = createNewEndpointAlert(
+      apiEndpoint,
+      apiTrace.createdAt,
+    )
+    const alerts = [newEndpointAlert]
+    const start = performance.now()
+    await insertValuesBuilder(ctx, queryRunner, Alert, alerts)
+      .orIgnore()
+      .execute()
+    mlog.time("analyzer.insert_alerts_query", performance.now() - start)
+    mlog.debug(`Analyzing Trace - Inserted Alerts: ${traceUUID}`)
+  }
+
   let filteredApiTrace = {
     ...apiTrace,
     uuid: traceUUID,
