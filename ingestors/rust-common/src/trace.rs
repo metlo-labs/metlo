@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 use std::collections::{HashMap, HashSet};
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
@@ -106,6 +107,7 @@ pub struct GraphQlRes {
     pub response_alias_map: HashMap<String, String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProcessTraceRes {
@@ -130,15 +132,17 @@ pub struct SessionMeta {
     pub user: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProcessedApiTrace {
     pub request: ApiRequest,
     pub response: Option<ApiResponse>,
     pub meta: Option<ApiMeta>,
-    pub processed_trace_data: ProcessTraceRes,
+    pub processed_trace_data: Option<ProcessTraceRes>,
     pub redacted: bool,
     pub encryption: Option<Encryption>,
     pub session_meta: Option<SessionMeta>,
     pub analysis_type: String,
+    pub graphql_paths: Option<Vec<String>>,
 }

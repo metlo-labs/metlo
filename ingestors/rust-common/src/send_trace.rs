@@ -251,13 +251,11 @@ fn encrypt_sqli(
 
 fn encrypt_trace(
     trace: ApiTrace,
-    processed_trace: ProcessTraceRes,
+    processed_trace: Option<ProcessTraceRes>,
     trace_capture_enabled: bool,
     encryption_public_key: Option<String>,
     session_meta: SessionMeta,
-    analysis_type: String,
 ) -> Result<ProcessedApiTrace, Box<dyn std::error::Error>> {
-    let is_full_analysis = analysis_type == "full";
     if let Some(public_key) = encryption_public_key {
         match RsaPublicKey::from_public_key_pem(&public_key) {
             Ok(rsa) => {
@@ -272,127 +270,85 @@ fn encrypt_trace(
                         url: ApiUrl {
                             host: trace.request.url.host,
                             path: trace.request.url.path,
-                            parameters: match is_full_analysis {
-                                true => encrypt_key_val(
-                                    &cipher,
-                                    trace.request.url.parameters,
-                                    "reqQuery".to_owned(),
-                                    &mut generated_ivs,
-                                )?,
-                                false => vec![],
-                            },
-                        },
-                        headers: match is_full_analysis {
-                            true => encrypt_key_val(
+                            parameters: encrypt_key_val(
                                 &cipher,
-                                trace.request.headers,
-                                "reqHeaders".to_owned(),
+                                trace.request.url.parameters,
+                                "reqQuery".to_owned(),
                                 &mut generated_ivs,
                             )?,
-                            false => vec![],
                         },
-                        body: match is_full_analysis {
-                            true => encrypt_body(
-                                &cipher,
-                                &trace.request.body,
-                                "reqBody",
-                                &mut generated_ivs,
-                            )?,
-                            false => "".to_string(),
-                        },
+                        headers: encrypt_key_val(
+                            &cipher,
+                            trace.request.headers,
+                            "reqHeaders".to_owned(),
+                            &mut generated_ivs,
+                        )?,
+                        body: encrypt_body(
+                            &cipher,
+                            &trace.request.body,
+                            "reqBody",
+                            &mut generated_ivs,
+                        )?,
                     },
                     response: match trace.response {
                         Some(r) => Some(ApiResponse {
                             status: r.status,
-                            headers: match is_full_analysis {
-                                true => encrypt_key_val(
-                                    &cipher,
-                                    r.headers,
-                                    "resHeaders".to_owned(),
-                                    &mut generated_ivs,
-                                )?,
-                                false => vec![],
-                            },
-                            body: match is_full_analysis {
-                                true => {
-                                    encrypt_body(&cipher, &r.body, "resBody", &mut generated_ivs)?
-                                }
-                                false => "".to_string(),
-                            },
+                            headers: encrypt_key_val(
+                                &cipher,
+                                r.headers,
+                                "resHeaders".to_owned(),
+                                &mut generated_ivs,
+                            )?,
+                            body: encrypt_body(&cipher, &r.body, "resBody", &mut generated_ivs)?,
                         }),
                         None => None,
                     },
                     meta: trace.meta,
                     redacted: !trace_capture_enabled,
-                    processed_trace_data: ProcessTraceRes {
-                        block: processed_trace.block,
-                        xss_detected: encrypt_xss(
-                            &cipher,
-                            processed_trace.xss_detected.as_ref(),
-                            &mut generated_ivs,
-                        )?,
-                        sqli_detected: encrypt_sqli(
-                            &cipher,
-                            processed_trace.sqli_detected.as_ref(),
-                            &mut generated_ivs,
-                        )?,
-                        sensitive_data_detected: processed_trace.sensitive_data_detected,
-                        data_types: processed_trace.data_types,
-                        validation_errors: processed_trace.validation_errors,
-                        request_content_type: processed_trace.request_content_type,
-                        response_content_type: processed_trace.response_content_type,
-                        graph_ql_data: processed_trace.graph_ql_data,
+                    processed_trace_data: match processed_trace {
+                        Some(p) => Some(ProcessTraceRes {
+                            block: p.block,
+                            xss_detected: encrypt_xss(
+                                &cipher,
+                                p.xss_detected.as_ref(),
+                                &mut generated_ivs,
+                            )?,
+                            sqli_detected: encrypt_sqli(
+                                &cipher,
+                                p.sqli_detected.as_ref(),
+                                &mut generated_ivs,
+                            )?,
+                            sensitive_data_detected: p.sensitive_data_detected,
+                            data_types: p.data_types,
+                            validation_errors: p.validation_errors,
+                            request_content_type: p.request_content_type,
+                            response_content_type: p.response_content_type,
+                            graph_ql_data: p.graph_ql_data,
+                        }),
+                        None => None,
                     },
                     encryption: Some(Encryption {
                         key: general_purpose::STANDARD.encode(encrypted_key),
                         generated_ivs,
                     }),
                     session_meta: Some(session_meta),
-                    analysis_type,
+                    analysis_type: "full".to_string(),
+                    graphql_paths: None,
                 })
             }
             Err(e) => Err(format!("Error reading encryption key: {:?}", e).into()),
         }
     } else {
         Ok(ProcessedApiTrace {
-            request: ApiRequest {
-                method: trace.request.method,
-                url: ApiUrl {
-                    host: trace.request.url.host,
-                    path: trace.request.url.path,
-                    parameters: match is_full_analysis {
-                        true => trace.request.url.parameters,
-                        false => vec![],
-                    },
-                },
-                headers: match is_full_analysis {
-                    true => trace.request.headers,
-                    false => vec![],
-                },
-                body: match is_full_analysis {
-                    true => trace.request.body,
-                    false => "".to_string(),
-                },
-            },
-            response: trace.response.and_then(|resp| {
-                Some(ApiResponse {
-                    status: resp.status,
-                    headers: match is_full_analysis {
-                        true => resp.headers,
-                        false => vec![],
-                    },
-                    body: match is_full_analysis {
-                        true => resp.body,
-                        false => "".to_string(),
-                    },
-                })
-            }),
+            request: trace.request,
+            response: trace.response,
             meta: trace.meta,
             redacted: !trace_capture_enabled,
-            processed_trace_data: processed_trace.clone(),
+            processed_trace_data: processed_trace,
             encryption: None,
             session_meta: Some(session_meta),
-            analysis_type,
+            analysis_type: "full".to_string(),
+            graphql_paths: None,
         })
     }
 }
@@ -416,46 +372,44 @@ fn process_buffer_item(
     let x_forwarded_for = get_x_forwarded_for(buffer_item.trace.request.headers.as_ref());
     let session_meta = get_session_metadata(
         buffer_item.trace_info.authentication.as_ref(),
-        &hmac_key,
+        hmac_key,
         &buffer_item.trace,
         &x_forwarded_for,
     );
-    let mut req_body: ProcessedApiTrace = match trace_capture_enabled {
-        true => encrypt_trace(
-            buffer_item.trace,
-            buffer_item.processed_trace,
-            trace_capture_enabled,
-            encryption_public_key,
-            session_meta,
-            buffer_item.analysis_type,
-        )?,
-        false => ProcessedApiTrace {
-            request: ApiRequest {
-                method: buffer_item.trace.request.method,
-                url: ApiUrl {
-                    host: buffer_item.trace.request.url.host,
-                    path: buffer_item.trace.request.url.path,
-                    parameters: vec![],
+    let mut req_body: ProcessedApiTrace =
+        match trace_capture_enabled && buffer_item.analysis_type == "full" {
+            true => encrypt_trace(
+                buffer_item.trace,
+                buffer_item.processed_trace,
+                trace_capture_enabled,
+                encryption_public_key,
+                session_meta,
+            )?,
+            false => ProcessedApiTrace {
+                request: ApiRequest {
+                    method: buffer_item.trace.request.method,
+                    url: ApiUrl {
+                        host: buffer_item.trace.request.url.host,
+                        path: buffer_item.trace.request.url.path,
+                        parameters: vec![],
+                    },
+                    headers: vec![],
+                    body: "".to_string(),
                 },
-                headers: vec![],
-                body: "".to_string(),
-            },
-            response: match &buffer_item.trace.response {
-                Some(r) => Some(ApiResponse {
+                response: buffer_item.trace.response.as_ref().map(|r| ApiResponse {
                     status: r.status,
                     headers: vec![],
                     body: "".to_string(),
                 }),
-                None => None,
+                meta: buffer_item.trace.meta,
+                redacted: !trace_capture_enabled,
+                processed_trace_data: buffer_item.processed_trace,
+                encryption: None,
+                session_meta: Some(session_meta),
+                analysis_type: buffer_item.analysis_type,
+                graphql_paths: buffer_item.graphql_paths,
             },
-            meta: buffer_item.trace.meta,
-            redacted: !trace_capture_enabled,
-            processed_trace_data: buffer_item.processed_trace,
-            encryption: None,
-            session_meta: Some(session_meta),
-            analysis_type: buffer_item.analysis_type,
-        },
-    };
+        };
 
     if let (Some(e), Some(m)) = (x_forwarded_for, &req_body.meta) {
         req_body.meta = Some(ApiMeta {
@@ -508,10 +462,10 @@ pub async fn send_buffer_items() -> Result<(), Box<dyn std::error::Error>> {
     let mut buffer_items = vec![];
     let mut buffer_write = REQUEST_BUFFER.try_write();
     if let Ok(ref mut buf) = buffer_write {
-        for item in buf.partial_analysis.to_owned() {
+        for item in buf.partial_analysis.iter().cloned() {
             buffer_items.push(item)
         }
-        for item in buf.full_analysis.to_owned() {
+        for item in buf.full_analysis.iter().cloned() {
             buffer_items.push(item)
         }
         buf.partial_analysis = vec![];
@@ -528,14 +482,13 @@ pub async fn send_buffer_items() -> Result<(), Box<dyn std::error::Error>> {
 
         let mut requests = vec![];
         for item in buffer_items {
-            match process_buffer_item(
+            if let Ok(e) = process_buffer_item(
                 item,
                 conf.global_full_trace_capture,
                 conf.encryption_public_key.clone(),
                 &conf.hmac_key,
             ) {
-                Ok(e) => requests.push(e),
-                Err(_) => (),
+                requests.push(e)
             }
         }
         let resp = send_buffer_items_inner(

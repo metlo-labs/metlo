@@ -1,9 +1,12 @@
 use crate::{
     open_api::{find_open_api_diff, EndpointInfo},
-    process_graphql::{process_graphql_body, process_graphql_query},
+    process_graphql::{
+        get_graphql_paths_body, get_graphql_paths_query, process_graphql_body,
+        process_graphql_query,
+    },
     sensitive_data::{detect_sensitive_data, detect_sensitive_in_path_data},
     trace::{ApiResponse, ApiTrace, GraphQlData, KeyVal, ProcessTraceRes, ProcessTraceResInner},
-    TraceInfo,
+    BufferItem, TraceInfo,
 };
 use libinjection::{sqli, xss};
 use multipart::server::Multipart;
@@ -482,21 +485,9 @@ fn combine_process_trace_res(
     }
 }
 
-pub fn process_api_trace(
-    trace: &ApiTrace,
-    trace_info: &TraceInfo,
-    analysis_type: &str,
-) -> ProcessTraceRes {
+pub fn process_api_trace(trace: &ApiTrace, trace_info: &TraceInfo) -> ProcessTraceRes {
     let req_content_type = get_content_type(&trace.request.headers);
     let req_mime_type = get_mime_type(req_content_type);
-
-    if analysis_type == "partial" {
-        let mut resp_content_type: Option<&String> = None;
-        if let Some(resp) = &trace.response {
-            resp_content_type = get_content_type(&resp.headers);
-        }
-        return combine_process_trace_res(&[], req_content_type, resp_content_type, None);
-    }
 
     let non_error_status_code = match &trace.response {
         Some(ApiResponse {
@@ -589,4 +580,29 @@ pub fn process_api_trace(
         resp_content_type,
         proc_graph_ql.as_ref().map(|f| f.graph_ql_data.to_owned()),
     )
+}
+
+pub fn get_partial_trace_item(api_trace: ApiTrace, trace_info: TraceInfo) -> BufferItem {
+    if trace_info.is_graph_ql {
+        let paths = match api_trace.request.method.as_str() {
+            "GET" => get_graphql_paths_query(&api_trace.request.url.parameters),
+            "POST" => get_graphql_paths_body(&api_trace.request.body),
+            _ => get_graphql_paths_body(&api_trace.request.body),
+        };
+        BufferItem {
+            trace: api_trace,
+            processed_trace: None,
+            trace_info,
+            analysis_type: "partial".to_owned(),
+            graphql_paths: Some(Vec::from_iter(paths)),
+        }
+    } else {
+        BufferItem {
+            trace: api_trace,
+            processed_trace: None,
+            trace_info,
+            analysis_type: "partial".to_owned(),
+            graphql_paths: None,
+        }
+    }
 }

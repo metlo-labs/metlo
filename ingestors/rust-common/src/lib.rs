@@ -6,7 +6,7 @@ use trace::{ApiTrace, ProcessTraceRes};
 
 use crate::metloingest::metlo_ingest_server::{MetloIngest, MetloIngestServer};
 use mappers::{map_ingest_api_trace, map_process_trace_res};
-use process_trace::process_api_trace;
+use process_trace::{get_partial_trace_item, process_api_trace};
 use std::path::Path;
 use std::sync::Arc;
 use tokio::net::UnixListener;
@@ -69,9 +69,10 @@ pub struct TraceInfo {
 #[derive(Debug, Clone)]
 pub struct BufferItem {
     pub trace: ApiTrace,
-    pub processed_trace: ProcessTraceRes,
+    pub processed_trace: Option<ProcessTraceRes>,
     pub trace_info: TraceInfo,
     pub analysis_type: String,
+    pub graphql_paths: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone)]
@@ -265,28 +266,36 @@ impl MetloIngest for MIngestServer {
                     Ok(permit) => {
                         tokio::spawn(async move {
                             let analysis_type = get_analysis_type();
-                            if analysis_type.is_some() {
+                            if let Some(analysis_type_unwrap) = analysis_type {
                                 let trace_info = get_trace_info(&mapped_api_trace);
                                 if !trace_info.block {
-                                    let res = process_api_trace(
-                                        &mapped_api_trace,
-                                        &trace_info,
-                                        analysis_type.unwrap(),
-                                    );
+                                    let buf_item = match analysis_type_unwrap {
+                                        "partial" => Some(get_partial_trace_item(
+                                            mapped_api_trace,
+                                            trace_info,
+                                        )),
+                                        "full" => {
+                                            let res =
+                                                process_api_trace(&mapped_api_trace, &trace_info);
+                                            Some(BufferItem {
+                                                trace: mapped_api_trace,
+                                                processed_trace: Some(res),
+                                                trace_info,
+                                                analysis_type: "full".to_string(),
+                                                graphql_paths: None,
+                                            })
+                                        }
+                                        _ => None,
+                                    };
                                     let mut req_buffer_write = REQUEST_BUFFER.try_write();
                                     if let Ok(ref mut buf) = req_buffer_write {
-                                        let analysis_type_unwrap = analysis_type.unwrap();
-                                        let buffer_item = BufferItem {
-                                            trace: mapped_api_trace,
-                                            processed_trace: res,
-                                            trace_info,
-                                            analysis_type: String::from(analysis_type_unwrap),
-                                        };
-                                        match analysis_type_unwrap {
-                                            "partial" => {
-                                                buf.partial_analysis.push(buffer_item);
+                                        match (analysis_type_unwrap, buf_item) {
+                                            ("partial", Some(item)) => {
+                                                buf.partial_analysis.push(item);
                                             }
-                                            "full" => buf.full_analysis.push(buffer_item),
+                                            ("full", Some(item)) => {
+                                                buf.full_analysis.push(item);
+                                            }
                                             _ => (),
                                         }
                                     }
@@ -318,7 +327,7 @@ impl MetloIngest for MIngestServer {
             match TASK_RUN_SEMAPHORE.try_acquire() {
                 Ok(permit) => {
                     let trace_info = get_trace_info(&mapped_api_trace);
-                    let res = process_api_trace(&mapped_api_trace, &trace_info, "full");
+                    let res = process_api_trace(&mapped_api_trace, &trace_info);
                     drop(permit);
                     return Ok(Response::new(map_process_trace_res(res)));
                 }
