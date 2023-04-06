@@ -4,19 +4,21 @@ import mlog from "logger"
 import { QueuedApiTrace } from "@common/types"
 import { MetloContext } from "types"
 import { RedisClient } from "utils/redis"
-import { GRAPHQL_SECTIONS, TRACES_QUEUE } from "./constants"
+import { TRACES_QUEUE } from "./constants"
 import { isGraphQlEndpoint } from "services/graphql"
-import { DataSection } from "@common/enums"
-import { shouldSkipDataFields } from "utils"
+import { AnalysisType } from "@common/enums"
+import { createGraphQlTraces, shouldSkipDataFields } from "utils"
 import { AppDataSource } from "data-source"
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms))
 
 interface TraceTask {
-  trace: QueuedApiTrace
   ctx: MetloContext
   version: number
+  trace?: QueuedApiTrace
+  partialTraces?: QueuedApiTrace[]
   hasValidEnterpriseLicense?: boolean
+  analysisType?: AnalysisType
 }
 
 const pool = new Piscina({
@@ -35,63 +37,6 @@ const getQueuedApiTrace = async (): Promise<TraceTask> => {
     mlog.withErr(err).error("Error getting queued trace")
     return null
   }
-}
-
-const filteredProcessedData = (
-  processedDataEntry: Record<string, any>,
-  filter: string,
-) => {
-  const entry = {}
-  Object.keys(processedDataEntry ?? {}).forEach(e => {
-    const isGraphqlSection = GRAPHQL_SECTIONS.includes(
-      e.split(".")[0] as DataSection,
-    )
-    if ((isGraphqlSection && e.includes(`${filter}.`)) || !isGraphqlSection) {
-      entry[e] = processedDataEntry[e]
-    }
-  })
-  return entry
-}
-
-const createGraphQlTraces = (trace: QueuedApiTrace): QueuedApiTrace[] => {
-  const traces: Record<string, QueuedApiTrace> = {}
-  const processedTraceData = trace?.processedTraceData
-  for (const operationPath in processedTraceData.dataTypes) {
-    if (
-      operationPath.includes("query.") ||
-      operationPath.includes("mutation.") ||
-      operationPath.includes("subscription.")
-    ) {
-      const splitPath = operationPath.split(".")
-      const filter = splitPath[1] + "." + splitPath[2]
-      if (!traces[filter]) {
-        traces[filter] = {
-          ...trace,
-          path: `${trace.path}.${filter}`,
-          processedTraceData: {
-            ...processedTraceData,
-            xssDetected: filteredProcessedData(
-              processedTraceData?.xssDetected,
-              filter,
-            ),
-            sqliDetected: filteredProcessedData(
-              processedTraceData?.sqliDetected,
-              filter,
-            ),
-            sensitiveDataDetected: filteredProcessedData(
-              processedTraceData?.sensitiveDataDetected,
-              filter,
-            ),
-            dataTypes: filteredProcessedData(
-              processedTraceData?.dataTypes,
-              filter,
-            ),
-          },
-        }
-      }
-    }
-  }
-  return Object.values(traces)
 }
 
 const runTrace = async (task: TraceTask) => {
@@ -142,7 +87,7 @@ const runTrace = async (task: TraceTask) => {
         (await shouldSkipDataFields(
           task.ctx,
           endpoint.uuid,
-          task.trace.responseStatus,
+          traceItem.responseStatus,
         ))
       mlog.time(
         "analyzer.skip_data_fields",
@@ -167,6 +112,15 @@ const runTrace = async (task: TraceTask) => {
   }
 }
 
+const runPartialTraces = async (task: TraceTask) => {
+  await pool.run({
+    type: "analyze_partial_traces",
+    task: {
+      ...task,
+    },
+  })
+}
+
 const main = async () => {
   const hasValidEnterpriseLicense = false
   await AppDataSource.initialize()
@@ -179,7 +133,11 @@ const main = async () => {
       const queuedTask = await getQueuedApiTrace()
       if (queuedTask != null) {
         queuedTask.hasValidEnterpriseLicense = hasValidEnterpriseLicense
-        runTrace(queuedTask)
+        if (queuedTask.analysisType === AnalysisType.PARTIAL) {
+          runPartialTraces(queuedTask)
+        } else {
+          runTrace(queuedTask)
+        }
       } else {
         await sleep(50)
       }

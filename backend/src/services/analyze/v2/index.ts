@@ -11,10 +11,7 @@ import { QueryRunner } from "typeorm"
 import { QueuedApiTrace } from "@common/types"
 import { endpointUpdateDates } from "utils"
 import { MetloContext } from "types"
-import {
-  getQB,
-  insertValuesBuilder,
-} from "services/database/utils"
+import { getQB, insertValuesBuilder } from "services/database/utils"
 import { sendWebhookRequests } from "services/webhook"
 import { findDataFieldsToSave } from "services/data-field/v2/analyze"
 import { createDataFieldAlerts } from "services/alert/sensitive-data"
@@ -23,6 +20,38 @@ import { getSensitiveDataMap } from "services/scanner/v2/analyze-trace"
 import { getCombinedDataClassesCached } from "services/data-classes"
 import { findOpenApiSpecDiff } from "services/spec/v2"
 import { shouldUpdateEndpoint, updateDataFields } from "analyze-traces"
+
+export const analyzePartial = async (
+  ctx: MetloContext,
+  trace: QueuedApiTrace,
+  apiEndpoint: ApiEndpoint,
+  queryRunner: QueryRunner,
+  newEndpoint: boolean,
+  skipDataFields: boolean,
+  hasValidLicense: boolean,
+) => {
+  if (apiEndpoint.isGraphQl) {
+    const splitPath = trace.path.split("/")
+    const graphQlPath = splitPath.pop()
+    trace.path = `${splitPath.join("/")}/${graphQlPath.split(".")[0]}`
+  }
+  const traceUUID = uuidv4()
+
+  if (Array.isArray(trace.requestBody)) {
+    trace.requestBody = JSON.stringify(trace.requestBody)
+  }
+  if (Array.isArray(trace.responseBody)) {
+    trace.responseBody = JSON.stringify(trace.responseBody)
+  }
+
+  const { processedTraceData, ...apiTrace } = trace
+
+  let filteredApiTrace = {
+    ...apiTrace,
+    uuid: traceUUID,
+    apiEndpointUuid: apiEndpoint.uuid,
+  } as ApiTrace
+}
 
 export const analyze = async (
   ctx: MetloContext,

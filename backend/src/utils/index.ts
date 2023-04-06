@@ -1,11 +1,11 @@
 import validator from "validator"
 import { QueryRunner } from "typeorm"
 import { ApiEndpoint, DataField } from "models"
-import { pathParameterRegex } from "~/constants"
-import { DataType, RiskScore } from "@common/enums"
+import { GRAPHQL_SECTIONS, pathParameterRegex } from "~/constants"
+import { DataSection, DataType, RiskScore } from "@common/enums"
 import wordJson from "./words.json"
 import { getHigherRiskScore, getPathTokens } from "@common/utils"
-import { DataClass } from "@common/types"
+import { DataClass, QueuedApiTrace } from "@common/types"
 import { MetloContext } from "types"
 import { NodeCache } from "./node-cache"
 
@@ -328,4 +328,63 @@ export const shouldSkipDataFields = async (
     return false
   }
   return true
+}
+
+const filteredProcessedData = (
+  processedDataEntry: Record<string, any>,
+  filter: string,
+) => {
+  const entry = {}
+  Object.keys(processedDataEntry ?? {}).forEach(e => {
+    const isGraphqlSection = GRAPHQL_SECTIONS.includes(
+      e.split(".")[0] as DataSection,
+    )
+    if ((isGraphqlSection && e.includes(`${filter}.`)) || !isGraphqlSection) {
+      entry[e] = processedDataEntry[e]
+    }
+  })
+  return entry
+}
+
+export const createGraphQlTraces = (
+  trace: QueuedApiTrace,
+): QueuedApiTrace[] => {
+  const traces: Record<string, QueuedApiTrace> = {}
+  const processedTraceData = trace?.processedTraceData
+  for (const operationPath in processedTraceData.dataTypes) {
+    if (
+      operationPath.includes("query.") ||
+      operationPath.includes("mutation.") ||
+      operationPath.includes("subscription.")
+    ) {
+      const splitPath = operationPath.split(".")
+      const filter = splitPath[1] + "." + splitPath[2]
+      if (!traces[filter]) {
+        traces[filter] = {
+          ...trace,
+          path: `${trace.path}.${filter}`,
+          processedTraceData: {
+            ...processedTraceData,
+            xssDetected: filteredProcessedData(
+              processedTraceData?.xssDetected,
+              filter,
+            ),
+            sqliDetected: filteredProcessedData(
+              processedTraceData?.sqliDetected,
+              filter,
+            ),
+            sensitiveDataDetected: filteredProcessedData(
+              processedTraceData?.sensitiveDataDetected,
+              filter,
+            ),
+            dataTypes: filteredProcessedData(
+              processedTraceData?.dataTypes,
+              filter,
+            ),
+          },
+        }
+      }
+    }
+  }
+  return Object.values(traces)
 }
