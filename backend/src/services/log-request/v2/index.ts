@@ -122,6 +122,8 @@ export const logRequest = async (
         trace: apiTraceObj,
       }),
     )
+    mlog.count("collector.trace_count")
+    mlog.count("collector.full_trace_count")
   } catch (err) {
     if (err?.code < 500) {
       throw err
@@ -190,6 +192,12 @@ export const logRequestBatch = async (
         }),
       )
     }
+    mlog.count(
+      "collector.trace_count",
+      partialTraces.length + fullTraces.length,
+    )
+    mlog.count("collector.full_trace_count", fullTraces.length)
+    mlog.count("collector.partial_trace_count", partialTraces.length)
   } catch (err) {
     if (err?.code < 500) {
       throw err
