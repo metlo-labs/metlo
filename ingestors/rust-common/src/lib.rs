@@ -1,12 +1,12 @@
 use crate::metlo_config::*;
 use lazy_static::lazy_static;
 use open_api::get_split_path;
-use send_trace::send_api_trace;
-use trace::ApiTrace;
+use send_trace::send_buffer_items;
+use trace::{ApiTrace, ProcessTraceRes};
 
 use crate::metloingest::metlo_ingest_server::{MetloIngest, MetloIngestServer};
 use mappers::{map_ingest_api_trace, map_process_trace_res};
-use process_trace::process_api_trace;
+use process_trace::{get_partial_trace_item, process_api_trace};
 use std::path::Path;
 use std::sync::Arc;
 use tokio::net::UnixListener;
@@ -44,6 +44,10 @@ lazy_static! {
         host_block_list: vec![],
         path_block_list: vec![],
     });
+    pub static ref REQUEST_BUFFER: RwLock<RequestBuffer> = RwLock::new(RequestBuffer {
+        partial_analysis: vec![],
+        full_analysis: vec![]
+    });
 }
 
 pub struct InitializeMetloResp {
@@ -60,6 +64,21 @@ pub struct TraceInfo {
     pub current_host: String,
     pub block: bool,
     pub authentication: Option<Authentication>,
+}
+
+#[derive(Debug, Clone)]
+pub struct BufferItem {
+    pub trace: ApiTrace,
+    pub processed_trace: Option<ProcessTraceRes>,
+    pub trace_info: TraceInfo,
+    pub analysis_type: String,
+    pub graphql_paths: Option<Vec<String>>,
+}
+
+#[derive(Debug, Clone)]
+pub struct RequestBuffer {
+    pub partial_analysis: Vec<BufferItem>,
+    pub full_analysis: Vec<BufferItem>,
 }
 
 pub async fn initialize_metlo(
@@ -213,6 +232,23 @@ fn get_trace_info(trace: &ApiTrace) -> TraceInfo {
     }
 }
 
+fn get_analysis_type() -> Option<&'static str> {
+    let buffer_read = REQUEST_BUFFER.try_read();
+    let res = if let Ok(ref buf) = buffer_read {
+        if buf.full_analysis.len() < 5 {
+            Some("full")
+        } else if buf.partial_analysis.len() < 100 {
+            Some("partial")
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+    drop(buffer_read);
+    res
+}
+
 #[derive(Default)]
 pub struct MIngestServer {}
 
@@ -229,10 +265,42 @@ impl MetloIngest for MIngestServer {
                 match TASK_RUN_SEMAPHORE.try_acquire() {
                     Ok(permit) => {
                         tokio::spawn(async move {
-                            let trace_info = get_trace_info(&mapped_api_trace);
-                            if !trace_info.block {
-                                let res = process_api_trace(&mapped_api_trace, &trace_info);
-                                send_api_trace(mapped_api_trace, res).await;
+                            let analysis_type = get_analysis_type();
+                            if let Some(analysis_type_unwrap) = analysis_type {
+                                let trace_info = get_trace_info(&mapped_api_trace);
+                                if !trace_info.block {
+                                    let buf_item = match analysis_type_unwrap {
+                                        "partial" => Some(get_partial_trace_item(
+                                            mapped_api_trace,
+                                            trace_info,
+                                        )),
+                                        "full" => {
+                                            let res =
+                                                process_api_trace(&mapped_api_trace, &trace_info);
+                                            Some(BufferItem {
+                                                trace: mapped_api_trace,
+                                                processed_trace: Some(res),
+                                                trace_info,
+                                                analysis_type: "full".to_string(),
+                                                graphql_paths: None,
+                                            })
+                                        }
+                                        _ => None,
+                                    };
+                                    let mut req_buffer_write = REQUEST_BUFFER.try_write();
+                                    if let Ok(ref mut buf) = req_buffer_write {
+                                        match (analysis_type_unwrap, buf_item) {
+                                            ("partial", Some(item)) => {
+                                                buf.partial_analysis.push(item);
+                                            }
+                                            ("full", Some(item)) => {
+                                                buf.full_analysis.push(item);
+                                            }
+                                            _ => (),
+                                        }
+                                    }
+                                    drop(req_buffer_write);
+                                }
                             }
                             drop(permit);
                         });
@@ -261,7 +329,7 @@ impl MetloIngest for MIngestServer {
                     let trace_info = get_trace_info(&mapped_api_trace);
                     let res = process_api_trace(&mapped_api_trace, &trace_info);
                     drop(permit);
-                    return Ok(Response::new(map_process_trace_res(res.0)));
+                    return Ok(Response::new(map_process_trace_res(res)));
                 }
                 Err(TryAcquireError::NoPermits) => {
                     log::debug!("no permits avaiable");
@@ -314,4 +382,8 @@ pub async fn server_port(port: &str) -> Result<(), Box<dyn std::error::Error>> {
 
 pub async fn refresh_config() -> Result<(), Box<dyn std::error::Error>> {
     pull_metlo_config().await
+}
+
+pub async fn send_batched_traces() -> Result<(), Box<dyn std::error::Error>> {
+    send_buffer_items().await
 }

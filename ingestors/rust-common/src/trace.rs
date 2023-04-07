@@ -1,20 +1,21 @@
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 use std::collections::{HashMap, HashSet};
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct KeyVal {
     pub name: String,
     pub value: String,
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct ApiUrl {
     pub host: String,
     pub path: String,
     pub parameters: Vec<KeyVal>,
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct ApiRequest {
     pub method: String,
     pub url: ApiUrl,
@@ -22,14 +23,14 @@ pub struct ApiRequest {
     pub body: String,
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct ApiResponse {
     pub status: u16,
     pub headers: Vec<KeyVal>,
     pub body: String,
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ApiMeta {
     pub environment: String,
@@ -38,9 +39,10 @@ pub struct ApiMeta {
     pub source_port: u16,
     pub destination: String,
     pub destination_port: u16,
+    pub original_source: Option<String>,
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct ApiTrace {
     pub request: ApiRequest,
     pub response: Option<ApiResponse>,
@@ -105,6 +107,7 @@ pub struct GraphQlRes {
     pub response_alias_map: HashMap<String, String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProcessTraceRes {
@@ -129,14 +132,17 @@ pub struct SessionMeta {
     pub user: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProcessedApiTrace {
     pub request: ApiRequest,
     pub response: Option<ApiResponse>,
     pub meta: Option<ApiMeta>,
-    pub processed_trace_data: ProcessTraceRes,
+    pub processed_trace_data: Option<ProcessTraceRes>,
     pub redacted: bool,
     pub encryption: Option<Encryption>,
     pub session_meta: Option<SessionMeta>,
+    pub analysis_type: String,
+    pub graphql_paths: Option<Vec<String>>,
 }

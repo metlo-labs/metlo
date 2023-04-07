@@ -538,3 +538,159 @@ pub fn process_graphql_query(query_params: &Vec<KeyVal>) -> Option<GraphQlRes> {
     }
     process_graphql_res(query, operation_name, &variables_map, "reqQuery".to_owned())
 }
+
+fn process_graphql_operation_partial<'a>(
+    operation_type: String,
+    selections: &'a [Selection<&'a str>],
+    fragments_map: &HashMap<String, &'a SelectionSet<&'a str>>,
+    total_runs: &mut i32,
+    paths: &mut HashSet<String>,
+) {
+    *total_runs += 1;
+    if *total_runs > 300 {
+        return;
+    }
+    for field in selections.iter() {
+        match field {
+            Selection::Field(f) => {
+                let curr_path = operation_type.clone() + "." + f.name;
+                paths.insert(curr_path);
+            }
+            Selection::FragmentSpread(f) => {
+                if let Some(selection_set) = fragments_map.get(f.fragment_name) {
+                    process_graphql_operation_partial(
+                        operation_type.clone(),
+                        &selection_set.items,
+                        fragments_map,
+                        total_runs,
+                        paths,
+                    )
+                }
+            }
+            Selection::InlineFragment(i) => {
+                let curr_path = match &i.type_condition {
+                    Some(TypeCondition::On(t)) => format!("{}.__on_{}", operation_type, t),
+                    None => operation_type.clone(),
+                };
+                process_graphql_operation_partial(
+                    curr_path,
+                    &i.selection_set.items,
+                    fragments_map,
+                    total_runs,
+                    paths,
+                );
+            }
+        }
+    }
+}
+
+fn process_graphql_val_partial<'a>(
+    definition: &'a OperationDefinition<&'a str>,
+    fragments_map: &HashMap<String, &'a SelectionSet<&'a str>>,
+    total_runs: &mut i32,
+    paths: &mut HashSet<String>,
+) {
+    match definition {
+        OperationDefinition::SelectionSet(s) => process_graphql_operation_partial(
+            "query".to_owned(),
+            &s.items,
+            fragments_map,
+            total_runs,
+            paths,
+        ),
+        OperationDefinition::Query(q) => process_graphql_operation_partial(
+            "query".to_owned(),
+            &q.selection_set.items,
+            fragments_map,
+            total_runs,
+            paths,
+        ),
+        OperationDefinition::Mutation(m) => process_graphql_operation_partial(
+            "mutation".to_owned(),
+            &m.selection_set.items,
+            fragments_map,
+            total_runs,
+            paths,
+        ),
+        OperationDefinition::Subscription(sub) => process_graphql_operation_partial(
+            "subscription".to_owned(),
+            &sub.selection_set.items,
+            fragments_map,
+            total_runs,
+            paths,
+        ),
+    }
+}
+
+fn process_graphql_res_partial(query: &str, paths: &mut HashSet<String>) {
+    let mut fragments_map: HashMap<String, &SelectionSet<&str>> = HashMap::new();
+    let mut operations_def: Vec<&OperationDefinition<&str>> = vec![];
+    let mut total_runs = 0;
+
+    match parse_query::<&str>(query) {
+        Ok(ast) => {
+            let ast_definitions = ast.definitions.iter();
+            for def in ast_definitions {
+                match def {
+                    Definition::Operation(op_def) => {
+                        operations_def.push(op_def);
+                    }
+                    Definition::Fragment(fragment_def) => {
+                        fragments_map
+                            .insert(fragment_def.name.to_owned(), &fragment_def.selection_set);
+                    }
+                }
+            }
+            for operation in operations_def {
+                process_graphql_val_partial(operation, &fragments_map, &mut total_runs, paths);
+            }
+        }
+        Err(e) => {
+            log::debug!("Failed to parse graphql query: {}", e);
+        }
+    }
+}
+
+fn process_graphql_obj_partial(m: &Map<String, Value>, paths: &mut HashSet<String>) {
+    if let Some(Value::String(q)) = m.get("query") {
+        process_graphql_res_partial(q, paths);
+    }
+}
+
+pub fn get_graphql_paths_body(body: &str) -> HashSet<String> {
+    let mut res: HashSet<String> = HashSet::new();
+    match serde_json::from_str(body) {
+        Ok(Value::Object(m)) => {
+            process_graphql_obj_partial(&m, &mut res);
+            res
+        }
+        Ok(Value::Array(a)) => {
+            for item in a.iter() {
+                if let Value::Object(m) = item {
+                    process_graphql_obj_partial(m, &mut res);
+                }
+            }
+            res
+        }
+        Err(_) => {
+            log::debug!("Invalid JSON");
+            res
+        }
+        _ => {
+            log::debug!("Invalid graphql payload");
+            res
+        }
+    }
+}
+
+pub fn get_graphql_paths_query(query_params: &Vec<KeyVal>) -> HashSet<String> {
+    let mut query = "";
+    let mut paths: HashSet<String> = HashSet::new();
+    for item in query_params {
+        if item.name == "query" {
+            query = item.value.as_str();
+        }
+    }
+    process_graphql_res_partial(query, &mut paths);
+    paths
+}
