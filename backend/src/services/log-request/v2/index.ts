@@ -122,6 +122,8 @@ export const logRequest = async (
         trace: apiTraceObj,
       }),
     )
+    mlog.count("collector.trace_count")
+    mlog.count("collector.full_trace_count")
   } catch (err) {
     if (err?.code < 500) {
       throw err
@@ -149,7 +151,8 @@ export const logRequestBatch = async (
       mlog.debug("Trace queue overloaded")
       return
     }
-    let queuedApiTraces: QueuedApiTrace[] = [];
+
+    let queuedApiTraces: QueuedApiTrace[] = []
     for (let i = 0; i < traceParamsBatch.length; i++) {
       const apiTraceObj = await getQueuedApiTrace(ctx, traceParamsBatch[i])
       if (!apiTraceObj) {
@@ -160,15 +163,41 @@ export const logRequestBatch = async (
     if (queuedApiTraces.length == 0) {
       return
     }
-    mlog.debug("Pushed trace to redis queue")
+
+    let partialTraces: QueuedApiTrace[] = []
+    let fullTraces: QueuedApiTrace[] = []
+    for (let i = 0; i < queuedApiTraces.length; i++) {
+      if (queuedApiTraces[i].analysisType == AnalysisType.PARTIAL) {
+        partialTraces.push(queuedApiTraces[i])
+      } else {
+        fullTraces.push(queuedApiTraces[i])
+      }
+    }
+
     await unsafeRedisClient.rpush(
       TRACES_QUEUE,
       JSON.stringify({
         ctx,
         version: 2,
-        traces: queuedApiTraces,
+        traces: partialTraces,
       }),
     )
+    for (const fullTrace of fullTraces) {
+      await unsafeRedisClient.rpush(
+        TRACES_QUEUE,
+        JSON.stringify({
+          ctx,
+          version: 2,
+          trace: fullTrace,
+        }),
+      )
+    }
+    mlog.count(
+      "collector.trace_count",
+      partialTraces.length + fullTraces.length,
+    )
+    mlog.count("collector.full_trace_count", fullTraces.length)
+    mlog.count("collector.partial_trace_count", partialTraces.length)
   } catch (err) {
     if (err?.code < 500) {
       throw err
