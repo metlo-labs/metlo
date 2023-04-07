@@ -194,7 +194,7 @@ const runPartialAnalysis = async (
     for (const graphqlPath of singleTrace.graphqlPaths) {
       traces.push({
         ...singleTrace,
-        path: `${singleTrace.path}.${graphqlPath}`
+        path: `${singleTrace.path}.${graphqlPath}`,
       })
     }
   }
@@ -224,7 +224,9 @@ const runTrace = async (task: TraceTask) => {
   const taskTraces = task.traces ?? [task.trace]
   for (const singleTrace of taskTraces) {
     try {
-      if (singleTrace.analysisType == AnalysisType.FULL) {
+      if (
+        (singleTrace.analysisType ?? AnalysisType.FULL) == AnalysisType.FULL
+      ) {
         runFullAnalysis(task, singleTrace)
       } else {
         runPartialAnalysis(task, singleTrace)
