@@ -126,9 +126,7 @@ func main() {
 			}
 			args.maxRps = intEnvRps
 		}
-		if args.maxRps == 0 {
-			args.maxRps = metloapi.MetloDefaultRPS
-		}
+
 		envVXLANEnabled := os.Getenv("VXLAN_ENABLED")
 		if !args.runAsVxlan {
 			if envVXLANEnabled != "" {
@@ -155,6 +153,14 @@ func main() {
 			local_process_enabled, err := strconv.ParseBool(args.localProcess)
 			if err == nil {
 				resolved_local_process = local_process_enabled
+			}
+		}
+
+		if args.maxRps == 0 {
+			if resolved_local_process {
+				args.maxRps = metloapi.MetloDefaultRPSLocalProcess
+			} else {
+				args.maxRps = metloapi.MetloDefaultRPS
 			}
 		}
 
