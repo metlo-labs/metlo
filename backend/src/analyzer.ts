@@ -226,7 +226,7 @@ const runPartialAnalysisBulk = async (
 
   const startAnalyzePartial = performance.now()
   await pool.run({
-    type: "analyze_partial",
+    type: "analyze_partial_bulk",
     task: {
       ...task,
       traces: graphqlSplitTraces,
