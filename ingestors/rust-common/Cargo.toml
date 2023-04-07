@@ -9,6 +9,7 @@ edition = "2021"
 aes-gcm = "0.10.1"
 base64 = "0.21.0"
 clap = { version = "4.1.4", features = ["derive"] }
+cookie = "0.17.0"
 dirs = "4.0.0"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
