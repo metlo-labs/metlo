@@ -1,6 +1,5 @@
 use base64::{engine::general_purpose, Engine as _};
 use cookie::Cookie;
-use core::num::dec2flt::parse;
 use ring::hmac;
 use std::collections::HashMap;
 
