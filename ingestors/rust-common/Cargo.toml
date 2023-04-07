@@ -27,6 +27,7 @@ rsa = "0.8.2"
 serde = { version = "1.0.152", features = ["derive"] }
 serde_json = "1.0.91"
 serde_urlencoded = "0.7.1"
+serde_with = "2.3.2"
 sha2 = "0.10.6"
 tokio = { version = "1.25.0", features = ["net", "rt", "sync", "rt-multi-thread", "macros"] }
 tokio-stream = { version = "0.1.11", features = ["net"] }

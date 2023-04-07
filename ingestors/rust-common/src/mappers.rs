@@ -11,6 +11,7 @@ fn map_ingest_api_meta(m: metloingest::ApiMeta) -> Option<ApiMeta> {
         source_port: m.source_port as u16,
         destination: m.destination,
         destination_port: m.destination_port as u16,
+        original_source: None,
     })
 }
 
