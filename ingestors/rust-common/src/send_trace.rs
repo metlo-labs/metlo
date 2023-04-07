@@ -1,4 +1,5 @@
 use base64::{engine::general_purpose, Engine as _};
+use cookie::Cookie;
 use ring::hmac;
 use std::collections::HashMap;
 
@@ -86,10 +87,19 @@ fn handle_session_cookie(
     authentication: &Authentication,
 ) {
     if let Some(cookie_name) = &authentication.cookie_name {
-        if cookie_name.to_lowercase() == header.name.to_lowercase() {
-            let tag = hmac::sign(hmac_key, header.value.as_bytes());
-            session_meta.authentication_provided = Some(true);
-            session_meta.unique_session_key = Some(general_purpose::STANDARD.encode(tag.as_ref()));
+        if header.name.to_lowercase() != "cookie" {
+            return;
+        }
+        let cookie_parse_res = Cookie::split_parse(header.value.clone());
+        for parsed_cookie in cookie_parse_res {
+            if let Ok(parsed_cookie) = parsed_cookie {
+                if parsed_cookie.name() == cookie_name {
+                    let tag = hmac::sign(hmac_key, parsed_cookie.value().as_bytes());
+                    session_meta.authentication_provided = Some(true);
+                    session_meta.unique_session_key =
+                        Some(general_purpose::STANDARD.encode(tag.as_ref()));
+                }
+            }
         }
     }
 }
