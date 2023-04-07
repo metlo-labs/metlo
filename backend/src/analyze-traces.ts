@@ -423,6 +423,8 @@ const analyzeTraces = async (task: {
       await queryRunner.rollbackTransaction()
     }
   }
+  mlog.count("analyzer.trace_count")
+  mlog.count("analyzer.full_trace_count")
   mlog.time("analyzer.total_analysis_func", performance.now() - start)
 }
 
@@ -432,6 +434,7 @@ const analyzePartialBulk = async (task: {
   ctx: MetloContext
 }) => {
   const start = performance.now()
+  const len = task.traces?.length ?? 0
   try {
     const { traces, ctx, apiEndpointUUIDs } = task
     let processedTraces: QueuedApiTrace[] = []
@@ -448,6 +451,8 @@ const analyzePartialBulk = async (task: {
   } catch (err) {
     mlog.withErr(err).error("Encountered error while analyzing traces")
   }
+  mlog.count("analyzer.trace_count", len)
+  mlog.count("analyzer.partial_trace_count", len)
   mlog.time("analyzer.total_analysis_func", performance.now() - start)
 }
 
