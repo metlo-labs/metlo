@@ -6,14 +6,15 @@ import { MetloContext } from "types"
 import { RedisClient } from "utils/redis"
 import { GRAPHQL_SECTIONS, TRACES_QUEUE } from "./constants"
 import { isGraphQlEndpoint } from "services/graphql"
-import { DataSection } from "@common/enums"
+import { AnalysisType, DataSection } from "@common/enums"
 import { shouldSkipDataFields } from "utils"
 import { AppDataSource } from "data-source"
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms))
 
 interface TraceTask {
-  trace: QueuedApiTrace
+  trace?: QueuedApiTrace
+  traces?: QueuedApiTrace[]
   ctx: MetloContext
   version: number
   hasValidEnterpriseLicense?: boolean
@@ -94,76 +95,145 @@ const createGraphQlTraces = (trace: QueuedApiTrace): QueuedApiTrace[] => {
   return Object.values(traces)
 }
 
+const runFullAnalysis = async (
+  task: TraceTask,
+  singleTrace: QueuedApiTrace,
+) => {
+  const startRunTrace = performance.now()
+  const mapped_host_res: { mappedHost: string | null; isBlocked: boolean } =
+    await pool.run({
+      type: "get_mapped_host",
+      task: {
+        ctx: task.ctx,
+        host: singleTrace.host,
+        tracePath: singleTrace.path,
+      },
+    })
+  if (mapped_host_res.isBlocked) {
+    mlog.count("analyzer.blocked_host_skipped_count")
+    return
+  }
+  if (mapped_host_res.mappedHost) {
+    singleTrace.originalHost = singleTrace.host
+    singleTrace.host = mapped_host_res.mappedHost
+  }
+
+  let traces: QueuedApiTrace[] = [singleTrace]
+  const isGraphQl = isGraphQlEndpoint(singleTrace.path)
+  if (isGraphQl && task.version === 2) {
+    const startCreateGraphQlTraces = performance.now()
+    traces = createGraphQlTraces(singleTrace)
+    mlog.time(
+      "analyzer.create_graphql_traces",
+      performance.now() - startCreateGraphQlTraces,
+    )
+  }
+  for (const traceItem of traces) {
+    const start = performance.now()
+    const endpoint = await pool.run({
+      type: "get_endpoint",
+      task: {
+        ctx: task.ctx,
+        trace: traceItem,
+      },
+    })
+
+    const start_skip_data_fields = performance.now()
+    const skipDataFields =
+      endpoint &&
+      (await shouldSkipDataFields(
+        task.ctx,
+        endpoint.uuid,
+        traceItem.responseStatus,
+      ))
+    mlog.time(
+      "analyzer.skip_data_fields",
+      performance.now() - start_skip_data_fields,
+    )
+
+    await pool.run({
+      type: "analyze",
+      task: {
+        ...task,
+        isGraphQl: isGraphQl,
+        apiEndpoint: endpoint,
+        trace: traceItem,
+        skipDataFields: skipDataFields,
+      },
+    })
+    mlog.time("analyzer.total_analysis", performance.now() - start)
+  }
+  mlog.time("analyzer.total_run_trace", performance.now() - startRunTrace)
+}
+
+const runPartialAnalysis = async (
+  task: TraceTask,
+  singleTrace: QueuedApiTrace,
+) => {
+  const startRunTrace = performance.now()
+  const mapped_host_res: { mappedHost: string | null; isBlocked: boolean } =
+    await pool.run({
+      type: "get_mapped_host",
+      task: {
+        ctx: task.ctx,
+        host: singleTrace.host,
+        tracePath: singleTrace.path,
+      },
+    })
+  if (mapped_host_res.isBlocked) {
+    mlog.count("analyzer.blocked_host_skipped_count")
+    return
+  }
+  if (mapped_host_res.mappedHost) {
+    singleTrace.originalHost = singleTrace.host
+    singleTrace.host = mapped_host_res.mappedHost
+  }
+  let traces: QueuedApiTrace[] = [singleTrace]
+  if (singleTrace.graphqlPaths) {
+    traces = []
+    for (const graphqlPath of singleTrace.graphqlPaths) {
+      traces.push({
+        ...singleTrace,
+        path: `${singleTrace.path}.${graphqlPath}`,
+      })
+    }
+  }
+  for (const traceItem of traces) {
+    const start = performance.now()
+    const endpoint = await pool.run({
+      type: "get_endpoint",
+      task: {
+        ctx: task.ctx,
+        trace: traceItem,
+      },
+    })
+    await pool.run({
+      type: "analyze_partial",
+      task: {
+        ...task,
+        apiEndpoint: endpoint,
+        trace: traceItem,
+      },
+    })
+    mlog.time("analyzer.total_analysis", performance.now() - start)
+  }
+  mlog.time("analyzer.total_run_trace", performance.now() - startRunTrace)
+}
+
 const runTrace = async (task: TraceTask) => {
-  try {
-    const startRunTrace = performance.now()
-    const singleTrace = task.trace
-    const mapped_host_res: { mappedHost: string | null; isBlocked: boolean } =
-      await pool.run({
-        type: "get_mapped_host",
-        task: {
-          ctx: task.ctx,
-          host: singleTrace.host,
-          tracePath: singleTrace.path,
-        },
-      })
-    if (mapped_host_res.isBlocked) {
-      mlog.count("analyzer.blocked_host_skipped_count")
-      return
+  const taskTraces = task.traces ?? [task.trace]
+  for (const singleTrace of taskTraces) {
+    try {
+      if (
+        (singleTrace.analysisType ?? AnalysisType.FULL) == AnalysisType.FULL
+      ) {
+        runFullAnalysis(task, singleTrace)
+      } else {
+        runPartialAnalysis(task, singleTrace)
+      }
+    } catch (err) {
+      mlog.withErr(err).error("Encountered error while analyzing traces")
     }
-    if (mapped_host_res.mappedHost) {
-      singleTrace.originalHost = singleTrace.host
-      singleTrace.host = mapped_host_res.mappedHost
-    }
-
-    let traces: QueuedApiTrace[] = [singleTrace]
-    const isGraphQl = isGraphQlEndpoint(singleTrace.path)
-    if (isGraphQl && task.version === 2) {
-      const startCreateGraphQlTraces = performance.now()
-      traces = createGraphQlTraces(singleTrace)
-      mlog.time(
-        "analyzer.create_graphql_traces",
-        performance.now() - startCreateGraphQlTraces,
-      )
-    }
-    for (const traceItem of traces) {
-      const start = performance.now()
-      const endpoint = await pool.run({
-        type: "get_endpoint",
-        task: {
-          ctx: task.ctx,
-          trace: traceItem,
-        },
-      })
-
-      const start_skip_data_fields = performance.now()
-      const skipDataFields =
-        endpoint &&
-        (await shouldSkipDataFields(
-          task.ctx,
-          endpoint.uuid,
-          task.trace.responseStatus,
-        ))
-      mlog.time(
-        "analyzer.skip_data_fields",
-        performance.now() - start_skip_data_fields,
-      )
-
-      await pool.run({
-        type: "analyze",
-        task: {
-          ...task,
-          isGraphQl: isGraphQl,
-          apiEndpoint: endpoint,
-          trace: traceItem,
-          skipDataFields: skipDataFields,
-        },
-      })
-      mlog.time("analyzer.total_analysis", performance.now() - start)
-    }
-    mlog.time("analyzer.total_run_trace", performance.now() - startRunTrace)
-  } catch (err) {
-    mlog.withErr(err).error("Encountered error while analyzing traces")
   }
 }
 

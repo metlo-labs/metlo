@@ -14,7 +14,7 @@ import { RedisClient } from "utils/redis"
 import { TRACES_QUEUE } from "~/constants"
 import { MetloContext } from "types"
 import { getValidPath } from "utils"
-import Error400BadRequest from "errors/error-400-bad-request"
+import { AnalysisType } from "@common/enums"
 
 const getContentType = (contentType: string) => {
   if (!contentType) {
@@ -28,32 +28,15 @@ const getContentType = (contentType: string) => {
   }
 }
 
-export const logRequest = async (
+export const getQueuedApiTrace = async (
   ctx: MetloContext,
   traceParams: TraceParams,
-): Promise<void> => {
-  mlog.debug("Called Log Request Service Func")
-  const unsafeRedisClient = RedisClient.getInstance()
+): Promise<QueuedApiTrace | null> => {
   try {
-    /** Log Request in ApiTrace table **/
-    let queueLength = 0
-    try {
-      queueLength = await unsafeRedisClient.llen(TRACES_QUEUE)
-    } catch (err) {
-      mlog.withErr(err).debug(`Error checking queue length`)
-    }
-    mlog.debug(`Trace queue length ${queueLength}`)
-    if (queueLength > 1000) {
-      mlog.debug("Trace queue overloaded")
-      return
-    }
-
     const validPath = getValidPath(traceParams?.request?.url?.path)
     if (!validPath.isValid) {
       mlog.debug(`Invalid Path: ${traceParams?.request?.url?.path}`)
-      throw new Error400BadRequest(
-        `Invalid path ${traceParams?.request?.url?.path}: ${validPath.errMsg}`,
-      )
+      return null
     }
 
     const path = validPath.path
@@ -91,13 +74,45 @@ export const logRequest = async (
       sessionMeta,
       processedTraceData,
       redacted,
+      analysisType: traceParams?.analysisType ?? AnalysisType.FULL,
+      graphqlPaths: traceParams.graphqlPaths,
     }
 
     if (!traceParams?.sessionMeta) {
       await AuthenticationConfigService.setSessionMetadata(ctx, apiTraceObj)
     }
-    await BlockFieldsService.redactBlockedFields(ctx, apiTraceObj)
+    if (apiTraceObj.analysisType === AnalysisType.FULL) {
+      await BlockFieldsService.redactBlockedFields(ctx, apiTraceObj)
+    }
+    return apiTraceObj
+  } catch (err) {
+    mlog.withErr(err).error("Error in getting queued api trace")
+    return null
+  }
+}
 
+export const logRequest = async (
+  ctx: MetloContext,
+  traceParams: TraceParams,
+): Promise<void> => {
+  mlog.debug("Called Log Request Service Func")
+  const unsafeRedisClient = RedisClient.getInstance()
+  try {
+    let queueLength = 0
+    try {
+      queueLength = await unsafeRedisClient.llen(TRACES_QUEUE)
+    } catch (err) {
+      mlog.withErr(err).debug(`Error checking queue length`)
+    }
+    mlog.debug(`Trace queue length ${queueLength}`)
+    if (queueLength > 1000) {
+      mlog.debug("Trace queue overloaded")
+      return
+    }
+    const apiTraceObj = await getQueuedApiTrace(ctx, traceParams)
+    if (!apiTraceObj) {
+      return
+    }
     mlog.debug("Pushed trace to redis queue")
     await unsafeRedisClient.rpush(
       TRACES_QUEUE,
@@ -120,7 +135,45 @@ export const logRequestBatch = async (
   ctx: MetloContext,
   traceParamsBatch: TraceParams[],
 ): Promise<void> => {
-  for (let i = 0; i < traceParamsBatch.length; i++) {
-    await logRequest(ctx, traceParamsBatch[i])
+  mlog.debug("Called Log Request Service Func")
+  const unsafeRedisClient = RedisClient.getInstance()
+  try {
+    let queueLength = 0
+    try {
+      queueLength = await unsafeRedisClient.llen(TRACES_QUEUE)
+    } catch (err) {
+      mlog.withErr(err).debug(`Error checking queue length`)
+    }
+    mlog.debug(`Trace queue length ${queueLength}`)
+    if (queueLength > 1000) {
+      mlog.debug("Trace queue overloaded")
+      return
+    }
+    let queuedApiTraces: QueuedApiTrace[] = [];
+    for (let i = 0; i < traceParamsBatch.length; i++) {
+      const apiTraceObj = await getQueuedApiTrace(ctx, traceParamsBatch[i])
+      if (!apiTraceObj) {
+        continue
+      }
+      queuedApiTraces.push(apiTraceObj)
+    }
+    if (queuedApiTraces.length == 0) {
+      return
+    }
+    mlog.debug("Pushed trace to redis queue")
+    await unsafeRedisClient.rpush(
+      TRACES_QUEUE,
+      JSON.stringify({
+        ctx,
+        version: 2,
+        traces: queuedApiTraces,
+      }),
+    )
+  } catch (err) {
+    if (err?.code < 500) {
+      throw err
+    }
+    mlog.withErr(err).error("Error in Log Request service")
+    throw new Error500InternalServer(err)
   }
 }

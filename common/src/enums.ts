@@ -177,3 +177,8 @@ export enum GraphQlOperation {
   MUTATION = "mutation",
   SUBSCRIPTION = "subscription",
 }
+
+export enum AnalysisType {
+  FULL = "full",
+  PARTIAL = "partial",
+}
