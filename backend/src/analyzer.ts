@@ -144,7 +144,7 @@ const runFullAnalysis = async (
       (await shouldSkipDataFields(
         task.ctx,
         endpoint.uuid,
-        task.trace.responseStatus,
+        traceItem.responseStatus,
       ))
     mlog.time(
       "analyzer.skip_data_fields",
