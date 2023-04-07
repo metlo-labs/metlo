@@ -166,74 +166,100 @@ const runFullAnalysis = async (
   mlog.time("analyzer.total_run_trace", performance.now() - startRunTrace)
 }
 
-const runPartialAnalysis = async (
+const runPartialAnalysisBulk = async (
   task: TraceTask,
-  singleTrace: QueuedApiTrace,
+  traces: QueuedApiTrace[],
 ) => {
-  const startRunTrace = performance.now()
-  const mapped_host_res: { mappedHost: string | null; isBlocked: boolean } =
+  const startRunTraces = performance.now()
+  const mapped_host_res: { mappedHost: string | null; isBlocked: boolean }[] =
     await pool.run({
       type: "get_mapped_host",
-      task: {
+      task: traces.map(e => ({
         ctx: task.ctx,
-        host: singleTrace.host,
-        tracePath: singleTrace.path,
-      },
+        host: e.host,
+        tracePath: e.path,
+      })),
     })
-  if (mapped_host_res.isBlocked) {
-    mlog.count("analyzer.blocked_host_skipped_count")
-    return
+  mlog.time("analyzer.bulk_get_mapped_host", performance.now() - startRunTraces)
+
+  let mappedTraces: QueuedApiTrace[] = []
+  for (let i = 0; i < mapped_host_res.length; i++) {
+    if (mapped_host_res[i].isBlocked) {
+      mlog.count("analyzer.blocked_host_skipped_count")
+      continue
+    }
+    let trace = traces[i]
+    if (mapped_host_res[i].mappedHost) {
+      trace.originalHost = trace.host
+      trace.host = mapped_host_res[i].mappedHost
+    }
+    mappedTraces.push(trace)
   }
-  if (mapped_host_res.mappedHost) {
-    singleTrace.originalHost = singleTrace.host
-    singleTrace.host = mapped_host_res.mappedHost
-  }
-  let traces: QueuedApiTrace[] = [singleTrace]
-  if (singleTrace.graphqlPaths) {
-    traces = []
-    for (const graphqlPath of singleTrace.graphqlPaths) {
-      traces.push({
-        ...singleTrace,
-        path: `${singleTrace.path}.${graphqlPath}`,
-      })
+
+  let graphqlSplitTraces: QueuedApiTrace[] = []
+  for (const trace of mappedTraces) {
+    if (trace.graphqlPaths) {
+      for (const graphqlPath of trace.graphqlPaths) {
+        graphqlSplitTraces.push({
+          ...trace,
+          path: `${trace.path}.${graphqlPath}`,
+          graphqlPaths: undefined,
+        })
+      }
+    } else {
+      graphqlSplitTraces.push(trace)
     }
   }
-  for (const traceItem of traces) {
-    const start = performance.now()
-    const endpoint = await pool.run({
-      type: "get_endpoint",
-      task: {
-        ctx: task.ctx,
-        trace: traceItem,
-      },
-    })
-    await pool.run({
-      type: "analyze_partial",
-      task: {
-        ...task,
-        apiEndpoint: endpoint,
-        trace: traceItem,
-      },
-    })
-    mlog.time("analyzer.total_analysis", performance.now() - start)
-  }
-  mlog.time("analyzer.total_run_trace", performance.now() - startRunTrace)
+
+  const startBulkGetEndpoints = performance.now()
+  const endpoints = await pool.run({
+    type: "get_endpoint",
+    task: graphqlSplitTraces.map(e => ({
+      ctx: task.ctx,
+      trace: e,
+    })),
+  })
+  mlog.time(
+    "analyzer.bulk_get_endpoints",
+    performance.now() - startBulkGetEndpoints,
+  )
+
+  const startAnalyzePartial = performance.now()
+  await pool.run({
+    type: "analyze_partial",
+    task: {
+      ...task,
+      traces: graphqlSplitTraces,
+      apiEndpointUUIDs: endpoints.map(e => e?.uuid),
+    },
+  })
+  mlog.time(
+    "analyzer.total_analysis_partial",
+    performance.now() - startAnalyzePartial,
+  )
+  mlog.time(
+    "analyzer.total_trace_analysis_partial",
+    performance.now() - startRunTraces,
+  )
 }
 
 const runTrace = async (task: TraceTask) => {
-  const taskTraces = task.traces ?? [task.trace]
-  for (const singleTrace of taskTraces) {
-    try {
+  try {
+    if (task.trace) {
+      const singleTrace = task.trace
       if (
         (singleTrace.analysisType ?? AnalysisType.FULL) == AnalysisType.FULL
       ) {
         runFullAnalysis(task, singleTrace)
       } else {
-        runPartialAnalysis(task, singleTrace)
+        runPartialAnalysisBulk(task, [singleTrace])
       }
-    } catch (err) {
-      mlog.withErr(err).error("Encountered error while analyzing traces")
     }
+    if (task.traces) {
+      runPartialAnalysisBulk(task, task.traces)
+    }
+  } catch (err) {
+    mlog.withErr(err).error("Encountered error while analyzing traces")
   }
 }
 

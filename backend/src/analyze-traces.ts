@@ -426,17 +426,24 @@ const analyzeTraces = async (task: {
   mlog.time("analyzer.total_analysis_func", performance.now() - start)
 }
 
-const analyzePartial = async (task: {
-  trace: QueuedApiTrace
-  apiEndpoint: ApiEndpoint
+const analyzePartialBulk = async (task: {
+  traces: QueuedApiTrace[]
+  apiEndpointUUIDs: string[]
   ctx: MetloContext
 }) => {
   const start = performance.now()
   try {
-    const { trace, ctx, apiEndpoint } = task
-    if (apiEndpoint) {
-      trace.createdAt = new Date(trace.createdAt)
-      await setEndpointCalled(ctx, apiEndpoint.uuid)
+    const { traces, ctx, apiEndpointUUIDs } = task
+    let processedTraces: QueuedApiTrace[] = []
+    let processedApiEndpointUuids: string[] = []
+    for (let i = 0; i < traces.length; i++) {
+      if (!apiEndpointUUIDs[i]) {
+        continue
+      }
+      traces[i].createdAt = new Date(traces[i].createdAt)
+      await setEndpointCalled(ctx, apiEndpointUUIDs[i])
+      processedTraces.push(traces[i])
+      processedApiEndpointUuids.push(apiEndpointUUIDs[i])
     }
   } catch (err) {
     mlog.withErr(err).error("Encountered error while analyzing traces")
@@ -495,15 +502,28 @@ const getEndpoint = async (task: {
   }
 }
 
-const runTask = async (task: { type: string; task: any }) => {
+const runTaskInner = async (task: { type: string; task: any }) => {
   if (task.type == "analyze") {
     await analyzeTraces(task.task)
-  } else if (task.type == "analyze_partial") {
-    await analyzePartial(task.task)
+  } else if (task.type == "analyze_partial_bulk") {
+    await analyzePartialBulk(task.task)
   } else if (task.type == "get_endpoint") {
     return await getEndpoint(task.task)
   } else if (task.type == "get_mapped_host") {
     return await getMappedHost(task.task)
+  }
+}
+
+const runTask = async (task: { type: string; task: any }) => {
+  if (Array.isArray(task.task)) {
+    let out: any[] = []
+    for (const taskElem of task.task) {
+      const res = await runTaskInner({ ...task, task: taskElem })
+      out.push(res)
+    }
+    return out
+  } else {
+    return await runTaskInner(task)
   }
 }
 
