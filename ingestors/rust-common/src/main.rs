@@ -183,7 +183,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     tokio::task::spawn(async {
-        let mut interval = time::interval(Duration::from_secs(1));
+        let mut interval = time::interval(Duration::from_secs(2));
         loop {
             interval.tick().await;
             log::trace!("Sending Processed traces in buffer");

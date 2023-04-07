@@ -30,7 +30,7 @@ type Metlo struct {
 }
 
 const MetloDefaultRPS int = 5
-const MetloDefaultRPSLocalProcess int = 100
+const MetloDefaultRPSLocalProcess int = 50
 const MaxConnectTries int = 10
 
 func ConnectLocalProcessAgent() (pb.MetloIngest_ProcessTraceAsyncClient, error) {
