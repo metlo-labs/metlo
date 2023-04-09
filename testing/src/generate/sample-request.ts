@@ -143,6 +143,7 @@ const getArgumentFromDocument = (ast: ParserTree, mapTokens: string[]) => {
   const queryName = mapTokens[1]
   const query = node.args?.find(e => e?.name === queryName)
   let currArg: any = query
+
   for (let i = 2; i < argsIndex + 1; i++) {
     const currToken = mapTokens[i]
     if (currToken.startsWith("__on_")) {
@@ -152,7 +153,10 @@ const getArgumentFromDocument = (ast: ParserTree, mapTokens: string[]) => {
       currArg = currArg?.args
     } else if (typeof currArg?.type === "object") {
       currArg = currArg?.type?.fieldType
-      while (currArg?.type === Options.array) {
+      while (
+        currArg?.type === Options.array ||
+        currArg?.type === Options.required
+      ) {
         currArg = currArg.nest
       }
       if (currArg?.type === Options.name) {
@@ -169,6 +173,13 @@ const getArgumentFromDocument = (ast: ParserTree, mapTokens: string[]) => {
       }
     } else if (
       typeof currArg?.type === "string" &&
+      currArg?.type === Options.required
+    ) {
+      while (currArg?.type === Options.required) {
+        currArg = currArg.nest
+      }
+    } else if (
+      typeof currArg?.type === "string" &&
       currArg?.type === Options.name
     ) {
       currArg = ast?.nodes
@@ -179,6 +190,7 @@ const getArgumentFromDocument = (ast: ParserTree, mapTokens: string[]) => {
   if (!currArg) {
     return null
   }
+
   for (let i = argsIndex + 1; i < mapTokens.length; i++) {
     const currToken = mapTokens[i]
     if (Array.isArray(currArg)) {
@@ -197,8 +209,22 @@ const getArgumentFromDocument = (ast: ParserTree, mapTokens: string[]) => {
       currArg = ast.nodes
         .find(e => e.name === currArg?.name)
         ?.args?.find(e => e.name === currToken)?.type?.fieldType
+    } else if (currArg?.type === Options.array) {
+      currArg = currArg.nest
+      i -= 1
+    } else if (currArg?.type === Options.required) {
+      currArg = currArg.nest
+      i -= 1
     }
   }
+
+  while (
+    currArg?.type === Options.array ||
+    currArg?.type === Options.required
+  ) {
+    currArg = currArg.nest
+  }
+
   return currArg
 }
 
