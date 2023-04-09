@@ -91,9 +91,8 @@ const GraphQlSchemaComponent: React.FC<GraphQlSchemaComponentProps> =
       <VStack w={{ base: "full", lg: "50%" }} h="full">
         <HStack
           borderTopWidth={{ base: 1, lg: 0 }}
-          borderLeftWidth={{ base: 1, lg: 0 }}
+          borderLeftWidth={{ base: 0, md: 1 }}
           borderRightWidth={{ base: 1, lg: 0 }}
-          borderBottomWidth={1}
           px="4"
           py="1"
           w="full"
@@ -130,7 +129,7 @@ const GraphQlSchemaComponent: React.FC<GraphQlSchemaComponentProps> =
           <Box
             mt="0 !important"
             overflow="hidden"
-            borderWidth={{ base: 1, lg: 0 }}
+            borderWidth={1}
             h={{
               base: "700px",
               lg: "full",
@@ -154,7 +153,7 @@ const GraphQlSchemaComponent: React.FC<GraphQlSchemaComponentProps> =
           </Box>
         ) : (
           <EmptyView
-            borderWidth={{ base: 1, lg: 0 }}
+            borderWidth={1}
             rounded="none"
             mt="0 !important"
             h="full"
