@@ -18,6 +18,7 @@ import {
   Webhook,
   TestingConfig,
   Hosts,
+  GQLSchema,
 } from "models"
 import { runMigration } from "utils"
 import { initMigration1665782029662 } from "migrations/1665782029662-init-migration"
@@ -52,6 +53,7 @@ import { removeTraceHash1678477672617 } from "migrations/1678477672617-remove-tr
 import { addResourcePermsEndpoint1679174209000 } from "migrations/1679174209000-add-resource-perms-endpoint"
 import { apiEndpointTokenColumns1679515538397 } from "migrations/1679515538397-api-endpoint-token-columns"
 import { addTokensApiEndpoint1680412314105 } from "migrations/1680412314105-add-tokens-api-endpoint"
+import { addGraphqlSchemaTable1681005220368 } from "migrations/1681005220368-add-graphql-schema-table"
 
 export const AppDataSource: DataSource = new DataSource({
   type: "postgres",
@@ -75,6 +77,7 @@ export const AppDataSource: DataSource = new DataSource({
     Webhook,
     TestingConfig,
     Hosts,
+    GQLSchema,
   ],
   synchronize: false,
   migrations: [
@@ -109,6 +112,7 @@ export const AppDataSource: DataSource = new DataSource({
     addResourcePermsEndpoint1679174209000,
     apiEndpointTokenColumns1679515538397,
     addTokensApiEndpoint1680412314105,
+    addGraphqlSchemaTable1681005220368,
   ],
   migrationsRun: runMigration,
   logging: false,

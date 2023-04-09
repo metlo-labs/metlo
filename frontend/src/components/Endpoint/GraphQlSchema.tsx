@@ -77,7 +77,7 @@ const GraphQlSchemaComponent: React.FC<GraphQlSchemaComponentProps> =
       } catch (err) {
         toast(
           makeToast({
-            title: "Deleting GraphQl Schema failed",
+            title: "Deleting GraphQL Schema failed",
             size: "xl",
             status: "error",
           }),
@@ -99,7 +99,7 @@ const GraphQlSchemaComponent: React.FC<GraphQlSchemaComponentProps> =
           w="full"
           justifyContent="space-between"
         >
-          <DataHeading fontSize="lg">GraphQl Schema</DataHeading>
+          <DataHeading fontSize="lg">GraphQL Schema</DataHeading>
           <HStack>
             <InputGroup
               w="fit-content"
@@ -158,7 +158,7 @@ const GraphQlSchemaComponent: React.FC<GraphQlSchemaComponentProps> =
             rounded="none"
             mt="0 !important"
             h="full"
-            text="No GraphQl Schema uploaded."
+            text="No GraphQL Schema uploaded."
           />
         )}
         <AlertDialog
@@ -169,11 +169,11 @@ const GraphQlSchemaComponent: React.FC<GraphQlSchemaComponentProps> =
           <AlertDialogOverlay>
             <AlertDialogContent>
               <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                Delete GraphQl Schema
+                Delete GraphQL Schema
               </AlertDialogHeader>
 
               <AlertDialogBody>
-                Are you sure you want to delete this GraphQl Schema?
+                Are you sure you want to delete this GraphQL Schema?
               </AlertDialogBody>
 
               <AlertDialogFooter>

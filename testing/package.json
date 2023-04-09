@@ -1,6 +1,6 @@
 {
   "name": "@metlo/testing",
-  "version": "0.3.18",
+  "version": "0.3.19",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -29,6 +29,7 @@
     "chalk": "^4.1.2",
     "expect": "^29.0.2",
     "form-data": "^4.0.0",
+    "graphql-js-tree": "^0.3.1",
     "handlebars": "^4.7.7",
     "js-yaml": "^4.1.0",
     "jsdom": "^20.0.3",

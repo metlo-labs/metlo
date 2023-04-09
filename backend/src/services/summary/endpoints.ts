@@ -60,6 +60,7 @@ export const getTopEndpoints = async (ctx: MetloContext) => {
         ...endpoints.find(e => e.uuid == stats.endpoint),
         traces: traceMap[stats.endpoint],
         tests: [],
+        graphQlSchema: null,
       } as ApiEndpointDetailed),
   )
 }

@@ -4,6 +4,7 @@ import { getRepository } from "services/database/utils"
 import { ApiEndpoint, AuthenticationConfig } from "models"
 import { GenTestEndpoint } from "@metlo/testing"
 import { RestMethod } from "@common/enums"
+import { getGraphQlSchema } from "services/graphql"
 
 export const getGenTestEndpoint = async (
   ctx: MetloContext,
@@ -39,13 +40,16 @@ export const getGenTestEndpoint = async (
   if (!endpointObj) {
     return null
   }
+  const graphQlSchema = endpointObj.isGraphQl
+    ? await getGraphQlSchema(ctx, endpointObj)
+    : null
   let genTestEndpoint: GenTestEndpoint = {
     host: endpointObj.host,
     path: endpointObj.path,
     method: endpointObj.method,
     isGraphQl: endpointObj.isGraphQl,
     graphQlMetadata: endpointObj.graphQlMetadata,
-    graphQlSchema: endpointObj.graphQlSchema,
+    graphQlSchema: graphQlSchema?.schema,
     dataFields: endpointObj.dataFields.map(e => ({
       dataSection: e.dataSection,
       contentType: e.contentType,

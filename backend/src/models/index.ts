@@ -15,6 +15,7 @@ import { Attack } from "./attack"
 import { Webhook } from "./webhook"
 import { TestingConfig } from "./testing-config"
 import { Hosts } from "./hosts"
+import { GQLSchema } from "./gql-schema"
 
 export type DatabaseModel =
   | ApiEndpoint
@@ -34,6 +35,7 @@ export type DatabaseModel =
   | Webhook
   | TestingConfig
   | Hosts
+  | GQLSchema
 
 export {
   ApiEndpoint,
@@ -53,4 +55,5 @@ export {
   Webhook,
   TestingConfig,
   Hosts,
+  GQLSchema,
 }
