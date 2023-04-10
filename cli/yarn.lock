@@ -854,15 +854,16 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@metlo/testing@^0.3.18":
-  version "0.3.18"
-  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.3.18.tgz#775f50c11183118d0c93499ecebc4bb824c76ed9"
-  integrity sha512-KKZ9XvL+PPV/aIdaDRFjj55w5BDf1Dj7gge6OQfm9sevppie2RserKzKNdMXjbcaeVcfKdMaXqMBsSqg9rXUUw==
+"@metlo/testing@^0.3.19":
+  version "0.3.19"
+  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.3.19.tgz#3538f111cdff74f8cb3ddd460fe3d82979784672"
+  integrity sha512-AAzIp6pA8W00BARh7ouPjJTycfePBGrDR81YVk+eMZOWZb0IeNmw/I9A1nwQnr1HlyLtrCTjHL/7+MUPIKmJjQ==
   dependencies:
     axios "^1.2.1"
     chalk "^4.1.2"
     expect "^29.0.2"
     form-data "^4.0.0"
+    graphql-js-tree "^0.3.1"
     handlebars "^4.7.7"
     js-yaml "^4.1.0"
     jsdom "^20.0.3"
@@ -1779,6 +1780,18 @@ graceful-fs@^4.1.9, graceful-fs@^4.2.9:
   version "4.2.10"
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.10.tgz#147d3a006da4ca3ce14728c7aefc287c367d7a6c"
   integrity sha512-9ByhssR2fPVsNZj478qUUbKfmL0+t5BDVyjShtyZZLiK7ZDAArFFfopyOTj0M05wE2tJPisA4iTnnXl2YoPvOA==
+
+graphql-js-tree@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/graphql-js-tree/-/graphql-js-tree-0.3.1.tgz#717343958e5487444f9c20d701d7cdd8e40fd3c1"
+  integrity sha512-07qWJGZKO7dVjQtBW6rPkAESTvKMt1r9DXyI49b+anhXIikwvmQq9kSqpyDw1h83BFNNqMLId11/9NDGNw+bdA==
+  dependencies:
+    graphql "15.4.0"
+
+graphql@15.4.0:
+  version "15.4.0"
+  resolved "https://registry.yarnpkg.com/graphql/-/graphql-15.4.0.tgz#e459dea1150da5a106486ba7276518b5295a4347"
+  integrity sha512-EB3zgGchcabbsU9cFe1j+yxdzKQKAbGUWRb13DsrsMN1yyfmmIq+2+L5MqVWcDCE4V89R5AyUOi7sMOGxdsYtA==
 
 gtoken@^6.1.0:
   version "6.1.2"
