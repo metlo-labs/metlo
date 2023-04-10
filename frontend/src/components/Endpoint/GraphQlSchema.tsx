@@ -77,7 +77,7 @@ const GraphQlSchemaComponent: React.FC<GraphQlSchemaComponentProps> =
       } catch (err) {
         toast(
           makeToast({
-            title: "Deleting GraphQl Schema failed",
+            title: "Deleting GraphQL Schema failed",
             size: "xl",
             status: "error",
           }),
@@ -91,15 +91,14 @@ const GraphQlSchemaComponent: React.FC<GraphQlSchemaComponentProps> =
       <VStack w={{ base: "full", lg: "50%" }} h="full">
         <HStack
           borderTopWidth={{ base: 1, lg: 0 }}
-          borderLeftWidth={{ base: 1, lg: 0 }}
+          borderLeftWidth={{ base: 0, md: 1 }}
           borderRightWidth={{ base: 1, lg: 0 }}
-          borderBottomWidth={1}
           px="4"
           py="1"
           w="full"
           justifyContent="space-between"
         >
-          <DataHeading fontSize="lg">GraphQl Schema</DataHeading>
+          <DataHeading fontSize="lg">GraphQL Schema</DataHeading>
           <HStack>
             <InputGroup
               w="fit-content"
@@ -130,7 +129,7 @@ const GraphQlSchemaComponent: React.FC<GraphQlSchemaComponentProps> =
           <Box
             mt="0 !important"
             overflow="hidden"
-            borderWidth={{ base: 1, lg: 0 }}
+            borderWidth={1}
             h={{
               base: "700px",
               lg: "full",
@@ -154,11 +153,11 @@ const GraphQlSchemaComponent: React.FC<GraphQlSchemaComponentProps> =
           </Box>
         ) : (
           <EmptyView
-            borderWidth={{ base: 1, lg: 0 }}
+            borderWidth={1}
             rounded="none"
             mt="0 !important"
             h="full"
-            text="No GraphQl Schema uploaded."
+            text="No GraphQL Schema uploaded."
           />
         )}
         <AlertDialog
@@ -169,11 +168,11 @@ const GraphQlSchemaComponent: React.FC<GraphQlSchemaComponentProps> =
           <AlertDialogOverlay>
             <AlertDialogContent>
               <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                Delete GraphQl Schema
+                Delete GraphQL Schema
               </AlertDialogHeader>
 
               <AlertDialogBody>
-                Are you sure you want to delete this GraphQl Schema?
+                Are you sure you want to delete this GraphQL Schema?
               </AlertDialogBody>
 
               <AlertDialogFooter>

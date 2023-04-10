@@ -1,4 +1,5 @@
 import { jsonToGraphQLQuery, EnumType } from "json-to-graphql-query"
+import { Options, ParserTree, Parser } from "graphql-js-tree"
 import { DataType } from "./enums"
 import { KeyValType } from "../types/test"
 import { DataSection } from "./enums"
@@ -133,6 +134,121 @@ const recurseCreateBody = (
   }
 }
 
+const getArgumentFromDocument = (ast: ParserTree, mapTokens: string[]) => {
+  const node = ast?.nodes?.find(e => e?.name.toLowerCase() === mapTokens[0])
+  if (!node) {
+    return null
+  }
+  const argsIndex = mapTokens.indexOf("__args")
+  const queryName = mapTokens[1]
+  const query = node.args?.find(e => e?.name === queryName)
+  let currArg: any = query
+
+  for (let i = 2; i < argsIndex + 1; i++) {
+    const currToken = mapTokens[i]
+    if (currToken.startsWith("__on_")) {
+      continue
+    }
+    if (currToken === "__args") {
+      currArg = currArg?.args
+    } else if (typeof currArg?.type === "object") {
+      currArg = currArg?.type?.fieldType
+      while (
+        currArg?.type === Options.array ||
+        currArg?.type === Options.required
+      ) {
+        currArg = currArg.nest
+      }
+      if (currArg?.type === Options.name) {
+        currArg = ast?.nodes
+          ?.find(e => e.name === currArg?.["name"])
+          ?.args?.find(e => e?.name === currToken)
+      }
+    } else if (
+      typeof currArg?.type === "string" &&
+      currArg?.type === Options.array
+    ) {
+      while (currArg?.type === Options.array) {
+        currArg = currArg.nest
+      }
+    } else if (
+      typeof currArg?.type === "string" &&
+      currArg?.type === Options.required
+    ) {
+      while (currArg?.type === Options.required) {
+        currArg = currArg.nest
+      }
+    } else if (
+      typeof currArg?.type === "string" &&
+      currArg?.type === Options.name
+    ) {
+      currArg = ast?.nodes
+        ?.find(e => e.name === currArg?.["name"])
+        ?.args?.find(e => e?.name === currToken)
+    }
+  }
+  if (!currArg) {
+    return null
+  }
+
+  for (let i = argsIndex + 1; i < mapTokens.length; i++) {
+    const currToken = mapTokens[i]
+    if (Array.isArray(currArg)) {
+      currArg = currArg.find(e => e.name === currToken)
+      if (currArg) {
+        currArg = currArg?.type?.fieldType
+      }
+    } else if (typeof currArg?.type === "object") {
+      currArg = currArg?.type?.fieldType
+      if (i === mapTokens.length - 1 && currArg?.type === Options.name) {
+        currArg = ast.nodes.find(e => e.name === currArg?.name)?.type?.fieldType
+      }
+    } else if (currToken === "[]" && currArg?.type === Options.array) {
+      currArg = currArg.nest
+    } else if (currArg?.type === Options.name) {
+      currArg = ast.nodes
+        .find(e => e.name === currArg?.name)
+        ?.args?.find(e => e.name === currToken)?.type?.fieldType
+    } else if (currArg?.type === Options.array) {
+      currArg = currArg.nest
+      i -= 1
+    } else if (currArg?.type === Options.required) {
+      currArg = currArg.nest
+      i -= 1
+    }
+  }
+
+  while (
+    currArg?.type === Options.array ||
+    currArg?.type === Options.required
+  ) {
+    currArg = currArg.nest
+  }
+
+  return currArg
+}
+
+const getEnumValue = (ast: ParserTree | undefined, mapTokens: string[]) => {
+  if (!ast) {
+    return null
+  }
+  if (mapTokens.includes("__args")) {
+    const arg = getArgumentFromDocument(ast, mapTokens)
+    if (arg && arg.type === Options.name) {
+      const leafNode = ast.nodes.find(e => e.name === arg.name)
+      const fieldType = leafNode?.type?.fieldType
+      if (
+        fieldType?.type === Options.name &&
+        fieldType?.name === "enum" &&
+        leafNode?.args[0]
+      ) {
+        return new EnumType(leafNode.args[0].name)
+      }
+    }
+  }
+  return null
+}
+
 const getGraphQlEntityValue = (s: any): any => {
   if (typeof s !== "string") {
     return s
@@ -149,6 +265,8 @@ const recurseCreateBodyGraphQl = (
   currTokenIndex: number,
   dataField: GenTestEndpointDataField,
   entityMap: Record<string, any>,
+  ast?: ParserTree,
+  seenArgs?: boolean,
 ): any => {
   if (currTokenIndex > mapTokens.length - 1 || !mapTokens[currTokenIndex]) {
     if (typeof body === "object") {
@@ -156,7 +274,7 @@ const recurseCreateBodyGraphQl = (
     }
     return dataField.entity && entityMap[dataField.entity]
       ? getGraphQlEntityValue(entityMap[dataField.entity])
-      : getSampleValue(dataField.dataType)
+      : getEnumValue(ast, mapTokens) || getSampleValue(dataField.dataType)
   } else {
     let currToken = mapTokens?.[currTokenIndex]
     if (currToken.startsWith("__on_")) {
@@ -167,11 +285,7 @@ const recurseCreateBodyGraphQl = (
 
     if (currToken === "[]") {
       if (dataField.dataSection === DataSection.RESPONSE_BODY) {
-        if (
-          typeof body === "object" &&
-          currTokenIndex > 1 &&
-          !mapTokens?.slice(0, currTokenIndex)?.includes("__args")
-        ) {
+        if (typeof body === "object" && currTokenIndex > 1 && !seenArgs) {
           body["__typename"] = true
         }
         return recurseCreateBodyGraphQl(
@@ -180,6 +294,8 @@ const recurseCreateBodyGraphQl = (
           currTokenIndex + 1,
           dataField,
           entityMap,
+          ast,
+          seenArgs,
         )
       } else {
         return [
@@ -189,16 +305,20 @@ const recurseCreateBodyGraphQl = (
             currTokenIndex + 1,
             dataField,
             entityMap,
+            ast,
+            seenArgs,
           ),
         ]
       }
     } else {
-      if (
-        typeof body === "object" &&
-        currTokenIndex > 1 &&
-        !mapTokens?.slice(0, currTokenIndex)?.includes("__args")
-      ) {
-        body["__typename"] = true
+      if (currTokenIndex > 1 && !seenArgs) {
+        body = {
+          ...body,
+          __typename: true,
+        }
+      }
+      if (currToken === "__args") {
+        seenArgs = true
       }
       return {
         ...body,
@@ -208,6 +328,8 @@ const recurseCreateBodyGraphQl = (
           currTokenIndex + 1,
           dataField,
           entityMap,
+          ast,
+          seenArgs,
         ),
       }
     }
@@ -244,9 +366,12 @@ const addBodyToRequest = (
   }
   let body: any = undefined
   const func = endpoint.isGraphQl ? recurseCreateBodyGraphQl : recurseCreateBody
+  const ast = endpoint.graphQlSchema
+    ? Parser.parse(endpoint.graphQlSchema)
+    : undefined
   for (const dataField of filteredDataFields) {
     const mapTokens = dataField.dataPath?.split(".")
-    body = func(body, mapTokens, 0, dataField, ctx.entityMap)
+    body = func(body, mapTokens, 0, dataField, ctx.entityMap, ast, false)
   }
 
   if (endpoint.isGraphQl) {
@@ -331,6 +456,9 @@ const addQueryParamsToRequest = (
   let body: any = undefined
 
   if (isGraphQlGet) {
+    const ast = endpoint.graphQlSchema
+      ? Parser.parse(endpoint.graphQlSchema)
+      : undefined
     for (const queryField of dataFields) {
       const mapTokens = queryField.dataPath.split(".")
       body = recurseCreateBodyGraphQl(
@@ -339,6 +467,8 @@ const addQueryParamsToRequest = (
         0,
         queryField,
         ctx.entityMap,
+        ast,
+        false,
       )
     }
     queryParams.push({
