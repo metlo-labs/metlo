@@ -21,7 +21,7 @@ type PacketProcessor struct {
 	iFace         string
 	metloAPI      *metloapi.Metlo
 	httpAssembler *assemblers.HttpAssembler
-	reqAssembler  *assemblers.Assembler
+	tcpAssembler  *assemblers.Assembler
 	respAssembler *assemblers.Assembler
 	ready         bool
 }
@@ -36,21 +36,12 @@ func NewPacketProcessor(metloAPI *metloapi.Metlo, interfaceName string) (*Packet
 
 func (x *PacketProcessor) Setup() error {
 	httpAssembler := assemblers.NewHttpAssembler(x.metloAPI)
-
-	reqStreamFac := &parsers.HttpReqStreamFactory{
+	httpStreamFact := &parsers.HttpParserStreamFactory{
 		Assembler: httpAssembler,
 	}
-	respStreamFac := &parsers.HttpRespStreamFactory{
-		Assembler: httpAssembler,
-	}
-
-	reqStreamPool := assemblers.NewStreamPool(reqStreamFac)
-	respStreamPool := assemblers.NewStreamPool(respStreamFac)
-
-	x.reqAssembler = assemblers.NewAssembler(reqStreamPool)
-	x.respAssembler = assemblers.NewAssembler(respStreamPool)
+	httpParsePool := assemblers.NewStreamPool(httpStreamFact)
+	x.tcpAssembler = assemblers.NewAssembler(httpParsePool)
 	x.httpAssembler = httpAssembler
-
 	x.ready = true
 	return nil
 }
@@ -63,20 +54,17 @@ func (x *PacketProcessor) Put(pkt *packetData) error {
 	networkFlow := packet.NetworkLayer().NetworkFlow()
 	tcp := packet.TransportLayer().(*layers.TCP)
 	timestamp := packet.Metadata().Timestamp
-	x.reqAssembler.AssembleWithTimestamp(pkt.VNI, networkFlow, tcp, timestamp)
-	x.respAssembler.AssembleWithTimestamp(pkt.VNI, networkFlow, tcp, timestamp)
+	x.tcpAssembler.AssembleWithTimestamp(pkt.VNI, networkFlow, tcp, timestamp)
 	return nil
 }
 
 func (x *PacketProcessor) Tick(now time.Time) error {
-	x.reqAssembler.FlushOlderThan(now.Add(time.Minute * -2))
-	x.respAssembler.FlushOlderThan(now.Add(time.Minute * -2))
+	x.tcpAssembler.FlushOlderThan(now.Add(time.Minute * -2))
 	x.httpAssembler.Tick(now, x.iFace)
 	return nil
 }
 
 func (x *PacketProcessor) Shutdown() error {
-	x.reqAssembler.FlushAll()
-	x.respAssembler.FlushAll()
+	x.tcpAssembler.FlushAll()
 	return nil
 }
