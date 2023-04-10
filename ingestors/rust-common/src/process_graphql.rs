@@ -65,13 +65,17 @@ fn process_graphql_argument<'a>(
         schema::Value::String(s) => {
             insert_data_type(data_types, path.as_str(), "string".to_owned());
             let text = s.as_str();
-            if xss(text).unwrap_or(false) {
-                xss_detected.insert(path.clone(), s.clone());
+
+            if !path.starts_with("res") {
+                if xss(text).unwrap_or(false) {
+                    xss_detected.insert(path.clone(), s.clone());
+                }
+                let is_sqli = sqli(text).unwrap_or((false, "".to_owned()));
+                if is_sqli.0 {
+                    sqli_detected.insert(path.clone(), (s.to_owned(), is_sqli.1));
+                }
             }
-            let is_sqli = sqli(text).unwrap_or((false, "".to_owned()));
-            if is_sqli.0 {
-                sqli_detected.insert(path.clone(), (s.to_owned(), is_sqli.1));
-            }
+
             let sensitive_data = detect_sensitive_data(text);
             if !sensitive_data.is_empty() {
                 let old_sensitive_data = sensitive_data_detected.get_mut(&path);
@@ -88,13 +92,17 @@ fn process_graphql_argument<'a>(
             let s = &e.to_owned().to_owned();
             insert_data_type(data_types, path.as_str(), "string".to_owned());
             let text = s.as_str();
-            if xss(text).unwrap_or(false) {
-                xss_detected.insert(path.clone(), s.clone());
+
+            if !path.starts_with("res") {
+                if xss(text).unwrap_or(false) {
+                    xss_detected.insert(path.clone(), s.clone());
+                }
+                let is_sqli = sqli(text).unwrap_or((false, "".to_owned()));
+                if is_sqli.0 {
+                    sqli_detected.insert(path.clone(), (s.to_owned(), is_sqli.1));
+                }
             }
-            let is_sqli = sqli(text).unwrap_or((false, "".to_owned()));
-            if is_sqli.0 {
-                sqli_detected.insert(path.clone(), (s.to_owned(), is_sqli.1));
-            }
+
             let sensitive_data = detect_sensitive_data(text);
             if !sensitive_data.is_empty() {
                 let old_sensitive_data = sensitive_data_detected.get_mut(&path);
