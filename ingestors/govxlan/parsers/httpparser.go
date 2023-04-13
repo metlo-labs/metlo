@@ -17,23 +17,23 @@ const SPACE_BYTE byte = 32
 const NL_BYTE byte = 10
 const CR_BYTE byte = 13
 
-type ParseStep string
-type StepRes string
+type ParseStep int
+type StepRes int
 
 const (
-	MethodOrProto   ParseStep = "MethodOrProto"
-	ReqPathProtocol           = "ReqPathProtocol"
-	RespStatusCode            = "RespStatusCode"
-	ReqHeaderStep             = "ReqHeaderStep"
-	RespHeaderStep            = "RespHeaderStep"
-	BodyStep                  = "BodyStep"
+	MethodOrProto ParseStep = iota
+	ReqPathProtocol
+	RespStatusCode
+	ReqHeaderStep
+	RespHeaderStep
+	BodyStep
 )
 
 const (
-	StepWait      StepRes = "StepWait"
-	StepSuccess           = "StepSuccess"
-	StepParseDone         = "StepParseDone"
-	StepFail              = "StepFail"
+	StepWait StepRes = iota
+	StepSuccess
+	StepParseDone
+	StepFail
 )
 
 type HttpParserStreamFactory struct {
@@ -265,7 +265,7 @@ func (r *HttpParserStream) RunStep() (res StepRes, nextStep ParseStep) {
 	} else if r.currentStep == BodyStep {
 		return r.RunBodyStep()
 	}
-	return "", ""
+	return -1, -1
 }
 
 func (r *HttpParserStream) WriteDataBuffer(data []byte) {
