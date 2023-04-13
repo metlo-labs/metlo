@@ -87,12 +87,16 @@ func (r *HttpParserStream) ResetParseState() {
 	}
 }
 
-func (r *HttpParserStream) BufferedParseData() int {
+func (r *HttpParserStream) TotalParseData() int {
 	return r.parseBufferDataWritten - r.startParsePos
 }
 
+func (r *HttpParserStream) BufferedParseData() int {
+	return r.parseBufferDataWritten - r.currentParsePos
+}
+
 func (r *HttpParserStream) Discard(numBytes int) {
-	if numBytes > r.BufferedParseData() {
+	if numBytes > r.TotalParseData() {
 		panic("discarding more bytes than buffered")
 	}
 	r.startParsePos += numBytes
@@ -123,7 +127,7 @@ func (r *HttpParserStream) RunMethodOrProtoStep() (res StepRes, nextStep ParseSt
 
 	// No space found get rid of all but 8 bytes
 	if spaceIdx <= -1 {
-		totalBufferedBytes := r.BufferedParseData()
+		totalBufferedBytes := r.TotalParseData()
 		if totalBufferedBytes > 8 {
 			r.Discard(totalBufferedBytes - 8)
 		}
