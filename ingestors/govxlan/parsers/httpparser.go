@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"io"
 	"net/http"
+	"sync"
 
 	"github.com/google/gopacket"
 	assemblers "github.com/metlo-labs/metlo/ingestors/govxlan/assemblers"
@@ -57,6 +58,7 @@ func (h *HttpParserStreamFactory) New(vid uint32, net gopacket.Flow, transport g
 }
 
 type HttpParserStream struct {
+	mu                     sync.Mutex
 	vid                    uint32
 	net, transport         gopacket.Flow
 	assembler              *assemblers.HttpAssembler
@@ -86,7 +88,7 @@ func (r *HttpParserStream) ResetParseState() {
 }
 
 func (r *HttpParserStream) BufferedParseData() int {
-	return r.parseBufferDataWritten - r.currentParsePos
+	return r.parseBufferDataWritten - r.startParsePos
 }
 
 func (r *HttpParserStream) Discard(numBytes int) {
@@ -94,6 +96,7 @@ func (r *HttpParserStream) Discard(numBytes int) {
 		panic("discarding more bytes than buffered")
 	}
 	r.startParsePos += numBytes
+	r.currentParsePos = r.startParsePos
 }
 
 func (r *HttpParserStream) GetBufferedData() []byte {
@@ -124,11 +127,13 @@ func (r *HttpParserStream) RunMethodOrProtoStep() (res StepRes, nextStep ParseSt
 		if totalBufferedBytes > 8 {
 			r.Discard(totalBufferedBytes - 8)
 		}
+		return
 	}
 
 	// To long to be anything
 	if spaceIdx > 8 {
 		r.Discard(spaceIdx + 1)
+		return
 	}
 
 	preSpaceStr := string(r.GetBufferedData()[:spaceIdx])
@@ -279,6 +284,7 @@ func (r *HttpParserStream) WriteDataBuffer(data []byte) {
 		r.startParsePos = 0
 		r.currentParsePos -= oldStartParsePos
 		r.bodyStartPos -= oldStartParsePos
+		copy(r.dataBuffer[bufferValidData:], data)
 		r.parseBufferDataWritten = bufferValidData + dataLen
 		return
 	}
@@ -300,6 +306,9 @@ func (r *HttpParserStream) WriteDataBuffer(data []byte) {
 }
 
 func (r *HttpParserStream) Reassembled(reassembly []assemblers.Reassembly) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	if len(reassembly) == 0 {
 		return
 	}
