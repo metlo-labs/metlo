@@ -8,7 +8,7 @@ export WHOAMI=metlo
 
 echo "GETTING FILES"
 mkdir -p /home/$WHOAMI/metlo
-sudo curl -L https://github.com/metlo-labs/metlo/releases/download/v0.0.6/metlo_traffic_mirror_linux_amd64.tar.gz > /home/$WHOAMI/metlo.tar.gz
+sudo curl -L https://github.com/metlo-labs/metlo/releases/download/v0.1.1/metlo_traffic_mirror_linux_amd64.tar.gz > /home/$WHOAMI/metlo.tar.gz
 sudo curl -L https://raw.githubusercontent.com/metlo-labs/metlo/master/deploy/govxlan/metlo-traffic-mirror.service > /home/$WHOAMI/metlo/metlo-traffic-mirror.service
 sudo curl -L https://raw.githubusercontent.com/metlo-labs/metlo/master/deploy/govxlan/metlo-traffic-mirror-analyzer.service > /home/$WHOAMI/metlo/metlo-traffic-mirror-analyzer.service
 sudo tar -xf /home/$WHOAMI/metlo.tar.gz -C /home/$WHOAMI/metlo
