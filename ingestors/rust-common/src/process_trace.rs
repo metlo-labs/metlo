@@ -122,13 +122,15 @@ pub fn process_json_val(
             let resolved_path = fix_path(path, response_alias_map);
             insert_data_type(data_types, resolved_path.as_str(), "string".to_string());
 
-            if xss(e).unwrap_or(false) {
-                xss_detected.insert(resolved_path.clone(), e.to_string());
-            }
+            if !path.starts_with("res") {
+                if xss(e).unwrap_or(false) {
+                    xss_detected.insert(resolved_path.clone(), e.to_string());
+                }
 
-            let is_sqli = sqli(e).unwrap_or((false, "".to_string()));
-            if is_sqli.0 {
-                sqli_detected.insert(resolved_path.clone(), (e.to_string(), is_sqli.1));
+                let is_sqli = sqli(e).unwrap_or((false, "".to_string()));
+                if is_sqli.0 {
+                    sqli_detected.insert(resolved_path.clone(), (e.to_string(), is_sqli.1));
+                }
             }
 
             let sensitive_data = detect_sensitive_data(e.as_str());

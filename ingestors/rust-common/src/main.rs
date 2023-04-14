@@ -138,7 +138,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some(port) => Some(port),
         None => match env::var("BACKEND_PORT") {
             Ok(s) => Some(s.parse().unwrap()),
-            Err(_) => None,
+            Err(_) => match Url::parse(&metlo_host) {
+                Ok(url)
+                    if url.scheme() == "http"
+                        && !url.host_str().unwrap_or_default().contains("app.metlo.com") =>
+                {
+                    Some(8000)
+                }
+                _ => None,
+            },
         },
     };
 
