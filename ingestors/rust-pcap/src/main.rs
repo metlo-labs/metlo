@@ -4,7 +4,7 @@ use nom::{bytes, IResult};
 use pcap::{Capture, Packet};
 use pktparse::ethernet::{self, EtherType};
 use pktparse::ip::IPProtocol;
-use pktparse::ipv4::{self};
+use pktparse::ipv4::{self, IPv4Header};
 use pktparse::tcp::{parse_tcp_header, TcpHeader};
 use sorted_list::SortedList;
 
@@ -25,6 +25,7 @@ pub struct LoopbackFrame {
 
 // pub struct TcpConnection<'a> {
 //     pub buffer: SortedList<u32, TcpPacket<'a>>,
+//     pub next_seq: u32,
 //     pub src_ip: &'a str,
 //     pub dst_ip: &'a str,
 //     pub src_port: u16,
@@ -58,16 +59,31 @@ pub fn parse_loopback_frame(input: &[u8]) -> IResult<&[u8], LoopbackFrame> {
     Ok((input, LoopbackFrame { protocol_family }))
 }
 
-pub fn parse_tcp_data(headers: TcpHeader, data: &[u8]) {
+pub fn run_tcp_packet(
+    headers: TcpHeader,
+    src_ip: &str,
+    dst_ip: &str,
+    src_port: u16,
+    dst_port: u16,
+    data: &[u8],
+) {
+}
+
+pub fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8]) {
     let byte_len: u32 = data.to_vec().len().try_into().unwrap();
     println!(
-        "{:?}, Next Seq: {:?}\n",
-        headers,
-        if headers.flag_syn {
-            headers.sequence_no + byte_len + 1
+        "{}:{}->{}:{}; Seq {}; Next Seq {}; Data - {:?}\n",
+        ip_header.source_addr,
+        tcp_header.source_port,
+        ip_header.dest_addr,
+        tcp_header.dest_port,
+        tcp_header.sequence_no,
+        if tcp_header.flag_syn {
+            tcp_header.sequence_no + byte_len + 1
         } else {
-            headers.sequence_no + byte_len
-        }
+            tcp_header.sequence_no + byte_len
+        },
+        String::from_utf8(data.to_vec()).unwrap()
     );
 }
 
@@ -90,9 +106,9 @@ fn process_packet(packet: Packet, loopback: bool) {
     match parse_loopback_frame(packet.data) {
         Ok((content, loopback_frame)) => match loopback_frame.protocol_family {
             LoProtocolFamily::IPV4 => match ipv4::parse_ipv4_header(content) {
-                Ok((content, headers)) => match headers.protocol {
+                Ok((content, ip_headers)) => match ip_headers.protocol {
                     IPProtocol::TCP => match parse_tcp_header(content) {
-                        Ok((content, headers)) => parse_tcp_data(headers, content),
+                        Ok((content, headers)) => parse_tcp_data(ip_headers, headers, content),
                         Err(_err) => {
                             println!("Invalid tcp contents")
                         }
