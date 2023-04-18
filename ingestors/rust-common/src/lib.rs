@@ -16,7 +16,7 @@ use tonic::{transport::Server, Code, Request, Response, Status};
 
 mod mappers;
 mod metlo_config;
-mod metlo_pcap;
+pub mod metlo_pcap;
 mod open_api;
 mod process_graphql;
 mod process_trace;
