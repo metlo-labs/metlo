@@ -482,6 +482,9 @@ pub async fn send_buffer_items() -> Result<(), Box<dyn std::error::Error>> {
     }
     drop(buffer_write);
 
+    if buffer_items.is_empty() {
+        return Ok(());
+    }
     let conf_read = METLO_CONFIG.try_read();
     if let Ok(ref conf) = &conf_read {
         let collector_log_endpoint = format!(
