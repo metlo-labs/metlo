@@ -253,7 +253,7 @@ export const _awsTrafficMirrorSetup = async ({
               type: "select",
               name: "sourceType",
               message: "What type of source do you want to mirror?",
-              initial: 1,
+              initial: 0,
               choices: [
                 { name: AWS_SOURCE_TYPE.INSTANCE },
                 { name: AWS_SOURCE_TYPE.NETWORK_INTERFACE },
