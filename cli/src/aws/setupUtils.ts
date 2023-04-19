@@ -3,6 +3,7 @@ import {
   CreateTrafficMirrorFilterCommandOutput,
   DescribeInstancesCommandInput,
   DescribeInstancesCommand,
+  Filter,
 } from "@aws-sdk/client-ec2"
 import { STSClient } from "@aws-sdk/client-sts"
 import {
@@ -12,22 +13,27 @@ import {
   create_mirror_target,
   delete_mirror_filter,
   get_mirror_filters,
+  get_mirror_sessions,
 } from "./mirroring"
 import { match_av_to_region, verifyIdentity } from "./utils"
 import { EC2_CONN, getEC2Client } from "./ec2Utils"
 
 import { AWS_SOURCE_TYPE, TrafficFilterRuleSpecs } from "./types"
+import { shouldPrintDebug, changePrintDebug } from "../utils"
 
 export const getSTSClient = (region?: string) => {
   if (
     process.env.METLO_AWS_ACCESS_KEY_ID &&
     process.env.METLO_AWS_SECRET_ACCESS_KEY
   ) {
-    console.log(
-      chalk.bold.dim(
-        `Using credentials in "METLO_AWS_ACCESS_KEY_ID" and "METLO_AWS_SECRET_ACCESS_KEY" for STS Client.`,
-      ),
-    )
+    if (shouldPrintDebug || process.env.DEBUG) {
+      console.log(
+        chalk.bold.dim(
+          `Using credentials in "METLO_AWS_ACCESS_KEY_ID" and "METLO_AWS_SECRET_ACCESS_KEY" for EC2 Client.`,
+        ),
+      )
+      changePrintDebug()
+    }
     return new STSClient({
       region,
       credentials: {
@@ -63,6 +69,7 @@ export const awsSourceIdentification = async (
   source_type: AWS_SOURCE_TYPE,
   mirror_source_id: string,
   _region: string,
+  extraParams?: Record<string, any>,
 ) => {
   const client = getEC2Client(region)
   let ec2_conn = new EC2_CONN(_region)
@@ -87,6 +94,8 @@ export const awsSourceIdentification = async (
       resp.Reservations[0].Instances[0].NetworkInterfaces[0].NetworkInterfaceId
     source_private_ip =
       resp.Reservations[0].Instances[0].NetworkInterfaces[0].PrivateIpAddress
+  } else if (source_type === AWS_SOURCE_TYPE.ALB) {
+  } else if (source_type === AWS_SOURCE_TYPE.ECS) {
   } else if (source_type === AWS_SOURCE_TYPE.NETWORK_INTERFACE) {
     let resp = await ec2_conn.describe_interface(mirror_source_id)
     if (resp.NetworkInterfaces[0].Attachment.InstanceId) {
@@ -201,4 +210,21 @@ export const awsMirrorSessionCreation = async (
   return {
     mirror_session_id: resp.TrafficMirrorSession.TrafficMirrorSessionId,
   }
+}
+
+export const awsMirrorSessionList = async (
+  region: string,
+  eniIds: string[],
+) => {
+  const client = getEC2Client(region)
+  const existingSessionsForENI = (
+    await get_mirror_sessions(client, [
+      {
+        Name: "network-interface-id",
+        Values: eniIds,
+      },
+    ])
+  ).TrafficMirrorSessions
+  client.destroy()
+  return existingSessionsForENI
 }

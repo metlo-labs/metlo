@@ -1,6 +1,8 @@
 export enum AWS_SOURCE_TYPE {
   INSTANCE = "instance",
   NETWORK_INTERFACE = "network-interface",
+  ALB = "application-load-balancer",
+  ECS = "container-service",
 }
 
 export enum Protocols {

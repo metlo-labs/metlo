@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { program } from "commander"
+import { Option, program } from "commander"
 import init from "./init"
 import { awsTrafficMirrorSetup } from "./aws/setup"
 import { awsTrafficMirrorList } from "./aws/list"
@@ -16,6 +16,7 @@ import { initCustomTemplates } from "./testing/init-custom-templates"
 import { mapOptionParser } from "./utils"
 import { initJuiceShopData } from "./juice-shop/init-data"
 import { initJuiceShopTemplates } from "./juice-shop/init-templates"
+import { AWS_SOURCE_TYPE } from "./aws/types"
 
 program.name("metlo").description("Metlo's command line tool.").version("0.2.9")
 
@@ -76,7 +77,12 @@ trafficMirrorAws
     "AWS Region where source and target are located",
   )
   .option("-t,--target-eni-id <string>", "Target ENI ID")
-  .option("-s,--source-eni-id <string>", "Source ENI ID")
+  .option("-s,--source-id <string>", "Source entity ID")
+  .option("-v,--variant <string>", "Type of Connection to make")
+  .option(
+    "--ecs-service-name <string>",
+    "Name of ECS service to use. Must be used in conjunction with ECS variant",
+  )
   .action(awsTrafficMirrorSetup)
 trafficMirrorAws.command("list").action(awsTrafficMirrorList)
 trafficMirrorAws.command("remove").action(awsTrafficMirrorRemove)
