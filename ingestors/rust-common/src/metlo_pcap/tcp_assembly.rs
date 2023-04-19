@@ -8,6 +8,10 @@ use pktparse::ethernet::{self, EtherType};
 use pktparse::ip::IPProtocol;
 use pktparse::ipv4::{self, IPv4Header};
 use pktparse::tcp::{parse_tcp_header, TcpHeader};
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+use std::net::Ipv4Addr;
+use std::time::{Duration, Instant};
 
 pub enum LoProtocolFamily {
     IPV4,
@@ -28,10 +32,20 @@ pub struct TcpPacket {
 pub struct TcpConnection {
     pub buffer: HashMap<u32, TcpPacket>,
     pub next_seq: u32,
+    pub is_dead: bool,
+    pub last_seen: Instant,
+}
+
+#[derive(Hash)]
+pub struct MapKey {
+    src_ip: Ipv4Addr,
+    src_port: u16,
+    dest_ip: Ipv4Addr,
+    dest_port: u16,
 }
 
 lazy_static! {
-    static ref MAP: Mutex<HashMap<String, TcpConnection>> = {
+    static ref MAP: Mutex<HashMap<u64, TcpConnection>> = {
         let m = HashMap::new();
         Mutex::new(m)
     };
@@ -70,8 +84,17 @@ pub fn run_tcp_packet(
 ) {
 }
 
+fn calculate_hash<T: Hash>(t: &T) -> u64 {
+    let mut s = DefaultHasher::new();
+    t.hash(&mut s);
+    s.finish()
+}
+
 pub fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8]) {
-    let byte_len: u32 = data.to_vec().len().try_into().unwrap();
+    let byte_len: u32 = data.len().try_into().unwrap();
+    if byte_len == 0 && !tcp_header.flag_fin && !tcp_header.flag_rst && !tcp_header.flag_syn {
+        return;
+    }
     let curr_seq_no = tcp_header.sequence_no;
     let mut next_seq_no = if tcp_header.flag_syn {
         tcp_header
@@ -82,90 +105,65 @@ pub fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8])
         tcp_header.sequence_no.wrapping_add(byte_len)
     };
     let mut map = MAP.lock().unwrap();
-    let key = format!(
-        "{}:{}->{}:{}",
-        ip_header.source_addr, tcp_header.source_port, ip_header.dest_addr, tcp_header.dest_port
-    );
+
+    let key = calculate_hash(&MapKey {
+        src_ip: ip_header.source_addr,
+        src_port: tcp_header.source_port,
+        dest_ip: ip_header.dest_addr,
+        dest_port: tcp_header.dest_port,
+    });
     let val = map.get_mut(&key);
     let mut finished = false;
     if let Some(v) = val {
+        if v.is_dead && (tcp_header.flag_fin || tcp_header.flag_rst) {
+            map.remove(&key);
+            return;
+        }
         if curr_seq_no == v.next_seq {
-            // run packet on this one
-            println!(
-                "{}:{}->{}:{}; Seq {}; Next Seq {}; Data - {:?}\n",
-                ip_header.source_addr,
-                tcp_header.source_port,
-                ip_header.dest_addr,
-                tcp_header.dest_port,
-                tcp_header.sequence_no,
-                if tcp_header.flag_syn {
-                    tcp_header.sequence_no + byte_len + 1
-                } else {
-                    tcp_header.sequence_no + byte_len
-                },
-                String::from_utf8(data.to_vec())
-            );
+            // run packet on sequential packet
+
             finished = tcp_header.flag_fin || tcp_header.flag_rst;
             // try to find next one in buffer
             for _i in 0..v.buffer.len() {
-                println!("inside buffer {:?}", v.buffer);
+                let remove_seq_no = next_seq_no;
                 if let Some(item) = v.buffer.get(&next_seq_no) {
                     // run packet on this data with same header stuff
-                    println!(
-                        "{}:{}->{}:{}; Seq {}; Next Seq {}; Data - {:?}\n",
-                        ip_header.source_addr,
-                        tcp_header.source_port,
-                        ip_header.dest_addr,
-                        tcp_header.dest_port,
-                        tcp_header.sequence_no,
-                        if tcp_header.flag_syn {
-                            tcp_header.sequence_no + byte_len + 1
-                        } else {
-                            tcp_header.sequence_no + byte_len
-                        },
-                        String::from_utf8(data.to_vec())
-                    );
+
                     finished = item.is_fin;
                     next_seq_no = next_seq_no.wrapping_add(item.data.len().try_into().unwrap());
                 } else {
                     break;
                 }
-                v.buffer.remove(&next_seq_no);
+
+                v.buffer.remove(&remove_seq_no);
             }
-        } else {
-            println!(
-                "out of order, looking for {}, got {}",
-                curr_seq_no, v.next_seq
-            );
-            v.buffer.insert(
-                curr_seq_no,
-                TcpPacket {
-                    data: data.to_vec(),
-                    is_fin: tcp_header.flag_fin || tcp_header.flag_rst,
-                },
-            );
+            v.next_seq = next_seq_no;
+        } else if tcp_header.flag_syn {
+            // run packet on start packet
+
+            v.next_seq = next_seq_no;
+        } else if !v.is_dead {
+            // Add to buffer if less than 101 items
+            if v.buffer.len() > 100 {
+                v.buffer = HashMap::new();
+                v.is_dead = true;
+            } else {
+                v.buffer.insert(
+                    curr_seq_no,
+                    TcpPacket {
+                        data: data.to_vec(),
+                        is_fin: tcp_header.flag_fin || tcp_header.flag_rst,
+                    },
+                );
+            }
         }
-        v.next_seq = next_seq_no;
+        v.last_seen = Instant::now();
         if finished {
             map.remove(&key);
         }
     } else if tcp_header.flag_syn {
         // first packet for key
         // run packet on this one
-        println!(
-            "{}:{}->{}:{}; Seq {}; Next Seq {}; Data - {:?}\n",
-            ip_header.source_addr,
-            tcp_header.source_port,
-            ip_header.dest_addr,
-            tcp_header.dest_port,
-            tcp_header.sequence_no,
-            if tcp_header.flag_syn {
-                tcp_header.sequence_no + byte_len + 1
-            } else {
-                tcp_header.sequence_no + byte_len
-            },
-            String::from_utf8(data.to_vec())
-        );
 
         // insert into map
         map.insert(
@@ -173,9 +171,12 @@ pub fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8])
             TcpConnection {
                 buffer: HashMap::new(),
                 next_seq: next_seq_no,
+                last_seen: Instant::now(),
+                is_dead: false,
             },
         );
     } else {
+        // connection doesnt exist in map and current packet isn't first one
         map.insert(
             key,
             TcpConnection {
@@ -186,25 +187,12 @@ pub fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8])
                         is_fin: tcp_header.flag_fin || tcp_header.flag_rst,
                     },
                 )]),
-                next_seq: next_seq_no,
+                next_seq: 0,
+                last_seen: Instant::now(),
+                is_dead: false,
             },
         );
     }
-
-    /*println!(
-        "{}:{}->{}:{}; Seq {}; Next Seq {}; Data - {:?}\n",
-        ip_header.source_addr,
-        tcp_header.source_port,
-        ip_header.dest_addr,
-        tcp_header.dest_port,
-        tcp_header.sequence_no,
-        if tcp_header.flag_syn {
-            tcp_header.sequence_no + byte_len + 1
-        } else {
-            tcp_header.sequence_no + byte_len
-        },
-        String::from_utf8(data.to_vec())
-    );*/
 }
 
 fn process_packet(packet: Packet, loopback: bool) {
@@ -249,13 +237,23 @@ fn process_packet(packet: Packet, loopback: bool) {
     }
 }
 
+fn clean_map() {
+    let mut map = MAP.lock().unwrap();
+    map.retain(|_k, v| v.last_seen.elapsed() <= Duration::from_secs(10));
+}
+
 fn main() {
     let mut cap = Capture::from_device("lo0")
         .unwrap()
         .immediate_mode(true)
         .open()
         .unwrap();
+    let mut last_check = Instant::now();
     while let Ok(packet) = cap.next_packet() {
+        if last_check.elapsed() > Duration::from_secs(30) {
+            clean_map();
+            last_check = Instant::now();
+        }
         process_packet(packet, true);
     }
 }
