@@ -79,10 +79,6 @@ trafficMirrorAws
   .option("-t,--target-eni-id <string>", "Target ENI ID")
   .option("-s,--source-id <string>", "Source entity ID")
   .option("-v,--variant <string>", "Type of Connection to make")
-  .option(
-    "--ecs-service-name <string>",
-    "Name of ECS service to use. Must be used in conjunction with ECS variant",
-  )
   .action(awsTrafficMirrorSetup)
 trafficMirrorAws.command("list").action(awsTrafficMirrorList)
 trafficMirrorAws.command("remove").action(awsTrafficMirrorRemove)

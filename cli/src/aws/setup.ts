@@ -393,7 +393,6 @@ export const awsTrafficMirrorSetup = async ({
   targetEniId: target,
   sourceId: source,
   variant,
-  ecsServiceName,
 }) => {
   try {
     await _awsTrafficMirrorSetup({
