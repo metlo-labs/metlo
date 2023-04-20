@@ -1,6 +1,6 @@
 {
   "name": "@metlo/cli",
-  "version": "0.2.27",
+  "version": "0.2.28",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -30,6 +30,8 @@
   },
   "dependencies": {
     "@aws-sdk/client-ec2": "^3.198.0",
+    "@aws-sdk/client-ecs": "^3.314.0",
+    "@aws-sdk/client-elastic-load-balancing-v2": "^3.315.0",
     "@aws-sdk/client-sts": "^3.198.0",
     "@google-cloud/compute": "^3.5.1",
     "@metlo/testing": "^0.3.19",

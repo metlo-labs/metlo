@@ -53,3 +53,8 @@ export const mapOptionParser = (
   const val = value.slice(idx + 1, value.length)
   return { ...previous, [key]: val }
 }
+
+export let shouldPrintDebug = true
+export const changePrintDebug = () => {
+  shouldPrintDebug = false
+}

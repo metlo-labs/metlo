@@ -16,6 +16,9 @@ import {
   DeleteTrafficMirrorSessionCommandInput,
   DescribeTrafficMirrorFiltersCommand,
   DescribeTrafficMirrorFiltersCommandInput,
+  DescribeTrafficMirrorSessionsCommand,
+  DescribeTrafficMirrorSessionsCommandInput,
+  Filter,
 } from "@aws-sdk/client-ec2"
 import { randomUUID } from "crypto"
 import { TrafficFilterRuleSpecs } from "./types"
@@ -78,6 +81,13 @@ export async function get_mirror_filters(client: EC2Client, unique_id: string) {
   let command = new DescribeTrafficMirrorFiltersCommand(
     {} as DescribeTrafficMirrorFiltersCommandInput,
   )
+  return await client.send(command)
+}
+
+export async function get_mirror_sessions(client: EC2Client, filters: Filter[]) {
+  let command = new DescribeTrafficMirrorSessionsCommand({
+    Filters: filters,
+  } as DescribeTrafficMirrorSessionsCommandInput)
   return await client.send(command)
 }
 
