@@ -34,24 +34,25 @@ async function parseSource(props: {
     )
     let instanceId = null
     if (!existingSourceId) {
-      const idFetch = await prompt<string>([
-        {
-          type: "autocomplete",
-          name: "mirrorSourceId",
-          message: "Select the id of your EC2 Instance",
-          choices: instances.map(inst => ({
-            name: `${
-              inst.Tags
-                ? inst.Tags.find(
-                    tag => tag.Key === "Name" || tag.Key === "name",
-                  )?.Value + ": "
-                : ""
-            }${inst.InstanceId}`,
-            value: inst.InstanceId,
-          })),
-        },
-      ])["mirrorSourceId"]
-      instanceId = idFetch
+      instanceId = (
+        await prompt<string>([
+          {
+            type: "autocomplete",
+            name: "mirrorSourceId",
+            message: "Select the id of your EC2 Instance",
+            choices: instances.map(inst => ({
+              name: `${
+                inst.Tags
+                  ? inst.Tags.find(
+                      tag => tag.Key === "Name" || tag.Key === "name",
+                    )?.Value + ": "
+                  : ""
+              }${inst.InstanceId}`,
+              value: inst.InstanceId,
+            })),
+          },
+        ])
+      )["mirrorSourceId"]
     } else {
       instanceId = existingSourceId
     }
@@ -66,16 +67,18 @@ async function parseSource(props: {
     const interfaces = (await ec2Conn.describe_interface()).NetworkInterfaces
     let networkInterfaceId = null
     if (!existingSourceId) {
-      networkInterfaceId = await prompt<string>([
-        {
-          type: "autocomplete",
-          name: "mirrorSourceId",
-          message: "Select the id of your Network Interface",
-          choices: interfaces.map(inst => ({
-            name: inst.NetworkInterfaceId,
-          })),
-        },
-      ])["mirrorSourceId"]
+      networkInterfaceId = (
+        await prompt<string>([
+          {
+            type: "autocomplete",
+            name: "mirrorSourceId",
+            message: "Select the id of your Network Interface",
+            choices: interfaces.map(inst => ({
+              name: inst.NetworkInterfaceId,
+            })),
+          },
+        ])
+      )["mirrorSourceId"]
     } else {
       networkInterfaceId = existingSourceId
     }
@@ -103,7 +106,6 @@ async function parseSource(props: {
           message: "Select the id of your ECS cluster",
           choices: clusters.map(cluster => ({
             name: cluster.clusterName,
-            value: cluster.clusterArn,
           })),
         },
       ])
@@ -128,8 +130,10 @@ async function parseSource(props: {
         srvc =>
           srvc.serviceName === secondaryIdFetch["mirrorSourceSecondaryId"],
       )
-      clusterARN = currCluster.clusterName
+      clusterARN = currCluster.clusterArn
       serviceARN = currService.serviceArn
+      clusterName = currCluster.clusterName
+      serviceName = currService.serviceName
     } else {
       const [_clusterName, _serviceName] = existingSourceId.split(",")
       clusterName = _clusterName
@@ -248,20 +252,22 @@ export const _awsTrafficMirrorSetup = async ({
         if (passedSource) {
           _variant = AWS_SOURCE_TYPE.NETWORK_INTERFACE
         } else {
-          _variant = await prompt([
-            {
-              type: "select",
-              name: "sourceType",
-              message: "What type of source do you want to mirror?",
-              initial: 0,
-              choices: [
-                { name: AWS_SOURCE_TYPE.INSTANCE },
-                { name: AWS_SOURCE_TYPE.NETWORK_INTERFACE },
-                { name: AWS_SOURCE_TYPE.ALB },
-                { name: AWS_SOURCE_TYPE.ECS },
-              ],
-            },
-          ])["sourceType"]
+          _variant = (
+            await prompt([
+              {
+                type: "select",
+                name: "sourceType",
+                message: "What type of source do you want to mirror?",
+                initial: 0,
+                choices: [
+                  { name: AWS_SOURCE_TYPE.INSTANCE },
+                  { name: AWS_SOURCE_TYPE.NETWORK_INTERFACE },
+                  { name: AWS_SOURCE_TYPE.ALB },
+                  { name: AWS_SOURCE_TYPE.ECS },
+                ],
+              },
+            ])
+          )["sourceType"]
         }
       }
     }
