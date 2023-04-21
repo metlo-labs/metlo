@@ -1,11 +1,9 @@
-use std::cmp::min;
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-use httparse::Header;
 use lazy_static::lazy_static;
 use nom::{bytes, IResult};
-use pcap::{Capture, Packet};
+use pcap::Packet;
 use pktparse::ip::IPProtocol;
 use pktparse::ipv4::{self, IPv4Header};
 use pktparse::tcp::{parse_tcp_header, TcpHeader};
@@ -14,28 +12,13 @@ use std::hash::{Hash, Hasher};
 use std::net::Ipv4Addr;
 use std::time::{Duration, Instant};
 
+use super::http_assembly::run_payload;
+
 const MAX_HTTP_SIZE: usize = 1024 * 100;
-const SPACE: u8 = b' ';
-const GET: [u8; 4] = *b"GET ";
-const POST: [u8; 4] = *b"POST";
-const HEAD: [u8; 4] = *b"HEAD";
-const PUT: [u8; 4] = *b"PUT ";
-const TRACE: [u8; 5] = *b"TRACE";
-const PATCH: [u8; 5] = *b"PATCH";
-const DELETE: [u8; 7] = *b"DELETE ";
-const CONNECT: [u8; 7] = *b"CONNECT";
-const OPTIONS: [u8; 7] = *b"OPTIONS";
-const RESP: [u8; 7] = *b"HTTP/1.";
 
 pub enum LoProtocolFamily {
     IPV4,
     Other(u32),
-}
-
-#[derive(Debug)]
-pub enum PayloadType {
-    REQUEST,
-    RESPONSE,
 }
 
 pub struct LoopbackFrame {
@@ -53,6 +36,7 @@ pub struct TcpConnection {
     pub buffer: HashMap<u32, TcpPacket>,
     pub payload_buffer: Vec<u8>,
     pub payload_buffer_len: usize,
+    pub body_content_len: Option<usize>,
     pub next_seq: u32,
     pub is_dead: bool,
     pub last_seen: Instant,
@@ -64,14 +48,24 @@ pub struct TcpConnection {
 
 #[derive(Hash)]
 pub struct MapKey {
-    src_ip: Ipv4Addr,
-    src_port: u16,
-    dest_ip: Ipv4Addr,
-    dest_port: u16,
+    pub src_ip: Ipv4Addr,
+    pub src_port: u16,
+    pub dest_ip: Ipv4Addr,
+    pub dest_port: u16,
+}
+
+pub struct MapPayload {
+    pub buffer: Vec<u8>,
+    pub body_buffer: Vec<u8>,
+    pub last_seen: Instant,
 }
 
 lazy_static! {
-    static ref MAP: Mutex<HashMap<u64, TcpConnection>> = {
+    static ref CONNECTION_MAP: Mutex<HashMap<u64, TcpConnection>> = {
+        let m = HashMap::new();
+        Mutex::new(m)
+    };
+    pub static ref REQUEST_MAP: Mutex<HashMap<u64, MapPayload>> = {
         let m = HashMap::new();
         Mutex::new(m)
     };
@@ -100,50 +94,15 @@ pub fn parse_loopback_frame(input: &[u8]) -> IResult<&[u8], LoopbackFrame> {
     Ok((input, LoopbackFrame { protocol_family }))
 }
 
-fn calculate_hash<T: Hash>(t: &T) -> u64 {
+pub fn calculate_hash<T: Hash>(t: &T) -> u64 {
     let mut s = DefaultHasher::new();
     t.hash(&mut s);
     s.finish()
 }
 
-fn get_payload_type(data: &Vec<u8>) -> Option<PayloadType> {
-    if data.len() < 4 {
-        None
-    } else {
-        let space_idx_opt = data.iter().position(|x| x == &SPACE);
-
-        if let Some(space_idx) = space_idx_opt {
-            if space_idx == 3 || space_idx == 4 {
-                match data[0..4].try_into().unwrap() {
-                    GET | POST | HEAD | PUT => Some(PayloadType::REQUEST),
-                    _ => None,
-                }
-            } else if space_idx == 5 {
-                match data[0..5].try_into().unwrap() {
-                    TRACE | PATCH => Some(PayloadType::REQUEST),
-                    _ => None,
-                }
-            } else if space_idx == 6 || space_idx == 7 {
-                match data[0..7].try_into().unwrap() {
-                    DELETE | CONNECT | OPTIONS => Some(PayloadType::REQUEST),
-                    _ => None,
-                }
-            } else if data.len() >= 7 {
-                match data[0..7].try_into().unwrap() {
-                    RESP => Some(PayloadType::RESPONSE),
-                    _ => None,
-                }
-            } else {
-                None
-            }
-        } else {
-            None
-        }
-    }
-}
-
-fn reset_connection(conn: &mut TcpConnection, bytes_parsed: usize, remaining: usize) {
+pub fn reset_connection(conn: &mut TcpConnection, bytes_parsed: usize, remaining: usize) {
     conn.is_dead = false;
+    conn.body_content_len = None;
     if remaining > 0 {
         conn.payload_buffer = conn.payload_buffer[bytes_parsed..conn.payload_buffer_len].to_vec();
         conn.payload_buffer_len = remaining;
@@ -159,7 +118,7 @@ fn analyze_data(data: Option<&Vec<u8>>, seq_no: Option<u32>, conn: &mut TcpConne
     }
     let payload_opt = match (data, seq_no) {
         (Some(d), _) => Some(d),
-        (None, Some(e)) => conn.buffer.get(&e).and_then(|f| Some(&f.data)),
+        (None, Some(e)) => conn.buffer.get(&e).map(|f| &f.data),
         (_, _) => None,
     };
     if let Some(payload) = payload_opt {
@@ -179,96 +138,7 @@ fn analyze_data(data: Option<&Vec<u8>>, seq_no: Option<u32>, conn: &mut TcpConne
     }
 }
 
-fn run_payload(conn: &mut TcpConnection) {
-    let payload_type = get_payload_type(&conn.payload_buffer);
-    if let Some(e) = payload_type {
-        let mut req_headers = [httparse::EMPTY_HEADER; 64];
-        let mut resp_headers = [httparse::EMPTY_HEADER; 64];
-        let mut req = httparse::Request::new(&mut req_headers);
-        let mut resp = httparse::Response::new(&mut resp_headers);
-        let res = match e {
-            PayloadType::REQUEST => req.parse(&conn.payload_buffer[0..conn.payload_buffer_len]),
-            PayloadType::RESPONSE => resp.parse(&conn.payload_buffer[0..conn.payload_buffer_len]),
-        };
-        match res {
-            Ok(status) if status.is_complete() => {
-                let body_offset = status.unwrap();
-                let mut bytes_parsed = body_offset;
-                if req.method.is_some() {
-                    // HTTP Request
-                    let method = req.method;
-                    let path = req.path;
-                    let version = req.version;
-                    let headers = req.headers;
-                    let content_header = headers
-                        .iter()
-                        .find(|&e| e.name.to_lowercase() == "content-length");
-                    let content_len: Option<usize> = match content_header {
-                        Some(&Header { name: _, value }) => match String::from_utf8(value.to_vec())
-                        {
-                            Ok(val) => match val.parse::<usize>() {
-                                Ok(len) => Some(len),
-                                Err(_) => None,
-                            },
-                            Err(_) => None,
-                        },
-                        None => None,
-                    };
-                    let body = match content_len {
-                        Some(len) => {
-                            if conn.payload_buffer_len - body_offset < len {
-                                return;
-                            }
-                            bytes_parsed = min(body_offset + len, conn.payload_buffer_len);
-                            conn.payload_buffer[body_offset..bytes_parsed].to_vec()
-                        }
-                        None => vec![],
-                    };
-
-                    // DO something with request
-                } else {
-                    //HTTP Response
-                    let status_code = resp.code;
-                    let headers = resp.headers;
-                    let content_header = headers
-                        .iter()
-                        .find(|&e| e.name.to_lowercase() == "content-length");
-                    let content_len: Option<usize> = match content_header {
-                        Some(&Header { name: _, value }) => match String::from_utf8(value.to_vec())
-                        {
-                            Ok(val) => match val.parse::<usize>() {
-                                Ok(len) => Some(len),
-                                Err(_) => None,
-                            },
-                            Err(_) => None,
-                        },
-                        None => None,
-                    };
-
-                    let body = match content_len {
-                        Some(len) => {
-                            if conn.payload_buffer_len - body_offset < len {
-                                return;
-                            }
-                            bytes_parsed = min(body_offset + len, conn.payload_buffer_len);
-                            conn.payload_buffer[body_offset..bytes_parsed].to_vec()
-                        }
-                        None => vec![],
-                    };
-
-                    // DO something with response
-                }
-                let remaining = conn.payload_buffer_len - bytes_parsed;
-                reset_connection(conn, bytes_parsed, remaining);
-            }
-            Ok(status) if status.is_partial() => (),
-            Ok(_) => reset_connection(conn, 0, 0),
-            Err(_) => reset_connection(conn, 0, 0),
-        }
-    }
-}
-
-pub fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8]) {
+fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8]) {
     let byte_len: u32 = data.len().try_into().unwrap();
     if byte_len == 0 && !tcp_header.flag_fin && !tcp_header.flag_rst && !tcp_header.flag_syn {
         return;
@@ -282,7 +152,7 @@ pub fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8])
     } else {
         tcp_header.sequence_no.wrapping_add(byte_len)
     };
-    let mut map = MAP.lock().unwrap();
+    let mut conn_map = CONNECTION_MAP.lock().unwrap();
 
     let key = calculate_hash(&MapKey {
         src_ip: ip_header.source_addr,
@@ -290,17 +160,17 @@ pub fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8])
         dest_ip: ip_header.dest_addr,
         dest_port: tcp_header.dest_port,
     });
-    let val = map.get_mut(&key);
+    let val = conn_map.get_mut(&key);
     let mut finished = false;
     if let Some(v) = val {
         if v.is_dead && (tcp_header.flag_fin || tcp_header.flag_rst) {
-            map.remove(&key);
+            conn_map.remove(&key);
             return;
         }
         if curr_seq_no == v.next_seq {
             // run packet on this one
             analyze_data(Some(&data.to_vec()), None, v);
-            run_payload(v);
+            run_payload(key, v);
             finished = tcp_header.flag_fin || tcp_header.flag_rst;
             // try to find next one in buffer
             for _i in 0..v.buffer.len() {
@@ -313,7 +183,7 @@ pub fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8])
                     break;
                 }
                 analyze_data(None, Some(remove_seq_no), v);
-                run_payload(v);
+                run_payload(key, v);
                 v.buffer.remove(&remove_seq_no);
             }
             v.next_seq = next_seq_no;
@@ -337,15 +207,16 @@ pub fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8])
             }
         }
         v.last_seen = Instant::now();
-        run_payload(v);
+        run_payload(key, v);
         if finished {
-            map.remove(&key);
+            conn_map.remove(&key);
         }
     } else {
         let mut conn = TcpConnection {
             buffer: HashMap::new(),
             payload_buffer: vec![],
             payload_buffer_len: 0,
+            body_content_len: None,
             next_seq: next_seq_no,
             last_seen: Instant::now(),
             is_dead: false,
@@ -356,13 +227,13 @@ pub fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8])
         };
 
         analyze_data(Some(&data.to_vec()), None, &mut conn);
-        run_payload(&mut conn);
+        run_payload(key, &mut conn);
         // insert into map
-        map.insert(key, conn);
+        conn_map.insert(key, conn);
     }
 }
 
-fn process_packet(packet: Packet, loopback: bool) {
+pub fn process_packet(packet: Packet, loopback: bool) {
     // println!("{:?}", packet.data);
     // match ethernet::parse_ethernet_frame(packet.data) {
     //     Ok((content, headers)) => match headers.ethertype {
@@ -395,7 +266,7 @@ fn process_packet(packet: Packet, loopback: bool) {
                 }
             },
             LoProtocolFamily::Other(other_proto) => {
-                println!("Invalid Loopback Type {:?}", other_proto)
+                //println!("Invalid Loopback Type {:?}", other_proto)
             }
         },
         Err(_) => {
@@ -404,33 +275,13 @@ fn process_packet(packet: Packet, loopback: bool) {
     }
 }
 
-fn clean_map() {
-    let mut map = MAP.lock().unwrap();
-    println!("before cleaning {}", map.len());
-    map.retain(|_k, v| v.last_seen.elapsed() <= Duration::from_secs(10));
-    println!("after cleaning {}", map.len());
-}
-
-fn main() {
-    let mut total_time: u128 = 0;
-    let mut counter = 0;
-    let mut cap = Capture::from_device("lo0")
-        .unwrap()
-        .immediate_mode(true)
-        .open()
-        .unwrap();
-    let mut last_check = Instant::now();
-    while let Ok(packet) = cap.next_packet() {
-        if last_check.elapsed() > Duration::from_secs(30) {
-            clean_map();
-            last_check = Instant::now();
-        }
-        let start_time = std::time::Instant::now();
-        process_packet(packet, true);
-        total_time += start_time.elapsed().as_nanos();
-        counter += 1;
-        if counter % 100000 == 0 {
-            println!("avg time {:?}", total_time / counter);
-        }
-    }
+pub fn clean_map() {
+    let mut conn_map = CONNECTION_MAP.lock().unwrap();
+    println!("before cleaning connection map {}", conn_map.len());
+    conn_map.retain(|_k, v| v.last_seen.elapsed() <= Duration::from_secs(10));
+    println!("after cleaning {}", conn_map.len());
+    let mut request_map = REQUEST_MAP.lock().unwrap();
+    println!("before cleaning request map {}", request_map.len());
+    request_map.retain(|_k, v| v.last_seen.elapsed() <= Duration::from_secs(10));
+    println!("after cleaning request map {}", request_map.len());
 }
