@@ -331,7 +331,7 @@ pub fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8])
                     curr_seq_no,
                     TcpPacket {
                         data: data.to_vec(),
-                        is_fin: finished,
+                        is_fin: tcp_header.flag_fin || tcp_header.flag_rst,
                     },
                 );
             }
