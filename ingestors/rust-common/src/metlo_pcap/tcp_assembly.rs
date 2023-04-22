@@ -16,6 +16,12 @@ use super::http_assembly::run_payload;
 
 const MAX_HTTP_SIZE: usize = 1024 * 100;
 
+pub enum InterfaceType {
+    Ethernet,
+    Loopback,
+    Other,
+}
+
 pub enum LoProtocolFamily {
     IPV4,
     Other(u32),
@@ -124,7 +130,7 @@ fn analyze_data(data: Option<&Vec<u8>>, seq_no: Option<u32>, conn: &mut TcpConne
     if let Some(payload) = payload_opt {
         let payload_len = payload.len();
         if conn.payload_buffer_len + payload_len > MAX_HTTP_SIZE {
-            println!(
+            log::trace!(
                 "Data size too large; Current Payload Buffer Size {}; Incoming Paylod Buffer Size {}",
                 conn.payload_buffer_len, payload_len
             );
@@ -233,7 +239,66 @@ fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8]) {
     }
 }
 
-pub fn process_packet(packet: Packet, loopback: bool) {
+pub fn process_packet(packet: Packet, interface_type: &InterfaceType, metlo_host: &str) {
+    match interface_type {
+        InterfaceType::Ethernet => match pktparse::ethernet::parse_ethernet_frame(packet.data) {
+            Ok((content, headers)) => match headers.ethertype {
+                pktparse::ethernet::EtherType::IPv4 => match ipv4::parse_ipv4_header(content) {
+                    Ok((content, ip_headers)) => {
+                        if ip_headers.protocol == IPProtocol::TCP {
+                            match parse_tcp_header(content) {
+                                Ok((content, headers)) => {
+                                    if ip_headers.dest_addr.to_string() == metlo_host {
+                                        return;
+                                    }
+                                    parse_tcp_data(ip_headers, headers, content)
+                                }
+                                Err(_err) => {
+                                    log::trace!("Invalid tcp contents")
+                                }
+                            }
+                        }
+                    }
+                    Err(_err) => {
+                        log::trace!("Invalid IPV4 header")
+                    }
+                },
+                _ => log::trace!("Other EtherType"),
+            },
+            Err(_) => log::debug!("Error parsing ethernet frame"),
+        },
+        InterfaceType::Loopback => match parse_loopback_frame(packet.data) {
+            Ok((content, loopback_frame)) => match loopback_frame.protocol_family {
+                LoProtocolFamily::IPV4 => match ipv4::parse_ipv4_header(content) {
+                    Ok((content, ip_headers)) => {
+                        if ip_headers.protocol == IPProtocol::TCP {
+                            match parse_tcp_header(content) {
+                                Ok((content, headers)) => {
+                                    if ip_headers.dest_addr.to_string() == metlo_host {
+                                        return;
+                                    }
+                                    parse_tcp_data(ip_headers, headers, content)
+                                }
+                                Err(_err) => {
+                                    log::trace!("Invalid tcp contents")
+                                }
+                            }
+                        }
+                    }
+                    Err(_err) => {
+                        log::trace!("Invalid IPV4 header")
+                    }
+                },
+                LoProtocolFamily::Other(other_proto) => {
+                    log::trace!("Invalid Loopback Type {:?}", other_proto)
+                }
+            },
+            Err(_) => {
+                log::debug!("Loopback parse error")
+            }
+        },
+        InterfaceType::Other => (),
+    }
     // println!("{:?}", packet.data);
     // match ethernet::parse_ethernet_frame(packet.data) {
     //     Ok((content, headers)) => match headers.ethertype {
@@ -249,7 +314,7 @@ pub fn process_packet(packet: Packet, loopback: bool) {
     //         println!("link parse error")
     //     }
     // }
-    match parse_loopback_frame(packet.data) {
+    /*match parse_loopback_frame(packet.data) {
         Ok((content, loopback_frame)) => match loopback_frame.protocol_family {
             LoProtocolFamily::IPV4 => match ipv4::parse_ipv4_header(content) {
                 Ok((content, ip_headers)) => match ip_headers.protocol {
@@ -272,16 +337,16 @@ pub fn process_packet(packet: Packet, loopback: bool) {
         Err(_) => {
             println!("lo parse error")
         }
-    }
+    }*/
 }
 
 pub fn clean_map() {
     let mut conn_map = CONNECTION_MAP.lock().unwrap();
-    println!("before cleaning connection map {}", conn_map.len());
+    log::trace!("Before cleaning connection map {}", conn_map.len());
     conn_map.retain(|_k, v| v.last_seen.elapsed() <= Duration::from_secs(10));
-    println!("after cleaning {}", conn_map.len());
+    log::trace!("After cleaning connection map {}", conn_map.len());
     let mut request_map = REQUEST_MAP.lock().unwrap();
-    println!("before cleaning request map {}", request_map.len());
+    log::trace!("Before cleaning request map {}", request_map.len());
     request_map.retain(|_k, v| v.last_seen.elapsed() <= Duration::from_secs(10));
-    println!("after cleaning request map {}", request_map.len());
+    log::trace!("After cleaning request map {}", request_map.len());
 }

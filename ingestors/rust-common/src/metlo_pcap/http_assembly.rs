@@ -1,8 +1,13 @@
-use std::cmp::min;
+use std::{cmp::min, net::Ipv4Addr};
 
 use httparse::Header;
 
 use std::time::Instant;
+
+use crate::{
+    process_trace_async,
+    trace::{ApiMeta, ApiRequest, ApiResponse, ApiTrace, ApiUrl, KeyVal},
+};
 
 use super::tcp_assembly::{
     calculate_hash, reset_connection, MapKey, MapPayload, TcpConnection, REQUEST_MAP,
@@ -62,27 +67,124 @@ fn get_payload_type(data: &Vec<u8>) -> Option<PayloadType> {
     }
 }
 
+fn generate_api_trace(
+    request: httparse::Request,
+    response: httparse::Response,
+    req_body: &[u8],
+    resp_body: &[u8],
+    source_addr: Ipv4Addr,
+    source_port: u16,
+    dest_addr: Ipv4Addr,
+    dest_port: u16,
+) -> Option<ApiTrace> {
+    if let (Some(method), Some(path), Some(code)) = (request.method, request.path, response.code) {
+        let mut host = "".to_owned();
+        let req_headers = request
+            .headers
+            .iter()
+            .map(|e| {
+                let val = String::from_utf8(e.value.to_vec()).unwrap_or_default();
+                if e.name == "Host" || e.name == "host" {
+                    host = val.clone();
+                }
+                KeyVal {
+                    name: e.name.to_owned(),
+                    value: val,
+                }
+            })
+            .collect();
+
+        let split_path = path.split_once('?');
+        let url_info: (&str, Vec<KeyVal>) = match split_path {
+            Some((path_str, url_encoded_str)) => (
+                path_str,
+                url::form_urlencoded::parse(url_encoded_str.as_bytes())
+                    .map(|e| KeyVal {
+                        name: e.0.to_string(),
+                        value: e.1.to_string(),
+                    })
+                    .collect(),
+            ),
+            _ => (path, vec![]),
+        };
+
+        log::trace!(
+            "Matched Request and Response;\nRequest: Method {}; Path {}; Version: {:?}; Headers: {}; Body: {};\nResponse Status {}; Headers {}; Body: {}",
+            method,
+            url_info.0,
+            request.version,
+            request.headers.len(),
+            req_body.len(),
+            code,
+            response.headers.len(),
+            resp_body.len()
+        );
+
+        Some(ApiTrace {
+            request: ApiRequest {
+                method: method.to_string(),
+                url: ApiUrl {
+                    host,
+                    path: url_info.0.to_string(),
+                    parameters: url_info.1,
+                },
+                headers: req_headers,
+                body: String::from_utf8(req_body.to_vec()).unwrap_or_default(),
+            },
+            response: Some(ApiResponse {
+                status: code,
+                headers: response
+                    .headers
+                    .iter()
+                    .map(|e| KeyVal {
+                        name: e.name.to_owned(),
+                        value: String::from_utf8(e.value.to_vec()).unwrap_or_default(),
+                    })
+                    .collect(),
+                body: String::from_utf8(resp_body.to_vec()).unwrap_or_default(),
+            }),
+            meta: Some(ApiMeta {
+                environment: String::from("production"),
+                incoming: true,
+                source: source_addr.to_string(),
+                source_port,
+                destination: dest_addr.to_string(),
+                destination_port: dest_port,
+                original_source: None,
+            }),
+        })
+    } else {
+        None
+    }
+}
+
 fn process_trace_from_request(
     request: httparse::Request,
     request_body: &[u8],
     resp_buffer: &[u8],
     resp_body_buffer: &[u8],
+    source_addr: Ipv4Addr,
+    source_port: u16,
+    dest_addr: Ipv4Addr,
+    dest_port: u16,
 ) {
     let mut resp_headers = [httparse::EMPTY_HEADER; 64];
     let mut resp = httparse::Response::new(&mut resp_headers);
     let res = resp.parse(resp_buffer);
     match res {
         Ok(status) if status.is_complete() => {
-            // Do something with the request and resp
-            println!("Found both in request\nRequest: Method {:?}; Path {:?}; Version: {:?}; Headers: {:?}; Body: {:?}\nResponse: Status {:?}; Headers: {:?}; Body: {:?}",
-            request.method,
-            request.path,
-            request.version,
-            request.headers,
-            request_body.len(),
-            resp.code,
-            resp.headers,
-            resp_body_buffer.len())
+            if let Some(trace) = generate_api_trace(
+                request,
+                resp,
+                request_body,
+                resp_body_buffer,
+                source_addr,
+                source_port,
+                dest_addr,
+                dest_port,
+            ) {
+                process_trace_async(trace);
+            }
         }
         // Couldn't parse response
         _ => (),
@@ -94,23 +196,28 @@ fn process_trace_from_response(
     response_body: &[u8],
     req_buffer: &[u8],
     req_body_buffer: &[u8],
+    source_addr: Ipv4Addr,
+    source_port: u16,
+    dest_addr: Ipv4Addr,
+    dest_port: u16,
 ) {
     let mut req_headers = [httparse::EMPTY_HEADER; 64];
     let mut req = httparse::Request::new(&mut req_headers);
     let res = req.parse(req_buffer);
     match res {
         Ok(status) if status.is_complete() => {
-            // Do something with the response and req
-
-            println!("Found both in response\nRequest: Method {:?}; Path {:?}; Version: {:?}; Headers: {:?}; Body: {:?}\nResponse: Status {:?}; Headers: {:?}; Body: {:?}",
-            req.method,
-            req.path,
-            req.version,
-            req.headers,
-            req_body_buffer.len(),
-            response.code,
-            response.headers,
-            response_body.len())
+            if let Some(trace) = generate_api_trace(
+                req,
+                response,
+                req_body_buffer,
+                response_body,
+                dest_addr,
+                dest_port,
+                source_addr,
+                source_port,
+            ) {
+                process_trace_async(trace);
+            }
         }
         // Couldn't parse request
         _ => (),
@@ -177,6 +284,10 @@ pub fn run_payload(key_hash: u64, conn: &mut TcpConnection) {
                             body,
                             &resp_entry.buffer,
                             &resp_entry.body_buffer,
+                            conn.source_addr,
+                            conn.source_port,
+                            conn.dest_addr,
+                            conn.dest_port,
                         );
                         req_map.remove(&resp_key_hash);
                         req_map.remove(&key_hash);
@@ -235,6 +346,10 @@ pub fn run_payload(key_hash: u64, conn: &mut TcpConnection) {
                             body,
                             &req_entry.buffer,
                             &req_entry.body_buffer,
+                            conn.source_addr,
+                            conn.source_port,
+                            conn.dest_addr,
+                            conn.dest_port,
                         );
                         req_map.remove(&req_key_hash);
                         req_map.remove(&key_hash);
