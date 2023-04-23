@@ -294,45 +294,6 @@ pub fn process_packet(packet: Packet, interface_type: &InterfaceType, metlo_host
         },
         InterfaceType::Other => (),
     }
-    // println!("{:?}", packet.data);
-    // match ethernet::parse_ethernet_frame(packet.data) {
-    //     Ok((content, headers)) => match headers.ethertype {
-    //         EtherType::IPv4 => {
-    //             println!("IPV4 {:?}", headers)
-    //         }
-    //         EtherType::IPv6 => {
-    //             println!("IPV6 {:?}", headers)
-    //         }
-    //         _ => {}
-    //     },
-    //     Err(_) => {
-    //         println!("link parse error")
-    //     }
-    // }
-    /*match parse_loopback_frame(packet.data) {
-        Ok((content, loopback_frame)) => match loopback_frame.protocol_family {
-            LoProtocolFamily::IPV4 => match ipv4::parse_ipv4_header(content) {
-                Ok((content, ip_headers)) => match ip_headers.protocol {
-                    IPProtocol::TCP => match parse_tcp_header(content) {
-                        Ok((content, headers)) => parse_tcp_data(ip_headers, headers, content),
-                        Err(_err) => {
-                            println!("Invalid tcp contents")
-                        }
-                    },
-                    _ => {}
-                },
-                Err(_err) => {
-                    println!("Invalid IPV4 header")
-                }
-            },
-            LoProtocolFamily::Other(other_proto) => {
-                //println!("Invalid Loopback Type {:?}", other_proto)
-            }
-        },
-        Err(_) => {
-            println!("lo parse error")
-        }
-    }*/
 }
 
 pub fn clean_map() {
