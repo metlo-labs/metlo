@@ -5,7 +5,7 @@ use httparse::Header;
 use std::time::Instant;
 
 use crate::{
-    process_trace_async,
+    process_trace,
     trace::{ApiMeta, ApiRequest, ApiResponse, ApiTrace, ApiUrl, KeyVal},
 };
 
@@ -183,7 +183,7 @@ fn process_trace_from_request(
                 dest_addr,
                 dest_port,
             ) {
-                process_trace_async(trace);
+                process_trace(trace);
             }
         }
         // Couldn't parse response
@@ -216,7 +216,7 @@ fn process_trace_from_response(
                 source_addr,
                 source_port,
             ) {
-                process_trace_async(trace);
+                process_trace(trace);
             }
         }
         // Couldn't parse request
