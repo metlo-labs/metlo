@@ -87,7 +87,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("INVALID LOG LEVEL: {}", log_level);
         return Ok(());
     }
-    env::set_var("RUST_LOG", log_level);
+    env::set_var("RUST_LOG", format!("metlo_agent={}", log_level));
     env_logger::init();
 
     let metlo_host = match args.metlo_host {
