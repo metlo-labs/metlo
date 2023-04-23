@@ -76,6 +76,7 @@ fn generate_api_trace(
     source_port: u16,
     dest_addr: Ipv4Addr,
     dest_port: u16,
+    metlo_host: &str,
 ) -> Option<ApiTrace> {
     if let (Some(method), Some(path), Some(code)) = (request.method, request.path, response.code) {
         let mut host = "".to_owned();
@@ -93,6 +94,11 @@ fn generate_api_trace(
                 }
             })
             .collect();
+
+        if host.starts_with(metlo_host) {
+            log::trace!("Skipped trace for host {}", host);
+            return None;
+        }
 
         let split_path = path.split_once('?');
         let url_info: (&str, Vec<KeyVal>) = match split_path {
@@ -167,6 +173,7 @@ fn process_trace_from_request(
     source_port: u16,
     dest_addr: Ipv4Addr,
     dest_port: u16,
+    metlo_host: &str,
 ) {
     let mut resp_headers = [httparse::EMPTY_HEADER; 64];
     let mut resp = httparse::Response::new(&mut resp_headers);
@@ -182,6 +189,7 @@ fn process_trace_from_request(
                 source_port,
                 dest_addr,
                 dest_port,
+                metlo_host,
             ) {
                 process_trace(trace);
             }
@@ -200,6 +208,7 @@ fn process_trace_from_response(
     source_port: u16,
     dest_addr: Ipv4Addr,
     dest_port: u16,
+    metlo_host: &str,
 ) {
     let mut req_headers = [httparse::EMPTY_HEADER; 64];
     let mut req = httparse::Request::new(&mut req_headers);
@@ -215,6 +224,7 @@ fn process_trace_from_response(
                 dest_port,
                 source_addr,
                 source_port,
+                metlo_host,
             ) {
                 process_trace(trace);
             }
@@ -224,7 +234,7 @@ fn process_trace_from_response(
     }
 }
 
-pub fn run_payload(key_hash: u64, conn: &mut TcpConnection) {
+pub fn run_payload(key_hash: u64, conn: &mut TcpConnection, metlo_host: &str) {
     let payload_type = get_payload_type(&conn.payload_buffer);
     if let Some(e) = payload_type {
         let mut req_headers = [httparse::EMPTY_HEADER; 64];
@@ -288,6 +298,7 @@ pub fn run_payload(key_hash: u64, conn: &mut TcpConnection) {
                             conn.source_port,
                             conn.dest_addr,
                             conn.dest_port,
+                            metlo_host,
                         );
                         req_map.remove(&resp_key_hash);
                         req_map.remove(&key_hash);
@@ -350,6 +361,7 @@ pub fn run_payload(key_hash: u64, conn: &mut TcpConnection) {
                             conn.source_port,
                             conn.dest_addr,
                             conn.dest_port,
+                            metlo_host,
                         );
                         req_map.remove(&req_key_hash);
                         req_map.remove(&key_hash);

@@ -144,7 +144,7 @@ fn analyze_data(data: Option<&Vec<u8>>, seq_no: Option<u32>, conn: &mut TcpConne
     }
 }
 
-fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8]) {
+fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8], metlo_host: &str) {
     let byte_len: u32 = data.len().try_into().unwrap();
     if byte_len == 0 && !tcp_header.flag_fin && !tcp_header.flag_rst && !tcp_header.flag_syn {
         return;
@@ -176,8 +176,9 @@ fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8]) {
         if curr_seq_no == v.next_seq {
             // run packet on this one
             analyze_data(Some(&data.to_vec()), None, v);
-            run_payload(key, v);
+            run_payload(key, v, metlo_host);
             finished = tcp_header.flag_fin || tcp_header.flag_rst;
+
             // try to find next one in buffer
             for _i in 0..v.buffer.len() {
                 let remove_seq_no = next_seq_no;
@@ -189,7 +190,7 @@ fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8]) {
                     break;
                 }
                 analyze_data(None, Some(remove_seq_no), v);
-                run_payload(key, v);
+                run_payload(key, v, metlo_host);
                 v.buffer.remove(&remove_seq_no);
             }
             v.next_seq = next_seq_no;
@@ -213,7 +214,7 @@ fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8]) {
             }
         }
         v.last_seen = Instant::now();
-        run_payload(key, v);
+        run_payload(key, v, metlo_host);
         if finished {
             conn_map.remove(&key);
         }
@@ -233,7 +234,7 @@ fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8]) {
         };
 
         analyze_data(Some(&data.to_vec()), None, &mut conn);
-        run_payload(key, &mut conn);
+        run_payload(key, &mut conn, metlo_host);
         // insert into map
         conn_map.insert(key, conn);
     }
@@ -248,14 +249,7 @@ pub fn process_packet(packet: Packet, interface_type: &InterfaceType, metlo_host
                         if ip_headers.protocol == IPProtocol::TCP {
                             match parse_tcp_header(content) {
                                 Ok((content, headers)) => {
-                                    if ip_headers.dest_addr.to_string() == metlo_host {
-                                        log::trace!(
-                                            "Skipped Packet with dest addr {}",
-                                            ip_headers.dest_addr
-                                        );
-                                        return;
-                                    }
-                                    parse_tcp_data(ip_headers, headers, content)
+                                    parse_tcp_data(ip_headers, headers, content, metlo_host)
                                 }
                                 Err(_err) => {
                                     log::trace!("Invalid tcp contents")
@@ -278,14 +272,7 @@ pub fn process_packet(packet: Packet, interface_type: &InterfaceType, metlo_host
                         if ip_headers.protocol == IPProtocol::TCP {
                             match parse_tcp_header(content) {
                                 Ok((content, headers)) => {
-                                    if ip_headers.dest_addr.to_string() == metlo_host {
-                                        log::trace!(
-                                            "Skipped Packet with dest addr {}",
-                                            ip_headers.dest_addr
-                                        );
-                                        return;
-                                    }
-                                    parse_tcp_data(ip_headers, headers, content)
+                                    parse_tcp_data(ip_headers, headers, content, metlo_host)
                                 }
                                 Err(_err) => {
                                     log::trace!("Invalid tcp contents")
