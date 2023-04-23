@@ -249,6 +249,10 @@ pub fn process_packet(packet: Packet, interface_type: &InterfaceType, metlo_host
                             match parse_tcp_header(content) {
                                 Ok((content, headers)) => {
                                     if ip_headers.dest_addr.to_string() == metlo_host {
+                                        log::trace!(
+                                            "Skipped Packet with dest addr {}",
+                                            ip_headers.dest_addr
+                                        );
                                         return;
                                     }
                                     parse_tcp_data(ip_headers, headers, content)
@@ -275,6 +279,10 @@ pub fn process_packet(packet: Packet, interface_type: &InterfaceType, metlo_host
                             match parse_tcp_header(content) {
                                 Ok((content, headers)) => {
                                     if ip_headers.dest_addr.to_string() == metlo_host {
+                                        log::trace!(
+                                            "Skipped Packet with dest addr {}",
+                                            ip_headers.dest_addr
+                                        );
                                         return;
                                     }
                                     parse_tcp_data(ip_headers, headers, content)
