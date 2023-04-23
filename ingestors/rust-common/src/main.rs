@@ -246,9 +246,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         log::info!("Didn't find any passed arg or env param for interface. Trying to find one matching required specs");
                         let device = interfaces
                             .iter()
-                            .find(|&i| i.name.starts_with("eth") || i.name.starts_with("ens"));
+                            .find(|&i| i.name.starts_with("eth") || i.name.starts_with("en"));
                         if let Some(d) = device {
-                            log::info!("Found match on interface {} which matches expected pattern. Binding to it.", d.name);
+                            log::info!(
+                                "Found match on interface {} which matches expected pattern.",
+                                d.name
+                            );
                             Some(d.name.clone())
                         } else {
                             None
@@ -263,7 +266,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         };
 
         if let Some(interface) = interface_opt {
-            let interface_type = if interface.starts_with("eth") || interface.starts_with("ens") {
+            let interface_type = if interface.starts_with("eth") || interface.starts_with("en") {
                 InterfaceType::Ethernet
             } else if interface.starts_with("lo") {
                 InterfaceType::Loopback
@@ -275,6 +278,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .immediate_mode(true)
                 .open()
                 .unwrap();
+            log::info!("Listening to interface {}", interface);
             let host_str = valid_host.1.as_str();
             let mut last_check = Instant::now();
             loop {

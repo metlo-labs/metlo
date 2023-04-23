@@ -14,7 +14,7 @@ use std::time::{Duration, Instant};
 
 use super::http_assembly::run_payload;
 
-const MAX_HTTP_SIZE: usize = 1024 * 100;
+const MAX_HTTP_SIZE: usize = 1024 * 10;
 
 pub enum InterfaceType {
     Ethernet,
