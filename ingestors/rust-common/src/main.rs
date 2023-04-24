@@ -1,11 +1,18 @@
 use clap::Parser;
 use lazy_static::lazy_static;
 use metlo_agent::{
-    initialize_metlo, refresh_config, send_batched_traces, server, server_port, METLO_CONFIG,
+    initialize_metlo,
+    metlo_pcap::tcp_assembly::{clean_map, process_packet, InterfaceType},
+    refresh_config, send_batched_traces, server, server_port, METLO_CONFIG,
 };
+use pcap::{Capture, Device};
 use reqwest::Url;
 use ring::hmac;
-use std::{collections::HashSet, env, time::Duration};
+use std::{
+    collections::HashSet,
+    env,
+    time::{Duration, Instant},
+};
 use tokio::time;
 
 lazy_static! {
@@ -50,6 +57,12 @@ struct Args {
     /// Encryption Key
     #[arg(short, long)]
     encryption_key: Option<String>,
+
+    #[arg(short, long)]
+    interface: Option<String>,
+
+    #[arg(short, long)]
+    enable_grpc: Option<bool>,
 }
 
 #[tokio::main(flavor = "multi_thread")]
@@ -74,7 +87,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("INVALID LOG LEVEL: {}", log_level);
         return Ok(());
     }
-    env::set_var("RUST_LOG", log_level);
+    env::set_var("RUST_LOG", format!("metlo_agent={}", log_level));
     env_logger::init();
 
     let metlo_host = match args.metlo_host {
@@ -91,7 +104,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let valid_host = match Url::parse(&metlo_host) {
-        Ok(url) => format!("{}://{}", url.scheme(), url.host_str().unwrap_or_default()),
+        Ok(url) => (
+            format!("{}://{}", url.scheme(), url.host_str().unwrap_or_default()),
+            url.host_str().unwrap_or_default().to_string(),
+        ),
         Err(_) => {
             log::error!("{} is not a valid host", metlo_host);
             return Ok(());
@@ -169,7 +185,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let init_res =
-        initialize_metlo(valid_host, api_key.unwrap(), collector_port, backend_port).await?;
+        initialize_metlo(valid_host.0, api_key.unwrap(), collector_port, backend_port).await?;
     if !init_res.ok {
         let msg = init_res.msg.unwrap_or_default();
         log::error!("Failed to initialize Metlo:\n{}", msg);
@@ -194,7 +210,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let mut interval = time::interval(Duration::from_secs(1));
         loop {
             interval.tick().await;
-            log::trace!("Sending Processed traces in buffer");
             let res = send_batched_traces().await;
             if let Err(e) = res {
                 log::debug!("Error sending batched traces: \n{}", e.to_string())
@@ -202,10 +217,91 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    if let Some(p) = port {
-        server_port(&p).await?;
+    let grpc_mode = match args.enable_grpc {
+        Some(enable) => enable,
+        None => match env::var("ENABLE_GRPC") {
+            Ok(e) => match e.trim().parse::<bool>() {
+                Ok(parsed) => parsed,
+                Err(_) => false,
+            },
+            Err(_) => false,
+        },
+    };
+
+    if grpc_mode {
+        if let Some(p) = port {
+            server_port(&p).await?;
+        } else {
+            server(&listen_socket).await?;
+        }
     } else {
-        server(&listen_socket).await?;
+        let interface_arg = match args.interface {
+            Some(e) => Some(e),
+            None => match env::var("INTERFACE") {
+                Ok(s) => Some(s),
+                Err(_) => None,
+            },
+        };
+        let interface_opt = match Device::list() {
+            Ok(interfaces) => {
+                log::info!(
+                    "Found Interfaces {:?}",
+                    interfaces.iter().map(|f| &f.name).collect::<Vec<&String>>()
+                );
+                match interface_arg {
+                    Some(i) => Some(i),
+                    None => {
+                        log::info!("Didn't find any passed arg or env param for interface. Trying to find one matching required specs");
+                        let device = interfaces
+                            .iter()
+                            .find(|&i| i.name.starts_with("eth") || i.name.starts_with("en"));
+                        if let Some(d) = device {
+                            log::info!(
+                                "Found match on interface {} which matches expected pattern.",
+                                d.name
+                            );
+                            Some(d.name.clone())
+                        } else {
+                            None
+                        }
+                    }
+                }
+            }
+            Err(e) => {
+                log::error!("Error finding interfaces {:?}", e);
+                None
+            }
+        };
+
+        if let Some(interface) = interface_opt {
+            let interface_type = if interface.starts_with("eth") || interface.starts_with("en") {
+                InterfaceType::Ethernet
+            } else if interface.starts_with("lo") {
+                InterfaceType::Loopback
+            } else {
+                InterfaceType::Other
+            };
+            let mut cap = Capture::from_device(interface.as_str())
+                .unwrap()
+                .buffer_size(100000)
+                .snaplen(32767)
+                .open()
+                .unwrap();
+            log::info!("Listening to interface {}", interface);
+            let host_str = valid_host.1.as_str();
+            let mut last_check = Instant::now();
+            loop {
+                while let Ok(packet) = cap.next_packet() {
+                    if last_check.elapsed() > Duration::from_secs(30) {
+                        clean_map();
+                        last_check = Instant::now();
+                    }
+                    process_packet(packet, &interface_type, host_str);
+                }
+            }
+        } else {
+            log::error!("Packet capture in live mode must provide interface.");
+        }
     }
 
     Ok(())

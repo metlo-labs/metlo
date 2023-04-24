@@ -16,6 +16,7 @@ use tonic::{transport::Server, Code, Request, Response, Status};
 
 mod mappers;
 mod metlo_config;
+pub mod metlo_pcap;
 mod open_api;
 mod process_graphql;
 mod process_trace;
@@ -249,6 +250,42 @@ fn get_analysis_type() -> Option<&'static str> {
     res
 }
 
+fn process_trace(mapped_api_trace: ApiTrace) {
+    let analysis_type = get_analysis_type();
+    if let Some(analysis_type_unwrap) = analysis_type {
+        let trace_info = get_trace_info(&mapped_api_trace);
+        if !trace_info.block {
+            let buf_item = match analysis_type_unwrap {
+                "partial" => Some(get_partial_trace_item(mapped_api_trace, trace_info)),
+                "full" => {
+                    let res = process_api_trace(&mapped_api_trace, &trace_info);
+                    Some(BufferItem {
+                        trace: mapped_api_trace,
+                        processed_trace: Some(res),
+                        trace_info,
+                        analysis_type: "full".to_string(),
+                        graphql_paths: None,
+                    })
+                }
+                _ => None,
+            };
+            let mut req_buffer_write = REQUEST_BUFFER.try_write();
+            if let Ok(ref mut buf) = req_buffer_write {
+                match (analysis_type_unwrap, buf_item) {
+                    ("partial", Some(item)) => {
+                        buf.partial_analysis.push(item);
+                    }
+                    ("full", Some(item)) => {
+                        buf.full_analysis.push(item);
+                    }
+                    _ => (),
+                }
+            }
+            drop(req_buffer_write);
+        }
+    }
+}
+
 #[derive(Default)]
 pub struct MIngestServer {}
 
@@ -265,43 +302,7 @@ impl MetloIngest for MIngestServer {
                 match TASK_RUN_SEMAPHORE.try_acquire() {
                     Ok(permit) => {
                         tokio::spawn(async move {
-                            let analysis_type = get_analysis_type();
-                            if let Some(analysis_type_unwrap) = analysis_type {
-                                let trace_info = get_trace_info(&mapped_api_trace);
-                                if !trace_info.block {
-                                    let buf_item = match analysis_type_unwrap {
-                                        "partial" => Some(get_partial_trace_item(
-                                            mapped_api_trace,
-                                            trace_info,
-                                        )),
-                                        "full" => {
-                                            let res =
-                                                process_api_trace(&mapped_api_trace, &trace_info);
-                                            Some(BufferItem {
-                                                trace: mapped_api_trace,
-                                                processed_trace: Some(res),
-                                                trace_info,
-                                                analysis_type: "full".to_string(),
-                                                graphql_paths: None,
-                                            })
-                                        }
-                                        _ => None,
-                                    };
-                                    let mut req_buffer_write = REQUEST_BUFFER.try_write();
-                                    if let Ok(ref mut buf) = req_buffer_write {
-                                        match (analysis_type_unwrap, buf_item) {
-                                            ("partial", Some(item)) => {
-                                                buf.partial_analysis.push(item);
-                                            }
-                                            ("full", Some(item)) => {
-                                                buf.full_analysis.push(item);
-                                            }
-                                            _ => (),
-                                        }
-                                    }
-                                    drop(req_buffer_write);
-                                }
-                            }
+                            process_trace(mapped_api_trace);
                             drop(permit);
                         });
                     }
