@@ -275,7 +275,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             };
             let mut cap = Capture::from_device(interface.as_str())
                 .unwrap()
-                .immediate_mode(true)
+                .buffer_size(100000)
+                .snaplen(32767)
                 .open()
                 .unwrap();
             log::info!("Listening to interface {}", interface);
