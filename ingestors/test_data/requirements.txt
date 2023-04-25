@@ -1,3 +1,4 @@
 faker
 requests
 yaspin
+grpcio-tools
