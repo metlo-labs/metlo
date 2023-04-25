@@ -10,7 +10,7 @@ from producers.base import BaseProducer
 
 class EcommerceMakeCartProducer(BaseProducer):
 
-    avg_emit_delta = timedelta(seconds=5)
+    emit_probability = 0.6
 
     def get_data_points_helper(self) -> dict:
         resp_body = {
@@ -37,5 +37,5 @@ class EcommerceMakeCartProducer(BaseProducer):
             "meta": get_meta(sources, destinations),
         }
 
-    def get_data_points(self, time: datetime) -> List[dict]:
+    def get_data_points(self) -> List[dict]:
         return [self.get_data_points_helper()]

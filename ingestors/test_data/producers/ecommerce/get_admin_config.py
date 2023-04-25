@@ -10,7 +10,7 @@ from producers.base import BaseProducer
 
 class EcommerceGetAdminConfigProducer(BaseProducer):
 
-    avg_emit_delta = timedelta(seconds=60)
+    emit_probability = 0.1
 
     def get_data_points_helper(self) -> dict:
         resp = {
@@ -36,5 +36,5 @@ class EcommerceGetAdminConfigProducer(BaseProducer):
             "meta": get_meta(sources, destinations),
         }
 
-    def get_data_points(self, time: datetime) -> List[dict]:
+    def get_data_points(self) -> List[dict]:
         return [self.get_data_points_helper()]

@@ -11,9 +11,9 @@ from producers.base import BaseProducer
 
 class PaymentProcessorGetUserProducer(BaseProducer):
 
-    avg_emit_delta = timedelta(minutes=1)
+    emit_probability = 0.05
 
-    def get_data_point(self, time) -> dict:
+    def get_data_point(self) -> dict:
         user_uuid = str(uuid4())
         resp_body = {
             "user_uuid": user_uuid,

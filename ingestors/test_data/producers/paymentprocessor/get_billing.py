@@ -9,9 +9,9 @@ from producers.base import BaseProducer
 
 class PaymentProcessorGetBillingProducer(BaseProducer):
 
-    avg_emit_delta = timedelta(minutes=2)
+    emit_probability = 0.1
 
-    def get_data_point(self, time) -> dict:
+    def get_data_point(self) -> dict:
         user_uuid = str(uuid4())
         billing_uuid = str(uuid4())
         resp_body = {
