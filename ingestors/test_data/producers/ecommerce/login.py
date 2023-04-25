@@ -9,9 +9,9 @@ from producers.base import BaseProducer
 
 class EcommerceLoginProducer(BaseProducer):
 
-    avg_emit_delta = timedelta(minutes=1)
+    emit_probability = 0.01
 
-    def get_data_point(self, time) -> dict:
+    def get_data_point(self) -> dict:
         resp_body = {
             "success": True,
             "user_uuid": str(uuid4()),

@@ -9,9 +9,9 @@ from producers.base import BaseProducer
 
 class EcommerceRegisterProducer(BaseProducer):
 
-    avg_emit_delta = timedelta(minutes=10)
+    emit_probability = 0.005
 
-    def get_data_point(self, time) -> dict:
+    def get_data_point(self) -> dict:
         resp_body = {
             "success": True,
             "msg": "Created a new user...",

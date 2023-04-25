@@ -10,9 +10,9 @@ from producers.base import BaseProducer
 
 class PaymentProcessorAddChargeProducer(BaseProducer):
 
-    avg_emit_delta = timedelta(seconds=20)
+    emit_probability = 0.2
 
-    def get_data_point(self, time) -> dict:
+    def get_data_point(self) -> dict:
         resp_body = {
             "success": True,
             "msg": "Created Charge...",

@@ -11,9 +11,9 @@ from producers.base import BaseProducer
 
 class UserServiceGetUserProducer(BaseProducer):
 
-    avg_emit_delta = timedelta(seconds=20)
+    emit_probability = 0.1
 
-    def get_data_point(self, time) -> dict:
+    def get_data_point(self) -> dict:
         user_uuid = str(uuid4())
         req_body = {
             "user_uuid": user_uuid,

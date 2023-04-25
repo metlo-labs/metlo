@@ -6,11 +6,10 @@ from faker.providers import internet
 
 
 class BaseProducer:
+    
+    emit_probability = 0.2
 
-    avg_emit_delta = timedelta(minutes=5)
-
-    def __init__(self, tick_length: timedelta):
-        self.tick_length = tick_length
+    def __init__(self):
         self.fake = Faker()
         self.fake.add_provider(internet)
 
@@ -20,12 +19,11 @@ class BaseProducer:
             return out.split('x')[0]
         return out
 
-    def should_emit(self, time: datetime) -> bool:
-        emit_probability = self.tick_length / self.avg_emit_delta
-        return random() < emit_probability
+    def should_emit(self) -> bool:
+        return random() < self.emit_probability
 
-    def get_data_point(self, time: datetime) -> dict:
+    def get_data_point(self) -> dict:
         raise NotImplementedError()
 
-    def get_data_points(self, time: datetime) -> List[dict]:
-        return [self.get_data_point(time)]
+    def get_data_points(self) -> List[dict]:
+        return [self.get_data_point()]

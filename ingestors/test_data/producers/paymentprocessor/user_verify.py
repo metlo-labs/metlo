@@ -11,9 +11,9 @@ from producers.base import BaseProducer
 
 class PaymentProcessorUserVerifyProducer(BaseProducer):
 
-    avg_emit_delta = timedelta(minutes=5)
+    emit_probability = 0.05
 
-    def get_data_point(self, time) -> dict:
+    def get_data_point(self) -> dict:
         resp_body = {
             "success": True,
             "msg": "Verified User...",

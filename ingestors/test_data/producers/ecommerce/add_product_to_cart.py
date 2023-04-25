@@ -35,7 +35,7 @@ PRODUCT_UUIDS = [
 
 class EcommerceAddProductToCartProducer(BaseProducer):
 
-    avg_emit_delta = timedelta(seconds=1)
+    emit_probability = 0.8
 
     def get_data_points_helper(self, cart_uuid: str) -> dict:
         product_uuid = choice(PRODUCT_UUIDS)
@@ -65,7 +65,7 @@ class EcommerceAddProductToCartProducer(BaseProducer):
             "meta": get_meta(sources, destinations),
         }
 
-    def get_data_points(self, time: datetime) -> List[dict]:
+    def get_data_points(self) -> List[dict]:
         cart_uuid = str(uuid4())
         num_data_points = choice(list(range(8)))
         return [self.get_data_points_helper(cart_uuid) for _ in range(num_data_points)]

@@ -10,9 +10,9 @@ from producers.base import BaseProducer
 
 class EcommerceGetCartProducer(BaseProducer):
 
-    avg_emit_delta = timedelta(seconds=20)
+    emit_probability = 0.5
 
-    def get_data_point(self, time) -> dict:
+    def get_data_point(self) -> dict:
         cart_uuid = str(uuid4())
         resp_body = {
             "success": True,
