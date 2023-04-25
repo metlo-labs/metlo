@@ -2,3 +2,4 @@ faker
 requests
 yaspin
 grpcio-tools
+setuptools==65.5.1
