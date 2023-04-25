@@ -1,5 +1,4 @@
 use crate::{
-    process_trace::{insert_data_type, process_json_val, process_path},
     sensitive_data::detect_sensitive_data,
     trace::{
         GraphQlData, GraphQlRes, KeyVal, Operation, OperationItem, ProcessTraceResInner, Variable,
@@ -15,6 +14,8 @@ use graphql_parser::{
 use libinjection::{sqli, xss};
 use serde_json::{Map, Value};
 use std::collections::{HashMap, HashSet};
+
+use super::process_components::{insert_data_type, process_json_val, process_path};
 
 fn process_graphql_argument<'a>(
     path: String,
@@ -693,4 +694,63 @@ pub fn get_graphql_paths_query(query_params: &Vec<KeyVal>) -> HashSet<String> {
     }
     process_graphql_res_partial(query, &mut paths);
     paths
+}
+
+pub fn fix_graphql_path(
+    path: &str,
+    response_alias_map: Option<&HashMap<String, String>>,
+) -> String {
+    if let Some(map) = response_alias_map {
+        if let Some(s) = map.get(path) {
+            s.clone()
+        } else {
+            let split_path = path.split('.');
+            let mut non_array_path_vec = vec![];
+            let mut array_token_idx = vec![];
+            for (i, token) in split_path.enumerate() {
+                if token == "[]" {
+                    array_token_idx.push(i)
+                } else {
+                    non_array_path_vec.push(token)
+                }
+            }
+            let mut match_idx = 0;
+            let mut matched_path = None;
+            for range in (2..=non_array_path_vec.len()).rev() {
+                let slice = &non_array_path_vec[..range].join(".");
+                if let Some(tmp_path) = map.get(slice) {
+                    match_idx = range;
+                    matched_path = Some(tmp_path);
+                    break;
+                }
+            }
+            if let Some(s) = matched_path {
+                let remaining_path = &non_array_path_vec[match_idx..];
+                let mut resolved_path_vec = s.split('.').collect::<Vec<&str>>();
+                if !remaining_path.is_empty() {
+                    resolved_path_vec.push("__resp");
+                    resolved_path_vec.extend(remaining_path)
+                }
+
+                let mut filtered_count = 0;
+                for idx in array_token_idx {
+                    if idx <= 1 {
+                        filtered_count += 1;
+                    }
+                    if idx > 1 {
+                        let incr_index = resolved_path_vec[..idx]
+                            .iter()
+                            .filter(|&e| e.starts_with("__on_") || e == &"__resp")
+                            .count();
+                        resolved_path_vec.insert(idx - filtered_count + incr_index, "[]");
+                    }
+                }
+                resolved_path_vec.join(".")
+            } else {
+                path.to_owned()
+            }
+        }
+    } else {
+        path.to_owned()
+    }
 }

@@ -6,7 +6,7 @@ use trace::{ApiTrace, ProcessTraceRes};
 
 use crate::metloingest::metlo_ingest_server::{MetloIngest, MetloIngestServer};
 use mappers::{map_ingest_api_trace, map_process_trace_res};
-use process_trace::{get_partial_trace_item, process_api_trace};
+use process_trace::process::{get_partial_trace_item, process_api_trace};
 use std::path::Path;
 use std::sync::Arc;
 use tokio::net::UnixListener;
@@ -18,7 +18,6 @@ mod mappers;
 mod metlo_config;
 pub mod metlo_pcap;
 mod open_api;
-mod process_graphql;
 mod process_trace;
 mod send_trace;
 mod sensitive_data;
