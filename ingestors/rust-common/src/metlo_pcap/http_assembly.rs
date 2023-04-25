@@ -1,4 +1,4 @@
-use std::{cmp::min, net::Ipv4Addr};
+use std::cmp::min;
 
 use httparse::Header;
 
@@ -10,7 +10,8 @@ use crate::{
 };
 
 use super::tcp_assembly::{
-    calculate_hash, reset_connection, MapKey, MapPayload, TcpConnection, REQUEST_MAP,
+    calculate_hash, reset_connection, IpAddrContainer, MapKey, MapPayload, TcpConnection,
+    REQUEST_MAP,
 };
 
 #[derive(Debug)]
@@ -72,9 +73,9 @@ fn generate_api_trace(
     response: httparse::Response,
     req_body: &[u8],
     resp_body: &[u8],
-    source_addr: Ipv4Addr,
+    source_addr: IpAddrContainer,
     source_port: u16,
-    dest_addr: Ipv4Addr,
+    dest_addr: IpAddrContainer,
     dest_port: u16,
     metlo_host: &str,
 ) -> Option<ApiTrace> {
@@ -169,9 +170,9 @@ fn process_trace_from_request(
     request_body: &[u8],
     resp_buffer: &[u8],
     resp_body_buffer: &[u8],
-    source_addr: Ipv4Addr,
+    source_addr: IpAddrContainer,
     source_port: u16,
-    dest_addr: Ipv4Addr,
+    dest_addr: IpAddrContainer,
     dest_port: u16,
     metlo_host: &str,
 ) {
@@ -204,9 +205,9 @@ fn process_trace_from_response(
     response_body: &[u8],
     req_buffer: &[u8],
     req_body_buffer: &[u8],
-    source_addr: Ipv4Addr,
+    source_addr: IpAddrContainer,
     source_port: u16,
-    dest_addr: Ipv4Addr,
+    dest_addr: IpAddrContainer,
     dest_port: u16,
     metlo_host: &str,
 ) {
