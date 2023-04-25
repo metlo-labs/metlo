@@ -5,11 +5,12 @@ use lazy_static::lazy_static;
 use nom::{bytes, IResult};
 use pcap::Packet;
 use pktparse::ip::IPProtocol;
-use pktparse::ipv4::{self, IPv4Header};
+use pktparse::ipv4;
+use pktparse::ipv6;
 use pktparse::tcp::{parse_tcp_header, TcpHeader};
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
-use std::net::Ipv4Addr;
+use std::net::{Ipv4Addr, Ipv6Addr};
 use std::time::{Duration, Instant};
 
 use super::http_assembly::run_payload;
@@ -46,17 +47,17 @@ pub struct TcpConnection {
     pub next_seq: u32,
     pub is_dead: bool,
     pub last_seen: Instant,
-    pub source_addr: Ipv4Addr,
+    pub source_addr: IpAddrContainer,
     pub source_port: u16,
-    pub dest_addr: Ipv4Addr,
+    pub dest_addr: IpAddrContainer,
     pub dest_port: u16,
 }
 
 #[derive(Hash)]
 pub struct MapKey {
-    pub src_ip: Ipv4Addr,
+    pub src_ip: IpAddrContainer,
     pub src_port: u16,
-    pub dest_ip: Ipv4Addr,
+    pub dest_ip: IpAddrContainer,
     pub dest_port: u16,
 }
 
@@ -75,6 +76,49 @@ lazy_static! {
         let m = HashMap::new();
         Mutex::new(m)
     };
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct IpAddrContainer {
+    pub ipv4_addr: Option<Ipv4Addr>,
+    pub ipv6_addr: Option<Ipv6Addr>,
+}
+
+impl Hash for IpAddrContainer {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        if let Some(ipv4_inner) = self.ipv4_addr {
+            ipv4_inner.hash(state);
+        }
+        if let Some(ipv6_inner) = self.ipv6_addr {
+            ipv6_inner.hash(state);
+        }
+    }
+}
+
+impl IpAddrContainer {
+    pub fn new_ipv4(ipv4_addr: Ipv4Addr) -> Self {
+        IpAddrContainer {
+            ipv4_addr: Some(ipv4_addr),
+            ipv6_addr: None,
+        }
+    }
+
+    pub fn new_ipv6(ipv6_addr: Ipv6Addr) -> Self {
+        IpAddrContainer {
+            ipv4_addr: None,
+            ipv6_addr: Some(ipv6_addr),
+        }
+    }
+
+    pub fn to_string(&self) -> String {
+        if let Some(ipv4_inner) = self.ipv4_addr {
+            ipv4_inner.to_string()
+        } else if let Some(ipv6_inner) = self.ipv6_addr {
+            ipv6_inner.to_string()
+        } else {
+            "".to_string()
+        }
+    }
 }
 
 pub fn parse_protocol_family(input: &[u8]) -> IResult<&[u8], LoProtocolFamily> {
@@ -144,7 +188,13 @@ fn analyze_data(data: Option<&Vec<u8>>, seq_no: Option<u32>, conn: &mut TcpConne
     }
 }
 
-fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8], metlo_host: &str) {
+fn parse_tcp_data(
+    src_ip: IpAddrContainer,
+    dst_ip: IpAddrContainer,
+    tcp_header: TcpHeader,
+    data: &[u8],
+    metlo_host: &str,
+) {
     let byte_len: u32 = data.len().try_into().unwrap();
     if byte_len == 0 && !tcp_header.flag_fin && !tcp_header.flag_rst && !tcp_header.flag_syn {
         return;
@@ -161,9 +211,9 @@ fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8], met
     let mut conn_map = CONNECTION_MAP.lock().unwrap();
 
     let key = calculate_hash(&MapKey {
-        src_ip: ip_header.source_addr,
+        src_ip: src_ip,
         src_port: tcp_header.source_port,
-        dest_ip: ip_header.dest_addr,
+        dest_ip: dst_ip,
         dest_port: tcp_header.dest_port,
     });
     let val = conn_map.get_mut(&key);
@@ -227,9 +277,9 @@ fn parse_tcp_data(ip_header: IPv4Header, tcp_header: TcpHeader, data: &[u8], met
             next_seq: next_seq_no,
             last_seen: Instant::now(),
             is_dead: false,
-            source_addr: ip_header.source_addr,
+            source_addr: src_ip,
             source_port: tcp_header.source_port,
-            dest_addr: ip_header.dest_addr,
+            dest_addr: dst_ip,
             dest_port: tcp_header.dest_port,
         };
 
@@ -248,9 +298,34 @@ pub fn process_packet(packet: Packet, interface_type: &InterfaceType, metlo_host
                     Ok((content, ip_headers)) => {
                         if ip_headers.protocol == IPProtocol::TCP {
                             match parse_tcp_header(content) {
-                                Ok((content, headers)) => {
-                                    parse_tcp_data(ip_headers, headers, content, metlo_host)
+                                Ok((content, headers)) => parse_tcp_data(
+                                    IpAddrContainer::new_ipv4(ip_headers.source_addr),
+                                    IpAddrContainer::new_ipv4(ip_headers.dest_addr),
+                                    headers,
+                                    content,
+                                    metlo_host,
+                                ),
+                                Err(_err) => {
+                                    log::trace!("Invalid tcp contents")
                                 }
+                            }
+                        }
+                    }
+                    Err(_err) => {
+                        log::trace!("Invalid IPV4 header")
+                    }
+                },
+                pktparse::ethernet::EtherType::IPv6 => match ipv6::parse_ipv6_header(content) {
+                    Ok((content, ip_headers)) => {
+                        if ip_headers.next_header == IPProtocol::TCP {
+                            match parse_tcp_header(content) {
+                                Ok((content, headers)) => parse_tcp_data(
+                                    IpAddrContainer::new_ipv6(ip_headers.source_addr),
+                                    IpAddrContainer::new_ipv6(ip_headers.dest_addr),
+                                    headers,
+                                    content,
+                                    metlo_host,
+                                ),
                                 Err(_err) => {
                                     log::trace!("Invalid tcp contents")
                                 }
@@ -271,9 +346,13 @@ pub fn process_packet(packet: Packet, interface_type: &InterfaceType, metlo_host
                     Ok((content, ip_headers)) => {
                         if ip_headers.protocol == IPProtocol::TCP {
                             match parse_tcp_header(content) {
-                                Ok((content, headers)) => {
-                                    parse_tcp_data(ip_headers, headers, content, metlo_host)
-                                }
+                                Ok((content, headers)) => parse_tcp_data(
+                                    IpAddrContainer::new_ipv4(ip_headers.source_addr),
+                                    IpAddrContainer::new_ipv4(ip_headers.dest_addr),
+                                    headers,
+                                    content,
+                                    metlo_host,
+                                ),
                                 Err(_err) => {
                                     log::trace!("Invalid tcp contents")
                                 }
