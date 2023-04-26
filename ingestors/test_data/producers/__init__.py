@@ -20,6 +20,7 @@ from producers.user.get_user import UserServiceGetUserProducer
 from producers.course.query import CourseServiceQuery
 from producers.course.mutation import CourseServiceMutation
 from producers.course.subscription import CourseServiceSubscription
+from producers.course.query_get import CourseServiceGetQuery
 
 
 PRODUCER_CLS_MAP = {
@@ -45,4 +46,5 @@ PRODUCER_CLS_MAP = {
     "course_service_query": CourseServiceQuery,
     "course_service_mutation": CourseServiceMutation,
     "course_service_subscription": CourseServiceSubscription,
+    "course_service_get_query": CourseServiceGetQuery,
 }
