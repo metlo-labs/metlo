@@ -17,6 +17,10 @@ from producers.paymentprocessor.get_user import PaymentProcessorGetUserProducer
 from producers.paymentprocessor.new_user import PaymentProcessorUserProducer
 from producers.paymentprocessor.user_verify import PaymentProcessorUserVerifyProducer
 from producers.user.get_user import UserServiceGetUserProducer
+from producers.course.query import CourseServiceQuery
+from producers.course.mutation import CourseServiceMutation
+from producers.course.subscription import CourseServiceSubscription
+from producers.course.query_get import CourseServiceGetQuery
 
 
 PRODUCER_CLS_MAP = {
@@ -39,4 +43,8 @@ PRODUCER_CLS_MAP = {
     "payment_processor_get_billing": PaymentProcessorGetBillingProducer,
     "payment_processor_add_charge": PaymentProcessorAddChargeProducer,
     "user_service_get_user": UserServiceGetUserProducer,
+    "course_service_query": CourseServiceQuery,
+    "course_service_mutation": CourseServiceMutation,
+    "course_service_subscription": CourseServiceSubscription,
+    "course_service_get_query": CourseServiceGetQuery,
 }
