@@ -11,7 +11,7 @@ class CourseServiceQuery(BaseProducer):
 
     def get_data_point(self) -> dict:
         req_body = {
-            "query": "query CourseInfo($id: Int!, $params: CourseParams, $topic: String) {\n  course (id: $id) {\n    ...courseData\n  }\n  courseComplex(params: $params) {\n    ...courseData\n  }\n  courseComplexMultiple(params: [$params]) {\n    ...courseData\n  }\n  courses(topic: $topic) {\n    ...courseData\n    url\n  }\n}\n\nmutation UpdateCourse($id: Int!, $topic: String!) {\n  updateCourseTopic(id: $id, topic: $topic) {\n    ...courseData\n  }\n}\n\nsubscription GetCourses($topic: String) {\n  courses(topic: $topic) {\n    ...courseData\n  }\n}\n\nfragment courseData on Course {\n\tid\n  title\n  author\n  description\n\ttopic\n}\n#\n\n",
+            "query": "query CourseInfo($id: Int!, $params: CourseParams, $topic: String) {\n  course(id: $id) {\n    ...courseData\n  }\n  courseComplex(params: $params) {\n    ...courseData\n  }\n  courseComplexMultiple(params: [$params]) {\n    ...courseData\n  }\n  courses(topic: $topic) {\n    ...courseData\n    url\n  }\n}\n\nmutation UpdateCourse($id: Int!, $topic: String!) {\n  updateCourseTopic(id: $id, topic: $topic) {\n    ...courseData\n  }\n}\n\nsubscription GetCourses($topic: String) {\n  subscribedCourses(topic: $topic) {\n    ...courseData\n  }\n}\n\nfragment courseData on Course {\n  id\n  title\n  author\n  description\n  topic\n}\n",
             "variables": {
                 "id": 1,
                 "params": {"id": 1, "topic": "Node.js"},
