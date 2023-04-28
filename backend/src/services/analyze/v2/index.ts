@@ -159,7 +159,6 @@ export const analyze = async (
         firstDetected: apiEndpoint.firstDetected,
         lastActive: apiEndpoint.lastActive,
         riskScore: apiEndpoint.riskScore,
-        graphQlMetadata: apiEndpoint.graphQlMetadata,
       })
       .andWhere("uuid = :id", { id: apiEndpoint.uuid })
       .execute()
