@@ -15,6 +15,7 @@ export const findOpenApiSpecDiff = async (
 ): Promise<Alert[]> => {
   try {
     if (
+      !validationErrors ||
       !endpoint.openapiSpecName ||
       endpoint.openapiSpecName.endsWith("-generated")
     ) {
