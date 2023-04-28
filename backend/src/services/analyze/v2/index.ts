@@ -11,10 +11,7 @@ import { QueryRunner } from "typeorm"
 import { QueuedApiTrace } from "@common/types"
 import { endpointUpdateDates } from "utils"
 import { MetloContext } from "types"
-import {
-  getQB,
-  insertValuesBuilder,
-} from "services/database/utils"
+import { getQB, insertValuesBuilder } from "services/database/utils"
 import { sendWebhookRequests } from "services/webhook"
 import { findDataFieldsToSave } from "services/data-field/v2/analyze"
 import { createDataFieldAlerts } from "services/alert/sensitive-data"
@@ -23,6 +20,12 @@ import { getSensitiveDataMap } from "services/scanner/v2/analyze-trace"
 import { getCombinedDataClassesCached } from "services/data-classes"
 import { findOpenApiSpecDiff } from "services/spec/v2"
 import { shouldUpdateEndpoint, updateDataFields } from "analyze-traces"
+
+const getGraphQlRegularPath = (path: string) => {
+  const splitPath = path.split("/")
+  const graphQlPath = splitPath.pop()
+  return `${splitPath.join("/")}/${graphQlPath.split(".")[0]}`
+}
 
 export const analyze = async (
   ctx: MetloContext,
@@ -33,11 +36,6 @@ export const analyze = async (
   skipDataFields: boolean,
   hasValidLicense: boolean,
 ) => {
-  if (apiEndpoint.isGraphQl) {
-    const splitPath = trace.path.split("/")
-    const graphQlPath = splitPath.pop()
-    trace.path = `${splitPath.join("/")}/${graphQlPath.split(".")[0]}`
-  }
   const traceUUID = uuidv4()
   mlog.debug(`Analyzing Trace: ${traceUUID}`)
   const prevRiskScore = apiEndpoint.riskScore
@@ -72,7 +70,7 @@ export const analyze = async (
     apiTrace,
     apiEndpoint,
     queryRunner,
-    processedTraceData.validationErrors ?? {},
+    null,
   )
   mlog.time("analyzer.find_openapi_spec_diff", performance.now() - start2)
   mlog.debug(`Analyzing Trace - Found OpenAPI Spec Diffs: ${traceUUID}`)
@@ -108,6 +106,9 @@ export const analyze = async (
   )
   let filteredApiTrace = {
     ...apiTrace,
+    path: apiEndpoint.isGraphQl
+      ? getGraphQlRegularPath(trace.path)
+      : trace.path,
     uuid: traceUUID,
     apiEndpointUuid: apiEndpoint.uuid,
   } as ApiTrace
@@ -133,7 +134,7 @@ export const analyze = async (
     TRACE_IN_MEM_EXPIRE_SEC,
   )
 
-  if (!apiEndpoint.userSet) {
+  if (!apiEndpoint.userSet && !apiEndpoint.isGraphQl) {
     const endpointPathKey = `endpointPaths:e#${apiEndpoint.uuid}`
     await RedisClient.pushToListPipeline(
       ctx,
@@ -181,6 +182,7 @@ export const analyze = async (
   mlog.time("analyzer.insert_alerts_query", performance.now() - start7)
   mlog.debug(`Analyzing Trace - Inserted Alerts: ${traceUUID}`)
 
+  console.log(trace.path)
   const start9 = performance.now()
   await sendWebhookRequests(ctx, alerts, apiEndpoint)
   mlog.time("analyzer.sent_webhook_requests", performance.now() - start9)

@@ -198,6 +198,7 @@ const runPartialAnalysisBulk = async (
 
   let graphqlSplitTraces: QueuedApiTrace[] = []
   for (const trace of mappedTraces) {
+    const isGraphQl = isGraphQlEndpoint(trace.path)
     if (trace.graphqlPaths) {
       for (const graphqlPath of trace.graphqlPaths) {
         graphqlSplitTraces.push({
@@ -206,6 +207,8 @@ const runPartialAnalysisBulk = async (
           graphqlPaths: undefined,
         })
       }
+    } else if (isGraphQl && task.version === 2) {
+      graphqlSplitTraces = graphqlSplitTraces.concat(createGraphQlTraces(trace))
     } else {
       graphqlSplitTraces.push(trace)
     }

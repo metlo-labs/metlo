@@ -90,21 +90,16 @@ export interface Operation {
   variables: Variable[]
 }
 
-export interface GraphQlData {
-  operationName: string
-  operations: Operation[]
-}
-
 export interface ProcessedTraceData {
   block: boolean
-  xssDetected: Record<string, string>
-  sqliDetected: Record<string, [string, string]>
+  attackDetections?: Record<string, string[]>
+  xssDetected?: Record<string, string>
+  sqliDetected?: Record<string, [string, string]>
   sensitiveDataDetected: Record<string, string[]>
   dataTypes: Record<string, string[]>
   requestContentType: string
   responseContentType: string
-  validationErrors: Record<string, string[]>
-  graphQlData: GraphQlData[]
+  validationErrors?: Record<string, string[]>
 }
 
 export interface Encryption {
