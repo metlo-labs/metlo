@@ -182,7 +182,6 @@ export const analyze = async (
   mlog.time("analyzer.insert_alerts_query", performance.now() - start7)
   mlog.debug(`Analyzing Trace - Inserted Alerts: ${traceUUID}`)
 
-  console.log(trace.path)
   const start9 = performance.now()
   await sendWebhookRequests(ctx, alerts, apiEndpoint)
   mlog.time("analyzer.sent_webhook_requests", performance.now() - start9)
