@@ -71,6 +71,10 @@ const createGraphQlTraces = (trace: QueuedApiTrace): QueuedApiTrace[] => {
           path: `${trace.path}.${filter}`,
           processedTraceData: {
             ...processedTraceData,
+            attackDetections: filteredProcessedData(
+              processedTraceData?.attackDetections,
+              filter,
+            ),
             xssDetected: filteredProcessedData(
               processedTraceData?.xssDetected,
               filter,
