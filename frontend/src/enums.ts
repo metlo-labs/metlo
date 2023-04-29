@@ -22,7 +22,8 @@ export enum SettingsTab {
   KEYS = "keys",
   CONFIG = "config",
   TESTING_CONFIG = "testing-config",
-  INTEGRATIONS = "integrations",
+  API_SPECS = "api-specs",
+  CONNECTIONS = "connections",
 }
 
 export enum HostsTab {

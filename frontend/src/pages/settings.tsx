@@ -20,7 +20,7 @@ import {
   useToast,
   VStack,
 } from "@chakra-ui/react"
-import { ApiKey, WebhookResp } from "@common/types"
+import { ApiKey, OpenApiSpec, WebhookResp } from "@common/types"
 import { getKeys, addKey as addKeyReq } from "api/keys"
 import { getMetloConfig, updateMetloConfig } from "api/metlo-config"
 import KeyAddedModal from "components/Keys/keyAddedPrompt"
@@ -43,12 +43,18 @@ import BulkActions from "components/Settings/BulkActions"
 import { getTestingConfig } from "api/testing-config"
 import { BiTestTube } from "icons/bi/BiTestTube"
 import { TestingConfig } from "components/TestingConfig"
+import { AiFillApi } from "icons/ai/AiFillApi"
+import { FaShareAlt } from "icons/fa/FaShareAlt"
+import SpecList from "components/SpecList"
+import { getSpecs } from "api/apiSpecs"
+import ConnectionDocsList from "components/ConnectionDocs"
 
 export const getServerSideProps: GetServerSideProps = async context => {
-  const [apiKeys, webhooks, hosts] = await Promise.all([
+  const [apiKeys, webhooks, hosts, specs] = await Promise.all([
     getKeys(),
     getWebhooks(),
     getHosts(),
+    getSpecs(),
   ])
   let metloConfig = ""
   let testingConfig = ""
@@ -70,6 +76,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
       keys: superjson.stringify(apiKeys),
       metloConfig,
       webhooks: superjson.stringify(webhooks),
+      specs: superjson.stringify(specs),
       hosts,
       testingConfig,
     },
@@ -81,6 +88,7 @@ const Settings = ({
   metloConfig,
   webhooks,
   hosts,
+  specs,
   testingConfig,
 }) => {
   const [keys, setKeys] = useState<Array<ApiKey>>(superjson.parse(_keysString))
@@ -113,8 +121,10 @@ const Settings = ({
         return 1
       case SettingsTab.TESTING_CONFIG:
         return 2
-      case SettingsTab.INTEGRATIONS:
+      case SettingsTab.API_SPECS:
         return 3
+      case SettingsTab.CONNECTIONS:
+        return 4
       default:
         return 0
     }
@@ -229,8 +239,8 @@ const Settings = ({
             borderRightWidth={{ base: 0, md: 1 }}
           >
             <Grid
-              templateColumns={{ base: "repeat(4, 1fr)", md: "1fr" }}
-              templateRows={{ base: "1fr", md: "repeat(4, 1fr)" }}
+              templateColumns={{ base: "repeat(5, 1fr)", md: "1fr" }}
+              templateRows={{ base: "1fr", md: "repeat(5, 1fr)" }}
               gap="0"
               w="full"
             >
@@ -296,7 +306,7 @@ const Settings = ({
                   bg={getTab() === 3 ? selectedColor : "inital"}
                   {...tabStyles}
                   borderRightWidth={{ base: 1, md: 0 }}
-                  onClick={() => handleTabClick(SettingsTab.INTEGRATIONS)}
+                  onClick={() => handleTabClick(SettingsTab.API_SPECS)}
                 >
                   <Stack
                     w="full"
@@ -305,14 +315,33 @@ const Settings = ({
                     direction={{ base: "column", md: "row" }}
                     spacing={4}
                   >
-                    <AiOutlineCode size="20px" />
-                    <Text fontWeight="medium">Integrations</Text>
+                    <AiFillApi size="20px" />
+                    <Text fontWeight="medium">API Specs</Text>
+                  </Stack>
+                </Tab>
+              </GridItem>
+              <GridItem h="full">
+                <Tab
+                  bg={getTab() === 4 ? selectedColor : "inital"}
+                  {...tabStyles}
+                  borderRightWidth={{ base: 1, md: 0 }}
+                  onClick={() => handleTabClick(SettingsTab.CONNECTIONS)}
+                >
+                  <Stack
+                    w="full"
+                    alignItems="center"
+                    textAlign="center"
+                    direction={{ base: "column", md: "row" }}
+                    spacing={4}
+                  >
+                    <FaShareAlt size="20px" />
+                    <Text fontWeight="medium">Connections</Text>
                   </Stack>
                 </Tab>
               </GridItem>
             </Grid>
           </TabList>
-          <TabPanels w="full" overflow="auto" p={6} h="full">
+          <TabPanels w="full" overflow="auto" px={6} py={2} h="full">
             <TabPanel px="0" w="full" h="full">
               <HStack w="full" justifyContent="space-between" mb={4}>
                 <Heading fontWeight="semibold" size="xl">
@@ -404,13 +433,20 @@ const Settings = ({
             </TabPanel>
             <TabPanel px="0" w="full" h="full">
               <Heading fontWeight="semibold" size="xl" mb={4}>
-                Integrations
+                Api Specs
               </Heading>
-              <Integrations
-                webhooks={parsedWebhooks}
-                setWebhooks={setParsedWebhooks}
-                hostList={hosts}
-              />
+              <SpecList apiSpecs={superjson.parse<OpenApiSpec[]>(specs)} />
+            </TabPanel>
+            <TabPanel px="0" w="full" h="full">
+              <Heading fontWeight="semibold" size="xl" mb={4}>
+                Connections
+              </Heading>
+              <Text fontWeight="medium" pb="6">
+                Set up a Connection to send API traffic to Metlo. You can
+                generate an API Key on the{" "}
+                <Link href="/settings">settings page.</Link>
+              </Text>
+              <ConnectionDocsList />
             </TabPanel>
           </TabPanels>
         </Stack>
