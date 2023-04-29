@@ -29,10 +29,10 @@ interface ConnectionDocsListProps {}
 const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
   const colorMode = useColorMode()
   const router = useRouter()
-  const { tab } = router.query
+  const { connectionTab } = router.query
 
   const getTab = () => {
-    switch (tab) {
+    switch (connectionTab) {
       case ConnectionTab.AWS:
         return 0
       case ConnectionTab.GCP:
@@ -59,7 +59,7 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
   const handleTabClick = (newTab: ConnectionTab) => {
     let routerParams = {}
     if (newTab) {
-      routerParams["query"] = { tab: newTab }
+      routerParams["query"] = { tab: "connections", connectionTab: newTab }
     }
     router.push(routerParams, undefined, { shallow: true })
   }
@@ -72,7 +72,7 @@ const ConnectionDocsList: React.FC<ConnectionDocsListProps> = React.memo(() => {
       <VStack spacing={6} w={"full"}>
         <Tabs w={"full"} index={getTab()} flexWrap="wrap">
           <TabList w={"full"}>
-            <Tab onClick={() => handleTabClick(null)}>
+            <Tab onClick={() => handleTabClick(ConnectionTab.AWS)}>
               <HStack>
                 <Box>
                   <Image

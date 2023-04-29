@@ -8,7 +8,7 @@ import {
 import { HiShieldCheck } from "icons/hi/HiShieldCheck"
 import { DataHeading } from "components/utils/Card"
 
-export const ProtectionEmptyView: React.FC<{}> = () => {
+export const PWEmptyView: React.FC<{ name: string }> = ({ name }) => {
   const iconColor = useColorModeValue("rgb(163, 165, 170)", "rgb(98, 100, 116)")
   return (
     <Box
@@ -22,10 +22,10 @@ export const ProtectionEmptyView: React.FC<{}> = () => {
       <VStack spacing="4">
         <HiShieldCheck color={iconColor} size="80" />
         <Heading size="2xl" fontWeight="semibold">
-          Protection
+            {name}
         </Heading>
         <DataHeading textAlign="center" fontSize="lg" pb="4">
-          Protection is a premium feature that requires a license.
+          {name} is a premium feature that requires a license.
         </DataHeading>
         <Button
           variant="create"

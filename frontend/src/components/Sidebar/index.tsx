@@ -103,13 +103,13 @@ const SidebarContent = ({
           onClose={onClose}
         />
         <SideNavLink
-          destination={SideNavLinkDestination.Vulnerabilities}
-          isActive={currentTab === SideNavLinkDestination.Vulnerabilities}
+          destination={SideNavLinkDestination.Attacks}
+          isActive={currentTab === SideNavLinkDestination.Attacks}
           onClose={onClose}
         />
         <SideNavLink
-          destination={SideNavLinkDestination.Protection}
-          isActive={currentTab === SideNavLinkDestination.Protection}
+          destination={SideNavLinkDestination.Tests}
+          isActive={currentTab === SideNavLinkDestination.Tests}
           onClose={onClose}
         />
         <SideNavLink
@@ -118,16 +118,6 @@ const SidebarContent = ({
           onClose={onClose}
         />
         <Divider borderColor={dividerColor} my={4} mx={0} />
-        <SideNavLink
-          destination={SideNavLinkDestination.Connections}
-          isActive={currentTab === SideNavLinkDestination.Connections}
-          onClose={onClose}
-        />
-        <SideNavLink
-          destination={SideNavLinkDestination.Specs}
-          isActive={currentTab === SideNavLinkDestination.Specs}
-          onClose={onClose}
-        />
         <SideNavLink
           destination={SideNavLinkDestination.Settings}
           isActive={currentTab === SideNavLinkDestination.Settings}

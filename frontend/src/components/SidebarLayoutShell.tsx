@@ -1,6 +1,6 @@
 import React from "react"
 import Head from "next/head"
-import { Box, HStack, Stack } from "@chakra-ui/react"
+import { Box, Stack } from "@chakra-ui/react"
 import SideNavBar from "./Sidebar"
 import { SideNavLinkDestination } from "components/Sidebar/NavLinkUtils"
 import { useRouter } from "next/router"
@@ -13,17 +13,14 @@ interface SidebarLayoutShellProps {
 
 const itemToNavLink = {
   "": SideNavLinkDestination.Home,
-  connections: SideNavLinkDestination.Connections,
   endpoint: SideNavLinkDestination.Endpoints,
-  protection: SideNavLinkDestination.Protection,
-  spec: SideNavLinkDestination.Specs,
+  attacks: SideNavLinkDestination.Attacks,
   alerts: SideNavLinkDestination.Alerts,
   endpoints: SideNavLinkDestination.Endpoints,
+  tests: SideNavLinkDestination.Tests,
   hosts: SideNavLinkDestination.Hosts,
   "sensitive-data": SideNavLinkDestination.SensitiveData,
   settings: SideNavLinkDestination.Settings,
-  specs: SideNavLinkDestination.Specs,
-  vulnerabilities: SideNavLinkDestination.Vulnerabilities,
 }
 
 export const SidebarLayoutShell: React.FC<SidebarLayoutShellProps> = React.memo(
