@@ -174,14 +174,16 @@ export const logRequestBatch = async (
       }
     }
 
-    await unsafeRedisClient.rpush(
-      TRACES_QUEUE,
-      JSON.stringify({
-        ctx,
-        version: 2,
-        traces: partialTraces,
-      }),
-    )
+    if (partialTraces.length > 0) {
+      await unsafeRedisClient.rpush(
+        TRACES_QUEUE,
+        JSON.stringify({
+          ctx,
+          version: 2,
+          traces: partialTraces,
+        }),
+      )
+    }
     for (const fullTrace of fullTraces) {
       await unsafeRedisClient.rpush(
         TRACES_QUEUE,

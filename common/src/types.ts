@@ -99,6 +99,7 @@ export interface ProcessedTraceData {
   dataTypes: Record<string, string[]>
   requestContentType: string
   responseContentType: string
+  graphqlPaths?: string[]
   validationErrors?: Record<string, string[]>
 }
 

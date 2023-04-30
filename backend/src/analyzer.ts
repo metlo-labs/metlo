@@ -47,7 +47,7 @@ const filteredProcessedData = (
     const isGraphqlSection = GRAPHQL_SECTIONS.includes(
       e.split(".")[0] as DataSection,
     )
-    if ((isGraphqlSection && e.includes(`${filter}.`)) || !isGraphqlSection) {
+    if ((isGraphqlSection && e.includes(`${filter}`)) || !isGraphqlSection) {
       entry[e] = processedDataEntry[e]
     }
   })
@@ -97,6 +97,29 @@ const createGraphQlTraces = (trace: QueuedApiTrace): QueuedApiTrace[] => {
     }
   }
   return Object.values(traces)
+}
+
+const createGraphqlTracesPartial = (
+  trace: QueuedApiTrace,
+): QueuedApiTrace[] => {
+  const traces: QueuedApiTrace[] = []
+  const graphqlPaths = trace.processedTraceData?.graphqlPaths ?? []
+  for (const path of graphqlPaths) {
+    const splitPath = path.split(".")
+    const filter = splitPath[1] + "." + splitPath[2]
+    traces.push({
+      ...trace,
+      path: `${trace.path}.${filter}`,
+      processedTraceData: {
+        ...trace.processedTraceData,
+        attackDetections: filteredProcessedData(
+          trace.processedTraceData?.attackDetections,
+          filter,
+        ),
+      },
+    })
+  }
+  return traces
 }
 
 const runFullAnalysis = async (
@@ -212,7 +235,9 @@ const runPartialAnalysisBulk = async (
         })
       }
     } else if (isGraphQl && task.version === 2) {
-      graphqlSplitTraces = graphqlSplitTraces.concat(createGraphQlTraces(trace))
+      graphqlSplitTraces = graphqlSplitTraces.concat(
+        createGraphqlTracesPartial(trace),
+      )
     } else {
       graphqlSplitTraces.push(trace)
     }
