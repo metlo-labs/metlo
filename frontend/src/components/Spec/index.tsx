@@ -86,7 +86,7 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
     setDeleting(true)
     try {
       await deleteSpec(spec.name)
-      router.push("/specs")
+      router.replace({ pathname: "/settings", query: { tab: "api-specs" } })
     } catch (err) {
       console.log(err)
       toast(
