@@ -1,7 +1,7 @@
 import path from "path"
 import Piscina from "piscina"
 import mlog from "logger"
-import { QueuedApiTrace } from "@common/types"
+import { ProcessedTraceData, QueuedApiTrace } from "@common/types"
 import { MetloContext } from "types"
 import { RedisClient } from "utils/redis"
 import { GRAPHQL_SECTIONS, TRACES_QUEUE } from "./constants"
@@ -54,49 +54,73 @@ const filteredProcessedData = (
   return entry
 }
 
+const getProcessedTraceData = (
+  processedTraceData: ProcessedTraceData,
+  filter: string,
+): ProcessedTraceData => {
+  return {
+    ...processedTraceData,
+    attackDetections: filteredProcessedData(
+      processedTraceData?.attackDetections,
+      filter,
+    ),
+    xssDetected: filteredProcessedData(processedTraceData?.xssDetected, filter),
+    sqliDetected: filteredProcessedData(
+      processedTraceData?.sqliDetected,
+      filter,
+    ),
+    sensitiveDataDetected: filteredProcessedData(
+      processedTraceData?.sensitiveDataDetected,
+      filter,
+    ),
+    dataTypes: filteredProcessedData(processedTraceData?.dataTypes, filter),
+  }
+}
+
 const createGraphQlTraces = (trace: QueuedApiTrace): QueuedApiTrace[] => {
-  const traces: Record<string, QueuedApiTrace> = {}
   const processedTraceData = trace?.processedTraceData
-  for (const operationPath in processedTraceData.dataTypes) {
-    if (
-      operationPath.includes("query.") ||
-      operationPath.includes("mutation.") ||
-      operationPath.includes("subscription.")
-    ) {
-      const splitPath = operationPath.split(".")
-      const filter = splitPath[1] + "." + splitPath[2]
-      if (!traces[filter]) {
-        traces[filter] = {
+  if (processedTraceData?.graphqlPaths) {
+    const traces: QueuedApiTrace[] = []
+    for (const path of processedTraceData.graphqlPaths) {
+      const splitPath = path.split(".")
+      if (
+        splitPath[1] === "query" ||
+        splitPath[1] === "mutation" ||
+        splitPath[1] === "subscription"
+      ) {
+        const filter = splitPath[1] + "." + splitPath[2]
+        traces.push({
           ...trace,
           path: `${trace.path}.${filter}`,
-          processedTraceData: {
-            ...processedTraceData,
-            attackDetections: filteredProcessedData(
-              processedTraceData?.attackDetections,
+          processedTraceData: getProcessedTraceData(processedTraceData, filter),
+        })
+      }
+    }
+    return traces
+  } else {
+    const traces: Record<string, QueuedApiTrace> = {}
+    for (const operationPath in processedTraceData.dataTypes) {
+      if (
+        operationPath.includes("query.") ||
+        operationPath.includes("mutation.") ||
+        operationPath.includes("subscription.")
+      ) {
+        const splitPath = operationPath.split(".")
+        const filter = splitPath[1] + "." + splitPath[2]
+        if (!traces[filter]) {
+          traces[filter] = {
+            ...trace,
+            path: `${trace.path}.${filter}`,
+            processedTraceData: getProcessedTraceData(
+              processedTraceData,
               filter,
             ),
-            xssDetected: filteredProcessedData(
-              processedTraceData?.xssDetected,
-              filter,
-            ),
-            sqliDetected: filteredProcessedData(
-              processedTraceData?.sqliDetected,
-              filter,
-            ),
-            sensitiveDataDetected: filteredProcessedData(
-              processedTraceData?.sensitiveDataDetected,
-              filter,
-            ),
-            dataTypes: filteredProcessedData(
-              processedTraceData?.dataTypes,
-              filter,
-            ),
-          },
+          }
         }
       }
     }
+    return Object.values(traces)
   }
-  return Object.values(traces)
 }
 
 const createGraphqlTracesPartial = (
@@ -106,18 +130,24 @@ const createGraphqlTracesPartial = (
   const graphqlPaths = trace.processedTraceData?.graphqlPaths ?? []
   for (const path of graphqlPaths) {
     const splitPath = path.split(".")
-    const filter = splitPath[1] + "." + splitPath[2]
-    traces.push({
-      ...trace,
-      path: `${trace.path}.${filter}`,
-      processedTraceData: {
-        ...trace.processedTraceData,
-        attackDetections: filteredProcessedData(
-          trace.processedTraceData?.attackDetections,
-          filter,
-        ),
-      },
-    })
+    if (
+      splitPath[1] === "query" ||
+      splitPath[1] === "mutation" ||
+      splitPath[1] === "subscription"
+    ) {
+      const filter = splitPath[1] + "." + splitPath[2]
+      traces.push({
+        ...trace,
+        path: `${trace.path}.${filter}`,
+        processedTraceData: {
+          ...trace.processedTraceData,
+          attackDetections: filteredProcessedData(
+            trace.processedTraceData?.attackDetections,
+            filter,
+          ),
+        },
+      })
+    }
   }
   return traces
 }
