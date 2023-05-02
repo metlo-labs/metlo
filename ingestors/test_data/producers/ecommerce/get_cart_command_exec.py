@@ -31,7 +31,7 @@ class EcommerceGetCartCommandExecProducer(BaseProducer):
                     "path": f"/cart/{cart_uuid}",
                     "parameters": [{
                       "name": "query",
-                      "value": "& echo $HOME &"
+                      "value": "& bin/echo $HOME &"
                     }]
                 },
                 "headers": [get_auth_header()],
