@@ -9,7 +9,7 @@ from producers.base import BaseProducer
 
 class EcommerceLoginSQLIProducer(BaseProducer):
 
-    emit_probability = 1
+    emit_probability = 0.1
 
     def get_data_point(self) -> dict:
         resp_body = {
