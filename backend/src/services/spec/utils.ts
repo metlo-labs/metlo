@@ -839,11 +839,9 @@ export const getDataFieldsForResponse = (
 
   const dataFields: Record<string, DataField> = {}
   for (const statusCode in responses) {
-    const status = statusCode === "default" ? -1 : parseInt(statusCode)
-    if (isNaN(status)) {
-      throw new Error400BadRequest(
-        `Status code in responses object is not a valid integer: ${statusCode}`,
-      )
+    let status = statusCode === "default" ? -1 : parseInt(statusCode)
+    if (!status || isNaN(status)) {
+      status = -1
     }
     const statusResponse = responses[statusCode] as
       | OpenAPIV3.ResponseObject

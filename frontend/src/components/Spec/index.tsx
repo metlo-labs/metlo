@@ -122,7 +122,7 @@ const SpecPage: React.FC<SpecPageProps> = React.memo(({ spec }) => {
         alignItems={{ base: "initial", md: "flex-end" }}
       >
         <VStack alignItems="flex-start" pt="6">
-          <NextLink href="/specs">
+          <NextLink href="/settings?tab=api-specs">
             <HStack color={headerColor} spacing="1" cursor="pointer">
               <AiFillApi />
               <Text fontWeight="semibold">API Specs</Text>

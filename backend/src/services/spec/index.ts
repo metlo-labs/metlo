@@ -247,17 +247,10 @@ export class SpecService {
 
     let parsedSpec = specObject
     try {
-      if (specVersion === 3.1) {
-        parsedSpec = await SwaggerParser.dereference(specObject as any, {
-          dereference: { circular: "ignore" },
-          resolve: { file: false },
-        })
-      } else {
-        parsedSpec = await SwaggerParser.validate(specObject as any, {
-          dereference: { circular: "ignore" },
-          resolve: { file: false },
-        })
-      }
+      parsedSpec = await SwaggerParser.dereference(specObject as any, {
+        dereference: { circular: "ignore" },
+        resolve: { file: false },
+      })
     } catch (err) {
       throw new Error422UnprocessableEntity(
         `Invalid OpenAPI Spec v${
