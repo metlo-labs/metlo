@@ -13,7 +13,7 @@ const Spec = ({ spec }) => {
     return <ErrorPage statusCode={404} />
   }
   return (
-    <PageWrapper>
+    <PageWrapper title="API Spec">
       <ContentContainer maxContentW="6xl" height="full" px="8" py="8">
         <SpecPage spec={parsedSpec} />
       </ContentContainer>
