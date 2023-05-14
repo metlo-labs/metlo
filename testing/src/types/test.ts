@@ -142,4 +142,5 @@ export interface TestResult {
   results: StepResult[][]
   abortedAt?: number
   timedOutIn?: number
+  runTime?: string
 }
