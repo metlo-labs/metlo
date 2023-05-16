@@ -2,7 +2,7 @@ from datetime import timedelta
 from uuid import uuid4
 import json
 
-from producers.ecommerce.utils import get_product, sources, destinations
+from producers.ecommerce.utils import get_product, attack_sources, destinations
 from producers.utils import get_meta, JSON_HEADER
 from producers.base import BaseProducer
 
@@ -47,5 +47,5 @@ class EcommerceGetProductSSRFProducer(BaseProducer):
                 "headers": [JSON_HEADER],
                 "body": json.dumps(resp_body),
             },
-            "meta": get_meta(sources, destinations),
+            "meta": get_meta(attack_sources, destinations),
         }

@@ -3,7 +3,7 @@ from random import randint
 from uuid import uuid4
 import json
 
-from producers.ecommerce.utils import get_product, sources, destinations
+from producers.ecommerce.utils import get_product, attack_sources, destinations
 from producers.utils import get_auth_header, get_meta, JSON_HEADER
 from producers.base import BaseProducer
 
@@ -39,9 +39,9 @@ class EcommerceGetCartCommandExecProducer(BaseProducer):
                 "body": "",
             },
             "response": {
-                "status": 200,
+                "status": 404,
                 "headers": [JSON_HEADER],
                 "body": json.dumps(resp_body),
             },
-            "meta": get_meta(sources, destinations),
+            "meta": get_meta(attack_sources, destinations),
         }

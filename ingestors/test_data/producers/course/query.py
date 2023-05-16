@@ -7,7 +7,7 @@ from producers.base import BaseProducer
 
 class CourseServiceQuery(BaseProducer):
 
-    emit_probability = 0.7
+    emit_probability = 0.07
 
     def get_data_point(self) -> dict:
         req_body = {

@@ -1,12 +1,12 @@
 import json
 
-from producers.course.utils import destinations, sources
+from producers.course.utils import destinations, attack_sources
 from producers.utils import get_meta, JSON_HEADER
 from producers.base import BaseProducer
 
 
 class CourseServiceQueryIntrospection(BaseProducer):
-    emit_probability = 0.1
+    emit_probability = 0.01
 
     def get_data_point(self) -> dict:
         req_body = {
@@ -87,5 +87,5 @@ class CourseServiceQueryIntrospection(BaseProducer):
                 "headers": [JSON_HEADER],
                 "body": json.dumps(resp_body),
             },
-            "meta": get_meta(sources, destinations),
+            "meta": get_meta(attack_sources, destinations),
         }
