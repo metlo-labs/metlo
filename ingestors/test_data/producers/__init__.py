@@ -21,6 +21,11 @@ from producers.course.query import CourseServiceQuery
 from producers.course.mutation import CourseServiceMutation
 from producers.course.subscription import CourseServiceSubscription
 from producers.course.query_get import CourseServiceGetQuery
+from producers.ecommerce.get_cart_command_exec import EcommerceGetCartCommandExecProducer
+from producers.ecommerce.get_product_ssrf import EcommerceGetProductSSRFProducer
+from producers.ecommerce.get_product_xss import EcommerceGetProductXSSProducer
+from producers.ecommerce.login_sqli import EcommerceLoginSQLIProducer
+from producers.course.query_introspection import CourseServiceQueryIntrospection
 
 
 PRODUCER_CLS_MAP = {
@@ -47,4 +52,9 @@ PRODUCER_CLS_MAP = {
     "course_service_mutation": CourseServiceMutation,
     "course_service_subscription": CourseServiceSubscription,
     "course_service_get_query": CourseServiceGetQuery,
+    "ecommerce_login_sqli": EcommerceLoginSQLIProducer,
+    "ecommerce_get_product_xss": EcommerceGetProductXSSProducer,
+    "ecommerce_get_product_ssrf": EcommerceGetProductSSRFProducer,
+    "ecommerce_get_cart_command_exec": EcommerceGetCartCommandExecProducer,
+    "course_service_query_introspection": CourseServiceQueryIntrospection,
 }
