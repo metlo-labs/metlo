@@ -33,7 +33,7 @@ class EcommerceRegisterProducer(BaseProducer):
                     "path": "/register",
                     "parameters": []
                 },
-                "headers": [],
+                "headers": [JSON_HEADER],
                 "method": "POST",
                 "body": json.dumps(req_body),
             },

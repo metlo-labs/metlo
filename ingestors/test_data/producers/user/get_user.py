@@ -32,7 +32,7 @@ class UserServiceGetUserProducer(BaseProducer):
                     "path": "/user",
                     "parameters": []
                 },
-                "headers": [get_auth_header()],
+                "headers": [get_auth_header(), JSON_HEADER],
                 "method": "GET",
                 "body": json.dumps(req_body),
             },

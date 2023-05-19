@@ -30,7 +30,7 @@ class PaymentProcessorUserVerifyProducer(BaseProducer):
                     "path": f"/user/{uuid4()}/verify",
                     "parameters": []
                 },
-                "headers": [get_auth_header()],
+                "headers": [get_auth_header(), JSON_HEADER],
                 "method": "POST",
                 "body": json.dumps(req_body),
             },
