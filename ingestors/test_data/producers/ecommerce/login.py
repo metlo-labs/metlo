@@ -28,7 +28,7 @@ class EcommerceLoginProducer(BaseProducer):
                     "path": "/login",
                     "parameters": []
                 },
-                "headers": [],
+                "headers": [JSON_HEADER],
                 "method": "POST",
                 "body": json.dumps(req_body),
             },

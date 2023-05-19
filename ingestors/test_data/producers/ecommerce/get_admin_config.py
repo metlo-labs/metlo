@@ -29,7 +29,7 @@ class EcommerceGetAdminConfigProducer(BaseProducer):
                     "path": f"/admin/config",
                     "parameters": []
                 },
-                "headers": [get_auth_header()],
+                "headers": [get_auth_header(), JSON_HEADER],
                 "method": "GET",
             },
             "response": resp, 

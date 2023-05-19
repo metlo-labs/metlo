@@ -32,7 +32,7 @@ class EcommerceEditAdminConfigProducer(BaseProducer):
                     "path": "/admin/config",
                     "parameters": []
                 },
-                "headers": [get_auth_header()],
+                "headers": [get_auth_header(), JSON_HEADER],
                 "method": "POST",
                 "body": json.dumps(req_body),
             },

@@ -34,7 +34,7 @@ class EcommerceEditProductProducer(BaseProducer):
                     "path": f"/product/{product_uuid}",
                     "parameters": []
                 },
-                "headers": [get_auth_header()],
+                "headers": [get_auth_header(), JSON_HEADER],
                 "method": "POST",
                 "body": json.dumps(req_body),
             },
