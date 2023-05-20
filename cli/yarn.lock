@@ -1794,10 +1794,10 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@metlo/testing@^0.3.20":
-  version "0.3.20"
-  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.3.20.tgz#b370cefa6323452571b6e1811191e9740d7f94cf"
-  integrity sha512-5CUnKy6lo+3U6FjH2proaS2QfVObybkwXiCN9a57pPLi6PAjC8fIIcliYcheByaYquustTYnSeLLMKQDziOw+w==
+"@metlo/testing@^0.3.22":
+  version "0.3.22"
+  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.3.22.tgz#2616bd9fdcfd6cfd2dbf3c144c62bca459d31dfb"
+  integrity sha512-yIfXqQ576alNVLOrXwesJC/UXK99AzfDv4wR1/lCNqWTDagJocBKusi9zBFa7KVOgRh2aEzpn3m5cFCPYpoEOA==
   dependencies:
     axios "^1.2.1"
     chalk "^4.1.2"
@@ -1813,7 +1813,7 @@
     peggy "^2.0.1"
     ts-pegjs "^3.0.0"
     uuid "^9.0.0"
-    vm2 "^3.9.17"
+    vm2 "^3.9.18"
     zod "^3.20.2"
 
 "@protobufjs/aspromise@^1.1.1", "@protobufjs/aspromise@^1.1.2":
@@ -3780,10 +3780,10 @@ vm2@^3.9.13:
     acorn "^8.7.0"
     acorn-walk "^8.2.0"
 
-vm2@^3.9.17:
-  version "3.9.17"
-  resolved "https://registry.yarnpkg.com/vm2/-/vm2-3.9.17.tgz#251b165ff8a0e034942b5181057305e39570aeab"
-  integrity sha512-AqwtCnZ/ERcX+AVj9vUsphY56YANXxRuqMb7GsDtAr0m0PcQX3u0Aj3KWiXM0YAHy7i6JEeHrwOnwXbGYgRpAw==
+vm2@^3.9.18:
+  version "3.9.19"
+  resolved "https://registry.yarnpkg.com/vm2/-/vm2-3.9.19.tgz#be1e1d7a106122c6c492b4d51c2e8b93d3ed6a4a"
+  integrity sha512-J637XF0DHDMV57R6JyVsTak7nIL8gy5KH4r1HiwWLf/4GBbb5MKL5y7LpmF4A8E2nR6XmzpmMFQ7V7ppPTmUQg==
   dependencies:
     acorn "^8.7.0"
     acorn-walk "^8.2.0"
