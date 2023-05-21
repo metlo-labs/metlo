@@ -1,5 +1,3 @@
-from datetime import datetime, timedelta
-from typing import List
 from uuid import uuid4
 import json
 from random import choice
@@ -9,7 +7,37 @@ from producers.utils import get_auth_header, get_meta, JSON_HEADER
 from producers.base import BaseProducer
 
 
-def get_service_info():
+PATH_EXTENSION_SINGLE = [
+    {"path": "delete", "method": ["DELETE"]},
+    {"path": "update", "method": ["PUT", "PATCH"]},
+]
+
+BASE_RESP = {"ok": True}
+
+PAYMENT_SERVICES = [
+    {"path": "/checkout", "resp": BASE_RESP},
+    {"path": "/subscription", "resp": BASE_RESP},
+    {"path": "/promotion", "resp": BASE_RESP},
+    {"path": "/invoice", "resp": BASE_RESP},
+    {"path": "/notification", "resp": BASE_RESP},
+    {"path": "/report", "resp": BASE_RESP},
+    {"path": "/user", "resp": BASE_RESP},
+    {"path": "/transaction", "resp": BASE_RESP},
+    {"path": "/card", "resp": BASE_RESP},
+    {"path": "/account", "resp": BASE_RESP},
+    {"path": "/webhook", "resp": BASE_RESP},
+    {"path": "/discount", "resp": BASE_RESP},
+    {"path": "/address", "resp": BASE_RESP},
+    {"path": "/payment-method", "resp": BASE_RESP},
+    {"path": "/order", "resp": BASE_RESP},
+    {"path": "/shipment", "resp": BASE_RESP},
+    {"path": "/wallet", "resp": BASE_RESP},
+    {"path": "/statement", "resp": BASE_RESP},
+    {"path": "/customer", "resp": BASE_RESP},
+]
+
+
+def get_service_info_single():
     endpoint_paths = [
         ["/process", "POST"],
         ["/authorize", "POST"],
@@ -24,7 +52,6 @@ def get_service_info():
         ["/cancel", "POST"],
         ["/history", "GET"],
         ["/notifications", "GET"],
-        ["/webhook", "POST"],
         ["/callback", "POST"],
         ["/checkout", "POST"],
         ["/return", "POST"],
@@ -32,25 +59,16 @@ def get_service_info():
         ["/create-invoice", "POST"],
         ["/pay-invoice", "POST"],
         ["/recurring-billing", "POST"],
-        ["/reports", "GET"],
         ["/balance", "GET"],
         ["/settings", "GET"],
-        ["/cards", "GET"],
-        ["/accounts", "GET"],
-        ["/users", "GET"],
         ["/transactions", "GET"],
         ["/process-order", "POST"],
         ["/order-history", "GET"],
-        ["/payment-plans", "GET"],
-        ["/discounts", "GET"],
         ["/tax", "GET"],
         ["/shipping", "GET"],
-        ["/subscriptions", "GET"],
         ["/checkout-settings", "GET"],
         ["/checkout-callback", "POST"],
         ["/checkout-webhook", "POST"],
-        ["/customer", "GET"],
-        ["/address", "GET"],
         ["/checkout-success", "POST"],
         ["/checkout-failure", "POST"],
         ["/checkout-cancel", "POST"],
@@ -59,33 +77,7 @@ def get_service_info():
         ["/authorize-callback", "POST"],
         ["/refund-callback", "POST"],
         ["/billing", "GET"],
-        ["/add-card", "POST"],
-        ["/remove-card", "DELETE"],
-        ["/update-card", "PUT"],
-        ["/card-details", "GET"],
-        ["/transaction-details", "GET"],
-        ["/order-details", "GET"],
-        ["/invoice-details", "GET"],
-        ["/subscription-details", "GET"],
-        ["/add-account", "POST"],
-        ["/remove-account", "DELETE"],
-        ["/update-account", "PUT"],
-        ["/account-details", "GET"],
-        ["/user-details", "GET"],
-        ["/customer-details", "GET"],
-        ["/add-user", "POST"],
-        ["/remove-user", "DELETE"],
-        ["/update-user", "PUT"],
         ["/user-access", "GET"],
-        ["/payment-methods", "GET"],
-        ["/add-payment-method", "POST"],
-        ["/remove-payment-method", "DELETE"],
-        ["/update-payment-method", "PUT"],
-        ["/payment-method-details", "GET"],
-        ["/add-discount", "POST"],
-        ["/remove-discount", "DELETE"],
-        ["/update-discount", "PUT"],
-        ["/discount-details", "GET"],
         ["/add-tax", "POST"],
         ["/remove-tax", "DELETE"],
         ["/update-tax", "PUT"],
@@ -118,18 +110,37 @@ def get_service_info():
     return choice(endpoint_paths)
 
 
+def get_service_info(service):
+    uuid = str(uuid4())
+    path = service["path"]
+    extension = choice(PATH_EXTENSION_SINGLE)
+    ext_path = extension["path"]
+    ext_method = extension["method"]
+    paths = [
+        [f"{path}/{uuid}", ["GET"], service["resp"]],
+        [f"{path}/list", ["GET"], service["resp"]],
+        [f"{path}/new", ["POST"], service["resp"]],
+        [f"{path}/{uuid}/{ext_path}", ext_method, service["resp"]],
+    ]
+    return choice(paths)
+
+
 class PaymentProcessorServices(BaseProducer):
     emit_probability = 0.8
 
     def get_data_point(self) -> dict:
-        service_info = get_service_info()
+        service = choice(PAYMENT_SERVICES)
+        info_type = choice(["single", "multi"])
+        service_info = (
+            get_service_info(service)
+            if info_type == "multi"
+            else get_service_info_single()
+        )
         resp = {
             "status": 200,
             "headers": [JSON_HEADER],
             "body": json.dumps(
-                {
-                    "ok": True,
-                }
+                service_info[2] if len(service_info) == 3 else {"ok": True}
             ),
         }
         return {
@@ -140,7 +151,9 @@ class PaymentProcessorServices(BaseProducer):
                     "parameters": [],
                 },
                 "headers": [get_auth_header()],
-                "method": service_info[1],
+                "method": choice(service_info[1])
+                if isinstance(service_info[1], list)
+                else service_info[1],
             },
             "response": resp,
             "meta": get_meta(sources, destinations),
