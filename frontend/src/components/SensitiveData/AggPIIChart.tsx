@@ -1,4 +1,5 @@
-import React from "react"
+import React, { useRef } from "react"
+import { useRouter } from "next/router"
 import {
   Chart as ChartJS,
   ArcElement,
@@ -6,7 +7,7 @@ import {
   Legend,
   ChartOptions,
 } from "chart.js"
-import { Doughnut } from "react-chartjs-2"
+import { Doughnut, getElementAtEvent } from "react-chartjs-2"
 import {
   HStack,
   StackProps,
@@ -30,6 +31,8 @@ interface AggPIIChartProps extends StackProps {
 
 const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
   ({ totalPIIFields, totalEndpoints, piiDataTypeCount, ...props }) => {
+    const chartRef = useRef()
+    const router = useRouter()
     const data = Object.values(piiDataTypeCount)
     const labels = Object.keys(piiDataTypeCount)
     const chartData = {
@@ -57,6 +60,30 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
         },
       },
     } as ChartOptions
+
+    const handleChartClick = (
+      evt: React.MouseEvent<HTMLCanvasElement, MouseEvent>,
+    ) => {
+      const labelIdx = getElementAtEvent(chartRef.current, evt)?.[0]?.index
+      if (
+        labelIdx === null ||
+        labelIdx === undefined ||
+        typeof labelIdx !== "number"
+      ) {
+        return
+      }
+      const label = labels[labelIdx]
+      if (!label) {
+        return
+      }
+      router.push({
+        pathname: "/endpoints",
+        query: {
+          dataClasses: label,
+        },
+      })
+    }
+
     return (
       <Stack
         direction={{ base: "column", md: "row" }}
@@ -119,7 +146,12 @@ const AggPIIChart: React.FC<AggPIIChartProps> = React.memo(
           display={labels.length > 0 ? "flex" : "none"}
         >
           <Box p="4" w={{ base: "full", sm: "220px" }} h="full">
-            <Doughnut options={options} data={chartData} />
+            <Doughnut
+              ref={chartRef}
+              options={options}
+              data={chartData}
+              onClick={handleChartClick}
+            />
           </Box>
           <Box
             h="100%"
