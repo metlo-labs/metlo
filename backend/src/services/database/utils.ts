@@ -5,7 +5,7 @@ import {
   FindOneOptions,
   FindOptionsWhere,
   InsertResult,
-  ObjectID,
+  ObjectId,
   QueryRunner,
   RemoveOptions,
   Repository,
@@ -192,8 +192,8 @@ export class WrappedEntityManager {
       | number[]
       | Date
       | Date[]
-      | ObjectID
-      | ObjectID[]
+      | ObjectId
+      | ObjectId[]
       | any,
     entity: QueryDeepPartialEntity<
       ObjectLiteral extends Entity ? unknown : Entity

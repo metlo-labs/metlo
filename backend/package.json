@@ -62,7 +62,7 @@
     "reflect-metadata": "^0.1.13",
     "swagger2openapi": "^7.0.8",
     "tree-kill": "^1.2.2",
-    "typeorm": "^0.3.7",
+    "typeorm": "^0.3.16",
     "uuid": "^8.3.2",
     "validator": "^13.7.0",
     "whatwg-mimetype": "^3.0.0",
