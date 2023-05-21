@@ -10,7 +10,7 @@ from producers.ecommerce.services import ALL_SUBCLASSESS
 
 
 class EcommerceServicesProducer(BaseProducer):
-    emit_probability = 0.8
+    emit_probability = 0.1
 
     def get_data_point(self) -> dict:
         random_service = choice(ALL_SUBCLASSESS)()
