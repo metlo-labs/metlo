@@ -14,17 +14,17 @@ class BaseService:
 class ProductService(BaseService):
     def get_info(self, id: str, id_2: str):
         paths = [
-            [f"/products", ["GET", "DELETE"], self.resp],
+            [f"/products", ["GET"], self.resp],
             [f"/products/{id}", ALL_METHODS, self.resp],
-            [f"/products/{id}/reviews", ALL_METHODS, self.resp],
+            [f"/products/{id}/reviews", ["GET"], self.resp],
             [f"/products/{id}/add-to-cart", ["POST", "PUT", "PATCH"], self.resp],
-            [f"/products/{id}/remove-from-cart", ["DELETE", "PATCH"], self.resp],
-            [f"/products/categories", ["GET", "DELETE"], self.resp],
+            [f"/products/{id}/remove-from-cart", ["DELETE", "PATCH", "PUT"], self.resp],
+            [f"/products/categories", ["GET"], self.resp],
             [f"/products/categories/{id}", ALL_METHODS, self.resp],
-            [f"/products/brands", ["GET", "DELETE"], self.resp],
+            [f"/products/brands", ["GET"], self.resp],
             [f"/products/brands/{id}", ALL_METHODS, self.resp],
-            [f"/products/search", ["GET", "DELETE"], self.resp],
-            [f"/product/reviews", ["GET", "DELETE"], self.resp],
+            [f"/products/search", ["GET"], self.resp],
+            [f"/product/reviews", ["GET"], self.resp],
             [f"/product/{id}/reviews/{id_2}", ALL_METHODS, self.resp],
         ]
         return choice(paths)
@@ -34,10 +34,10 @@ class CartService(BaseService):
     def get_info(self, id: str, id_2: str):
         paths = [
             ["/cart/add-item", ["POST", "PUT"], self.resp],
-            ["/cart/remove-item", ["DELETE", "PUT", "PATCH"], self.resp],
-            ["/cart/update-item", ["DELETE", "PUT", "PATCH"], self.resp],
-            ["/cart/clear", ["PUT", "PATCH", "DELETE"], self.resp],
-            ["/cart/checkout", ["PUT", "PATCH"], self.resp],
+            ["/cart/remove-item", ["DELETE"], self.resp],
+            ["/cart/update-item", ["PUT", "PATCH"], self.resp],
+            ["/cart/clear", ["PUT", "DELETE"], self.resp],
+            ["/cart/checkout", ["POST"], self.resp],
         ]
         return choice(paths)
 
@@ -47,7 +47,7 @@ class CategoryService(BaseService):
         paths = [
             [f"/categories", ["GET"], self.resp],
             [f"/categories/{id}", ALL_METHODS, self.resp],
-            [f"/categories/{id}/products", ALL_METHODS, self.resp],
+            [f"/categories/{id}/products", ["GET"], self.resp],
             [f"/categories/{id}/products/{id_2}", ALL_METHODS, self.resp],
         ]
         return choice(paths)
