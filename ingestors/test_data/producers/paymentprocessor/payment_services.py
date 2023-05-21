@@ -121,7 +121,7 @@ def get_service_info():
 class PaymentProcessorServices(BaseProducer):
     emit_probability = 0.8
 
-    def get_data_points_helper(self) -> dict:
+    def get_data_point(self) -> dict:
         service_info = get_service_info()
         resp = {
             "status": 200,
@@ -145,6 +145,3 @@ class PaymentProcessorServices(BaseProducer):
             "response": resp,
             "meta": get_meta(sources, destinations),
         }
-
-    def get_data_points(self) -> List[dict]:
-        return [self.get_data_points_helper()]

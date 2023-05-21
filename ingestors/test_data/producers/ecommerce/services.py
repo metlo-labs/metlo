@@ -238,7 +238,7 @@ class CustomerService(BaseService):
             [f"/customers/{id}/orders", ["GET"], self.resp],
             [f"/customers/{id}/addresses", ["GET"], self.resp],
             [f"/customers/{id}/addresses/{id_2}", ALL_METHODS, self.resp],
-            [f"/customers/{id}/payment-methods"["GET"], self.resp],
+            [f"/customers/{id}/payment-methods", ["GET"], self.resp],
             [f"/customers/{id}/payment-methods/{id_2}", ALL_METHODS, self.resp],
             [f"/customers/{id}/wish-list", ["GET"], self.resp],
             [f"/customers/{id}/wishlist/add", ["POST"], self.resp],
