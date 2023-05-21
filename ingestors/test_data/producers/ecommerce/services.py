@@ -1,10 +1,15 @@
-from random import choice
+from random import choice, randint
+from faker import Faker
+
+from producers.ecommerce.utils import get_product
+
 
 ALL_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 
 
 class BaseService:
     def __init__(self):
+        self.fake = Faker()
         self.resp = {"ok": True}
 
     def get_info(self, id: str, id_2: str):
@@ -13,19 +18,33 @@ class BaseService:
 
 class ProductService(BaseService):
     def get_info(self, id: str, id_2: str):
+        review_resp = {
+            "ok": True,
+            "review_id": id_2,
+            "product_id": id,
+            "rating": randint(0, 100),
+            "title": self.fake.word(),
+            "description": self.fake.sentence(),
+        }
+        category_resp = {
+            "ok": True,
+            "category_id": id,
+            "tag": self.fake.word(),
+            "description": self.fake.sentence(),
+        }
         paths = [
             [f"/products", ["GET"], self.resp],
             [f"/products/{id}", ALL_METHODS, self.resp],
-            [f"/products/{id}/reviews", ["GET"], self.resp],
+            [f"/products/{id}/reviews", ["GET"], [review_resp]],
             [f"/products/{id}/add-to-cart", ["POST", "PUT", "PATCH"], self.resp],
             [f"/products/{id}/remove-from-cart", ["DELETE", "PATCH", "PUT"], self.resp],
-            [f"/products/categories", ["GET"], self.resp],
-            [f"/products/categories/{id}", ALL_METHODS, self.resp],
+            [f"/products/categories", ["GET"], [category_resp]],
+            [f"/products/categories/{id}", ALL_METHODS, category_resp],
             [f"/products/brands", ["GET"], self.resp],
             [f"/products/brands/{id}", ALL_METHODS, self.resp],
             [f"/products/search", ["GET"], self.resp],
-            [f"/product/reviews", ["GET"], self.resp],
-            [f"/product/{id}/reviews/{id_2}", ALL_METHODS, self.resp],
+            [f"/product/reviews", ["GET"], [review_resp]],
+            [f"/product/{id}/reviews/{id_2}", ALL_METHODS, review_resp],
         ]
         return choice(paths)
 
@@ -44,11 +63,20 @@ class CartService(BaseService):
 
 class CategoryService(BaseService):
     def get_info(self, id: str, id_2: str):
+        category_resp = {
+            "ok": True,
+            "category_id": id,
+            "tag": self.fake.word(),
+            "description": self.fake.sentence(),
+        }
+        product_resp = {
+            **get_product(self.fake, id_2),
+        }
         paths = [
-            [f"/categories", ["GET"], self.resp],
-            [f"/categories/{id}", ALL_METHODS, self.resp],
+            [f"/categories", ["GET"], [category_resp]],
+            [f"/categories/{id}", ALL_METHODS, category_resp],
             [f"/categories/{id}/products", ["GET"], self.resp],
-            [f"/categories/{id}/products/{id_2}", ALL_METHODS, self.resp],
+            [f"/categories/{id}/products/{id_2}", ALL_METHODS, product_resp],
         ]
         return choice(paths)
 
@@ -110,22 +138,40 @@ class AdminService(BaseService):
 
 class WishListService(BaseService):
     def get_info(self, id: str, id_2: str):
+        product_resp = {
+            **get_product(self.fake, id_2),
+        }
         paths = [
             [f"/wish-list", ["GET"], self.resp],
             [f"/wish-list/{id}", ALL_METHODS, self.resp],
-            [f"/wish-list/{id}/products", ["GET"], self.resp],
-            [f"/wish-list/{id}/products/{id_2}", ALL_METHODS, self.resp],
+            [f"/wish-list/{id}/products", ["GET"], [product_resp]],
+            [f"/wish-list/{id}/products/{id_2}", ALL_METHODS, product_resp],
         ]
         return choice(paths)
 
 
 class ReviewService(BaseService):
     def get_info(self, id: str, id_2: str):
+        review_resp = {
+            "ok": True,
+            "review_id": id,
+            "rating": randint(0, 100),
+            "title": self.fake.word(),
+            "description": self.fake.sentence(),
+        }
+        comment_resp = {
+            "ok": True,
+            "comment_id": id_2,
+            "upvotes": randint(0, 100),
+            "downvotes": randint(0, 100),
+            "title": self.fake.word(),
+            "message": self.fake.sentence(),
+        }
         paths = [
-            [f"/reviews", ["GET"], self.resp],
-            [f"/reviews/{id}", ALL_METHODS, self.resp],
-            [f"/reviews/{id}/comments", ["GET"], self.resp],
-            [f"/reviews/{id}/comments/{id_2}", ALL_METHODS, self.resp],
+            [f"/reviews", ["GET"], [review_resp]],
+            [f"/reviews/{id}", ALL_METHODS, review_resp],
+            [f"/reviews/{id}/comments", ["GET"], [comment_resp]],
+            [f"/reviews/{id}/comments/{id_2}", ALL_METHODS, comment_resp],
             [f"/reviews/{id}/helpful", ["GET"], self.resp],
             [f"/reviews/{id}/helpful/{id_2}", ALL_METHODS, self.resp],
             [f"/reviews/{id}/reported", ["GET"], self.resp],
@@ -136,11 +182,14 @@ class ReviewService(BaseService):
 
 class RecommendationService(BaseService):
     def get_info(self, id: str, id_2: str):
+        product_resp = {
+            **get_product(self.fake, id_2),
+        }
         paths = [
             [f"/recommendations", ["GET"], self.resp],
             [f"/recommendations/{id}", ALL_METHODS, self.resp],
-            [f"/recommendations/{id}/products", ["GET"], self.resp],
-            [f"/recommendations/{id}/products/{id_2}", ALL_METHODS, self.resp],
+            [f"/recommendations/{id}/products", ["GET"], [product_resp]],
+            [f"/recommendations/{id}/products/{id_2}", ALL_METHODS, product_resp],
         ]
         return choice(paths)
 
@@ -241,8 +290,8 @@ class CustomerService(BaseService):
             [f"/customers/{id}/payment-methods", ["GET"], self.resp],
             [f"/customers/{id}/payment-methods/{id_2}", ALL_METHODS, self.resp],
             [f"/customers/{id}/wish-list", ["GET"], self.resp],
-            [f"/customers/{id}/wishlist/add", ["POST"], self.resp],
-            [f"/customers/{id}/wishlist/remove", ["DELETE"], self.resp],
+            [f"/customers/{id}/wish-list/add", ["POST"], self.resp],
+            [f"/customers/{id}/wish-list/remove", ["DELETE"], self.resp],
             [f"/customers/{id}/reviews", ["GET"], self.resp],
             [f"/customers/{id}/reviews/{id_2}", ALL_METHODS, self.resp],
         ]
