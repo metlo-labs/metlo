@@ -49,7 +49,7 @@
     "json-source-map": "^0.6.1",
     "lodash": "^4.17.21",
     "loglevel": "^1.8.1",
-    "luxon": "^3.0.3",
+    "luxon": "^3.2.1",
     "multer": "^1.4.5-lts.1",
     "node-cache": "^5.1.2",
     "node-schedule": "^2.1.0",
@@ -66,7 +66,7 @@
     "uuid": "^8.3.2",
     "validator": "^13.7.0",
     "whatwg-mimetype": "^3.0.0",
-    "yaml": "^2.1.1",
+    "yaml": "^2.2.2",
     "yargs": "^17.5.1",
     "zod": "^3.20.2"
   },
