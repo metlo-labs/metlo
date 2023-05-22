@@ -113,10 +113,10 @@ const AWSDocs: React.FC<DocsParams> = React.memo(({ host, apiKey }) => {
                   customStyle={{ background: "none", padding: 0 }}
                   language="bash"
                 >{`$ sudo mkdir /opt/metlo
-$ sudo bash -c "echo 'VXLAN_ENABLED=true' >> /opt/metlo/credentials"
+$ sudo bash -c "echo 'ENABLE_VXLAN=true' >> /opt/metlo/credentials"
 $ sudo bash -c "echo 'METLO_HOST=${host}' >> /opt/metlo/credentials"
 $ sudo bash -c "echo 'METLO_KEY=${apiKey}' >> /opt/metlo/credentials"
-$ wget https://raw.githubusercontent.com/metlo-labs/metlo/master/deploy/govxlan/install.sh
+$ wget https://raw.githubusercontent.com/metlo-labs/metlo-deploy/main/aws/mirroring/install.sh
 $ chmod +x install.sh
 $ sudo -E ./install.sh`}</SyntaxHighlighter>
               </Code>
