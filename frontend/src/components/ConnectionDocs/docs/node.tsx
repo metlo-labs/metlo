@@ -42,12 +42,20 @@ const NodeDocs: React.FC<DocsParams> = React.memo(({ apiKey, host }) => {
               customStyle={{ background: "none", padding: 0 }}
               language="javascript"
             >
-              {`import metlo from "metlo"
-metlo("${apiKey}", "${host}")
-
-// Or using require...
-var metlo = require("metlo").default
-metlo("${apiKey}", "${host}")
+              {`import { initExpress as metlo } from "metlo";
+// Or using require
+const metlo = require("metlo").initExpress;
+...
+const app = express();
+...
+app.use(
+  metlo(
+    {
+      key: "${apiKey}",
+      host: "${host}",
+    }
+  )
+);
 `}
             </SyntaxHighlighter>
           </Code>
