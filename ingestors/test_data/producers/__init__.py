@@ -26,6 +26,8 @@ from producers.ecommerce.get_product_ssrf import EcommerceGetProductSSRFProducer
 from producers.ecommerce.get_product_xss import EcommerceGetProductXSSProducer
 from producers.ecommerce.login_sqli import EcommerceLoginSQLIProducer
 from producers.course.query_introspection import CourseServiceQueryIntrospection
+from producers.ecommerce.ecommerce_services import EcommerceServicesProducer
+from producers.paymentprocessor.payment_services import PaymentProcessorServices
 
 
 PRODUCER_CLS_MAP = {
@@ -57,4 +59,6 @@ PRODUCER_CLS_MAP = {
     "ecommerce_get_product_ssrf": EcommerceGetProductSSRFProducer,
     "ecommerce_get_cart_command_exec": EcommerceGetCartCommandExecProducer,
     "course_service_query_introspection": CourseServiceQueryIntrospection,
+    "ecommerce_services": EcommerceServicesProducer,
+    "payment_processor_services": PaymentProcessorServices,
 }
