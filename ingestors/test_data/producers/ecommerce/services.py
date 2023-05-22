@@ -281,6 +281,13 @@ class SettingsService(BaseService):
 
 class CustomerService(BaseService):
     def get_info(self, id: str, id_2: str):
+        review_resp = {
+            "ok": True,
+            "review_id": id_2,
+            "rating": randint(0, 100),
+            "title": self.fake.word(),
+            "description": self.fake.sentence(),
+        }
         paths = [
             ["/customers", ["GET"], self.resp],
             [f"/customers/{id}", ALL_METHODS, self.resp],
@@ -292,8 +299,8 @@ class CustomerService(BaseService):
             [f"/customers/{id}/wish-list", ["GET"], self.resp],
             [f"/customers/{id}/wish-list/add", ["POST"], self.resp],
             [f"/customers/{id}/wish-list/remove", ["DELETE"], self.resp],
-            [f"/customers/{id}/reviews", ["GET"], self.resp],
-            [f"/customers/{id}/reviews/{id_2}", ALL_METHODS, self.resp],
+            [f"/customers/{id}/reviews", ["GET"], [review_resp]],
+            [f"/customers/{id}/reviews/{id_2}", ALL_METHODS, review_resp],
         ]
         return choice(paths)
 
