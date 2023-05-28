@@ -12,6 +12,8 @@ import (
 	metlo "github.com/metlo-labs/metlo/ingestors/golang/metlo"
 )
 
+const MAX_BODY int = 10 * 1024
+
 type metloApp interface {
 	Send(data metlo.MetloTrace)
 	Allow() bool
@@ -19,7 +21,8 @@ type metloApp interface {
 
 type bodyLogWriter struct {
 	gin.ResponseWriter
-	body *bytes.Buffer
+	body         *bytes.Buffer
+	bytesWritten *int
 }
 
 type metloInstrumentation struct {
@@ -40,13 +43,26 @@ func CustomInit(app metloApp, serverHost string, serverPort int) metloInstrument
 	}
 }
 
+func min(a int, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 func (w bodyLogWriter) Write(b []byte) (int, error) {
-	w.body.Write(b)
+	var byte_length = len(b)
+	var bytes_to_write int = min(min(MAX_BODY, byte_length), MAX_BODY-*w.bytesWritten)
+	*w.bytesWritten = *w.bytesWritten + bytes_to_write
+	var sub_buffer []byte = b[0:bytes_to_write]
+	w.body.Write(sub_buffer)
 	return w.ResponseWriter.Write(b)
 }
 
 func (m *metloInstrumentation) Middleware(c *gin.Context) {
-	blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
+	var bytesWritten *int = new(int)
+	*bytesWritten = 0
+	blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer, bytesWritten: bytesWritten}
 	c.Writer = blw
 	body, _ := ioutil.ReadAll(c.Request.Body)
 	c.Request.Body.Close()

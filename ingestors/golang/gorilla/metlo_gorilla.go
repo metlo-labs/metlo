@@ -12,6 +12,8 @@ import (
 	metlo "github.com/metlo-labs/metlo/ingestors/golang/metlo"
 )
 
+const MAX_BODY int = 10 * 1024
+
 type metloApp interface {
 	Send(data metlo.MetloTrace)
 	Allow() bool
@@ -19,8 +21,9 @@ type metloApp interface {
 
 type logResponseWriter struct {
 	http.ResponseWriter
-	statusCode int
-	buf        bytes.Buffer
+	statusCode   int
+	buf          bytes.Buffer
+	bytesWritten *int
 }
 
 type metloInstrumentation struct {
@@ -42,7 +45,16 @@ func CustomInit(app metloApp, serverHost string, serverPort int) metloInstrument
 }
 
 func newLogResponseWriter(w http.ResponseWriter) *logResponseWriter {
-	return &logResponseWriter{ResponseWriter: w}
+	var bytesWritten *int = new(int)
+	*bytesWritten = 0
+	return &logResponseWriter{ResponseWriter: w, bytesWritten: bytesWritten}
+}
+
+func min(a int, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 func (w *logResponseWriter) WriteHeader(code int) {
@@ -51,7 +63,11 @@ func (w *logResponseWriter) WriteHeader(code int) {
 }
 
 func (w *logResponseWriter) Write(body []byte) (int, error) {
-	w.buf.Write(body)
+	var byte_length = len(body)
+	var bytes_to_write int = min(min(MAX_BODY, byte_length), MAX_BODY-*w.bytesWritten)
+	*w.bytesWritten = *w.bytesWritten + bytes_to_write
+	var sub_buffer []byte = body[0:bytes_to_write]
+	w.buf.Write(sub_buffer)
 	return w.ResponseWriter.Write(body)
 }
 
