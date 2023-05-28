@@ -1,8 +1,11 @@
 module github.com/metlo-labs/metlo/ingestors/golang/gin
 
-go 1.19
+go 1.10
 
-require github.com/gin-gonic/gin v1.9.0
+require (
+	github.com/gin-gonic/gin v1.9.0
+	github.com/metlo-labs/metlo/ingestors/golang/metlo v0.0.0-20230524204505-b4692f118e48
+)
 
 require (
 	github.com/bytedance/sonic v1.8.0 // indirect
