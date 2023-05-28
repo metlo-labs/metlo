@@ -12,16 +12,23 @@ import (
 )
 
 type metlo struct {
-	mu      sync.Mutex
-	ts      []int64
-	disable bool
-	stream  pb.MetloIngest_ProcessTraceAsyncClient
+	mu             sync.Mutex
+	ts             []int64
+	disable        bool
+	stream         pb.MetloIngest_ProcessTraceAsyncClient
+	rps            int
+	metloHost      string
+	metloKey       string
+	backendPort    int
+	collectorPort  int
+	encryption_key *string
 }
 
 const MetloDefaultRPS int = 100
 const MaxConnectTries int = 10
 
 func ConnectLocalProcessAgent() (pb.MetloIngest_ProcessTraceAsyncClient, error) {
+
 	for i := 0; i < MaxConnectTries; i++ {
 		// utils.Log.Info("Trying to connect to local metlo processor")
 		conn, err := grpc.Dial("unix:///tmp/metlo.sock", grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -55,14 +62,19 @@ func ReconnectLocalProcessAgent() (pb.MetloIngest_ProcessTraceAsyncClient, error
 }
 
 func InitMetlo(metloHost string, metloKey string) *metlo {
-	return InitMetloCustom(metloHost, metloKey, MetloDefaultRPS, false)
+	return InitMetloCustom(metloHost, metloKey, MetloDefaultRPS, 8000, 8081, nil, false)
 }
 
-func InitMetloCustom(metloHost string, metloKey string, rps int, disable bool) *metlo {
+func InitMetloCustom(metloHost string, metloKey string, rps int, backendPort int, collectorPort int, encryption_key *string, disable bool) *metlo {
 	inst := &metlo{
-		ts:      make([]int64, 0, rps),
-		disable: disable,
-		stream:  nil,
+		ts:             make([]int64, 0, rps),
+		rps:            rps,
+		metloHost:      metloHost,
+		metloKey:       metloKey,
+		disable:        disable,
+		backendPort:    backendPort,
+		collectorPort:  collectorPort,
+		encryption_key: encryption_key,
 	}
 	conn, err := ConnectLocalProcessAgent()
 	inst.stream = conn
