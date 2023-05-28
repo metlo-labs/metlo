@@ -1,6 +1,6 @@
 module github.com/metlo-labs/metlo/ingestors/golang/gin
 
-go 1.10
+go 1.11
 
 require (
 	github.com/gin-gonic/gin v1.9.0

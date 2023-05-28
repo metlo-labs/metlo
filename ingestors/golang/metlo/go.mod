@@ -1,6 +1,6 @@
 module github.com/metlo-labs/metlo/ingestors/golang/metlo
 
-go 1.10
+go 1.11
 
 require (
 	github.com/golang/protobuf v1.5.3 // indirect
