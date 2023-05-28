@@ -8,52 +8,13 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	metlo "github.com/metlo-labs/metlo/ingestors/golang/metlo"
 )
 
 type metloApp interface {
-	Send(data any)
+	Send(data metlo.MetloTrace)
 	Allow() bool
-}
-
-type nv struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
-type url struct {
-	Host       string `json:"host"`
-	Path       string `json:"path"`
-	Parameters []nv   `json:"parameters"`
-}
-
-type req struct {
-	Url     url    `json:"url"`
-	Headers []nv   `json:"headers"`
-	Body    string `json:"body"`
-	Method  string `json:"method"`
-}
-
-type res struct {
-	Url     string `json:"url"`
-	Status  int    `json:"status"`
-	Headers []nv   `json:"headers"`
-	Body    string `json:"body"`
-}
-
-type meta struct {
-	Environment     string `json:"environment"`
-	Incoming        bool   `json:"incoming"`
-	Source          string `json:"source"`
-	SourcePort      int    `json:"sourcePort"`
-	Destination     string `json:"destination"`
-	DestinationPort int    `json:"destinationPort"`
-	MetloSource     string `json:"metloSource"`
-}
-
-type trace struct {
-	Request  req  `json:"request"`
-	Response res  `json:"response"`
-	Meta     meta `json:"meta"`
 }
 
 type logResponseWriter struct {
@@ -103,19 +64,19 @@ func (m *metloInstrumentation) Middleware(next http.Handler) http.Handler {
 		next.ServeHTTP(logRespWriter, r)
 
 		if m.app.Allow() {
-			reqHeaders := make([]nv, 0)
+			reqHeaders := make([]metlo.NV, 0)
 			for k := range r.Header {
-				reqHeaders = append(reqHeaders, nv{Name: k, Value: strings.Join(r.Header[k], ",")})
+				reqHeaders = append(reqHeaders, metlo.NV{Name: k, Value: strings.Join(r.Header[k], ",")})
 			}
 			resHeaderMap := logRespWriter.Header()
-			resHeaders := make([]nv, 0)
+			resHeaders := make([]metlo.NV, 0)
 			for k := range resHeaderMap {
-				resHeaders = append(resHeaders, nv{Name: k, Value: strings.Join(resHeaderMap[k], ",")})
+				resHeaders = append(resHeaders, metlo.NV{Name: k, Value: strings.Join(resHeaderMap[k], ",")})
 			}
 			queryMap := r.URL.Query()
-			queryParams := make([]nv, 0)
+			queryParams := make([]metlo.NV, 0)
 			for k := range queryMap {
-				queryParams = append(queryParams, nv{Name: k, Value: strings.Join(queryMap[k], ",")})
+				queryParams = append(queryParams, metlo.NV{Name: k, Value: strings.Join(queryMap[k], ",")})
 			}
 
 			sourceIp, sourcePortRaw, err := net.SplitHostPort(r.RemoteAddr)
@@ -133,9 +94,9 @@ func (m *metloInstrumentation) Middleware(next http.Handler) http.Handler {
 				statusCode = 200
 			}
 
-			tr := &trace{
-				Request: req{
-					Url: url{
+			tr := metlo.MetloTrace{
+				Request: metlo.TraceReq{
+					Url: metlo.TraceUrl{
 						Host:       r.Host,
 						Path:       r.URL.Path,
 						Parameters: queryParams,
@@ -144,13 +105,12 @@ func (m *metloInstrumentation) Middleware(next http.Handler) http.Handler {
 					Body:    string(body),
 					Method:  r.Method,
 				},
-				Response: res{
-					Url:     "",
+				Response: metlo.TraceRes{
 					Status:  statusCode,
 					Body:    logRespWriter.buf.String(),
 					Headers: resHeaders,
 				},
-				Meta: meta{
+				Meta: metlo.TraceMeta{
 					Environment:     "production",
 					Incoming:        true,
 					Source:          sourceIp,
