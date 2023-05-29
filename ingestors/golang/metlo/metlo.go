@@ -67,11 +67,14 @@ func InitMetlo(metloHost string, metloKey string) *metlo {
 	var collector_port *int = nil
 	var backend_port *int = nil
 	if strings.Contains(metloHost, "app.metlo.com") {
-		*backend_port = 443
+		default_backend_port := 443
+		backend_port = &default_backend_port
 	} else {
-		*backend_port = 8080
+		default_backend_port := 8080
+		backend_port = &default_backend_port
 	}
-	*collector_port = 8081
+	default_collector_port := 8081
+	collector_port = &default_collector_port
 	return InitMetloCustom(metloHost, metloKey, MetloDefaultRPS, *backend_port, *collector_port, nil, false)
 }
 
