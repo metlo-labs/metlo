@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 
 	pb "github.com/metlo-labs/metlo/ingestors/golang/metlo/proto"
@@ -63,7 +64,15 @@ func ReconnectLocalProcessAgent() (pb.MetloIngest_ProcessTraceAsyncClient, error
 }
 
 func InitMetlo(metloHost string, metloKey string) *metlo {
-	return InitMetloCustom(metloHost, metloKey, MetloDefaultRPS, 0, 0, nil, false)
+	var collector_port *int = nil
+	var backend_port *int = nil
+	if strings.Contains(metloHost, "app.metlo.com") {
+		*backend_port = 443
+	} else {
+		*backend_port = 8080
+	}
+	*collector_port = 8081
+	return InitMetloCustom(metloHost, metloKey, MetloDefaultRPS, *backend_port, *collector_port, nil, false)
 }
 
 func InitMetloCustom(metloHost string, metloKey string, rps int, backendPort int, collectorPort int, encryptionKey *string, disable bool) *metlo {
