@@ -48,21 +48,6 @@ func ConnectLocalProcessAgent() (pb.MetloIngest_ProcessTraceAsyncClient, error) 
 	return nil, connectErr
 }
 
-func ReconnectLocalProcessAgent() (pb.MetloIngest_ProcessTraceAsyncClient, error) {
-	for {
-		conn, err := grpc.Dial("unix:///tmp/metlo.sock", grpc.WithTransportCredentials(insecure.NewCredentials()))
-		if err == nil {
-			metloConn := pb.NewMetloIngestClient(conn)
-			stream, err_stream := metloConn.ProcessTraceAsync(context.Background())
-			if err_stream == nil {
-				return stream, err_stream
-			}
-		}
-		logger.Println("Couldn't connect to metlo agent", err)
-		time.Sleep(time.Second)
-	}
-}
-
 func InitMetlo(metloHost string, metloKey string) *metlo {
 	var collector_port *int = nil
 	var backend_port *int = nil
@@ -140,13 +125,7 @@ func (m *metlo) Send(data MetloTrace) {
 		return
 	}
 	miTrace := MapMetloTraceToMetloIngestRPC(data)
-	err := m.stream.SendMsg(&miTrace)
-	if err != nil {
-		stream, err_inner := ReconnectLocalProcessAgent()
-		if err_inner == nil {
-			m.stream = stream
-		}
-	}
+	m.stream.SendMsg(&miTrace)
 }
 
 func (m *metlo) Allow() bool {
