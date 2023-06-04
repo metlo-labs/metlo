@@ -16,3 +16,8 @@ export enum DataSection {
   RESPONSE_HEADER = "resHeaders",
   RESPONSE_BODY = "resBody",
 }
+
+export enum ExportTestType {
+  CURL = "curl",
+  HTTP = "http",
+}
