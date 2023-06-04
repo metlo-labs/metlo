@@ -48,7 +48,7 @@ const filteredProcessedData = (
     const isGraphqlSection = GRAPHQL_SECTIONS.includes(split[0] as DataSection)
     if (
       (isGraphqlSection &&
-        (e.includes(`${filter}.`) || e === `${split[0]}.${filter}}`)) ||
+        (e.includes(`${filter}.`) || e === `${split[0]}.${filter}`)) ||
       !isGraphqlSection
     ) {
       entry[e] = processedDataEntry[e]
