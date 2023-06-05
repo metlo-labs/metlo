@@ -4,7 +4,7 @@ import { AggregateTraceDataHourly, ApiEndpoint, ApiTrace } from "models"
 import { DatabaseService } from "services/database"
 import { MetloContext } from "types"
 import { RedisClient } from "utils/redis"
-import { getRepository } from "services/database/utils"
+import { createQB, getRepository } from "services/database/utils"
 import mlog from "logger"
 import { ApiEndpointDetailed } from "@common/types"
 
@@ -42,6 +42,18 @@ export const getTopEndpoints = async (ctx: MetloContext) => {
     performance.now() - endpointsStart,
   )
 
+  const hourlyCalls: AggregateTraceDataHourly[] = await createQB(ctx)
+    .select([`"apiEndpointUuid"`, "hour", `"numCalls"`])
+    .from(AggregateTraceDataHourly, "traces")
+    .distinctOn([`"apiEndpointUuid"`])
+    .andWhere(`"apiEndpointUuid" IN(:...ids)`, {
+      ids: endpointStats.map(e => e.endpoint),
+    })
+    .andWhere(`hour = DATE_TRUNC('HOUR', NOW()) - interval '1 hour'`)
+    .orderBy(`"apiEndpointUuid"`)
+    .addOrderBy("hour", "DESC")
+    .getRawMany()
+
   const tracesStart = performance.now()
   const traces = await Promise.all(
     endpointStats.map(e =>
@@ -59,6 +71,9 @@ export const getTopEndpoints = async (ctx: MetloContext) => {
       ({
         ...endpoints.find(e => e.uuid == stats.endpoint),
         traces: traceMap[stats.endpoint],
+        callsPerHour: hourlyCalls.find(
+          e => e.apiEndpointUuid === stats.endpoint,
+        )?.numCalls,
         tests: [],
         graphQlSchema: null,
       } as ApiEndpointDetailed),

@@ -40,6 +40,7 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
           <Thead h="52px">
             <Tr>
               <Th>Endpoint</Th>
+              <Th textTransform="none">Calls / Hour</Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -52,6 +53,9 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
               >
                 <Td fontFamily="mono" fontSize="xs">
                   {e.path}
+                </Td>
+                <Td fontSize="xs">
+                  {e?.["callsPerHour"]?.toLocaleString() || "N/A"}
                 </Td>
               </Tr>
             ))}
@@ -97,7 +101,10 @@ const TopEndpoints: React.FC<TopEndpointProps> = React.memo(
             />
           </Box>
           <Box flexGrow="1" h="full">
-            <TraceList traces={endpoint ? endpoint.traces : []} topEndpointsView />
+            <TraceList
+              traces={endpoint ? endpoint.traces : []}
+              topEndpointsView
+            />
           </Box>
         </HStack>
       </VStack>
