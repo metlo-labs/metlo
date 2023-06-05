@@ -44,10 +44,13 @@ const filteredProcessedData = (
 ) => {
   const entry = {}
   Object.keys(processedDataEntry ?? {}).forEach(e => {
-    const isGraphqlSection = GRAPHQL_SECTIONS.includes(
-      e.split(".")[0] as DataSection,
-    )
-    if ((isGraphqlSection && e.includes(`${filter}`)) || !isGraphqlSection) {
+    const split = e.split(".")
+    const isGraphqlSection = GRAPHQL_SECTIONS.includes(split[0] as DataSection)
+    if (
+      (isGraphqlSection &&
+        (e.includes(`${filter}.`) || e === `${split[0]}.${filter}`)) ||
+      !isGraphqlSection
+    ) {
       entry[e] = processedDataEntry[e]
     }
   })
