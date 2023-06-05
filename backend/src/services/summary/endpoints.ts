@@ -49,6 +49,7 @@ export const getTopEndpoints = async (ctx: MetloContext) => {
     .andWhere(`"apiEndpointUuid" IN(:...ids)`, {
       ids: endpointStats.map(e => e.endpoint),
     })
+    .andWhere(`hour = DATE_TRUNC('HOUR', NOW()) - interval '1 hour'`)
     .orderBy(`"apiEndpointUuid"`)
     .addOrderBy("hour", "DESC")
     .getRawMany()
