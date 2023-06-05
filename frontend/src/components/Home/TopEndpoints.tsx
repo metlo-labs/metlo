@@ -54,8 +54,8 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
                 <Td fontFamily="mono" fontSize="xs">
                   {e.path}
                 </Td>
-                <Td fontFamily="mono" fontSize="xs">
-                  {e?.["callsPerHour"] || "N/A"}
+                <Td fontSize="xs">
+                  {e?.["callsPerHour"]?.toLocaleString() || "N/A"}
                 </Td>
               </Tr>
             ))}
