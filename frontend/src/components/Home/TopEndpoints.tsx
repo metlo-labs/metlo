@@ -40,7 +40,7 @@ const EndpointList: React.FC<EndpointListProps> = React.memo(
           <Thead h="52px">
             <Tr>
               <Th>Endpoint</Th>
-              <Th textTransform="none">Calls/Hour</Th>
+              <Th textTransform="none">Calls / Hour</Th>
             </Tr>
           </Thead>
           <Tbody>
