@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/joho/godotenv"
 	"github.com/metlo-labs/metlo/ingestors/govxlan/metloapi"
@@ -28,15 +28,12 @@ var logLevelMap = map[string]logrus.Level{
 }
 
 type MetloArgs struct {
-	apiKey              string
-	metloHost           string
-	maxRps              int
-	runAsVxlan          bool
-	captureInterfaceRaw string
-	localProcess        string
+	apiKey           string
+	metloHost        string
+	maxRps           int
+	runAsVxlan       bool
+	captureInterface string
 }
-
-var captureInterfaces []string
 
 func main() {
 
@@ -51,6 +48,7 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:        "log-level, l",
+			Value:       "info",
 			Usage:       "Log level [trace,debug,info,warn,error]",
 			Destination: &logLevel,
 		},
@@ -74,59 +72,36 @@ func main() {
 			Destination: &args.maxRps,
 		}, cli.StringFlag{
 			Name:        "interface, i",
-			Usage:       "Comma separated list of interface(s) for Metlo to listen on",
-			Destination: &args.captureInterfaceRaw,
-		}, cli.StringFlag{
-			Name:        "local-process, p",
-			Usage:       "Process trace data locally. Default true",
-			Required:    false,
-			Destination: &args.localProcess,
+			Usage:       "Interface for Metlo to listen on",
+			Destination: &args.captureInterface,
 		},
 	}
 
 	app.Action = func(c *cli.Context) error {
-		godotenv.Load("/opt/metlo/credentials", "~/.metlo/credentials", ".env")
-		if logLevel == "" {
-			level := os.Getenv("LOG_LEVEL")
-			if level != "" {
-				logLevel = level
-			} else {
-				logLevel = "info"
-			}
-		}
-
 		level, ok := logLevelMap[logLevel]
 		if !ok {
 			return fmt.Errorf("INVALID LOG LEVEL: %s", logLevel)
 		}
 		utils.Log.SetLevel(level)
 
+		godotenv.Load("/opt/metlo/credentials", "~/.metlo/credentials", ".env")
 		if args.apiKey == "" {
-			key := os.Getenv("METLO_KEY")
-			if key != "" {
-				args.apiKey = key
-			} else {
-				utils.Log.Fatal("No value passed for METLO_KEY. Set it via -k param or METLO_KEY in the environment")
-			}
+			args.apiKey = os.Getenv("METLO_KEY")
 		}
-
 		if args.metloHost == "" {
-			host := os.Getenv("METLO_HOST")
-			if host != "" {
-				args.metloHost = host
-			} else {
-				utils.Log.Fatal("No value passed for METL_HOST. Set it via -u param or METLO_HOST in the environment")
-			}
+			args.metloHost = os.Getenv("METLO_HOST")
 		}
 		envRps := os.Getenv("MAX_RPS")
 		if args.maxRps == 0 && envRps != "" {
 			intEnvRps, err := strconv.Atoi(envRps)
 			if err != nil {
-				utils.Log.Fatal("INVALID MAX RPS: %s", &envRps)
+				return fmt.Errorf("INVALID MAX RPS: %s", &envRps)
 			}
 			args.maxRps = intEnvRps
 		}
-
+		if args.maxRps == 0 {
+			args.maxRps = metloapi.MetloDefaultRPS
+		}
 		envVXLANEnabled := os.Getenv("VXLAN_ENABLED")
 		if !args.runAsVxlan {
 			if envVXLANEnabled != "" {
@@ -139,43 +114,26 @@ func main() {
 				args.runAsVxlan = false
 			}
 		}
-
-		resolved_local_process := true
-		envLocalProcess := os.Getenv("METLO_LOCAL_PROCESS")
-		if args.localProcess == "" {
-			if envLocalProcess != "" {
-				local_process_enabled, err := strconv.ParseBool(envLocalProcess)
-				if err == nil {
-					resolved_local_process = local_process_enabled
+		envInterface := os.Getenv("INTERFACE")
+		if !args.runAsVxlan && args.captureInterface == "" {
+			if envInterface != "" {
+				args.captureInterface = envInterface
+			} else {
+				ifaces, err := net.Interfaces()
+				if err != nil {
+					log.Println(err)
+				}
+				for _, i := range ifaces {
+					if strings.HasPrefix(i.Name, "eth") || strings.HasPrefix(i.Name, "ens") {
+						log.Printf("Found match on interface %s which matches expected pattern. Binding to it", i.Name)
+						args.captureInterface = i.Name
+						break
+					}
 				}
 			}
-		} else {
-			local_process_enabled, err := strconv.ParseBool(args.localProcess)
-			if err == nil {
-				resolved_local_process = local_process_enabled
+			if args.captureInterface == "" {
+				log.Fatalln("Packet capture in live mode must provide an interface")
 			}
-		}
-
-		if args.maxRps == 0 {
-			if resolved_local_process {
-				args.maxRps = metloapi.MetloDefaultRPSLocalProcess
-			} else {
-				args.maxRps = metloapi.MetloDefaultRPS
-			}
-		}
-
-		ifaces, err := net.Interfaces()
-		if err != nil {
-			utils.Log.Info(err)
-		}
-		var interfacesFound []string
-		for _, i := range ifaces {
-			interfacesFound = append(interfacesFound, i.Name)
-		}
-		utils.Log.Infof("Found interfaces: %s", strings.Join(interfacesFound, ","))
-
-		if !args.runAsVxlan {
-			captureInterfaces = utils.GetInterfaces(args.captureInterfaceRaw, os.Getenv("INTERFACE"))
 		}
 
 		truncatedAPIKey := ""
@@ -186,13 +144,12 @@ func main() {
 		}
 
 		utils.Log.WithFields(logrus.Fields{
-			"logLevel":     logLevel,
-			"apiKey":       truncatedAPIKey,
-			"metloHost":    args.metloHost,
-			"maxRps":       args.maxRps,
-			"vxlan":        args.runAsVxlan,
-			"localProcess": resolved_local_process,
-			"interface":    captureInterfaces,
+			"logLevel":  logLevel,
+			"apiKey":    truncatedAPIKey,
+			"metloHost": args.metloHost,
+			"maxRps":    args.maxRps,
+			"vxlan":     args.runAsVxlan,
+			"interface": args.captureInterface,
 		}).Info("Configuration")
 
 		if args.metloHost == "" {
@@ -205,10 +162,10 @@ func main() {
 			return fmt.Errorf("INVALID MAX RPS: %d. MUST BE BETWEEN 0 AND 300", args.maxRps)
 		}
 
-		metloAPI := metloapi.InitMetlo(args.metloHost, args.apiKey, args.maxRps, resolved_local_process)
+		metloAPI := metloapi.InitMetlo(args.metloHost, args.apiKey, args.maxRps)
 
 		if !args.runAsVxlan {
-			runLive(metloAPI, captureInterfaces)
+			runLive(metloAPI, args.captureInterface)
 		} else {
 			runVXLAN(metloAPI)
 		}
@@ -220,30 +177,16 @@ func main() {
 	}
 }
 
-func runLive(metloAPI *metloapi.Metlo, captureInterface []string) error {
-	if len(captureInterface) > 1 {
-		utils.Log.Infof("Listening to multiple interfaces: %p", captureInterface)
+func runLive(metloAPI *metloapi.Metlo, captureInterface string) error {
+	cap := pcap.New(captureInterface)
+	proc, err := pcap.NewPacketProcessor(metloAPI)
+	if err != nil {
+		return err
 	}
-	var wg sync.WaitGroup
-	for _, _interface := range captureInterface {
-		cap := pcap.New(_interface)
-		proc, err := pcap.NewPacketProcessor(metloAPI, _interface)
-		if err != nil {
-			fmt.Println(err)
-			fmt.Errorf("Metlo live capture encountered an error")
-			return err
-		}
-		wg.Add(1)
-		go (func(proc *pcap.PacketProcessor) {
-			defer wg.Done()
-			if err := cap.Start(proc); err != nil {
-				fmt.Println(err)
-				fmt.Errorf("Metlo live capture encountered an error")
-				return
-			}
-		})(proc)
+
+	if err := cap.Start(proc); err != nil {
+		return err
 	}
-	wg.Wait()
 	return nil
 }
 
@@ -251,14 +194,10 @@ func runVXLAN(metloAPI *metloapi.Metlo) error {
 	cap := vxcap.New()
 	proc, err := vxcap.NewPacketProcessor(metloAPI)
 	if err != nil {
-		fmt.Println(err)
-		fmt.Errorf("Metlo VXLAN capture encountered an error")
 		return err
 	}
 
 	if err := cap.Start(proc); err != nil {
-		fmt.Println(err)
-		fmt.Errorf("Metlo VXLAN capture encountered an error")
 		return err
 	}
 	return nil

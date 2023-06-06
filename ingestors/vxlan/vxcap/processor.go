@@ -71,7 +71,7 @@ func (x *PacketProcessor) Put(pkt *packetData) error {
 func (x *PacketProcessor) Tick(now time.Time) error {
 	x.reqAssembler.FlushOlderThan(now.Add(time.Minute * -2))
 	x.respAssembler.FlushOlderThan(now.Add(time.Minute * -2))
-	x.httpAssembler.Tick(now, "")
+	x.httpAssembler.Tick(now)
 	return nil
 }
 
