@@ -42,17 +42,20 @@ export const getTopEndpoints = async (ctx: MetloContext) => {
     performance.now() - endpointsStart,
   )
 
-  const hourlyCalls: AggregateTraceDataHourly[] = await createQB(ctx)
-    .select([`"apiEndpointUuid"`, "hour", `"numCalls"`])
-    .from(AggregateTraceDataHourly, "traces")
-    .distinctOn([`"apiEndpointUuid"`])
-    .andWhere(`"apiEndpointUuid" IN(:...ids)`, {
-      ids: endpointStats.map(e => e.endpoint),
-    })
-    .andWhere(`hour = DATE_TRUNC('HOUR', NOW()) - interval '1 hour'`)
-    .orderBy(`"apiEndpointUuid"`)
-    .addOrderBy("hour", "DESC")
-    .getRawMany()
+  const hourlyCalls: AggregateTraceDataHourly[] =
+    endpointStats.length > 0
+      ? await createQB(ctx)
+          .select([`"apiEndpointUuid"`, "hour", `"numCalls"`])
+          .from(AggregateTraceDataHourly, "traces")
+          .distinctOn([`"apiEndpointUuid"`])
+          .andWhere(`"apiEndpointUuid" IN(:...ids)`, {
+            ids: endpointStats.map(e => e.endpoint),
+          })
+          .andWhere(`hour = DATE_TRUNC('HOUR', NOW()) - interval '1 hour'`)
+          .orderBy(`"apiEndpointUuid"`)
+          .addOrderBy("hour", "DESC")
+          .getRawMany()
+      : []
 
   const tracesStart = performance.now()
   const traces = await Promise.all(
