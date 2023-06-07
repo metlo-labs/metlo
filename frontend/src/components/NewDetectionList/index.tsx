@@ -64,7 +64,11 @@ const NewDetectionList: React.FC<NewDetectionListProps> = React.memo(
           />
         </Box>
         <Box w="full" py="2" px="4" borderBottom="1px" borderColor="inherit">
-          <NewDetectionAggChart data={detectionAgg} />
+          <NewDetectionAggChart
+            data={detectionAgg}
+            params={params}
+            setParams={setParams}
+          />
         </Box>
         <Box w="full">
           <NewDetectionTable

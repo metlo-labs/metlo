@@ -176,7 +176,7 @@ const Endpoints: React.FC<EndpointsProps> = ({
           <HStack mb="4" w="full" justifyContent="space-between">
             <HStack spacing={6}>
               <Heading fontWeight="semibold" size="lg">
-                {showNewDetections ? "New Detections" : "Endpoints"}
+                Endpoints
               </Heading>
               <HStack alignSelf="end" spacing="0">
                 <Badge

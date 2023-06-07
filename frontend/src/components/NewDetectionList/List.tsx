@@ -5,11 +5,7 @@ import {
   Text,
   useColorMode,
   VStack,
-  Tag,
-  Tooltip,
   HStack,
-  Wrap,
-  WrapItem,
   Code,
 } from "@chakra-ui/react"
 import { useRouter } from "next/router"
@@ -166,6 +162,9 @@ export const NewDetectionTable: React.FC<NewDetectionTableProps> = React.memo(
               selector: (row: DataField) => row.dataPath,
               cell: (row: DataField) => (
                 <Box pointerEvents="none">
+                  <Text mb="2" pointerEvents="none" fontWeight="normal">
+                    {DATA_SECTION_TO_LABEL_MAP[row.dataSection]}
+                  </Text>
                   {row.dataPath ? (
                     <Code p="1" pointerEvents="none">
                       {row.dataPath}
@@ -173,9 +172,6 @@ export const NewDetectionTable: React.FC<NewDetectionTableProps> = React.memo(
                   ) : (
                     <Text>None</Text>
                   )}
-                  <Text mt="2" pointerEvents="none" fontWeight="normal">
-                    {DATA_SECTION_TO_LABEL_MAP[row.dataSection]}
-                  </Text>
                 </Box>
               ),
               id: "dataPath",
