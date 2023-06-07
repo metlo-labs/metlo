@@ -7,6 +7,7 @@ import {
   RestMethod,
   RiskScore,
   SortOrder,
+  NewDetectionType,
 } from "../enums"
 
 export const GetEndpointParamsSchema = z.object({
@@ -25,6 +26,28 @@ export const GetEndpointParamsSchema = z.object({
     .union([z.number(), z.string().regex(/^\d+$/).transform(Number)])
     .optional(),
 })
+
+export const GetNewDetectionsParamsSchema = z.object({
+  start: z.string().nullable().optional(),
+  end: z.string().nullable().optional(),
+  detectionRiskScores: z.nativeEnum(RiskScore).array().default([]),
+  detectionHosts: z.string().array().default([]),
+  detectionType: z
+    .nativeEnum(NewDetectionType)
+    .default(NewDetectionType.ENDPOINT),
+  detectionOffset: z.preprocess(
+    a => parseInt((a || "0") as string),
+    z.number(),
+  ),
+  detectionLimit: z.preprocess(
+    a => parseInt((a || "10") as string),
+    z.number().max(50),
+  ),
+})
+
+export type GetNewDetectionsParams = z.infer<
+  typeof GetNewDetectionsParamsSchema
+>
 
 export type GetEndpointParams = z.infer<typeof GetEndpointParamsSchema>
 
@@ -83,3 +106,9 @@ export const UpdateDataFieldPathSchema = z.object({
 export type UpdateDataFieldPathParams = z.infer<
   typeof UpdateDataFieldPathSchema
 >
+
+export interface NewDetectionsAggRes {
+  day: string
+  numEndpoints: number
+  numFields: number
+}

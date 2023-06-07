@@ -203,6 +203,7 @@ export interface DataField {
   contentType: string
   isNullable: boolean
   entity: string
+  apiEndpoint?: ApiEndpoint
 }
 
 export interface ApiEndpoint {

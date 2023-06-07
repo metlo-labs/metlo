@@ -5,6 +5,7 @@ import { GetEndpointsService } from "services/get-endpoints"
 import {
   DeleteEndpointsParamsSchema,
   GetEndpointParamsSchema,
+  GetNewDetectionsParamsSchema,
   UpdateFullTraceCaptureEnabledSchema,
 } from "@common/api/endpoint"
 import ApiResponseHandler from "api-response-handler"
@@ -30,6 +31,10 @@ import {
 } from "./hosts"
 import { getDataClassInfo } from "api/data-class"
 import { deleteGraphQlSchema, uploadGraphQlSchema } from "services/graphql"
+import {
+  getNewDetections,
+  getNewDetectionsAggCached,
+} from "services/get-endpoints/new-detections"
 
 export const getEndpointsHandler = async (
   req: MetloRequest,
@@ -261,9 +266,39 @@ export const deleteGraphQlSchemaHandler = async (
   }
 }
 
+export const getNewDetectionsHandler = async (
+  req: MetloRequest,
+  res: Response,
+) => {
+  const parsedQuery = GetNewDetectionsParamsSchema.safeParse(req.query)
+  if (parsedQuery.success == false) {
+    return await ApiResponseHandler.zerr(res, parsedQuery.error)
+  }
+  try {
+    const result = await getNewDetections(req.ctx, parsedQuery.data)
+    await ApiResponseHandler.success(res, result)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}
+
+export const getNewDetectionsAggHandler = async (
+  req: MetloRequest,
+  res: Response,
+) => {
+  try {
+    const result = await getNewDetectionsAggCached(req.ctx)
+    await ApiResponseHandler.success(res, result)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}
+
 export default function registerEndpointRoutes(router: Router) {
   router.get("/api/v1/endpoints/hosts", getHostsHandler)
   router.get("/api/v1/endpoints", getEndpointsHandler)
+  router.get("/api/v1/new-detections", getNewDetectionsHandler)
+  router.get("/api/v1/new-detections-agg", getNewDetectionsAggHandler)
   router.get("/api/v1/endpoint/:endpointId", getEndpointHandler)
   router.get("/api/v1/endpoint/:endpointId/usage", getUsageHandler)
   router.delete("/api/v1/endpoints", deleteEndpointsFromFiltersHandler)

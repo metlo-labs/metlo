@@ -80,3 +80,26 @@
 .chakra-tabs__tablist > button[aria-selected="true"] {
   --tabs-color: var(--chakra-colors-metloBlue);
 }
+
+.DateRangePickerInput {
+  height: 32px;
+}
+
+.DateRangePickerInput,
+.DateInput {
+  border-radius: var(--chakra-radii-md);
+}
+
+.DateInput_input {
+  height: 30px;
+}
+
+.DateInput_input_1#start-date {
+  border-top-left-radius: var(--chakra-radii-md);
+  border-bottom-left-radius: var(--chakra-radii-md);
+}
+
+.DateInput_input_1#end-date {
+  border-top-right-radius: var(--chakra-radii-md);
+  border-bottom-right-radius: var(--chakra-radii-md);
+}

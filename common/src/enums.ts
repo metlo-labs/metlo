@@ -182,3 +182,8 @@ export enum AnalysisType {
   FULL = "full",
   PARTIAL = "partial",
 }
+
+export enum NewDetectionType {
+  ENDPOINT = "endpoint",
+  DATA_FIELD = "data_field",
+}
