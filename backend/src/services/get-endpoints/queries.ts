@@ -70,7 +70,7 @@ FROM
       FROM
         ${ApiEndpoint.getTableName(ctx)} api_endpoint
       WHERE
-          "createdAt" >= NOW() - interval '1000 days'
+          "createdAt" >= NOW() - interval '60 days'
       GROUP BY
           day
       UNION ALL
@@ -81,7 +81,7 @@ FROM
       FROM
           ${DataField.getTableName(ctx)} data_field
       WHERE
-          "createdAt" >= NOW() - interval '1000 days'
+          "createdAt" >= NOW() - interval '60 days'
       GROUP BY
           day
   ) AS combined_data
