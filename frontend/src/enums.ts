@@ -30,3 +30,8 @@ export enum HostsTab {
   LIST = "list",
   GRAPH = "graph",
 }
+
+export enum EndpointsTab {
+  ALL = "all",
+  NEW = "new",
+}

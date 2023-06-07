@@ -5,11 +5,14 @@ import {
   HostResponse,
   HostGraph,
   Usage,
+  DataField,
 } from "@common/types"
 import {
   DeleteEndpointParams,
   GetEndpointParams,
   GetHostParams,
+  GetNewDetectionsParams,
+  NewDetectionsAggRes,
   UpdateFullTraceCaptureEnabledParams,
 } from "@common/api/endpoint"
 import { getAPIURL } from "~/constants"
@@ -30,6 +33,41 @@ export const getEndpoints = async (
   } catch (err) {
     console.error(`Error fetching endpoints: ${err}`)
     return [[], 0]
+  }
+}
+
+export const getNewDetections = async (
+  params: GetNewDetectionsParams,
+  headers?: AxiosRequestHeaders,
+): Promise<[(ApiEndpoint | DataField)[], number]> => {
+  try {
+    const resp = await axios.get<[(ApiEndpoint | DataField)[], number]>(
+      `${getAPIURL()}/new-detections`,
+      { params, headers },
+    )
+    if (resp.status === 200 && resp.data) {
+      return resp.data
+    }
+    return [[], 0]
+  } catch {
+    return [[], 0]
+  }
+}
+
+export const getNewDetectionsAgg = async (
+  headers?: AxiosRequestHeaders,
+): Promise<NewDetectionsAggRes[]> => {
+  try {
+    const resp = await axios.get<NewDetectionsAggRes[]>(
+      `${getAPIURL()}/new-detections-agg`,
+      { headers },
+    )
+    if (resp.status === 200 && resp.data) {
+      return resp.data
+    }
+    return []
+  } catch {
+    return []
   }
 }
 

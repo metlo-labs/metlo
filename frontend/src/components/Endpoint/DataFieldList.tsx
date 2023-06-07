@@ -160,7 +160,7 @@ const columns = (dataClassInfo: DataClass[]): TableColumn<DataField>[] => {
           )}
         </Box>
       ),
-      id: "dataPath",
+      id: "entity",
       grow: 1,
     },
     {
