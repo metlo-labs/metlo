@@ -7,8 +7,6 @@ import { DateRangePicker, FocusedInputShape } from "react-dates"
 import { GetNewDetectionsParams } from "@common/api/endpoint"
 import { NewDetectionType, RiskScore } from "@common/enums"
 
-import "react-dates/lib/css/_datepicker.css"
-
 interface NewDetectionFilterProps {
   hostList: string[]
   riskList: string[]
