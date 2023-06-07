@@ -14,6 +14,8 @@ import { Bar } from "react-chartjs-2"
 
 Chart.register(Tooltip, Legend, LinearScale, BarElement, TimeSeriesScale)
 
+export const formatter = Intl.NumberFormat("en", { notation: "compact" })
+
 const ENDPOINT_BAR_COLOR = "#22c55e"
 const DATA_FIELD_BAR_COLOR = "#2563eb"
 
@@ -25,7 +27,7 @@ const BAR_OPTIONS = {
   },
   plugins: {
     legend: {
-      display: false,
+      position: "bottom",
     },
   },
   scales: {
@@ -55,6 +57,9 @@ const BAR_OPTIONS = {
       },
       ticks: {
         precision: 0,
+        callback: label => {
+          return formatter.format(label)
+        },
       },
     },
   },
@@ -87,7 +92,7 @@ export const NewDetectionAggChart: React.FC<AggChartProps> = React.memo(
     }
 
     return (
-      <Box w="full" h="full">
+      <Box w="full" h="60">
         <Bar options={BAR_OPTIONS as any} data={barData} />
       </Box>
     )

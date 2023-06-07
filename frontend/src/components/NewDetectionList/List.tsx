@@ -161,18 +161,6 @@ export const NewDetectionTable: React.FC<NewDetectionTableProps> = React.memo(
               grow: 4,
             },
             {
-              name: "Section",
-              sortable: false,
-              selector: (row: DataField) =>
-                DATA_SECTION_TO_LABEL_MAP[row.dataSection],
-              cell: (row: DataField) => (
-                <Text data-tag="allowRowEvents">
-                  {DATA_SECTION_TO_LABEL_MAP[row.dataSection]}
-                </Text>
-              ),
-              id: "dataSection",
-            },
-            {
               name: "Field",
               sortable: false,
               selector: (row: DataField) => row.dataPath,
@@ -185,6 +173,9 @@ export const NewDetectionTable: React.FC<NewDetectionTableProps> = React.memo(
                   ) : (
                     <Text>None</Text>
                   )}
+                  <Text mt="2" pointerEvents="none" fontWeight="normal">
+                    {DATA_SECTION_TO_LABEL_MAP[row.dataSection]}
+                  </Text>
                 </Box>
               ),
               id: "dataPath",

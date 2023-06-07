@@ -1,4 +1,5 @@
 import { useRouter } from "next/router"
+import { DateTime } from "luxon"
 import {
   AlertDialog,
   AlertDialogBody,
@@ -85,6 +86,7 @@ const Endpoints: React.FC<EndpointsProps> = ({
   const parsedResourcePermissions =
     superjson.parse<string[]>(resourcePermissions) ?? []
   const parsedDataClasses = superjson.parse<DataClass[]>(dataClasses) ?? []
+  const showNewDetections = tab === EndpointsTab.NEW
   const toast = useToast()
   const router = useRouter()
 
@@ -170,118 +172,110 @@ const Endpoints: React.FC<EndpointsProps> = ({
   return (
     <PageWrapper title="Endpoints">
       <ContentContainer maxContentW="100rem" px="4" py="8">
-        <VStack w="full" spacing="4">
-          <HStack alignSelf="end" spacing="0">
-            <Badge
-              as="button"
-              onClick={() => setTab(EndpointsTab.ALL)}
-              roundedLeft="md"
-              p="1"
-              w="24"
-              borderWidth="2px 1px 2px 2px"
-              colorScheme={tab === EndpointsTab.NEW ? "none" : "gray"}
-              opacity={tab === EndpointsTab.NEW ? 0.5 : 1}
-              rounded="none"
-            >
-              All
-            </Badge>
-            <Badge
-              as="button"
-              onClick={() => setTab(EndpointsTab.NEW)}
-              roundedRight="md"
-              p="1"
-              w="24"
-              borderWidth="2px 2px 2px 1px"
-              colorScheme={tab === EndpointsTab.NEW ? "gray" : "none"}
-              opacity={tab === EndpointsTab.NEW ? 1 : 0.5}
-              rounded="none"
-            >
-              New
-            </Badge>
+        <VStack w="full" alignItems="flex-start" spacing="0">
+          <HStack mb="4" w="full" justifyContent="space-between">
+            <HStack spacing={6}>
+              <Heading fontWeight="semibold" size="lg">
+                {showNewDetections ? "New Detections" : "Endpoints"}
+              </Heading>
+              <HStack alignSelf="end" spacing="0">
+                <Badge
+                  as="button"
+                  onClick={() => setTab(EndpointsTab.ALL)}
+                  roundedLeft="md"
+                  p="1"
+                  w="24"
+                  borderWidth="2px 1px 2px 2px"
+                  colorScheme={showNewDetections ? "none" : "gray"}
+                  opacity={showNewDetections ? 0.5 : 1}
+                  rounded="none"
+                >
+                  All
+                </Badge>
+                <Badge
+                  as="button"
+                  onClick={() => setTab(EndpointsTab.NEW)}
+                  roundedRight="md"
+                  p="1"
+                  w="24"
+                  borderWidth="2px 2px 2px 1px"
+                  colorScheme={showNewDetections ? "gray" : "none"}
+                  opacity={showNewDetections ? 1 : 0.5}
+                  rounded="none"
+                >
+                  New
+                </Badge>
+              </HStack>
+            </HStack>
+            {!showNewDetections && (
+              <Button
+                isLoading={deleting}
+                variant="delete"
+                size="md"
+                onClick={onOpen}
+              >
+                Delete
+              </Button>
+            )}
           </HStack>
-          {tab === EndpointsTab.ALL ? (
-            <>
-              <VStack w="full" alignItems="flex-start" spacing="0">
-                <HStack mb="4" w="full" justifyContent="space-between">
-                  <Heading fontWeight="semibold" size="lg">
-                    Endpoints
-                  </Heading>
+          {showNewDetections ? (
+            <NewDetectionList
+              hosts={parsedHosts}
+              newDetections={parsedInitNewDetections}
+              fetching={fetching}
+              params={parsedInitDetectionParams}
+              totalCount={totalCount}
+              setParams={setDetectionParams}
+              dataClasses={parsedDataClasses}
+              detectionAgg={parsedNewDetectionsAgg}
+            />
+          ) : (
+            <EndpointList
+              hosts={parsedHosts}
+              endpoints={parsedInitEndpoints}
+              fetching={fetching}
+              params={parsedInitParams}
+              totalCount={totalCount}
+              setParams={setParams}
+              resourcePermissions={parsedResourcePermissions}
+              dataClasses={parsedDataClasses}
+              selectedUuids={selectedUuids}
+            />
+          )}
+        </VStack>
+        <AlertDialog
+          isOpen={isOpen}
+          leastDestructiveRef={cancelRef}
+          onClose={onClose}
+          size="3xl"
+        >
+          <AlertDialogOverlay>
+            <AlertDialogContent>
+              <AlertDialogHeader>Delete Selected Endpoints</AlertDialogHeader>
+              <AlertDialogBody>
+                Are you sure you want to delete the selected endpoints?
+                <Text>
+                  This will delete{" "}
+                  <strong>{selectedUuids.current.length}</strong> endpoint(s).
+                </Text>
+              </AlertDialogBody>
+              <AlertDialogFooter>
+                <HStack>
+                  <Button ref={cancelRef} onClick={onClose}>
+                    Cancel
+                  </Button>
                   <Button
                     isLoading={deleting}
                     variant="delete"
-                    size="md"
-                    onClick={onOpen}
+                    onClick={deleteEndpointsHandler}
                   >
                     Delete
                   </Button>
                 </HStack>
-                <EndpointList
-                  hosts={parsedHosts}
-                  endpoints={parsedInitEndpoints}
-                  fetching={fetching}
-                  params={parsedInitParams}
-                  totalCount={totalCount}
-                  setParams={setParams}
-                  resourcePermissions={parsedResourcePermissions}
-                  dataClasses={parsedDataClasses}
-                  selectedUuids={selectedUuids}
-                />
-              </VStack>
-              <AlertDialog
-                isOpen={isOpen}
-                leastDestructiveRef={cancelRef}
-                onClose={onClose}
-                size="3xl"
-              >
-                <AlertDialogOverlay>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      Delete Selected Endpoints
-                    </AlertDialogHeader>
-                    <AlertDialogBody>
-                      Are you sure you want to delete the selected endpoints?
-                      <Text>
-                        This will delete{" "}
-                        <strong>{selectedUuids.current.length}</strong>{" "}
-                        endpoint(s).
-                      </Text>
-                    </AlertDialogBody>
-                    <AlertDialogFooter>
-                      <HStack>
-                        <Button ref={cancelRef} onClick={onClose}>
-                          Cancel
-                        </Button>
-                        <Button
-                          isLoading={deleting}
-                          variant="delete"
-                          onClick={deleteEndpointsHandler}
-                        >
-                          Delete
-                        </Button>
-                      </HStack>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialogOverlay>
-              </AlertDialog>
-            </>
-          ) : (
-            <VStack w="full" alignItems="flex-start" spacing="0">
-              <Heading fontWeight="semibold" size="lg" mb="4" w="full">
-                New Detections
-              </Heading>
-              <NewDetectionList
-                hosts={parsedHosts}
-                newDetections={parsedInitNewDetections}
-                fetching={fetching}
-                params={parsedInitDetectionParams}
-                totalCount={totalCount}
-                setParams={setDetectionParams}
-                dataClasses={parsedDataClasses}
-                detectionAgg={parsedNewDetectionsAgg}
-              />
-            </VStack>
-          )}
-        </VStack>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialogOverlay>
+        </AlertDialog>
       </ContentContainer>
     </PageWrapper>
   )
@@ -324,8 +318,10 @@ export const getServerSideProps: GetServerSideProps = async context => {
       .map(e => e as RiskScore),
     detectionHosts:
       ((context.query.detectionHosts as string) || null)?.split(",") ?? [],
-    start: (context.query.start as string) || null,
-    end: (context.query.end as string) || null,
+    start:
+      (context.query.start as string) ||
+      DateTime.local().minus({ day: 60 }).toISO(),
+    end: (context.query.end as string) || DateTime.local().toISO(),
     detectionType:
       (context.query.detectionType as NewDetectionType) ||
       NewDetectionType.ENDPOINT,

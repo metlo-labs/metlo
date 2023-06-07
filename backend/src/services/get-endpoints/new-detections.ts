@@ -33,7 +33,19 @@ export const getNewDetections = async (
     } else if (params.end) {
       whereFilters.createdAt = LessThanOrEqual(new Date(params.end))
     }
-    if (params.detectionHosts?.length > 0) {
+    if (
+      params.detectionHosts?.length > 0 &&
+      params.detectionRiskScores?.length > 0
+    ) {
+      whereFilters.apiEndpoint = {
+        host: In(params.detectionHosts),
+        riskScore: In(params.detectionRiskScores),
+      }
+    } else if (params.detectionRiskScores?.length > 0) {
+      whereFilters.apiEndpoint = {
+        riskScore: In(params.detectionRiskScores),
+      }
+    } else if (params.detectionHosts?.length > 0) {
       whereFilters.apiEndpoint = {
         host: In(params.detectionHosts),
       }
