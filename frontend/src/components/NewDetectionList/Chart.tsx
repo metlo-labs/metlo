@@ -109,18 +109,11 @@ export const NewDetectionAggChart: React.FC<AggChartProps> = React.memo(
         if (!label) {
           return
         }
-        const currEnd = moment(params.end)
-        const newStart = moment(label)
-        if (newStart > currEnd) {
-          setParams({
-            start: newStart.startOf("day").toISOString(),
-            end: moment().local().endOf("day").toISOString(),
-          })
-        } else {
-          setParams({
-            start: newStart.startOf("day").toISOString(),
-          })
-        }
+        const newTime = moment(label)
+        setParams({
+          start: newTime.startOf("day").toISOString(),
+          end: newTime.endOf("day").toISOString(),
+        })
       },
     }
 

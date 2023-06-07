@@ -54,6 +54,7 @@ export const NewDetectionFilters: React.FC<NewDetectionFilterProps> =
                 focusedInput={focusedInput}
                 onFocusChange={e => setFocusedInput(e)}
                 isOutsideRange={() => false}
+                minimumNights={0}
               />
             </Box>
           </WrapItem>
