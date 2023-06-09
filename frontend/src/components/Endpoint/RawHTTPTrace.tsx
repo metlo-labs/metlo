@@ -5,12 +5,19 @@ import {
   HStack,
   VStack,
   useClipboard,
+  Heading,
 } from "@chakra-ui/react"
 import { ApiTrace } from "@common/types"
+import EmptyView from "components/utils/EmptyView"
 
 const traceToRawHttpReq = (trace: ApiTrace) => {
   let out: string[] = []
-  out.push(`${trace.method} ${trace.path} HTTP/1.1\r\n`)
+  out.push(`${trace.method} ${trace.path}`)
+  if (trace.requestParameters.length > 0) {
+    out.push("?")
+    out.push(trace.requestParameters.map(e => `${e.name}=${encodeURIComponent(e.value)}`).join("&"))
+  }
+  out.push(` HTTP/1.1\r\n`)
   out.push(trace.requestHeaders.map(e => `${e.name}: ${e.value}`).join("\r\n"))
   out.push("\r\n\r\n")
   out.push(
@@ -55,12 +62,25 @@ const RawItem = ({ title, val }: { title: string; val: string }) => {
   )
 }
 
-export const RawTraceView = ({ trace }: { trace: ApiTrace }) => (
-  <VStack w="full" alignItems="flex-start" spacing="4">
-    <RawItem title="Request" val={traceToRawHttpReq(trace)} />
-    <RawItem title="Response" val={traceToRawHttpResp(trace)} />
-  </VStack>
-)
+export const RawTraceView = ({ trace }: { trace: ApiTrace }) =>
+  trace.redacted ?? false ? (
+    <EmptyView>
+      <Heading
+        size="md"
+        fontWeight="semibold"
+        textAlign="center"
+        color="gray.400"
+      >
+        Enable Full Trace Capture for this Endpoint to see Request/Response
+        Headers and Bodies
+      </Heading>
+    </EmptyView>
+  ) : (
+    <VStack w="full" alignItems="flex-start" spacing="4">
+      <RawItem title="Request" val={traceToRawHttpReq(trace)} />
+      <RawItem title="Response" val={traceToRawHttpResp(trace)} />
+    </VStack>
+  )
 
 const STATUS_CODE_MAP = {
   "100": "Continue",
