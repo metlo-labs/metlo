@@ -16,7 +16,7 @@ class EcommerceGetProductProducer(BaseProducer):
             "method": "get",
             "path": f"/product/{product_uuid}",
             "params": {},
-            "header": False
+            "header": True
         }
 
     def get_data_points(self, time: datetime, products=None, carts=None, rps=15) -> List[dict]:
