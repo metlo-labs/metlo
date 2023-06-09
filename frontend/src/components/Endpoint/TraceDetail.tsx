@@ -24,6 +24,7 @@ import {
   SensitiveDataMap,
 } from "./sensitive-data-utils"
 import EmptyView from "components/utils/EmptyView"
+import { RawTraceView } from "./RawHTTPTrace"
 const ReactJson = dynamic(() => import("@akshays/react-json-view"), {
   ssr: false,
 })
@@ -238,6 +239,7 @@ export const TraceView: React.FC<{
 const TraceDetail: React.FC<TraceDetailProps> = React.memo(
   ({ trace, alertModalView, attackView, dataFields }) => {
     const colorMode = useColorMode()
+    const [rawMode, setRawMode] = useState(false)
     return (
       <Box
         w="full"
@@ -356,13 +358,45 @@ const TraceDetail: React.FC<TraceDetailProps> = React.memo(
             </>
           )}
         </Grid>
-        <Box pt="4">
-          <TraceView
-            trace={trace}
-            colorMode={colorMode.colorMode}
-            dataFields={dataFields}
-          />
-        </Box>
+        <VStack w="full" pt="4" alignItems="flex-start">
+          <HStack spacing="0" pb="2">
+            <Badge
+              as="button"
+              onClick={() => setRawMode(false)}
+              roundedLeft="md"
+              p="1"
+              w="24"
+              borderWidth="2px 1px 2px 2px"
+              colorScheme={rawMode ? "none" : "gray"}
+              opacity={rawMode ? 0.5 : 1}
+              rounded="none"
+            >
+              Pretty
+            </Badge>
+            <Badge
+              as="button"
+              onClick={() => setRawMode(true)}
+              roundedRight="md"
+              p="1"
+              w="24"
+              borderWidth="2px 2px 2px 1px"
+              colorScheme={rawMode ? "gray" : "none"}
+              opacity={rawMode ? 1 : 0.5}
+              rounded="none"
+            >
+              Raw
+            </Badge>
+          </HStack>
+          {rawMode ? (
+            <RawTraceView trace={trace} />
+          ) : (
+            <TraceView
+              trace={trace}
+              colorMode={colorMode.colorMode}
+              dataFields={dataFields}
+            />
+          )}
+        </VStack>
       </Box>
     )
   },
