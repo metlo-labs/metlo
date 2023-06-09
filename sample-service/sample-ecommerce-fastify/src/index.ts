@@ -1,5 +1,6 @@
 import Fastify, { FastifyInstance, FastifyReply, FastifyRequest } from "fastify"
 import fastifyMultipart from "@fastify/multipart"
+import stream from "stream"
 import dotenv from "dotenv"
 import { Cart, Product, User, Warehouse } from "models"
 import { AppDataSource } from "data-source"
@@ -143,11 +144,42 @@ app.register((fastify, options, next) => {
 
   fastify.get("/large-response", async function (req, res) {
     try {
-      const resp = "x".repeat(10 * 1024 * 1024)
-      await ApiResponseHandler.success(res, resp)
+      const respSize = parseInt(process.env.RESP_SIZE || "50")
+      const blob = new Blob([new ArrayBuffer(1000 * respSize)], {
+        type: "application/octet-stream",
+      })
+      const data = await blob.arrayBuffer()
+      res.type("application/octet-stream")
+      res.code(200)
+      res.send(Buffer.from(data))
     } catch (err) {
       await ApiResponseHandler.error(res, err)
     }
+  })
+
+  fastify.get("/chunked-response", function (request, reply) {
+    // Create a buffer to hold the response chunks
+    var buffer = new stream.Readable()
+    buffer._read = () => {}
+
+    buffer.push("[")
+    const data = Array.from({ length: 100 }, (_, index) => ({ id: index + 1 }))
+
+    // Send each chunk of data
+    data.forEach((item, index) => {
+      const chunk = JSON.stringify(item)
+
+      if (index !== 0) {
+        // Add a comma separator between chunks
+        buffer.push(",")
+      }
+
+      buffer.push(chunk)
+    })
+
+    buffer.push("]")
+    buffer.push(null)
+    reply.type("application/json").send(buffer)
   })
 
   next()

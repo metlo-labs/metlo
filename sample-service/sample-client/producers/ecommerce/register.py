@@ -17,6 +17,7 @@ class EcommerceRegisterProducer(BaseProducer):
             "phoneNumber": self.fake.phone_number(),
             "dob": self.fake.date_of_birth().isoformat(),
             "password": self.fake.sentence(nb_words=5),
+            "role": "user",
         }
         return {
             "method": "post",
