@@ -16,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@fastify/compress": "^6.4.0",
     "@fastify/multipart": "6.0.0",
     "bcryptjs": "^2.4.3",
     "crypto": "^1.0.1",

@@ -1,5 +1,6 @@
 import Fastify, { FastifyInstance, FastifyReply, FastifyRequest } from "fastify"
 import fastifyMultipart from "@fastify/multipart"
+import fastifyCompress from "@fastify/compress"
 import stream from "stream"
 import dotenv from "dotenv"
 import { Cart, Product, User, Warehouse } from "models"
@@ -37,6 +38,7 @@ const app: FastifyInstance = Fastify({})
 const port = Number(process.env.PORT) || 8080
 
 app.register(fastifyMultipart, { attachFieldsToBody: true })
+app.register(fastifyCompress, { global: false })
 
 app.register((fastify, options, next) => {
   fastify.get("/", async (request, reply) => {
@@ -179,9 +181,8 @@ app.register((fastify, options, next) => {
 
     buffer.push("]")
     buffer.push(null)
-    reply.type("application/json").send(buffer)
+    reply.type("application/json").compress(buffer)
   })
-
   next()
 })
 
