@@ -4,7 +4,7 @@ go 1.11
 
 require (
 	github.com/gin-gonic/gin v1.9.0
-	github.com/metlo-labs/metlo/ingestors/golang/metlo v1.0.0
+	github.com/metlo-labs/metlo/ingestors/golang/metlo v1.0.1
 )
 
 require (
