@@ -1,7 +1,7 @@
 go 1.19
 
 use (
-	./gorilla
 	./gin
+	./gorilla
 	./metlo
 )
