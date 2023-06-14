@@ -317,6 +317,13 @@ const recurseCreateBodyGraphQl = (
           __typename: true,
         }
       }
+      if (
+        currTokenIndex === mapTokens.length - 1 &&
+        dataField.dataSection === DataSection.RESPONSE_BODY &&
+        body?.[currToken]
+      ) {
+        delete body?.[currToken]?.["__typename"]
+      }
       if (currToken === "__args") {
         seenArgs = true
       }
@@ -365,6 +372,11 @@ const addBodyToRequest = (
     return gen
   }
   let body: any = undefined
+  if (endpoint.isGraphQl) {
+    filteredDataFields.sort((a, b) =>
+      a.dataSection.localeCompare(b.dataSection),
+    )
+  }
   const func = endpoint.isGraphQl ? recurseCreateBodyGraphQl : recurseCreateBody
   const ast = endpoint.graphQlSchema
     ? Parser.parse(endpoint.graphQlSchema)
