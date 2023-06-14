@@ -317,6 +317,13 @@ const recurseCreateBodyGraphQl = (
           __typename: true,
         }
       }
+      if (
+        currTokenIndex === mapTokens.length - 1 &&
+        dataField.dataSection === DataSection.RESPONSE_BODY &&
+        body?.[currToken]
+      ) {
+        delete body?.[currToken]?.["__typename"]
+      }
       if (currToken === "__args") {
         seenArgs = true
       }
@@ -375,6 +382,7 @@ const addBodyToRequest = (
   }
 
   if (endpoint.isGraphQl) {
+    dataFields.sort((a, b) => a.dataSection.localeCompare(b.dataSection))
     return {
       ...gen,
       req: {
