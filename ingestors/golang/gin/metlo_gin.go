@@ -67,16 +67,11 @@ func (m *metloInstrumentation) Middleware(c *gin.Context) {
 	body, _ := ioutil.ReadAll(c.Request.Body)
 	c.Request.Body.Close()
 	c.Request.Body = ioutil.NopCloser(bytes.NewReader(body))
-	c.Next()
+
 	if m.app.Allow() {
 		reqHeaders := make([]metlo.NV, 0)
 		for k := range c.Request.Header {
 			reqHeaders = append(reqHeaders, metlo.NV{Name: k, Value: strings.Join(c.Request.Header[k], ",")})
-		}
-		resHeaderMap := c.Writer.Header()
-		resHeaders := make([]metlo.NV, 0)
-		for k := range resHeaderMap {
-			resHeaders = append(resHeaders, metlo.NV{Name: k, Value: strings.Join(resHeaderMap[k], ",")})
 		}
 		queryMap := c.Request.URL.Query()
 		queryParams := make([]metlo.NV, 0)
@@ -91,6 +86,14 @@ func (m *metloInstrumentation) Middleware(c *gin.Context) {
 		sourcePort, err := strconv.Atoi(sourcePortRaw)
 		if err != nil {
 			log.Println("Metlo couldn't find source port for incoming request")
+		}
+
+		c.Next()
+
+		resHeaderMap := c.Writer.Header()
+		resHeaders := make([]metlo.NV, 0)
+		for k := range resHeaderMap {
+			resHeaders = append(resHeaders, metlo.NV{Name: k, Value: strings.Join(resHeaderMap[k], ",")})
 		}
 
 		tr := metlo.MetloTrace{
@@ -121,6 +124,8 @@ func (m *metloInstrumentation) Middleware(c *gin.Context) {
 		}
 
 		go m.app.Send(tr)
-
+		// }
+	} else {
+		c.Next()
 	}
 }

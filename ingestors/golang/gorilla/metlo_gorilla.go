@@ -77,9 +77,9 @@ func (m *metloInstrumentation) Middleware(next http.Handler) http.Handler {
 		body, _ := ioutil.ReadAll(r.Body)
 		r.Body.Close()
 		r.Body = ioutil.NopCloser(bytes.NewReader(body))
-		next.ServeHTTP(logRespWriter, r)
 
 		if m.app.Allow() {
+			next.ServeHTTP(logRespWriter, r)
 			reqHeaders := make([]metlo.NV, 0)
 			for k := range r.Header {
 				reqHeaders = append(reqHeaders, metlo.NV{Name: k, Value: strings.Join(r.Header[k], ",")})
@@ -138,6 +138,8 @@ func (m *metloInstrumentation) Middleware(next http.Handler) http.Handler {
 			}
 
 			go m.app.Send(tr)
+		} else {
+			next.ServeHTTP(logRespWriter, r)
 		}
 	})
 }
