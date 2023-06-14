@@ -107,7 +107,6 @@ func (m *metlo) BootstrapInstance() {
 		m.disable = true
 	} else {
 		m.processStream = conn
-		// go connStateWatcher(conn, m)
 	}
 }
 
@@ -201,21 +200,3 @@ func (m *metlo) restartMetlo(shouldSpawnTask bool) bool {
 	}
 	return false
 }
-
-// func connStateWatcher(conn *grpc.ClientConn, m *metlo) {
-// 	ticker := time.NewTicker(time.Millisecond * 200)
-// 	for {
-// 		select {
-// 		case <-ticker.C:
-// 			if m.disable {
-// 				break
-// 			}
-// 			conn.Connect()
-// 			if conn.GetState() == connectivity.Shutdown {
-// 				m.processStream = nil
-// 				m.restartMetlo(false)
-// 			}
-
-// 		}
-// 	}
-// }

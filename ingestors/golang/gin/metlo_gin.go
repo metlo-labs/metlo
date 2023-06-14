@@ -124,7 +124,6 @@ func (m *metloInstrumentation) Middleware(c *gin.Context) {
 		}
 
 		go m.app.Send(tr)
-		// }
 	} else {
 		c.Next()
 	}
