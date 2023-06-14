@@ -15,42 +15,54 @@ import (
 )
 
 type metlo struct {
-	disable        bool
-	processStream  pb.MetloIngest_ProcessTraceAsyncClient
-	rps            int
-	metloHost      string
-	metloKey       string
-	backendPort    int
-	collectorPort  int
-	encryptionKey  *string
-	logLevel       LogLevel
-	reconnectMutex sync.Mutex
-	restartCount   int
-	spawnedTask    bool
+	disable              bool
+	processStream        pb.MetloIngest_ProcessTraceAsyncClient
+	rps                  int
+	metloHost            string
+	metloKey             string
+	backendPort          int
+	collectorPort        int
+	encryptionKey        *string
+	logLevel             LogLevel
+	reconnectMutex       sync.Mutex
+	restartCount         int
+	connectionRetryCount int
+	spawnedTask          bool
 }
 
 const MetloDefaultRPS int = 100
+const MaxRestartTries int = 10
 const MaxConnectTries int = 10
+const MaxConnectionRetries int = 1000
 
 func (m *metlo) ConnectLocalProcessAgent() (pb.MetloIngest_ProcessTraceAsyncClient, error) {
 	var connectErr error = nil
 	for i := 0; i < MaxConnectTries; i++ {
+		if m.logLevel <= Trace {
+			logger.Println("Socket Dial Attempt ", i)
+		}
 		conn, err := grpc.Dial("unix:///tmp/metlo.sock", grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err == nil {
 			metloConn := pb.NewMetloIngestClient(conn)
 			stream_process_trace, err := metloConn.ProcessTraceAsync(context.Background())
 			if err == nil {
+				if m.logLevel <= Trace {
+					logger.Println("Established connection")
+				}
 				return stream_process_trace, err
 			} else {
 				connectErr = err
 			}
 		} else {
 			if m.logLevel <= Debug {
-				logger.Println("Couldn't connect to metlo agent over socket. Try ", i, err)
+				logger.Println("Couldn't connect to metlo agent over socket for attempt ", i, err)
 			}
 			connectErr = err
 		}
 		time.Sleep(time.Second)
+	}
+	if m.logLevel <= Trace {
+		logger.Println("Couldn't establish connection")
 	}
 	return nil, connectErr
 }
@@ -72,18 +84,19 @@ func InitMetlo(metloHost string, metloKey string) *metlo {
 
 func InitMetloCustom(metloHost string, metloKey string, rps int, backendPort int, collectorPort int, encryptionKey *string, logLevel LogLevel, disable bool) *metlo {
 	inst := &metlo{
-		rps:            rps,
-		metloHost:      metloHost,
-		metloKey:       metloKey,
-		disable:        disable,
-		backendPort:    backendPort,
-		collectorPort:  collectorPort,
-		encryptionKey:  encryptionKey,
-		logLevel:       logLevel,
-		reconnectMutex: sync.Mutex{},
-		restartCount:   0,
-		spawnedTask:    false,
-		processStream:  nil,
+		rps:                  rps,
+		metloHost:            metloHost,
+		metloKey:             metloKey,
+		disable:              disable,
+		backendPort:          backendPort,
+		collectorPort:        collectorPort,
+		encryptionKey:        encryptionKey,
+		logLevel:             logLevel,
+		reconnectMutex:       sync.Mutex{},
+		restartCount:         0,
+		connectionRetryCount: 0,
+		spawnedTask:          false,
+		processStream:        nil,
 	}
 	go inst.BootstrapInstance()
 	return inst
@@ -168,35 +181,45 @@ func (m *metlo) Allow() bool {
 	return !m.disable
 }
 
-func (m *metlo) restartMetlo(shouldSpawnTask bool) bool {
+func (m *metlo) restartMetlo(shouldSpawnTask bool) {
 	if m.reconnectMutex.TryLock() {
 		defer m.reconnectMutex.Unlock()
-		if m.restartCount < MaxConnectTries {
-			m.restartCount++
-			if shouldSpawnTask {
-				err := m.StartLocalAgent()
-				if err != nil {
-					if m.logLevel <= Error {
-						logger.Println("Couldn't spawn local Metlo Agent")
-					}
-					return false
-				} else {
-					m.spawnedTask = true
-				}
-			}
-			conn, err := m.ConnectLocalProcessAgent()
-			if err != nil {
-				if m.logLevel <= Error {
-					logger.Println("Couldn't connect to metlo agent when restarting")
-				}
-				return false
+		if shouldSpawnTask {
+			if m.restartCount < MaxRestartTries {
+				m.restartCount++
+				m.restartMetloSubprocess()
 			} else {
-				m.processStream = conn
-				return true
+				m.disable = true
+				return
 			}
+		}
+		if m.connectionRetryCount < MaxConnectionRetries {
+			m.renewMetloConnection()
 		} else {
 			m.disable = true
 		}
 	}
-	return false
+	return
+}
+
+func (m *metlo) renewMetloConnection() {
+	conn, err := m.ConnectLocalProcessAgent()
+	if err != nil {
+		if m.logLevel <= Error {
+			logger.Println("Couldn't connect to metlo agent when restarting")
+		}
+	} else {
+		m.processStream = conn
+	}
+}
+
+func (m *metlo) restartMetloSubprocess() {
+	err := m.StartLocalAgent()
+	if err != nil {
+		if m.logLevel <= Error {
+			logger.Println("Couldn't spawn local Metlo Agent")
+		}
+	} else {
+		m.spawnedTask = true
+	}
 }
