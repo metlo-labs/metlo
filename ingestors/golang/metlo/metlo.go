@@ -160,6 +160,7 @@ func (m *metlo) Send(data MetloTrace) {
 			if m.logLevel <= Error {
 				logger.Println("Encountered an error while sending message to GRPC for Process Trace", err)
 			}
+			m.restartMetlo(false)
 		}
 	}
 }
