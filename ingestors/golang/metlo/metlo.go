@@ -151,7 +151,6 @@ func (m *metlo) Send(data MetloTrace) {
 			logger.Println("Metlo GRPC stream not setup")
 		}
 		m.restartMetlo(!m.spawnedTask)
-		return
 	}
 	miTrace := MapMetloTraceToMetloIngestRPC(data)
 	if m.processStream != nil {
