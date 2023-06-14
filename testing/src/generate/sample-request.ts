@@ -372,6 +372,11 @@ const addBodyToRequest = (
     return gen
   }
   let body: any = undefined
+  if (endpoint.isGraphQl) {
+    filteredDataFields.sort((a, b) =>
+      a.dataSection.localeCompare(b.dataSection),
+    )
+  }
   const func = endpoint.isGraphQl ? recurseCreateBodyGraphQl : recurseCreateBody
   const ast = endpoint.graphQlSchema
     ? Parser.parse(endpoint.graphQlSchema)
@@ -382,7 +387,6 @@ const addBodyToRequest = (
   }
 
   if (endpoint.isGraphQl) {
-    dataFields.sort((a, b) => a.dataSection.localeCompare(b.dataSection))
     return {
       ...gen,
       req: {
