@@ -29,7 +29,7 @@
     "ts-node": "^10.9.1"
   },
   "dependencies": {
-    "@aws-sdk/client-ec2": "^3.198.0",
+    "@aws-sdk/client-ec2": "^3.352.0",
     "@aws-sdk/client-ecs": "^3.314.0",
     "@aws-sdk/client-elastic-load-balancing-v2": "^3.315.0",
     "@aws-sdk/client-sts": "^3.198.0",
