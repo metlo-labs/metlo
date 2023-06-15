@@ -389,10 +389,9 @@ export const getAccessItems = (
             .filter(([k, v]) => k !== "auth")
             .map(([k, v]) => `${k}=${v}`)
             .join(",")}) does not have ${permsNeeded} access to ${
-            permissionValidations.length > 0
-              ? `${entName}(${permissionValidations
-                  .filter(e => e?.reason)
-                  .map(e => e.reason)
+            typeof entItem === "object"
+              ? `${entName}(${Object.entries(entItem)
+                  .map(([itemKey, itemValue], idx) => `${itemKey}=${itemValue}`)
                   .join(",")})`
               : entName
           }.`,

@@ -114,17 +114,20 @@ export const getAuthTestPayloads = (
       payloads.push(payload)
     }
     for (const noAccessEnt of noAccessEnts) {
-      const payloadNoAccessEntities = {
-        [noAccessEnt]: notHasAccessItems[noAccessEnt][0],
+      for (const item of notHasAccessItems[noAccessEnt]) {
+        const payloadNoAccessEntities = {
+          [noAccessEnt]: item,
+        }
+        payloads.push({
+          authActorEntity: authActor,
+          reason: item.reason,
+          entities: {
+            ...defaultPayloadEntities,
+            ...payloadNoAccessEntities,
+          },
+          authorized: false,
+        })
       }
-      payloads.push({
-        authActorEntity: authActor,
-        entities: {
-          ...defaultPayloadEntities,
-          ...payloadNoAccessEntities,
-        },
-        authorized: false,
-      })
     }
   }
   return payloads
@@ -194,7 +197,10 @@ export const addAuthToRequest = (
   }
 }
 
-export const getResponseAssertion = (hostInfo: Host, endpoint: GenTestEndpoint) => {
+export const getResponseAssertion = (
+  hostInfo: Host,
+  endpoint: GenTestEndpoint,
+) => {
   if (!hostInfo?.responseAssertions) {
     return null
   }

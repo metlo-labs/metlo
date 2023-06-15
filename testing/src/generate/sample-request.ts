@@ -93,7 +93,9 @@ const recurseCreateBody = (
   entityMap: Record<string, any>,
 ): any => {
   if (currTokenIndex > mapTokens.length - 1 || !mapTokens[currTokenIndex]) {
-    return dataField.entity && entityMap[dataField.entity]
+    return dataField.entity &&
+      entityMap[dataField.entity] !== undefined &&
+      entityMap[dataField.entity] !== null
       ? entityMap[dataField.entity]
       : getSampleValue(dataField.dataType)
   } else {
@@ -272,7 +274,9 @@ const recurseCreateBodyGraphQl = (
     if (typeof body === "object") {
       return body
     }
-    return dataField.entity && entityMap[dataField.entity]
+    return dataField.entity &&
+      entityMap[dataField.entity] !== undefined &&
+      entityMap[dataField.entity] !== null
       ? getGraphQlEntityValue(entityMap[dataField.entity])
       : getEnumValue(ast, mapTokens) || getSampleValue(dataField.dataType)
   } else {
