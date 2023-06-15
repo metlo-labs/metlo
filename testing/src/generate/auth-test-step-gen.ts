@@ -120,6 +120,7 @@ export const getAuthTestPayloads = (
         }
         payloads.push({
           authActorEntity: authActor,
+          reason: item.reason,
           entities: {
             ...defaultPayloadEntities,
             ...payloadNoAccessEntities,
