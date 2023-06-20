@@ -3,8 +3,8 @@ from random import randint
 from uuid import uuid4
 import json
 
-from producers.ecommerce.utils import get_product, attack_sources, destinations, attack_users
-from producers.utils import get_auth_header, get_meta, JSON_HEADER, get_user
+from producers.ecommerce.utils import get_product
+from producers.utils import get_auth_header, JSON_HEADER, get_user
 from producers.base import BaseProducer
 
 
@@ -24,6 +24,7 @@ class EcommerceGetCartCommandExecUserProducer(BaseProducer):
                 ],
             }
         }
+        user = get_user()
         return {
             "request": {
                 "url": {
@@ -37,12 +38,12 @@ class EcommerceGetCartCommandExecUserProducer(BaseProducer):
                 "headers": [get_auth_header()],
                 "method": "GET",
                 "body": "",
-                "user": get_user(attack_users)
+                "user": user["user"]
             },
             "response": {
                 "status": 404,
                 "headers": [JSON_HEADER],
                 "body": json.dumps(resp_body),
             },
-            "meta": get_meta(attack_sources, destinations),
+            "meta": user["meta"],
         }

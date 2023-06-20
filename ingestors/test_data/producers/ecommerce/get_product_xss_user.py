@@ -2,13 +2,8 @@ from datetime import timedelta
 from uuid import uuid4
 import json
 
-from producers.ecommerce.utils import (
-    get_product,
-    attack_sources,
-    destinations,
-    attack_users,
-)
-from producers.utils import get_meta, JSON_HEADER, get_user
+from producers.ecommerce.utils import get_product
+from producers.utils import JSON_HEADER, get_user
 from producers.base import BaseProducer
 
 
@@ -32,6 +27,7 @@ class EcommerceGetProductXSSUserProducer(BaseProducer):
                 },
             },
         }
+        user = get_user()
         return {
             "request": {
                 "url": {
@@ -44,12 +40,12 @@ class EcommerceGetProductXSSUserProducer(BaseProducer):
                 "headers": [],
                 "method": "GET",
                 "body": "",
-                "user": get_user(attack_users),
+                "user": user["user"],
             },
             "response": {
                 "status": 200,
                 "headers": [JSON_HEADER],
                 "body": json.dumps(resp_body),
             },
-            "meta": get_meta(attack_sources, destinations),
+            "meta": user["meta"],
         }
