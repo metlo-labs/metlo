@@ -26,6 +26,11 @@ def get_meta(sources, destinations):
     }
 
 
+def get_user(users):
+    user = choice(users)
+    return user
+
+
 def get_auth_header():
     return {
         "name": "X-API-KEY",

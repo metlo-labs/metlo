@@ -1,5 +1,13 @@
 from random import randint
 
+attack_users = [
+    'jamie92@yahoo.com',
+    'lisa72@hotmail.com',
+    'daviseric@hotmail.com',
+    'hicksjeffrey@yahoo.com',
+    'simmonsjennifer@gmail.com',
+]
+
 sources = [
     ('205.193.67.126', 11792),
     ('32.205.184.234', 16487),

@@ -54,6 +54,7 @@ def req_iter():
                         ),
                         headers=map_key_val(point["request"]["headers"]),
                         body=(point["request"]["body"] if "body" in point["request"] else None),
+                        user=(point["request"]["user"] if "user" in point["request"] else None),
                     ),
                     response=mi_types.ApiResponse(
                         status=point["response"]["status"],
