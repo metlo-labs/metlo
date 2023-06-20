@@ -22,16 +22,18 @@ class ApiMeta(_message.Message):
     def __init__(self, environment: _Optional[str] = ..., incoming: bool = ..., source: _Optional[str] = ..., source_port: _Optional[int] = ..., destination: _Optional[str] = ..., destination_port: _Optional[int] = ...) -> None: ...
 
 class ApiRequest(_message.Message):
-    __slots__ = ["body", "headers", "method", "url"]
+    __slots__ = ["body", "headers", "method", "url", "user"]
     BODY_FIELD_NUMBER: _ClassVar[int]
     HEADERS_FIELD_NUMBER: _ClassVar[int]
     METHOD_FIELD_NUMBER: _ClassVar[int]
     URL_FIELD_NUMBER: _ClassVar[int]
+    USER_FIELD_NUMBER: _ClassVar[int]
     body: str
     headers: _containers.RepeatedCompositeFieldContainer[KeyVal]
     method: str
     url: ApiUrl
-    def __init__(self, method: _Optional[str] = ..., url: _Optional[_Union[ApiUrl, _Mapping]] = ..., headers: _Optional[_Iterable[_Union[KeyVal, _Mapping]]] = ..., body: _Optional[str] = ...) -> None: ...
+    user: str
+    def __init__(self, method: _Optional[str] = ..., url: _Optional[_Union[ApiUrl, _Mapping]] = ..., headers: _Optional[_Iterable[_Union[KeyVal, _Mapping]]] = ..., body: _Optional[str] = ..., user: _Optional[str] = ...) -> None: ...
 
 class ApiResponse(_message.Message):
     __slots__ = ["body", "headers", "status"]
@@ -78,7 +80,14 @@ class ProcessTraceAsyncRes(_message.Message):
     def __init__(self, ok: bool = ...) -> None: ...
 
 class ProcessTraceRes(_message.Message):
-    __slots__ = ["block", "data_types", "request_content_type", "response_content_type", "sensitive_data_detected", "sqli_detected", "validation_errors", "xss_detected"]
+    __slots__ = ["attack_detections", "block", "data_types", "request_content_type", "response_content_type", "sensitive_data_detected"]
+    class AttackDetectionsEntry(_message.Message):
+        __slots__ = ["key", "value"]
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: RepeatedString
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[RepeatedString, _Mapping]] = ...) -> None: ...
     class DataTypesEntry(_message.Message):
         __slots__ = ["key", "value"]
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -93,55 +102,22 @@ class ProcessTraceRes(_message.Message):
         key: str
         value: RepeatedString
         def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[RepeatedString, _Mapping]] = ...) -> None: ...
-    class SqliDetectedEntry(_message.Message):
-        __slots__ = ["key", "value"]
-        KEY_FIELD_NUMBER: _ClassVar[int]
-        VALUE_FIELD_NUMBER: _ClassVar[int]
-        key: str
-        value: SqliRes
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[SqliRes, _Mapping]] = ...) -> None: ...
-    class ValidationErrorsEntry(_message.Message):
-        __slots__ = ["key", "value"]
-        KEY_FIELD_NUMBER: _ClassVar[int]
-        VALUE_FIELD_NUMBER: _ClassVar[int]
-        key: str
-        value: RepeatedString
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[RepeatedString, _Mapping]] = ...) -> None: ...
-    class XssDetectedEntry(_message.Message):
-        __slots__ = ["key", "value"]
-        KEY_FIELD_NUMBER: _ClassVar[int]
-        VALUE_FIELD_NUMBER: _ClassVar[int]
-        key: str
-        value: str
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    ATTACK_DETECTIONS_FIELD_NUMBER: _ClassVar[int]
     BLOCK_FIELD_NUMBER: _ClassVar[int]
     DATA_TYPES_FIELD_NUMBER: _ClassVar[int]
     REQUEST_CONTENT_TYPE_FIELD_NUMBER: _ClassVar[int]
     RESPONSE_CONTENT_TYPE_FIELD_NUMBER: _ClassVar[int]
     SENSITIVE_DATA_DETECTED_FIELD_NUMBER: _ClassVar[int]
-    SQLI_DETECTED_FIELD_NUMBER: _ClassVar[int]
-    VALIDATION_ERRORS_FIELD_NUMBER: _ClassVar[int]
-    XSS_DETECTED_FIELD_NUMBER: _ClassVar[int]
+    attack_detections: _containers.MessageMap[str, RepeatedString]
     block: bool
     data_types: _containers.MessageMap[str, RepeatedString]
     request_content_type: str
     response_content_type: str
     sensitive_data_detected: _containers.MessageMap[str, RepeatedString]
-    sqli_detected: _containers.MessageMap[str, SqliRes]
-    validation_errors: _containers.MessageMap[str, RepeatedString]
-    xss_detected: _containers.ScalarMap[str, str]
-    def __init__(self, block: bool = ..., xss_detected: _Optional[_Mapping[str, str]] = ..., sqli_detected: _Optional[_Mapping[str, SqliRes]] = ..., sensitive_data_detected: _Optional[_Mapping[str, RepeatedString]] = ..., data_types: _Optional[_Mapping[str, RepeatedString]] = ..., validation_errors: _Optional[_Mapping[str, RepeatedString]] = ..., request_content_type: _Optional[str] = ..., response_content_type: _Optional[str] = ...) -> None: ...
+    def __init__(self, block: bool = ..., attack_detections: _Optional[_Mapping[str, RepeatedString]] = ..., sensitive_data_detected: _Optional[_Mapping[str, RepeatedString]] = ..., data_types: _Optional[_Mapping[str, RepeatedString]] = ..., request_content_type: _Optional[str] = ..., response_content_type: _Optional[str] = ...) -> None: ...
 
 class RepeatedString(_message.Message):
     __slots__ = ["rep_string"]
     REP_STRING_FIELD_NUMBER: _ClassVar[int]
     rep_string: _containers.RepeatedScalarFieldContainer[str]
     def __init__(self, rep_string: _Optional[_Iterable[str]] = ...) -> None: ...
-
-class SqliRes(_message.Message):
-    __slots__ = ["data", "fingerprint"]
-    DATA_FIELD_NUMBER: _ClassVar[int]
-    FINGERPRINT_FIELD_NUMBER: _ClassVar[int]
-    data: str
-    fingerprint: str
-    def __init__(self, data: _Optional[str] = ..., fingerprint: _Optional[str] = ...) -> None: ...
