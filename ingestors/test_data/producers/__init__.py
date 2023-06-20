@@ -65,5 +65,6 @@ PRODUCER_CLS_MAP = {
     "ecommerce_services": EcommerceServicesProducer,
     "payment_processor_services": PaymentProcessorServices,
     "ecommerce_get_product_xss_user": EcommerceGetProductXSSUserProducer,
-    "ecommerce_get_product_ssrf_user": EcommerceGetCartCommandExecUserProducer,
+    "ecommerce_get_product_ssrf_user": EcommerceGetProductSSRFUserProducer,
+    "ecommerce_get_cart_command_exec_user": EcommerceGetCartCommandExecUserProducer,
 }
