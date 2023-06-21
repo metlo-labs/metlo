@@ -17,6 +17,7 @@ import { mapOptionParser } from "./utils"
 import { initJuiceShopData } from "./juice-shop/init-data"
 import { initJuiceShopTemplates } from "./juice-shop/init-templates"
 import { AWS_SOURCE_TYPE } from "./aws/types"
+import { fuzzAttacks } from "./testing/fuzz"
 
 program.name("metlo").description("Metlo's command line tool.").version("0.2.9")
 
@@ -26,6 +27,13 @@ program
   .option("-b, --backend_url <string>", "The backend address for Metlo")
   .option("-k, --api_key <string>", "An API key for Metlo")
   .action(init)
+program
+  .command("fuzz")
+  .requiredOption("-h,--host <string>", "The host to run the tests for")
+  .option("-v,--verbose", "print detailed test errors")
+  .option("--envfile <string>", "path for your env file")
+  .option("--env <key>=<value>", "environment variables", mapOptionParser)
+  .action(fuzzAttacks)
 
 const test = program.command("test")
 test

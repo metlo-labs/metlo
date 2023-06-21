@@ -2,7 +2,7 @@ import { Response } from "express"
 import ApiResponseHandler from "api-response-handler"
 import Error400BadRequest from "errors/error-400-bad-request"
 import { MetloRequest } from "types"
-import { getGenTestEndpoint } from "services/testing/utils"
+import { getGenTestEndpoint, getGenTestEndpoints } from "services/testing/utils"
 import Error404NotFound from "errors/error-404-not-found"
 
 export const getGenTestEndpointHandler = async (
@@ -31,6 +31,25 @@ export const getGenTestEndpointHandler = async (
       )
     }
     await ApiResponseHandler.success(res, endpoint)
+  } catch (err) {
+    await ApiResponseHandler.error(res, err)
+  }
+}
+
+export const getGenTestEndpointsHandler = async (
+  req: MetloRequest,
+  res: Response,
+): Promise<void> => {
+  const queryParams: { host?: string } = req.query
+  if (!queryParams.host) {
+    return await ApiResponseHandler.error(
+      res,
+      new Error400BadRequest("No host specified."),
+    )
+  }
+  try {
+    const endpoints = await getGenTestEndpoints(req.ctx, queryParams.host)
+    await ApiResponseHandler.success(res, endpoints)
   } catch (err) {
     await ApiResponseHandler.error(res, err)
   }
