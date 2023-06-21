@@ -173,7 +173,7 @@ const runTestPath = async (
   }
 }
 
-interface TestConfigResp {
+export interface TestConfigResp {
   uuid: string
   apiEndpointUuid: string
   method: string
@@ -225,7 +225,7 @@ interface TestResWithUUID {
   result: TestResult
 }
 
-const runTestConfigs = async (
+export const runTestConfigs = async (
   tests: TestConfigResp[],
   env: { [key: string]: string },
   verbose: boolean,
@@ -266,14 +266,16 @@ const runTestConfigs = async (
         chalk.bold.red(`${results.length} tests failed on endpoint ${key}:`),
       )
       results.forEach(res => {
-        console.log(
-          chalk.red(
-            urlJoin(
-              config.metloHost,
-              `/endpoint/${res.apiEndpointUuid}/test/${res.uuid}`,
+        if (res.apiEndpointUuid && res.uuid) {
+          console.log(
+            chalk.red(
+              urlJoin(
+                config.metloHost,
+                `/endpoint/${res.apiEndpointUuid}/test/${res.uuid}`,
+              ),
             ),
-          ),
-        )
+          )
+        }
         if (verbose) {
           const failedAssertions = getFailedAssertions(res.result)
           const failedRequests = getFailedRequests(res.result)
