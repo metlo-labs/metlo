@@ -8,6 +8,7 @@ import Error400BadRequest from "errors/error-400-bad-request"
 import { createQB, getRepository } from "services/database/utils"
 import { MetloRequest } from "types"
 import { API_KEY_TYPE } from "@common/enums"
+import { MAX_API_KEYS } from "resource-limit"
 
 export const listKeys = async (
   req: MetloRequest,
@@ -30,7 +31,17 @@ export const createKey = async (
   res: Response,
 ): Promise<void> => {
   const { name: keyName, keyFor } = req.body
-  const key_exists = await getRepository(req.ctx, ApiKey).countBy({
+  const keyRepo = getRepository(req.ctx, ApiKey)
+  const keyCount = await keyRepo.count({})
+  if (keyCount >= MAX_API_KEYS) {
+    return ApiResponseHandler.error(
+      res,
+      new Error400BadRequest(
+        `Maximum API Key Limit Reached: ${MAX_API_KEYS}. Consider deleting any that are not in use.`,
+      ),
+    )
+  }
+  const key_exists = await keyRepo.countBy({
     name: keyName,
   })
   if (key_exists) {
