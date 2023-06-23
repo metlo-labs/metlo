@@ -19,6 +19,7 @@ import { ArrayOverlap } from "typeorm"
 import { AppDataSource } from "data-source"
 import mlog from "logger"
 import { NodeCache } from "utils/node-cache"
+import { MAX_DATA_CLASSES } from "resource-limit"
 
 const DATA_CLASS_KEY = "CACHED_DATA_CLASSES"
 const DEFAULT_CLASSES = Object.values(__DataClass_INTERNAL__)
@@ -235,6 +236,16 @@ export async function ensureValidCustomDataClasses(
   const newConfig = (jsyaml.load(newConfigResp) as object) || {}
   if ("sensitiveData" in newConfig) {
     const existingClasses = DEFAULT_CLASSES as string[]
+    const newDataClasses = Object.keys(newConfig["sensitiveData"])
+    if (newDataClasses.length > MAX_DATA_CLASSES) {
+      return {
+        success: false,
+        msg: `Cannot have more than ${MAX_DATA_CLASSES} data classes.`,
+        err: new Error(
+          `Cannot have more than ${MAX_DATA_CLASSES} data classes.`,
+        ),
+      }
+    }
     for (const configName of Object.keys(newConfig["sensitiveData"])) {
       if (existingClasses.includes(configName)) {
         return {
