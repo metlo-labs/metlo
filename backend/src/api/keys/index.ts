@@ -70,7 +70,7 @@ export const createKey = async (
   if (keyFor) {
     key.for = API_KEY_TYPE[keyFor]
   }
-  await getRepository(req.ctx, ApiKey).save(key)
+  await keyRepo.save(key)
   return ApiResponseHandler.success(res, {
     apiKey: rawKey,
     name: key.name,
