@@ -84,14 +84,17 @@ export const METLO_CONFIG_SCHEMA = {
           id: {
             type: "string",
             minLength: 1,
+            maxLength: 100,
           },
           host: {
             type: "string",
             minLength: 1,
+            maxLength: 200,
           },
           path: {
             type: "string",
             minLength: 1,
+            maxLength: 200,
           },
           method: {
             type: "string",
@@ -107,7 +110,7 @@ export const METLO_CONFIG_SCHEMA = {
                 items: {
                   type: "string",
                   minLength: 1,
-                  maxLength: 25,
+                  maxLength: 50,
                 },
                 minItems: 1,
                 maxItems: 50,
@@ -119,7 +122,7 @@ export const METLO_CONFIG_SCHEMA = {
         additionalProperties: false,
       },
       minItems: 1,
-      maxItems: 2,
+      maxItems: 100,
     },
     blockFields: {
       type: "object",
