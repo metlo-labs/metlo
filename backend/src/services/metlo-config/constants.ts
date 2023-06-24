@@ -1,4 +1,9 @@
-import { AuthType, RiskScore, __DataClass_INTERNAL__ } from "@common/enums"
+import {
+  AuthType,
+  RestMethod,
+  RiskScore,
+  __DataClass_INTERNAL__,
+} from "@common/enums"
 import { Schema } from "ajv"
 
 const patternName = String.raw`^[- \w]+$`
@@ -30,6 +35,10 @@ export const METLO_CONFIG_SCHEMA = {
           cookieName: {
             type: "string",
             minLength: 1,
+          },
+          userCookieName: {
+            type: "string",
+            minLenght: 1,
           },
         },
         required: ["host", "authType"],
@@ -65,6 +74,52 @@ export const METLO_CONFIG_SCHEMA = {
         ],
         additionalProperties: false,
       },
+    },
+    ignoredDetections: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["ignoredPaths"],
+        properties: {
+          id: {
+            type: "string",
+            minLength: 1,
+          },
+          host: {
+            type: "string",
+            minLength: 1,
+          },
+          path: {
+            type: "string",
+            minLength: 1,
+          },
+          method: {
+            type: "string",
+            enum: Object.keys(RestMethod),
+          },
+          ignoredPaths: {
+            type: "object",
+            minProperties: 1,
+            maxProperties: 100,
+            patternProperties: {
+              "^.*$": {
+                type: "array",
+                items: {
+                  type: "string",
+                  minLength: 1,
+                  maxLength: 25,
+                },
+                minItems: 1,
+                maxItems: 50,
+              },
+            },
+            additionalProperties: false,
+          },
+        },
+        additionalProperties: false,
+      },
+      minItems: 1,
+      maxItems: 2,
     },
     blockFields: {
       type: "object",

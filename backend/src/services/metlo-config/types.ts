@@ -1,3 +1,4 @@
+import { RestMethod } from "@common/enums"
 import { AuthenticationConfig } from "@common/types"
 
 export interface HostMapping {
@@ -28,4 +29,13 @@ export interface MetloConfigType {
   customWords?: string[]
   hostBlockList?: string[]
   pathBlockList?: PathBlockList[]
+  ignoredDetections?: IgnoredDetection[]
+}
+
+export interface IgnoredDetection {
+  id?: string
+  host?: string
+  path?: string
+  method?: RestMethod
+  ignoredPaths: Record<string, string[]>
 }

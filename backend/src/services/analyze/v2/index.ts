@@ -20,6 +20,7 @@ import { getSensitiveDataMap } from "services/scanner/v2/analyze-trace"
 import { getCombinedDataClassesCached } from "services/data-classes"
 import { findOpenApiSpecDiff } from "services/spec/v2"
 import { shouldUpdateEndpoint, updateDataFields } from "analyze-traces"
+import { IgnoredDetection } from "services/metlo-config/types"
 
 const getGraphQlRegularPath = (path: string) => {
   const splitPath = path.split("/")
@@ -35,6 +36,7 @@ export const analyze = async (
   newEndpoint: boolean,
   skipDataFields: boolean,
   hasValidLicense: boolean,
+  ignoredDetections: IgnoredDetection[],
 ) => {
   const traceUUID = uuidv4()
   mlog.debug(`Analyzing Trace: ${traceUUID}`)

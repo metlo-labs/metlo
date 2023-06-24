@@ -9,6 +9,7 @@ import { isGraphQlEndpoint } from "services/graphql"
 import { AnalysisType, DataSection } from "@common/enums"
 import { shouldSkipDataFields } from "utils"
 import { AppDataSource } from "data-source"
+import { IgnoredDetection } from "services/metlo-config/types"
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms))
 
@@ -188,6 +189,12 @@ const runFullAnalysis = async (
       performance.now() - startCreateGraphQlTraces,
     )
   }
+
+  const ignoredDetections: IgnoredDetection[] = await pool.run({
+    type: "get_ignored_detections",
+    task: { ctx: task.ctx },
+  })
+
   for (const traceItem of traces) {
     const start = performance.now()
     const endpoint = await pool.run({
@@ -219,6 +226,7 @@ const runFullAnalysis = async (
         apiEndpoint: endpoint,
         trace: traceItem,
         skipDataFields: skipDataFields,
+        ignoredDetections: ignoredDetections ?? [],
       },
     })
     mlog.time("analyzer.total_analysis", performance.now() - start)
@@ -289,6 +297,11 @@ const runPartialAnalysisBulk = async (
     performance.now() - startBulkGetEndpoints,
   )
 
+  const ignoredDetections: IgnoredDetection[] = await pool.run({
+    type: "get_ignored_detections",
+    task: { ctx: task.ctx },
+  })
+
   const startAnalyzePartial = performance.now()
   await pool.run({
     type: "analyze_partial_bulk",
@@ -296,6 +309,7 @@ const runPartialAnalysisBulk = async (
       ...task,
       traces: graphqlSplitTraces,
       apiEndpointUUIDs: endpoints.map(e => e?.uuid),
+      ignoredDetections: ignoredDetections ?? [],
     },
   })
   mlog.time(
