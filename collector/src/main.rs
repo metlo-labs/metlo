@@ -1,54 +1,55 @@
-use axum::{
-    http::StatusCode,
-    routing::{get, post},
-    Json, Router,
-};
-use serde::{Deserialize, Serialize};
+mod api;
+mod metlomiddle;
+mod state;
+mod types;
+mod utils;
+
 use std::net::SocketAddr;
+
+use axum::{
+    middleware,
+    routing::{get, post},
+    Router,
+};
+use dotenv::dotenv;
 
 async fn health() -> &'static str {
     "OK"
 }
 
-async fn create_user(
-    // this argument tells axum to parse the request body
-    // as JSON into a `CreateUser` type
-    Json(payload): Json<CreateUser>,
-) -> (StatusCode, Json<User>) {
-    // insert your application logic here
-    let user = User {
-        id: 1337,
-        username: payload.username,
-    };
-
-    // this will be converted into a JSON response
-    // with a status code of `201 Created`
-    (StatusCode::CREATED, Json(user))
-}
-
-// the input to our `create_user` handler
-#[derive(Deserialize)]
-struct CreateUser {
-    username: String,
-}
-
-// the output to our `create_user` handler
-#[derive(Serialize)]
-struct User {
-    id: u64,
-    username: String,
+async fn verify_api_key() -> &'static str {
+    "OK"
 }
 
 #[tokio::main]
-async fn main() {
-    let app = Router::new()
-        .route("/api/v1", get(health))
-        .route("/users", post(create_user));
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    dotenv().ok();
 
-    // run our app with hyper, listening globally on port 8081
+    let app_state = state::AppState::make_app_state().await?;
+
+    let auth_routes = Router::new()
+        .route("/api/v1/verify", get(verify_api_key))
+        .route("/api/v2/verify", get(verify_api_key))
+        .route(
+            "/api/v2/log-request/batch",
+            post(api::log_trace::log_trace_batch),
+        )
+        .route_layer(middleware::from_fn_with_state(
+            app_state.clone(),
+            metlomiddle::auth::auth,
+        ));
+    let no_auth_routes = Router::new().route("/api/v2", get(health));
+
+    let app = Router::new()
+        .merge(auth_routes)
+        .merge(no_auth_routes)
+        .with_state(app_state);
+
     let addr = SocketAddr::from(([127, 0, 0, 1], 8081));
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
         .unwrap();
+
+    Ok(())
 }
