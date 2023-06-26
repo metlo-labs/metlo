@@ -87,6 +87,6 @@ pub async fn auth<B>(
             .map_err(internal_error)?;
         Ok(next.run(req).await)
     } else {
-        return Err((StatusCode::UNAUTHORIZED, "Unauthorized".to_string()));
+        Err((StatusCode::UNAUTHORIZED, "Unauthorized".to_string()))
     }
 }

@@ -15,18 +15,18 @@ pub struct AppState {
 impl AppState {
     pub async fn make_app_state() -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
         let db_conn_string =
-            env::var("DB_URL").map_err(|e| format!("Error getting DB_URL: {}", e.to_string()))?;
-        let redis_url = env::var("REDIS_URL")
-            .map_err(|e| format!("Error getting REDIS_URL: {}", e.to_string()))?;
+            env::var("DB_URL").map_err(|e| format!("Error getting DB_URL: {}", e))?;
+        let redis_url =
+            env::var("REDIS_URL").map_err(|e| format!("Error getting REDIS_URL: {}", e))?;
         let encryption_key = env::var("ENCRYPTION_KEY")
-            .map_err(|e| format!("Error getting ENCRYPTION_KEY: {}", e.to_string()))?;
+            .map_err(|e| format!("Error getting ENCRYPTION_KEY: {}", e))?;
 
         let db_url = Url::parse(&db_conn_string)?;
 
         let mut db_config = Config::new();
         db_config.user = Some(db_url.username().to_string()).filter(|e| !e.is_empty());
         db_config.dbname = Some(db_url.path().to_string())
-            .map(|e| e.trim_start_matches("/").to_string())
+            .map(|e| e.trim_start_matches('/').to_string())
             .filter(|e| !e.is_empty());
         db_config.host = db_url.host().map(|e| e.to_string());
         db_config.port = db_url.port();
