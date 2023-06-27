@@ -41,7 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let app_state_endpoint_tree = app_state.clone();
     refresh_endpoint_tree(app_state_endpoint_tree.clone()).await;
     tokio::task::spawn(async move {
-        let mut interval = time::interval(Duration::from_secs(20));
+        let mut interval = time::interval(Duration::from_secs(300));
         loop {
             interval.tick().await;
             refresh_endpoint_tree(app_state_endpoint_tree.clone()).await;
