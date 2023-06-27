@@ -3,7 +3,11 @@ use std::cmp::Ordering;
 use serde_json::json;
 use tokio_postgres::Row;
 
-use crate::{state::AppState, types::TreeApiEndpoint, ENDPOINT_TREE};
+use crate::{
+    state::AppState,
+    types::{CurrentUser, ProcessedApiTrace, TreeApiEndpoint},
+    ENDPOINT_TREE,
+};
 
 use futures_util::{pin_mut, TryStreamExt};
 
@@ -146,4 +150,111 @@ pub async fn refresh_endpoint_tree(state: AppState) {
         }
         Err(e) => println!("Error building endpoint tree: {:?}", e),
     }
+}
+
+fn find_endpoint_helper(
+    curr: usize,
+    path_tokens: &[&str],
+    num_path_params: i32,
+    tree: &serde_json::Value,
+    best_match: &mut Option<TreeApiEndpoint>,
+) {
+    match tree {
+        serde_json::Value::Object(e) => {
+            if e.is_empty() {
+                return;
+            }
+        }
+        serde_json::Value::Null => return,
+        _ => (),
+    }
+    if let Some(m) = best_match {
+        if num_path_params > m.number_params {
+            return;
+        }
+    }
+
+    let token = path_tokens[curr];
+
+    if curr == path_tokens.len() - 1 {
+        let mut matched_endpoint: Option<TreeApiEndpoint> = None;
+        if tree[token]["endpoint"].is_object() {
+            if let Some(v) = tree.get(token).and_then(|e| {
+                e.get("endpoint")
+                    .and_then(|f| serde_json::from_value::<TreeApiEndpoint>(f.to_owned()).ok())
+            }) {
+                matched_endpoint = Some(v);
+            }
+        } else if tree["{param}"]["endpoint"].is_object() {
+            if let Some(v) = tree.get("{param}").and_then(|e| {
+                e.get("endpoint")
+                    .and_then(|f| serde_json::from_value::<TreeApiEndpoint>(f.to_owned()).ok())
+            }) {
+                matched_endpoint = Some(v);
+            }
+        }
+        if let Some(endpoint) = matched_endpoint {
+            if best_match
+                .as_ref()
+                .map_or(true, |e| endpoint.number_params < e.number_params)
+            {
+                *best_match = Some(endpoint);
+            }
+        }
+        return;
+    }
+
+    if !tree[token].is_null() {
+        find_endpoint_helper(
+            curr + 1,
+            path_tokens,
+            num_path_params,
+            &tree[token]["children"],
+            best_match,
+        );
+    }
+    if !tree["{param}"].is_null() {
+        find_endpoint_helper(
+            curr + 1,
+            path_tokens,
+            num_path_params + 1,
+            &tree["{param}"]["children"],
+            best_match,
+        )
+    }
+}
+
+fn find_endpoint_recursive(
+    path_tokens: &[&str],
+    tree: &serde_json::Value,
+) -> Option<TreeApiEndpoint> {
+    let mut best_match: Option<TreeApiEndpoint> = None;
+    find_endpoint_helper(0, path_tokens, 0, tree, &mut best_match);
+    best_match
+}
+
+pub fn get_endpoint_from_tree(
+    user: CurrentUser,
+    trace: ProcessedApiTrace,
+) -> Option<TreeApiEndpoint> {
+    let tree_read = ENDPOINT_TREE.try_read();
+    if let Ok(tree) = tree_read {
+        let ptr = &tree["children"][user.organization_uuid.to_string()]["children"]
+            [trace.request.url.host]["children"][trace.request.method]["children"];
+        if ptr.is_object() {
+            let path_tokens: Vec<&str> = trace.request.url.path.split('/').collect();
+            if path_tokens.len() > 20 {
+                return None;
+            }
+            let mut start: usize = 0;
+            if !path_tokens.is_empty() && path_tokens[0].is_empty() {
+                start = 1
+            }
+            let res = find_endpoint_recursive(&path_tokens[start..], ptr);
+            return res;
+        } else {
+            return None;
+        }
+    }
+    None
 }
