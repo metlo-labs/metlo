@@ -38,7 +38,7 @@ export const METLO_CONFIG_SCHEMA = {
           },
           userCookieName: {
             type: "string",
-            minLenght: 1,
+            minLength: 1,
           },
         },
         required: ["host", "authType"],
