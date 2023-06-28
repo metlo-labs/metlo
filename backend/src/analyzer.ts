@@ -9,6 +9,7 @@ import { isGraphQlEndpoint } from "services/graphql"
 import { AnalysisType, DataSection } from "@common/enums"
 import { shouldSkipDataFields } from "utils"
 import { AppDataSource } from "data-source"
+import { IgnoredDetection } from "services/metlo-config/types"
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms))
 
@@ -160,15 +161,19 @@ const runFullAnalysis = async (
   singleTrace: QueuedApiTrace,
 ) => {
   const startRunTrace = performance.now()
-  const mapped_host_res: { mappedHost: string | null; isBlocked: boolean } =
-    await pool.run({
-      type: "get_mapped_host",
-      task: {
-        ctx: task.ctx,
-        host: singleTrace.host,
-        tracePath: singleTrace.path,
-      },
-    })
+  const mapped_host_res: {
+    mappedHost: string | null
+    isBlocked: boolean
+    ignoredDetections: IgnoredDetection[]
+  } = await pool.run({
+    type: "get_mapped_host",
+    task: {
+      ctx: task.ctx,
+      host: singleTrace.host,
+      tracePath: singleTrace.path,
+      applyIgnoredDetections: true,
+    },
+  })
   if (mapped_host_res.isBlocked) {
     mlog.count("analyzer.blocked_host_skipped_count")
     return
@@ -219,6 +224,7 @@ const runFullAnalysis = async (
         apiEndpoint: endpoint,
         trace: traceItem,
         skipDataFields: skipDataFields,
+        ignoredDetections: mapped_host_res?.ignoredDetections ?? [],
       },
     })
     mlog.time("analyzer.total_analysis", performance.now() - start)
@@ -231,15 +237,19 @@ const runPartialAnalysisBulk = async (
   traces: QueuedApiTrace[],
 ) => {
   const startRunTraces = performance.now()
-  const mapped_host_res: { mappedHost: string | null; isBlocked: boolean }[] =
-    await pool.run({
-      type: "get_mapped_host",
-      task: traces.map(e => ({
-        ctx: task.ctx,
-        host: e.host,
-        tracePath: e.path,
-      })),
-    })
+  const mapped_host_res: {
+    mappedHost: string | null
+    isBlocked: boolean
+    ignoredDetections: IgnoredDetection[]
+  }[] = await pool.run({
+    type: "get_mapped_host",
+    task: traces.map((e, idx) => ({
+      ctx: task.ctx,
+      host: e.host,
+      tracePath: e.path,
+      applyIgnoredDetections: idx === 0,
+    })),
+  })
   mlog.time("analyzer.bulk_get_mapped_host", performance.now() - startRunTraces)
 
   let mappedTraces: QueuedApiTrace[] = []
@@ -296,6 +306,7 @@ const runPartialAnalysisBulk = async (
       ...task,
       traces: graphqlSplitTraces,
       apiEndpointUUIDs: endpoints.map(e => e?.uuid),
+      ignoredDetections: mapped_host_res?.[0]?.ignoredDetections ?? [],
     },
   })
   mlog.time(

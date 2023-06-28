@@ -13,6 +13,7 @@ import { decrypt, encrypt, generate_iv } from "utils/encryption"
 import {
   HostMapping,
   HostMappingCompiled,
+  IgnoredDetection,
   MetloConfigType,
   PathBlockList,
   PathBlockListCompiled,
@@ -154,6 +155,14 @@ export const getAuthenticationConfig = async (
 ): Promise<AuthenticationConfig[]> => {
   const conf = await getMetloConfigProcessedCached(ctx)
   return conf.authentication ?? []
+}
+
+export const getIgnoredDetectionsCached = async (
+  ctx: MetloContext,
+  queryRunner?: QueryRunner,
+): Promise<IgnoredDetection[]> => {
+  const conf = await getMetloConfigProcessedCached(ctx, queryRunner)
+  return conf.ignoredDetections ?? []
 }
 
 export const updateMetloConfig = async (

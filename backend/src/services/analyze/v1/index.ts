@@ -21,6 +21,7 @@ import { getSensitiveDataMap } from "services/scanner/analyze-trace"
 import { getCombinedDataClassesCached } from "services/data-classes"
 import { getGlobalFullTraceCaptureCached } from "services/metlo-config"
 import { shouldUpdateEndpoint, updateDataFields } from "analyze-traces"
+import { IgnoredDetection } from "services/metlo-config/types"
 
 export const analyze = async (
   ctx: MetloContext,
@@ -30,6 +31,7 @@ export const analyze = async (
   newEndpoint: boolean,
   skipDataFields: boolean,
   hasValidLicense: boolean,
+  ignoredDetections: IgnoredDetection[],
 ) => {
   const traceUUID = uuidv4()
   mlog.debug(`Analyzing Trace: ${traceUUID}`)

@@ -27,10 +27,12 @@ import {
   getCustomWordsCached,
   getHostBlockListCompiledCached,
   getHostMapCompiledCached,
+  getIgnoredDetectionsCached,
   getPathBlockListCompiledCached,
 } from "services/metlo-config"
 import { RedisClient } from "utils/redis"
 import { ENDPOINT_CALL_COUNT_HASH, ORG_ENDPOINT_CALL_COUNT } from "./constants"
+import { IgnoredDetection } from "services/metlo-config/types"
 
 export const shouldUpdateEndpoint = (
   prevRiskScore: RiskScore,
@@ -114,6 +116,7 @@ const generateEndpoint = async (
   queryRunner: QueryRunner,
   isGraphQl: boolean,
   hasValidEnterpriseLicense: boolean,
+  ignoredDetections: IgnoredDetection[],
   analyzeFunc: (
     ctx: MetloContext,
     trace: QueuedApiTrace,
@@ -122,6 +125,7 @@ const generateEndpoint = async (
     newEndpoint: boolean,
     skipDataFields: boolean,
     hasValidEnterpriseLicense: boolean,
+    ignoredDetections: IgnoredDetection[],
   ) => Promise<void>,
 ): Promise<void> => {
   const startGenerateEndpoint = performance.now()
@@ -201,6 +205,7 @@ const generateEndpoint = async (
         true,
         false,
         hasValidEnterpriseLicense,
+        ignoredDetections,
       )
       await setEndpointCalled(ctx, apiEndpoint.uuid)
     } catch (err) {
@@ -233,6 +238,7 @@ const generateEndpoint = async (
             false,
             skipDataFields,
             hasValidEnterpriseLicense,
+            ignoredDetections,
           )
         }
       } else {
@@ -275,13 +281,18 @@ const getMappedHost = async (task: {
   ctx: MetloContext
   host: string
   tracePath: string
-}): Promise<{ mappedHost: string | null; isBlocked: boolean }> => {
+  applyIgnoredDetections: boolean
+}): Promise<{
+  mappedHost: string | null
+  isBlocked: boolean
+  ignoredDetections: IgnoredDetection[]
+}> => {
   let mappedHost = null
   let isBlocked = false
   try {
     await getDataSource()
     let queryRunner = await getQueryRunner()
-    const { ctx, host, tracePath } = task
+    const { ctx, host, tracePath, applyIgnoredDetections } = task
     const start = performance.now()
     const hostMap = await getHostMapCompiledCached(ctx, queryRunner)
     mlog.time("analyzer.get_host_map", performance.now() - start)
@@ -346,7 +357,17 @@ const getMappedHost = async (task: {
       )
     }
 
-    return { mappedHost, isBlocked }
+    let ignoredDetections = []
+    if (applyIgnoredDetections) {
+      const startIgnoredDetections = performance.now()
+      ignoredDetections = await getIgnoredDetectionsCached(ctx, queryRunner)
+      mlog.time(
+        "analyzer.get_ignored_detections",
+        performance.now() - startIgnoredDetections,
+      )
+    }
+
+    return { mappedHost, isBlocked, ignoredDetections }
   } catch (err) {
     mlog.withErr(err).error("Encountered error while processing trace host")
     if (queryRunner.isTransactionActive) {
@@ -374,12 +395,20 @@ const analyzeTraces = async (task: {
   hasValidEnterpriseLicense: boolean
   apiEndpoint: ApiEndpoint
   skipDataFields: boolean
+  ignoredDetections: IgnoredDetection[]
 }) => {
   const start = performance.now()
   try {
     await getDataSource()
     let queryRunner = await getQueryRunner()
-    const { trace, ctx, version, hasValidEnterpriseLicense, apiEndpoint } = task
+    const {
+      trace,
+      ctx,
+      version,
+      hasValidEnterpriseLicense,
+      apiEndpoint,
+      ignoredDetections,
+    } = task
     trace.createdAt = new Date(trace.createdAt)
     const analyzeFunc = version === 2 ? analyzeV2 : analyze
     const customWords = await getCustomWordsCached(ctx)
@@ -403,6 +432,7 @@ const analyzeTraces = async (task: {
         false,
         task.skipDataFields,
         hasValidEnterpriseLicense,
+        ignoredDetections,
       )
       await setEndpointCalled(ctx, apiEndpoint.uuid)
     } else {
@@ -413,6 +443,7 @@ const analyzeTraces = async (task: {
           queryRunner,
           task.isGraphQl,
           hasValidEnterpriseLicense,
+          ignoredDetections,
           analyzeFunc,
         )
       }
@@ -430,6 +461,7 @@ const analyzePartialBulk = async (task: {
   traces: QueuedApiTrace[]
   apiEndpointUUIDs: string[]
   ctx: MetloContext
+  ignoredDetections: IgnoredDetection[]
 }) => {
   const start = performance.now()
   const len = task.traces?.length ?? 0
