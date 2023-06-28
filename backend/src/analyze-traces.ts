@@ -281,6 +281,7 @@ const getMappedHost = async (task: {
   ctx: MetloContext
   host: string
   tracePath: string
+  applyIgnoredDetections: boolean
 }): Promise<{
   mappedHost: string | null
   isBlocked: boolean
@@ -291,7 +292,7 @@ const getMappedHost = async (task: {
   try {
     await getDataSource()
     let queryRunner = await getQueryRunner()
-    const { ctx, host, tracePath } = task
+    const { ctx, host, tracePath, applyIgnoredDetections } = task
     const start = performance.now()
     const hostMap = await getHostMapCompiledCached(ctx, queryRunner)
     mlog.time("analyzer.get_host_map", performance.now() - start)
@@ -356,12 +357,15 @@ const getMappedHost = async (task: {
       )
     }
 
-    const startIgnoredDetections = performance.now()
-    const ignoredDetections = await getIgnoredDetectionsCached(ctx, queryRunner)
-    mlog.time(
-      "analyzer.get_ignored_detections",
-      performance.now() - startIgnoredDetections,
-    )
+    let ignoredDetections = []
+    if (applyIgnoredDetections) {
+      const startIgnoredDetections = performance.now()
+      ignoredDetections = await getIgnoredDetectionsCached(ctx, queryRunner)
+      mlog.time(
+        "analyzer.get_ignored_detections",
+        performance.now() - startIgnoredDetections,
+      )
+    }
 
     return { mappedHost, isBlocked, ignoredDetections }
   } catch (err) {

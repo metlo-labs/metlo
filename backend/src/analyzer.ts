@@ -171,6 +171,7 @@ const runFullAnalysis = async (
       ctx: task.ctx,
       host: singleTrace.host,
       tracePath: singleTrace.path,
+      applyIgnoredDetections: true,
     },
   })
   if (mapped_host_res.isBlocked) {
@@ -242,10 +243,11 @@ const runPartialAnalysisBulk = async (
     ignoredDetections: IgnoredDetection[]
   }[] = await pool.run({
     type: "get_mapped_host",
-    task: traces.map(e => ({
+    task: traces.map((e, idx) => ({
       ctx: task.ctx,
       host: e.host,
       tracePath: e.path,
+      applyIgnoredDetections: idx === 0,
     })),
   })
   mlog.time("analyzer.bulk_get_mapped_host", performance.now() - startRunTraces)
