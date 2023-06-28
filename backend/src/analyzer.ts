@@ -161,15 +161,18 @@ const runFullAnalysis = async (
   singleTrace: QueuedApiTrace,
 ) => {
   const startRunTrace = performance.now()
-  const mapped_host_res: { mappedHost: string | null; isBlocked: boolean } =
-    await pool.run({
-      type: "get_mapped_host",
-      task: {
-        ctx: task.ctx,
-        host: singleTrace.host,
-        tracePath: singleTrace.path,
-      },
-    })
+  const mapped_host_res: {
+    mappedHost: string | null
+    isBlocked: boolean
+    ignoredDetections: IgnoredDetection[]
+  } = await pool.run({
+    type: "get_mapped_host",
+    task: {
+      ctx: task.ctx,
+      host: singleTrace.host,
+      tracePath: singleTrace.path,
+    },
+  })
   if (mapped_host_res.isBlocked) {
     mlog.count("analyzer.blocked_host_skipped_count")
     return
@@ -178,6 +181,7 @@ const runFullAnalysis = async (
     singleTrace.originalHost = singleTrace.host
     singleTrace.host = mapped_host_res.mappedHost
   }
+  const ignoredDetections = mapped_host_res.ignoredDetections
 
   let traces: QueuedApiTrace[] = [singleTrace]
   const isGraphQl = isGraphQlEndpoint(singleTrace.path)
@@ -189,12 +193,6 @@ const runFullAnalysis = async (
       performance.now() - startCreateGraphQlTraces,
     )
   }
-
-  const ignoredDetections: IgnoredDetection[] = await pool.run({
-    type: "get_ignored_detections",
-    task: { ctx: task.ctx },
-  })
-
   for (const traceItem of traces) {
     const start = performance.now()
     const endpoint = await pool.run({

@@ -281,7 +281,11 @@ const getMappedHost = async (task: {
   ctx: MetloContext
   host: string
   tracePath: string
-}): Promise<{ mappedHost: string | null; isBlocked: boolean }> => {
+}): Promise<{
+  mappedHost: string | null
+  isBlocked: boolean
+  ignoredDetections: IgnoredDetection[]
+}> => {
   let mappedHost = null
   let isBlocked = false
   try {
@@ -352,30 +356,19 @@ const getMappedHost = async (task: {
       )
     }
 
-    return { mappedHost, isBlocked }
+    const startIgnoredDetections = performance.now()
+    const ignoredDetections = await getIgnoredDetectionsCached(ctx, queryRunner)
+    mlog.time(
+      "analyzer.get_ignored_detections",
+      performance.now() - startIgnoredDetections,
+    )
+
+    return { mappedHost, isBlocked, ignoredDetections }
   } catch (err) {
     mlog.withErr(err).error("Encountered error while processing trace host")
     if (queryRunner.isTransactionActive) {
       await queryRunner.rollbackTransaction()
     }
-  }
-}
-
-const getIgnoredDetections = async (task: {
-  ctx: MetloContext
-}): Promise<IgnoredDetection[]> => {
-  try {
-    await getDataSource()
-    let queryRunner = await getQueryRunner()
-    const { ctx } = task
-    const start = performance.now()
-    const ignoredDetections = await getIgnoredDetectionsCached(ctx, queryRunner)
-    mlog.time("analyzer.get_ignored_detections", performance.now() - start)
-    return ignoredDetections
-  } catch (err) {
-    mlog
-      .withErr(err)
-      .error("Encountered error while fetching ignore detections")
   }
 }
 
@@ -547,8 +540,6 @@ const runTaskInner = async (task: { type: string; task: any }) => {
     return await getEndpoint(task.task)
   } else if (task.type == "get_mapped_host") {
     return await getMappedHost(task.task)
-  } else if (task.type == "get_ignored_detections") {
-    return await getIgnoredDetections(task.task)
   }
 }
 
