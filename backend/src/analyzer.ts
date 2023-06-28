@@ -181,7 +181,6 @@ const runFullAnalysis = async (
     singleTrace.originalHost = singleTrace.host
     singleTrace.host = mapped_host_res.mappedHost
   }
-  const ignoredDetections = mapped_host_res.ignoredDetections
 
   let traces: QueuedApiTrace[] = [singleTrace]
   const isGraphQl = isGraphQlEndpoint(singleTrace.path)
@@ -224,7 +223,7 @@ const runFullAnalysis = async (
         apiEndpoint: endpoint,
         trace: traceItem,
         skipDataFields: skipDataFields,
-        ignoredDetections: ignoredDetections ?? [],
+        ignoredDetections: mapped_host_res?.ignoredDetections ?? [],
       },
     })
     mlog.time("analyzer.total_analysis", performance.now() - start)
@@ -237,15 +236,18 @@ const runPartialAnalysisBulk = async (
   traces: QueuedApiTrace[],
 ) => {
   const startRunTraces = performance.now()
-  const mapped_host_res: { mappedHost: string | null; isBlocked: boolean }[] =
-    await pool.run({
-      type: "get_mapped_host",
-      task: traces.map(e => ({
-        ctx: task.ctx,
-        host: e.host,
-        tracePath: e.path,
-      })),
-    })
+  const mapped_host_res: {
+    mappedHost: string | null
+    isBlocked: boolean
+    ignoredDetections: IgnoredDetection[]
+  }[] = await pool.run({
+    type: "get_mapped_host",
+    task: traces.map(e => ({
+      ctx: task.ctx,
+      host: e.host,
+      tracePath: e.path,
+    })),
+  })
   mlog.time("analyzer.bulk_get_mapped_host", performance.now() - startRunTraces)
 
   let mappedTraces: QueuedApiTrace[] = []
@@ -295,11 +297,6 @@ const runPartialAnalysisBulk = async (
     performance.now() - startBulkGetEndpoints,
   )
 
-  const ignoredDetections: IgnoredDetection[] = await pool.run({
-    type: "get_ignored_detections",
-    task: { ctx: task.ctx },
-  })
-
   const startAnalyzePartial = performance.now()
   await pool.run({
     type: "analyze_partial_bulk",
@@ -307,7 +304,7 @@ const runPartialAnalysisBulk = async (
       ...task,
       traces: graphqlSplitTraces,
       apiEndpointUUIDs: endpoints.map(e => e?.uuid),
-      ignoredDetections: ignoredDetections ?? [],
+      ignoredDetections: mapped_host_res?.[0]?.ignoredDetections ?? [],
     },
   })
   mlog.time(
