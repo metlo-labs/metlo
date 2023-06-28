@@ -22,14 +22,12 @@
 
 ## Metlo is an open-source API security platform
 
-With Metlo you can:
+Metlo is an open source API security tool you can setup in < 15 minutes that inventories your endpoints, detects bad actors and blocks malicious traffic in real time.
 
-* **Create an Inventory of all your API Endpoints and Sensitive Data.**
-* **Detect common API vulnerabilities.**
-* **Proactively test your APIs before they go into production.**
 * **Detect API attacks in real time.**
-
-Metlo does this by scanning your API traffic using one of our connectors and then analyzing trace data.
+* **Automatically block malicious actors.**
+* **Create an Inventory of all your API Endpoints and Sensitive Data.**
+* **Proactively test your APIs before they go into production.**
 
 ## Get started for free!
 <a href="https://app.metlo.com">
@@ -44,7 +42,7 @@ Metlo does this by scanning your API traffic using one of our connectors and the
 <br/>
 <br/>
 
-There are three ways to get started with Metlo. Metlo Cloud, Metlo Self Hosted, and our Open Source product. We recommend Metlo Cloud for almost all users as it scales to 100s of millions of requests per month and all upgrades and migrations are managed for you.
+There are three ways to get started with Metlo. Metlo Cloud, Metlo Self Hosted, and our Open Source product. We recommend Metlo Cloud for almost all users as it scales to billions of requests per month and all upgrades and migrations are managed for you.
 
 You can get started with Melto Cloud right away without a credit card. Just make an account on https://app.metlo.com and follow the instructions in our docs [here](https://docs.metlo.com/docs/getting-started).
 
@@ -55,15 +53,16 @@ If you want to deploy our Open Source product we have instructions for [AWS](htt
 You can also join our [Discord community](https://discord.gg/4xhumff9BX) if you need help or just want to chat!
 
 ## Features
-![walkthrough](https://metlo-api-security-public.s3.us-west-2.amazonaws.com/walkthrough.gif)
+
+[![Getting Started With Metlo](https://cdn.loom.com/sessions/thumbnails/a35ee39f2d474feabeda62cc078e3660-with-play.gif)](https://www.loom.com/share/a35ee39f2d474feabeda62cc078e3660 "Getting Started With Metlo")
 
 * **Endpoint Discovery** - Metlo scans network traffic and creates an inventory of every single endpoint in your API.
 * **Sensitive Data Scannning** - Each endpoint is scanned for PII data and given a risk score.
-* **Vulnerability Discovery** - Get Alerts for issues like unauthenticated endpoints returning sensitive data, No HSTS headers, PII data in URL params, Open API Spec Diffs and more
+* **Attack Detection** - Metlo passively listens to your API traffic and tags every malicous request. Our models are built on patterns of malicous requests to detect bad actors and API attacks.
+* **Attack Context** - Metlo’s UI gives you full context around any attack to help quickly fix the vulnerability.
+* **Attack Blocking** - Our cloud detection engine identifies bad actors and builds a model of how your API works. Each agent pulls this metadata from the cloud to block malicious requests in real time.
 * **API Security Testing** - Build security tests directly in Metlo. Autogenerate tests for OWASP Top 10 vulns like BOLA, Broken Authentication, SQL Injection and more.
 * **CI/CD Integration** - Integrate with your CI/CD to find issues in development and staging.
-* **Attack Detection** - Our ML Algorithms build a model for baseline API behavior. Any deviation from this baseline is surfaced to your security team as soon as possible.
-* **Attack Context** - Metlo’s UI gives you full context around any attack to help quickly fix the vulnerability.
 
 ## Testing
 ![Testing Screenshot](https://metlo-api-security-public.s3.us-west-2.amazonaws.com/testing-screenshot.png)
