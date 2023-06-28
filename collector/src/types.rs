@@ -214,7 +214,7 @@ pub struct ProcessTraceRes {
     pub request_tags: Option<Vec<String>>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SessionMeta {
     pub authentication_provided: Option<bool>,
@@ -225,7 +225,7 @@ pub struct SessionMeta {
     pub user_agent: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Encryption {
     pub key: String,

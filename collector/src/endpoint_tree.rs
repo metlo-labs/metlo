@@ -234,13 +234,13 @@ fn find_endpoint_recursive(
 }
 
 pub fn get_endpoint_from_tree(
-    user: CurrentUser,
-    trace: ProcessedApiTrace,
+    user: &CurrentUser,
+    trace: &ProcessedApiTrace,
 ) -> Option<TreeApiEndpoint> {
     let tree_read = ENDPOINT_TREE.try_read();
     if let Ok(tree) = tree_read {
         let ptr = &tree["children"][user.organization_uuid.to_string()]["children"]
-            [trace.request.url.host]["children"][trace.request.method]["children"];
+            [&trace.request.url.host]["children"][&trace.request.method]["children"];
         if ptr.is_object() {
             let path_tokens: Vec<&str> = trace.request.url.path.split('/').collect();
             if path_tokens.len() > 20 {

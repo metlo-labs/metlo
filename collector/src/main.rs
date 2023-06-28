@@ -1,5 +1,6 @@
 mod api;
 mod endpoint_tree;
+mod metlo_config;
 mod metlomiddle;
 mod state;
 mod types;
