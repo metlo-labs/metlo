@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 axum = { version = "0.6.18", features = ["json"] }
 base64 = "0.21.2"
+chrono = "0.4.26"
 deadpool-postgres = "0.10.5"
 deadpool-redis = "0.12.0"
 dotenv = "0.15.0"

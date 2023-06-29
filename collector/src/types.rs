@@ -4,6 +4,7 @@ use std::{
     fmt,
 };
 
+use chrono::{DateTime, Utc};
 use postgres_types::Type;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
@@ -244,6 +245,43 @@ pub struct ProcessedApiTrace {
     pub encryption: Option<Encryption>,
     pub session_meta: Option<SessionMeta>,
     pub analysis_type: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QueuedApiTrace {
+    pub path: String,
+    pub created_at: String,
+    pub host: String,
+    pub method: String,
+    pub request_parameters: Vec<KeyVal>,
+    pub request_headers: Vec<KeyVal>,
+    pub request_body: String,
+    pub response_status: u16,
+    pub response_headers: Vec<KeyVal>,
+    pub response_body: Option<String>,
+    pub meta: Option<ApiMeta>,
+    pub session_meta: Option<SessionMeta>,
+    pub processed_trace_data: Option<ProcessTraceRes>,
+    pub redacted: bool,
+    pub original_host: Option<String>,
+    pub encryption: Option<Encryption>,
+    pub analysis_type: String,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MetloContext {
+    pub organization_uuid: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QueuedApiTraceItem {
+    pub ctx: MetloContext,
+    pub version: u8,
+    pub trace: QueuedApiTrace,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

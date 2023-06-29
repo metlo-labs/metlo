@@ -5,11 +5,19 @@ use axum::{
     http::StatusCode,
 };
 
+use deadpool_redis::redis::cmd;
+
 use crate::{
     endpoint_tree::get_endpoint_from_tree,
     state::AppState,
-    types::{ApiRequest, ApiUrl, CurrentUser, ProcessTraceRes, ProcessedApiTrace, TreeApiEndpoint},
-    utils::{get_valid_path, internal_error, is_graphql_endpoint, GRAPHQL_SECTIONS},
+    types::{
+        ApiRequest, ApiUrl, CurrentUser, MetloContext, ProcessTraceRes, ProcessedApiTrace,
+        QueuedApiTrace, QueuedApiTraceItem, TreeApiEndpoint,
+    },
+    utils::{
+        get_valid_path, increment_endpoint_seen_usage_bulk, internal_error, is_graphql_endpoint,
+        ENDPOINT_CALL_COUNT_HASH, GRAPHQL_SECTIONS, ORG_ENDPOINT_CALL_COUNT, TRACES_QUEUE,
+    },
 };
 
 fn get_content_type(content_type: String) -> String {
@@ -19,11 +27,8 @@ fn get_content_type(content_type: String) -> String {
     }
 }
 
-fn get_trace_obj(
-    trace: ProcessedApiTrace,
-) -> Result<ProcessedApiTrace, Box<dyn std::error::Error>> {
-    let valid_path = get_valid_path(&trace.request.url.path)?;
-    Ok(ProcessedApiTrace {
+fn get_trace_obj_partial(trace: ProcessedApiTrace, valid_path: String) -> ProcessedApiTrace {
+    ProcessedApiTrace {
         request: ApiRequest {
             method: trace.request.method,
             url: ApiUrl {
@@ -51,7 +56,45 @@ fn get_trace_obj(
         encryption: trace.encryption,
         session_meta: trace.session_meta,
         analysis_type: trace.analysis_type,
-    })
+    }
+}
+
+fn get_trace_obj_full(
+    trace: ProcessedApiTrace,
+    valid_path: String,
+    status_code: u16,
+) -> QueuedApiTrace {
+    QueuedApiTrace {
+        path: valid_path,
+        created_at: chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true),
+        host: trace.request.url.host,
+        method: trace.request.method,
+        request_parameters: trace.request.url.parameters,
+        request_headers: trace.request.headers,
+        request_body: trace.request.body,
+        response_status: status_code,
+        response_headers: trace
+            .response
+            .as_ref()
+            .map_or(vec![], |e| e.headers.to_owned()),
+        response_body: trace.response.map(|e| e.body),
+        meta: trace.meta,
+        session_meta: trace.session_meta,
+        processed_trace_data: trace.processed_trace_data.map(|e| ProcessTraceRes {
+            block: e.block,
+            attack_detections: e.attack_detections,
+            sensitive_data_detected: e.sensitive_data_detected,
+            data_types: e.data_types,
+            graphql_paths: e.graphql_paths,
+            request_content_type: get_content_type(e.request_content_type),
+            response_content_type: get_content_type(e.response_content_type),
+            request_tags: e.request_tags,
+        }),
+        redacted: trace.redacted,
+        original_host: None,
+        encryption: trace.encryption,
+        analysis_type: trace.analysis_type,
+    }
 }
 
 fn filter_proccessed_data(
@@ -88,24 +131,7 @@ fn get_endpoints(
     endpoints
 }
 
-pub async fn log_trace_batch(
-    Extension(current_user): Extension<CurrentUser>,
-    State(state): State<AppState>,
-    extract::Json(traces): extract::Json<Vec<ProcessedApiTrace>>,
-) -> Result<&'static str, (StatusCode, String)> {
-    let mut partial_traces: Vec<ProcessedApiTrace> = vec![];
-
-    // let db_conn = state.db_pool.get().await.map_err(internal_error)?;
-
-    for trace in traces {
-        if let Ok(obj) = get_trace_obj(trace) {
-            match obj.analysis_type.as_str() {
-                "partial" => partial_traces.push(obj),
-                _ => (),
-            }
-        }
-    }
-
+fn get_traces(partial_traces: Vec<ProcessedApiTrace>) -> Vec<ProcessedApiTrace> {
     let mut graphql_split_traces: Vec<ProcessedApiTrace> = vec![];
     for trace in partial_traces {
         let is_graphql = is_graphql_endpoint(&trace.request.url.path);
@@ -163,8 +189,80 @@ pub async fn log_trace_batch(
             graphql_split_traces.push(trace);
         }
     }
+    graphql_split_traces
+}
 
+pub async fn log_trace_batch(
+    Extension(current_user): Extension<CurrentUser>,
+    State(state): State<AppState>,
+    extract::Json(traces): extract::Json<Vec<ProcessedApiTrace>>,
+) -> Result<&'static str, (StatusCode, String)> {
+    let mut redis_conn = state.redis_pool.get().await.map_err(internal_error)?;
+
+    let redis_queue_length: Result<Option<u16>, redis::RedisError> = cmd("LLEN")
+        .arg(&[TRACES_QUEUE])
+        .query_async(&mut redis_conn)
+        .await;
+
+    let queue_full = match redis_queue_length {
+        Ok(Some(queue_length)) => queue_length > 1000,
+        Err(e) => {
+            println!("Encountered error while checking queue length: {}", e);
+            true
+        }
+        _ => true,
+    };
+
+    let mut partial_traces: Vec<ProcessedApiTrace> = vec![];
+    let mut full_traces: Vec<QueuedApiTrace> = vec![];
+
+    // let db_conn = state.db_pool.get().await.map_err(internal_error)?;
+
+    for trace in traces {
+        if let Ok(valid_path) = get_valid_path(&trace.request.url.path) {
+            match trace.analysis_type.as_str() {
+                "partial" => partial_traces.push(get_trace_obj_partial(trace, valid_path)),
+                _ if !queue_full => {
+                    if let Some(status_code) = trace.response.as_ref().map(|e| e.status) {
+                        full_traces.push(get_trace_obj_full(trace, valid_path, status_code));
+                    }
+                }
+                _ => (),
+            }
+        }
+    }
+
+    let org_uuid = if current_user.organization_uuid.is_nil() {
+        None
+    } else {
+        Some(current_user.organization_uuid.to_string())
+    };
+    let mut pipe = redis::pipe();
+    for trace in full_traces {
+        if let Ok(json_str) = serde_json::to_string(&QueuedApiTraceItem {
+            ctx: MetloContext {
+                organization_uuid: org_uuid.as_ref().map(|f| f.to_owned()),
+            },
+            version: 2,
+            trace,
+        }) {
+            pipe.cmd("RPUSH").arg(&[TRACES_QUEUE, &json_str]).ignore();
+        }
+    }
+    if let Err(e) = pipe.query_async::<_, ()>(&mut redis_conn).await {
+        println!("Encountered error while adding full traces to queue: {}", e);
+    }
+
+    let graphql_split_traces = get_traces(partial_traces);
     let endpoints = get_endpoints(&current_user, &graphql_split_traces);
 
+    increment_endpoint_seen_usage_bulk(
+        &current_user,
+        &endpoints,
+        ENDPOINT_CALL_COUNT_HASH,
+        ORG_ENDPOINT_CALL_COUNT,
+        &mut redis_conn,
+    )
+    .await;
     Ok("OK")
 }
