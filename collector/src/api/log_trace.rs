@@ -9,6 +9,10 @@ use deadpool_redis::redis::cmd;
 
 use crate::{
     endpoint_tree::get_endpoint_from_tree,
+    metlo_config::{
+        config::{get_config_info, get_mapped_host},
+        types::MappedHost,
+    },
     state::AppState,
     types::{
         ApiRequest, ApiUrl, CurrentUser, MetloContext, ProcessTraceRes, ProcessedApiTrace,
@@ -27,14 +31,23 @@ fn get_content_type(content_type: String) -> String {
     }
 }
 
-fn get_trace_obj_partial(trace: ProcessedApiTrace, valid_path: String) -> ProcessedApiTrace {
+fn get_trace_obj_partial(
+    trace: ProcessedApiTrace,
+    valid_path: String,
+    mapped_host: &MappedHost,
+) -> ProcessedApiTrace {
+    let hosts = match &mapped_host.mapped_host {
+        Some(e) => (e.to_owned(), Some(trace.request.url.host)),
+        None => (trace.request.url.host, None),
+    };
     ProcessedApiTrace {
         request: ApiRequest {
             method: trace.request.method,
             url: ApiUrl {
-                host: trace.request.url.host,
+                host: hosts.0,
                 path: valid_path,
                 parameters: trace.request.url.parameters,
+                original_host: hosts.1,
             },
             headers: trace.request.headers,
             body: trace.request.body,
@@ -110,9 +123,7 @@ fn filter_proccessed_data(
             let mut filter_one = filter.to_owned();
             filter_one.push('.');
             let filter_two = token.to_owned() + "." + &filter;
-            if (is_graphql_section && (item.0.contains(&filter_one) || item.0 == filter_two))
-                || !is_graphql_section
-            {
+            if !is_graphql_section || item.0.contains(&filter_one) || item.0 == filter_two {
                 entry.insert(item.0, item.1);
             }
         }
@@ -156,6 +167,7 @@ fn get_traces(partial_traces: Vec<ProcessedApiTrace>) -> Vec<ProcessedApiTrace> 
                                     host: trace.request.url.host.to_owned(),
                                     path: trace.request.url.path.to_owned() + "." + &filter,
                                     parameters: trace.request.url.parameters.to_owned(),
+                                    original_host: trace.request.url.original_host.to_owned(),
                                 },
                                 headers: trace.request.headers.to_owned(),
                                 body: trace.request.body.to_owned(),
@@ -168,7 +180,7 @@ fn get_traces(partial_traces: Vec<ProcessedApiTrace>) -> Vec<ProcessedApiTrace> 
                                     block: e.block,
                                     attack_detections: e
                                         .attack_detections
-                                        .and_then(|f| Some(filter_proccessed_data(f, filter))),
+                                        .map(|f| filter_proccessed_data(f, filter)),
                                     sensitive_data_detected: e.sensitive_data_detected,
                                     data_types: e.data_types,
                                     graphql_paths: e.graphql_paths,
@@ -216,12 +228,22 @@ pub async fn log_trace_batch(
     let mut partial_traces: Vec<ProcessedApiTrace> = vec![];
     let mut full_traces: Vec<QueuedApiTrace> = vec![];
 
-    // let db_conn = state.db_pool.get().await.map_err(internal_error)?;
+    let db_conn = state.db_pool.get().await.map_err(internal_error)?;
+    let config_info = get_config_info(&current_user, db_conn, &mut redis_conn).await;
 
     for trace in traces {
         if let Ok(valid_path) = get_valid_path(&trace.request.url.path) {
             match trace.analysis_type.as_str() {
-                "partial" => partial_traces.push(get_trace_obj_partial(trace, valid_path)),
+                "partial" => {
+                    let mapped_host = get_mapped_host(
+                        &config_info,
+                        &trace.request.url.host,
+                        &trace.request.url.path,
+                    );
+                    if !mapped_host.is_ignored {
+                        partial_traces.push(get_trace_obj_partial(trace, valid_path, &mapped_host));
+                    }
+                }
                 _ if !queue_full => {
                     if let Some(status_code) = trace.response.as_ref().map(|e| e.status) {
                         full_traces.push(get_trace_obj_full(trace, valid_path, status_code));

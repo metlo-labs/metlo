@@ -4,7 +4,6 @@ use std::{
     fmt,
 };
 
-use chrono::{DateTime, Utc};
 use postgres_types::Type;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
@@ -171,6 +170,7 @@ pub struct ApiUrl {
     pub host: String,
     pub path: String,
     pub parameters: Vec<KeyVal>,
+    pub original_host: Option<String>,
 }
 
 #[derive(Deserialize, Debug, Clone, Serialize)]

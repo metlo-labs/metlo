@@ -12,9 +12,9 @@ where
 }
 
 pub const GRAPHQL_SECTIONS: [&str; 3] = ["reqBody", "reqQuery", "resBody"];
-pub const TRACES_QUEUE: &'static str = "traces_queue";
-pub const ENDPOINT_CALL_COUNT_HASH: &'static str = "endpoints_call_count";
-pub const ORG_ENDPOINT_CALL_COUNT: &'static str = "org_endpoints_call_count";
+pub const TRACES_QUEUE: &str = "traces_queue";
+pub const ENDPOINT_CALL_COUNT_HASH: &str = "endpoints_call_count";
+pub const ORG_ENDPOINT_CALL_COUNT: &str = "org_endpoints_call_count";
 const GRAPHQL_PATHS: [&str; 1] = ["/graphql"];
 const USAGE_GRANULARITY: u128 = 1000 * 60;
 
@@ -52,14 +52,14 @@ pub fn get_valid_path(path: &str) -> Result<String, Box<dyn std::error::Error>> 
     Ok(valid_path)
 }
 
-pub fn is_graphql_endpoint(path: &String) -> bool {
+pub fn is_graphql_endpoint(path: &str) -> bool {
     let trimmed = path.trim_end_matches('/');
     GRAPHQL_PATHS.iter().any(|e| trimmed.ends_with(e))
 }
 
 pub async fn increment_endpoint_seen_usage_bulk(
     user: &CurrentUser,
-    endpoints: &Vec<Option<TreeApiEndpoint>>,
+    endpoints: &[Option<TreeApiEndpoint>],
     endpoint_call_count_key: &str,
     org_call_count_key: &str,
     redis_conn: &mut Connection,
@@ -81,17 +81,15 @@ pub async fn increment_endpoint_seen_usage_bulk(
         let endpoint_call_key_str = endpoint_call_key.as_str();
         let mut pipe = redis::pipe();
         let mut endpoint_count = 0;
-        for endpoint_opt in endpoints {
-            if let Some(endpoint) = endpoint_opt {
-                endpoint_count += 1;
-                pipe.cmd("HINCRBY")
-                    .arg(&[
-                        endpoint_call_key_str,
-                        endpoint.uuid.to_string().as_str(),
-                        "1",
-                    ])
-                    .ignore();
-            }
+        for endpoint in endpoints.iter().flatten() {
+            endpoint_count += 1;
+            pipe.cmd("HINCRBY")
+                .arg(&[
+                    endpoint_call_key_str,
+                    endpoint.uuid.to_string().as_str(),
+                    "1",
+                ])
+                .ignore();
         }
         let pipe = pipe
             .cmd("INCRBY")
