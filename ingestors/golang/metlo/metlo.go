@@ -50,17 +50,15 @@ func InitMetloCustom(metloHost string, metloKey string, backendPort int, collect
 }
 
 func (m *metlo) BootstrapInstance() {
-	res, err := C.Metlo_startup(
+	_, err := C.Metlo_startup(
 		C.CString(m.metloHost),
 		C.CString(m.metloKey),
 		C.ushort(m.backendPort),
 		C.ushort(m.collectorPort),
 		nil,
 	)
-	println("Done with startup")
-	print(res, err)
 	if err != nil {
-		print(err)
+		logger.Print(err)
 	}
 
 }

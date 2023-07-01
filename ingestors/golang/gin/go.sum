@@ -746,8 +746,6 @@ github.com/mattn/go-isatty v0.0.17/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/
 github.com/mattn/go-isatty v0.0.18 h1:DOKFKCQ7FNG2L1rbrmstDN4QVRdS89Nkh85u68Uwp98=
 github.com/mattn/go-isatty v0.0.18/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-sqlite3 v1.14.14/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
-github.com/metlo-labs/metlo/ingestors/golang/metlo v1.0.0 h1:ePTrnizCXI5HzKe4qpEfYlcxGOEyySOAi9EAmUfWoRU=
-github.com/metlo-labs/metlo/ingestors/golang/metlo v1.0.0/go.mod h1:IrHJdeANVNi9deZW3NmZfCp8nk0I4ERfA+x+4DC1OnU=
 github.com/metlo-labs/metlo/ingestors/golang/metlo v1.0.1 h1:r+B3lFyM+bl1GqBg9gNmDNZ1eQuSaRZuwujarTLczr8=
 github.com/metlo-labs/metlo/ingestors/golang/metlo v1.0.1/go.mod h1:ZPUPd2/cfz4DKH/xJfN4F0xxSyAcPHVApeQSGd1aYW0=
 github.com/minio/asm2plan9s v0.0.0-20200509001527-cdd76441f9d8/go.mod h1:mC1jAcsrzbxHt8iiaC+zU4b1ylILSosueou12R++wfY=

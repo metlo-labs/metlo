@@ -111,7 +111,6 @@ func (m *metloInstrumentation) Middleware(c *gin.Context) {
 		}
 
 		if m.app.Block(req, meta) {
-			print("Should reject request")
 			c.String(403, "Forbidden")
 			c.Abort()
 		} else {
