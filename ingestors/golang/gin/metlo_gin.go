@@ -16,6 +16,7 @@ const MAX_BODY int = 10 * 1024
 
 type metloApp interface {
 	Send(data metlo.MetloTrace)
+	Block(req metlo.TraceReq, meta metlo.TraceMeta) bool
 	Allow() bool
 }
 
@@ -88,8 +89,34 @@ func (m *metloInstrumentation) Middleware(c *gin.Context) {
 			log.Println("Metlo couldn't find source port for incoming request")
 		}
 
-		c.Next()
+		req := metlo.TraceReq{
+			Url: metlo.TraceUrl{
+				Host:       c.Request.Host,
+				Path:       c.Request.URL.Path,
+				Parameters: queryParams,
+			},
+			Headers: reqHeaders,
+			Body:    string(body),
+			Method:  c.Request.Method,
+		}
 
+		meta := metlo.TraceMeta{
+			Environment:     "production",
+			Incoming:        true,
+			Source:          c.ClientIP(),
+			SourcePort:      sourcePort,
+			Destination:     m.serverHost,
+			DestinationPort: m.serverPort,
+			MetloSource:     "go/gin",
+		}
+
+		if m.app.Block(req, meta) {
+			print("Should reject request")
+			c.String(403, "Forbidden")
+			c.Abort()
+		} else {
+			c.Next()
+		}
 		resHeaderMap := c.Writer.Header()
 		resHeaders := make([]metlo.NV, 0)
 		for k := range resHeaderMap {
@@ -97,30 +124,13 @@ func (m *metloInstrumentation) Middleware(c *gin.Context) {
 		}
 
 		tr := metlo.MetloTrace{
-			Request: metlo.TraceReq{
-				Url: metlo.TraceUrl{
-					Host:       c.Request.Host,
-					Path:       c.Request.URL.Path,
-					Parameters: queryParams,
-				},
-				Headers: reqHeaders,
-				Body:    string(body),
-				Method:  c.Request.Method,
-			},
+			Request: req,
 			Response: metlo.TraceRes{
 				Status:  blw.Status(),
 				Body:    blw.body.String(),
 				Headers: resHeaders,
 			},
-			Meta: metlo.TraceMeta{
-				Environment:     "production",
-				Incoming:        true,
-				Source:          c.ClientIP(),
-				SourcePort:      sourcePort,
-				Destination:     m.serverHost,
-				DestinationPort: m.serverPort,
-				MetloSource:     "go/gin",
-			},
+			Meta: meta,
 		}
 
 		go m.app.Send(tr)
