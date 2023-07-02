@@ -4,11 +4,14 @@ package metlo
   #cgo darwin LDFLAGS: /opt/metlo/libmetlo_golang_darwin.a -lm
   #cgo linux LDFLAGS: /opt/metlo/libmetlo_golang_linux.a -lm
   #cgo windows LDFLAGS: %APPDATA%/metlo/libmetlo_golang_windows.a -lm
+  #include <stdlib.h>
   #include "interface.h"
 */
 import "C"
 import (
 	"strings"
+	"syscall"
+	"unsafe"
 )
 
 type metlo struct {
@@ -51,15 +54,40 @@ func InitMetloCustom(metloHost string, metloKey string, backendPort int, collect
 }
 
 func (m *metlo) BootstrapInstance() {
-	_, err := C.Metlo_startup(
-		C.CString(m.metloHost),
-		C.CString(m.metloKey),
-		C.ushort(m.backendPort),
-		C.ushort(m.collectorPort),
-		nil,
-	)
-	if err != nil {
-		logger.Print(err)
+	var metloHost = C.CString(m.metloHost)
+	defer C.free(unsafe.Pointer(metloHost))
+	var metloKey = C.CString(m.metloKey)
+	defer C.free(unsafe.Pointer(metloKey))
+	var metloBackendPort = C.ushort(m.backendPort)
+	var metloCollectorPort = C.ushort(m.collectorPort)
+	var metloLogLevel = C.CString(MapLogLevelToString(m.logLevel))
+	defer C.free(unsafe.Pointer(metloLogLevel))
+	if m.encryptionKey != nil {
+		var metloEncryptionKey = C.CString(*m.encryptionKey)
+		defer C.free(unsafe.Pointer(&metloEncryptionKey))
+		_, err := C.Metlo_startup(
+			metloHost,
+			metloKey,
+			metloBackendPort,
+			metloCollectorPort,
+			metloLogLevel,
+			metloEncryptionKey,
+		)
+		if err != nil && err != syscall.EINPROGRESS {
+			logger.Print(err)
+		}
+	} else {
+		_, err := C.Metlo_startup(
+			metloHost,
+			metloKey,
+			metloBackendPort,
+			metloCollectorPort,
+			metloLogLevel,
+			nil,
+		)
+		if err != nil && err != syscall.EINPROGRESS {
+			logger.Print(err)
+		}
 	}
 
 }

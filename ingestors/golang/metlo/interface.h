@@ -86,4 +86,5 @@ extern unsigned char Metlo_startup(
     char *api_key,
     unsigned short backend_port,
     unsigned short collector_port,
+    char *log_level,
     char *encryption_key);
