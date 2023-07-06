@@ -3,7 +3,7 @@
 
 #include "go_interface.h"
 
-bool hasInit = 0;
+char hasInit = 0;
 void *handle;
 unsigned char (*metlo_startup)(char *metlo_url,
                                char *api_key,
@@ -22,9 +22,13 @@ unsigned char Metlo_startup(
     char *log_level,
     char *encryption_key)
 {
-    handle = dlopen("/Users/ninadsinha/Desktop/metlo-enterprise/ingestors/golang/rust_binds/target/release/libmetlo_golang.dylib", RTLD_LAZY);
+    // On linux and Mac
+    handle = dlopen("/opt/metlo/libmetlo.so", RTLD_LAZY);
+    // On Windows
+    // handle = dlopen("/%APPDATA%/roaming/metlo", RTLD_LAZY)
     if (handle != 0)
-    {
+    {   
+        atexit(handle_cleanup);
         metlo_startup = (unsigned char (*)(char *metlo_url,
                                            char *api_key,
                                            unsigned short backend_port,
@@ -33,20 +37,20 @@ unsigned char Metlo_startup(
                                            char *encryption_key))dlsym(handle, "metlo_startup");
         if (metlo_startup == 0)
         {
-            printf("Error setting up metlo_startup: %s", dlerror());
+            printf("Metlo: Error setting up metlo_startup: %s\n", dlerror());
             hasInit = 0;
             return 0;
         }
         metlo_block_trace = (unsigned char (*)(Metlo_ExchangeStruct data))dlsym(handle, "metlo_block_trace");
         if (metlo_startup == 0)
         {
-            printf("Error setting up metlo_block_trace: %s", dlerror());
+            printf("Metlo: Error setting up metlo_block_trace: %s\n", dlerror());
             return 0;
         }
         metlo_ingest_trace = (void (*)(Metlo_ApiTrace data))dlsym(handle, "metlo_ingest_trace");
         if (metlo_startup == 0)
         {
-            printf("Error setting up metlo_ingest_trace: %s", dlerror());
+            printf("Metlo: Error setting up metlo_ingest_trace: %s\n", dlerror());
             return 0;
         }
         unsigned char resp = metlo_startup(metlo_url, api_key, backend_port, collector_port, log_level, encryption_key);
@@ -55,7 +59,7 @@ unsigned char Metlo_startup(
     }
     else
     {
-        printf("%s", dlerror());
+        printf("Metlo: Error loading dynamic library: %s\n", dlerror());
         return 0;
     }
 }
