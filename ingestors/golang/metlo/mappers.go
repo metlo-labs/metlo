@@ -1,7 +1,7 @@
 package metlo
 
 /*
-  #include "interface.h"
+  #include "go_interface.h"
 */
 import "C"
 

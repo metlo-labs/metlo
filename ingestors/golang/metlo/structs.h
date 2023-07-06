@@ -77,14 +77,3 @@ typedef struct
     Metlo_Response Res;
     Metlo_Metadata Meta;
 } Metlo_ApiTrace;
-
-extern unsigned char Metlo_block_trace(Metlo_ExchangeStruct data);
-extern void Metlo_ingest_trace(Metlo_ApiTrace trace);
-extern void Metlo_process_trace();
-extern unsigned char Metlo_startup(
-    char *metlo_url,
-    char *api_key,
-    unsigned short backend_port,
-    unsigned short collector_port,
-    char *log_level,
-    char *encryption_key);

@@ -1,11 +1,8 @@
 package metlo
 
 /*
-  #cgo darwin LDFLAGS: /opt/metlo/libmetlo_golang_darwin.a -lm
-  #cgo linux LDFLAGS: /opt/metlo/libmetlo_golang_linux.a -lm
-  #cgo windows LDFLAGS: %APPDATA%/metlo/libmetlo_golang_windows.a -lm
   #include <stdlib.h>
-  #include "interface.h"
+  #include "go_interface.h"
 */
 import "C"
 import (
