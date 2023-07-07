@@ -1,6 +1,11 @@
 #include <dlfcn.h>
 #include <stdio.h>
 
+#ifdef _WIN32
+#include <stdlib.h>
+#include <string.h>
+#endif
+
 #include "go_interface.h"
 
 char hasInit = 0;
@@ -22,12 +27,29 @@ unsigned char Metlo_startup(
     char *log_level,
     char *encryption_key)
 {
-    // On linux and Mac
+    //  appdata_path
+#ifdef __linux__
+    // On linux
     handle = dlopen("/opt/metlo/libmetlo.so", RTLD_LAZY);
+#endif
+#ifdef __APPLE__
+    // On Mac
+    handle = dlopen("/opt/metlo/libmetlo.so", RTLD_LAZY);
+#endif
+#ifdef _WIN32
     // On Windows
-    // handle = dlopen("/%APPDATA%/roaming/metlo", RTLD_LAZY)
+    char *appdata_path = getenv("APPDATA");
+    char *appdata_length = strlen(appdata_path);
+    int supplemental_length = 5 + 1 + 5 + 1 + 11 + 1; // local + / + metlo + / + libmetlo.so + 0
+    char *total_path = (char *)calloc(appdata_length + supplemental_length, sizeof(char));
+    int total_length = appdata_length + supplemental_length;
+    strncpy(total_path, appdata_path, appdata_length);
+    strncat(total_path, "local/metlo/libmetlo.so", total_length);
+    total_path[total_length - 1] = 0;
+    handle = dlopen(total_path, RTLD_LAZY);
+#endif
     if (handle != 0)
-    {   
+    {
         atexit(handle_cleanup);
         metlo_startup = (unsigned char (*)(char *metlo_url,
                                            char *api_key,
