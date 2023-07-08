@@ -31,6 +31,7 @@ type metloInstrumentation struct {
 	app        metloApp
 	serverHost string
 	serverPort int
+	rejectFn   func(http.ResponseWriter, http.Handler)
 }
 
 func Init(app metloApp) metloInstrumentation {
@@ -127,8 +128,12 @@ func (m *metloInstrumentation) Middleware(next http.Handler) http.Handler {
 			}
 
 			if m.app.Block(request, meta) {
-				logRespWriter.Write([]byte("Forbidden"))
-				logRespWriter.statusCode = 403
+				if m.rejectFn != nil {
+					m.rejectFn(logRespWriter, next)
+				} else {
+					logRespWriter.Write([]byte("Forbidden"))
+					logRespWriter.statusCode = 403
+				}
 			} else {
 				next.ServeHTTP(logRespWriter, r)
 			}

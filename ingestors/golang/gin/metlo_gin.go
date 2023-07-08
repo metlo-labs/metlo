@@ -30,6 +30,14 @@ type metloInstrumentation struct {
 	app        metloApp
 	serverHost string
 	serverPort int
+	rejectFn   func(*gin.Context)
+}
+
+type CustomInitParams struct {
+	app        metloApp
+	serverHost string
+	serverPort int
+	rejectFn   func(*gin.Context)
 }
 
 func Init(app metloApp) metloInstrumentation {
@@ -41,6 +49,7 @@ func CustomInit(app metloApp, serverHost string, serverPort int) metloInstrument
 		app:        app,
 		serverHost: serverHost,
 		serverPort: serverPort,
+		rejectFn:   nil,
 	}
 }
 
@@ -58,6 +67,10 @@ func (w bodyLogWriter) Write(b []byte) (int, error) {
 	var sub_buffer []byte = b[0:bytes_to_write]
 	w.body.Write(sub_buffer)
 	return w.ResponseWriter.Write(b)
+}
+
+func (m *metloInstrumentation) SetRejectFn(rejectFn func(*gin.Context)) {
+	m.testFn = rejectFn
 }
 
 func (m *metloInstrumentation) Middleware(c *gin.Context) {
@@ -111,7 +124,11 @@ func (m *metloInstrumentation) Middleware(c *gin.Context) {
 		}
 
 		if m.app.Block(req, meta) {
-			c.String(403, "Forbidden")
+			if m.rejectFn != nil {
+				m.rejectFn(c)
+			} else {
+				c.String(403, "Forbidden")
+			}
 			c.Abort()
 		} else {
 			c.Next()
