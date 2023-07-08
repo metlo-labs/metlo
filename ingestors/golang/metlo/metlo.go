@@ -51,6 +51,7 @@ func InitMetloCustom(metloHost string, metloKey string, backendPort int, collect
 }
 
 func (m *Metlo) BootstrapInstance() {
+
 	var metloHost = C.CString(m.metloHost)
 	defer C.free(unsafe.Pointer(metloHost))
 	var metloKey = C.CString(m.metloKey)
@@ -105,7 +106,7 @@ func (m *Metlo) Block(req TraceReq, meta TraceMeta) bool {
 	}
 	resp := C.Metlo_block_trace(block_struct)
 	FreeMetloRequest(block_struct.Req)
-	FreeMetloRequest(block_struct.Meta)
+	FreeMetloMetadata(block_struct.Meta)
 	if resp == 1 {
 		return true
 	} else {

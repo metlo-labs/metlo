@@ -1,6 +1,7 @@
 package metlo
 
 /*
+  #include "stdlib.h"
   #include "go_interface.h"
 */
 import "C"
@@ -80,27 +81,37 @@ func MapMetloMetadataToCStruct(metadata TraceMeta) C.Metlo_Metadata {
 
 func FreeMetloTrace(trace C.Metlo_ApiTrace) {
 	FreeMetloRequest(trace.Req)
-	FreeMetloRequest(trace.Res)
-	FreeMetloRequest(trace.Meta)
+	FreeMetloResponse(trace.Res)
+	FreeMetloMetadata(trace.Meta)
 }
 
 func FreeMetloRequest(request C.Metlo_Request) {
-	C.free(unsafe.Pointer(request.Body))
+	body := unsafe.Pointer(request.Body)
+	C.free(body)
 	C.free(unsafe.Pointer(request.Method))
 	C.free(unsafe.Pointer(request.Url.Host))
 	C.free(unsafe.Pointer(request.Url.Path))
-	for i := 0; i < request.Url.Parameters_size; i++ {
-		C.free(unsafe.Pointer(request.Url.Parameters[i].Name))
-		C.free(unsafe.Pointer(request.Url.Parameters[i].Value))
+	params := (*[1 << 16]C.Metlo_NVPair)(unsafe.Pointer(request.Url.Parameters))
+	for i := 0; i < int(request.Url.Parameters_size); i++ {
+		C.free(unsafe.Pointer(params[i].Name))
+		C.free(unsafe.Pointer(params[i].Value))
+	}
+
+	headers := (*[1 << 16]C.Metlo_NVPair)(unsafe.Pointer(request.Headers))
+	for i := 0; i < int(request.Headers_size); i++ {
+		C.free(unsafe.Pointer(headers[i].Name))
+		C.free(unsafe.Pointer(headers[i].Value))
 	}
 }
 func FreeMetloResponse(response C.Metlo_Response) {
 	C.free(unsafe.Pointer(response.Body))
-	for i := 0; i < response.Headers_size; i++ {
-		C.free(unsafe.Pointer(response.Headers[i].Name))
-		C.free(unsafe.Pointer(response.Headers[i].Value))
+	headers := (*[1 << 16]C.Metlo_NVPair)(unsafe.Pointer(response.Headers))
+	for i := 0; i < int(response.Headers_size); i++ {
+		C.free(unsafe.Pointer(headers[i].Name))
+		C.free(unsafe.Pointer(headers[i].Value))
 	}
 }
+
 func FreeMetloMetadata(meta C.Metlo_Metadata) {
 	C.free(unsafe.Pointer(meta.Environment))
 	C.free(unsafe.Pointer(meta.Source))

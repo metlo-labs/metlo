@@ -70,7 +70,7 @@ func (w bodyLogWriter) Write(b []byte) (int, error) {
 }
 
 func (m *metloInstrumentation) SetRejectFn(rejectFn func(*gin.Context)) {
-	m.testFn = rejectFn
+	m.rejectFn = rejectFn
 }
 
 func (m *metloInstrumentation) Middleware(c *gin.Context) {
