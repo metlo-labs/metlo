@@ -11,7 +11,7 @@ import (
 	"unsafe"
 )
 
-type metlo struct {
+type Metlo struct {
 	disable       bool
 	metloHost     string
 	metloKey      string
@@ -21,7 +21,7 @@ type metlo struct {
 	logLevel      LogLevel
 }
 
-func InitMetlo(metloHost string, metloKey string) *metlo {
+func InitMetlo(metloHost string, metloKey string) *Metlo {
 	var collector_port *int = nil
 	var backend_port *int = nil
 	if strings.Contains(metloHost, "app.metlo.com") {
@@ -36,8 +36,8 @@ func InitMetlo(metloHost string, metloKey string) *metlo {
 	return InitMetloCustom(metloHost, metloKey, *backend_port, *collector_port, nil, Info, false)
 }
 
-func InitMetloCustom(metloHost string, metloKey string, backendPort int, collectorPort int, encryptionKey *string, logLevel LogLevel, disable bool) *metlo {
-	inst := &metlo{
+func InitMetloCustom(metloHost string, metloKey string, backendPort int, collectorPort int, encryptionKey *string, logLevel LogLevel, disable bool) *Metlo {
+	inst := &Metlo{
 		metloHost:     metloHost,
 		metloKey:      metloKey,
 		disable:       disable,
@@ -50,7 +50,7 @@ func InitMetloCustom(metloHost string, metloKey string, backendPort int, collect
 	return inst
 }
 
-func (m *metlo) BootstrapInstance() {
+func (m *Metlo) BootstrapInstance() {
 	var metloHost = C.CString(m.metloHost)
 	defer C.free(unsafe.Pointer(metloHost))
 	var metloKey = C.CString(m.metloKey)
@@ -86,22 +86,26 @@ func (m *metlo) BootstrapInstance() {
 			logger.Print(err)
 		}
 	}
-
 }
 
-func (m *metlo) Send(data MetloTrace) {
-	C.Metlo_ingest_trace(MapMetloTraceToCStruct(data))
+func (m *Metlo) Send(data MetloTrace) {
+	mapped_data := MapMetloTraceToCStruct(data)
+	C.Metlo_ingest_trace(mapped_data)
+	FreeMetloTrace(mapped_data)
 }
 
-func (m *metlo) Allow() bool {
+func (m *Metlo) Allow() bool {
 	return !m.disable
 }
 
-func (m *metlo) Block(req TraceReq, meta TraceMeta) bool {
-	resp := C.Metlo_block_trace(C.Metlo_ExchangeStruct{
+func (m *Metlo) Block(req TraceReq, meta TraceMeta) bool {
+	block_struct := C.Metlo_ExchangeStruct{
 		Req:  MapMetloRequestToCStruct(req),
 		Meta: MapMetloMetadataToCStruct(meta),
-	})
+	}
+	resp := C.Metlo_block_trace(block_struct)
+	FreeMetloRequest(block_struct.Req)
+	FreeMetloRequest(block_struct.Meta)
 	if resp == 1 {
 		return true
 	} else {

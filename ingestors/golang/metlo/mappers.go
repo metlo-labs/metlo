@@ -4,6 +4,7 @@ package metlo
   #include "go_interface.h"
 */
 import "C"
+import "unsafe"
 
 func MapMetloTraceToCStruct(trace MetloTrace) C.Metlo_ApiTrace {
 	return C.Metlo_ApiTrace{
@@ -75,4 +76,33 @@ func MapMetloMetadataToCStruct(metadata TraceMeta) C.Metlo_Metadata {
 		Destination:      C.CString(metadata.Destination),
 		Destination_port: C.ushort(metadata.DestinationPort),
 	}
+}
+
+func FreeMetloTrace(trace C.Metlo_ApiTrace) {
+	FreeMetloRequest(trace.Req)
+	FreeMetloRequest(trace.Res)
+	FreeMetloRequest(trace.Meta)
+}
+
+func FreeMetloRequest(request C.Metlo_Request) {
+	C.free(unsafe.Pointer(request.Body))
+	C.free(unsafe.Pointer(request.Method))
+	C.free(unsafe.Pointer(request.Url.Host))
+	C.free(unsafe.Pointer(request.Url.Path))
+	for i := 0; i < request.Url.Parameters_size; i++ {
+		C.free(unsafe.Pointer(request.Url.Parameters[i].Name))
+		C.free(unsafe.Pointer(request.Url.Parameters[i].Value))
+	}
+}
+func FreeMetloResponse(response C.Metlo_Response) {
+	C.free(unsafe.Pointer(response.Body))
+	for i := 0; i < response.Headers_size; i++ {
+		C.free(unsafe.Pointer(response.Headers[i].Name))
+		C.free(unsafe.Pointer(response.Headers[i].Value))
+	}
+}
+func FreeMetloMetadata(meta C.Metlo_Metadata) {
+	C.free(unsafe.Pointer(meta.Environment))
+	C.free(unsafe.Pointer(meta.Source))
+	C.free(unsafe.Pointer(meta.Destination))
 }
