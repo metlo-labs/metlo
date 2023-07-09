@@ -16,6 +16,7 @@ const MAX_BODY int = 10 * 1024
 
 type metloApp interface {
 	Send(data metlo.MetloTrace)
+	Block(req metlo.TraceReq, meta metlo.TraceMeta) bool
 	Allow() bool
 }
 
@@ -29,6 +30,14 @@ type metloInstrumentation struct {
 	app        metloApp
 	serverHost string
 	serverPort int
+	rejectFn   func(*gin.Context)
+}
+
+type CustomInitParams struct {
+	app        metloApp
+	serverHost string
+	serverPort int
+	rejectFn   func(*gin.Context)
 }
 
 func Init(app metloApp) metloInstrumentation {
@@ -40,6 +49,7 @@ func CustomInit(app metloApp, serverHost string, serverPort int) metloInstrument
 		app:        app,
 		serverHost: serverHost,
 		serverPort: serverPort,
+		rejectFn:   nil,
 	}
 }
 
@@ -57,6 +67,10 @@ func (w bodyLogWriter) Write(b []byte) (int, error) {
 	var sub_buffer []byte = b[0:bytes_to_write]
 	w.body.Write(sub_buffer)
 	return w.ResponseWriter.Write(b)
+}
+
+func (m *metloInstrumentation) SetRejectFn(rejectFn func(*gin.Context)) {
+	m.rejectFn = rejectFn
 }
 
 func (m *metloInstrumentation) Middleware(c *gin.Context) {
@@ -88,8 +102,37 @@ func (m *metloInstrumentation) Middleware(c *gin.Context) {
 			log.Println("Metlo couldn't find source port for incoming request")
 		}
 
-		c.Next()
+		req := metlo.TraceReq{
+			Url: metlo.TraceUrl{
+				Host:       c.Request.Host,
+				Path:       c.Request.URL.Path,
+				Parameters: queryParams,
+			},
+			Headers: reqHeaders,
+			Body:    string(body),
+			Method:  c.Request.Method,
+		}
 
+		meta := metlo.TraceMeta{
+			Environment:     "production",
+			Incoming:        true,
+			Source:          c.ClientIP(),
+			SourcePort:      sourcePort,
+			Destination:     m.serverHost,
+			DestinationPort: m.serverPort,
+			MetloSource:     "go/gin",
+		}
+
+		if m.app.Block(req, meta) {
+			if m.rejectFn != nil {
+				m.rejectFn(c)
+			} else {
+				c.String(403, "Forbidden")
+			}
+			c.Abort()
+		} else {
+			c.Next()
+		}
 		resHeaderMap := c.Writer.Header()
 		resHeaders := make([]metlo.NV, 0)
 		for k := range resHeaderMap {
@@ -97,30 +140,13 @@ func (m *metloInstrumentation) Middleware(c *gin.Context) {
 		}
 
 		tr := metlo.MetloTrace{
-			Request: metlo.TraceReq{
-				Url: metlo.TraceUrl{
-					Host:       c.Request.Host,
-					Path:       c.Request.URL.Path,
-					Parameters: queryParams,
-				},
-				Headers: reqHeaders,
-				Body:    string(body),
-				Method:  c.Request.Method,
-			},
+			Request: req,
 			Response: metlo.TraceRes{
 				Status:  blw.Status(),
 				Body:    blw.body.String(),
 				Headers: resHeaders,
 			},
-			Meta: metlo.TraceMeta{
-				Environment:     "production",
-				Incoming:        true,
-				Source:          c.ClientIP(),
-				SourcePort:      sourcePort,
-				Destination:     m.serverHost,
-				DestinationPort: m.serverPort,
-				MetloSource:     "go/gin",
-			},
+			Meta: meta,
 		}
 
 		go m.app.Send(tr)

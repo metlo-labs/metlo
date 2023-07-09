@@ -1,73 +1,27 @@
 package metlo
 
+/*
+  #include <stdlib.h>
+  #include "go_interface.h"
+*/
+import "C"
 import (
-	"context"
-	"os"
-	"os/exec"
-	"strconv"
 	"strings"
-	"sync"
-	"time"
-
-	pb "github.com/metlo-labs/metlo/ingestors/golang/metlo/proto"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"syscall"
+	"unsafe"
 )
 
-type metlo struct {
-	disable              bool
-	processStream        pb.MetloIngest_ProcessTraceAsyncClient
-	rps                  int
-	metloHost            string
-	metloKey             string
-	backendPort          int
-	collectorPort        int
-	encryptionKey        *string
-	logLevel             LogLevel
-	reconnectMutex       sync.Mutex
-	restartCount         int
-	connectionRetryCount int
-	spawnedTask          bool
+type Metlo struct {
+	disable       bool
+	metloHost     string
+	metloKey      string
+	backendPort   int
+	collectorPort int
+	encryptionKey *string
+	logLevel      LogLevel
 }
 
-const MetloDefaultRPS int = 100
-const MaxRestartTries int = 10
-const MaxConnectTries int = 10
-const MaxConnectionRetries int = 1000
-
-func (m *metlo) ConnectLocalProcessAgent() (pb.MetloIngest_ProcessTraceAsyncClient, error) {
-	var connectErr error = nil
-	for i := 0; i < MaxConnectTries; i++ {
-		if m.logLevel <= Trace {
-			logger.Println("Socket Dial Attempt ", i)
-		}
-		conn, err := grpc.Dial("unix:///tmp/metlo.sock", grpc.WithTransportCredentials(insecure.NewCredentials()))
-		if err == nil {
-			metloConn := pb.NewMetloIngestClient(conn)
-			stream_process_trace, err := metloConn.ProcessTraceAsync(context.Background())
-			if err == nil {
-				if m.logLevel <= Trace {
-					logger.Println("Established connection")
-				}
-				return stream_process_trace, err
-			} else {
-				connectErr = err
-			}
-		} else {
-			if m.logLevel <= Debug {
-				logger.Println("Couldn't connect to metlo agent over socket for attempt ", i, err)
-			}
-			connectErr = err
-		}
-		time.Sleep(time.Second)
-	}
-	if m.logLevel <= Trace {
-		logger.Println("Couldn't establish connection")
-	}
-	return nil, connectErr
-}
-
-func InitMetlo(metloHost string, metloKey string) *metlo {
+func InitMetlo(metloHost string, metloKey string) *Metlo {
 	var collector_port *int = nil
 	var backend_port *int = nil
 	if strings.Contains(metloHost, "app.metlo.com") {
@@ -79,147 +33,83 @@ func InitMetlo(metloHost string, metloKey string) *metlo {
 	}
 	default_collector_port := 8081
 	collector_port = &default_collector_port
-	return InitMetloCustom(metloHost, metloKey, MetloDefaultRPS, *backend_port, *collector_port, nil, Info, false)
+	return InitMetloCustom(metloHost, metloKey, *backend_port, *collector_port, nil, Info, false)
 }
 
-func InitMetloCustom(metloHost string, metloKey string, rps int, backendPort int, collectorPort int, encryptionKey *string, logLevel LogLevel, disable bool) *metlo {
-	inst := &metlo{
-		rps:                  rps,
-		metloHost:            metloHost,
-		metloKey:             metloKey,
-		disable:              disable,
-		backendPort:          backendPort,
-		collectorPort:        collectorPort,
-		encryptionKey:        encryptionKey,
-		logLevel:             logLevel,
-		reconnectMutex:       sync.Mutex{},
-		restartCount:         0,
-		connectionRetryCount: 0,
-		spawnedTask:          false,
-		processStream:        nil,
+func InitMetloCustom(metloHost string, metloKey string, backendPort int, collectorPort int, encryptionKey *string, logLevel LogLevel, disable bool) *Metlo {
+	inst := &Metlo{
+		metloHost:     metloHost,
+		metloKey:      metloKey,
+		disable:       disable,
+		backendPort:   backendPort,
+		collectorPort: collectorPort,
+		encryptionKey: encryptionKey,
+		logLevel:      logLevel,
 	}
 	go inst.BootstrapInstance()
 	return inst
 }
 
-func (m *metlo) BootstrapInstance() {
-	agentStartErr := m.StartLocalAgent()
-	if agentStartErr != nil {
-		if m.logLevel <= Error {
-			logger.Println("Couldn't start metlo agent", agentStartErr)
-		}
-		m.disable = true
-	} else {
-		m.spawnedTask = true
-	}
-	conn, err := m.ConnectLocalProcessAgent()
-	if err != nil {
-		if m.logLevel <= Error {
-			logger.Println("Couldn't connect to metlo agent", err)
-		}
-		m.disable = true
-	} else {
-		m.processStream = conn
-	}
-}
+func (m *Metlo) BootstrapInstance() {
 
-func (m *metlo) StartLocalAgent() error {
-	args := make([]string, 0)
-	args = append(args, "-m", m.metloHost, "-a", m.metloKey, "--enable-grpc", "true", "--log-level", MapLogLevelToString(m.logLevel))
-	if m.backendPort != 0 {
-		args = append(args, "-b", strconv.Itoa(m.backendPort))
-	}
-	if m.collectorPort != 0 {
-		args = append(args, "-c", strconv.Itoa(m.collectorPort))
-	}
+	var metloHost = C.CString(m.metloHost)
+	defer C.free(unsafe.Pointer(metloHost))
+	var metloKey = C.CString(m.metloKey)
+	defer C.free(unsafe.Pointer(metloKey))
+	var metloBackendPort = C.ushort(m.backendPort)
+	var metloCollectorPort = C.ushort(m.collectorPort)
+	var metloLogLevel = C.CString(MapLogLevelToString(m.logLevel))
+	defer C.free(unsafe.Pointer(metloLogLevel))
 	if m.encryptionKey != nil {
-		args = append(args, "-e", *m.encryptionKey)
-	}
-	cmd := exec.Command("metlo-agent", args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Start()
-	if err != nil {
-		return err
-	}
-	if m.logLevel <= Debug {
-		logger.Println("Spawned Metlo agent")
-	}
-	go func() {
-		err := cmd.Wait()
-		logger.Println("Spawned task crashed")
-		m.spawnedTask = false
-		m.processStream = nil
-		if m.logLevel <= Error {
-			logger.Println("Metlo Agent Exited", err)
+		var metloEncryptionKey = C.CString(*m.encryptionKey)
+		defer C.free(unsafe.Pointer(&metloEncryptionKey))
+		_, err := C.Metlo_startup(
+			metloHost,
+			metloKey,
+			metloBackendPort,
+			metloCollectorPort,
+			metloLogLevel,
+			metloEncryptionKey,
+		)
+		if err != nil && err != syscall.EINPROGRESS {
+			logger.Print(err)
 		}
-		m.restartMetlo(true)
-	}()
-	return nil
-}
-
-func (m *metlo) Send(data MetloTrace) {
-	if m.processStream == nil {
-		if m.logLevel <= Trace {
-			logger.Println("Metlo GRPC stream not setup")
-		}
-		m.restartMetlo(!m.spawnedTask)
-	}
-	miTrace := MapMetloTraceToMetloIngestRPC(data)
-	if m.processStream != nil {
-		err := m.processStream.Send(&miTrace)
-		if err != nil {
-			if m.logLevel <= Error {
-				logger.Println("Encountered an error while sending message to GRPC for Process Trace", err)
-			}
-			m.restartMetlo(false)
+	} else {
+		_, err := C.Metlo_startup(
+			metloHost,
+			metloKey,
+			metloBackendPort,
+			metloCollectorPort,
+			metloLogLevel,
+			nil,
+		)
+		if err != nil && err != syscall.EINPROGRESS {
+			logger.Print(err)
 		}
 	}
 }
 
-func (m *metlo) Allow() bool {
+func (m *Metlo) Send(data MetloTrace) {
+	mapped_data := MapMetloTraceToCStruct(data)
+	C.Metlo_ingest_trace(mapped_data)
+	FreeMetloTrace(mapped_data)
+}
+
+func (m *Metlo) Allow() bool {
 	return !m.disable
 }
 
-func (m *metlo) restartMetlo(shouldSpawnTask bool) {
-	if m.reconnectMutex.TryLock() {
-		defer m.reconnectMutex.Unlock()
-		if shouldSpawnTask {
-			if m.restartCount < MaxRestartTries {
-				m.restartCount++
-				m.restartMetloSubprocess()
-			} else {
-				m.disable = true
-				return
-			}
-		}
-		if m.connectionRetryCount < MaxConnectionRetries {
-			m.renewMetloConnection()
-		} else {
-			m.disable = true
-		}
+func (m *Metlo) Block(req TraceReq, meta TraceMeta) bool {
+	block_struct := C.Metlo_ExchangeStruct{
+		Req:  MapMetloRequestToCStruct(req),
+		Meta: MapMetloMetadataToCStruct(meta),
 	}
-	return
-}
-
-func (m *metlo) renewMetloConnection() {
-	conn, err := m.ConnectLocalProcessAgent()
-	if err != nil {
-		if m.logLevel <= Error {
-			logger.Println("Couldn't connect to metlo agent when restarting")
-		}
+	resp := C.Metlo_block_trace(block_struct)
+	FreeMetloRequest(block_struct.Req)
+	FreeMetloMetadata(block_struct.Meta)
+	if resp == 1 {
+		return true
 	} else {
-		m.processStream = conn
-	}
-}
-
-func (m *metlo) restartMetloSubprocess() {
-	err := m.StartLocalAgent()
-	if err != nil {
-		if m.logLevel <= Error {
-			logger.Println("Couldn't spawn local Metlo Agent")
-		}
-	} else {
-		m.spawnedTask = true
+		return false
 	}
 }
