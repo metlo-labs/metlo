@@ -31,17 +31,19 @@ type metloInstrumentation struct {
 	app        metloApp
 	serverHost string
 	serverPort int
+	getUser    func(*gin.Context) *string
 }
 
 func Init(app metloApp) metloInstrumentation {
-	return CustomInit(app, "localhost", 0)
+	return CustomInit(app, "localhost", 0, nil)
 }
 
-func CustomInit(app metloApp, serverHost string, serverPort int) metloInstrumentation {
+func CustomInit(app metloApp, serverHost string, serverPort int, getUser func(*gin.Context) *string) metloInstrumentation {
 	return metloInstrumentation{
 		app:        app,
 		serverHost: serverHost,
 		serverPort: serverPort,
+		getUser:    getUser,
 	}
 }
 
@@ -90,6 +92,13 @@ func (m *metloInstrumentation) Middleware(c *gin.Context) {
 			log.Println("Metlo couldn't find source port for incoming request")
 		}
 
+		var user *string
+		if m.getUser != nil {
+			user = m.getUser(c)
+		} else {
+			user = nil
+		}
+
 		request := metlo.TraceReq{
 			Url: metlo.TraceUrl{
 				Host:       c.Request.Host,
@@ -99,7 +108,7 @@ func (m *metloInstrumentation) Middleware(c *gin.Context) {
 			Headers: reqHeaders,
 			Body:    string(body),
 			Method:  c.Request.Method,
-			User:    nil,
+			User:    user,
 		}
 		meta := metlo.TraceMeta{
 			Environment:     "production",
