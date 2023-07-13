@@ -2,8 +2,13 @@ package metlo
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -34,6 +39,8 @@ const MetloDefaultRPS int = 100
 const MaxRestartTries int = 10
 const MaxConnectTries int = 10
 const MaxConnectionRetries int = 1000
+
+var AgentConfigClient = &http.Client{Timeout: 5 * time.Second}
 
 func (m *metlo) ConnectLocalProcessAgent() (pb.MetloIngest_ProcessTraceAsyncClient, error) {
 	var connectErr error = nil
@@ -102,6 +109,60 @@ func InitMetloCustom(metloHost string, metloKey string, rps int, backendPort int
 	return inst
 }
 
+func (m *metlo) FetchMetloConfig() error {
+	url := m.metloHost
+	if m.backendPort != 0 {
+		url = fmt.Sprintf("%s:%s", m.metloHost, strconv.Itoa(m.backendPort))
+	}
+	agentConfigUrl := fmt.Sprintf("%s/api/v1/agent-config", url)
+	req, err := http.NewRequest("GET", agentConfigUrl, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", m.metloKey)
+	resp, err := AgentConfigClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	var response AgentConfig
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return err
+	}
+	hostMapCompiled := []HostMapCompiled{}
+	if response.HostMap != nil {
+		for _, item := range *response.HostMap {
+			r, err := regexp.Compile(item.Pattern)
+			if err == nil {
+				hostMapCompiled = append(hostMapCompiled, HostMapCompiled{Host: item.Host, Pattern: r})
+			}
+		}
+	}
+
+	wafConfig.mutex.Lock()
+	defer wafConfig.mutex.Unlock()
+	if response.WafConfig != nil {
+		wafConfig.WafRules = *response.WafConfig
+	} else {
+		wafConfig.WafRules = []WafRule{}
+	}
+	if response.AuthenticationConfig != nil {
+		wafConfig.AuthenticationConfig = *response.AuthenticationConfig
+	} else {
+		wafConfig.AuthenticationConfig = []Authentication{}
+	}
+	wafConfig.HostMap = hostMapCompiled
+
+	return nil
+}
+
 func (m *metlo) BootstrapInstance() {
 	agentStartErr := m.StartLocalAgent()
 	if agentStartErr != nil {
@@ -120,6 +181,22 @@ func (m *metlo) BootstrapInstance() {
 		m.disable = true
 	} else {
 		m.processStream = conn
+		err := m.FetchMetloConfig()
+		if err != nil {
+			if m.logLevel <= Warn {
+				logger.Println("Error making initial agent config fetch:", err)
+			}
+		}
+		go func() {
+			for range time.Tick(time.Minute * 5) {
+				err := m.FetchMetloConfig()
+				if err != nil {
+					if m.logLevel <= Warn {
+						logger.Println("Error fetching agent config:", err)
+					}
+				}
+			}
+		}()
 	}
 }
 

@@ -16,6 +16,7 @@ type TraceReq struct {
 	Headers []NV     `json:"headers"`
 	Body    string   `json:"body"`
 	Method  string   `json:"method"`
+	User    *string  `json:"user"`
 }
 
 type TraceRes struct {
