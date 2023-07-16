@@ -173,6 +173,9 @@ func (m *metlo) BootstrapInstance() {
 	} else {
 		m.spawnedTask = true
 	}
+	if m.disable {
+		return
+	}
 	conn, err := m.ConnectLocalProcessAgent()
 	if err != nil {
 		if m.logLevel <= Error {
@@ -181,6 +184,9 @@ func (m *metlo) BootstrapInstance() {
 		m.disable = true
 	} else {
 		m.processStream = conn
+		if m.disable {
+			return
+		}
 		err := m.FetchMetloConfig()
 		if err != nil {
 			if m.logLevel <= Warn {
