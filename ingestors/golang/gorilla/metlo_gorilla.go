@@ -132,8 +132,9 @@ func (m *metloInstrumentation) Middleware(next http.Handler) http.Handler {
 			}
 
 			if m.app.ShouldBlock(request, meta) {
-				logRespWriter.Write([]byte("Forbidden"))
 				logRespWriter.statusCode = 403
+				logRespWriter.WriteHeader(http.StatusForbidden)
+				logRespWriter.Write([]byte("Forbidden"))
 			} else {
 				next.ServeHTTP(logRespWriter, r)
 			}
