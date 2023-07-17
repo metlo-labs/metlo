@@ -607,7 +607,7 @@ func (m *metlo) ClearRateLimitMap() {
 		for key, entry := range rateLimitMap.entries {
 			if entry.DurationStart != nil && (time.Since(*entry.DurationStart).Seconds() >= float64(entry.Duration*2)) {
 				delete(rateLimitMap.entries, key)
-			} else if time.Since(entry.ThresholdStart).Seconds() >= float64(GetIntervalDuration(entry.ThresholdInterval)*2) {
+			} else if time.Since(entry.ThresholdStart) >= GetIntervalDuration(entry.ThresholdInterval)*2 {
 				delete(rateLimitMap.entries, key)
 			}
 		}
