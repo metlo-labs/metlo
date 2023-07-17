@@ -528,7 +528,6 @@ func HandleRateLimitRuleUpdate(data MetloTrace, rule WafRule, authentication *Au
 }
 
 func (m *metlo) ShouldBlock(req TraceReq, traceMeta TraceMeta) bool {
-	block := false
 	currTime := time.Now().UnixMilli()
 	var authentication *Authentication
 	authentication = nil
@@ -553,21 +552,19 @@ func (m *metlo) ShouldBlock(req TraceReq, traceMeta TraceMeta) bool {
 	for _, rule := range wafConfig.WafRules {
 		switch rule.RuleType {
 		case "block":
-			if !block &&
-				((rule.Action.BlockEndTime != nil && currTime <= *rule.Action.BlockEndTime) || rule.Action.BlockEndTime == nil) &&
+			if ((rule.Action.BlockEndTime != nil && currTime <= *rule.Action.BlockEndTime) || rule.Action.BlockEndTime == nil) &&
 				HandleBlockRule(req, traceMeta, rule.ConditionGroups, authentication, nil) {
-				block = true
+				return true
 			}
 			break
 		case "rate_limit":
-			res := HandleRateLimitRule(req, traceMeta, rule, authentication)
-			if !block && res {
-				block = true
+			if HandleRateLimitRule(req, traceMeta, rule, authentication) {
+				return true
 			}
 			break
 		}
 	}
-	return block
+	return false
 }
 
 func (m *metlo) UpdateRateLimit(data MetloTrace) {
@@ -597,5 +594,25 @@ func (m *metlo) UpdateRateLimit(data MetloTrace) {
 			HandleRateLimitRuleUpdate(data, rule, authentication)
 			break
 		}
+	}
+}
+
+func (m *metlo) ClearRateLimitMap() {
+	rateLimitMap.mutex.Lock()
+	defer rateLimitMap.mutex.Unlock()
+	if m.logLevel <= Debug {
+		logger.Println("Clearing Rate Limit Map:", len(rateLimitMap.entries))
+	}
+	if rateLimitMap.entries != nil {
+		for key, entry := range rateLimitMap.entries {
+			if entry.DurationStart != nil && (time.Since(*entry.DurationStart).Seconds() >= float64(entry.Duration*2)) {
+				delete(rateLimitMap.entries, key)
+			} else if time.Since(entry.ThresholdStart).Seconds() >= float64(GetIntervalDuration(entry.ThresholdInterval)*2) {
+				delete(rateLimitMap.entries, key)
+			}
+		}
+	}
+	if m.logLevel <= Debug {
+		logger.Println("Cleared Rate Limit Map:", len(rateLimitMap.entries))
 	}
 }

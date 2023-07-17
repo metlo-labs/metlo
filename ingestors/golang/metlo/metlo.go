@@ -203,6 +203,11 @@ func (m *metlo) BootstrapInstance() {
 				}
 			}
 		}()
+		go func() {
+			for range time.Tick(time.Minute * 1) {
+				m.ClearRateLimitMap()
+			}
+		}()
 	}
 }
 
