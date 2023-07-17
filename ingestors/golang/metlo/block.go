@@ -330,7 +330,7 @@ func HandleRateLimitStateAction(ruleAction WafAction, key string, action RateLim
 			entry.Window.Prev = entry.Window.Curr
 			entry.Window.Curr = 1
 			entry.DurationStart = nil
-			entry.ThresholdStart = entry.ThresholdStart.Add(GetIntervalDuration(entry.ThresholdInterval))
+			entry.ThresholdStart = time.Now()
 			entries[key] = entry
 		} else if ruleAction.RateLimit != nil {
 			rateLimitAction := *ruleAction.RateLimit
