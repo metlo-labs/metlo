@@ -16,6 +16,8 @@ const MAX_BODY int = 10 * 1024
 
 type metloApp interface {
 	Send(data metlo.MetloTrace)
+	ShouldBlock(request metlo.TraceReq, meta metlo.TraceMeta) bool
+	UpdateRateLimit(data metlo.MetloTrace)
 	Allow() bool
 }
 
@@ -30,17 +32,19 @@ type metloInstrumentation struct {
 	app        metloApp
 	serverHost string
 	serverPort int
+	getUser    func(r *http.Request) *string
 }
 
 func Init(app metloApp) metloInstrumentation {
-	return CustomInit(app, "localhost", 0)
+	return CustomInit(app, "localhost", 0, nil)
 }
 
-func CustomInit(app metloApp, serverHost string, serverPort int) metloInstrumentation {
+func CustomInit(app metloApp, serverHost string, serverPort int, getUser func(r *http.Request) *string) metloInstrumentation {
 	return metloInstrumentation{
 		app:        app,
 		serverHost: serverHost,
 		serverPort: serverPort,
+		getUser:    getUser,
 	}
 }
 
@@ -79,15 +83,9 @@ func (m *metloInstrumentation) Middleware(next http.Handler) http.Handler {
 		r.Body = ioutil.NopCloser(bytes.NewReader(body))
 
 		if m.app.Allow() {
-			next.ServeHTTP(logRespWriter, r)
 			reqHeaders := make([]metlo.NV, 0)
 			for k := range r.Header {
 				reqHeaders = append(reqHeaders, metlo.NV{Name: k, Value: strings.Join(r.Header[k], ",")})
-			}
-			resHeaderMap := logRespWriter.Header()
-			resHeaders := make([]metlo.NV, 0)
-			for k := range resHeaderMap {
-				resHeaders = append(resHeaders, metlo.NV{Name: k, Value: strings.Join(resHeaderMap[k], ",")})
 			}
 			queryMap := r.URL.Query()
 			queryParams := make([]metlo.NV, 0)
@@ -105,37 +103,63 @@ func (m *metloInstrumentation) Middleware(next http.Handler) http.Handler {
 				log.Println("Metlo couldn't find source port for incoming request")
 			}
 
+			var user *string
+			if m.getUser != nil {
+				user = m.getUser(r)
+			} else {
+				user = nil
+			}
+
+			request := metlo.TraceReq{
+				Url: metlo.TraceUrl{
+					Host:       r.Host,
+					Path:       r.URL.Path,
+					Parameters: queryParams,
+				},
+				Headers: reqHeaders,
+				Body:    string(body),
+				Method:  r.Method,
+				User:    user,
+			}
+			meta := metlo.TraceMeta{
+				Environment:     "production",
+				Incoming:        true,
+				Source:          sourceIp,
+				SourcePort:      sourcePort,
+				Destination:     m.serverHost,
+				DestinationPort: m.serverPort,
+				MetloSource:     "go/gorilla",
+			}
+
+			if m.app.ShouldBlock(request, meta) {
+				logRespWriter.statusCode = 403
+				logRespWriter.WriteHeader(http.StatusForbidden)
+				logRespWriter.Write([]byte("Forbidden"))
+			} else {
+				next.ServeHTTP(logRespWriter, r)
+			}
+
 			statusCode := logRespWriter.statusCode
 			if statusCode == 0 {
 				statusCode = 200
 			}
 
+			resHeaderMap := logRespWriter.Header()
+			resHeaders := make([]metlo.NV, 0)
+			for k := range resHeaderMap {
+				resHeaders = append(resHeaders, metlo.NV{Name: k, Value: strings.Join(resHeaderMap[k], ",")})
+			}
 			tr := metlo.MetloTrace{
-				Request: metlo.TraceReq{
-					Url: metlo.TraceUrl{
-						Host:       r.Host,
-						Path:       r.URL.Path,
-						Parameters: queryParams,
-					},
-					Headers: reqHeaders,
-					Body:    string(body),
-					Method:  r.Method,
-				},
+				Request: request,
 				Response: metlo.TraceRes{
 					Status:  statusCode,
 					Body:    logRespWriter.buf.String(),
 					Headers: resHeaders,
 				},
-				Meta: metlo.TraceMeta{
-					Environment:     "production",
-					Incoming:        true,
-					Source:          sourceIp,
-					SourcePort:      sourcePort,
-					Destination:     m.serverHost,
-					DestinationPort: m.serverPort,
-					MetloSource:     "go/gorilla",
-				},
+				Meta: meta,
 			}
+
+			m.app.UpdateRateLimit(tr)
 
 			go m.app.Send(tr)
 		} else {

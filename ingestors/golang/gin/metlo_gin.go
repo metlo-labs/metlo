@@ -16,6 +16,8 @@ const MAX_BODY int = 10 * 1024
 
 type metloApp interface {
 	Send(data metlo.MetloTrace)
+	ShouldBlock(request metlo.TraceReq, meta metlo.TraceMeta) bool
+	UpdateRateLimit(data metlo.MetloTrace)
 	Allow() bool
 }
 
@@ -29,17 +31,19 @@ type metloInstrumentation struct {
 	app        metloApp
 	serverHost string
 	serverPort int
+	getUser    func(*gin.Context) *string
 }
 
 func Init(app metloApp) metloInstrumentation {
-	return CustomInit(app, "localhost", 0)
+	return CustomInit(app, "localhost", 0, nil)
 }
 
-func CustomInit(app metloApp, serverHost string, serverPort int) metloInstrumentation {
+func CustomInit(app metloApp, serverHost string, serverPort int, getUser func(*gin.Context) *string) metloInstrumentation {
 	return metloInstrumentation{
 		app:        app,
 		serverHost: serverHost,
 		serverPort: serverPort,
+		getUser:    getUser,
 	}
 }
 
@@ -88,7 +92,40 @@ func (m *metloInstrumentation) Middleware(c *gin.Context) {
 			log.Println("Metlo couldn't find source port for incoming request")
 		}
 
-		c.Next()
+		var user *string
+		if m.getUser != nil {
+			user = m.getUser(c)
+		} else {
+			user = nil
+		}
+
+		request := metlo.TraceReq{
+			Url: metlo.TraceUrl{
+				Host:       c.Request.Host,
+				Path:       c.Request.URL.Path,
+				Parameters: queryParams,
+			},
+			Headers: reqHeaders,
+			Body:    string(body),
+			Method:  c.Request.Method,
+			User:    user,
+		}
+		meta := metlo.TraceMeta{
+			Environment:     "production",
+			Incoming:        true,
+			Source:          c.ClientIP(),
+			SourcePort:      sourcePort,
+			Destination:     m.serverHost,
+			DestinationPort: m.serverPort,
+			MetloSource:     "go/gin",
+		}
+
+		if m.app.ShouldBlock(request, meta) {
+			c.String(403, "Forbidden")
+			c.Abort()
+		} else {
+			c.Next()
+		}
 
 		resHeaderMap := c.Writer.Header()
 		resHeaders := make([]metlo.NV, 0)
@@ -97,31 +134,16 @@ func (m *metloInstrumentation) Middleware(c *gin.Context) {
 		}
 
 		tr := metlo.MetloTrace{
-			Request: metlo.TraceReq{
-				Url: metlo.TraceUrl{
-					Host:       c.Request.Host,
-					Path:       c.Request.URL.Path,
-					Parameters: queryParams,
-				},
-				Headers: reqHeaders,
-				Body:    string(body),
-				Method:  c.Request.Method,
-			},
+			Request: request,
 			Response: metlo.TraceRes{
 				Status:  blw.Status(),
 				Body:    blw.body.String(),
 				Headers: resHeaders,
 			},
-			Meta: metlo.TraceMeta{
-				Environment:     "production",
-				Incoming:        true,
-				Source:          c.ClientIP(),
-				SourcePort:      sourcePort,
-				Destination:     m.serverHost,
-				DestinationPort: m.serverPort,
-				MetloSource:     "go/gin",
-			},
+			Meta: meta,
 		}
+
+		m.app.UpdateRateLimit(tr)
 
 		go m.app.Send(tr)
 	} else {

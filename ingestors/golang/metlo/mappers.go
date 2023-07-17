@@ -17,6 +17,10 @@ func MapMetloTraceToMetloIngestRPC(trace MetloTrace) mi.ApiTrace {
 	for _, k := range trace.Response.Headers {
 		respHeaders = append(respHeaders, &mi.KeyVal{Name: k.Name, Value: k.Value})
 	}
+	user := ""
+	if trace.Request.User != nil {
+		user = *trace.Request.User
+	}
 	return mi.ApiTrace{
 		Response: &mi.ApiResponse{
 			Status:  int32(trace.Response.Status),
@@ -32,6 +36,7 @@ func MapMetloTraceToMetloIngestRPC(trace MetloTrace) mi.ApiTrace {
 			},
 			Headers: reqHeaders,
 			Body:    trace.Request.Body,
+			User:    user,
 		},
 		Meta: &mi.ApiMeta{
 			Environment:     trace.Meta.Environment,
