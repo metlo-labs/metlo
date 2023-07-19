@@ -25,6 +25,7 @@ module.exports = withBundleAnalyzer({
       config.resolve.alias = {
         ...config.resolve.alias,
         vm2: false,
+        "isolated-vm": false,
         fs: false,
         module: false,
         "jest-util": false,

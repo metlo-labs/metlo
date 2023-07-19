@@ -2,7 +2,7 @@ import fs from "fs"
 import chalk from "chalk"
 import axios from "axios"
 import ts, { ModuleKind } from "typescript"
-import { NodeVM } from "vm2"
+import { Script, createContext } from "vm"
 import { getConfig } from "../utils"
 import {
   TestConfig,
@@ -11,6 +11,7 @@ import {
   TestTemplate,
   processResourceConfig,
   parseResourceConfig,
+  TemplateConfig,
 } from "@metlo/testing"
 import * as MetloTesting from "@metlo/testing"
 import { TEMPLATES } from "@metlo/testing/dist/templates"
@@ -29,6 +30,7 @@ export interface GenerateTestRes {
 const genTestFromFile = (
   path: string,
   endpoint: GenTestEndpoint,
+  config: TemplateConfig,
 ): [TestConfig, string] => {
   if (!fs.existsSync(path)) {
     return [null, chalk.bold.red(`INVALID PATH: "${path}"`)]
@@ -40,36 +42,36 @@ const genTestFromFile = (
   if (path.endsWith(".ts")) {
     contents = ts.transpile(contents, { module: ModuleKind.CommonJS })
   }
-  const vm = new NodeVM({
-    require: {
-      external: true,
-      mock: {
-        "@metlo/testing": MetloTesting,
-      },
-      customRequire: module => {},
-    },
-    sandbox: {
-      exports: {},
-      endpoint,
-      testing: Object.entries(MetloTesting),
-      customRequire: module => {
+
+  const sandbox = {
+    module: { exports: {} },
+    exports: {},
+    endpoint,
+    config,
+    testing: Object.entries(MetloTesting),
+    require: function (module) {
+      if (module === "@metlo/testing") {
         return MetloTesting
-      },
+      }
+      return require(module)
     },
-    timeout: 1000,
-    allowAsync: false,
-    eval: false,
-    wasm: false,
-  })
-  const template = vm.run(contents)
+  }
+  const script = new Script(contents)
+  const context = createContext(sandbox)
+  script.runInContext(context, { timeout: 1000 })
+  const template = sandbox.exports
   const err = validateTemplateObj(path, template)
   if (err) {
     return [null, err]
   }
-  const res = vm.run(
-    `${contents}\nmodule.exports = exports.default.builder(endpoint).getTest();`,
+
+  const resScript = new Script(
+    `${contents}\nmodule.exports = exports.default.builder(endpoint, config).getTest();`,
   )
-  return [res, ""]
+  resScript.runInContext(context)
+  const res = sandbox.module.exports
+
+  return [res as TestConfig, ""]
 }
 
 const getTestTemplate = (
@@ -170,7 +172,11 @@ export const generateTest = async ({
 
   let testYaml = ""
   if (testType.endsWith(".js") || testType.endsWith(".ts")) {
-    const [test, err] = genTestFromFile(testType, genTestEndpoint)
+    const [test, err] = genTestFromFile(
+      testType,
+      genTestEndpoint,
+      templateConfig as TemplateConfig,
+    )
     if (err) {
       console.log(err)
       return
