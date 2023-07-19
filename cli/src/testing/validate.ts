@@ -1,6 +1,6 @@
 import chalk from "chalk"
 import ts, { ModuleKind } from "typescript"
-import { NodeVM } from "vm2"
+import { Script, createContext } from "vm"
 import * as MetloTesting from "@metlo/testing"
 
 export const TEMPLATE_SAMPLE = `exports.default = {
@@ -46,28 +46,23 @@ export const validateTemplateFileContents = (
   if (path.endsWith(".ts")) {
     contents = ts.transpile(contents, { module: ModuleKind.CommonJS })
   }
-  const vm = new NodeVM({
-    require: {
-      external: true,
-      mock: {
-        "@metlo/testing": MetloTesting,
-      },
-      customRequire: module => {},
-    },
-    sandbox: {
-      exports: {},
-      testing: Object.entries(MetloTesting),
-      customRequire: module => {
+
+  const sandbox = {
+    exports: {},
+    testing: Object.entries(MetloTesting),
+    require: function (moduleName) {
+      if (moduleName === "@metlo/testing") {
         return MetloTesting
-      },
+      }
+      return require(moduleName)
     },
-    timeout: 1000,
-    allowAsync: false,
-    eval: false,
-    wasm: false,
-  })
+  }
+  const context = createContext(sandbox)
+
   try {
-    const template = vm.run(contents)
+    const script = new Script(contents)
+    script.runInContext(context, { timeout: 1000 })
+    const template = sandbox.exports
     return validateTemplateObj(path, template)
   } catch (err) {
     return `${err.message}\n${err.stack}`
