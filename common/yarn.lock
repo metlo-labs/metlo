@@ -49,10 +49,10 @@
     "@types/yargs" "^17.0.8"
     chalk "^4.0.0"
 
-"@metlo/testing@^0.3.24":
-  version "0.3.24"
-  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.3.24.tgz#a31f1be07f5433962b935ff049fb2378320bdcd2"
-  integrity sha512-GP5GQbbsjP85qsSC7hnuv4rnzerlpnCOj/a7tNhMH6ZAufqPy7VJHxfqiShZq8F6GxWGtWQgGYzGXds+Ja/5zQ==
+"@metlo/testing@^0.3.25":
+  version "0.3.25"
+  resolved "https://registry.yarnpkg.com/@metlo/testing/-/testing-0.3.25.tgz#e6fa763f03f489451c7abc806148cb243ccc20ca"
+  integrity sha512-IgXR4x35hDDH//zwzZTsLFamKwsQp0aUxvxd7zmuTBvD7u94II+TBDdu4AMDEoU565teynU5P7W+xSEHzTBOBg==
   dependencies:
     axios "^1.2.1"
     chalk "^4.1.2"
@@ -60,6 +60,7 @@
     form-data "^4.0.0"
     graphql-js-tree "^0.3.1"
     handlebars "^4.7.7"
+    isolated-vm "^4.5.0"
     js-yaml "^4.1.0"
     jsdom "^20.0.3"
     json-to-graphql-query "^2.2.5"
@@ -68,7 +69,6 @@
     peggy "^2.0.1"
     ts-pegjs "^3.0.0"
     uuid "^9.0.0"
-    vm2 "^3.9.18"
     zod "^3.20.2"
 
 "@sinclair/typebox@^0.24.1":
@@ -142,12 +142,12 @@ acorn-globals@^7.0.0:
     acorn "^8.1.0"
     acorn-walk "^8.0.2"
 
-acorn-walk@^8.0.2, acorn-walk@^8.2.0:
+acorn-walk@^8.0.2:
   version "8.2.0"
   resolved "https://registry.yarnpkg.com/acorn-walk/-/acorn-walk-8.2.0.tgz#741210f2e2426454508853a2f44d0ab83b7f69c1"
   integrity sha512-k+iyHEuPgSw6SbuDpGQM+06HQUa04DZ3o+F6CSzXMvvI5KMvnaEqXe+YVe555R9nn6GPt404fos4wcgpw12SDA==
 
-acorn@^8.1.0, acorn@^8.7.0, acorn@^8.8.1:
+acorn@^8.1.0, acorn@^8.8.1:
   version "8.8.1"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.8.1.tgz#0a3f9cbecc4ec3bea6f0a80b66ae8dd2da250b73"
   integrity sha512-7zFpHzhnqYKrkYdUjF1HI1bzd0VygEGX8lFk4k5zVMqHEoES+P+7TKI+EvLO9WVMJ8eekdO0aDEK044xTXwPPA==
@@ -488,6 +488,11 @@ is-potential-custom-element-name@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/is-potential-custom-element-name/-/is-potential-custom-element-name-1.0.1.tgz#171ed6f19e3ac554394edf78caa05784a45bebb5"
   integrity sha512-bCYeRA2rVibKZd+s2625gGnGF/t7DSqDs4dP7CrLA1m7jKWz6pps0LpYLJN8Q64HtmPKJ1hrN3nzPNKFEKOUiQ==
+
+isolated-vm@^4.5.0:
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/isolated-vm/-/isolated-vm-4.5.0.tgz#3c92029123306bfd5d851926d46dde02be8ce248"
+  integrity sha512-Kse0m5t+B9wZQVeTDqzPoX1SIFNTNfyaUxhnCuFgpXL1+5GYJ9GUAN3mpD+ainixGmUXgeYaVBX+QPDjEBBu0w==
 
 jest-diff@^29.3.1:
   version "29.3.1"
@@ -845,14 +850,6 @@ uuid@^9.0.0:
   version "9.0.0"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.0.tgz#592f550650024a38ceb0c562f2f6aa435761efb5"
   integrity sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==
-
-vm2@^3.9.18:
-  version "3.9.19"
-  resolved "https://registry.yarnpkg.com/vm2/-/vm2-3.9.19.tgz#be1e1d7a106122c6c492b4d51c2e8b93d3ed6a4a"
-  integrity sha512-J637XF0DHDMV57R6JyVsTak7nIL8gy5KH4r1HiwWLf/4GBbb5MKL5y7LpmF4A8E2nR6XmzpmMFQ7V7ppPTmUQg==
-  dependencies:
-    acorn "^8.7.0"
-    acorn-walk "^8.2.0"
 
 w3c-xmlserializer@^4.0.0:
   version "4.0.0"
