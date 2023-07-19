@@ -1,6 +1,6 @@
 {
   "name": "@metlo/testing",
-  "version": "0.3.24",
+  "version": "0.3.25",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -31,6 +31,7 @@
     "form-data": "^4.0.0",
     "graphql-js-tree": "^0.3.1",
     "handlebars": "^4.7.7",
+    "isolated-vm": "^4.5.0",
     "js-yaml": "^4.1.0",
     "jsdom": "^20.0.3",
     "json-to-graphql-query": "^2.2.5",
@@ -39,7 +40,6 @@
     "peggy": "^2.0.1",
     "ts-pegjs": "^3.0.0",
     "uuid": "^9.0.0",
-    "vm2": "^3.9.18",
     "zod": "^3.20.2"
   }
 }

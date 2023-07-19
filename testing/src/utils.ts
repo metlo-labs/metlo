@@ -1,6 +1,6 @@
 import { AxiosResponse } from "axios"
 import { Context } from "types/context"
-import vm2 from "vm2"
+import ivm from "isolated-vm"
 import * as Handlebars from "handlebars"
 import jsdom from "jsdom"
 
@@ -25,17 +25,41 @@ export const processEnvVars = (
   return base
 }
 
-const createVM = (resp: AxiosResponse, ctx: Context) => {
-  const vm = new vm2.VM({
-    timeout: SCRIPT_DEFAULT_TIMEOUT,
-    allowAsync: false,
-    eval: false,
-    wasm: false,
+const removeNonPrimitives = (obj: any) => {
+  if (typeof obj !== "object") {
+    return
+  }
+  for (let key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      if (typeof obj[key] === "object") {
+        removeNonPrimitives(obj[key])
+      } else if (Array.isArray(obj[key])) {
+        for (let i = 0; i < obj[key].length; i++) {
+          removeNonPrimitives(obj[key][i])
+        }
+      } else if (!ALLOWED_DATA_TYPES.includes(typeof obj[key])) {
+        delete obj[key]
+      }
+    }
+  }
+}
+
+const createIsolate = (resp: AxiosResponse, ctx: Context) => {
+  const isolate = new ivm.Isolate({ memoryLimit: 128 })
+  const context = isolate.createContextSync()
+
+  let jail = context.global
+  jail.setSync("global", jail.derefInto())
+
+  Object.entries(ctx.envVars).forEach(([k, v]) => {
+    jail.setSync(k, new ivm.ExternalCopy(v).copyInto())
   })
-  const sandboxItems = {}
-  Object.entries(ctx.envVars).forEach(([k, v]) => vm.freeze(v, k))
-  vm.freeze(resp, "resp")
-  return vm
+
+  const { data, status, statusText, headers, config } = resp
+  const simplifiedResp = { data, status, statusText, headers: headers, config }
+  removeNonPrimitives(simplifiedResp)
+  jail.setSync("resp", new ivm.ExternalCopy(simplifiedResp).copyInto())
+  return { context, isolate }
 }
 
 export const executeScript = (
@@ -43,8 +67,12 @@ export const executeScript = (
   resp: AxiosResponse,
   ctx: Context,
 ) => {
-  const vm = createVM(resp, ctx)
-  const execResponse = vm.run(script)
+  const { context, isolate } = createIsolate(resp, ctx)
+  const scriptObj = isolate.compileScriptSync(script)
+  const execResponse = scriptObj.runSync(context, {
+    timeout: SCRIPT_DEFAULT_TIMEOUT,
+  })
+
   if (ALLOWED_DATA_TYPES.includes((typeof execResponse).toLowerCase())) {
     return execResponse
   } else {
@@ -60,16 +88,19 @@ export const extractFromHTML = (
   resp: AxiosResponse,
   ctx: Context,
 ) => {
-  const vm = createVM(resp, ctx)
-  vm.freeze(jsdom.JSDOM.fragment, "jsdom")
-  const dom = jsdom.JSDOM.fragment(resp.data)
-
-  vm.freeze(resp.data, "body")
-  const execResponse = vm.run(`
-    const dom = jsdom(body);
-    dom.querySelector("${querySelectorKey}")
-  `)
-  return execResponse
+  const { context, isolate } = createIsolate(resp, ctx)
+  const jail = context.global
+  jail.setSync("global", jail.derefInto())
+  jail.setSync("body", new ivm.ExternalCopy(resp.data).copyInto())
+  jail.setSync("parseHTML", function (html: string, selector: string) {
+    const dom = jsdom.JSDOM.fragment(html)
+    return dom.querySelector(selector)?.innerHTML
+  })
+  const script = `
+    parseHTML(body, "${querySelectorKey}");
+  `
+  const scriptObj = isolate.compileScriptSync(script)
+  return scriptObj.runSync(context, { timeout: SCRIPT_DEFAULT_TIMEOUT })
 }
 
 export const extractRegexp = (
