@@ -1,5 +1,8 @@
 FROM node:alpine AS builder
 
+RUN apk update
+RUN apk add --no-cache python3 make g++
+
 WORKDIR /usr/src/app
 
 ADD ../../../backend backend
