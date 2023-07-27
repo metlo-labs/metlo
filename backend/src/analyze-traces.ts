@@ -135,6 +135,20 @@ const generateEndpoint = async (
   if (isGraphQl) {
     parameterizedPath = trace.path
     pathRegex = trace.path
+  } else if (trace.endpointPath) {
+    parameterizedPath = trace.endpointPath
+    const pathTokens = getPathTokens(trace.endpointPath)
+    for (const token of pathTokens) {
+      if (token === "/") {
+        pathRegex += "/"
+      } else if (token.length > 0) {
+        if (token.startsWith("{") && token.endsWith("}")) {
+          pathRegex += String.raw`/[^/]+`
+        } else {
+          pathRegex += String.raw`/${token}`
+        }
+      }
+    }
   } else {
     const pathTokens = getPathTokens(trace.path)
     for (let j = 0; j < pathTokens.length; j++) {
