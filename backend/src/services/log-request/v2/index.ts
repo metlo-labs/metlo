@@ -40,6 +40,7 @@ export const getQueuedApiTrace = async (
     }
 
     const path = validPath.path
+    const parameterizedPath = traceParams?.request?.url?.parameterizedPath
     const method = traceParams?.request?.method
     const host = traceParams?.request?.url?.host
     const requestParameters = traceParams?.request?.url?.parameters ?? []
@@ -78,6 +79,12 @@ export const getQueuedApiTrace = async (
       graphqlPaths: traceParams.graphqlPaths,
     }
 
+    if (parameterizedPath) {
+      const validParameterizedPath = getValidPath(parameterizedPath)
+      if (validParameterizedPath.isValid) {
+        apiTraceObj.parameterizedPath = validParameterizedPath.path
+      }
+    }
     if (!traceParams?.sessionMeta) {
       await AuthenticationConfigService.setSessionMetadata(ctx, apiTraceObj)
     }
