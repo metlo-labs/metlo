@@ -43,7 +43,7 @@ export interface PairObject {
 export interface Url {
   host: string
   path: string
-  parameterizedPath?: string
+  endpointPath?: string
   parameters: PairObject[]
 }
 
@@ -138,7 +138,7 @@ export type JSONValue =
 
 export interface QueuedApiTrace {
   path: string
-  parameterizedPath?: string
+  endpointPath?: string
   createdAt: Date
   host: string
   method: RestMethod

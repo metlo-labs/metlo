@@ -135,9 +135,9 @@ const generateEndpoint = async (
   if (isGraphQl) {
     parameterizedPath = trace.path
     pathRegex = trace.path
-  } else if (trace.parameterizedPath) {
-    parameterizedPath = trace.parameterizedPath
-    const pathTokens = getPathTokens(trace.parameterizedPath)
+  } else if (trace.endpointPath) {
+    parameterizedPath = trace.endpointPath
+    const pathTokens = getPathTokens(trace.endpointPath)
     for (const token of pathTokens) {
       if (token === "/") {
         pathRegex += "/"
