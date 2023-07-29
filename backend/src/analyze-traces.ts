@@ -190,7 +190,9 @@ const generateEndpoint = async (
       apiEndpoint.isGraphQl = true
       apiEndpoint.userSet = true
     }
-
+    if (trace.endpointPath) {
+      apiEndpoint.userSet = true
+    }
     try {
       await queryRunner.startTransaction()
       await insertValueBuilder(ctx, queryRunner, Hosts, {
