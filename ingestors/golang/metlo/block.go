@@ -125,7 +125,7 @@ func GetXForwardedForFromValue(value *string) *string {
 
 func GetSourceIp(reqHeaders []NV, traceMeta TraceMeta) *string {
 	for _, header := range reqHeaders {
-		if strings.ToLower(header.Name) == "x-forwarded-for" {
+		if strings.EqualFold(header.Name, "x-forwarded-for") {
 			xForwardedValue := GetXForwardedForFromValue(&header.Value)
 			return xForwardedValue
 		}
@@ -160,8 +160,8 @@ func CheckStringCondition(condOperator *string, condValue *string, reqValue *str
 
 func GetKeyValuePairValue(key string, keyValuePairs []NV) *string {
 	for _, pair := range keyValuePairs {
-		if strings.ToLower(pair.Name) == key {
-			return &pair.Name
+		if strings.EqualFold(pair.Name, key) {
+			return &pair.Value
 		}
 	}
 	return nil
@@ -222,7 +222,7 @@ func CheckKeyValuePair(condOperator *string, condKey *string, condValue *string,
 		return false
 	}
 	for _, pair := range keyValuePairs {
-		if strings.ToLower(pair.Name) == strings.ToLower(*condKey) && CheckStringCondition(condOperator, condValue, &pair.Value) {
+		if strings.EqualFold(pair.Name, *condKey) && CheckStringCondition(condOperator, condValue, &pair.Value) {
 			return true
 		}
 	}
@@ -424,7 +424,7 @@ func HandleSessionIdentifier(authentication *Authentication, headers []NV, key *
 			return
 		}
 		headerKey := *authentication.HeaderKey
-		headerValuePtr := GetKeyValuePairValue(strings.ToLower(headerKey), headers)
+		headerValuePtr := GetKeyValuePairValue(headerKey, headers)
 		if headerValuePtr != nil {
 			key.WriteRune('_')
 			key.WriteString(*headerValuePtr)
