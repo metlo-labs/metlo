@@ -41,7 +41,7 @@ export const isSuspectedParamater = (
   if (validator.isUUID(value)) {
     return true
   }
-  const splitParam = value.split(/[-_]/)
+  const splitParam = value.split(/[_]/)
   for (const token of splitParam) {
     if (
       !(wordJson[token.toLowerCase()] || customWords.has(token.toLowerCase()))
