@@ -1,4 +1,4 @@
-FROM node:alpine AS builder
+FROM node:21.2-alpine3.18 AS builder
 
 RUN apk update
 RUN apk add --no-cache libc6-compat python3 make g++
@@ -18,7 +18,7 @@ RUN echo 'NODE_ENV=production' >> .env
 RUN yarn install --frozen-lockfile
 RUN yarn build
 
-FROM node:alpine
+FROM node:21.2-alpine3.18
 
 WORKDIR /usr/src/app
 
