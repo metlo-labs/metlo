@@ -36,7 +36,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.7.21</kotlin.version>
+        <kotlin.version>1.9.22</kotlin.version>
         <spring-boot.version>2.7.3</spring-boot.version>
         <spring.version>5.3.22</spring.version>
     </properties>
