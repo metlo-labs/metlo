@@ -29,7 +29,7 @@
     "chalk": "^4.1.2",
     "expect": "^29.0.2",
     "form-data": "^4.0.0",
-    "graphql-js-tree": "^0.3.1",
+    "graphql-js-tree": "^0.4.0",
     "handlebars": "^4.7.7",
     "isolated-vm": "^4.5.0",
     "js-yaml": "^4.1.0",
