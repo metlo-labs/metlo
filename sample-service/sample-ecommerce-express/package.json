@@ -19,7 +19,7 @@
     "@fastify/multipart": "6.0.1",
     "bcryptjs": "^2.4.3",
     "crypto": "^1.0.1",
-    "dotenv": "^16.0.1",
+    "dotenv": "^16.3.1",
     "fastify": "^4.10.2",
     "pm2": "^5.2.2",
     "sqlite3": "^5.1.7",
