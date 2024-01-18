@@ -38,7 +38,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kotlin.version>1.7.21</kotlin.version>
         <spring-boot.version>2.7.3</spring-boot.version>
-        <spring.version>5.3.22</spring.version>
+        <spring.version>5.3.31</spring.version>
     </properties>
 
     <modules>
