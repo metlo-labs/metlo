@@ -116,7 +116,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
-            <version>4.2.0.RELEASE</version>
+            <version>5.3.32</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

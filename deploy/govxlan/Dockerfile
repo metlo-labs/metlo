@@ -21,7 +21,7 @@ COPY ../../ingestors/rust-common/ rust-common
 RUN cd govxlan && go build -o metlo-pcap
 RUN mv govxlan/metlo-pcap metlo-pcap
 
-FROM --platform=linux/amd64 debian:buster
+FROM --platform=linux/amd64 debian:bookworm-20240211
 
 RUN apt update
 RUN apt install bash libpcap-dev gcc -y
