@@ -1,4 +1,4 @@
-FROM node:alpine AS builder
+FROM node:23.11.1-alpine3.21 AS builder
 
 RUN apk update
 RUN apk add --no-cache python3 make g++
@@ -16,7 +16,7 @@ WORKDIR /usr/src/app/backend
 RUN yarn
 RUN yarn build
 
-FROM node:alpine
+FROM node:23.11.1-alpine3.21
 
 WORKDIR /usr/src/app
 
