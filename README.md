@@ -11,7 +11,6 @@
 <div align="center">
 
 [![Prs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields)](http://makeapullrequest.com)
-[![Join Discord Server](https://img.shields.io/badge/discord%20community-join-blue)](https://discord.gg/4xhumff9BX)
 ![Github Commit Activity](https://img.shields.io/github/commit-activity/m/metlo-labs/metlo)
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/metlo-labs/metlo/build.yml?branch=develop)
 [![License](https://img.shields.io/badge/license-MIT-brightgreen)](/LICENSE)
@@ -30,27 +29,8 @@ Metlo is an open source API security tool you can setup in < 15 minutes that inv
 * **Proactively test your APIs before they go into production.**
 
 ## Get started for free!
-<a href="https://app.metlo.com">
-  <img src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/cloud-button.svg" alt="drawing" height="40"/>
-</a>
-<a href="https://my.metlo.com">
-  <img src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/self-hosted-button.svg" alt="drawing" height="40"/>
-</a>
-<a href="https://demo.metlo.com">
-  <img src="https://metlo-api-security-public.s3.us-west-2.amazonaws.com/demo-button.svg" alt="drawing" height="40"/>
-</a>
-<br/>
-<br/>
-
-There are three ways to get started with Metlo. Metlo Cloud, Metlo Self Hosted, and our Open Source product. We recommend Metlo Cloud for almost all users as it scales to billions of requests per month and all upgrades and migrations are managed for you.
-
-You can get started with Melto Cloud right away without a credit card. Just make an account on https://app.metlo.com and follow the instructions in our docs [here](https://docs.metlo.com/docs/getting-started).
-
-Although we highly recommend Metlo Cloud, if you're a large company or need an air-gapped system you can self host Metlo as well! Create an account on https://my.metlo.com and follow the instructions on our docs [here](https://docs.metlo.com/docs/metlo-self-hosted) to setup Metlo in your own Cloud environment.
 
 If you want to deploy our Open Source product we have instructions for [AWS](https://docs.metlo.com/docs/deploy-to-aws), [GCP](https://docs.metlo.com/docs/deploy-to-gcp), [Azure](https://docs.metlo.com/docs/deploy-to-azure) and [Docker](https://docs.metlo.com/docs/deploy-to-docker).
-
-You can also join our [Discord community](https://discord.gg/4xhumff9BX) if you need help or just want to chat!
 
 ## Features
 
@@ -117,10 +97,6 @@ There’s been a 200% increase in API security breaches in just the last year wi
 It's obvious that tools are needed to help security teams make APIs more secure but there's no *great* solution on the market.
 
 Some solutions require you to go through sales calls to even try the product while others have you to send all your API traffic to their own cloud. **Metlo is the first Open Source API security platform that you can self host, and get started for free right away!**
-
-## We're Hiring!
-
-We would love for you to come help us make Metlo better. [Come join us at Metlo!](mailto:akshay@metlo.com)
 
 ## Open-source vs. paid
 
