@@ -37,8 +37,12 @@ export const populateEndpointPerms = async (
         parameters.push(endpointRule.path)
       }
       if (endpointRule.method) {
-        query.push(`(method = $${argNumber++})`)
-        parameters.push(endpointRule.method)
+        query.push(`(method =ANY($${argNumber++}))`)
+        if (Array.isArray(endpointRule.method)) {
+          parameters.push(endpointRule.method)
+        } else {
+          parameters.push([endpointRule.method])
+        }
       }
       if (endpointRule.contains_resource) {
         query.push(`(entity_map #> $${argNumber++} IS NOT NULL)`)
