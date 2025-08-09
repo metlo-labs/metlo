@@ -64,7 +64,7 @@ const TraceList: React.FC<TraceListProps> = React.memo(
     )
 
     useEffect(() => {
-      traces.forEach(currTrace => {
+      traces?.forEach(currTrace => {
         if (currTrace.uuid === uuid) {
           setTrace(currTrace)
         }
@@ -154,16 +154,36 @@ const TraceList: React.FC<TraceListProps> = React.memo(
         name: "Path",
         sortable: true,
         selector: (row: ApiTrace) => `${row.method}-${row.path}`,
-        cell: (row: ApiTrace) => (
-          <Code
-            p="1"
-            fontSize="sm"
-            pointerEvents="none"
-            data-tag="allowRowEvents"
-          >
-            {row.path}
-          </Code>
-        ),
+        cell: (row: ApiTrace) =>
+          topEndpointsView ? (
+            <VStack
+              pointerEvents="none"
+              spacing={2}
+              alignItems="flex-start"
+              fontWeight="medium"
+              fontFamily="mono"
+              color="gray.900"
+            >
+              <Text pointerEvents="none" fontWeight="normal">
+                {row.host}
+              </Text>
+              <HStack alignItems="flex-start">
+                <Text fontWeight="semibold" wordBreak="keep-all">
+                  {row.method}
+                </Text>
+                <Text noOfLines={3}>{row.path}</Text>
+              </HStack>
+            </VStack>
+          ) : (
+            <Code
+              p="1"
+              fontSize="sm"
+              pointerEvents="none"
+              data-tag="allowRowEvents"
+            >
+              {row.path}
+            </Code>
+          ),
         grow: 3,
         id: "path",
       },
